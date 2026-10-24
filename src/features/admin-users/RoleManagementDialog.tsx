@@ -40,7 +40,7 @@ export function RoleManagementDialog({
               <Shield className="h-5 w-5" />
             </div>
             <div>
-              <DialogTitle className="text-xl font-bold text-[color:var(--ink)]">
+              <DialogTitle className="text-xl font-medium text-[color:var(--ink)]">
                 Manage Roles & Access
               </DialogTitle>
               <DialogDescription className="text-xs text-muted-foreground">
@@ -54,7 +54,7 @@ export function RoleManagementDialog({
         <div className="rounded-lg border border-border/60 bg-muted/30 p-3 text-xs">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
-              <span className="font-semibold text-[color:var(--ink)]">
+              <span className="font-medium text-[color:var(--ink)]">
                 {user.display_name ?? "Unnamed Account"}
               </span>
               <span className="ml-2 font-mono text-muted-foreground">({user.email ?? "—"})</span>
@@ -71,7 +71,7 @@ export function RoleManagementDialog({
                 <Badge
                   key={r}
                   variant="outline"
-                  className={`text-[11px] font-bold ${ROLE_BADGE_STYLES[r]}`}
+                  className={`text-[11px] font-medium ${ROLE_BADGE_STYLES[r]}`}
                 >
                   {ROLE_DISPLAY_NAMES[r]}
                 </Badge>
@@ -94,11 +94,11 @@ export function RoleManagementDialog({
               >
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className={`text-xs font-bold ${def.badgeStyle}`}>
+                    <Badge variant="outline" className={`text-xs font-medium ${def.badgeStyle}`}>
                       {def.title}
                     </Badge>
                     {hasRole && (
-                      <span className="flex items-center text-[11px] font-bold text-emerald-600 dark:text-emerald-400">
+                      <span className="flex items-center text-[11px] font-medium text-emerald-600 dark:text-emerald-400">
                         <Check className="mr-1 h-3.5 w-3.5" /> Active
                       </span>
                     )}
@@ -113,7 +113,7 @@ export function RoleManagementDialog({
                       variant="outline"
                       disabled={isMutating}
                       onClick={() => onRevokeRole(user.user_id, def.role)}
-                      className="h-8 border-destructive/30 text-xs font-bold text-destructive hover:bg-destructive/10 hover:text-destructive"
+                      className="h-8 border-destructive/30 text-xs font-medium text-destructive hover:bg-destructive/10 hover:text-destructive"
                     >
                       <Minus className="mr-1 h-3.5 w-3.5" /> Revoke
                     </Button>
@@ -122,7 +122,7 @@ export function RoleManagementDialog({
                       size="sm"
                       disabled={isMutating}
                       onClick={() => onGrantRole(user.user_id, def.role)}
-                      className="h-8 text-xs font-bold"
+                      className="h-8 text-xs font-medium"
                     >
                       <Plus className="mr-1 h-3.5 w-3.5" /> Grant Role
                     </Button>

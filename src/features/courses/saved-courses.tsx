@@ -185,7 +185,7 @@ export function CourseSaveButton({
           />
         </Button>
         {compact ? (
-          <span className="min-w-4 shrink-0 whitespace-nowrap text-right text-sm font-bold leading-none text-[color:var(--ink)]">
+          <span className="min-w-4 shrink-0 whitespace-nowrap text-right text-sm font-medium leading-none text-[color:var(--ink)]">
             {formatSavedCourseCount(saveCount)}
           </span>
         ) : null}

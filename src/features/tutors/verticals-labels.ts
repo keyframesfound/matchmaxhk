@@ -13,7 +13,7 @@ import {
 
 /**
  * Issue #190: display labels for the stored vertical vocabularies
- * (src/features/tutors/verticals.ts). The stored values are DATA — they
+ * (src/features/tutors/verticals.ts). The stored values are DATA, they
  * appear in tutors.target_students, tutors.subjects and
  * tutoring_cases.academic_tier / kindergarten_focus and never change;
  * labels localize through literal i18n keys (verticals.* in
@@ -34,10 +34,10 @@ const TOPIC_LABEL_KEYS: Record<KindergartenTopic, string> = {
   "Kindergarten English Writing": "verticals.topic.writing",
   "Kindergarten Mandarin Immersion": "verticals.topic.mandarin",
   "Kindergarten Basic Mathematics": "verticals.topic.basic_maths",
-  "P1 Interview — Communication & Etiquette": "verticals.topic.p1_etiquette",
-  "P1 Interview — Group Play Observation": "verticals.topic.p1_group_play",
-  "P1 Interview — Storytelling & Role-play": "verticals.topic.p1_storytelling",
-  "P1 Interview — General Knowledge": "verticals.topic.p1_general",
+  "P1 Interview, Communication & Etiquette": "verticals.topic.p1_etiquette",
+  "P1 Interview, Group Play Observation": "verticals.topic.p1_group_play",
+  "P1 Interview, Storytelling & Role-play": "verticals.topic.p1_storytelling",
+  "P1 Interview, General Knowledge": "verticals.topic.p1_general",
 };
 
 const YEAR_LABEL_KEYS: Record<YearOfStudy, string> = {

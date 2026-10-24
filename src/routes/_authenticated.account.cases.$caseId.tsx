@@ -95,7 +95,7 @@ function ParentCaseDetailPage() {
         ) : (
           <div className="space-y-6">
             <div>
-              <h1 className="text-2xl font-semibold tracking-tight text-[color:var(--ink)]">
+              <h1 className="text-2xl font-medium tracking-tight text-[color:var(--ink)]">
                 {data.case_code} · {data.title}
               </h1>
               <p className="mt-1 text-sm text-muted-foreground">
@@ -119,7 +119,7 @@ function ParentCaseDetailPage() {
 
             {/* Lesson timeline */}
             <section className="space-y-2">
-              <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+              <h2 className="text-sm font-medium text-muted-foreground">
                 {t("sor.parent_lessons_title")}
               </h2>
               {data.lessons.length === 0 && (
@@ -168,10 +168,10 @@ function ParentCaseDetailPage() {
               ))}
             </section>
 
-            {/* Slot request (#204) — fee_paid|active cases only */}
+            {/* Slot request (#204), fee_paid|active cases only */}
             {data.canRequestSlot && (
               <section className="space-y-2">
-                <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
+                <h2 className="text-sm font-medium text-muted-foreground">
                   {t("sor.parent_slots_title")}
                 </h2>
                 {data.slots.length === 0 ? (
@@ -179,7 +179,7 @@ function ParentCaseDetailPage() {
                 ) : (
                   data.slotDays.map((day) => (
                     <div key={day} className="flex flex-wrap items-center gap-2">
-                      <span className="w-24 text-xs font-semibold text-muted-foreground">
+                      <span className="w-24 text-xs font-medium text-muted-foreground">
                         {format(new Date(`${day}T00:00:00Z`), "EEE d MMM")}
                       </span>
                       {data.slots
@@ -202,13 +202,13 @@ function ParentCaseDetailPage() {
               </section>
             )}
 
-            {/* Issue #412 F: engagement summary — dual-party confirmation
+            {/* Issue #412 F: engagement summary, dual-party confirmation
                 before contact details / lesson start are finalised. */}
             <EngagementSummaryCard caseId={caseId} party="customer" />
 
             <ReviewSection caseId={caseId} detail={data} onChanged={invalidate} />
 
-            {/* #387: tutor-logged sessions — one-click dispute + 72h hint */}
+            {/* #387: tutor-logged sessions, one-click dispute + 72h hint */}
             <SessionLogsSection logs={data.session_logs} onChanged={invalidate} />
           </div>
         )}
@@ -219,7 +219,7 @@ function ParentCaseDetailPage() {
 }
 
 /**
- * #387 — tutor-logged sessions on the parent's case surface. A pending row
+ * #387, tutor-logged sessions on the parent's case surface. A pending row
  * shows the 72h auto-verify countdown and a one-click "Dispute / Did not
  * happen"; a disputed row stays visible with 0 hours counted.
  */
@@ -254,9 +254,7 @@ function SessionLogsSection({
 
   return (
     <section className="space-y-2">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        {t("experience.parent_title")}
-      </h2>
+      <h2 className="text-sm font-medium text-muted-foreground">{t("experience.parent_title")}</h2>
       <ul className="space-y-2">
         {logs.map((l) => (
           <li key={l.id} className="rounded-lg border border-[color:var(--ink)]/10 p-3">
@@ -352,7 +350,7 @@ function ReviewSection({
         // #386 confirmation copy for the fee-settlement hold.
         toast.success(t("sor.parent_review_fee_hold"));
       } else if (feeHoldKind(res.heldReason) === "combined") {
-        // #386: fee hold + contact filter — both halves must be explained.
+        // #386: fee hold + contact filter, both halves must be explained.
         toast.success(t("sor.parent_review_fee_hold_combined"));
       } else {
         toast.success(t("sor.parent_review_held"));
@@ -379,9 +377,7 @@ function ReviewSection({
 
   return (
     <section id="review" className="space-y-2">
-      <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-        {t("sor.parent_review_title")}
-      </h2>
+      <h2 className="text-sm font-medium text-muted-foreground">{t("sor.parent_review_title")}</h2>
       {myReview && hasVisibleOrHeld && !editing ? (
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">

@@ -123,7 +123,7 @@ function SettingsCard({
   return (
     <section id={id} className="scroll-mt-24 rounded-lg border border-border bg-card">
       <div className="border-b border-border px-6 py-4">
-        <h3 className="text-base font-bold tracking-tight text-[color:var(--ink)]">{title}</h3>
+        <h3 className="text-base font-medium tracking-tight text-[color:var(--ink)]">{title}</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
       </div>
       <div className="flex flex-col gap-4 px-6 py-5">{children}</div>
@@ -193,7 +193,7 @@ function DropZone({
             : "opacity-0 group-hover:opacity-100 group-focus-within:opacity-100",
         )}
       >
-        <span className="inline-flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1.5 text-xs font-semibold text-white">
+        <span className="inline-flex items-center gap-1.5 rounded-md bg-black/60 px-2.5 py-1.5 text-xs font-medium text-white">
           <Upload className="h-3.5 w-3.5" />
           {uploading ? "Uploading…" : currentUrl ? "Replace" : "Upload"}
         </span>
@@ -707,7 +707,7 @@ export function ProfilePanel() {
                     className="space-y-2 rounded-lg border border-border bg-muted/30 p-4"
                   >
                     <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs font-semibold text-muted-foreground">
+                      <p className="text-xs font-medium text-muted-foreground">
                         Question {index + 1}
                       </p>
                       <Button
@@ -860,7 +860,7 @@ export function ProfilePanel() {
                 loading={saving}
                 disabled={!isDirty || saving}
                 onClick={() => void saveProfile()}
-                className="font-bold"
+                className="font-medium"
               >
                 Save changes
               </Button>
@@ -872,7 +872,7 @@ export function ProfilePanel() {
       {/* Live preview rail */}
       <aside className="min-w-0 self-start lg:sticky lg:top-6">
         <div className="rounded-lg border border-border bg-card p-5">
-          <p className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
+          <p className="flex items-center gap-2 text-xs font-medium text-muted-foreground">
             <Sparkles className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]" />
             Improve your profile
           </p>
@@ -920,7 +920,7 @@ export function ProfilePanel() {
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#1d9bf0] opacity-75 motion-reduce:hidden" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-[#1d9bf0]" />
             </span>
-            <p className="text-xs font-semibold text-muted-foreground">Live preview</p>
+            <p className="text-xs font-medium text-muted-foreground">Live preview</p>
           </div>
           <ProfilePreview data={previewData} />
         </div>

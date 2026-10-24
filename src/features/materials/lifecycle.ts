@@ -3,7 +3,7 @@
  * marketplace lifecycle. Everything here is deliberately free of Supabase /
  * TanStack imports so the vitest suite can exercise the status machine,
  * validation and money rules directly (server fns are not testable
- * end-to-end — see tests/materials/orders.test.ts for the precedent).
+ * end-to-end, see tests/materials/orders.test.ts for the precedent).
  */
 
 import { getSubjectOptionsForCategory } from "../tutors/subjects";
@@ -33,7 +33,7 @@ export const CRISP_PREVIEW_PAGES = 3;
 
 /**
  * Extended preview length (Ryan, 2026-10-11): roughly 30% of the document,
- * clamped to [5, 12] pages — enough to blur meaningfully like Clastify,
+ * clamped to [5, 12] pages, enough to blur meaningfully like Clastify,
  * cheap enough to stamp at upload.
  */
 export function extendedPreviewPageLimit(pageCount: number): number {
@@ -51,7 +51,7 @@ export type SubmitCheckResult = {
 /**
  * P8 required-before-submit gate: title, price, PDF. (The sample images are
  * auto-generated from the PDF at upload, so they are never a tutor duty.)
- * #314: HK$0 is a VALID price (free pack) — only null/negative is missing.
+ * #314: HK$0 is a VALID price (free pack), only null/negative is missing.
  */
 export function checkSubmitReadiness(input: {
   title?: string | null;
@@ -101,12 +101,12 @@ export function splitMaterialMoney(grossHkd: number): {
 }
 
 /**
- * #392 Topic Folder upgrade proration (pure, money-critical — unit-tested):
+ * #392 Topic Folder upgrade proration (pure, money-critical, unit-tested):
  * a buyer who already holds delivered orders on folder children pays the
  * bulk price minus what they already paid for those children, floored at 0.
  * `paidChildGross` is the list of gross_hkd over the buyer's DELIVERED
  * orders on the folder's children (grant rows carry gross 0, so grants
- * consume no credit but still mark the child as owned — the CALLER decides
+ * consume no credit but still mark the child as owned, the CALLER decides
  * ownership; this helper only does the arithmetic).
  */
 export function computeFolderAdjustedPrice(input: { bulkHkd: number; paidChildGross: number[] }): {
@@ -125,7 +125,7 @@ export function computeFolderAdjustedPrice(input: { bulkHkd: number; paidChildGr
 
 /**
  * #392: folder savings vs buying every child at list price, as a whole
- * percent (0 when the bulk price is not a saving). Pure — the editor's
+ * percent (0 when the bulk price is not a saving). Pure, the editor's
  * "Save HK$X (Y%)" line and the shop card badge share it.
  */
 export function folderSavingsPercent(bulkHkd: number, childrenSumHkd: number): number {
@@ -156,7 +156,7 @@ export function buildOrderReference(now: number = Date.now(), rand = Math.random
   return `MM-${stamp}${tail}`;
 }
 
-/** URL-safe listing slug (P8 publish step): "IB Physics HL — Waves" → ib-physics-hl-waves. */
+/** URL-safe listing slug (P8 publish step): "IB Physics HL, Waves" → ib-physics-hl-waves. */
 export function buildMaterialSlug(title: string, suffix?: string): string {
   const base = title
     .normalize("NFKD")
@@ -231,7 +231,7 @@ export function boughtListAction(status: string): "download" | "refunded" | "pre
 
 /**
  * P12/P8: which listing events ring a bell in this PR. Only delivery does
- * (buyer + tutor) — the #205 event bus owns everything else later.
+ * (buyer + tutor), the #205 event bus owns everything else later.
  */
 export const BELL_EVENTS_IN_PR = ["material_order.delivered"] as const;
 
@@ -247,7 +247,7 @@ export type NoteCurriculum = (typeof NOTE_CURRICULA)[number];
 
 /**
  * #314: flashcards join the 3-way split. A deck is a PDF or an .apkg file
- * (max 40MB) — no in-browser player, buyers download the file. Subject
+ * (max 40MB), no in-browser player, buyers download the file. Subject
  * allowlist + ban list + staff review still apply.
  */
 export const MATERIAL_TYPES = ["notes", "mock", "exemplar", "flashcards"] as const;
@@ -257,7 +257,7 @@ export const NOTE_TOPIC_MAX_LEN = 40;
 export const GRADE_ACHIEVED_MAX_LEN = 20;
 
 /**
- * #136: tutor-entered approximate word count — OPTIONAL (Ryan: empty never
+ * #136: tutor-entered approximate word count, OPTIONAL (Ryan: empty never
  * blocks publish). When present it must be a positive whole number; the cap
  * just stops fat-fingered 9-digit values from landing in the DB.
  */
@@ -275,7 +275,7 @@ export function validateWordCount(value: number | null | undefined): string | nu
 /**
  * #314: which kind of file a listing carries, decided by extension. PDF is
  * valid for every type; an .apkg deck is only valid for flashcards (no
- * in-browser player — the buyer downloads the file).
+ * in-browser player, the buyer downloads the file).
  */
 export type MaterialFileKind = "pdf" | "apkg";
 
@@ -304,7 +304,7 @@ export function materialFileContentType(kind: MaterialFileKind): string {
  * getSubjectOptionsForCategory (the "Other" curriculum falls back to the
  * full catalog pool), so free-text junk (contact details, arbitrary
  * strings) has no legitimate path in. One escape hatch survives: the
- * note's OWN stored legacy subjectTag — the form re-renders it as an
+ * note's OWN stored legacy subjectTag, the form re-renders it as an
  * option so pre-#313 rows can be re-saved and migrated, so the stored
  * value is accepted (case-insensitively) alongside the catalog.
  */
@@ -323,7 +323,7 @@ export function isAllowedNoteSubject(
 }
 
 /** Legacy document_type values map onto the new 3-way type (mock_exam →
- * mock; everything else → notes — old coursework rows never carried the
+ * mock; everything else → notes, old coursework rows never carried the
  * exemplar permission confirmation). */
 export function legacyDocumentTypeToMaterialType(documentType: string): MaterialType {
   return documentType === "mock_exam" ? "mock" : "notes";
@@ -333,7 +333,7 @@ export function legacyDocumentTypeToMaterialType(documentType: string): Material
  * #313 merge with explicit-clear semantics (review fix): `null` / empty
  * clears a stored value, `undefined` keeps it. Whenever the effective type
  * is not exemplar, grade_achieved is dropped and exemplar_permission is
- * reset — a switched-away exemplar must never keep stale grade/permission
+ * reset, a switched-away exemplar must never keep stale grade/permission
  * data that later fails validation (or leaks to the public card).
  */
 export function mergeNoteKinds(
@@ -396,7 +396,7 @@ export function mergeNoteKinds(
  * #313 strict validation at submit time: curriculum, subject and type are
  * required; topic/grade respect their caps; grade achieved is exemplar-only;
  * exemplars must carry the written-permission confirmation. Returns
- * human-readable problems (server errors) — empty array means clean.
+ * human-readable problems (server errors), empty array means clean.
  */
 export function validateNoteKindsForSubmit(
   input: {
@@ -420,7 +420,7 @@ export function validateNoteKindsForSubmit(
   if (subject.length === 0) errors.push("Subject is required.");
   else if (subject.length > 160) errors.push("Subject is too long (160 characters max).");
   // #346: the forms can only send catalog values (plus the note's own
-  // stored legacy subject) — reject anything else on this authed path.
+  // stored legacy subject), reject anything else on this authed path.
   else if (!isAllowedNoteSubject(curriculum, subject, storedSubject)) {
     errors.push("Subject must be selected from the list for the chosen curriculum.");
   }

@@ -8,7 +8,7 @@ import { GIG_ORDER_STATUSES, gigFulfillmentDueAt, transitionGigOrder } from "@/f
 import type { StatusGuardedOrderUpdate } from "@/features/gigs/gig";
 
 /**
- * Issues #326/#328/#329 — the STAFF side of freestyle gigs: the orders-desk
+ * Issues #326/#328/#329, the STAFF side of freestyle gigs: the orders-desk
  * fulfillment queue, the #328 ghosting sweep + hidden ghost strikes, and the
  * FPS confirm / staff-refund actions. Mirrors the notes cashier in
  * orders-desk.functions.ts / checkout.functions.ts:
@@ -16,7 +16,7 @@ import type { StatusGuardedOrderUpdate } from "@/features/gigs/gig";
  *     service-role query;
  *   - buyer identity never crosses the surface (no phone/email/name; the
  *     buyer_account_id column is not even selected);
- *   - the money split is already on the order row from checkout — never
+ *   - the money split is already on the order row from checkout, never
  *     recomputed here;
  *   - `tutor_ghost_strikes` is SELECT-locked to staff by RLS and written
  *     service-role only (no insert policy on purpose).
@@ -63,7 +63,7 @@ export type GhostStrikeRow = {
  * The update patch for confirming an FPS payment on a gig order: the order
  * jumps awaiting_payment -> in_fulfillment and the #328 fail-safe clock
  * starts (paid_at + stated turnaround, 48h default). Extracted pure for
- * tests — the caller must have already validated the status transition.
+ * tests, the caller must have already validated the status transition.
  */
 export function buildGigPaidPatch(input: {
   now: Date;
@@ -112,7 +112,7 @@ export function shouldStrikeOnStaffRefund(pastDueAt: string | null): boolean {
  * document_review gig without the recorded integrity confirmation must be
  * blocked from publishing (the tutor's checkbox timestamp is the evidence).
  * Returns the human-readable blocker, or null when approval may proceed.
- * Extracted pure for tests. Notes approval never calls this — gigs only.
+ * Extracted pure for tests. Notes approval never calls this, gigs only.
  */
 export function gigApprovalBlocker(row: {
   materialType: string;
@@ -188,7 +188,7 @@ type GigOrderWithListing = {
 
 /**
  * The services half of the orders desk. Runs the #328 sweep FIRST (lazy
- * clock — no cron), then lists every gig order with all fulfillment
+ * clock, no cron), then lists every gig order with all fulfillment
  * columns. Buyer identity is never selected.
  */
 export const listGigDeskOrders = createServerFn({ method: "POST" })
@@ -276,7 +276,7 @@ export const markGigOrderPaid = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if (!order) throw new Error("Order not found.");
     if (!order.digital_materials) {
-      // Join safety: the listing vanished — refuse rather than guess.
+      // Join safety: the listing vanished, refuse rather than guess.
       throw new Error("The listing for this order could not be found.");
     }
     if (order.digital_materials.material_type !== "gig") {
@@ -298,13 +298,13 @@ export const markGigOrderPaid = createServerFn({ method: "POST" })
     )
       .update(patch)
       .eq("id", order.id)
-      // #374: lose the race, not the state — a concurrent desk action that
+      // #374: lose the race, not the state, a concurrent desk action that
       // already moved the status makes this 0 rows and the call fails loudly.
       .eq("status", order.status)
       .select("id");
     if (updateError) throw new Error(updateError.message);
     if (!updatedRows || updatedRows.length === 0) {
-      throw new Error("The order was just updated elsewhere — refresh the desk and retry.");
+      throw new Error("The order was just updated elsewhere, refresh the desk and retry.");
     }
     return { ok: true, status: next, fulfillmentDueAt: patch.fulfillment_due_at };
   });
@@ -312,7 +312,7 @@ export const markGigOrderPaid = createServerFn({ method: "POST" })
 /**
  * Staff refund at any pre-refunded gig stage. When the order was past_due
  * (the sweep had already flipped it) the tutor ALSO receives a hidden ghost
- * strike — one per order, enforced by the UNIQUE(order_id) plus the
+ * strike, one per order, enforced by the UNIQUE(order_id) plus the
  * unique-violation swallow below, so re-refunding can never double-strike.
  * The refund itself is not gated on the strike insert succeeding beyond
  * real DB errors: a duplicate strike is success (already struck).
@@ -347,13 +347,13 @@ export const staffRefundGigOrder = createServerFn({ method: "POST" })
     )
       .update({ status: next })
       .eq("id", order.id)
-      // #374: status guard — a concurrent refund/deliver makes this 0 rows
+      // #374: status guard, a concurrent refund/deliver makes this 0 rows
       // and the desk call fails loudly instead of silently re-refunding.
       .eq("status", order.status)
       .select("id");
     if (updateError) throw new Error(updateError.message);
     if (!updatedRows || updatedRows.length === 0) {
-      throw new Error("The order was just updated elsewhere — refresh the desk and retry.");
+      throw new Error("The order was just updated elsewhere, refresh the desk and retry.");
     }
 
     let struck = false;
@@ -373,7 +373,7 @@ export const staffRefundGigOrder = createServerFn({ method: "POST" })
   });
 
 /**
- * The hidden ghost-strike ledger — staff/ops visibility only (RLS enforces
+ * The hidden ghost-strike ledger, staff/ops visibility only (RLS enforces
  * the same restriction on the client side). Optional tutor filter for the
  * tutor-admin surface; defaults to the 100 most recent.
  */
@@ -414,7 +414,7 @@ export const listGhostStrikes = createServerFn({ method: "POST" })
     }));
   });
 
-/** materials-originals is PRIVATE — the buyer's file_back source lives at
+/** materials-originals is PRIVATE, the buyer's file_back source lives at
  * gigs-orders/<orderId>/source.<pdf|docx> (written by uploadGigSourceFile). */
 const GIG_SOURCE_BUCKET = "materials-originals";
 
@@ -429,7 +429,7 @@ export const getGigOrderSourceUrl = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) => z.object({ orderId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const db = await assertGigStaffDb(context.supabase, context.userId);
-    // #374: mirror the tutor gate's shape — the order must belong to a gig
+    // #374: mirror the tutor gate's shape, the order must belong to a gig
     // listing, the gig must be file_back, and the order must sit in an open
     // fulfillment state before the buyer's source document is signed.
     const { data: order, error } = await db

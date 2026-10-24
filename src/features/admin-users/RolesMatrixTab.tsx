@@ -21,7 +21,7 @@ export function RolesMatrixTab({ users }: RolesMatrixTabProps) {
     <div className="space-y-6">
       <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h3 className="text-lg font-bold tracking-tight text-[color:var(--ink)]">
+          <h3 className="text-lg font-medium tracking-tight text-[color:var(--ink)]">
             Roles & Capabilities Matrix
           </h3>
           <p className="text-xs text-muted-foreground">
@@ -45,11 +45,11 @@ export function RolesMatrixTab({ users }: RolesMatrixTabProps) {
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-2">
-                  <Badge variant="outline" className={`text-xs font-bold ${def.badgeStyle}`}>
+                  <Badge variant="outline" className={`text-xs font-medium ${def.badgeStyle}`}>
                     <Shield className="mr-1 h-3 w-3" />
                     {def.title}
                   </Badge>
-                  <span className="rounded-full bg-muted/80 px-2.5 py-0.5 text-[11px] font-bold text-muted-foreground">
+                  <span className="rounded-full bg-muted/80 px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
                     {userCount} {userCount === 1 ? "User" : "Users"}
                   </span>
                 </div>
@@ -75,7 +75,7 @@ export function RolesMatrixTab({ users }: RolesMatrixTabProps) {
                 <span>
                   Slug: <code className="text-xs">{def.role}</code>
                 </span>
-                <span className="text-[10px] font-semibold text-muted-foreground/80">
+                <span className="text-[10px] font-medium text-muted-foreground/80">
                   {def.role === "super_admin" ? "System Core" : "Application Role"}
                 </span>
               </div>

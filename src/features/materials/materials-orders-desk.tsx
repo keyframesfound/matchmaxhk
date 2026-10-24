@@ -49,7 +49,7 @@ import {
 /**
  * #203 manual cashier queue on /admin/materials, split #328 into Notes and
  * Services. One row per order: reference, item, gross, status, screenshot
- * viewer, and the action ladder — notes keep mark-paid → release (or
+ * viewer, and the action ladder, notes keep mark-paid → release (or
  * reject); gig orders confirm FPS (→ in_fulfillment, the fail-safe clock
  * starts), show their fulfillment state (due date, past-due highlight,
  * parent refund request), and offer the staff refund (which ghost-strikes
@@ -80,15 +80,15 @@ function formatHkt(iso: string | null): string {
 
 function gigStatusChipClass(status: string): string {
   if (status === "delivered") {
-    return "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-700";
+    return "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700";
   }
   if (status === "in_fulfillment") {
-    return "rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-700";
+    return "rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700";
   }
   if (status === "past_due") {
-    return "rounded-md bg-rose-500/10 px-2 py-0.5 text-xs font-bold text-rose-700";
+    return "rounded-md bg-rose-500/10 px-2 py-0.5 text-xs font-medium text-rose-700";
   }
-  return "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-bold text-slate-600";
+  return "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-medium text-slate-600";
 }
 
 export function MaterialsOrdersDesk() {
@@ -147,7 +147,7 @@ export function MaterialsOrdersDesk() {
   const releaseMutation = useMutation({
     mutationFn: (orderId: string) => releaseOrder({ data: { orderId } }),
     onSuccess: () => {
-      toast.success("Released — the buyer can download now.");
+      toast.success("Released, the buyer can download now.");
       void invalidate();
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Release failed."),
@@ -156,7 +156,7 @@ export function MaterialsOrdersDesk() {
   const rejectMutation = useMutation({
     mutationFn: (input: { orderId: string; reason: string }) => rejectOrder({ data: input }),
     onSuccess: () => {
-      toast.success("Order rejected — the buyer can re-pay.");
+      toast.success("Order rejected, the buyer can re-pay.");
       void invalidate();
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Failed."),
@@ -178,7 +178,7 @@ export function MaterialsOrdersDesk() {
       toast.error(error instanceof Error ? error.message : "No source file attached."),
   });
 
-  // #328: staff confirm FPS on a gig order — awaiting_payment jumps to
+  // #328: staff confirm FPS on a gig order, awaiting_payment jumps to
   // in_fulfillment and the tutor's turnaround clock starts.
   const markGigPaidMutation = useMutation({
     mutationFn: (input: { orderId: string; fpsReference: string }) =>
@@ -244,7 +244,7 @@ export function MaterialsOrdersDesk() {
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-base font-bold">Orders</h3>
+        <h3 className="text-base font-medium">Orders</h3>
         <p className="text-sm text-[color:var(--ink)]/65">
           {pending + gigPending > 0
             ? t("gigs.admin_desk_awaiting", { count: pending + gigPending })
@@ -267,8 +267,8 @@ export function MaterialsOrdersDesk() {
             onClick={() => setTab(key)}
             className={
               tab === key
-                ? "rounded-md border border-border bg-muted px-3 py-1 text-xs font-bold"
-                : "rounded-md border border-transparent px-3 py-1 text-xs font-bold text-[color:var(--ink)]/60 hover:bg-muted/60"
+                ? "rounded-md border border-border bg-muted px-3 py-1 text-xs font-medium"
+                : "rounded-md border border-transparent px-3 py-1 text-xs font-medium text-[color:var(--ink)]/60 hover:bg-muted/60"
             }
           >
             {t(TAB_LABEL_KEYS[key])}
@@ -302,10 +302,10 @@ export function MaterialsOrdersDesk() {
                       <span
                         className={
                           order.status === "delivered"
-                            ? "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-700"
+                            ? "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700"
                             : order.status === "awaiting_payment"
-                              ? "rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-700"
-                              : "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-bold text-slate-600"
+                              ? "rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700"
+                              : "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-medium text-slate-600"
                         }
                       >
                         {order.status.replace(/_/g, " ")}
@@ -401,7 +401,7 @@ export function MaterialsOrdersDesk() {
                   >
                     <ConsoleTd className="font-mono text-xs">{order.reference || "—"}</ConsoleTd>
                     <ConsoleTd className="max-w-[16rem]">
-                      <span className="block truncate font-semibold text-[color:var(--ink)]">
+                      <span className="block truncate font-medium text-[color:var(--ink)]">
                         {order.listingTitle}
                       </span>
                       <span className="block truncate text-xs text-[color:var(--ink)]/55">
@@ -425,7 +425,7 @@ export function MaterialsOrdersDesk() {
                         </span>
                       )}
                       {order.refundRequestedAt && (
-                        <span className="mt-1 block text-xs font-bold text-rose-700">
+                        <span className="mt-1 block text-xs font-medium text-rose-700">
                           {t("gigs.admin_desk_refund_requested", {
                             date: formatHkt(order.refundRequestedAt),
                           })}
@@ -530,7 +530,7 @@ export function MaterialsOrdersDesk() {
       ---------------------------------------------------------------- */}
       <div className="mt-6 space-y-2 rounded-md border border-border p-4">
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <h4 className="text-sm font-bold">{t("gigs.admin_strikes_title")}</h4>
+          <h4 className="text-sm font-medium">{t("gigs.admin_strikes_title")}</h4>
           <Label htmlFor="ghost-strike-filter" className="sr-only">
             {t("gigs.admin_strikes_filter_label")}
           </Label>
@@ -597,7 +597,7 @@ export function MaterialsOrdersDesk() {
               {t("gigs.admin_desk_cancel")}
             </Button>
             <Button
-              className="font-bold"
+              className="font-medium"
               disabled={refundReason.trim().length < 3 || gigRefundMutation.isPending}
               onClick={() =>
                 refundTarget &&

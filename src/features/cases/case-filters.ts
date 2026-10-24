@@ -1,14 +1,14 @@
-// Issue #423 ship-order step 5 — Advanced Filters for the case board.
+// Issue #423 ship-order step 5, Advanced Filters for the case board.
 //
 // Pure functions only: URL-param parsing, the board-item predicate and the
 // active-filter count. The route file and the CasesSearch components stay
 // thin on top (house pattern: tutors/search-tiers.ts). Everything maps onto
-// data the board item actually carries — a filter with no backing column
+// data the board item actually carries, a filter with no backing column
 // (top-scorer, student grade free text) is deliberately not offered.
 //
 // Filter semantics on "either"-valued case fields: mode "either" accepts
 // both online and in-person tutors, so it matches either mode filter;
-// language "either" (no requirement) matches NO language filter — the
+// language "either" (no requirement) matches NO language filter, the
 // English/Cantonese filters find cases that REQUIRE that language.
 
 import { normalizeProfileTag } from "@/features/tutors/profile-tags";
@@ -26,7 +26,7 @@ export type CaseBoardFilters = {
   mode?: string;
   /** package_type: "ongoing_1_5" | "short_20" | "pro_bono" */
   fee?: string;
-  /** HKD rate bounds — a case matches when its budget range overlaps. */
+  /** HKD rate bounds, a case matches when its budget range overlaps. */
   rate_min?: number;
   rate_max?: number;
   /** tutor_background: "uni_student" | "official_examiner" */
@@ -37,7 +37,7 @@ export type CaseBoardFilters = {
   language?: string;
   /** SEN-friendly cases only. */
   sen?: boolean;
-  /** "||"-joined requirement tags — ALL must be on the case. */
+  /** "||"-joined requirement tags, ALL must be on the case. */
   tags?: string;
 };
 
@@ -54,7 +54,7 @@ export function parseCaseFeeParam(raw: unknown): string | undefined {
 }
 
 export function parseCaseRateParam(raw: unknown): number | undefined {
-  // "" and whitespace would Number() to 0 — treat them as absent, not zero.
+  // "" and whitespace would Number() to 0, treat them as absent, not zero.
   if (typeof raw === "string" && !raw.trim()) return undefined;
   const value = typeof raw === "number" ? raw : typeof raw === "string" ? Number(raw) : NaN;
   return Number.isInteger(value) && value >= 0 ? value : undefined;
@@ -161,7 +161,7 @@ export function matchesCaseFilters(
   return true;
 }
 
-/** Count for the Filters pill — only filters that live in the dialog. */
+/** Count for the Filters pill, only filters that live in the dialog. */
 export function countCaseAdvancedFilters(filters: CaseBoardFilters): number {
   return [
     filters.tier,

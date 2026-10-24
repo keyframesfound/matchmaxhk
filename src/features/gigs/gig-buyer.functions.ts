@@ -11,7 +11,7 @@ import {
 } from "@/features/gigs/gig";
 
 /**
- * Issues #328/#329: buyer-side controls for gig fulfillment orders — the
+ * Issues #328/#329: buyer-side controls for gig fulfillment orders, the
  * public gig's delivered count, the file_back source upload, and the
  * parent's past-due self-serve refund. Server-side service role throughout;
  * ownership is re-checked on every call (RLS does not apply to the service
@@ -23,7 +23,7 @@ export async function sweepPastDueGigOrders(db: ReturnType<typeof asAdminDb>): P
   try {
     await db.rpc("sweep_past_due_gig_orders", {});
   } catch {
-    // The sweep is advisory — if the RPC is missing (pre-migration env) or
+    // The sweep is advisory, if the RPC is missing (pre-migration env) or
     // hiccups, the read still returns and staff desk shows real statuses.
   }
 }
@@ -62,7 +62,7 @@ type GigOrderRow = {
  * #328 file_back upload: the buyer's ONE source document (PDF or DOCX, ≤
  * MAX_GIG_FILE_BYTES). Stored in the PRIVATE materials-originals bucket
  * under gigs-orders/<orderId>/ so only the service role (and the tutor's
- * fulfillment fn) can read it. Re-uploads replace the file (upsert) — the
+ * fulfillment fn) can read it. Re-uploads replace the file (upsert), the
  * tutor's desk always reads the latest source.
  */
 export const uploadGigSourceFile = createServerFn({ method: "POST" })
@@ -184,7 +184,7 @@ export const requestGigRefund = createServerFn({ method: "POST" })
     const { error: strikeError } = await db.from<never>("tutor_ghost_strikes").insert({
       tutor_id: order.tutor_id,
       order_id: order.id,
-      reason: "Past-due refund — parent requested",
+      reason: "Past-due refund, parent requested",
       created_by: context.userId,
     });
     if (strikeError) throw new Error(strikeError.message);

@@ -11,7 +11,7 @@ import {
   type TutorApplication,
 } from "@/lib/tutor-application.schema";
 /**
- * Issue #310 — go live on submit.
+ * Issue #310, go live on submit.
  *
  * Deterministic mapping from a stored tutor application (the jsonb `data`
  * written by submitTutorApplication) to a `tutors` INSERT payload. This is
@@ -51,7 +51,7 @@ export function mapApplicationFormatToLessonMode(
 /**
  * Splits a comma/newline-joined application answer (subjects, languages,
  * stations) into the card's string[] columns. Trims, drops empties, dedupes,
- * and caps each entry — the answers are picker-joined text, so this is a
+ * and caps each entry, the answers are picker-joined text, so this is a
  * faithful round-trip, not parsing prose.
  */
 export function splitApplicationList(value: string, maxEntries = 20): string[] {
@@ -167,7 +167,7 @@ export function buildTutorCardInsert(
     tutor_code: tutorCode,
     display_name: application.name,
     is_published: true,
-    // Issue #113: honor the application's quoting currency — the publish RPC
+    // Issue #113: honor the application's quoting currency, the publish RPC
     // COALESCEs to HKD and casts to supported_currency, and the
     // tutors_normalize_hkd trigger snapshots the HKD bounds.
     currency: toCurrencyCode(application.currency),
@@ -191,13 +191,13 @@ export function buildTutorCardInsert(
     self_introduction: application.selfIntroduction,
     qualifications_summary: buildQualificationsSummary(application),
     // The stored headline was required and contact-filtered, and may contain
-    // manual edits — it wins; the generator is only the fallback.
+    // manual edits, it wins; the generator is only the fallback.
     academic_headline:
       application.academicHeadline ||
       buildAcademicHeadline([
         { curriculum: application.curriculum, score: application.overallScore },
       ]),
-    // Issue #411: left NULL on insert — the BEFORE INSERT trigger seeds
+    // Issue #411: left NULL on insert, the BEFORE INSERT trigger seeds
     // custom_headline_en from the academic headline; ZH stays tutor-authored.
     custom_headline_en: null,
     custom_headline_zh: null,
@@ -217,7 +217,7 @@ export function buildTutorCardInsert(
     photo_url: photoUrl,
     portfolio_images: portfolioImages,
     created_by: null,
-    // Issue #358: intake SEN answers reach the card — the publish RPC carries
+    // Issue #358: intake SEN answers reach the card, the publish RPC carries
     // the sen_* columns since the 2026-10-18 hardening migration.
     sen_enabled: application.senEnabled === true,
     sen_categories: application.senEnabled ? application.senCategories : [],
@@ -226,7 +226,7 @@ export function buildTutorCardInsert(
 }
 
 /**
- * Issue #357 / #359 — last app-layer gate before a card is inserted.
+ * Issue #357 / #359, last app-layer gate before a card is inserted.
  *
  * Scans every free-text value the mapper copies onto the public card.
  * Photo and portfolio URLs are our own R2 links, so they are not scanned

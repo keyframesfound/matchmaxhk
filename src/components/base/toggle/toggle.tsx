@@ -28,7 +28,7 @@ const Toggle = React.forwardRef<React.ElementRef<typeof SwitchPrimitives.Root>, 
               <Label
                 htmlFor={toggleId}
                 className={cn(
-                  "cursor-pointer font-bold text-foreground",
+                  "cursor-pointer font-medium text-foreground",
                   size === "sm" ? "text-xs" : "text-sm",
                 )}
               >

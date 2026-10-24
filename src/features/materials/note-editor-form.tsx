@@ -34,7 +34,7 @@ import {
  * sees which sentence failed before the server rejects it, gates exemplars
  * on the written-permission checkbox, allows HK$0 (free pack), and takes an
  * OPTIONAL approximate word count (positive integer when present). A
- * flashcards file may be a PDF or an .apkg deck (max 20MB — the repo upload
+ * flashcards file may be a PDF or an .apkg deck (max 20MB, the repo upload
  * cap wins over the issue's 40MB); decks get no in-browser preview.
  */
 
@@ -76,7 +76,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   );
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
-  // Issue #214: the notes-terms gate — required for SUBMIT (drafts save
+  // Issue #214: the notes-terms gate, required for SUBMIT (drafts save
   // without it); the server fn re-validates and records the acceptance row.
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -164,8 +164,8 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   // Issue #214: submit (not draft) is also the notes-terms acceptance click.
   if (!termsAccepted) missing.push(t("terms.gate.missing"));
 
-  // #136: the approximate word count is OPTIONAL — empty never blocks
-  // publish — but a present value must be a positive whole number.
+  // #136: the approximate word count is OPTIONAL, empty never blocks
+  // publish, but a present value must be a positive whole number.
   const wordCountError = validateWordCount(wordCount.trim() === "" ? null : Number(wordCount));
   // A present-but-invalid file is also a hard block (#314): only PDFs and,
   // for flashcards, .apkg decks are accepted, and the repo upload cap is
@@ -422,7 +422,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
         )}
       </div>
 
-      {/* Issue #214: the notes-terms gate — required to submit for review;
+      {/* Issue #214: the notes-terms gate, required to submit for review;
           drafts save without it. Links the notes section of the ToS. */}
       <TermsGateCheckbox
         section="notes"
@@ -446,7 +446,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           type="submit"
           variant="solid"
           color="accent"
-          className="font-bold"
+          className="font-medium"
           disabled={
             saving ||
             blockedByContact ||

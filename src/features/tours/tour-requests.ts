@@ -2,7 +2,7 @@
  * Cross-component launch channel for the coach tours (issue #397).
  *
  * The tour components only mount on their own pages, but the header burger
- * menu is global — `requestTour` bridges that: it wakes a mounted tour via a
+ * menu is global, `requestTour` bridges that: it wakes a mounted tour via a
  * window event, or leaves the request queued for the tour's next mount (the
  * caller navigates there right after). Kept free of driver.js so the header
  * doesn't pull the tour engine into every page bundle.

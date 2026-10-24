@@ -29,7 +29,7 @@ export type Rows<T> = {
 
 /**
  * supabase-js update builder subset: chained filters return the builder
- * (which is also thenable AND has .catch — bus.functions relies on it);
+ * (which is also thenable AND has .catch, bus.functions relies on it);
  * awaiting resolves {error, count} (count populated only when requested —
  * #387 review: the predicate+rowCount race guard).
  */
@@ -114,7 +114,7 @@ function cleanNamePart(value: string): string {
     .slice(0, 60);
 }
 
-/** Private-original path: materials/<stamp>-<Tutor> - <Title>.pdf (or .apkg — #314). */
+/** Private-original path: materials/<stamp>-<Tutor> - <Title>.pdf (or .apkg, #314). */
 export function buildMaterialStorageName(fileName: string, tutorLabel: string): string {
   const apkg = /\.apkg$/i.test(fileName);
   const base = fileName.replace(/\.(pdf|apkg)$/i, "");
@@ -129,7 +129,7 @@ export function previewPathFor(originalPath: string): string {
 }
 
 /**
- * Parse a PDF with pdf-lib WITHOUT ignoreEncryption — password-protected
+ * Parse a PDF with pdf-lib WITHOUT ignoreEncryption, password-protected
  * files throw, which the callers surface as P8's "upload an unlocked file".
  */
 export async function assertPdfNotEncrypted(bytes: Uint8Array): Promise<number> {

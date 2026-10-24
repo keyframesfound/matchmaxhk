@@ -1,7 +1,7 @@
 import { KINDERGARTEN_TOPICS, TARGET_TEACHING_LEVELS, type TargetTeachingLevel } from "./verticals";
 
 /**
- * Issue #190 — pure list helpers shared by the admin TutorEditor and the
+ * Issue #190, pure list helpers shared by the admin TutorEditor and the
  * owner "My tutor profile" editor. Kept free of React/i18n so vitest can
  * cover them (tests/tutors/verticals-display.test.ts).
  */
@@ -108,7 +108,7 @@ export function courseGradeRowsToRecord(rows: CourseGradeRow[]): Record<string, 
   return out;
 }
 
-/** "ECON1210 — A+" — the public profile line format. */
+/** "ECON1210, A+", the public profile line format. */
 export function formatCourseGradeLine(row: CourseGradeRow): string {
-  return `${row.course} — ${row.grade}`;
+  return `${row.course}, ${row.grade}`;
 }

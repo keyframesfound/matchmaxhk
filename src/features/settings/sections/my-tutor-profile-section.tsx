@@ -90,7 +90,7 @@ import {
 } from "@/features/tutors/education-filters";
 
 /**
- * "My tutor profile" — full self-serve editing for tutors whose MatchMax
+ * "My tutor profile", full self-serve editing for tutors whose MatchMax
  * account is linked to a tutor card (tutors.user_id, set by admins in the
  * editor's Assigned Account section, issue #160). Saves go live immediately:
  * the tutors_owner_update RLS policy (also issue #160) allows the assigned
@@ -115,7 +115,7 @@ function sortTiersForCompare(tiers: { curriculum: string; rate: number }[]) {
     .sort((a, b) => a.curriculum.localeCompare(b.curriculum) || a.rate - b.rate);
 }
 
-/** Draft shape for the rate editor (issue #319) — strings so an empty input
+/** Draft shape for the rate editor (issue #319), strings so an empty input
  * stays distinguishable from a typed 0 while the tutor is mid-edit. #391:
  * each row carries its class mode and an optional 300-char description. */
 type RateRowDraft = { label: string; rate: string; mode: string; description: string };
@@ -146,7 +146,7 @@ type SavedRateColumns = {
   rate_note: string | null;
 };
 
-/** "10.0 MB" — evidence documents share the grade-slip 10 MB cap. */
+/** "10.0 MB", evidence documents share the grade-slip 10 MB cap. */
 function readableEvidenceSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
@@ -207,7 +207,7 @@ function parseRateInput(raw: string): number | null | "invalid" {
 }
 
 /**
- * Issue #319 — curricula the suggest-a-rate query anchors to. Exam systems
+ * Issue #319, curricula the suggest-a-rate query anchors to. Exam systems
  * use their display label ("IB Diploma"); pricing-tier curricula are the
  * tutor's own teachable curriculum names.
  */
@@ -239,7 +239,7 @@ export function MyTutorProfileSection() {
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [rates, setRates] = React.useState<RatesDraft | null>(null);
   // Issue #319 review: a mid-edit refetch (window focus, invalidation) must
-  // not clobber unsaved rate edits — same race class as the #323 headline
+  // not clobber unsaved rate edits, same race class as the #323 headline
   // fix. Once dirty, the draft only resets after a successful save.
   const ratesDirtyRef = React.useRef(false);
   const [suggestPending, setSuggestPending] = React.useState(false);
@@ -273,7 +273,7 @@ export function MyTutorProfileSection() {
     baselineFormRef.current = nextForm;
     if (!ratesDirtyRef.current) setRates(ratesFromRow(tutorQuery.data));
     // Epic #280 P2: preferred name is owner-editable, independent of the
-    // tutor code. Held outside TutorFormData — the shared admin schema
+    // tutor code. Held outside TutorFormData, the shared admin schema
     // derives display_name from tutor_code; owners set it directly.
     setPreferredName(tutorQuery.data.display_name ?? "");
   }, [tutorQuery.data]);
@@ -305,7 +305,7 @@ export function MyTutorProfileSection() {
   const loading = tutorQuery.isLoading;
 
   // Epic #280 P3 / issue #284: verified tutors cannot write credential fields
-  // directly (tutors_owner_verified_guard rejects the row) — changes go
+  // directly (tutors_owner_verified_guard rejects the row), changes go
   // through the evidence-gated review queue instead.
   const isVerified = (current?.verification_tier ?? "tier_1_standard") === "tier_2_verified";
 
@@ -321,7 +321,7 @@ export function MyTutorProfileSection() {
     }) => {
       // Reuse the admin editor's normalization, minus fields the tutor must
       // never change: tutor_code (their public slug) and field state. Capacity
-      // and the availability grid are omitted too — they have their own
+      // and the availability grid are omitted too, they have their own
       // self-serve editors in the Availability section (update_my_capacity /
       // update_my_availability_grid RPCs) and this form doesn't read them, so
       // carrying them through would overwrite real values with defaults.
@@ -354,12 +354,12 @@ export function MyTutorProfileSection() {
         delete payload.pricing_tiers;
       }
       // Issue #284: verified tutors never write the locked credential columns
-      // directly — the owner guard would reject the whole row. Their changes
+      // directly, the owner guard would reject the whole row. Their changes
       // were already submitted through the evidence queue in handleSubmit.
       if (isVerified) {
         for (const field of CREDENTIAL_EDIT_FIELDS) delete payload[field];
         // Issue #367: the headline is frozen read-only for verified tutors
-        // (tutors_owner_verified_guard freezes it) — never send it in the
+        // (tutors_owner_verified_guard freezes it), never send it in the
         // direct save either, or one stale form value fails the whole UPDATE.
         delete payload.academic_headline;
       }
@@ -371,7 +371,7 @@ export function MyTutorProfileSection() {
       if (error) throw error;
 
       // Issue #110: after a successful save, ping the admin safety-guardrail
-      // when pricing actually changed. Best-effort — a notification failure
+      // when pricing actually changed. Best-effort, a notification failure
       // must never block the tutor's save (the server fn also swallows).
       const nextTiers = Array.isArray(payload.pricing_tiers)
         ? (payload.pricing_tiers as { curriculum: string; rate: number }[])
@@ -436,7 +436,7 @@ export function MyTutorProfileSection() {
   const credEdits = credEditsQuery.data ?? [];
 
   // Credential fields the verified tutor has changed relative to the loaded
-  // row — these need documents before the form can be submitted. Recomputed
+  // row, these need documents before the form can be submitted. Recomputed
   // every render (11 fields): the baseline mutates on successful submits, so a
   // memo keyed on form alone would go stale.
   const changedCredFields =
@@ -462,7 +462,7 @@ export function MyTutorProfileSection() {
         setSuggestHint(t("settings.my_tutor.suggest_not_enough_data"));
         return;
       }
-      // Fill only the empty base fields — a typed number is never overwritten.
+      // Fill only the empty base fields, a typed number is never overwritten.
       setRates((prev) => {
         if (!prev) return prev;
         return {
@@ -478,7 +478,7 @@ export function MyTutorProfileSection() {
         };
       });
     } catch (suggestError) {
-      // Auth/ownership failures are swallowed — suggesting is best-effort.
+      // Auth/ownership failures are swallowed, suggesting is best-effort.
       console.error("[my-tutor] suggest-a-rate failed:", suggestError);
     } finally {
       setSuggestPending(false);
@@ -490,7 +490,7 @@ export function MyTutorProfileSection() {
     setRates((prev) => (prev ? { ...prev, ...patch } : prev));
   };
 
-  // Issue #411: RULE-BASED Auto-Translate DRAFT (no AI/LLM service — AI
+  // Issue #411: RULE-BASED Auto-Translate DRAFT (no AI/LLM service, AI
   // features are parked in this repo). Fills the ZH input only so the tutor
   // can edit; whatever is saved is exactly what renders (CEO lock).
   const handleAutoTranslate = () => {
@@ -504,7 +504,7 @@ export function MyTutorProfileSection() {
   };
 
   // Issue #113: live ≈HK$ equivalents under each rate input, following the
-  // selected quoting currency (hidden for HKD — no conversion to show).
+  // selected quoting currency (hidden for HKD, no conversion to show).
   const rateFxRates = useExchangeRates();
   const ratesCurrency = rates ? toCurrencyCode(rates.currency) : "HKD";
   const onlineApprox = rates
@@ -525,7 +525,7 @@ export function MyTutorProfileSection() {
         field: "academic_headline" as const,
         error: contactFilterError(form.academic_headline ?? ""),
       },
-      // Issue #411: the custom headlines are public text — mirror the DB
+      // Issue #411: the custom headlines are public text, mirror the DB
       // owner contact guard so the tutor sees the reason inline.
       {
         field: "custom_headline_en" as const,
@@ -566,7 +566,7 @@ export function MyTutorProfileSection() {
     }
     // Issue #323 review: the headline stays optional here (pre-#323 tutors may
     // have none), but a non-empty value must pass the shared 40-char +
-    // contact-filter rule the public cards rely on — tutorFormSchema still
+    // contact-filter rule the public cards rely on, tutorFormSchema still
     // allows max 120 for admin-edited legacy rows.
     const headlineValue = (form.academic_headline ?? "").trim();
     if (headlineValue) {
@@ -592,7 +592,7 @@ export function MyTutorProfileSection() {
     }
 
     // Issue #319 review: a rate for a mode the tutor does not offer is
-    // dropped on save (same rule as /join) — the card floor then recomputes
+    // dropped on save (same rule as /join), the card floor then recomputes
     // from the remaining base rates only.
     const onlineDropped = form.lesson_mode === "in_person";
     const inPersonDropped = form.lesson_mode === "online";
@@ -677,7 +677,7 @@ export function MyTutorProfileSection() {
             toast.error(t("credEdits.evidence_missing", { field: credFieldLabel(field) }));
             return;
           }
-          // Same validation the server runs — fail fast, name the problem.
+          // Same validation the server runs, fail fast, name the problem.
           const rejections = validateCredentialEditInput({
             field,
             newValue: (workingForm as unknown as Record<string, unknown>)[field],
@@ -832,7 +832,7 @@ export function MyTutorProfileSection() {
                 params={{ tutorCode: current.tutor_code }}
                 target="_blank"
                 data-tour="tutor-preview"
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--ink)] underline-offset-4 hover:underline"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-[color:var(--ink)] underline-offset-4 hover:underline"
               >
                 <ExternalLink className="h-4 w-4" aria-hidden="true" />
                 {t("settings.my_tutor.view_public")}
@@ -840,10 +840,10 @@ export function MyTutorProfileSection() {
             </div>
           ) : null}
 
-          {/* Issue #101: instant visibility toggle — reuses is_published. */}
+          {/* Issue #101: instant visibility toggle, reuses is_published. */}
           <div className="flex items-center justify-between gap-4 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 py-3">
             <div>
-              <Label className="text-sm font-bold text-[color:var(--ink)]">
+              <Label className="text-sm font-medium text-[color:var(--ink)]">
                 {t("settings.my_tutor.hide_profile_label")}
               </Label>
               <p className="mt-0.5 text-xs text-[color:var(--ink)]/60">
@@ -861,17 +861,17 @@ export function MyTutorProfileSection() {
             />
           </div>
 
-          {/* Issue #101: deletion requests are queued for admin review — no
+          {/* Issue #101: deletion requests are queued for admin review, no
               self-serve wipe, so active cases and matching fees stay settled. */}
           <div className="rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 py-3">
-            <Label className="text-sm font-bold text-[color:var(--ink)]">
+            <Label className="text-sm font-medium text-[color:var(--ink)]">
               {t("settings.my_tutor.deletion_label")}
             </Label>
             <p className="mt-1 text-xs leading-5 text-[color:var(--ink)]/60">
               {t("settings.my_tutor.deletion_help")}
             </p>
             {deletionPending ? (
-              <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400">
+              <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-400">
                 {t("settings.my_tutor.deletion_pending_badge")}
               </p>
             ) : (
@@ -951,7 +951,7 @@ export function MyTutorProfileSection() {
                 {t("settings.my_tutor.undergrad_university")}
               </Label>
               {/* Verified tutors edit this through the #284 evidence queue, same
-                  as undergrad degree — the owner guard blocks a direct write. */}
+                  as undergrad degree, the owner guard blocks a direct write. */}
               <SearchableSelect
                 value={form.undergrad_university ?? ""}
                 onChange={(v) => setForm({ ...form, undergrad_university: v })}
@@ -979,7 +979,7 @@ export function MyTutorProfileSection() {
             </div>
           </div>
 
-          {/* Issue #411: dual-language custom headline — the card's bold Row 1.
+          {/* Issue #411: dual-language custom headline, the card's bold Row 1.
               60-char cap mirrors the DB CHECK; the live counter shows the room
               left. Saved through the section's owner UPDATE (the tutors_owner_
               contact_guard trigger and CHECK enforce the server side). */}
@@ -1013,7 +1013,7 @@ export function MyTutorProfileSection() {
                 <Label htmlFor="myt-headline-zh" className="text-[color:var(--ink)]">
                   {t("settings.my_tutor.custom_headline_zh")}
                 </Label>
-                {/* Issue #411 CEO lock: DRAFT assist only — rule-based, no AI. */}
+                {/* Issue #411 CEO lock: DRAFT assist only, rule-based, no AI. */}
                 <Button
                   type="button"
                   variant="outline"
@@ -1073,7 +1073,7 @@ export function MyTutorProfileSection() {
                   <div key={field} className="space-y-1">
                     <Label
                       htmlFor={`cred-evidence-${field}`}
-                      className="cursor-pointer text-xs font-semibold text-[color:var(--brand-link)] underline-offset-2 hover:underline"
+                      className="cursor-pointer text-xs font-medium text-[color:var(--brand-link)] underline-offset-2 hover:underline"
                     >
                       {t("credEdits.field_evidence_label", { field: credFieldLabel(field) })}
                     </Label>
@@ -1101,7 +1101,7 @@ export function MyTutorProfileSection() {
             </div>
           ) : null}
 
-          {/* Issue #284: the tutor's own requests — old value stays public
+          {/* Issue #284: the tutor's own requests, old value stays public
               while a change is pending. */}
           {isVerified ? (
             <div className="space-y-3 rounded-xl border border-[color:var(--ink)]/10 p-4">
@@ -1123,12 +1123,12 @@ export function MyTutorProfileSection() {
                       key={edit.id}
                       className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-[color:var(--ink)]/10 px-3 py-2.5"
                     >
-                      <span className="text-sm font-semibold text-[color:var(--ink)]">
+                      <span className="text-sm font-medium text-[color:var(--ink)]">
                         {credFieldLabel(edit.field)}
                       </span>
                       <span
                         className={cn(
-                          "rounded-full px-2.5 py-0.5 text-[11px] font-bold",
+                          "rounded-full px-2.5 py-0.5 text-[11px] font-medium",
                           edit.status === "pending" &&
                             "bg-amber-500/15 text-amber-700 dark:text-amber-400",
                           edit.status === "approved" &&
@@ -1217,7 +1217,7 @@ export function MyTutorProfileSection() {
                       <label
                         key={category}
                         className={cn(
-                          "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors",
+                          "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
                           active
                             ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.08] text-[color:var(--ink)]"
                             : "border-border bg-[color:var(--surface)] text-[color:var(--ink)] hover:bg-muted/40",
@@ -1281,7 +1281,7 @@ export function MyTutorProfileSection() {
                     Changing it re-snapshots the HKD bounds on save. */}
                 <Label
                   htmlFor="myt-rate-currency"
-                  className="text-xs font-semibold text-[color:var(--ink)]/70"
+                  className="text-xs font-medium text-[color:var(--ink)]/70"
                 >
                   {t("settings.my_tutor.rates_currency")}
                 </Label>
@@ -1290,7 +1290,7 @@ export function MyTutorProfileSection() {
                   aria-label={t("settings.my_tutor.rates_currency")}
                   value={rates.currency}
                   onChange={(e) => handleRateField({ currency: e.target.value })}
-                  className="h-9 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-2 text-sm font-semibold text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                  className="h-9 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-2 text-sm font-medium text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
                 >
                   {SUPPORTED_CURRENCIES.map((code) => (
                     <option key={code} value={code}>
@@ -1396,7 +1396,7 @@ export function MyTutorProfileSection() {
                         }}
                         className="flex-1 bg-[color:var(--surface)]"
                       />
-                      {/* #391: what the rate buys — 1-on-1, per-student group
+                      {/* #391: what the rate buys, 1-on-1, per-student group
                           band or bootcamp. Group rows never touch the card
                           floor (they are profile-only extras, issue #319). */}
                       <SearchableSelect
@@ -1650,7 +1650,7 @@ export function MyTutorProfileSection() {
                   <label
                     key={level}
                     className={cn(
-                      "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors",
+                      "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
                       active
                         ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.08] text-[color:var(--ink)]"
                         : "border-border bg-[color:var(--surface)] text-[color:var(--ink)] hover:bg-muted/40",
@@ -1676,7 +1676,7 @@ export function MyTutorProfileSection() {
             </div>
           </div>
 
-          {/* Issue #190: University vertical — self-reported, owner-writable
+          {/* Issue #190: University vertical, self-reported, owner-writable
               plain fields (not part of credential verification). */}
           {selectedTargetLevels(form.target_students).includes("University") ? (
             <div className="space-y-4 rounded-xl border border-[color:var(--ink)]/10 p-4">
@@ -1685,7 +1685,7 @@ export function MyTutorProfileSection() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="myt-uni-year"
-                    className="text-xs font-semibold text-[color:var(--ink)]/70"
+                    className="text-xs font-medium text-[color:var(--ink)]/70"
                   >
                     {t("verticals.editor_year_of_study")}
                   </Label>
@@ -1706,7 +1706,7 @@ export function MyTutorProfileSection() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="myt-uni-gpa"
-                    className="text-xs font-semibold text-[color:var(--ink)]/70"
+                    className="text-xs font-medium text-[color:var(--ink)]/70"
                   >
                     {t("verticals.editor_gpa")}
                   </Label>
@@ -1848,7 +1848,7 @@ export function MyTutorProfileSection() {
           ) : null}
 
           {/* Issue #190: Kindergarten topics are canonical tags inside
-              subjects[] — ticking edits the shared subjects list. */}
+              subjects[], ticking edits the shared subjects list. */}
           {selectedTargetLevels(form.target_students).includes("Kindergarten") ? (
             <div className="space-y-3 rounded-xl border border-[color:var(--ink)]/10 p-4">
               <Label className="text-[color:var(--ink)]">
@@ -1866,7 +1866,7 @@ export function MyTutorProfileSection() {
                     <label
                       key={topic}
                       className={cn(
-                        "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors",
+                        "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
                         active
                           ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.08] text-[color:var(--ink)]"
                           : "border-border bg-[color:var(--surface)] text-[color:var(--ink)] hover:bg-muted/40",
@@ -1893,7 +1893,11 @@ export function MyTutorProfileSection() {
             </div>
           ) : null}
 
-          <Button type="submit" disabled={save.isPending || editsSubmitting} className="font-bold">
+          <Button
+            type="submit"
+            disabled={save.isPending || editsSubmitting}
+            className="font-medium"
+          >
             {save.isPending || editsSubmitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />

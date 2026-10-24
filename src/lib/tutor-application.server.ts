@@ -25,7 +25,7 @@ import { getRuntimeEnv } from "./runtime-env";
 const RECIPIENT = "matchmaxedu@gmail.com";
 const FROM = "MatchMax <noreply@matchmax.hk>";
 // Issue #358: cards go live at submit (#310), so the join-requests desk is a
-// read-only archive — the email points there, not at a "review queue".
+// read-only archive, the email points there, not at a "review queue".
 const ADMIN_ARCHIVE_URL = "https://matchmax.hk/admin/join-requests";
 const APPLICATION_FILE_PREFIX = "tutor-application-files/";
 
@@ -35,7 +35,7 @@ export type StoredApplicationFile = {
   filename: string;
   contentType: string;
   size: number;
-  // Issue #309: join no longer collects evidence — only the profile photo and
+  // Issue #309: join no longer collects evidence, only the profile photo and
   // Trophy Cabinet photos upload at intake. Legacy rows keep their original
   // source tags ("achievement" | "transcript" | "student_card") on disk.
   source: "profile_photo" | "portfolio_image";
@@ -108,7 +108,7 @@ async function uploadApplicationFile(
 
 /**
  * Resolves a referral code captured at /join to the referring tutor's id.
- * Invalid or stale codes resolve to NULL — the application must still go
+ * Invalid or stale codes resolve to NULL, the application must still go
  * through, it just loses the attribution.
  */
 async function resolveReferringTutor(
@@ -130,14 +130,14 @@ async function resolveReferringTutor(
  * 1. Insert the application row (status=pending) via the service-role client.
  * 2. Upload evidence attachments to R2 and link them on the row.
  * 3. Send a lightweight "new tutor join request" notification email (best
- *    effort — the database row is the record, so email failures must not
+ *    effort, the database row is the record, so email failures must not
  *    fail the submission).
  */
 export async function storeTutorApplication(
   data: Omit<TutorApplication, "turnstileToken">,
 ): Promise<{ id: string }> {
   const attachments = [
-    // Issue #309: evidence files are gone from /join — grade slips now upload
+    // Issue #309: evidence files are gone from /join, grade slips now upload
     // per-grade from the profile editor into the private grade-slips bucket.
     // Only the profile photo and Trophy Cabinet photos upload at intake.
     ...(data.profilePhoto
@@ -243,7 +243,7 @@ async function sendTutorJoinNotification({
   });
   const html = await render(element);
   const text = [
-    `New tutor card is live — ${data.name}`,
+    `New tutor card is live, ${data.name}`,
     `Path: ${getApplicationPath(data)}`,
     `Email: ${data.email}`,
     `Phone: ${data.phone}`,
@@ -254,7 +254,7 @@ async function sendTutorJoinNotification({
   const { error } = await new Resend(apiKey).emails.send({
     from: FROM,
     to: RECIPIENT,
-    subject: `New tutor card is live — ${data.name}`,
+    subject: `New tutor card is live, ${data.name}`,
     html,
     text,
   });

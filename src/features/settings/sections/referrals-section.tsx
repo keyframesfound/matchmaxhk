@@ -24,7 +24,7 @@ function formatHkd(cents: number): string {
 }
 
 /**
- * "Refer & Earn 15%" — tutor-side view of the referral program. Aggregates
+ * "Refer & Earn 15%", tutor-side view of the referral program. Aggregates
  * come from the get_my_referral_dashboard RPC so the tutor never reads
  * referred applicants' personal data directly.
  */
@@ -99,7 +99,7 @@ export function ReferralsSection() {
       ) : (
         <div className="space-y-8">
           <div>
-            <p className="text-sm font-bold text-[color:var(--ink)]">
+            <p className="text-sm font-medium text-[color:var(--ink)]">
               {t("settings.referrals.link_label")}
             </p>
             <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-stretch">
@@ -111,7 +111,7 @@ export function ReferralsSection() {
               <Button
                 type="button"
                 onClick={() => void copyLink()}
-                className="shrink-0 gap-2 font-bold"
+                className="shrink-0 gap-2 font-medium"
               >
                 {copied ? (
                   <Check className="h-4 w-4" aria-hidden="true" />
@@ -124,7 +124,7 @@ export function ReferralsSection() {
           </div>
 
           <div>
-            <p className="text-sm font-bold text-[color:var(--ink)]">
+            <p className="text-sm font-medium text-[color:var(--ink)]">
               {t("settings.referrals.stats_title")}
             </p>
             <div className="mt-2 grid gap-3 sm:grid-cols-3">
@@ -134,7 +134,7 @@ export function ReferralsSection() {
                   className="rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4"
                 >
                   <p className="text-xs font-medium text-[color:var(--ink)]/60">{stat.label}</p>
-                  <p className="mt-1 text-2xl font-bold tracking-tight text-[color:var(--ink)]">
+                  <p className="mt-1 text-2xl font-medium tracking-tight text-[color:var(--ink)]">
                     {stat.value}
                   </p>
                 </div>
@@ -158,7 +158,7 @@ export function ReferralsSection() {
           {/* Issue #208: the dashboard deep-links the written refer rules. */}
           <Link
             to="/guide/refer"
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-[color:var(--brand-link)] underline underline-offset-2 hover:opacity-80"
+            className="inline-flex items-center gap-1.5 text-xs font-medium text-[color:var(--brand-link)] underline underline-offset-2 hover:opacity-80"
           >
             {t("settings.referrals.rules_link")}
             <ArrowRight className="h-3.5 w-3.5" aria-hidden="true" />

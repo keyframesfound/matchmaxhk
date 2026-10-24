@@ -5,11 +5,11 @@ import { supabase } from "@/integrations/supabase/client";
  * SECURITY DEFINER RPCs (migration 20261015140000_home_notes_rpc.sql).
  *
  * bought_count lives in material_orders, which is NOT anon-readable (RLS), so
- * the counts must be computed inside the database — hence the RPCs rather
+ * the counts must be computed inside the database, hence the RPCs rather
  * than a plain table read. Both calls are tolerant: when the RPC has not
  * been applied yet, PostgREST answers 42P01 (undefined object) or PGRST202
  * (schema cache miss) and we return an empty list so the home row / profile
- * block simply render nothing instead of erroring — same pattern as
+ * block simply render nothing instead of erroring, same pattern as
  * queries.ts (isMissingRelation) and the reviews reads.
  */
 

@@ -57,7 +57,7 @@ export function toHkdRates(rows: ExchangeRateRow[]): HkdRates {
 
 /**
  * Normalizes a native-currency amount to HKD. Returns NaN when no rate is
- * available for the currency — callers fall back to native values.
+ * available for the currency, callers fall back to native values.
  */
 export function normalizeToHkd(amount: number, from: CurrencyCode, rates: HkdRates): number {
   if (from === DEFAULT_CURRENCY) return amount;
@@ -89,7 +89,7 @@ const CURRENCY_FORMATTER_DEFAULTS = {
   maximumFractionDigits: (amount: number) => (Number.isInteger(amount) ? 0 : 2),
 } as const;
 
-/** "HK$300" / "US$1,234.5" → "US$1,234.50" — dollars in, display string out. */
+/** "HK$300" / "US$1,234.5" → "US$1,234.50", dollars in, display string out. */
 export function formatMoney(amount: number, currency: string = DEFAULT_CURRENCY): string {
   return new Intl.NumberFormat(CURRENCY_FORMATTER_DEFAULTS.locale, {
     style: "currency",

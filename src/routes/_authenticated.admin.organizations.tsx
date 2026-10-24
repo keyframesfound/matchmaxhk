@@ -36,7 +36,7 @@ import { useAuth } from "@/features/auth/useAuth";
 export const Route = createFileRoute("/_authenticated/admin/organizations")({
   head: () => ({
     meta: [
-      { title: "Organizations — MatchMax Admin" },
+      { title: "Organizations, MatchMax Admin" },
       { name: "description", content: "Review and manage tutoring organizations on MatchMax." },
       { name: "robots", content: "noindex" },
     ],
@@ -114,7 +114,7 @@ function AdminOrganizations() {
       id: string;
       patch: { plan?: "business" | "enterprise"; status?: "pending" | "active" | "suspended" };
     }) => {
-      // Issue #412: activation is gated on the BR review — staff must have
+      // Issue #412: activation is gated on the BR review, staff must have
       // stamped br_reviewed_at (or the org must already carry BR identity)
       // before the org can go live on the public directory.
       if (patch.status === "active") {
@@ -125,7 +125,7 @@ function AdminOrganizations() {
           .maybeSingle();
         if (org && !org.br_reviewed_at && !org.br_number) {
           throw new Error(
-            "Review the Business Registration first — open Review and stamp it before activating.",
+            "Review the Business Registration first, open Review and stamp it before activating.",
           );
         }
       }
@@ -180,7 +180,7 @@ function AdminOrganizations() {
         <div className="mx-auto max-w-6xl">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-[color:var(--ink)]">
+              <h1 className="flex items-center gap-2 text-2xl font-medium tracking-tight text-[color:var(--ink)]">
                 <Building2 className="h-6 w-6 text-[color:var(--muted-foreground)]" />
                 Organizations
               </h1>
@@ -237,7 +237,7 @@ function AdminOrganizations() {
                 filtered.map((org) => (
                   <tr key={org.id}>
                     <ConsoleTd>
-                      <p className="font-semibold text-[color:var(--ink)]">{org.name}</p>
+                      <p className="font-medium text-[color:var(--ink)]">{org.name}</p>
                       <p className="text-xs text-muted-foreground">
                         /business/{org.slug}
                         {org.district ? ` · ${org.district}` : ""}
@@ -307,13 +307,13 @@ function AdminOrganizations() {
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </ConsoleTd>
-                    <ConsoleTd className="font-semibold text-[color:var(--ink)]">
+                    <ConsoleTd className="font-medium text-[color:var(--ink)]">
                       {org.courses?.[0]?.count ?? 0}
                       {org.plan === "business" ? (
                         <span className="text-xs font-normal text-muted-foreground"> / 10</span>
                       ) : null}
                     </ConsoleTd>
-                    <ConsoleTd className="font-semibold text-[color:var(--ink)]">
+                    <ConsoleTd className="font-medium text-[color:var(--ink)]">
                       {org.organization_members?.[0]?.count ?? 0}
                       <span className="text-xs font-normal text-muted-foreground">
                         {" "}
@@ -328,7 +328,7 @@ function AdminOrganizations() {
             </ConsoleTableBody>
           </ConsoleTable>
 
-          {/* Issue #412: BR review dialog — staff verify the Business
+          {/* Issue #412: BR review dialog, staff verify the Business
               Registration (and EDB/charity identifier when present) against
               the official records before stamping; activation stays blocked
               until the stamp exists. */}

@@ -116,7 +116,7 @@ export default function Feedback() {
               <p className="text-4xl" aria-hidden>
                 🙏
               </p>
-              <h1 className="mt-4 text-2xl font-bold tracking-tight text-[color:var(--ink)]">
+              <h1 className="mt-4 text-2xl font-medium tracking-tight text-[color:var(--ink)]">
                 {t("feedback.thanks_title")}
               </h1>
               <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -130,7 +130,7 @@ export default function Feedback() {
             <section aria-labelledby="feedback-title" className="text-center">
               <h1
                 id="feedback-title"
-                className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl"
+                className="text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl"
               >
                 {t("feedback.routing_title")}
               </h1>
@@ -148,7 +148,7 @@ export default function Feedback() {
                     key={option.value}
                     type="button"
                     onClick={() => setRole(option.value)}
-                    className="rounded-[var(--radius-panel)] border border-border bg-card px-6 py-8 text-base font-bold text-[color:var(--ink)] transition-colors hover:border-[color:var(--foreground)]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                    className="rounded-[var(--radius-panel)] border border-border bg-card px-6 py-8 text-base font-medium text-[color:var(--ink)] transition-colors hover:border-[color:var(--foreground)]/30 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
                   >
                     {t(option.labelKey)}
                   </button>
@@ -157,12 +157,9 @@ export default function Feedback() {
             </section>
           ) : (
             <section aria-labelledby="feedback-form-title">
-              <p className="text-xs font-medium text-[color:var(--ink)]/65">
-                {t("feedback.form_eyebrow")}
-              </p>
               <h1
                 id="feedback-form-title"
-                className="mt-2 text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl"
+                className="text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl"
               >
                 {t("feedback.form_title")}
               </h1>
@@ -228,7 +225,7 @@ export default function Feedback() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <Button type="submit" disabled={submitting || !valid} className="font-bold">
+                  <Button type="submit" disabled={submitting || !valid} className="font-medium">
                     {submitting ? t("feedback.submitting") : t("feedback.submit")}
                   </Button>
                   <Button

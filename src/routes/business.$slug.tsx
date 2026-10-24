@@ -142,16 +142,16 @@ function ListingCard({
       </div>
       <div className="flex flex-1 flex-col gap-1.5 p-4">
         {price ? (
-          <p className="text-base font-bold text-[color:var(--ink)]">{price}</p>
+          <p className="text-base font-medium text-[color:var(--ink)]">{price}</p>
         ) : (
-          <p className="text-sm font-semibold text-muted-foreground">Enquire for pricing</p>
+          <p className="text-sm font-medium text-muted-foreground">Enquire for pricing</p>
         )}
-        <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-[color:var(--ink)] group-hover:text-[color:var(--brand-link)]">
+        <h3 className="line-clamp-2 text-sm font-medium leading-snug text-[color:var(--ink)] group-hover:text-[color:var(--brand-link)]">
           {course.title}
         </h3>
         <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-1">
           {course.level ? (
-            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-400/20">
+            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-400/20">
               {course.level}
             </span>
           ) : null}
@@ -350,7 +350,7 @@ function BusinessPublicProfile() {
             <div className="flex items-center justify-between gap-3">
               <Link
                 to="/courses"
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--brand-link)]"
+                className="inline-flex items-center gap-1.5 text-sm font-medium text-[color:var(--brand-link)]"
               >
                 <ArrowLeft className="h-4 w-4" />
                 All courses
@@ -367,7 +367,7 @@ function BusinessPublicProfile() {
 
             {isPreview && (
               <div className="mt-4 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
-                <p className="font-semibold">Pending activation</p>
+                <p className="font-medium">Pending activation</p>
                 <p className="mt-0.5 text-amber-700/80 dark:text-amber-400/80">
                   You're previewing your public profile. It becomes visible to everyone once your
                   account is activated by the MatchMax team.
@@ -378,7 +378,7 @@ function BusinessPublicProfile() {
             {isOwner && (
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[color:var(--foreground)]/10 bg-[color:var(--muted)] p-3 text-sm">
                 <p className="font-medium text-[color:var(--ink)]">
-                  You're viewing your public profile — edit it inline or in the console.
+                  You're viewing your public profile, edit it inline or in the console.
                 </p>
                 <Button asChild variant="outline" size="sm">
                   <a href="/business">Open console</a>
@@ -430,7 +430,7 @@ function BusinessPublicProfile() {
                         className="h-24 w-24 rounded-full border-4 border-card object-cover sm:h-28 sm:w-28"
                       />
                     ) : (
-                      <span className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-card bg-[color:var(--foreground)] text-[color:var(--background)] text-2xl font-bold leading-none sm:h-28 sm:w-28">
+                      <span className="flex h-24 w-24 items-center justify-center rounded-full border-4 border-card bg-[color:var(--foreground)] text-[color:var(--background)] text-2xl font-medium leading-none sm:h-28 sm:w-28">
                         {initials || "MM"}
                       </span>
                     )}
@@ -461,7 +461,7 @@ function BusinessPublicProfile() {
                   </div>
                   <div className="flex flex-wrap items-center gap-2 pb-1">
                     {whatsappUrl && (
-                      <Button asChild variant="solid" color="blue" className="font-bold">
+                      <Button asChild variant="solid" color="blue" className="font-medium">
                         <a
                           href={whatsappUrl}
                           target="_blank"
@@ -502,7 +502,7 @@ function BusinessPublicProfile() {
 
                 <div className="mt-4 flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                    <h1 className="flex flex-wrap items-center gap-2 text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-3xl">
                       {org.name}
                       <BadgeCheck
                         className="h-6 w-6 shrink-0 text-[color:var(--muted-foreground)]"
@@ -540,7 +540,7 @@ function BusinessPublicProfile() {
 
                 <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
                   <span className="flex items-baseline gap-1.5">
-                    <span className="font-semibold tabular-nums text-[color:var(--ink)]">
+                    <span className="font-medium tabular-nums text-[color:var(--ink)]">
                       {coursesLoading ? "…" : courseCount}
                     </span>
                     <span className="text-muted-foreground">
@@ -549,18 +549,18 @@ function BusinessPublicProfile() {
                   </span>
                   {org.district ? (
                     <span className="flex items-baseline gap-1.5">
-                      <span className="font-semibold text-[color:var(--ink)]">{org.district}</span>
+                      <span className="font-medium text-[color:var(--ink)]">{org.district}</span>
                       <span className="text-muted-foreground">District</span>
                     </span>
                   ) : null}
                   <span className="flex items-baseline gap-1.5">
-                    <span className="font-semibold text-[color:var(--ink)]">
+                    <span className="font-medium text-[color:var(--ink)]">
                       {org.founded_year ?? "—"}
                     </span>
                     <span className="text-muted-foreground">Founded</span>
                   </span>
                   <span className="flex items-baseline gap-1.5">
-                    <span className="font-semibold text-[color:var(--ink)]">{memberSince}</span>
+                    <span className="font-medium text-[color:var(--ink)]">{memberSince}</span>
                     <span className="text-muted-foreground">member since</span>
                   </span>
                 </div>
@@ -570,7 +570,9 @@ function BusinessPublicProfile() {
             {/* About */}
             <section id="about" className="mt-10 scroll-mt-24">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">About</h2>
+                <h2 className="text-xl font-medium tracking-tight text-[color:var(--ink)]">
+                  About
+                </h2>
                 {isOwner && (
                   <Button
                     variant="ghost"
@@ -605,7 +607,7 @@ function BusinessPublicProfile() {
                   </div>
 
                   <div className="rounded-lg border border-border bg-muted/40 p-4">
-                    <h3 className="text-sm font-bold text-[color:var(--ink)]">Details</h3>
+                    <h3 className="text-sm font-medium text-[color:var(--ink)]">Details</h3>
                     <ul className="mt-3 flex flex-col gap-2.5 text-sm text-muted-foreground">
                       <li className="flex items-center gap-2.5">
                         <MapPin className="h-4 w-4 shrink-0" />
@@ -647,7 +649,7 @@ function BusinessPublicProfile() {
 
                 {faqItems.length > 0 && (
                   <div className="mt-6 border-t border-border pt-5">
-                    <h3 className="text-sm font-bold text-[color:var(--ink)]">
+                    <h3 className="text-sm font-medium text-[color:var(--ink)]">
                       Frequently asked questions
                     </h3>
                     <Accordion type="single" collapsible className="mt-2">
@@ -670,10 +672,10 @@ function BusinessPublicProfile() {
             {/* Courses */}
             <section id="courses" className="mt-10 scroll-mt-24">
               <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
+                <h2 className="text-xl font-medium tracking-tight text-[color:var(--ink)]">
                   Courses
                 </h2>
-                <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-bold tabular-nums text-muted-foreground">
+                <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium tabular-nums text-muted-foreground">
                   {coursesLoading ? "…" : courseCount}
                 </span>
               </div>
@@ -686,7 +688,7 @@ function BusinessPublicProfile() {
                         type="button"
                         aria-pressed={levelFilter === level}
                         onClick={() => setLevelFilter((prev) => (prev === level ? null : level))}
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
+                        className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors ${
                           levelFilter === level
                             ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)] ring-[color:var(--btn-accent)]"
                             : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
@@ -703,7 +705,7 @@ function BusinessPublicProfile() {
                         onClick={() =>
                           setSubjectFilter((prev) => (prev === subject ? null : subject))
                         }
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
+                        className={`rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset transition-colors ${
                           subjectFilter === subject
                             ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)] ring-[color:var(--btn-accent)]"
                             : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
@@ -729,7 +731,7 @@ function BusinessPublicProfile() {
                         title="No courses found"
                         description={
                           (courses ?? []).length === 0
-                            ? "This business hasn't published any courses — check back soon."
+                            ? "This business hasn't published any courses, check back soon."
                             : "No courses match the selected filters."
                         }
                         secondaryAction={
@@ -762,7 +764,7 @@ function BusinessPublicProfile() {
             {/* Class schedule */}
             {courseCount > 0 && (
               <section id="schedule" className="mt-10 scroll-mt-24">
-                <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
+                <h2 className="text-xl font-medium tracking-tight text-[color:var(--ink)]">
                   Class schedule
                 </h2>
                 <p className="mt-1 text-sm text-muted-foreground">
@@ -777,7 +779,7 @@ function BusinessPublicProfile() {
             {/* Contact */}
             <section id="contact" className="mt-10 scroll-mt-24">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
+                <h2 className="text-xl font-medium tracking-tight text-[color:var(--ink)]">
                   Get in touch
                 </h2>
                 {isOwner && (
@@ -844,7 +846,7 @@ function BusinessPublicProfile() {
                   {whatsappUrl && (
                     <Button
                       asChild
-                      className="h-11 w-full bg-[color:var(--brand-whatsapp)] font-bold text-white hover:bg-[color:var(--brand-whatsapp-hover)]"
+                      className="h-11 w-full bg-[color:var(--brand-whatsapp)] font-medium text-white hover:bg-[color:var(--brand-whatsapp-hover)]"
                     >
                       <a
                         href={whatsappUrl}

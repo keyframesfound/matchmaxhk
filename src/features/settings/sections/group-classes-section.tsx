@@ -27,7 +27,7 @@ import { RATE_MAX, RATE_MIN } from "@/features/tutors/rates";
 import { cn } from "@/lib/utils";
 
 /**
- * Issue #391 — the tutor's "Group classes" manager: create open cohorts
+ * Issue #391, the tutor's "Group classes" manager: create open cohorts
  * (2–6 seats, Cap. 279 hard cap at launch), watch seats fill from live
  * bookings, confirm an early start, close the cohort. Writes go through the
  * group-cohort server fns (ownership + contact filter re-checked
@@ -99,7 +99,7 @@ function StatePill({ state }: { state: string }) {
   return (
     <span
       className={cn(
-        "whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold",
+        "whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-medium",
         styles[state] ?? styles.closed,
       )}
     >
@@ -294,7 +294,7 @@ function CohortFormDialog({
               </div>
             </div>
             {seats < 0 ? (
-              <p className="text-xs font-semibold text-destructive">
+              <p className="text-xs font-medium text-destructive">
                 {t("group_classes.min_gt_max_error")}
               </p>
             ) : null}
@@ -415,12 +415,12 @@ export function GroupClassesSection() {
                       className="h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
                       aria-hidden="true"
                     />
-                    <span className="truncate text-sm font-bold text-[color:var(--ink)]">
+                    <span className="truncate text-sm font-medium text-[color:var(--ink)]">
                       {cohort.title}
                     </span>
                     <StatePill state={cohort.state} />
                   </div>
-                  <span className="text-sm font-semibold text-[color:var(--ink)]">
+                  <span className="text-sm font-medium text-[color:var(--ink)]">
                     HK${cohort.perStudentRateHkd}
                     {t("group_classes.per_student")}
                   </span>

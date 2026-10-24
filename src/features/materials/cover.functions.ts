@@ -18,7 +18,7 @@ import type { MaterialStatus } from "@/features/materials/lifecycle";
 
 const PUBLIC_BUCKET = "materials-previews";
 
-/** #392: cover images only — png/jpg/webp, 5MB (same cap as gigs). */
+/** #392: cover images only, png/jpg/webp, 5MB (same cap as gigs). */
 export const MAX_MATERIAL_COVER_BYTES = 5 * 1024 * 1024;
 
 const COVER_CONTENT_TYPES: Record<string, string> = {
@@ -82,7 +82,7 @@ const UploadCoverInput = z.object({
 
 /**
  * Attach/replace a listing's cover. Works for every kind (the kind-level
- * required-ness — optional on notes, required on folders/courses — is the
+ * required-ness, optional on notes, required on folders/courses, is the
  * editors' and the submit gates' job).
  */
 export const uploadMaterialCover = createServerFn({ method: "POST" })

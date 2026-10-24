@@ -28,7 +28,7 @@ import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 import { cn } from "@/lib/utils";
 
 const tabButtonClass =
-  "relative flex flex-1 flex-col items-center gap-1 px-2 py-2.5 text-[11px] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40";
+  "relative flex flex-1 flex-col items-center gap-1 px-2 py-2.5 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring/40";
 
 /**
  * Fixed mobile bottom navigation: Explore, Saved and Account (the account tab
@@ -55,7 +55,7 @@ export function MobileBottomNav() {
   const useDarkTheme = theme !== "dark";
 
   const itemRowClass =
-    "flex w-full items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40";
+    "flex w-full items-center gap-3 rounded-xl px-3 py-3 text-[15px] font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40";
 
   return (
     <>
@@ -146,14 +146,14 @@ export function MobileBottomNav() {
               <>
                 <div className="flex items-center gap-3 px-3 pt-1 pb-4">
                   {/* Issue #437: client accounts use the branded initial
-                      avatar — no photo upload in V1. */}
+                      avatar, no photo upload in V1. */}
                   <InitialAvatar
                     stableId={user.id}
                     name={accountName}
                     className="h-11 w-11 border-0 text-base"
                   />
                   <span className="min-w-0">
-                    <span className="block truncate text-[15px] font-bold text-[color:var(--ink)]">
+                    <span className="block truncate text-[15px] font-medium text-[color:var(--ink)]">
                       {accountName}
                     </span>
                     <span className="block truncate text-xs font-normal text-[color:var(--ink)]/60">
@@ -201,7 +201,7 @@ export function MobileBottomNav() {
                   <Button
                     asChild
                     variant="outline"
-                    className="h-11 w-full rounded-full text-sm font-bold"
+                    className="h-11 w-full rounded-full text-sm font-medium"
                   >
                     <Link to="/auth" onClick={() => setAccountOpen(false)}>
                       <LogIn className="h-4 w-4" aria-hidden="true" />
@@ -212,7 +212,7 @@ export function MobileBottomNav() {
                     asChild
                     variant="solid"
                     color="blue"
-                    className="h-11 w-full rounded-full text-sm font-bold"
+                    className="h-11 w-full rounded-full text-sm font-medium"
                   >
                     <Link to="/auth" onClick={() => setAccountOpen(false)}>
                       <UserRoundPlus className="h-4 w-4" aria-hidden="true" />
@@ -235,7 +235,7 @@ export function MobileBottomNav() {
               {useDarkTheme ? t("nav.dark_mode") : t("nav.light_mode")}
             </button>
             <div className="mt-2 flex items-center justify-between gap-3 border-t border-border px-3 pt-3">
-              <span className="flex items-center gap-3 text-[15px] font-semibold text-[color:var(--ink)]">
+              <span className="flex items-center gap-3 text-[15px] font-medium text-[color:var(--ink)]">
                 <Globe className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
                 {t("nav.account_language")}
               </span>

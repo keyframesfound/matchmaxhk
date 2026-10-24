@@ -36,7 +36,6 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ReviewSummaryBlock } from "@/features/tutors/review-summary-block";
 import { Button } from "@/components/ui/button";
-import { Reveal } from "@/components/ui/reveal";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import {
@@ -145,19 +144,15 @@ function ProfileSection({
   iconClassName?: string;
 }) {
   return (
-    <Reveal className="border-b border-border last:border-b-0">
-      <section className="px-5 py-5 sm:px-6">
-        <div className="flex items-center gap-2.5">
-          <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
-            <Icon className={`h-4 w-4 ${iconClassName}`} strokeWidth={2.1} />
-          </span>
-          <h2 className="text-base font-bold tracking-tight text-[color:var(--ink)] sm:text-lg">
-            {title}
-          </h2>
-        </div>
-        <div className="mt-3.5">{children}</div>
-      </section>
-    </Reveal>
+    <section className="border-b border-border last:border-b-0 px-5 py-5 sm:px-6">
+      <div className="flex items-center gap-2.5">
+        <Icon className={`h-5 w-5 ${iconClassName}`} strokeWidth={1.75} aria-hidden="true" />
+        <h2 className="text-base font-medium tracking-tight text-[color:var(--ink)] sm:text-lg">
+          {title}
+        </h2>
+      </div>
+      <div className="mt-3.5">{children}</div>
+    </section>
   );
 }
 
@@ -180,7 +175,7 @@ function LessonDetailRow({
         strokeWidth={2.35}
       />
       <p className="text-sm leading-relaxed sm:text-base">
-        <span className="font-bold text-[color:var(--ink)]">{label}:</span>{" "}
+        <span className="font-medium text-[color:var(--ink)]">{label}:</span>{" "}
         <span className="text-muted-foreground">{value}</span>
       </p>
     </li>
@@ -222,7 +217,7 @@ function CoreAcademicGroupBlock({
     >
       {/* Issue #411: the curriculum's total score IS the group header
           ("IBDP: 41/45"); partial data shows the curriculum name only. */}
-      <p className="text-sm font-bold text-[color:var(--ink)]">
+      <p className="text-sm font-medium text-[color:var(--ink)]">
         {group.total ? `${group.curriculum}: ${group.total}` : group.curriculum}
       </p>
       {subjects.length > 0 ? (
@@ -233,15 +228,15 @@ function CoreAcademicGroupBlock({
               className="border-l-2 border-[color:var(--brand-link)] pl-3"
             >
               <div className="flex items-baseline gap-2">
-                <span className="text-sm font-bold text-[color:var(--ink)]">{entry.subject}</span>
+                <span className="text-sm font-medium text-[color:var(--ink)]">{entry.subject}</span>
                 {entry.grade.trim() ? (
-                  <span className="text-sm font-bold text-[color:var(--brand-link)]">
+                  <span className="text-sm font-medium text-[color:var(--brand-link)]">
                     – {gradeNoun} {entry.grade}
                   </span>
                 ) : null}
               </div>
               {entry.papers && entry.papers.length > 0 ? (
-                <p className="mt-0.5 text-xs font-semibold text-[color:var(--brand-link)]">
+                <p className="mt-0.5 text-xs font-medium text-[color:var(--brand-link)]">
                   {entry.papers.map((paper, paperIndex) => (
                     <span key={`${paper.label}-${paperIndex}`}>
                       {paperIndex > 0 ? <strong> · </strong> : null}
@@ -269,7 +264,7 @@ function RateValue({ rate, nativeCurrency }: { rate: number; nativeCurrency: str
   const converted = nativeToDisplayText(rate, native, displayCurrency, fxRates);
   const nativeText = native === DEFAULT_CURRENCY ? `$${rate}` : formatMoney(rate, native);
   return (
-    <span className="shrink-0 text-sm font-bold text-[color:var(--ink)]">
+    <span className="shrink-0 text-sm font-medium text-[color:var(--ink)]">
       {converted ?? nativeText}
       <span className="ml-0.5 text-xs font-medium text-muted-foreground">
         {t("featured.per_hour")}
@@ -367,7 +362,7 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
     const url = `https://matchmax.hk/tutors/${params.tutorCode}`;
     if (!loaderData) {
       return {
-        meta: [{ title: "Tutor not found — MatchMax" }, { name: "robots", content: "noindex" }],
+        meta: [{ title: "Tutor not found | MatchMax" }, { name: "robots", content: "noindex" }],
         links: [{ rel: "canonical", href: url }],
       };
     }
@@ -397,7 +392,7 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
       <div className="flex min-h-screen flex-col bg-background">
         <SiteHeader />
         <main className="mx-auto max-w-3xl px-4 py-24 text-center">
-          <h1 className="text-3xl font-bold text-[color:var(--ink)]">
+          <h1 className="text-3xl font-medium text-[color:var(--ink)]">
             {t("profile.not_found_title")}
           </h1>
           <p className="mt-3 text-muted-foreground">{t("profile.not_found_body")}</p>
@@ -423,7 +418,7 @@ function TutorErrorComponent({ error, reset }: { error: Error; reset: () => void
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="mx-auto max-w-3xl px-4 py-24 text-center">
-        <h1 className="text-2xl font-bold text-[color:var(--ink)]">{t("profile.error_title")}</h1>
+        <h1 className="text-2xl font-medium text-[color:var(--ink)]">{t("profile.error_title")}</h1>
         <p className="mt-3 text-sm text-muted-foreground">{t("profile.error_body")}</p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-2">
           <Button onClick={reset}>{t("common.try_again")}</Button>
@@ -514,7 +509,7 @@ function TutorDetail() {
   );
   const { data: engagementSummaries } = useTutorEngagementSummaries(engagementTutorIds);
   const profileEngagement = engagementSummaries?.get(t.id) ?? null;
-  // Renders nothing below both thresholds — never a "0 inquiries" line.
+  // Renders nothing below both thresholds, never a "0 inquiries" line.
   const profileSocialProof = profileEngagement ? selectProfileSocialProof(profileEngagement) : null;
 
   const waDigits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
@@ -570,7 +565,7 @@ function TutorDetail() {
   const selfIntroduction = t.self_introduction?.trim() ?? "";
   const lessonLocation = (() => {
     const area = getTutorStationsText(t);
-    return area ? `Hong Kong — ${area}` : "Hong Kong";
+    return area ? `Hong Kong, ${area}` : "Hong Kong";
   })();
   const tutorLanguages = (t.languages ?? []).filter(Boolean);
   const lessonLanguages =
@@ -598,11 +593,11 @@ function TutorDetail() {
         // Issue #417: share title is the tutor's display name; the URL is the
         // canonical profile URL of the page the visitor is on.
         title: t.display_name,
-        // Issue #125: flagged pricing strips the rate — omit it from shares.
-        // Issue #319: matches the card — "$X up/hr" (base-rate floor).
+        // Issue #125: flagged pricing strips the rate, omit it from shares.
+        // Issue #319: matches the card, "$X up/hr" (base-rate floor).
         text:
           price.baseRate > 0
-            ? `Check out tutor ${t.tutor_code} on MatchMax — $${price.baseRate} up/hr.`
+            ? `Check out tutor ${t.tutor_code} on MatchMax, $${price.baseRate} up/hr.`
             : `Check out tutor ${t.tutor_code} on MatchMax.`,
         url: window.location.href,
       },
@@ -648,7 +643,7 @@ function TutorDetail() {
               <Link
                 to="/account/claim"
                 search={{ tutor: t.id }}
-                className="text-sm font-bold text-[color:var(--brand-link)] hover:underline"
+                className="text-sm font-medium text-[color:var(--brand-link)] hover:underline"
               >
                 {translate("profile.claim_banner.cta")}
               </Link>
@@ -685,12 +680,12 @@ function TutorDetail() {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                {/* Issue #411 header restructure — (1) code • gender + BLUE
+                {/* Issue #411 header restructure, (1) code • gender + BLUE
                     TICK as the small secondary line, (2) active custom
                     headline as the prominent main bold line, (3) university,
                     (4) secondary school. */}
                 <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                  <span className="font-semibold">{t.tutor_code}</span>
+                  <span className="font-medium">{t.tutor_code}</span>
                   {genderLabel ? (
                     <>
                       <span aria-hidden="true">•</span>
@@ -714,7 +709,7 @@ function TutorDetail() {
                   ) : null}
                   {/* Issues #77/#52: tutor status badge on the profile header. */}
                   {statusKey ? (
-                    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-[color:var(--ink)]">
+                    <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-medium text-[color:var(--ink)]">
                       <UserRound
                         className="h-3 w-3 text-[color:var(--brand-link)]"
                         aria-hidden="true"
@@ -723,14 +718,14 @@ function TutorDetail() {
                     </span>
                   ) : null}
                 </div>
-                <h1 className="mt-1 break-words text-xl font-bold leading-tight text-[color:var(--ink)] sm:text-2xl">
+                <h1 className="mt-1 break-words text-xl font-medium leading-tight text-[color:var(--ink)] sm:text-2xl">
                   {activeHeadline ?? t.tutor_code}
                 </h1>
                 {/* Issue #387: verified lessons · hours · tenure, verified
                     sessions only; hides completely at zero. */}
                 <ExperienceLine tutorId={t.id} className="mt-1" />
                 {t.has_postgrad && (t.postgrad_university || t.postgrad_degree) ? (
-                  <p className="mt-2 flex items-start gap-1.5 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
+                  <p className="mt-2 flex items-start gap-1.5 text-base font-medium leading-snug text-[color:var(--ink)] sm:text-lg">
                     <GraduationCap
                       className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
                       aria-hidden="true"
@@ -742,7 +737,7 @@ function TutorDetail() {
                   </p>
                 ) : null}
                 {t.undergrad_university || t.undergrad_degree ? (
-                  <p className="mt-1 flex items-start gap-1.5 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
+                  <p className="mt-1 flex items-start gap-1.5 text-base font-medium leading-snug text-[color:var(--ink)] sm:text-lg">
                     <GraduationCap
                       className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
                       aria-hidden="true"
@@ -754,7 +749,7 @@ function TutorDetail() {
                   </p>
                 ) : null}
                 {t.secondary_school ? (
-                  <p className="mt-1 flex items-start gap-1.5 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
+                  <p className="mt-1 flex items-start gap-1.5 text-base font-medium leading-snug text-[color:var(--ink)] sm:text-lg">
                     <School
                       className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
                       aria-hidden="true"
@@ -767,14 +762,14 @@ function TutorDetail() {
               </div>
               <div className="w-full sm:w-auto sm:text-right">
                 <div className="flex items-center justify-start gap-1.5 sm:justify-end">
-                  {/* Issue #125: flagged pricing strips the rate — hide the
+                  {/* Issue #125: flagged pricing strips the rate, hide the
                       hero price instead of rendering HK$0. Issue #319: one
-                      "$X up/hr" figure — the base-rate floor, never a range. */}
+                      "$X up/hr" figure, the base-rate floor, never a range. */}
                   {price.baseRate > 0 ? (
-                    <p className="text-3xl font-bold text-[color:var(--ink)]">
+                    <p className="text-3xl font-medium text-[color:var(--ink)]">
                       {convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) ??
                         `$${price.baseRate}`}
-                      <span className="ml-1 text-sm font-semibold text-muted-foreground">
+                      <span className="ml-1 text-sm font-medium text-muted-foreground">
                         {translate("tutor_card.price_up")}
                         {translate("featured.per_hour")}
                       </span>
@@ -782,7 +777,7 @@ function TutorDetail() {
                   ) : null}
                   <TutorSaveButton tutorId={t.id} compact />
                   {/* Issue #216 feedback: one icon-only report control in the
-                      profile header (card + photo as menu items) — the old
+                      profile header (card + photo as menu items), the old
                       text link duplicated the flag icon next to it. */}
                   <ReportMenuButton
                     menuLabel={translate("report.menu_label_profile")}
@@ -817,7 +812,7 @@ function TutorDetail() {
                   </Button>
                 </div>
                 {availabilityReadiness === "pre_booking" && t.earliest_start_date ? (
-                  <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400">
+                  <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-400">
                     <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
                     {translate("tutor_card.available_from", {
                       date: formatAvailabilityDate(t.earliest_start_date, i18n.language),
@@ -825,14 +820,14 @@ function TutorDetail() {
                   </p>
                 ) : null}
                 {inquiry.kind === "waitlist" ? (
-                  <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
+                  <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-medium text-[color:var(--ink)]">
                     <Lock className="h-3.5 w-3.5" aria-hidden="true" />
                     {translate("profile.fully_booked")}
                   </p>
                 ) : null}
                 {inquiry.kind !== "waitlist" && preferredTimeWindows.length > 0 ? (
                   <div className="mt-3 space-y-1.5">
-                    <p className="inline-flex flex-wrap items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]">
+                    <p className="inline-flex flex-wrap items-center gap-1.5 text-xs font-medium text-[color:var(--ink)]">
                       <Clock
                         className="h-3.5 w-3.5 text-[color:var(--brand-link)]"
                         aria-hidden="true"
@@ -849,12 +844,12 @@ function TutorDetail() {
                 ) : null}
                 {/* Issue #102: social-proof lines, each only above its
                     threshold (selectProfileSocialProof); nothing renders for
-                    quiet tutors. No response-time line — no real data (#102). */}
+                    quiet tutors. No response-time line, no real data (#102). */}
                 {profileSocialProof &&
                 (profileSocialProof.showInquiries || profileSocialProof.showSaves) ? (
                   <div className="mt-3 space-y-1">
                     {profileSocialProof.showInquiries ? (
-                      <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]">
+                      <p className="inline-flex items-center gap-1.5 text-xs font-medium text-[color:var(--ink)]">
                         <Flame
                           className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
                           aria-hidden="true"
@@ -865,7 +860,7 @@ function TutorDetail() {
                       </p>
                     ) : null}
                     {profileSocialProof.showSaves ? (
-                      <p className="inline-flex items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]">
+                      <p className="inline-flex items-center gap-1.5 text-xs font-medium text-[color:var(--ink)]">
                         <Heart
                           className="h-3.5 w-3.5 text-[color:var(--muted-foreground)]"
                           aria-hidden="true"
@@ -878,7 +873,7 @@ function TutorDetail() {
                   </div>
                 ) : null}
                 {inquiry.kind === "status" ? (
-                  <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
+                  <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-medium text-[color:var(--ink)]">
                     <Lock className="h-3.5 w-3.5" aria-hidden="true" />
                     {inquiry.label}
                   </p>
@@ -887,7 +882,7 @@ function TutorDetail() {
                     asChild
                     variant="solid"
                     color="blue"
-                    className="mt-3 w-full rounded-sm font-bold sm:w-auto"
+                    className="mt-3 w-full rounded-sm font-medium sm:w-auto"
                   >
                     <a
                       href={waUrl}
@@ -906,7 +901,7 @@ function TutorDetail() {
                     asChild
                     variant="solid"
                     color="blue"
-                    className="mt-3 w-full font-bold sm:w-auto"
+                    className="mt-3 w-full font-medium sm:w-auto"
                   >
                     <Link to="/tutor-requests" search={{ post: true }}>
                       <MessageCircle className="mr-2 h-4 w-4" /> Request via our team
@@ -922,7 +917,7 @@ function TutorDetail() {
           <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <div>
               {/* Issue #394 (TDO liability): non-Gold-Verified profiles must
-                  proactively flag their scores as self-reported — never render a
+                  proactively flag their scores as self-reported, never render a
                   generic "Verified" checkmark. Gate matches the card badge
                   (public-tutor-card: badge only for staff-approved grades) so a
                   tutor never shows a Verified card badge alongside a
@@ -932,13 +927,13 @@ function TutorDetail() {
                 <p className="mb-4 inline-flex w-full items-start gap-2 rounded-md border border-border bg-muted px-3 py-2 text-xs leading-snug text-muted-foreground sm:w-auto sm:max-w-xl">
                   <Info className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                   <span>
-                    <span className="font-bold">{translate("profile.self_reported")}:</span>{" "}
+                    <span className="font-medium">{translate("profile.self_reported")}:</span>{" "}
                     {translate("profile.self_reported_note")}
                   </span>
                 </p>
               ) : null}
               {(() => {
-                // Issue #411: Core Academic Breakdown — per-curriculum groups
+                // Issue #411: Core Academic Breakdown, per-curriculum groups
                 // with the total as the header and the existing vertical-bar
                 // grade rows underneath; hidden when there are no scores at
                 // all (Examiner / pro tutors).
@@ -959,7 +954,7 @@ function TutorDetail() {
                 );
               })()}
 
-              {/* Issue #190: University vertical block — extends the existing
+              {/* Issue #190: University vertical block, extends the existing
                   education lines (university + degree stay in the header);
                   adds year of study, GPA, courses taught and course grades. */}
               {hasUniversityBlock ? (
@@ -972,7 +967,7 @@ function TutorDetail() {
                       <div className="flex flex-wrap gap-x-6 gap-y-1">
                         {universityYear ? (
                           <p className="leading-relaxed">
-                            <span className="font-bold text-[color:var(--ink)]">
+                            <span className="font-medium text-[color:var(--ink)]">
                               {translate("verticals.profile_year_of_study")}:
                             </span>{" "}
                             <span className="text-muted-foreground">
@@ -982,7 +977,7 @@ function TutorDetail() {
                         ) : null}
                         {universityGpa !== null ? (
                           <p className="leading-relaxed">
-                            <span className="font-bold text-[color:var(--ink)]">
+                            <span className="font-medium text-[color:var(--ink)]">
                               {translate("verticals.profile_gpa")}
                             </span>{" "}
                             <span className="text-muted-foreground">{universityGpa}</span>
@@ -992,7 +987,7 @@ function TutorDetail() {
                     ) : null}
                     {universityCourses.length > 0 ? (
                       <div className="space-y-1.5">
-                        <p className="font-bold text-[color:var(--ink)]">
+                        <p className="font-medium text-[color:var(--ink)]">
                           {translate("verticals.profile_courses")}
                         </p>
                         <div className="flex flex-wrap gap-1.5">
@@ -1009,7 +1004,7 @@ function TutorDetail() {
                     ) : null}
                     {courseGradeLines.length > 0 ? (
                       <div className="space-y-1.5">
-                        <p className="font-bold text-[color:var(--ink)]">
+                        <p className="font-medium text-[color:var(--ink)]">
                           {translate("verticals.profile_course_grades")}
                         </p>
                         <ul className="space-y-1">
@@ -1025,7 +1020,7 @@ function TutorDetail() {
                 </ProfileSection>
               ) : null}
 
-              {/* Issue #190: Kindergarten block — translated topic tags from
+              {/* Issue #190: Kindergarten block, translated topic tags from
                   subjects (gated on the level opt-in OR topics present; no
                   topics → no chips to list, so nothing renders). */}
               {hasKindergartenBlock && kindergartenTopics.length > 0 ? (
@@ -1058,7 +1053,7 @@ function TutorDetail() {
                               strokeWidth={2.1}
                             />
                             <div className="min-w-0">
-                              <p className="text-sm font-bold text-[color:var(--ink)]">
+                              <p className="text-sm font-medium text-[color:var(--ink)]">
                                 {achievement.short_text}
                               </p>
                               {achievement.detail_text ? (
@@ -1080,7 +1075,7 @@ function TutorDetail() {
                   the bio, above the marketplace section (#176). */}
               <TutorAuthoredNotes tutorCode={t.tutor_code} />
 
-              {/* Issue #97: Trophy Cabinet — optional award photos; hidden
+              {/* Issue #97: Trophy Cabinet, optional award photos; hidden
                   entirely when the tutor uploaded none. */}
               {t.portfolio_images.length > 0 ? (
                 <ProfileSection icon={Trophy} title={translate("profile.section_trophy")}>
@@ -1113,7 +1108,7 @@ function TutorDetail() {
                       <div className="space-y-1">
                         {subjectGroups.map((group) => (
                           <p key={group.systemId} className="leading-relaxed text-sm">
-                            <span className="font-bold text-[color:var(--ink)]">
+                            <span className="font-medium text-[color:var(--ink)]">
                               {group.systemLabel}:
                             </span>{" "}
                             <span className="text-muted-foreground">
@@ -1125,9 +1120,9 @@ function TutorDetail() {
                     ) : null}
                     {t.ia_ee_tok_support.length > 0 ? (
                       <p className="mt-1 text-muted-foreground">
-                        <span className="font-bold text-[color:var(--ink)]">IA / EE / TOK:</span>{" "}
+                        <span className="font-medium text-[color:var(--ink)]">IA / EE / TOK:</span>{" "}
                         {t.ia_ee_tok_support.join(", ")}
-                        {t.ia_ee_tok_notes ? ` — ${t.ia_ee_tok_notes}` : ""}
+                        {t.ia_ee_tok_notes ? `, ${t.ia_ee_tok_notes}` : ""}
                       </p>
                     ) : null}
                   </div>
@@ -1139,7 +1134,7 @@ function TutorDetail() {
                   <ul className="divide-y divide-border overflow-hidden rounded-sm border border-border">
                     {t.online_rate !== null ? (
                       <li className="flex items-center justify-between gap-4 px-4 py-2.5">
-                        <span className="text-sm font-semibold text-[color:var(--ink)]">
+                        <span className="text-sm font-medium text-[color:var(--ink)]">
                           {translate("profile.rates_online")}
                         </span>
                         <RateValue rate={t.online_rate} nativeCurrency={t.currency} />
@@ -1148,7 +1143,7 @@ function TutorDetail() {
                     {t.inperson_rate !== null ? (
                       <li className="px-4 py-2.5">
                         <div className="flex items-center justify-between gap-4">
-                          <span className="text-sm font-semibold text-[color:var(--ink)]">
+                          <span className="text-sm font-medium text-[color:var(--ink)]">
                             {translate("profile.rates_inperson")}
                           </span>
                           <RateValue rate={t.inperson_rate} nativeCurrency={t.currency} />
@@ -1161,12 +1156,12 @@ function TutorDetail() {
                     {extraRateRows.map((row, index) => (
                       <li key={`${row.label}-${index}`} className="px-4 py-2.5">
                         <div className="flex items-center justify-between gap-4">
-                          <span className="flex min-w-0 flex-wrap items-center gap-2 text-sm font-semibold text-[color:var(--ink)]">
+                          <span className="flex min-w-0 flex-wrap items-center gap-2 text-sm font-medium text-[color:var(--ink)]">
                             {row.label}
-                            {/* #391: what the rate buys — per-student group
+                            {/* #391: what the rate buys, per-student group
                                 band or bootcamp; plain 1-on-1 rows stay bare. */}
                             {row.mode && row.mode !== "one_on_one" ? (
-                              <span className="whitespace-nowrap rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-bold leading-tight text-[color:var(--ink)]">
+                              <span className="whitespace-nowrap rounded-md bg-muted px-1.5 py-0.5 text-[11px] font-medium leading-tight text-[color:var(--ink)]">
                                 {translate(`settings.my_tutor.rate_mode_${row.mode}`)}
                               </span>
                             ) : null}
@@ -1177,7 +1172,7 @@ function TutorDetail() {
                             (contact-filtered at save time, max 300 chars). */}
                         {row.description ? (
                           <details className="group mt-1">
-                            <summary className="cursor-pointer list-none text-xs font-semibold text-muted-foreground hover:text-[color:var(--ink)]">
+                            <summary className="cursor-pointer list-none text-xs font-medium text-muted-foreground hover:text-[color:var(--ink)]">
                               {translate("settings.my_tutor.rate_row_details_toggle")}
                               <span
                                 className="ml-1 inline-block transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-open:rotate-180 motion-reduce:transition-none"
@@ -1282,10 +1277,7 @@ function TutorDetail() {
             <div className="mx-auto max-w-7xl px-4 sm:px-6">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
-                  <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-                    {translate("profile.suggested_eyebrow")}
-                  </p>
-                  <h2 className="mt-1 text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                  <h2 className="text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-3xl">
                     {translate("profile.suggested_title")}
                   </h2>
                 </div>
@@ -1311,13 +1303,13 @@ function TutorDetail() {
                       }
                       footerAction={
                         candidateInquiry.kind === "status" ? (
-                          <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)]">
+                          <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-medium text-[color:var(--ink)]">
                             {candidateInquiry.label}
                           </span>
                         ) : (
                           <Button
                             asChild
-                            className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                            className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-medium text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                           >
                             <a
                               href={candidateInquiry.href}
@@ -1344,11 +1336,11 @@ function TutorDetail() {
               <div className="mt-8 rounded-sm border border-border bg-[color:var(--surface)] px-5 py-4 sm:px-6">
                 <p className="text-sm text-muted-foreground sm:text-base">
                   {translate("profile.cant_find")}{" "}
-                  <span className="font-bold text-[color:var(--ink)]">
+                  <span className="font-medium text-[color:var(--ink)]">
                     {translate("profile.skip_pitch")}
                   </span>
                 </p>
-                <Button asChild variant="solid" color="blue" className="mt-3 font-bold">
+                <Button asChild variant="solid" color="blue" className="mt-3 font-medium">
                   <Link to="/tutor-requests" search={{ post: true }}>
                     {translate("profile.submit_case")}
                   </Link>

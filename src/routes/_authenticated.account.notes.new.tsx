@@ -7,7 +7,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import { NoteEditorForm } from "@/features/materials/note-editor-form";
 
 /**
- * P8 (#288): new note — everything is optional until submit; a draft with
+ * P8 (#288): new note, everything is optional until submit; a draft with
  * only a title survives the day (acceptance: "A draft with only a title is
  * still there the next day").
  */
@@ -28,7 +28,7 @@ function NewNotePage() {
     <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
       <SiteHeader />
       <main className="mx-auto w-full max-w-2xl flex-1 px-4 py-10 sm:px-6">
-        <h1 className="text-2xl font-bold tracking-normal">{t("notes.form.new_title")}</h1>
+        <h1 className="text-2xl font-medium tracking-normal">{t("notes.form.new_title")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">{t("notes.form.new_subtitle")}</p>
         <div className="mt-8 rounded-2xl border border-border bg-card p-6 sm:p-8">
           {loading || !user ? (

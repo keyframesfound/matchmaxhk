@@ -16,12 +16,12 @@ import { consumeTourRequest, TOUR_REQUEST_EVENT } from "./tour-requests";
 
 /**
  * Issue #397 tutor tour. Fires exactly once when a tutor lands on the
- * dashboard with their profile approved AND published (`enabled`) — never on
+ * dashboard with their profile approved AND published (`enabled`), never on
  * a merely submitted application. Steps whose target is missing or hidden
  * (ghost elements) are skipped by `tourStep`.
  *
- * While a blocking gate dialog (onboarding/TOS) is up — or its check is
- * still in flight — the tour holds off, so it starts only after the user has
+ * While a blocking gate dialog (onboarding/TOS) is up, or its check is
+ * still in flight, the tour holds off, so it starts only after the user has
  * accepted the Terms instead of stacking on the dialog. A replay request from
  * the header menu (`requestTour`) re-launches it on demand, bypassing the
  * once-only flag.

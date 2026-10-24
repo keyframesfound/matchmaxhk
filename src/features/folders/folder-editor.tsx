@@ -264,7 +264,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
           />
           <p className="text-xs text-muted-foreground">{t("shop.form.price_folder_hint")}</p>
           {savings.savingsHkd > 0 && !priceInvalid ? (
-            <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
+            <p className="text-xs font-medium text-emerald-700 dark:text-emerald-400">
               {t("shop.form.savings_line", {
                 amount: formatMoney(savings.savingsHkd),
                 percent: savings.percent,
@@ -295,8 +295,8 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
           <span
             className={
               childrenInvalid
-                ? "text-xs font-bold text-[#B42318]"
-                : "text-xs font-bold text-emerald-700 dark:text-emerald-400"
+                ? "text-xs font-medium text-[#B42318]"
+                : "text-xs font-medium text-emerald-700 dark:text-emerald-400"
             }
           >
             {t("shop.form.items_count", { count: selectedIds.length })}
@@ -331,13 +331,13 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
                       }}
                       className="h-4 w-4 shrink-0"
                     />
-                    <span className="min-w-0 flex-1 truncate text-sm font-semibold text-[color:var(--ink)]">
+                    <span className="min-w-0 flex-1 truncate text-sm font-medium text-[color:var(--ink)]">
                       {row.title}
                     </span>
-                    <span className="shrink-0 text-xs font-semibold text-muted-foreground">
+                    <span className="shrink-0 text-xs font-medium text-muted-foreground">
                       {shopKindLabel(row.materialType, t)}
                     </span>
-                    <span className="shrink-0 text-sm font-bold text-[color:var(--ink)]">
+                    <span className="shrink-0 text-sm font-medium text-[color:var(--ink)]">
                       {row.priceHkd === 0 ? t("notes.card.free") : formatMoney(row.priceHkd)}
                     </span>
                   </label>
@@ -363,7 +363,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
               <span className="min-w-0 flex-1 truncate text-sm">
                 {index + 1}. {row.title}
               </span>
-              <span className="shrink-0 text-sm font-bold">
+              <span className="shrink-0 text-sm font-medium">
                 {row.priceHkd === 0 ? t("notes.card.free") : formatMoney(row.priceHkd)}
               </span>
               <button
@@ -377,15 +377,15 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
             </li>
           ))}
           <li className="flex items-center justify-between gap-2 px-3 pt-1 text-sm">
-            <span className="font-semibold">{t("shop.form.items_sum_label")}</span>
-            <span className="font-bold">{formatMoney(sumHkd)}</span>
+            <span className="font-medium">{t("shop.form.items_sum_label")}</span>
+            <span className="font-medium">{formatMoney(sumHkd)}</span>
           </li>
           <li className="flex items-center justify-between gap-2 px-3">
-            <span className="flex items-center gap-1.5 font-semibold text-emerald-700 dark:text-emerald-400">
+            <span className="flex items-center gap-1.5 font-medium text-emerald-700 dark:text-emerald-400">
               <Check className="h-4 w-4" aria-hidden />
               {t("shop.form.bulk_label")}
             </span>
-            <span className="font-bold text-emerald-700 dark:text-emerald-400">
+            <span className="font-medium text-emerald-700 dark:text-emerald-400">
               {price.trim() === "" ? "—" : formatMoney(Number(price))}
             </span>
           </li>
@@ -403,7 +403,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
           type="submit"
           variant="solid"
           color="accent"
-          className="font-bold"
+          className="font-medium"
           disabled={saving || blockedByContact || missing.length > 0 || childErrors.length > 0}
         >
           {saving && submitMutation.isPending ? (

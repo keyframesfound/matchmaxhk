@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
  * that doubles as the mobile top navigation. The block bleeds to the true
  * screen edges (canceling the parent px-4/px-6 container) and the pills row
  * scrolls with cut-off pills touching the screen edge, like Airbnb. The
- * pill shadows live in styles.css (`.pill-elevate*`) — the one sanctioned
+ * pill shadows live in styles.css (`.pill-elevate*`), the one sanctioned
  * exception to the flat-design rule.
  */
 export function MobileSearchTrigger({
@@ -52,7 +52,7 @@ export function MobileSearchTrigger({
       <button
         type="button"
         onClick={onClick}
-        className="pill-elevate-lg flex w-full items-center justify-center gap-2.5 rounded-full border border-transparent bg-card px-4 py-3.5 text-base font-semibold text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 dark:border-border"
+        className="pill-elevate-lg flex w-full items-center justify-center gap-2.5 rounded-full border border-transparent bg-card px-4 py-3.5 text-base font-medium text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 dark:border-border"
       >
         <Search className="h-5 w-5 shrink-0" aria-hidden="true" />
         <span className="truncate">{label}</span>
@@ -71,7 +71,7 @@ export function MobileSearchTrigger({
               className={cn(
                 "pill-elevate flex shrink-0 items-center justify-center rounded-full border px-3.5 py-2.5 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40",
                 active &&
-                  "pill-elevate-strong border-transparent bg-muted font-bold text-[color:var(--ink)] dark:border-[color:var(--foreground)] dark:bg-card",
+                  "pill-elevate-strong border-transparent bg-muted font-medium text-[color:var(--ink)] dark:border-[color:var(--foreground)] dark:bg-card",
                 !active &&
                   "border-transparent bg-card font-medium text-[color:var(--ink)]/75 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] dark:border-border",
               )}

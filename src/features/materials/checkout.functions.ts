@@ -47,7 +47,7 @@ export const FOLDER_PRORATION_GRANT_REASON = "folder_proration";
  * Pure factory for the folder child grants (#250 grant shape): delivered
  * is_grant rows at HK$0 across the board, one per child. Extracted for
  * tests. `grantedBy` is the releasing staff user (null on the $0 proration
- * path — no staff touched that order).
+ * path, no staff touched that order).
  */
 export function buildFolderChildGrantRows(input: {
   folderId: string;
@@ -90,11 +90,11 @@ export function buildFolderChildGrantRows(input: {
 /**
  * Insert the folder's child grants, ignoring rows that already exist (the
  * buyer may already hold a child via a direct purchase or an earlier
- * folder). Children grants never bump child sold_count — the CALLER owns
+ * folder). Children grants never bump child sold_count, the CALLER owns
  * the single increment_material_sold_count call for the FOLDER.
  *
  * The (material, buyer) uniqueness on material_orders is a PARTIAL unique
- * index (status <> 'refunded', 20261012153000) — PostgREST's on_conflict
+ * index (status <> 'refunded', 20261012153000), PostgREST's on_conflict
  * cannot infer it (42P10), so plain-insert and treat 23505 as "already
  * held". A child the buyer refunded earlier gets a fresh grant row: the
  * folder purchase re-unlocks it.
@@ -174,7 +174,7 @@ async function isAdmin(db: AdminDb, userId: string): Promise<boolean> {
 }
 
 /**
- * A refunded order is DEAD — returning it from checkout would trap the
+ * A refunded order is DEAD, returning it from checkout would trap the
  * (material, buyer) pair forever, so only still-active orders are reusable.
  * Extracted pure for tests. Backed by the partial unique index
  * idx_material_orders_active_pair (status <> 'refunded').
@@ -200,7 +200,7 @@ export function canMarkOrderPaid(status: string): boolean {
  * After a refund + re-buy there can be TWO rows for one (material, buyer)
  * pair: the dead refunded row and the live one. Pick the first still-active
  * row (server fns pass rows newest-first, so the re-buy wins over the
- * refunded original); null when every row is refunded — checkout then
+ * refunded original); null when every row is refunded, checkout then
  * inserts fresh. Extracted pure for tests.
  */
 export function pickReusableOrder(
@@ -226,7 +226,7 @@ export function escapeHtml(text: string): string {
 /**
  * Issue #214: record the checkout acceptance for an order. Thin wrapper so
  * all three startCheckout paths (create, reuse, race-winner) stay fail-closed
- * — a failed insert throws and the whole checkout fails.
+ *, a failed insert throws and the whole checkout fails.
  */
 async function recordCheckoutAcceptance(userId: string, orderId: string): Promise<void> {
   const { recordTermsAcceptance } = await import("@/features/legal/terms-acceptance.server");
@@ -236,7 +236,7 @@ async function recordCheckoutAcceptance(userId: string, orderId: string): Promis
 /**
  * #203 flow step 3: create (or return) the awaiting_payment order for this
  * buyer + pack. Unique (material, buyer) among NON-refunded orders makes
- * double-checkout impossible — the second attempt gets the existing order
+ * double-checkout impossible, the second attempt gets the existing order
  * back instead of an error, so the checkout page is idempotent across
  * refreshes. A REFUNDED order is dead: checkout inserts a fresh
  * awaiting_payment order so the buyer can re-purchase the same note
@@ -249,7 +249,7 @@ export const startCheckout = createServerFn({ method: "POST" })
       .object({
         materialId: z.string().uuid(),
         // Issue #214: the buy click doubles as the notes-terms acceptance
-        // click — the checkbox must arrive true, and the handler records the
+        // click, the checkbox must arrive true, and the handler records the
         // terms_acceptances row (surface checkout, subject_id = order id).
         legalAgreed: z.literal(true),
       })
@@ -278,7 +278,7 @@ export const startCheckout = createServerFn({ method: "POST" })
     ) {
       throw new Error("This note is not available right now.");
     }
-    // #314: HK$0 free packs ARE purchasable — they run the same manual
+    // #314: HK$0 free packs ARE purchasable, they run the same manual
     // cashier flow (staff approve + release, ban list already applied at
     // submit), the delivered order counts in the listing's bought count,
     // and the file is released inside the buyer's account.
@@ -292,11 +292,11 @@ export const startCheckout = createServerFn({ method: "POST" })
       throw new Error("You can't buy your own note.");
     }
 
-    // Existing order (active statuses) wins — the unique index is the source
+    // Existing order (active statuses) wins, the unique index is the source
     // of truth. A refunded row is dead: fall through and insert a fresh
     // awaiting_payment order instead. After a refund + re-buy the pair has
     // TWO rows (refunded + active), so this is a LIST query with a status
-    // filter — .maybeSingle() on the bare pair would PGRST116-error and the
+    // filter, .maybeSingle() on the bare pair would PGRST116-error and the
     // buyer could never reach their order again. Newest-first so a re-buy
     // wins over the refunded original.
     const { data: existingRows } = await db
@@ -309,7 +309,7 @@ export const startCheckout = createServerFn({ method: "POST" })
       .limit(2);
     const reusable = pickReusableOrder(existingRows ?? []);
     if (reusable) {
-      // Issue #214: the gate fires on the reuse path too — the checkbox was
+      // Issue #214: the gate fires on the reuse path too, the checkbox was
       // still clicked, so record the acceptance for the returned order.
       await recordCheckoutAcceptance(context.userId, reusable.orderId);
       return reusable;
@@ -343,7 +343,7 @@ export const startCheckout = createServerFn({ method: "POST" })
       }
 
       if (childIds.length === 0 || adjusted === 0) {
-        // Fully prorated (or an empty folder — the submit gate forbids it,
+        // Fully prorated (or an empty folder, the submit gate forbids it,
         // but stay safe): create the folder order as an immediate delivered
         // grant at HK$0 and unlock the children right away. No cashier
         // round-trip; the buyer lands on a delivered order page.
@@ -368,7 +368,7 @@ export const startCheckout = createServerFn({ method: "POST" })
           .single();
         if (grantInsert.error || !grantInsert.data) {
           // Lost a race to the unique index? The winner's row IS the grant
-          // the buyer needs — re-read and hand it back.
+          // the buyer needs, re-read and hand it back.
           const { data: winnerRows } = await db
             .from<OrderRow>("material_orders")
             .select("*")
@@ -395,7 +395,7 @@ export const startCheckout = createServerFn({ method: "POST" })
             grantedBy: null,
           }),
         );
-        // Sold count moves for the FOLDER only — child grants must not
+        // Sold count moves for the FOLDER only, child grants must not
         // bump the children (they were not newly sold).
         await db.rpc("increment_material_sold_count", { p_material_id: material.id });
         await recordCheckoutAcceptance(context.userId, grantInsert.data.id);
@@ -476,7 +476,7 @@ export const startCheckout = createServerFn({ method: "POST" })
       }
       throw new Error(insert.error?.message || "Could not create the order.");
     }
-    // Issue #214: the order exists — record WHICH terms version the buyer
+    // Issue #214: the order exists, record WHICH terms version the buyer
     // accepted (subject_id = order id). Fail-closed: an insert failure fails
     // the whole checkout, so no order is ever placed without a recorded
     // acceptance.
@@ -558,7 +558,7 @@ export const getMyOrder = createServerFn({ method: "POST" })
     } satisfies MyOrder;
   });
 
-/** P13: the Bought library — paid notes on the Account page. */
+/** P13: the Bought library, paid notes on the Account page. */
 export const getBoughtMaterials = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
@@ -677,7 +677,7 @@ export const getOrderScreenshotUrl = createServerFn({ method: "POST" })
 
 /**
  * Stamp the per-order footer onto a copy of the original (#203: order id +
- * buyer account id). Failure must NOT deliver — the caller parks the order
+ * buyer account id). Failure must NOT deliver, the caller parks the order
  * at stamp_failed.
  */
 export async function buildDeliveredFile(
@@ -721,8 +721,8 @@ export const markOrderPaid = createServerFn({ method: "POST" })
     const db = asAdminDb(supabaseAdmin);
     if (!(await isAdmin(db, context.userId))) throw new Error("Forbidden");
 
-    // Status precondition (review fix): only an awaiting_payment order — or
-    // a rejected payment the buyer is re-paying — may be marked paid. This
+    // Status precondition (review fix): only an awaiting_payment order, or
+    // a rejected payment the buyer is re-paying, may be marked paid. This
     // stops staff from clobbering delivered/refunded/stamping rows and
     // overwriting paid_at / fps_reference, mirroring releaseOrder's gate.
     const { data: order } = await db
@@ -739,10 +739,10 @@ export const markOrderPaid = createServerFn({ method: "POST" })
       throw new Error(`Order in status "${order.status}" cannot be marked paid.`);
     }
     // Grok review 2026-10-17 (soft): gig orders have their own fulfillment
-    // machine — a wrong-desk call here would park one at notes-only "paid"
+    // machine, a wrong-desk call here would park one at notes-only "paid"
     // with no fulfillment_due_at. Send staff to markGigOrderPaid instead.
     if (order.digital_materials?.material_type === "gig") {
-      throw new Error("This order is for a service listing — mark it paid from the Services desk.");
+      throw new Error("This order is for a service listing, mark it paid from the Services desk.");
     }
 
     const { error } = await db
@@ -780,7 +780,7 @@ export const releaseOrder = createServerFn({ method: "POST" })
     const material = order.digital_materials;
     if (!material) throw new Error("The note file is missing.");
 
-    // #392: folder and course orders carry NO listing-level file — there is
+    // #392: folder and course orders carry NO listing-level file, there is
     // nothing to stamp. They flip straight to delivered: courses unlock
     // per-lesson embeds + PDFs via getCourseAccess, folders grant their
     // children here. Notes/gigs keep the stamp pipeline below untouched.
@@ -820,7 +820,7 @@ export const releaseOrder = createServerFn({ method: "POST" })
           );
         }
 
-        // Sold count moves for the LISTING only — never for the children.
+        // Sold count moves for the LISTING only, never for the children.
         await db.rpc("increment_material_sold_count", { p_material_id: order.material_id });
 
         // P12 marketplace bell v1: receipt email (order id, title, amount —
@@ -915,7 +915,7 @@ export const rejectOrder = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** WhatsApp deep link for the checkout handoff — concierge number, order stated. */
+/** WhatsApp deep link for the checkout handoff, concierge number, order stated. */
 export const getOrderWhatsAppUrl = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) =>
     z
@@ -982,7 +982,7 @@ export async function sendOrderReceipt(orderId: string): Promise<void> {
   const { error } = await resend.emails.send({
     from: "MatchMax <noreply@matchmax.hk>",
     to: profile.email,
-    subject: `MatchMax order ${order.reference || order.id.slice(0, 8)} — ${title}`,
+    subject: `MatchMax order ${order.reference || order.id.slice(0, 8)}, ${title}`,
     html: `<p>Your payment for <strong>${titleHtml}</strong> was confirmed.</p>
 <p>Order ${safeReference} · HK$${Number(order.gross_hkd).toFixed(0)}</p>
 <p>Download it anytime from Account → Bought on matchmax.hk.</p>`,

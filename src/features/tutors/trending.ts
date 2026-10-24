@@ -2,7 +2,7 @@
 // fetch over the get_trending_tutors RPC (migration 20261016150000), which
 // returns the base-score candidate set for ALL published tutors. The landing
 // page re-ranks these with the quality multipliers (rankTrending) after
-// merging with its full Tutor rows — this module must never throw to the
+// merging with its full Tutor rows, this module must never throw to the
 // page: on any RPC failure we log and return an empty list so the home keeps
 // its existing (non-trending) behaviour.
 import { supabase } from "@/integrations/supabase/client";

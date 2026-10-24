@@ -10,7 +10,7 @@ import { asAdminDb } from "@/features/materials/storage-helpers";
  * account_checklist row's stored completed_steps overrides and dismissal.
  * Dismissal is the only write. account_checklist is owner-only by RLS, but
  * the reads here walk several owner-owned tables in one call, so everything
- * runs through the service-role client scoped to context.userId — the same
+ * runs through the service-role client scoped to context.userId, the same
  * convention as the notes/checkout server functions.
  */
 
@@ -161,7 +161,7 @@ async function parentChecklistSteps(db: ChecklistDb, userId: string): Promise<Ch
 
 /**
  * The single Account-load read: role, live-ticked steps, stored overrides
- * and dismissal — one server roundtrip for the whole checklist.
+ * and dismissal, one server roundtrip for the whole checklist.
  */
 export const getSignupChecklist = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

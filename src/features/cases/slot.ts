@@ -1,5 +1,5 @@
 /**
- * Issue #204 — slot derivation from weekly windows.
+ * Issue #204, slot derivation from weekly windows.
  *
  * Slots are NOT stored: they are derived from tutor_weekly_windows +
  * tutor_blackout_dates + live case_lessons at read time, so a weekly-hours
@@ -79,7 +79,7 @@ export function generateSlots(
 
 /**
  * Overlap + F2F buffer check against already-booked lessons (the TS side of
- * the DB's hard double-book guard — the partial unique index only stops exact
+ * the DB's hard double-book guard, the partial unique index only stops exact
  * same-instant doubles).
  */
 export function lessonConflicts(

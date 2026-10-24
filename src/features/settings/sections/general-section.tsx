@@ -39,7 +39,7 @@ export function GeneralSection({ profile, updateProfile }: SettingsSectionProps)
         title={t("settings.general.appearance_title")}
         description={t("settings.general.appearance_desc")}
       >
-        <p className="mb-3 text-sm font-bold text-[color:var(--ink)]">
+        <p className="mb-3 text-sm font-medium text-[color:var(--ink)]">
           {t("settings.general.color_mode")}
         </p>
         <ThemeModeCards theme={theme} onPick={(next: ThemePreference) => setTheme(next)} />
@@ -58,7 +58,7 @@ export function GeneralSection({ profile, updateProfile }: SettingsSectionProps)
               label={t(option.labelKey)}
               description={t(option.descKey)}
               preview={
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--primary)]/10 text-base font-bold text-[color:var(--primary)]">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--primary)]/10 text-base font-medium text-[color:var(--primary)]">
                   {option.value === "en" ? "En" : "繁"}
                 </span>
               }

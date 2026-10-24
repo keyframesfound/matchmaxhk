@@ -44,7 +44,7 @@ export const Route = createFileRoute("/_authenticated/business/join")({
   component: BusinessJoinPage,
 });
 
-// Issue #412: never label this an "Employer Account" — Education Partner /
+// Issue #412: never label this an "Employer Account", Education Partner /
 // Organisation Account only, and the page must not read as a recruitment or
 // vacancy funnel (Cap. 57 EA-safe posture).
 function BusinessJoinPage() {
@@ -72,7 +72,7 @@ function BusinessJoinPage() {
     contact_email: "",
     contact_phone: "",
     whatsapp_number: "",
-    // Consents (#412 D) — unticked by default
+    // Consents (#412 D), unticked by default
     authorityAck: false,
     termsAck: false,
     feeAck: false,
@@ -105,14 +105,14 @@ function BusinessJoinPage() {
           contact_email: form.contact_email.trim(),
           contact_phone: form.contact_phone.trim(),
           whatsapp_number: form.whatsapp_number.trim() || undefined,
-          // Fail-closed literals — the server zod schema rejects without them.
+          // Fail-closed literals, the server zod schema rejects without them.
           authorityAck: form.authorityAck as true,
           termsAck: form.termsAck as true,
           feeTermsAck: form.feeAck as true,
           marketingAck: form.marketingAck,
         },
       });
-      toast.success("Organization created — pending activation");
+      toast.success("Organization created, pending activation");
       navigate({ to: "/business", search: { tab: undefined } });
     } catch (error) {
       toast.error(error instanceof Error ? error.message : "Failed to create organization");
@@ -129,16 +129,16 @@ function BusinessJoinPage() {
       <main className="flex-1 py-12">
         <div className="mx-auto max-w-2xl px-4 sm:px-6">
           <div className="text-center">
-            <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+            <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs font-medium text-muted-foreground">
               <Building2 className="h-3.5 w-3.5" />
               {search.plan === "enterprise" ? "Enterprise plan selected" : "Education Partner"}
             </span>
-            <h1 className="mt-4 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+            <h1 className="mt-4 text-3xl font-medium tracking-tight text-[color:var(--ink)]">
               Create your Education Partner account
             </h1>
             <p className="mt-3 text-sm text-muted-foreground sm:text-base">
               For organisations engaging independent educators for course modules, exam clinics, and
-              class series. MatchMax does not provide staff or employment recruitment — tutors on
+              class series. MatchMax does not provide staff or employment recruitment, tutors on
               MatchMax are self-employed educators. Our team reviews your Business Registration
               before activating your account.
             </p>
@@ -164,10 +164,10 @@ function BusinessJoinPage() {
               </p>
             </div>
 
-            {/* Legal identity — #412 B required fields 1–3 + org type on the
+            {/* Legal identity, #412 B required fields 1–3 + org type on the
                 same form (no second intake). */}
             <div className="space-y-4 rounded-lg border border-border p-4">
-              <p className="flex items-center gap-2 text-sm font-semibold text-[color:var(--ink)]">
+              <p className="flex items-center gap-2 text-sm font-medium text-[color:var(--ink)]">
                 <ShieldCheck className="h-4 w-4" /> Registered legal identity
               </p>
               <div className="space-y-1.5">
@@ -237,7 +237,7 @@ function BusinessJoinPage() {
 
             {/* Authorised representative */}
             <div className="space-y-4 rounded-lg border border-border p-4">
-              <p className="text-sm font-semibold text-[color:var(--ink)]">
+              <p className="text-sm font-medium text-[color:var(--ink)]">
                 Authorised representative
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
@@ -308,7 +308,7 @@ function BusinessJoinPage() {
               </div>
             </div>
 
-            {/* Verified contact — #412 B required field 5. */}
+            {/* Verified contact, #412 B required field 5. */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="org-email">Contact email *</Label>
@@ -341,7 +341,7 @@ function BusinessJoinPage() {
               </p>
             </div>
 
-            {/* Consents — #412 D. Unticked by default; the three mandatory
+            {/* Consents, #412 D. Unticked by default; the three mandatory
                 literals are enforced server-side by the zod schema. */}
             <div className="space-y-3 rounded-lg border border-border p-4">
               <label className="flex gap-3 text-sm text-muted-foreground">
@@ -351,7 +351,7 @@ function BusinessJoinPage() {
                 />
                 <span>
                   I confirm that I am authorised to accept these Terms and bind{" "}
-                  <span className="font-semibold text-[color:var(--ink)]">
+                  <span className="font-medium text-[color:var(--ink)]">
                     {form.legal_entity_name.trim() || "[legal entity name]"}
                   </span>
                   . *
@@ -368,7 +368,7 @@ function BusinessJoinPage() {
                     href="/tos"
                     target="_blank"
                     rel="noreferrer"
-                    className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
+                    className="font-medium text-[color:var(--brand-link)] underline underline-offset-4"
                   >
                     Platform Terms of Service
                   </a>{" "}
@@ -383,7 +383,7 @@ function BusinessJoinPage() {
                 <span>
                   I have read and agree to the Matching and Platform Service Fee Agreement (version{" "}
                   {FEE_TERMS_VERSION}). MatchMax&apos;s matching admin fee is the standard
-                  1.5-lesson fee — 100% of Lesson 1 plus 50% of Lesson 2 — charged to the
+                  1.5-lesson fee, 100% of Lesson 1 plus 50% of Lesson 2, charged to the
                   self-employed tutor after the first two introductions. Short packages of five
                   lessons or fewer use 20% of the package, and pro-bono engagements are free.
                   Parents and centres never pay MatchMax a matching fee. *
@@ -407,7 +407,7 @@ function BusinessJoinPage() {
               disabled={submitting || consentInvalid}
               variant="solid"
               color="blue"
-              className="h-11 w-full font-bold"
+              className="h-11 w-full font-medium"
             >
               {submitting ? "Creating account…" : "Create Education Partner account"}
             </Button>

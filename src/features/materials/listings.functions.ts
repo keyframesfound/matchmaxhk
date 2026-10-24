@@ -16,7 +16,7 @@ import {
  * general courses) on top of the existing note read. Every reader runs
  * under the SERVICE ROLE, so the publish gate the RLS policy would enforce
  * (material status='published' AND tutors.is_published=true) is restated
- * explicitly on EVERY query (PUBLIC_NOTE_COLUMNS precedent) — and kind
+ * explicitly on EVERY query (PUBLIC_NOTE_COLUMNS precedent), and kind
  * payloads are whitelisted just as hard: the public path NEVER carries
  * course_lessons.video_url / pdf_path (embeds and files unlock only for
  * buyers with a delivered order, via getCourseAccess).
@@ -35,7 +35,7 @@ export type PublicListingLesson = {
   id: string;
   position: number;
   title: string;
-  /** 'youtube' | 'vimeo' | null — the PROVIDER only, never the raw URL. */
+  /** 'youtube' | 'vimeo' | null, the PROVIDER only, never the raw URL. */
   videoProvider: string | null;
   hasPdf: boolean;
 };
@@ -153,7 +153,7 @@ export const getPublicListing = createServerFn({ method: "GET" })
 
 /**
  * Buyer-facing folder price quote (proration): the buyer's DELIVERED orders
- * on the folder's published children (paid or granted — grants carry
+ * on the folder's published children (paid or granted, grants carry
  * gross 0) are subtracted from the bulk price, floored at 0. Signed-in
  * buyers only; the detail page renders bulk + savings for guests.
  */

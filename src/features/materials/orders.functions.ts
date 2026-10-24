@@ -7,7 +7,7 @@ import { hktDateKey } from "@/features/cases/sor";
 /**
  * Issue #250 groundwork (stacked on the #131–#134 marketplace MVP):
  * order enforcement + staff grants. This is the minimal slice of #203's
- * "manual cashier" needed by #250's acceptance items — it is NOT the
+ * "manual cashier" needed by #250's acceptance items, it is NOT the
  * full #203 checkout (no buyer-facing checkout UI, no receipt email,
  * no monthly statement batches) and NOT #201 (no case linkage).
  *
@@ -16,7 +16,7 @@ import { hktDateKey } from "@/features/cases/sor";
  *     `delivered` ("no delivered order, no unlock").
  *   - A staff grant is an order at HK$0: status delivered, tutor_net 0,
  *     is_grant true. The payout export EXCLUDES is_grant rows.
- *   - One order per (material, buyer) — a second checkout or a duplicate
+ *   - One order per (material, buyer), a second checkout or a duplicate
  *     grant is blocked (PK on the unique constraint).
  *   - The buyer never sees the tutor's contact details and the tutor never
  *     sees the buyer's identity (only opaque ids cross these surfaces).
@@ -152,14 +152,14 @@ export function assertOwnedDeliveredOrder(
   }
 }
 
-/** Postgres unique_violation — the structured way to detect re-grants. */
+/** Postgres unique_violation, the structured way to detect re-grants. */
 export function isUniqueViolation(err: { code?: string; message?: string } | null): boolean {
   if (!err) return false;
   return err.code === "23505" || err.message?.includes("duplicate key") === true;
 }
 
 /**
- * A staff grant row must be HK$0 across the board and delivered — mirrors
+ * A staff grant row must be HK$0 across the board and delivered, mirrors
  * the material_orders_grant_zero_money CHECK in the migration so app code
  * and the DB enforce the same invariant.
  */
@@ -181,7 +181,7 @@ export function assertValidGrantRow(
 
 /**
  * Parses the export month window: [first day 00:00 HKT, first day of next
- * month 00:00 HKT). Extracted pure for tests (review blocker 8 — the
+ * month 00:00 HKT). Extracted pure for tests (review blocker 8, the
  * double-pay guard is the money-critical path).
  */
 export function parsePayoutMonthWindow(month: string): {
@@ -235,7 +235,7 @@ function csvEscape(value: string): string {
 }
 
 /**
- * Assembles the payout CSV from already-filtered rows — extracted pure for
+ * Assembles the payout CSV from already-filtered rows, extracted pure for
  * tests (review blocker 8: grant rows / out-of-window rows must never appear;
  * the caller owns that filtering, this only renders).
  */
@@ -259,7 +259,7 @@ export function buildPayoutCsv(rows: PayoutCsvRow[]): string {
  * #250 acceptance: "A buyer cannot unlock a file without a delivered order."
  * Signs the PRIVATE original for the buying account only after checking a
  * delivered order exists. Signed URL expires in 10 minutes (#203). Access
- * lasts while the order stays delivered — there is NO 180-day cutoff in
+ * lasts while the order stays delivered, there is NO 180-day cutoff in
  * code: refunds revoke access by flipping status away from delivered, and
  * any #203 time-limited access window must be added explicitly later.
  */
@@ -289,7 +289,7 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
     const deliveredPath = (order as unknown as { delivered_file_path?: string | null })
       ?.delivered_file_path;
     if (!deliveredPath) {
-      // #392: course and folder orders have no per-order stamped copy — the
+      // #392: course and folder orders have no per-order stamped copy, the
       // product opens on its own page instead of a file download.
       const { data: mat } = await (
         supabaseAdmin as unknown as {
@@ -319,11 +319,11 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
         mat?.material_type === "topic_folder"
       ) {
         throw new Error(
-          "This purchase opens on its product page — there is no file download. Open the listing from Account → Bought.",
+          "This purchase opens on its product page, there is no file download. Open the listing from Account → Bought.",
         );
       }
       throw new Error(
-        "The stamped copy is not ready yet — the download unlocks once staff release the file.",
+        "The stamped copy is not ready yet, the download unlocks once staff release the file.",
       );
     }
 
@@ -395,7 +395,7 @@ export const staffGrantMaterials = createServerFn({ method: "POST" })
         delivered_at: new Date().toISOString(),
         delivered_by: context.userId,
       };
-      // Same invariant the migration's CHECK enforces — fail loud if the
+      // Same invariant the migration's CHECK enforces, fail loud if the
       // two ever drift apart.
       assertValidGrantRow(row);
       return row;
@@ -441,12 +441,12 @@ export type PayoutExportRow = {
 /**
  * #250 acceptance: "A zero-price grant does not appear in the tutor payout
  * export." Exports delivered, NON-grant orders as CSV for the manual
- * monthly payout (#203 Flow step 7 — admin pays by hand). Grant rows are
+ * monthly payout (#203 Flow step 7, admin pays by hand). Grant rows are
  * excluded by is_grant, and HK$0 rows by amount, so a grant can never
  * surface via either path.
  *
  * Review blocker fix: `from`/`to` (ISO dates, HKT) bound the export by
- * delivered_at — [from 00:00, to 00:00 next-ish) style half-open window,
+ * delivered_at, [from 00:00, to 00:00 next-ish) style half-open window,
  * so re-exporting a prior month cannot silently re-pay rows outside it.
  * A paid_out_at / statement-batch marker so one row can never be paid
  * twice at all is tracked as a #203 follow-up.
@@ -552,7 +552,7 @@ export type MyNotesSummary = {
   deliveredThisMonth: number;
   /**
    * Sum of tutor_net over delivered, non-grant orders with no payout ledger
-   * yet (the manual monthly payout has no paid marker — see the payout
+   * yet (the manual monthly payout has no paid marker, see the payout
    * export's paid_out_at note). Grant rows are HK$0 by construction and are
    * excluded anyway. The case admin fee is a PARENT fee and never enters
    * this number (it lives in case_fees, a different table).
@@ -563,7 +563,7 @@ export type MyNotesSummary = {
 /**
  * Pure core of the #202 notes summary (extracted for tests): counts orders
  * DELIVERED in the current HKT calendar month and sums tutor_net over ALL
- * delivered non-grant rows (all-time — there is no paid_out_at ledger yet;
+ * delivered non-grant rows (all-time, there is no paid_out_at ledger yet;
  * see the payout export's follow-up note). Grant rows are HK$0 by
  * construction: they count as deliveries but add nothing to net.
  */
@@ -597,7 +597,7 @@ export function summarizeMyNotesOrders(
 /**
  * #202 Tutor home notes block: delivered count this month (HKT) + net owed.
  * Tutor-gated (tutors.user_id); returns zeros for accounts without a card
- * instead of throwing — the block simply renders nothing.
+ * instead of throwing, the block simply renders nothing.
  */
 export const getMyNotesSummary = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -678,7 +678,7 @@ export type CourseAccessLesson = {
   position: number;
   title: string;
   videoProvider: string | null;
-  /** youtube-nocookie / player.vimeo embed — NEVER the raw URL. */
+  /** youtube-nocookie / player.vimeo embed, NEVER the raw URL. */
   embedUrl: string | null;
   /** 10-minute signed URL for the watermarked lesson PDF (null when none). */
   pdfSignedUrl: string | null;
@@ -696,7 +696,7 @@ export type CourseAccess = {
  * with a DELIVERED order on the course gets each lesson's embed URL
  * (youtube-nocookie via parseYouTubeUrl, player.vimeo.com via
  * parseVimeoUrl) plus a 10-minute signed URL per watermarked lesson PDF.
- * Non-owners (and non-courses) get the typed COURSE_LOCKED_ERROR — the
+ * Non-owners (and non-courses) get the typed COURSE_LOCKED_ERROR, the
  * embed URLs and pdf paths never cross the gate. The raw video_url /
  * pdf_path stay server-side.
  */

@@ -149,7 +149,7 @@ export function caseBudgetHkdBounds(
 /**
  * The explicit column list the desk's client list query selects (admin
  * cases route). The table grants authenticated a column-level SELECT
- * (admin-only fields — internal_note, whatsapp_group_url, hourly_rate_hkd —
+ * (admin-only fields, internal_note, whatsapp_group_url, hourly_rate_hkd —
  * are excluded DB-side), so select(*) would fail with permission denied.
  * Shared with findCasesByTutorCode (#55) so both surfaces stay in lockstep.
  */

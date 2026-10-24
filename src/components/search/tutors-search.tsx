@@ -56,7 +56,7 @@ export type TutorsSearchState = {
   tier?: AcademicTier;
   category?: string;
   subject?: string;
-  /** Issue #187: extra subjects (comma-free, plain values) — AND-ed with `subject`. */
+  /** Issue #187: extra subjects (comma-free, plain values), AND-ed with `subject`. */
   subjects_extra?: string;
   station?: string;
   mode?: string;
@@ -89,7 +89,7 @@ const HISTOGRAM_BUCKETS = 28;
 
 const CATEGORY_VALUES = ["IB", "DSE", "IGCSE", "AP", "A-Level"];
 
-/** Issue #187: the draft's full multi-subject pick — primary + extras. */
+/** Issue #187: the draft's full multi-subject pick, primary + extras. */
 export function getSelectedSubjects(draft: TutorsSearchState): string[] {
   const primary = draft.subject?.trim() ? [draft.subject.trim()] : [];
   const extras = (draft.subjects_extra ?? "")
@@ -205,7 +205,7 @@ export function TierToggleRow({
             aria-selected={isActive}
             onClick={() => onChange(option)}
             className={cn(
-              "min-w-0 truncate rounded-full px-4 py-2 text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+              "min-w-0 truncate rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
               isActive
                 ? "bg-[color:var(--ink)] text-[color:var(--surface-invert-fg)]"
                 : "text-[color:var(--ink)]/70 hover:text-[color:var(--ink)]",
@@ -219,7 +219,7 @@ export function TierToggleRow({
   );
 }
 
-// --- Issue #190: kindergarten tab — the three topic toggles ---
+// --- Issue #190: kindergarten tab, the three topic toggles ---
 
 const KINDERGARTEN_TOGGLE_KEYS: KindergartenFilterKey[] = ["phonics", "mandarin", "interviewPrep"];
 
@@ -349,9 +349,9 @@ export type TutorsSearchProps = {
   onTierChange?: (next: AcademicTier) => void;
   /** Live count for the "Show N tutors" button; omit for a plain "Search tutors" label. */
   resultCount?: number;
-  /** All published tutors' hourly rates — powers the price histogram. */
+  /** All published tutors' hourly rates, powers the price histogram. */
   allPrices?: number[];
-  /** Distinct education values actually on tutor profiles — powers the university/school/major dropdowns. */
+  /** Distinct education values actually on tutor profiles, powers the university/school/major dropdowns. */
   educationValues?: EducationValueSets;
   /** Open the mobile overlay on mount (used when hopping between search tabs). */
   defaultOverlayOpen?: boolean;
@@ -359,7 +359,7 @@ export type TutorsSearchProps = {
   className?: string;
 };
 
-/** Segments for the compact nav pill — Airbnb "Anywhere | Anytime" style. */
+/** Segments for the compact nav pill, Airbnb "Anywhere | Anytime" style. */
 export function useTutorsCompactSegments(draft: TutorsSearchState): CompactSegment[] {
   const { t } = useTranslation();
   const selectedSubjects = getSelectedSubjects(draft);
@@ -414,7 +414,7 @@ export function TutorsSearchBar({
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [pillOpenId, setPillOpenId] = useState<string | null>(null);
 
-  // Issue #190: effective tier — the route passes it explicitly; homepage
+  // Issue #190: effective tier, the route passes it explicitly; homepage
   // callers (no onTierChange) stay on the default tab.
   const tier: AcademicTier = tierProp ?? draft.tier ?? "primary_secondary";
   const isKindergartenTier = tier === "kindergarten";
@@ -517,7 +517,7 @@ export function TutorsSearchBar({
 
   const quickPicks = tutorsQuickPicks(draft, onDraftChange, t);
 
-  // Issue #190: per-tier vertical segments — the kindergarten/university tabs
+  // Issue #190: per-tier vertical segments, the kindergarten/university tabs
   // replace the standard curriculum + subject dropdowns with their own states.
   const toggleKindergartenToggle = (key: KindergartenFilterKey) => {
     const next = selectedKToggles.includes(key)
@@ -674,7 +674,7 @@ export function TutorsSearchBar({
               href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
             >
               <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
               {t("directory.empty_whatsapp")}
@@ -725,7 +725,7 @@ export function TutorsSearchBar({
             {t("search_ui.verified_only")}
           </label>
         </FiltersSection>
-        {/* Issue #199: SEN support filter — toggle plus a match-all category
+        {/* Issue #199: SEN support filter, toggle plus a match-all category
             multi-select (a tutor must carry every picked category). */}
         <FiltersSection id="sen" title={t("sen.filter_title")}>
           <SenFilterContent draft={draft} onDraftChange={onDraftChange} />
@@ -753,7 +753,7 @@ export function TutorsSearchBar({
               />
             </FiltersSection>
             <FiltersSection id="major" title={t("search_ui.major_title")}>
-              {/* Issue #23: open list — search or add any major (exact match). */}
+              {/* Issue #23: open list, search or add any major (exact match). */}
               <SearchableSelect
                 value={draft.major ?? ""}
                 onChange={(value) => onDraftChange({ major: value || undefined })}
@@ -773,7 +773,7 @@ export function TutorsSearchBar({
             </FiltersSection>
           </>
         ) : null}
-        {/* Issue #190: university tab — field of study over FIELDS_OF_STUDY. */}
+        {/* Issue #190: university tab, field of study over FIELDS_OF_STUDY. */}
         {isUniversityTier ? (
           <FiltersSection id="field" title={t("tutors.field_of_study")}>
             <SearchableSelect
@@ -826,7 +826,7 @@ export function TutorsSearchMobile({
   const navigate = useNavigate();
   const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
 
-  // Issue #190: effective tier — the route passes it explicitly; homepage
+  // Issue #190: effective tier, the route passes it explicitly; homepage
   // callers (no onTierChange) stay on the default tab.
   const tier: AcademicTier = tierProp ?? draft.tier ?? "primary_secondary";
   const isKindergartenTier = tier === "kindergarten";
@@ -953,7 +953,9 @@ export function TutorsSearchMobile({
 
   return (
     <div className={className}>
-      {onTierChange ? <TierToggleRow tier={tier} onChange={onTierChange} className="mb-4 lg:hidden" /> : null}
+      {onTierChange ? (
+        <TierToggleRow tier={tier} onChange={onTierChange} className="mb-4 lg:hidden" />
+      ) : null}
       <MobileSearchTrigger
         label={t("search_ui.start_search")}
         onClick={() => setOverlayOpen(true)}
@@ -973,7 +975,7 @@ export function TutorsSearchMobile({
       >
         <div className="space-y-6">
           <div>
-            <p className="mb-2 text-xl font-bold tracking-tight text-[color:var(--ink)]">
+            <p className="mb-2 text-xl font-medium tracking-tight text-[color:var(--ink)]">
               {t("search_ui.panel_keyword_title")}
             </p>
             <SearchBigInput
@@ -990,7 +992,7 @@ export function TutorsSearchMobile({
             <FilterQuickPicks options={quickPicks} />
           </div>
 
-          {/* Issue #190: per-tier vertical filter sections — the
+          {/* Issue #190: per-tier vertical filter sections, the
               kindergarten/university tabs replace the standard curriculum +
               subject dropdowns. */}
           {isKindergartenTier ? (
@@ -1132,7 +1134,7 @@ export function TutorsSearchMobile({
 
               <div className="space-y-2">
                 <PanelLabel>{t("search_ui.major_title")}</PanelLabel>
-                {/* Issue #23: open list — search or add any major (exact match). */}
+                {/* Issue #23: open list, search or add any major (exact match). */}
                 <SearchableSelect
                   value={draft.major ?? ""}
                   onChange={(value) => onDraftChange({ major: value || undefined })}
@@ -1182,7 +1184,7 @@ export function TutorsSearchMobile({
   );
 }
 
-/** Issue #199: SEN support filter body — "SEN-experienced only" toggle plus
+/** Issue #199: SEN support filter body, "SEN-experienced only" toggle plus
  * the check-marked category multi-select (match-all, same anatomy as the
  * subject picker). */
 function SenFilterContent({
@@ -1288,7 +1290,7 @@ function PriceFields({
       />
       <div className="flex items-end justify-between gap-3">
         <div className="w-28 space-y-1.5">
-          <span className="text-xs font-semibold text-[color:var(--ink)]/70">
+          <span className="text-xs font-medium text-[color:var(--ink)]/70">
             {t("search_ui.price_min")}
           </span>
           <Input
@@ -1305,11 +1307,11 @@ function PriceFields({
               onDraftChange({ min_price: clamped > PRICE_MIN ? clamped : undefined });
             }}
             aria-label={t("search_ui.price_min")}
-            className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-semibold tabular-nums"
+            className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-medium tabular-nums"
           />
         </div>
         <div className="w-28 space-y-1.5">
-          <span className="text-xs font-semibold text-[color:var(--ink)]/70">
+          <span className="text-xs font-medium text-[color:var(--ink)]/70">
             {t("search_ui.price_max")}
           </span>
           <Input
@@ -1326,7 +1328,7 @@ function PriceFields({
               onDraftChange({ max_price: clamped < PRICE_MAX ? clamped : undefined });
             }}
             aria-label={t("search_ui.price_max")}
-            className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-semibold tabular-nums"
+            className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-medium tabular-nums"
           />
         </div>
       </div>

@@ -78,13 +78,13 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/cases")({
   head: () => ({
     meta: [
-      { title: "Case Requests — MatchMax Admin" },
+      { title: "Case Requests, MatchMax Admin" },
       { name: "description", content: "Handle incoming case requests on MatchMax." },
       { name: "robots", content: "noindex" },
     ],
   }),
   // Issue #71: filter state lives in the URL. validateSearch stores the
-  // serialized (URL-shaped) form — parse into defaults-filled filters in
+  // serialized (URL-shaped) form, parse into defaults-filled filters in
   // the component. The parse layer tolerates JSON-decoded params
   // (?status=1 → number, ?status=true → boolean) and drops junk.
   validateSearch: (search: Record<string, unknown>): CaseFiltersSearch =>
@@ -103,8 +103,9 @@ function AdminCases() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirmBatchDelete, setConfirmBatchDelete] = useState(false);
+  const [confirmBatchClose, setConfirmBatchClose] = useState(false);
 
-  /** One writer for every filter control — lands in the URL, clean defaults. */
+  /** One writer for every filter control, lands in the URL, clean defaults. */
   const setFilters = (patch: Partial<CaseFilters>) => {
     navigate({
       search: caseFiltersToSearch({ ...filters, ...patch }),
@@ -126,8 +127,8 @@ function AdminCases() {
     queryKey: ["admin", "cases"],
     queryFn: async () => {
       // Explicit columns: the table grants authenticated a column-level SELECT
-      // (admin-only fields — internal_note, whatsapp_group_url, hourly_rate_hkd
-      // — are excluded DB-side), so select(*) would fail with permission denied.
+      // (admin-only fields, internal_note, whatsapp_group_url, hourly_rate_hkd
+      //, are excluded DB-side), so select(*) would fail with permission denied.
       // The list lives in ADMIN_CASE_SELECT_COLUMNS (shared.ts) so the
       // tutor-code search (#55) selects the identical shape.
       const { data, error } = await supabase
@@ -152,7 +153,7 @@ function AdminCases() {
   // Issue #55: staff search by tutor code. The desk's q filter only sees
   // case columns, so a tutor code runs a separate server fn whose hits are
   // UNIONed ahead of the filtered list (dedupe by id). Kept as local state
-  // — one ad-hoc lookup input; URL persistence buys nothing here.
+  //, one ad-hoc lookup input; URL persistence buys nothing here.
   const [tutorCodeQuery, setTutorCodeQuery] = useState("");
   const [tutorCodeDebounced, setTutorCodeDebounced] = useState("");
   useEffect(() => {
@@ -195,7 +196,7 @@ function AdminCases() {
 
   const batchStatusMutation = useMutation({
     mutationFn: async ({ ids, status }: { ids: string[]; status: CaseStatus }) => {
-      // Issue #412: held cases are locked — batch escalations skip them and
+      // Issue #412: held cases are locked, batch escalations skip them and
       // report the count instead of silently moving a locked request.
       const held = new Set(
         cases.filter((row) => row.status === "compliance_hold").map((row) => row.id),
@@ -339,11 +340,13 @@ function AdminCases() {
               <div className="flex flex-col gap-4 border-b border-[color:var(--ink)]/10 pb-6 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
+                    <h1 className="text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl">
                       Case Requests
                     </h1>
-                    <span className="rounded-full bg-[color:var(--ink)]/5 px-2.5 py-0.5 text-xs font-bold text-[color:var(--ink)]">
-                      {cases.length}
+                    <span className="rounded-full bg-[color:var(--ink)]/5 px-2.5 py-0.5 text-xs font-medium tabular-nums text-[color:var(--ink)]">
+                      {filtered.length === cases.length
+                        ? cases.length
+                        : `${filtered.length} of ${cases.length}`}
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -353,7 +356,7 @@ function AdminCases() {
                 </div>
               </div>
 
-              {/* Filters & Search — issue #71: URL-persisted structured filters */}
+              {/* Filters & Search, issue #71: URL-persisted structured filters */}
               <div className="space-y-3">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
                   <div className="relative w-full lg:max-w-md">
@@ -365,7 +368,7 @@ function AdminCases() {
                       className="h-10 border-[color:var(--ink)]/15 bg-[color:var(--surface)] pl-9"
                     />
                   </div>
-                  {/* Issue #55: find cases by the MATCHED TUTOR's code — the
+                  {/* Issue #55: find cases by the MATCHED TUTOR's code, the
                       q filter only sees case columns. */}
                   <div className="relative w-full lg:max-w-[220px]">
                     <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -565,7 +568,7 @@ function AdminCases() {
               {/* Batch actions */}
               {selectedIds.size > 0 ? (
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-4 py-3">
-                  <span className="text-sm font-bold text-[color:var(--ink)]">
+                  <span className="text-sm font-medium text-[color:var(--ink)]">
                     {selectedIds.size} selected
                   </span>
                   <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -598,9 +601,7 @@ function AdminCases() {
                       size="sm"
                       variant="outline"
                       disabled={batchStatusMutation.isPending}
-                      onClick={() =>
-                        batchStatusMutation.mutate({ ids: [...selectedIds], status: "closed" })
-                      }
+                      onClick={() => setConfirmBatchClose(true)}
                     >
                       Close
                     </Button>
@@ -691,18 +692,18 @@ function AdminCases() {
                         </ConsoleTd>
                         <ConsoleTd>
                           <div className="flex items-center gap-1.5">
-                            <span className="font-mono text-sm font-bold text-[color:var(--ink)]">
+                            <span className="font-mono text-sm font-medium text-[color:var(--ink)]">
                               {row.case_code}
                             </span>
                             {row.start_timing === "asap" && (
-                              <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                              <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-medium text-amber-700 dark:text-amber-400">
                                 <Flame className="mr-0.5 h-3 w-3" aria-hidden="true" />
                                 ASAP
                               </span>
                             )}
                             {row.board_published_at && (
                               <span
-                                className="inline-flex items-center rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400"
+                                className="inline-flex items-center rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-medium text-emerald-700 dark:text-emerald-400"
                                 title="Live on the public tutor request board"
                               >
                                 On board
@@ -717,7 +718,7 @@ function AdminCases() {
                             <p className="mt-0.5 truncate text-[11px] font-medium text-muted-foreground">
                               {t("caseDesk.matched_tutor_label", { defaultValue: "Matched tutor" })}
                               :{" "}
-                              <span className="font-mono font-bold">
+                              <span className="font-mono font-medium">
                                 {row.matchedTutor.tutor_code ?? "—"}
                               </span>
                               {row.matchedTutor.display_name
@@ -730,7 +731,7 @@ function AdminCases() {
                           </p>
                         </ConsoleTd>
                         <ConsoleTd>
-                          <div className="text-sm font-bold text-[color:var(--ink)]">
+                          <div className="text-sm font-medium text-[color:var(--ink)]">
                             {row.contact_name}
                           </div>
                           <a
@@ -771,7 +772,7 @@ function AdminCases() {
                             {row.district ?? "Any area"}
                           </div>
                         </ConsoleTd>
-                        <ConsoleTd className="text-xs font-semibold text-[color:var(--ink)]">
+                        <ConsoleTd className="text-xs font-medium text-[color:var(--ink)]">
                           {budgetBounds.min === null && budgetBounds.max === null ? (
                             <span className="font-normal text-muted-foreground">Not set</span>
                           ) : (
@@ -786,7 +787,7 @@ function AdminCases() {
                         <ConsoleTd>
                           <span
                             className={cn(
-                              "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold",
+                              "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
                               STATUS_PILL_CLASS[row.status],
                             )}
                           >
@@ -802,7 +803,7 @@ function AdminCases() {
                                 {(row.tags ?? []).slice(0, 2).map((t) => (
                                   <span
                                     key={t}
-                                    className="inline-flex items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2 py-0.5 text-[10px] font-bold text-[color:var(--foreground)]"
+                                    className="inline-flex items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2 py-0.5 text-[10px] font-medium text-[color:var(--foreground)]"
                                   >
                                     {t}
                                   </span>
@@ -865,6 +866,31 @@ function AdminCases() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete {selectedIds.size}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Batch Close Confirmation Dialog */}
+      <AlertDialog open={confirmBatchClose} onOpenChange={setConfirmBatchClose}>
+        <AlertDialogContent className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Close {selectedIds.size} Case Request{selectedIds.size === 1 ? "" : "s"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Closed cases drop off the tutor request board and stop accepting applications. The
+              records stay in this desk with a Closed status.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() =>
+                batchStatusMutation.mutate({ ids: [...selectedIds], status: "closed" })
+              }
+            >
+              Close {selectedIds.size}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

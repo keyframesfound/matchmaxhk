@@ -216,8 +216,8 @@ export const TUTOR_VERIFICATION_TIER_OPTIONS: {
   value: "tier_1_standard" | "tier_2_verified";
   label: string;
 }[] = [
-  { value: "tier_1_standard", label: "Tier 1 — Standard (self-reported)" },
-  { value: "tier_2_verified", label: "Tier 2 — Verified (transcripts + HKID checked)" },
+  { value: "tier_1_standard", label: "Tier 1: Standard (self-reported)" },
+  { value: "tier_2_verified", label: "Tier 2: Verified (transcripts + HKID checked)" },
 ];
 
 export const tutorFormSchema = z.object({
@@ -269,7 +269,7 @@ export const tutorFormSchema = z.object({
     .max(RATE_MAX, `Rate must be at most HK$${RATE_MAX}`)
     .optional()
     .or(z.literal("")),
-  // Issue #319: extra profile-only rate rows. Shape only here — the pairing,
+  // Issue #319: extra profile-only rate rows. Shape only here, the pairing,
   // contact-filter and cap rules live in normalizeTutorRateRows, checked at
   // submit so half-filled rows are rejected, not silently trimmed.
   rate_rows: z.array(
@@ -312,7 +312,7 @@ export const tutorFormSchema = z.object({
   remaining_student_slots: z.coerce.number().int().min(0).max(99),
   preferred_time_windows: z.array(z.enum(PREFERRED_TIME_WINDOWS)),
   // Always built by parseAvailabilityGrid/emptyAvailabilityGrid (full 7×6
-  // matrix), so a structural check is enough — zod records over enum keys
+  // matrix), so a structural check is enough, zod records over enum keys
   // infer Partial and fight the grid model's types.
   availability_grid: z.custom<Record<GridDay, GridCellState[]>>((value) => {
     if (!value || typeof value !== "object") return false;
@@ -343,7 +343,7 @@ export const tutorFormSchema = z.object({
   sen_enabled: z.boolean(),
   sen_categories: z.array(z.enum(SEN_CATEGORY_OPTIONS)),
   sen_experience: z.string().trim().max(2000).optional().or(z.literal("")),
-  // Issue #190 verticals (owner-writable, self-reported — never part of the
+  // Issue #190 verticals (owner-writable, self-reported, never part of the
   // credential-freeze/verification surfaces). GPA and course grades are
   // draft strings here; formDataToPayload normalizes via verticals.ts.
   university_year_of_study: z.string(),
@@ -825,7 +825,7 @@ function ModernPhotoUpload({
 
         <div className="flex-1 space-y-2.5 w-full">
           <div className="flex flex-wrap items-center gap-2">
-            <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-[color:var(--ink)] px-3.5 text-xs font-semibold text-[color:var(--surface)] hover:bg-[color:var(--ink)]/90 transition-colors">
+            <label className="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-[color:var(--ink)] px-3.5 text-xs font-medium text-[color:var(--surface)] hover:bg-[color:var(--ink)]/90 transition-colors">
               {upload.isPending ? (
                 <Loader2 className="h-3.5 w-3.5 animate-spin" />
               ) : (
@@ -864,7 +864,7 @@ function ModernPhotoUpload({
 
       {showGallery && (
         <div className="rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-3 space-y-3">
-          <div className="flex items-center justify-between text-xs font-semibold text-[color:var(--ink)]/70">
+          <div className="flex items-center justify-between text-xs font-medium text-[color:var(--ink)]/70">
             <span>R2 Image Library ({library.length})</span>
             <Button
               type="button"
@@ -937,7 +937,7 @@ function ModernPhotoUpload({
 }
 
 /**
- * Issue #97: Trophy Cabinet editor — up to 6 public award photos. Upload goes
+ * Issue #97: Trophy Cabinet editor, up to 6 public award photos. Upload goes
  * to the same R2 tutor-images bucket as the profile photo; tutors submit
  * candidates at intake and admins curate the final public list here.
  */
@@ -978,7 +978,7 @@ function PortfolioImagesEditor({
     },
     onSuccess: (result) => {
       if (images.length < 6) onChange([...images, result.url]);
-      toast.success("Photo uploaded — added to the Trophy Cabinet");
+      toast.success("Photo uploaded, added to the Trophy Cabinet");
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -1027,14 +1027,14 @@ function PortfolioImagesEditor({
         </div>
       ) : (
         <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
-          No award photos set — the public gallery stays hidden.
+          No award photos set, the public gallery stays hidden.
         </p>
       )}
 
       <div className="flex flex-wrap items-center gap-2">
         <label
           className={cn(
-            "inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-[color:var(--ink)] px-3.5 text-xs font-semibold text-[color:var(--surface)] transition-colors hover:bg-[color:var(--ink)]/90",
+            "inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-[color:var(--ink)] px-3.5 text-xs font-medium text-[color:var(--surface)] transition-colors hover:bg-[color:var(--ink)]/90",
             full && "pointer-events-none opacity-50",
           )}
         >
@@ -1129,7 +1129,7 @@ function EditorSection({
             <Icon className="h-4.5 w-4.5" />
           </div>
           <div>
-            <h2 className="text-base font-bold text-[color:var(--ink)]">{title}</h2>
+            <h2 className="text-base font-medium text-[color:var(--ink)]">{title}</h2>
             {description && <p className="text-xs text-muted-foreground mt-0.5">{description}</p>}
           </div>
         </div>
@@ -1159,7 +1159,7 @@ function FormField({
   return (
     <div className={cn("space-y-1.5", className)}>
       <div className="flex items-center justify-between">
-        <Label className="text-xs font-semibold text-[color:var(--ink)]">
+        <Label className="text-xs font-medium text-[color:var(--ink)]">
           {label} {required && <span className="text-destructive">*</span>}
         </Label>
         {hint && <span className="text-[11px] text-muted-foreground">{hint}</span>}
@@ -1182,7 +1182,7 @@ interface TutorEditorProps {
   isSaving?: boolean;
   /** Join application to offer as AI autofill source (never prefills the form). */
   applicationId?: string | null;
-  /** Distinct education values already in use on tutor profiles — feeds the education dropdowns. */
+  /** Distinct education values already in use on tutor profiles, feeds the education dropdowns. */
   educationValues?: EducationValueSets;
 }
 
@@ -1253,7 +1253,7 @@ export function TutorEditor({
     const snapshot = form;
     setForm((prev) => mergeAutofillResult(prev, result));
     toast.success("AI draft applied to the form", {
-      description: "Review every field before saving — you can undo.",
+      description: "Review every field before saving, you can undo.",
       action: {
         label: "Undo",
         onClick: () => setForm(snapshot),
@@ -1263,7 +1263,7 @@ export function TutorEditor({
   };
 
   // Referral program (issue #127): identity link + shareable code are managed
-  // outside the form payload — they mutate the tutors row directly. Issue #160
+  // outside the form payload, they mutate the tutors row directly. Issue #160
   // renames the UI section to "Assigned account" since linking now also
   // unlocks the tutor's own profile editor in dashboard settings.
   const queryClient = useQueryClient();
@@ -1379,7 +1379,7 @@ export function TutorEditor({
     },
     onSuccess: () => {
       toast.success(
-        "Account assigned — the tutor can now edit their profile from dashboard settings",
+        "Account assigned, the tutor can now edit their profile from dashboard settings",
       );
       setLinkEmail("");
       setAccountSearch("");
@@ -1774,12 +1774,12 @@ export function TutorEditor({
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)]">
-                {isEditing ? `Edit Tutor — ${initialData?.tutor_code}` : "New Tutor Profile"}
+              <h1 className="text-2xl font-medium tracking-tight text-[color:var(--ink)]">
+                {isEditing ? `Edit Tutor, ${initialData?.tutor_code}` : "New Tutor Profile"}
               </h1>
               <span
                 className={cn(
-                  "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold",
+                  "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
                   form.is_published
                     ? "bg-[color:var(--foreground)]/[0.06] text-[color:var(--foreground)]"
                     : "bg-muted text-muted-foreground",
@@ -1800,7 +1800,7 @@ export function TutorEditor({
             variant="outline"
             size="sm"
             onClick={() => setAutofillOpen(true)}
-            className="h-9 text-xs font-bold"
+            className="h-9 text-xs font-medium"
           >
             <Sparkles className="mr-1.5 h-3.5 w-3.5" />
             AI Autofill
@@ -1830,7 +1830,7 @@ export function TutorEditor({
             type="button"
             onClick={handleSubmit}
             disabled={isSaving}
-            className="h-9 font-bold text-xs"
+            className="h-9 font-medium text-xs"
           >
             {isSaving ? (
               <>
@@ -1870,7 +1870,7 @@ export function TutorEditor({
                     value={form.tutor_code}
                     onChange={(e) => setForm({ ...form, tutor_code: e.target.value })}
                     placeholder="MM-1042"
-                    className="font-mono uppercase font-semibold tracking-wide"
+                    className="font-mono uppercase font-medium tracking-wide"
                   />
                 </FormField>
 
@@ -1923,7 +1923,7 @@ export function TutorEditor({
                 <FormField
                   label="Academic Headline"
                   error={errors.academic_headline}
-                  hint={`Max ${MAX_ACADEMIC_HEADLINE} chars — e.g. IBDP 44/45`}
+                  hint={`Max ${MAX_ACADEMIC_HEADLINE} chars, e.g. IBDP 44/45`}
                 >
                   <Input
                     value={form.academic_headline}
@@ -1936,7 +1936,7 @@ export function TutorEditor({
                 <FormField
                   label="Undergraduate University"
                   error={errors.undergrad_university}
-                  hint="Search or add — e.g. The University of Hong Kong"
+                  hint="Search or add, e.g. The University of Hong Kong"
                 >
                   <SearchableSelect
                     value={form.undergrad_university ?? ""}
@@ -1947,7 +1947,7 @@ export function TutorEditor({
                     )}
                     placeholder="e.g. The University of Hong Kong"
                     searchPlaceholder="Search universities…"
-                    emptyText="No university found — keep typing to add it"
+                    emptyText="No university found, keep typing to add it"
                     allowCustom
                   />
                 </FormField>
@@ -1955,7 +1955,7 @@ export function TutorEditor({
                 <FormField
                   label="Secondary School"
                   error={errors.secondary_school}
-                  hint="Search or add — e.g. Diocesan Boys' School"
+                  hint="Search or add, e.g. Diocesan Boys' School"
                 >
                   <SearchableSelect
                     value={form.secondary_school ?? ""}
@@ -1966,7 +1966,7 @@ export function TutorEditor({
                     )}
                     placeholder="e.g. Diocesan Boys' School"
                     searchPlaceholder="Search schools…"
-                    emptyText="No school found — keep typing to add it"
+                    emptyText="No school found, keep typing to add it"
                     allowCustom
                   />
                 </FormField>
@@ -1974,7 +1974,7 @@ export function TutorEditor({
                 <FormField
                   label="Undergraduate Degree"
                   error={errors.undergrad_degree}
-                  hint="Search or add — e.g. Bachelor of Engineering in Computer Engineering"
+                  hint="Search or add, e.g. Bachelor of Engineering in Computer Engineering"
                 >
                   <SearchableSelect
                     value={form.undergrad_degree ?? ""}
@@ -1982,7 +1982,7 @@ export function TutorEditor({
                     options={majorEditorOptions(form.undergrad_degree, educationValues?.majors)}
                     placeholder="e.g. BSc Theoretical Physics"
                     searchPlaceholder="Search majors…"
-                    emptyText="No major found — keep typing to add it"
+                    emptyText="No major found, keep typing to add it"
                     allowCustom
                   />
                 </FormField>
@@ -1999,7 +1999,7 @@ export function TutorEditor({
               </div>
 
               <div className="rounded-sm border border-border p-4">
-                <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-[color:var(--ink)]">
+                <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-[color:var(--ink)]">
                   <Checkbox
                     checked={form.has_postgrad}
                     onCheckedChange={(checked) =>
@@ -2013,7 +2013,7 @@ export function TutorEditor({
                     <FormField
                       label="Postgraduate University"
                       error={errors.postgrad_university}
-                      hint="Search or add — shown abbreviated on cards"
+                      hint="Search or add, shown abbreviated on cards"
                     >
                       <SearchableSelect
                         value={form.postgrad_university ?? ""}
@@ -2024,14 +2024,14 @@ export function TutorEditor({
                         )}
                         placeholder="e.g. University of Edinburgh"
                         searchPlaceholder="Search universities…"
-                        emptyText="No university found — keep typing to add it"
+                        emptyText="No university found, keep typing to add it"
                         allowCustom
                       />
                     </FormField>
                     <FormField
                       label="Postgraduate Degree"
                       error={errors.postgrad_degree}
-                      hint="Search or add — cards abbreviate to MSc / MA / PhD etc."
+                      hint="Search or add, cards abbreviate to MSc / MA / PhD etc."
                     >
                       <SearchableSelect
                         value={form.postgrad_degree ?? ""}
@@ -2039,7 +2039,7 @@ export function TutorEditor({
                         options={majorEditorOptions(form.postgrad_degree, educationValues?.majors)}
                         placeholder="e.g. MSc Theoretical Physics"
                         searchPlaceholder="Search majors…"
-                        emptyText="No major found — keep typing to add it"
+                        emptyText="No major found, keep typing to add it"
                         allowCustom
                       />
                     </FormField>
@@ -2054,7 +2054,7 @@ export function TutorEditor({
                 />
               </FormField>
 
-              {/* Issue #97: Trophy Cabinet — public award photos picked from
+              {/* Issue #97: Trophy Cabinet, public award photos picked from
                   the same R2 library; empty = gallery hidden on the profile. */}
               <FormField
                 label="Trophy Cabinet (public award photos)"
@@ -2109,7 +2109,7 @@ export function TutorEditor({
               ) : null}
             </EditorSection>
 
-            {/* Capacity + weekly grid — the same controls tutors get in their
+            {/* Capacity + weekly grid, the same controls tutors get in their
                 dashboard Availability section; admins edit them directly and
                 changes go live with the usual Save. */}
             <EditorSection
@@ -2135,7 +2135,7 @@ export function TutorEditor({
               />
 
               <div className="space-y-2 border-t border-[color:var(--ink)]/10 pt-6">
-                <p className="text-sm font-bold text-[color:var(--ink)]">
+                <p className="text-sm font-medium text-[color:var(--ink)]">
                   Weekly availability grid
                 </p>
                 <p className="text-xs text-muted-foreground">
@@ -2168,7 +2168,7 @@ export function TutorEditor({
                       <p className="text-xs font-medium text-[color:var(--ink)]/60">
                         Referral code
                       </p>
-                      <p className="mt-1 font-mono text-lg font-bold text-[color:var(--ink)]">
+                      <p className="mt-1 font-mono text-lg font-medium text-[color:var(--ink)]">
                         {tutorReferralQuery.data?.referral_code ?? "—"}
                       </p>
                       {tutorReferralQuery.data?.referral_code ? (
@@ -2181,14 +2181,14 @@ export function TutorEditor({
                       <p className="text-xs font-medium text-[color:var(--ink)]/60">Referred by</p>
                       {tutorReferralQuery.data?.referrer ? (
                         <div className="mt-1 flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-bold text-[color:var(--ink)]">
+                          <p className="text-sm font-medium text-[color:var(--ink)]">
                             {tutorReferralQuery.data.referrer.display_name} (
                             {tutorReferralQuery.data.referrer.tutor_code})
                           </p>
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-7 px-2 text-xs font-bold text-muted-foreground hover:text-[color:var(--ink)]"
+                            className="h-7 px-2 text-xs font-medium text-muted-foreground hover:text-[color:var(--ink)]"
                             disabled={setReferrer.isPending}
                             onClick={() => setReferrer.mutate(null)}
                           >
@@ -2196,7 +2196,7 @@ export function TutorEditor({
                           </Button>
                         </div>
                       ) : (
-                        <p className="mt-1 text-sm font-bold text-[color:var(--ink)]">—</p>
+                        <p className="mt-1 text-sm font-medium text-[color:var(--ink)]">—</p>
                       )}
                       <Input
                         value={referrerSearch}
@@ -2214,7 +2214,7 @@ export function TutorEditor({
                               type="button"
                               disabled={setReferrer.isPending}
                               onClick={() => setReferrer.mutate(option.id)}
-                              className="w-full rounded-lg border border-[color:var(--ink)]/10 px-2.5 py-1.5 text-left text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface)] disabled:opacity-50"
+                              className="w-full rounded-lg border border-[color:var(--ink)]/10 px-2.5 py-1.5 text-left text-xs font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface)] disabled:opacity-50"
                             >
                               {option.display_name} · {option.tutor_code}
                             </button>
@@ -2248,7 +2248,7 @@ export function TutorEditor({
             </EditorSection>
 
             {/* Assigned account (issue #160): GitHub-style assignee. Links a
-                MatchMax account to this card — unlocks the Referrals & Rewards
+                MatchMax account to this card, unlocks the Referrals & Rewards
                 tab AND the tutor's own profile editor in dashboard settings. */}
             <EditorSection
               icon={UserCheck}
@@ -2262,14 +2262,14 @@ export function TutorEditor({
                 </p>
               ) : (
                 <div>
-                  <Label className="text-sm font-bold text-[color:var(--ink)]">
+                  <Label className="text-sm font-medium text-[color:var(--ink)]">
                     Assigned account
                   </Label>
                   {tutorReferralQuery.data?.user_id ? (
                     <div className="mt-2 flex flex-wrap items-center gap-2">
-                      <span className="flex items-center gap-1.5 text-sm font-semibold text-[color:var(--ink)]">
+                      <span className="flex items-center gap-1.5 text-sm font-medium text-[color:var(--ink)]">
                         <UserCheck className="h-4 w-4" aria-hidden="true" />
-                        Assigned — this tutor can edit their profile in dashboard settings.
+                        Assigned, this tutor can edit their profile in dashboard settings.
                       </span>
                       <Button
                         type="button"
@@ -2328,7 +2328,7 @@ export function TutorEditor({
             </EditorSection>
 
             {/* Contact details (issue #295): admin-only read-only reveal of
-                everything the tutor gave us — assigned-account email/phone
+                everything the tutor gave us, assigned-account email/phone
                 plus the join application's intake contact fields. Data is
                 resolved by the admin-gated get_tutor_contact_details RPC;
                 nothing here is editable or public. */}
@@ -2353,7 +2353,7 @@ export function TutorEditor({
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   label="Teaching Curriculum"
-                  hint="Narrows the subject suggestions — Primary School, Junior Secondary, and University Admissions & Test Prep included."
+                  hint="Narrows the subject suggestions, Primary School, Junior Secondary, and University Admissions & Test Prep included."
                 >
                   <SearchableSelect
                     value={subjectCurriculum}
@@ -2409,12 +2409,12 @@ export function TutorEditor({
 
               {selectedSubjectGroups.length > 0 ? (
                 <div className="space-y-1.5 rounded-sm border border-border bg-[color:var(--surface-subtle)]/60 p-3">
-                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     Taught subjects by curriculum
                   </p>
                   {selectedSubjectGroups.map((group) => (
                     <p key={group.systemId} className="text-xs leading-relaxed">
-                      <span className="font-bold text-[color:var(--ink)]">
+                      <span className="font-medium text-[color:var(--ink)]">
                         {getCurriculumGroupLabel(group.systemId)}:
                       </span>{" "}
                       <span className="text-muted-foreground">{group.subjects.join(", ")}</span>
@@ -2437,7 +2437,7 @@ export function TutorEditor({
               </FormField>
 
               {/* Issue #190: canonical teaching levels tick into the same
-                  target_students array — free-text curricula (IBDP, HKDSE…)
+                  target_students array, free-text curricula (IBDP, HKDSE…)
                   are preserved alongside. */}
               <FormField
                 label={t("verticals.editor_target_levels")}
@@ -2471,12 +2471,12 @@ export function TutorEditor({
                 </div>
               </FormField>
 
-              {/* Issue #190: University vertical — self-reported year, GPA,
+              {/* Issue #190: University vertical, self-reported year, GPA,
                   courses and course-specific grades. Owner-writable plain
                   fields; never part of credential verification. */}
               {hasUniversityLevel ? (
                 <div className="space-y-4 rounded-sm border border-border p-4">
-                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     {t("verticals.editor_university")}
                   </p>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -2527,7 +2527,7 @@ export function TutorEditor({
                   </FormField>
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-semibold text-[color:var(--ink)]">
+                      <Label className="text-xs font-medium text-[color:var(--ink)]">
                         {t("verticals.editor_course_grades")}
                       </Label>
                       <Button
@@ -2607,11 +2607,11 @@ export function TutorEditor({
               ) : null}
 
               {/* Issue #190: Kindergarten topics are canonical tags that live
-                  inside subjects[] — ticking them edits the shared subjects
+                  inside subjects[], ticking them edits the shared subjects
                   list, not a separate column. */}
               {hasKindergartenLevel ? (
                 <div className="space-y-2 rounded-sm border border-border p-4">
-                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     {t("verticals.editor_kindergarten")}
                   </p>
                   <p className="text-[11px] text-muted-foreground">
@@ -2686,7 +2686,7 @@ export function TutorEditor({
               {form.exam_results.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-8 text-center bg-[color:var(--surface-subtle)]/30">
                   <GraduationCap className="h-8 w-8 text-muted-foreground/50 mb-2" />
-                  <p className="text-xs font-semibold text-[color:var(--ink)]">
+                  <p className="text-xs font-medium text-[color:var(--ink)]">
                     No Exam Systems Added
                   </p>
                   <p className="text-[11px] text-muted-foreground max-w-sm mt-0.5">
@@ -2717,7 +2717,7 @@ export function TutorEditor({
                       >
                         <div className="flex items-center justify-between gap-3 border-b border-[color:var(--ink)]/10 pb-3">
                           <div className="flex items-center gap-2 flex-1 max-w-xs">
-                            <span className="text-xs font-bold text-[color:var(--ink)]">
+                            <span className="text-xs font-medium text-[color:var(--ink)]">
                               System #{examIdx + 1}:
                             </span>
                             <SearchableSelect
@@ -2911,14 +2911,14 @@ export function TutorEditor({
                   hint="E.g. 450"
                 >
                   <div className="relative">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
                       HK$
                     </span>
                     <Input
                       type="number"
                       value={form.hourly_rate}
                       onChange={(e) => setForm({ ...form, hourly_rate: Number(e.target.value) })}
-                      className="pl-10 font-semibold"
+                      className="pl-10 font-medium"
                     />
                   </div>
                 </FormField>
@@ -2934,7 +2934,7 @@ export function TutorEditor({
                     hint="Blank = not offered online"
                   >
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
                         HK$
                       </span>
                       <Input
@@ -2950,7 +2950,7 @@ export function TutorEditor({
                           })
                         }
                         placeholder="e.g. 400"
-                        className="pl-10 font-semibold"
+                        className="pl-10 font-medium"
                       />
                     </div>
                   </FormField>
@@ -2961,7 +2961,7 @@ export function TutorEditor({
                     hint="Blank = not offered in person"
                   >
                     <div className="relative">
-                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
                         HK$
                       </span>
                       <Input
@@ -2977,7 +2977,7 @@ export function TutorEditor({
                           })
                         }
                         placeholder="e.g. 500"
-                        className="pl-10 font-semibold"
+                        className="pl-10 font-medium"
                       />
                     </div>
                   </FormField>
@@ -2992,7 +2992,7 @@ export function TutorEditor({
                   <FormField
                     label="Travel note"
                     error={errors.travel_note}
-                    hint={`${(form.travel_note ?? "").length}/${TRAVEL_NOTE_MAX} — e.g. “No travel to Lantau”`}
+                    hint={`${(form.travel_note ?? "").length}/${TRAVEL_NOTE_MAX}, e.g. “No travel to Lantau”`}
                   >
                     <Input
                       value={form.travel_note ?? ""}
@@ -3005,7 +3005,7 @@ export function TutorEditor({
                   <FormField
                     label="Rate note"
                     error={errors.rate_note}
-                    hint={`${(form.rate_note ?? "").length}/${RATE_NOTE_MAX} — e.g. “+HK$100 for a second student”`}
+                    hint={`${(form.rate_note ?? "").length}/${RATE_NOTE_MAX}, e.g. “+HK$100 for a second student”`}
                   >
                     <Input
                       value={form.rate_note ?? ""}
@@ -3019,9 +3019,7 @@ export function TutorEditor({
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-end justify-between gap-2">
                     <div>
-                      <Label className="text-xs font-semibold">
-                        Extra rate rows (profile only)
-                      </Label>
+                      <Label className="text-xs font-medium">Extra rate rows (profile only)</Label>
                       <p className="mt-1 max-w-md text-xs text-muted-foreground">
                         Optional label + rate pairs shown on the profile (max {MAX_RATE_ROWS}).
                         Half-filled rows are rejected on save.
@@ -3060,7 +3058,7 @@ export function TutorEditor({
                             className="text-xs"
                           />
                           <div className="relative">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
                               HK$
                             </span>
                             <Input
@@ -3071,7 +3069,7 @@ export function TutorEditor({
                               onChange={(e) => updateRateRow(index, { rate: e.target.value })}
                               placeholder="450"
                               aria-label={`Extra rate row ${index + 1} rate`}
-                              className="pl-10 text-xs font-semibold"
+                              className="pl-10 text-xs font-medium"
                             />
                           </div>
                           <Button
@@ -3094,7 +3092,7 @@ export function TutorEditor({
               <div className="mt-6">
                 <div className="flex flex-wrap items-end justify-between gap-2">
                   <div>
-                    <Label className="text-xs font-semibold">Per-curriculum rates</Label>
+                    <Label className="text-xs font-medium">Per-curriculum rates</Label>
                     <p className="mt-1 max-w-md text-xs text-muted-foreground">
                       Optional. Search cards show the lowest rate as “HK$X up” and the profile lists
                       every rate. Leave empty to use the flat hourly rate everywhere.
@@ -3138,7 +3136,7 @@ export function TutorEditor({
                           </SelectContent>
                         </Select>
                         <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
                             HK$
                           </span>
                           <Input
@@ -3147,7 +3145,7 @@ export function TutorEditor({
                             onChange={(e) =>
                               updatePricingTier(index, { rate: Number(e.target.value) })
                             }
-                            className="pl-10 text-xs font-semibold"
+                            className="pl-10 text-xs font-medium"
                             aria-label={`Rate for ${tier.curriculum || "new tier"}`}
                           />
                         </div>
@@ -3174,12 +3172,12 @@ export function TutorEditor({
                     label="Teaching Stations (MTR)"
                     required={form.is_published}
                     error={errors.stations}
-                    hint="Parents search by their nearest station — suggestions use estimated MTR travel time."
+                    hint="Parents search by their nearest station, suggestions use estimated MTR travel time."
                   >
                     <div className="space-y-3 rounded-lg border border-border bg-[color:var(--surface-subtle)]/40 p-3">
                       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
                         <div className="space-y-1">
-                          <Label className="text-xs font-semibold">Starting MTR station</Label>
+                          <Label className="text-xs font-medium">Starting MTR station</Label>
                           <MtrStationSelect
                             value={originStation}
                             onChange={(v) => {
@@ -3208,7 +3206,7 @@ export function TutorEditor({
                         </p>
                       ) : null}
                       <div className="space-y-1">
-                        <Label className="text-xs font-semibold">Estimated MTR travel time</Label>
+                        <Label className="text-xs font-medium">Estimated MTR travel time</Label>
                         <div className="flex flex-wrap gap-2">
                           {["10", "20", "30"].map((budget) => (
                             <button
@@ -3220,7 +3218,7 @@ export function TutorEditor({
                                 setSuggestionStatus("idle");
                               }}
                               className={cn(
-                                "rounded-lg border px-3 py-1.5 text-xs font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] disabled:cursor-not-allowed disabled:opacity-50",
+                                "rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] disabled:cursor-not-allowed disabled:opacity-50",
                                 travelBudget === budget && originStation
                                   ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-[color:var(--surface-invert-fg)]"
                                   : "border-border bg-card text-foreground hover:border-[color:var(--foreground)]/25",
@@ -3244,7 +3242,7 @@ export function TutorEditor({
                         </Button>
                         {suggestionStatus === "done" ? (
                           <p
-                            className="text-xs font-semibold text-emerald-700 dark:text-emerald-400"
+                            className="text-xs font-medium text-emerald-700 dark:text-emerald-400"
                             role="status"
                             aria-live="polite"
                           >
@@ -3362,7 +3360,7 @@ export function TutorEditor({
                         />
                         <span
                           className={cn(
-                            "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-muted-foreground",
+                            "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-medium text-muted-foreground",
                             reachedLimit && "text-amber-600 dark:text-amber-400",
                           )}
                           aria-live="polite"
@@ -3428,7 +3426,7 @@ export function TutorEditor({
               {/* IA / EE / TOK Mentorship */}
               <div className="space-y-3 pt-2 border-t border-[color:var(--ink)]/10">
                 <div>
-                  <Label className="text-xs font-semibold text-[color:var(--ink)]">
+                  <Label className="text-xs font-medium text-[color:var(--ink)]">
                     IB Coursework Mentoring Support
                   </Label>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -3442,7 +3440,7 @@ export function TutorEditor({
                     <label
                       key={item}
                       className={cn(
-                        "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors",
+                        "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
                         form.ia_ee_tok_support.includes(item)
                           ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.08] text-[color:var(--ink)]"
                           : "border-border bg-background text-[color:var(--ink)] hover:bg-muted/40",
@@ -3479,7 +3477,7 @@ export function TutorEditor({
               <div className="space-y-3 pt-2 border-t border-[color:var(--ink)]/10">
                 <label className="flex cursor-pointer items-center justify-between gap-3">
                   <span>
-                    <Label className="text-xs font-semibold text-[color:var(--ink)]">
+                    <Label className="text-xs font-medium text-[color:var(--ink)]">
                       SEN Experience & Qualifications
                     </Label>
                     <span className="mt-0.5 block text-[11px] text-muted-foreground">
@@ -3502,7 +3500,7 @@ export function TutorEditor({
                         <label
                           key={category}
                           className={cn(
-                            "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors",
+                            "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
                             form.sen_categories.includes(category)
                               ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.08] text-[color:var(--ink)]"
                               : "border-border bg-background text-[color:var(--ink)] hover:bg-muted/40",
@@ -3546,7 +3544,7 @@ export function TutorEditor({
             <ConsolePanel padding="lg">
               <div className="flex items-center justify-between gap-3">
                 <div className="min-w-0 space-y-0.5">
-                  <Label className="text-sm font-bold text-foreground">
+                  <Label className="text-sm font-medium text-foreground">
                     Public Directory Visibility
                   </Label>
                   <p className="text-xs leading-relaxed text-muted-foreground">
@@ -3558,7 +3556,7 @@ export function TutorEditor({
                   value={form.is_published ? "public" : "private"}
                   onValueChange={(v) => setForm({ ...form, is_published: v === "public" })}
                 >
-                  <SelectTrigger className="h-9 w-[110px] shrink-0 text-sm font-bold">
+                  <SelectTrigger className="h-9 w-[110px] shrink-0 text-sm font-medium">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -3576,7 +3574,7 @@ export function TutorEditor({
               <div className="flex items-center justify-between mb-3 border-b border-[color:var(--ink)]/[0.08] pb-2.5">
                 <div className="flex items-center gap-1.5">
                   <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse dark:bg-emerald-400" />
-                  <span className="text-xs font-bold text-[color:var(--ink)]">
+                  <span className="text-xs font-medium text-[color:var(--ink)]">
                     Live Card Preview
                   </span>
                 </div>
@@ -3602,7 +3600,7 @@ export function TutorEditor({
 
             {/* Sticky Action Card */}
             <ConsolePanel padding="sm" className="space-y-3">
-              <Button type="submit" disabled={isSaving} className="w-full h-11 font-bold text-sm">
+              <Button type="submit" disabled={isSaving} className="w-full h-11 font-medium text-sm">
                 {isSaving ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />

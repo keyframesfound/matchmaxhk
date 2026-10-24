@@ -135,7 +135,7 @@ export function GigOrderPanels({ order }: { order: MyOrder }) {
   if (order.status === "in_fulfillment") {
     return (
       <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
-        <h2 className="flex items-center gap-2 text-base font-bold">
+        <h2 className="flex items-center gap-2 text-base font-medium">
           <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden />
           {t("gigs.step_in_fulfillment")}
         </h2>
@@ -152,12 +152,12 @@ export function GigOrderPanels({ order }: { order: MyOrder }) {
   if (order.status === "past_due") {
     return (
       <div className="space-y-4 rounded-2xl border border-[#F4212E]/30 bg-[#F4212E]/5 p-6">
-        <h2 className="flex items-center gap-2 text-base font-bold text-[#F4212E]">
+        <h2 className="flex items-center gap-2 text-base font-medium text-[#F4212E]">
           <AlertTriangle className="h-4 w-4" aria-hidden />
           {t("gigs.past_due_title")}
         </h2>
         <p className="text-sm">{t("gigs.past_due_body")}</p>
-        <Button variant="outline" onClick={() => setRefundOpen(true)} className="font-semibold">
+        <Button variant="outline" onClick={() => setRefundOpen(true)} className="font-medium">
           {t("gigs.request_refund")}
         </Button>
         <Dialog open={refundOpen} onOpenChange={setRefundOpen}>
@@ -191,7 +191,7 @@ export function GigOrderPanels({ order }: { order: MyOrder }) {
   if (order.status === "delivered" && order.completionNote) {
     return (
       <div className="space-y-2 rounded-2xl border border-border bg-card p-6">
-        <h2 className="text-base font-bold">{t("gigs.completion_note_title")}</h2>
+        <h2 className="text-base font-medium">{t("gigs.completion_note_title")}</h2>
         <p className="whitespace-pre-line text-sm leading-relaxed text-foreground/90">
           {order.completionNote}
         </p>

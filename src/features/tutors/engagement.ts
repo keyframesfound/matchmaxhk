@@ -1,4 +1,4 @@
-// Issues #102 + #151 — engagement metrics: thresholds, badge selection and
+// Issues #102 + #151, engagement metrics: thresholds, badge selection and
 // the trending popularity score. Pure functions (vitest target); the live
 // numbers come from the get_tutor_engagement / get_trending_tutors RPCs
 // (migration 20261016150000).
@@ -22,7 +22,7 @@ export type EngagementQuality = {
 export type DemandBadgeKind = "one_slot_left" | "high_demand" | "popular";
 
 // #102 thresholds. Empty-restaurant guardrail: below these the badge block is
-// hidden entirely — never render "0 inquiries" or "1 save".
+// hidden entirely, never render "0 inquiries" or "1 save".
 export const ENGAGEMENT_THRESHOLDS = {
   slotWarning: 1,
   highDemandInquiries7d: 3,
@@ -36,7 +36,7 @@ export const ENGAGEMENT_THRESHOLDS = {
 /**
  * #102 profile-detail social-proof block: show each line only above its
  * threshold; with both below, render nothing at all (never "0 inquiries").
- * The "typical response time" line is deliberately NOT part of this — we do
+ * The "typical response time" line is deliberately NOT part of this, we do
  * not track response times, and inventing the number would be a fake claim.
  */
 export function selectProfileSocialProof(summary: EngagementSummary): {
@@ -54,7 +54,7 @@ export function selectProfileSocialProof(summary: EngagementSummary): {
  * 1. remaining slots == 1        -> "Only 1 slot left" (amber)
  * 2. inquiries last 7 days >= 3  -> "High demand" (red)
  * 3. total saves >= 10           -> "Popular" (neutral)
- * Otherwise null — the card renders no demand badge.
+ * Otherwise null, the card renders no demand badge.
  */
 export function selectDemandBadge(input: {
   remaining_student_slots: number | null | undefined;
@@ -75,7 +75,7 @@ export function selectDemandBadge(input: {
 
 /**
  * #151 Parent Favorite trigger: MORE than 5 saves OR more than 3 direct
- * requests in the last 30 days (strictly greater — exactly 5/3 stays hidden).
+ * requests in the last 30 days (strictly greater, exactly 5/3 stays hidden).
  */
 export function isParentFavorite(
   summary: Pick<EngagementSummary, "saves_30d" | "requests_30d">,
@@ -100,7 +100,7 @@ export function computePopularityScore(
 }
 
 /**
- * #151 quality flag — conservative top-scorer detection over APPROVED grade
+ * #151 quality flag, conservative top-scorer detection over APPROVED grade
  * labels only: IB 44/45 or a DSE 5**. Anything else stays unmultipled until
  * we have a real examiner flag to key off.
  */

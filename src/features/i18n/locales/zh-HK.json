@@ -38,7 +38,6 @@
     "post_case": "刊登個案"
   },
   "settings": {
-    "eyebrow": "你的帳戶",
     "title": "設定",
     "subtitle": "管理你嘅個人資料同帳戶存取。",
     "load_error": "載入設定失敗，請重新整理再試一次。",
@@ -381,7 +380,6 @@
     }
   },
   "hero": {
-    "eyebrow": "香港智能補習配對平台",
     "title_a": "搵到最適合嘅導師",
     "cta_primary": "瀏覽導師",
     "cta_secondary": "瀏覽導師"
@@ -802,7 +800,6 @@
     "disclaimer": "免責聲明：電子教材由用戶自行製作並由已核實導師直接出售。MatchMax 唥取零佣金、唔會處理付款，並且唔會就 P2P 交易糾紛或版權核實承擔法律責任。購買前請先細閱浮水印預覽。",
     "promotional_note_fallback": "備註：我嘅現屆學生上滿第 3 堂課後，可免費獲得所有高階電子教材。",
     "empty_state": "此導師嘅溫習教材即將上架。",
-    "directory_eyebrow": "市集",
     "directory_title": "溫習教材",
     "directory_subtitle": "由 MatchMax 已核實導師撰寫的模擬試卷、示例題解及原創筆記——每份教材上架前均經職員審核。",
     "filter_school_all": "所有學校",
@@ -880,7 +877,6 @@
     "label_location": "地點",
     "label_languages": "語言",
     "not_specified": "未有提供",
-    "suggested_eyebrow": "繼續睇吓",
     "suggested_title": "你可能會鍾意嘅導師",
     "browse_all": "瀏覽全部導師",
     "request_tutor": "提出配對",
@@ -991,13 +987,11 @@
     "diagram_label": "圖表即將推出"
   },
   "hiw": {
-    "hero_eyebrow": "MatchMax 點樣運作",
     "hero_title": "由學生創辦：點解 MatchMax 做得更好",
     "hero_body": "我哋係親身考過 IB 同 DSE 嘅大學生，所以創辦咗 MatchMax。我哋明白傳統代理將導師當數字，令家長無所適從。我哋嘅配對團隊會貼身跟進你嘅開戶流程同頭 2 課，之後就由家長同導師直接安排往後嘅時間表。以下係我哋點樣令配對更簡單、公平同透明。",
     "hero_cta_browse": "瀏覽導師檔案",
     "hero_cta_apply": "申請做導師",
     "card_view_profile": "查看導師",
-    "compare_eyebrow": "01 / 點解 MatchMax 做得更好",
     "compare_table_title": "點解揀 MatchMax",
     "table_aspect": "重點",
     "table_old": "傳統代理",
@@ -1030,12 +1024,10 @@
         "detail": "公開導師卡唔會顯示全名。"
       }
     },
-    "flow_eyebrow": "02 / 配對流程",
     "flow_speed": "即時直接聯繫",
     "flow_title": "補習配對嘅新標準。",
     "flow_body": "我哋會為持有金色「已驗證」徽章嘅尖子導師人工核實成績，令你搵導師唔使估。喺全港最透明、最易用嘅平台，輕鬆搵到同比較頂尖導師。配對成功後，我哋嘅配對團隊會主動管理頭 2 課嘅溝通，之後家長同導師直接接手，安排往後嘅時間表。",
     "flow_oneliner": "MatchMax 負責介紹同頭兩堂。之後嘅時間表由家長同導師自行安排。",
-    "parents_eyebrow": "俾家長同學生",
     "parents_audience": "俾家長",
     "parents_title": "金色「已驗證」嘅尖子導師、透明嘅逐卷分數，完全唔使估。",
     "parents_steps": {
@@ -1059,7 +1051,6 @@
     "parents_link_find": "搵導師",
     "parents_link_request": "提出導師配對",
     "parents_callout": "唔夠時間？透過導師配對表格提交你嘅確實要求，等我哋為你搵出最合適嘅配對。",
-    "tutors_eyebrow": "俾導師",
     "tutors_audience": "俾導師",
     "tutors_title": "喺全港最體貼導師嘅平台，將你嘅收入潛力最大化。",
     "tutors_steps": {
@@ -1084,14 +1075,12 @@
     "tutors_link_apply": "申請做導師",
     "tutors_link_playbook": "閱讀導師攻略手冊",
     "tutors_callout": "想快啲填滿你嘅時間表？隨時瀏覽公開個案板，認領啱你專長嘅學生申請。",
-    "verification_eyebrow": "透明度",
     "verification_title": "了解導師核實機制",
     "verification_disclaimer": "MatchMax 並未獲 IB、HKEAA 或任何學校認可或背書。我們只核對導師上載嘅文件，唔會保證成績、取錄結果或老師嘅評卷方式。",
     "verification_tier2_title": "金色「已驗證」徽章",
     "verification_tier2_body": "MatchMax 採用雙層導師制度。持有金色「已驗證」徽章嘅導師，已經向 MatchMax 行政團隊提交官方學術成績單及香港身份證（HKID）作交叉核對。",
     "verification_tier1_title": "自行申報檔案",
     "verification_tier1_body": "未驗證導師嘅成績屬自行申報，並須喺第一堂課前直接向你提供學術證明。",
-    "quality_eyebrow": "03 / 信任與品質",
     "quality_title": "我哋嘅導師品質標準",
     "quality_sub_title": "MatchMax 學術標準",
     "quality_body": "為維持高質素配對，所有 MatchMax 導師都必須通過嚴格嘅審核程序。我哋會按導師擬任教嘅課程逐項評估申請。所有學生導師必須提交經核實嘅成績表同大學學生證。",
@@ -1136,7 +1125,6 @@
       }
     },
     "quality_pro_note": "全職專業導師須知：全職導師、認證教師及業內專業人士會按其大學學位、PGDE 教育文憑及可查證嘅教學往績評估，而非中學公開試成績。",
-    "faq_eyebrow": "04 / 貼士",
     "faq_title": "常見問題",
     "faq_tutors": "俾導師",
     "faq_parents": "俾家長",
@@ -1340,7 +1328,6 @@
     "routing_desc": "為咗將你嘅意見轉介到正確嘅團隊，請話返我哋知你係：",
     "role_parent": "我係家長／學生",
     "role_tutor": "我係導師",
-    "form_eyebrow": "平台意見",
     "form_title": "評價你嘅 MatchMax 體驗",
     "parent_subtext": "我哋一直努力改善配對服務。請話我哋知我哋嘅行政團隊點樣處理你最近嘅補習請求。",
     "tutor_subtext": "你嘅意見幫我哋為教育工作者打造更好嘅平台。請話我哋知我哋嘅行政團隊點樣處理你嘅申請同審核流程。",
@@ -1483,7 +1470,6 @@
     "match_tutors_body": "上傳你的學歷證明，我們人工核實，你的匿名導師卡便會上架。認領適合你通勤範圍的個案，在 1.5 課行政費之後，鐘費全歸你。",
     "match_tutors_link": "閱讀導師指南",
     "parents": {
-      "eyebrow": "給家長",
       "intro": "家長需要知道的一切：配對如何進行、你要付什麼，以及 MatchMax 不做的事。",
       "steps_title": "配對流程",
       "s1_title": "瀏覽導師卡或提交需求",
@@ -1516,7 +1502,6 @@
       "fact_group_body": "請私人一對一導師，或者報讀小組班（2至6人），每位學生費率更低。同一個 1.5 課管理費按每位學生計。"
     },
     "tutors": {
-      "eyebrow": "給導師",
       "intro": "導師需要知道的一切：上架如何進行、佣金實際是什麼，以及 MatchMax 不做的事。",
       "steps_title": "運作方式",
       "s1_title": "提交學歷證明",
@@ -1550,7 +1535,6 @@
       "founder_line": "由學生創立，為導師而設 —— 堅持公平收費，與你一起培育下一代學子。"
     },
     "notes": {
-      "eyebrow": "筆記市集",
       "intro": "由已核實導師製作的原創學習教材，上架前經我們團隊審核。本頁同時列出禁售清單——這裡永遠不會出售的東西。",
       "how_title": "運作方式",
       "s1_title": "導師上傳原創教材",
@@ -1584,7 +1568,6 @@
       "upload_note": "導師須知：上傳即表示接受筆記條款。未接受條款前，上傳表格無法提交。"
     },
     "refer": {
-      "eyebrow": "轉介計劃",
       "intro": "分享你的連結，朋友申請成為導師，他們首宗成功個案你可賺取 MatchMax 行政費的 15%。無須 WhatsApp 訊息——一切由連結記錄。",
       "steps_title": "五個步驟",
       "s1_title": "複製你的連結",
@@ -1642,7 +1625,6 @@
     "tab_partners": "教育機構合作",
     "index_partners_body": "畀補習中心、學校同 NGO 委聘獨立導師——只做服務合約，絕不涉及員工招聘。",
     "partners": {
-      "eyebrow": "教育機構合作",
       "title": "為你嘅課程委聘獨立導師",
       "intro": "MatchMax 協助補習中心、日校同 NGO 搵配獨立自僱導師，開辦專科課程、備考班同系列課堂——純粹服務合約，配對前必先審核。",
       "steps_title": "委聘導師嘅流程",
@@ -1664,7 +1646,6 @@
   },
   "legal": {
     "notes_terms": {
-      "eyebrow": "法律",
       "title": "筆記條款",
       "updated": "2026年10月11日起生效",
       "role_title": "MatchMax 的角色及授權鏈",
@@ -1785,7 +1766,6 @@
     "apkg_panel_body": "購買後會以檔案形式發放到你的 MatchMax 帳戶。瀏覽器內不提供預覽或播放器。"
   },
   "orders": {
-    "eyebrow": "筆記訂單",
     "checkout_title": "完成訂單",
     "delivered_title": "你的筆記已經準備好",
     "back_to_account": "返回帳戶",
@@ -2049,8 +2029,6 @@
   "preview": {
     "banner": "預覽模式：呢個正正係家長會見到嘅畫面。請檢查下面嘅個人簡介、學歷同科目。",
     "banner_dismiss": "關閉預覽橫額",
-    "card_eyebrow": "你喺導師目錄入面嘅卡片",
-    "profile_eyebrow": "你嘅公開檔案",
     "edit_cta": "編輯資料",
     "submit_cta": "提交即可上架",
     "empty_title": "你嘅導師卡仍未上架",
@@ -2174,7 +2152,6 @@
     "directory_title": "導師服務",
     "directory_empty": "此分類暫時未有服務。",
     "filter_all": "所有服務",
-    "order_eyebrow": "服務訂單",
     "delivered_title": "你的交付已就緒",
     "step_in_fulfillment": "導師正在準備你的交付",
     "due_by": "應於 {{datetime}} 前交付",
@@ -2640,7 +2617,6 @@
     }
   },
   "group_classes": {
-    "board_eyebrow": "小組班",
     "board_title": "小組班（2至6人）",
     "board_intro": "由導師開班，每位學生費率更低。同一個 1.5 課管理費按每位學生計，每個家庭都有自己嘅私人一對一個案，唔會同其他家長交換任何聯絡資料。",
     "board_empty": "而家暫時未有招生中的小組班。遲啲再嚟睇下，或者喺導師檔案睇下佢有冇開班。",

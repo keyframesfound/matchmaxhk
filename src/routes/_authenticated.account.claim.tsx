@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/account/claim")({
       : {}),
   }),
   head: () => ({
-    meta: [{ title: "Claim your tutor card — MatchMax" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Claim your tutor card | MatchMax" }, { name: "robots", content: "noindex" }],
   }),
   component: ClaimCardPage,
 });
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/account/claim")({
 type ClaimDecision = "already_owned" | "confirm" | "staff_review";
 
 // Epic #280 P2: a tutor claims their existing card. The RPC decides what the
-// caller may do — application-email match → confirm screen; anything else →
+// caller may do, application-email match → confirm screen; anything else →
 // staff review. The client never grants the claim itself.
 function ClaimCardPage() {
   const { t } = useTranslation();
@@ -109,7 +109,7 @@ function ClaimCardPage() {
       <main className="flex flex-1 flex-col items-center px-4 py-10">
         <div className="w-full max-w-md text-center">
           <Logo className="mx-auto h-14 w-14" imgClassName="h-14 w-14" />
-          <h1 className="mt-5 text-2xl font-bold tracking-tight text-[color:var(--ink)]">
+          <h1 className="mt-5 text-2xl font-medium tracking-tight text-[color:var(--ink)]">
             {t("account.claim.title")}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">{t("account.claim.subtitle")}</p>
@@ -125,7 +125,7 @@ function ClaimCardPage() {
                 />
               ) : null}
               <div className="min-w-0">
-                <p className="truncate font-bold text-[color:var(--ink)]">{card.display_name}</p>
+                <p className="truncate font-medium text-[color:var(--ink)]">{card.display_name}</p>
                 <p className="text-sm text-muted-foreground">{card.tutor_code}</p>
               </div>
             </div>
@@ -137,7 +137,7 @@ function ClaimCardPage() {
           <div className="mt-6 flex gap-3">
             <Button
               variant="outline"
-              className="h-11 flex-1 rounded-xl font-bold"
+              className="h-11 flex-1 rounded-xl font-medium"
               onClick={() => void navigate({ to: "/account", replace: true })}
               disabled={confirmClaim.isPending}
             >
@@ -146,7 +146,7 @@ function ClaimCardPage() {
             <Button
               variant="solid"
               color="blue"
-              className="h-11 flex-1 rounded-xl font-bold"
+              className="h-11 flex-1 rounded-xl font-medium"
               onClick={() => confirmClaim.mutate()}
               disabled={confirmClaim.isPending}
             >
@@ -168,7 +168,7 @@ function ClaimMessage({ text, backToAccount }: { text: string; backToAccount?: b
       {backToAccount ? (
         <Button
           variant="outline"
-          className="mt-6 h-11 rounded-xl font-bold"
+          className="mt-6 h-11 rounded-xl font-medium"
           onClick={() => void navigate({ to: "/account", replace: true })}
         >
           {t("account.claim.back_to_account")}

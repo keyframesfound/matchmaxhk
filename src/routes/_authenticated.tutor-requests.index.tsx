@@ -145,8 +145,8 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
       meta: [
         ...localizedMeta(locale, {
           title: {
-            en: "Tutor Request Board — Post a Request or Apply for Cases | MatchMax",
-            "zh-HK": "補習個案板 — 家長免費出需求，導師申請個案 | MatchMax",
+            en: "Tutor Request Board, Post a Request or Apply for Cases | MatchMax",
+            "zh-HK": "補習個案板, 家長免費出需求，導師申請個案 | MatchMax",
           },
           description: {
             en: "Browse open tutoring cases posted by parents and students, or submit your requirements free and let qualified tutors apply for your case.",
@@ -160,7 +160,7 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
           content:
             locale === "zh-HK"
               ? "真實香港家長補習需求。申請適合你嘅個案，或者自己出需求——家長完全免費。"
-              : "Real tutoring requests from Hong Kong parents. Apply for a case that fits you, or post your own — free for parents.",
+              : "Real tutoring requests from Hong Kong parents. Apply for a case that fits you, or post your own, free for parents.",
         },
         { property: "og:url", content: "https://matchmax.hk/tutor-requests" },
       ],
@@ -203,7 +203,7 @@ function CaseShareButton({ item }: { item: PublicCaseBoardItem }) {
         event.stopPropagation();
         setIsSharing(true);
         void shareOrCopy({
-          title: `${primary} — Case ${item.caseCode} | MatchMax`,
+          title: `${primary}, Case ${item.caseCode} | MatchMax`,
           text: `Check out this tutoring request (Case ${item.caseCode}) on MatchMax.`,
           url: `${window.location.origin}/tutor-requests/${item.caseCode}`,
         }).finally(() => setIsSharing(false));
@@ -216,11 +216,11 @@ function CaseShareButton({ item }: { item: PublicCaseBoardItem }) {
 }
 
 /** #81: small "Applied" pill for board cards of cases the tutor already hit
- * 1-click Apply on. Only rendered with a true prop — additive, default off. */
+ * 1-click Apply on. Only rendered with a true prop, additive, default off. */
 function CaseAppliedPill() {
   const { t } = useTranslation();
   return (
-    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
       <Check className="h-3 w-3" aria-hidden="true" />
       {t("caseApplications.applied", { defaultValue: "Applied" })}
     </span>
@@ -232,7 +232,7 @@ function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applie
   const { primary, secondary } = useCaseTitles(item);
   // Issue #113/#423: tutors quoting in another currency see the converted
   // rate first; an empty string (both bounds blank) omits the rate entirely
-  // — never "HK$?".
+  //, never "HK$?".
   const tutorCurrency = useTutorDisplayCurrency();
   const { rates: fxRates } = useDisplayCurrency();
   const budget = caseBudgetForTutor(item, tutorCurrency, fxRates, item.rateUnit);
@@ -241,13 +241,13 @@ function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applie
   const postedAgo = formatPostedAgo(item.boardPublishedAt ?? item.createdAt, i18n.language);
   return (
     <li className="relative flex flex-col rounded-xl border border-border bg-[color:var(--surface)] p-4 transition-colors hover:border-[color:var(--foreground)]/25">
-      {/* Identity row — trust pills ONLY with real data; there is NO parent
+      {/* Identity row, trust pills ONLY with real data; there is NO parent
           rating today, so nothing fabricated renders (precedent #151).
           Centre cases swap in the verified-org identity (#412/#423). */}
       <div className="flex items-center justify-between gap-2">
         <CaseIdentityRow item={item} />
         {item.startTiming === "asap" ? (
-          <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-[color:var(--warning)]/15 px-1.5 py-0.5 text-xs font-bold text-[#a16207] dark:text-[color:var(--warning)]">
+          <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-[color:var(--warning)]/15 px-1.5 py-0.5 text-xs font-medium text-[#a16207] dark:text-[color:var(--warning)]">
             <CalendarClock className="h-3 w-3" aria-hidden="true" />
             {t("case_board.badge_asap")}
           </span>
@@ -261,7 +261,7 @@ function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applie
         params={{ caseCode: item.caseCode }}
         className="mt-2 block min-w-0"
       >
-        <h3 className="truncate text-base font-bold text-[color:var(--ink)]">{primary}</h3>
+        <h3 className="truncate text-base font-medium text-[color:var(--ink)]">{primary}</h3>
         {secondary ? <p className="truncate text-sm text-muted-foreground">{secondary}</p> : null}
       </Link>
 
@@ -269,10 +269,10 @@ function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applie
       <CaseLogisticsLine parts={logisticsParts} className="mt-2 [&>span]:w-full [&>span]:min-w-0" />
       {/* Dedicated rate line (#113): converted figure bold + original HKD in
           parens for non-HKD tutors; plain HKD rate otherwise. GLM round-2
-          blocker — the logistics line no longer carries the rate. */}
+          blocker, the logistics line no longer carries the rate. */}
       {budget.primary ? (
         <p className="mt-0.5 truncate text-xs text-muted-foreground">
-          <span className="font-semibold text-[color:var(--ink)]">{budget.primary}</span> (
+          <span className="font-medium text-[color:var(--ink)]">{budget.primary}</span> (
           {budget.original})
         </p>
       ) : rateHkd ? (
@@ -303,7 +303,7 @@ function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applie
           <Link
             to="/tutor-requests/$caseCode"
             params={{ caseCode: item.caseCode }}
-            className="group ml-1 flex shrink-0 items-center gap-1 text-sm font-semibold text-[color:var(--ink)] hover:underline"
+            className="group ml-1 flex shrink-0 items-center gap-1 text-sm font-medium text-[color:var(--ink)] hover:underline"
           >
             {t("case_board.view_details")}
             <ArrowRight
@@ -387,7 +387,7 @@ function TutorRequestsPage() {
         category: next.category,
         district: next.district,
         // Issue #311: keep the active tag filter when the search bar is
-        // applied — tag ANDs with the rest; multi-tag picks come from the
+        // applied, tag ANDs with the rest; multi-tag picks come from the
         // advanced draft.
         tag: search.tag,
         // Issue #423 ship-order 5: advanced filters ride the same draft.
@@ -498,7 +498,7 @@ function TutorRequestsPage() {
     setNoticeOpen(false);
   };
 
-  // Issue #423: the board is one flat card grid (wireframe) — the exam-system
+  // Issue #423: the board is one flat card grid (wireframe), the exam-system
   // sections are gone; `?category=` still filters by curriculum.
   const hasActiveFilters = Boolean(
     search.q ||
@@ -551,7 +551,7 @@ function TutorRequestsPage() {
               <Badge variant="outline" className="mb-4">
                 Tutor requests
               </Badge>
-              <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+              <h1 className="text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-3xl">
                 Requesting a tutor that meets your requirements?
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -564,7 +564,7 @@ function TutorRequestsPage() {
                   variant="solid"
                   color="neutral"
                   shape="pill"
-                  className="h-11 px-6 font-bold"
+                  className="h-11 px-6 font-medium"
                 >
                   {formOpen ? "Hide form" : "Post your request"}
                 </Button>
@@ -585,11 +585,11 @@ function TutorRequestsPage() {
             <div ref={formSectionRef} className="scroll-mt-24">
               <PageContainer width="default" className="py-10 sm:py-12">
                 <div className="mb-6">
-                  <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                  <h2 className="text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-3xl">
                     Post your request
                   </h2>
                   <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                    Tell us what you need and our team will review it — approved requests appear on
+                    Tell us what you need and our team will review it, approved requests appear on
                     this board so qualified tutors can apply directly.
                   </p>
                 </div>
@@ -618,7 +618,7 @@ function TutorRequestsPage() {
                   strokeWidth={1.75}
                   aria-hidden="true"
                 />
-                <DialogTitle className="mt-6 text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-[28px]">
+                <DialogTitle className="mt-6 text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-[28px]">
                   Requesting a tutor that meets your requirements?
                 </DialogTitle>
                 <DialogDescription className="mt-2 text-base leading-relaxed">
@@ -634,7 +634,7 @@ function TutorRequestsPage() {
                     variant="solid"
                     color="neutral"
                     shape="pill"
-                    className="h-13 w-full text-base font-bold"
+                    className="h-13 w-full text-base font-medium"
                   >
                     Post your request
                   </Button>
@@ -657,11 +657,11 @@ function TutorRequestsPage() {
                 <Badge variant="outline" className="mb-4">
                   Tutor requests
                 </Badge>
-                <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                <h2 className="text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-3xl">
                   Open requests
                 </h2>
                 {hasActiveFilters ? (
-                  <p className="mt-2 text-sm font-semibold text-[color:var(--ink)]/70">
+                  <p className="mt-2 text-sm font-medium text-[color:var(--ink)]/70">
                     {filteredCases.length} {filteredCases.length === 1 ? "match" : "matches"}
                   </p>
                 ) : null}
@@ -677,7 +677,7 @@ function TutorRequestsPage() {
                         key={tag}
                         type="button"
                         onClick={() => removeTag(tag)}
-                        className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
                       >
                         <Hash className="h-3 w-3" aria-hidden="true" />
                         {tag}
@@ -701,11 +701,11 @@ function TutorRequestsPage() {
                         aria-hidden="true"
                       />
                     </div>
-                    <h3 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                    <h3 className="mt-4 text-xl font-medium tracking-tight text-[color:var(--ink)] sm:text-2xl">
                       No open requests right now
                     </h3>
                     <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                      Approved parent requests appear here for tutors to apply. Be the first — post
+                      Approved parent requests appear here for tutors to apply. Be the first, post
                       your requirements and let tutors come to you.
                     </p>
                     <div className="mt-6 flex justify-center">
@@ -714,7 +714,7 @@ function TutorRequestsPage() {
                         variant="solid"
                         color="neutral"
                         shape="pill"
-                        className="h-11 px-6 font-bold"
+                        className="h-11 px-6 font-medium"
                       >
                         Post your request
                       </Button>
@@ -728,7 +728,7 @@ function TutorRequestsPage() {
                         aria-hidden="true"
                       />
                     </div>
-                    <h3 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                    <h3 className="mt-4 text-xl font-medium tracking-tight text-[color:var(--ink)] sm:text-2xl">
                       {t("directory.empty_title")}
                     </h3>
                     <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">

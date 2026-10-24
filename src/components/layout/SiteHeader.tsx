@@ -78,7 +78,7 @@ function MenuDivider() {
 const headerCircleClassName =
   "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40";
 
-/** Centered category tab for the lg+ nav row — Airbnb-style icon + label with an active underline. */
+/** Centered category tab for the lg+ nav row, Airbnb-style icon + label with an active underline. */
 function DesktopTab({
   to,
   active,
@@ -96,7 +96,7 @@ function DesktopTab({
       to={to}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group relative flex h-full items-center gap-2 whitespace-nowrap px-3 text-base font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-4",
+        "group relative flex h-full items-center gap-2 whitespace-nowrap px-3 text-base font-medium transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-4",
         active
           ? "text-[color:var(--ink)]"
           : "text-[color:var(--ink)]/60 hover:text-[color:var(--ink)]",
@@ -169,7 +169,7 @@ export function SiteHeader({
   const useDarkTheme = theme !== "dark";
   const currentLang = i18n.language?.startsWith("zh") ? "zh-HK" : "en";
   const nextLang = currentLang === "en" ? "zh-HK" : "en";
-  const brandLabelClassName = "text-lg font-bold tracking-tight text-brand-gradient sm:text-xl";
+  const brandLabelClassName = "text-lg font-medium tracking-tight text-brand-gradient sm:text-xl";
 
   // Mobile keeps a slim top bar (logo + staggered menu); the fixed bottom
   // tab bar handles account navigation and must render outside the header.
@@ -256,7 +256,7 @@ export function SiteHeader({
               to="/join"
               aria-current={isActive("/join") ? "page" : undefined}
               className={cn(
-                "whitespace-nowrap rounded-full px-3 py-2.5 text-base font-semibold transition-colors hover:bg-[color:var(--foreground)]/[0.05] sm:px-4",
+                "whitespace-nowrap rounded-full px-3 py-2.5 text-base font-medium transition-colors hover:bg-[color:var(--foreground)]/[0.05] sm:px-4",
                 isActive("/join")
                   ? "text-[color:var(--brand-link)]"
                   : "text-[color:var(--ink)] hover:text-[color:var(--ink)]",
@@ -385,7 +385,7 @@ export function SiteHeader({
                       <Globe className="size-5" />
                     </MenuIcon>
                     {t("nav.account_language")}
-                    <span className="ml-auto text-xs font-bold text-[color:var(--ink)]/55">
+                    <span className="ml-auto text-xs font-medium text-[color:var(--ink)]/55">
                       {currentLang === "en" ? "EN" : "繁"}
                     </span>
                   </DropdownMenuItem>
@@ -413,9 +413,7 @@ export function SiteHeader({
                   <DropdownMenuItem asChild className={menuCardClassName}>
                     <Link to="/join">
                       <span className="min-w-0 flex-1">
-                        <span className="block font-semibold leading-5">
-                          {t("nav.become_tutor")}
-                        </span>
+                        <span className="block font-medium leading-5">{t("nav.become_tutor")}</span>
                         <span className="mt-1 block text-[13px] font-normal leading-4 text-[color:var(--ink)]/60">
                           {t("nav.become_tutor_subtitle")}
                         </span>
@@ -486,7 +484,7 @@ export function SiteHeader({
                       <Link to="/auth" onClick={closeMenu}>
                         <Button
                           variant="outline"
-                          className="h-10 w-full rounded-full border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
+                          className="h-10 w-full rounded-full border-[color:var(--ink)]/15 text-sm font-medium text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
                         >
                           {t("nav.sign_in")}
                         </Button>
@@ -495,7 +493,7 @@ export function SiteHeader({
                         <Button
                           variant="solid"
                           color="blue"
-                          className="h-10 w-full rounded-full text-sm font-semibold"
+                          className="h-10 w-full rounded-full text-sm font-medium"
                         >
                           {t("nav.sign_up")}
                         </Button>
@@ -508,7 +506,7 @@ export function SiteHeader({
                         void signOut();
                         closeMenu();
                       }}
-                      className="h-10 w-full rounded-full border border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--destructive)]/10 hover:text-[color:var(--destructive)]"
+                      className="h-10 w-full rounded-full border border-[color:var(--ink)]/15 text-sm font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--destructive)]/10 hover:text-[color:var(--destructive)]"
                     >
                       {t("nav.sign_out")}
                     </button>

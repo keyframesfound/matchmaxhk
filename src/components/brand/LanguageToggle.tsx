@@ -13,7 +13,7 @@ export function LanguageToggle() {
       variant="ghost"
       size="sm"
       onClick={() => setLocale(next)}
-      className="flex h-10 items-center gap-2 rounded-full px-3 font-bold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
+      className="flex h-10 items-center gap-2 rounded-full px-3 font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
       aria-label={`Change language to ${next === "en" ? "English" : "Traditional Chinese"}`}
     >
       <Globe className="h-5 w-5" strokeWidth={2.5} />

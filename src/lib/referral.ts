@@ -28,6 +28,6 @@ export function storeReferralCode(code: string): void {
   try {
     window.localStorage.setItem(REFERRAL_STORAGE_KEY, JSON.stringify({ code, ts: Date.now() }));
   } catch {
-    // Storage unavailable (private mode etc.) — attribution just won't persist.
+    // Storage unavailable (private mode etc.), attribution just won't persist.
   }
 }

@@ -98,7 +98,10 @@ export function ThemeModeCards({
           disabled={disabled}
           badge={
             option.value === "dark" ? (
-              <Badge variant="destructive" className="px-1.5 py-0 text-[10px] font-bold leading-5">
+              <Badge
+                variant="destructive"
+                className="px-1.5 py-0 text-[10px] font-medium leading-5"
+              >
                 Beta
               </Badge>
             ) : undefined

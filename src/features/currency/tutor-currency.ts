@@ -1,4 +1,4 @@
-// Issue #113 — the authed tutor's quoting currency for case-feed conversion.
+// Issue #113, the authed tutor's quoting currency for case-feed conversion.
 // Parents and non-tutor accounts get HKD (no conversion anywhere).
 import { useQuery } from "@tanstack/react-query";
 

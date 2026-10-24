@@ -4,7 +4,7 @@ import { type SenCategory } from "./sen";
 
 /**
  * Issue #199: display labels for the stored SEN category vocabulary
- * (src/features/tutors/sen.ts). The stored values are DATA — they appear in
+ * (src/features/tutors/sen.ts). The stored values are DATA, they appear in
  * tutors.sen_categories / tutoring_cases.sen_categories and never change;
  * labels localize through these literal i18n keys (sen.category.* in
  * src/features/i18n/locales/{en,zh-HK}.json). Keep keys literal so the

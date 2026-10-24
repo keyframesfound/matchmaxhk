@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
  * materials marketplace. All reads go through the RLS public policy
  * (published materials of published tutors only); degrade to empty lists
  * when the migration hasn't been applied yet, so the profile section simply
- * stays hidden instead of erroring — same tolerant pattern as reviews.
+ * stays hidden instead of erroring, same tolerant pattern as reviews.
  */
 
 export type StudyMaterial = {
@@ -53,7 +53,7 @@ const MATERIAL_COLS =
 /**
  * #392: the kinds the tutor-profile "Authored notes" section renders.
  * Folders/courses/gigs are shop listings with their own card chrome and
- * detail pages — they surface in the /tutors?view=materials directory, not
+ * detail pages, they surface in the /tutors?view=materials directory, not
  * in the profile notes block.
  */
 export const PROFILE_NOTE_TYPES = ["notes", "mock", "exemplar", "flashcards"] as const;
@@ -130,7 +130,7 @@ export async function fetchMaterialsForTutor(tutorId: string): Promise<StudyMate
     .eq("tutor_id", tutorId)
     .eq("status", "published")
     // Freestyle gigs (#326) AND the #392 shop kinds (folders / courses) are
-    // NOT authored notes — they render only through the shop directory and
+    // NOT authored notes, they render only through the shop directory and
     // their own detail pages, never inside the profile notes block.
     .not("material_type", "in", `(${SUPPORTED_PROFILE_TYPES_CSV})`)
     .order("created_at", { ascending: false });
@@ -150,7 +150,7 @@ export type MarketplaceMaterial = StudyMaterial & {
 };
 
 /**
- * #392: the WHOLE published shop — notes kinds, folders, courses AND gigs —
+ * #392: the WHOLE published shop, notes kinds, folders, courses AND gigs —
  * one RLS read feeding the unified directory grid (kind filter chips live
  * client-side, same as the tutors list). The old gig exclusion is gone: the
  * directory is the shop now, and the home rows / profile section keep their
@@ -190,13 +190,13 @@ export function collectSchoolTags(materials: MarketplaceMaterial[]): string[] {
   ).sort((a, b) => a.localeCompare(b));
 }
 
-/** The issue's verbatim WhatsApp buy message (#131) — kept for back-compat. */
+/** The issue's verbatim WhatsApp buy message (#131), kept for back-compat. */
 export { buildBuyWhatsAppUrl } from "@/features/materials/whatsapp";
 
 export function formatDocumentTypeLabel(type: string, t: (key: string) => string): string {
   const key = `materials.doc_type_${type}`;
   // Legacy rows may carry types the CHECK no longer allows (e.g. removed
-  // past_paper_solutions) — fall back to a humanized value instead of
+  // past_paper_solutions), fall back to a humanized value instead of
   // rendering the raw i18n key.
   const label = t(key);
   return label === key ? type.replace(/_/g, " ") : label;

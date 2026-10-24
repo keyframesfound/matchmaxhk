@@ -69,7 +69,7 @@ function toFormState(caseRow: CaseRow): EditFormState {
     subjectsText: (caseRow.subjects ?? []).join(", "),
     studentLevel: caseRow.student_level ?? "",
     examSystem: caseRow.exam_system ?? "",
-    // Legacy rows have no stored tier — derive it from the student level.
+    // Legacy rows have no stored tier, derive it from the student level.
     academicTier:
       normalizeAcademicTier(caseRow.academic_tier) ??
       caseAcademicTier(caseRow.academic_tier, caseRow.student_level) ??
@@ -369,7 +369,7 @@ export function CaseEditDialog({
                 value={form.budgetMin}
                 onChange={(e) => update({ budgetMin: e.target.value.replace(/[^\d]/g, "") })}
               />
-              <span className="text-sm font-bold text-muted-foreground">–</span>
+              <span className="text-sm font-medium text-muted-foreground">–</span>
               <Input
                 aria-label="Maximum budget per hour"
                 className={controlClassName}
@@ -420,7 +420,7 @@ export function CaseEditDialog({
           <Button
             onClick={() => saveMutation.mutate()}
             disabled={saveMutation.isPending}
-            className="font-bold"
+            className="font-medium"
           >
             {saveMutation.isPending ? "Saving…" : "Save changes"}
           </Button>

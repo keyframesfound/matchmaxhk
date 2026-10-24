@@ -9,7 +9,7 @@ import { cohortAvailability, type CohortAvailabilityState } from "@/features/cas
 import { cn } from "@/lib/utils";
 
 /**
- * Issue #391 — "Group classes" section on the public tutor profile: the
+ * Issue #391, "Group classes" section on the public tutor profile: the
  * tutor's open cohorts with live seats, linking to /group-classes to book.
  * Self-fetching like the ExperiencePill; degrades to nothing when the tutor
  * runs no cohorts (or pre-migration).
@@ -65,7 +65,7 @@ export function TutorGroupClassesSection({ tutorId }: { tutorId: string }) {
     <section className="border-t border-border py-8 sm:py-10">
       <div className="mb-4 flex items-center gap-2">
         <Users className="h-4 w-4 text-[color:var(--brand-link)]" aria-hidden="true" />
-        <h2 className="text-base font-bold text-[color:var(--ink)]">
+        <h2 className="text-base font-medium text-[color:var(--ink)]">
           {t("profile.section_group_classes")}
         </h2>
       </div>
@@ -79,14 +79,14 @@ export function TutorGroupClassesSection({ tutorId }: { tutorId: string }) {
               <div className="flex flex-wrap items-center gap-2">
                 <span
                   className={cn(
-                    "whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold",
+                    "whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-medium",
                     STATE_PILL_STYLES[availability.state],
                   )}
                 >
                   {t(`group_classes.state_${availability.state}`)}
                 </span>
-                <span className="text-sm font-bold text-[color:var(--ink)]">{cohort.title}</span>
-                <span className="ml-auto text-sm font-semibold text-[color:var(--ink)]">
+                <span className="text-sm font-medium text-[color:var(--ink)]">{cohort.title}</span>
+                <span className="ml-auto text-sm font-medium text-[color:var(--ink)]">
                   ${cohort.per_student_rate_hkd}
                   <span className="ml-1 text-[0.7em] font-medium text-muted-foreground">
                     {t("group_classes.per_student_rate_suffix")}

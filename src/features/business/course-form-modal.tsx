@@ -341,7 +341,7 @@ export function CourseFormModal({
                             : [...form.session_days, day.code],
                         })
                       }
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
+                      className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset transition-colors ${
                         active
                           ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)] ring-[color:var(--btn-accent)]"
                           : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
@@ -404,7 +404,7 @@ export function CourseFormModal({
             <Label>Full description</Label>
             <Textarea
               rows={5}
-              placeholder="Full course details — what students learn, who it's for, materials included…"
+              placeholder="Full course details, what students learn, who it's for, materials included…"
               value={form.description}
               onChange={(e) => setField({ description: e.target.value })}
             />
@@ -428,7 +428,7 @@ export function CourseFormModal({
               disabled={saving}
               variant="solid"
               color="blue"
-              className="font-bold"
+              className="font-medium"
             >
               {saving ? "Saving…" : course ? "Save changes" : "Create course"}
             </Button>

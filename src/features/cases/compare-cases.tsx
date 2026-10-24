@@ -53,7 +53,7 @@ function writeGuestCompareIds(ids: string[]) {
   try {
     window.localStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(ids));
   } catch {
-    // Storage unavailable (private mode etc.) — compare still works in-session.
+    // Storage unavailable (private mode etc.), compare still works in-session.
   }
 }
 
@@ -172,15 +172,15 @@ function CaseCompareBar({
             className="h-4 w-4 shrink-0 text-[color:var(--muted-foreground)]"
             aria-hidden="true"
           />
-          <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
+          <p className="truncate text-sm font-medium text-[color:var(--ink)]">
             {count} of {MAX_CASE_COMPARE} selected
-            {count === 1 ? " — pick at least 2" : ""}
+            {count === 1 ? ", pick at least 2" : ""}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
           <Button
             size="sm"
-            className="h-9 rounded-full px-4 text-[13px] font-bold"
+            className="h-9 rounded-full px-4 text-[13px] font-medium"
             disabled={count < 2}
             onClick={onOpenCompare}
           >
@@ -189,7 +189,7 @@ function CaseCompareBar({
           <Button
             size="sm"
             variant="ghost"
-            className="h-9 rounded-full px-3 text-[13px] font-bold text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)]"
+            className="h-9 rounded-full px-3 text-[13px] font-medium text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)]"
             onClick={onClear}
           >
             Clear
@@ -215,7 +215,7 @@ function CaseCompareDialog({
     {
       label: "Subjects",
       render: (item) => (
-        <p className="text-[13px] font-semibold leading-snug text-[color:var(--ink)]">
+        <p className="text-[13px] font-medium leading-snug text-[color:var(--ink)]">
           {item.subjects.filter(Boolean).join(", ") || "Not specified"}
         </p>
       ),
@@ -223,7 +223,7 @@ function CaseCompareDialog({
     {
       label: "Level",
       render: (item) => (
-        <p className="text-[13px] font-semibold text-[color:var(--ink)]">
+        <p className="text-[13px] font-medium text-[color:var(--ink)]">
           {formatStudentLevel(item.studentLevel) || item.studentLevel}
         </p>
       ),
@@ -231,7 +231,7 @@ function CaseCompareDialog({
     {
       label: "Budget",
       render: (item) => (
-        <p className="text-[13px] font-semibold text-[color:var(--ink)]">
+        <p className="text-[13px] font-medium text-[color:var(--ink)]">
           {/* #423: both-blank budget renders an em-dash, never "HK$?". */}
           {formatCaseBudgetHkd(item) || "\u2014"}
         </p>
@@ -240,7 +240,7 @@ function CaseCompareDialog({
     {
       label: "Schedule",
       render: (item) => (
-        <p className="text-[13px] font-semibold text-[color:var(--ink)]">
+        <p className="text-[13px] font-medium text-[color:var(--ink)]">
           {formatCaseSchedule(item.sessionsPerWeek, item.sessionLengthMinutes)}
         </p>
       ),
@@ -248,7 +248,7 @@ function CaseCompareDialog({
     {
       label: "Lesson mode",
       render: (item) => (
-        <p className="text-[13px] font-semibold text-[color:var(--ink)]">
+        <p className="text-[13px] font-medium text-[color:var(--ink)]">
           {CASE_MODE_LABEL[item.mode] ?? item.mode}
           {item.district ? ` · ${item.district}` : ""}
         </p>
@@ -257,7 +257,7 @@ function CaseCompareDialog({
     {
       label: "Curriculum",
       render: (item) => (
-        <p className="text-[13px] font-semibold text-[color:var(--ink)]">
+        <p className="text-[13px] font-medium text-[color:var(--ink)]">
           {item.examSystem && item.examSystem !== "Not sure yet" ? item.examSystem : "Flexible"}
         </p>
       ),
@@ -265,7 +265,7 @@ function CaseCompareDialog({
     {
       label: "Tutor gender",
       render: (item) => (
-        <p className="text-[13px] font-semibold text-[color:var(--ink)]">
+        <p className="text-[13px] font-medium text-[color:var(--ink)]">
           {CASE_GENDER_LABEL[item.preferredGender] ?? "No preference"}
         </p>
       ),
@@ -273,7 +273,7 @@ function CaseCompareDialog({
     {
       label: "Start",
       render: (item) => (
-        <p className="text-[13px] font-semibold text-[color:var(--ink)]">
+        <p className="text-[13px] font-medium text-[color:var(--ink)]">
           {CASE_START_LABEL[item.startTiming ?? ""] ?? "Flexible"}
         </p>
       ),
@@ -281,7 +281,7 @@ function CaseCompareDialog({
     {
       label: "Posted",
       render: (item) => (
-        <p className="text-[13px] font-semibold text-[color:var(--ink)]">
+        <p className="text-[13px] font-medium text-[color:var(--ink)]">
           {formatPostedAgo(item.createdAt, i18n.language)}
         </p>
       ),
@@ -289,7 +289,7 @@ function CaseCompareDialog({
     {
       label: "",
       render: (item) => (
-        <Button asChild size="sm" className="h-9 rounded-sm px-4 text-[13px] font-bold">
+        <Button asChild size="sm" className="h-9 rounded-sm px-4 text-[13px] font-medium">
           <Link to="/tutor-requests/$caseCode" params={{ caseCode: item.caseCode }}>
             View details
           </Link>
@@ -302,7 +302,7 @@ function CaseCompareDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] w-[95vw] max-w-6xl overflow-y-auto rounded-sm p-0 sm:rounded-sm">
         <DialogHeader className="border-b border-border px-5 py-4 text-left sm:px-6">
-          <DialogTitle className="text-lg font-bold tracking-tight text-[color:var(--ink)]">
+          <DialogTitle className="text-lg font-medium tracking-tight text-[color:var(--ink)]">
             Compare requests
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
@@ -314,10 +314,10 @@ function CaseCompareDialog({
             <div />
             {cases.map((item) => (
               <div key={item.id} className="px-3 py-3 text-center">
-                <span className="inline-block rounded-md bg-muted px-2 py-0.5 font-mono text-xs font-semibold text-muted-foreground">
+                <span className="inline-block rounded-md bg-muted px-2 py-0.5 font-mono text-xs font-medium text-muted-foreground">
                   {item.caseCode}
                 </span>
-                <p className="mt-1.5 line-clamp-2 text-[13px] font-semibold leading-snug text-[color:var(--ink)]">
+                <p className="mt-1.5 line-clamp-2 text-[13px] font-medium leading-snug text-[color:var(--ink)]">
                   {item.subjects.filter(Boolean).slice(0, 2).join(", ") || item.title}
                 </p>
               </div>

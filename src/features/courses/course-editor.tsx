@@ -27,7 +27,7 @@ import {
 
 /**
  * #392: the Video Course / General Course editor (/account/courses/new +
- * edit). Kind selector, REQUIRED cover, and a 1–10 lesson repeater — each
+ * edit). Kind selector, REQUIRED cover, and a 1–10 lesson repeater, each
  * lesson carries a title (≤120), an UNLISTED YouTube/Vimeo link validated
  * by validateCourseVideoUrl (Drive/Loom/anything else is rejected at the
  * paste, and again server-side; there is NO video upload path), and for
@@ -162,7 +162,7 @@ export function CourseEditorForm({ courseId }: { courseId?: string }) {
         data: { materialId: savedId, fileName: cover.name, base64Data: base64 },
       });
     }
-    // Per-lesson PDFs — the server watermarks the FULL document.
+    // Per-lesson PDFs, the server watermarks the FULL document.
     for (let index = 0; index < lessons.length; index += 1) {
       const pdf = lessons[index].pdfFile;
       if (!pdf) continue;
@@ -333,8 +333,8 @@ export function CourseEditorForm({ courseId }: { courseId?: string }) {
           <span
             className={
               lessonsCountInvalid
-                ? "text-xs font-bold text-[#B42318]"
-                : "text-xs font-bold text-emerald-700 dark:text-emerald-400"
+                ? "text-xs font-medium text-[#B42318]"
+                : "text-xs font-medium text-emerald-700 dark:text-emerald-400"
             }
           >
             {t("shop.form.lessons_count", { count: lessons.length })}
@@ -347,7 +347,7 @@ export function CourseEditorForm({ courseId }: { courseId?: string }) {
           return (
             <div key={index} className="space-y-2 rounded-md border border-border bg-card p-3">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-sm font-bold text-[color:var(--ink)]">
+                <p className="text-sm font-medium text-[color:var(--ink)]">
                   {t("shop.form.lesson_n", { n: index + 1 })}
                 </p>
                 <div className="flex items-center gap-1">
@@ -403,14 +403,14 @@ export function CourseEditorForm({ courseId }: { courseId?: string }) {
                   className="h-10 min-w-0 flex-1"
                 />
                 {video ? (
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs font-bold text-[color:var(--ink)]">
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-border bg-muted/40 px-2 py-1 text-xs font-medium text-[color:var(--ink)]">
                     <Youtube className="h-3.5 w-3.5" aria-hidden />
                     {video.provider === "youtube"
                       ? t("shop.form.provider_youtube")
                       : t("shop.form.provider_vimeo")}
                   </span>
                 ) : lesson.videoUrl.trim() ? (
-                  <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[#B42318]/40 bg-[#B42318]/5 px-2 py-1 text-xs font-bold text-[#B42318]">
+                  <span className="inline-flex shrink-0 items-center gap-1 rounded-md border border-[#B42318]/40 bg-[#B42318]/5 px-2 py-1 text-xs font-medium text-[#B42318]">
                     {t("shop.form.lesson_bad_video", { n: index + 1 })}
                   </span>
                 ) : null}
@@ -472,7 +472,7 @@ export function CourseEditorForm({ courseId }: { courseId?: string }) {
           type="submit"
           variant="solid"
           color="accent"
-          className="font-bold"
+          className="font-medium"
           disabled={saving || blockedByContact || missing.length > 0}
         >
           {saving && submitMutation.isPending ? (

@@ -28,7 +28,7 @@ export const Route = createFileRoute("/guide/tutors")({
   component: GuideTutorsPage,
 });
 
-/** Issue #210: the tutor guide — steps, money, and what MatchMax does not do. */
+/** Issue #210: the tutor guide, steps, money, and what MatchMax does not do. */
 function GuideTutorsPage() {
   const { t } = useTranslation();
 
@@ -60,10 +60,7 @@ function GuideTutorsPage() {
       />
       <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
         <div className="max-w-3xl">
-          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-            {t("guide.tutors.eyebrow")}
-          </p>
-          <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">
+          <h1 className="text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl">
             {t("guide.tab_tutors")}
           </h1>
           <p className="mt-4 text-lg leading-8 text-[color:var(--ink)]/65">
@@ -75,7 +72,7 @@ function GuideTutorsPage() {
           <p className="mt-3 text-base leading-7 text-[color:var(--ink)]/65">
             <Link
               to="/tutor-playbook"
-              className="font-bold underline underline-offset-4 hover:opacity-80"
+              className="font-medium underline underline-offset-4 hover:opacity-80"
             >
               {t("guide.tutors.support_link_label")}
             </Link>
@@ -98,7 +95,7 @@ function GuideTutorsPage() {
                 key={label}
                 className="rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6"
               >
-                <h3 className="text-base font-bold tracking-tight">{label}</h3>
+                <h3 className="text-base font-medium tracking-tight">{label}</h3>
                 <p className="mt-2 text-sm leading-6 text-[color:var(--ink)]/70">{body}</p>
               </div>
             ))}
@@ -113,7 +110,7 @@ function GuideTutorsPage() {
                 key={label}
                 className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--surface-subtle)] p-5 sm:p-6"
               >
-                <h3 className="text-base font-bold tracking-tight">{label}</h3>
+                <h3 className="text-base font-medium tracking-tight">{label}</h3>
                 <p className="mt-2 text-sm leading-6 text-[color:var(--ink)]/70">{body}</p>
               </div>
             ))}
@@ -133,7 +130,7 @@ function GuideTutorsPage() {
 
         <p className="mt-8 flex items-center gap-2 text-sm text-[color:var(--ink)]/60">
           <ClipboardList className="h-4 w-4" aria-hidden="true" />
-          <Link to="/tutor-playbook" className="font-bold underline underline-offset-4">
+          <Link to="/tutor-playbook" className="font-medium underline underline-offset-4">
             {t("guide.tutors.playbook_link")}
           </Link>
         </p>

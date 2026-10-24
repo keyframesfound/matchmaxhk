@@ -38,7 +38,7 @@ import { fileToBase64 } from "@/features/gigs/gig-files";
  * the note-editor-form anatomy: any subset saves as a draft; submit
  * enforces title/description/price/category/delivery type/cover and (for
  * document review) the academic-integrity checkbox. The cover rides a
- * separate upload fn — the draft is saved first so the image has an owner.
+ * separate upload fn, the draft is saved first so the image has an owner.
  */
 
 const isNoteCurriculum = (value: string): value is (typeof NOTE_CURRICULA)[number] =>
@@ -410,7 +410,7 @@ export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
           type="submit"
           variant="solid"
           color="accent"
-          className="font-bold"
+          className="font-medium"
           disabled={saving || blockedByContact || missing.length > 0 || coverTooLarge}
         >
           {saving && submitMutation.isPending ? (

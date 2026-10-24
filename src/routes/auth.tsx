@@ -38,12 +38,12 @@ export const Route = createFileRoute("/auth")({
 
   head: () => ({
     meta: [
-      { title: "Log in or sign up — MatchMax" },
+      { title: "Log in or sign up | MatchMax" },
       {
         name: "description",
         content: "Sign in with Google to manage your MatchMax profile, cases, and saved tutors.",
       },
-      { property: "og:title", content: "Log in or sign up — MatchMax" },
+      { property: "og:title", content: "Log in or sign up | MatchMax" },
       {
         property: "og:description",
         content: "Access your MatchMax settings and saved tutor profiles.",
@@ -107,7 +107,7 @@ function AuthPage() {
               />
             </div>
 
-            <h1 className="-mt-1 text-center text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+            <h1 className="-mt-1 text-center text-3xl font-medium tracking-tight text-[color:var(--ink)]">
               {t("auth.sign_in_title")}
             </h1>
             <p className="mt-2 text-center text-sm text-muted-foreground">
@@ -117,7 +117,7 @@ function AuthPage() {
             <Button
               type="button"
               variant="outline"
-              className="mt-6 h-12 w-full rounded-xl font-bold"
+              className="mt-6 h-12 w-full rounded-xl font-medium"
               onClick={() => void onOAuth()}
               disabled={busy}
             >

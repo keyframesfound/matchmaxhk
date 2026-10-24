@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
     meta: [
-      { title: "Admin overview — MatchMax" },
+      { title: "Admin overview, MatchMax" },
       {
         name: "description",
         content: "Platform-wide stats for tutors, cases, profiles and organizations.",
@@ -90,7 +90,7 @@ function AdminOverview() {
     <div className="mx-auto w-full max-w-6xl">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold tracking-tight">Admin overview</h2>
+          <h2 className="text-xl font-medium tracking-tight">Admin overview</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Everything under administration, in one console.
           </p>
@@ -104,7 +104,7 @@ function AdminOverview() {
       </div>
 
       <div className="mt-8">
-        <h3 className="pb-3 text-sm font-semibold tracking-tight">Quick actions</h3>
+        <h3 className="pb-3 text-sm font-medium tracking-tight">Quick actions</h3>
         <div className="overflow-hidden rounded-lg border border-border bg-card">
           {[
             {
@@ -145,7 +145,7 @@ function AdminOverview() {
               className="flex w-full items-center gap-4 border-b border-border px-4 py-3 text-left transition-colors duration-150 last:border-b-0 hover:bg-muted/50"
             >
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-semibold">{action.label}</p>
+                <p className="text-sm font-medium">{action.label}</p>
                 <p className="truncate text-xs text-muted-foreground">{action.description}</p>
               </div>
               <ArrowUpRight className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
@@ -169,7 +169,7 @@ function StatCardView({ card, onOpen }: { card: StatCard; onOpen: () => void }) 
         <p className="text-xs font-medium text-muted-foreground">{card.label}</p>
         <card.icon className="size-4 text-muted-foreground" aria-hidden="true" />
       </div>
-      <p className="text-2xl font-bold tracking-tight">
+      <p className="text-2xl font-medium tracking-tight">
         {isLoading ? "—" : (data ?? 0).toLocaleString()}
       </p>
       <p className="text-xs text-muted-foreground">{card.note}</p>

@@ -1,9 +1,9 @@
 /**
- * Issue #205 + #292 — notification bus: pure planning half.
+ * Issue #205 + #292, notification bus: pure planning half.
  *
  * Events land in case_events (DB triggers + server fns); the lazy drain
  * (bus.functions.ts, called on bell reads / desk loads / event-producing
- * writes — no cron exists in this repo) plans deliveries with
+ * writes, no cron exists in this repo) plans deliveries with
  * planDeliveriesForEvent and persists them idempotently on
  * (event_id, channel, recipient). The DB unique constraint is the real
  * idempotence guarantee; this planner never produces duplicates itself.
@@ -46,7 +46,7 @@ export const BELL_EVENT_TYPES: readonly string[] = [
  * Review prompts are consumers of lesson.done, not trigger emissions: the
  * drain creates one lesson.review_prompt per done lesson, 2 hours after the
  * lesson, only if no review exists for that lesson yet (#205 "one prompt, not
- * one per refresh" — the (event,channel,recipient) unique keeps it single).
+ * one per refresh", the (event,channel,recipient) unique keeps it single).
  */
 export const REVIEW_PROMPT_DELAY_MS = 2 * 60 * 60 * 1000;
 
@@ -85,7 +85,7 @@ export const DELIVERY_PLAN: Readonly<
   ],
   "review.published": [{ channel: "in_app", role: "tutor" }],
   // #387 notification leg: the parent learns a session was logged (bell only
-  // — lightweight by issue design; the Dispute button lives on the linked
+  //, lightweight by issue design; the Dispute button lives on the linked
   // case page). No email: fee/order classes are the email set.
   "experience.session_logged": [{ channel: "in_app", role: "parent" }],
   // Concierge unpaid-fee digest (#205). Generated at most once per 24h by the
@@ -116,7 +116,7 @@ export function planDeliveriesForEvent(eventType: string): PlanResult {
 /**
  * Deep links for bell items (#292: each item opens the related page).
  * `role` is the recipient's side: tutors land on their Lessons surface
- * (/dashboard#lessons), never on the parent-owned case route — the trigger
+ * (/dashboard#lessons), never on the parent-owned case route, the trigger
  * payloads carry case_id only, so the parent /account/cases/{id} link is
  * parent-only.
  */
@@ -158,7 +158,7 @@ export function bellLinkFor(
  * Per-recipient payload redaction (#375 Back-end blocker 3): the raw event
  * payload is shared across all recipients of an event, but tutor-side money
  * must never reach the buyer's bell. note_order.delivered carries
- * gross_hkd + tutor_net_hkd (tutor economics) — strip both for parent
+ * gross_hkd + tutor_net_hkd (tutor economics), strip both for parent
  * recipients; the tutor's own copy keeps them.
  */
 export function redactBellPayload(

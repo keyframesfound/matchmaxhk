@@ -47,7 +47,7 @@ function PreviewButton({
   return (
     <span
       className={cn(
-        "inline-flex h-9 cursor-default select-none items-center rounded-md px-3.5 text-sm font-bold",
+        "inline-flex h-9 cursor-default select-none items-center rounded-md px-3.5 text-sm font-medium",
         variant === "primary" &&
           "bg-[color:var(--surface-invert)] text-[color:var(--surface-invert-fg)]",
         variant === "outline" && "border border-border bg-card text-[color:var(--ink)]",
@@ -89,14 +89,14 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
               className="h-20 w-20 rounded-full border-4 border-card object-cover"
             />
           ) : (
-            <span className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-card bg-[color:var(--foreground)] text-[color:var(--background)] text-xl font-bold">
+            <span className="flex h-20 w-20 items-center justify-center rounded-full border-4 border-card bg-[color:var(--foreground)] text-[color:var(--background)] text-xl font-medium">
               {initials || "MM"}
             </span>
           )}
         </div>
 
         <div className="mt-3">
-          <h1 className="flex flex-wrap items-center gap-2 text-xl font-bold tracking-tight text-[color:var(--ink)]">
+          <h1 className="flex flex-wrap items-center gap-2 text-xl font-medium tracking-tight text-[color:var(--ink)]">
             {data.name || <span className="text-muted-foreground/60">Your business name</span>}
             <BadgeCheck
               className="h-5 w-5 shrink-0 text-[color:var(--muted-foreground)]"
@@ -155,7 +155,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
 
       {/* About */}
       <div className="border-t border-border px-5 py-5">
-        <h2 className="text-base font-bold tracking-tight text-[color:var(--ink)]">About</h2>
+        <h2 className="text-base font-medium tracking-tight text-[color:var(--ink)]">About</h2>
         {data.introVideoUrl ? (
           <div className="relative mt-3 aspect-video w-full overflow-hidden rounded-lg border border-border bg-black">
             <img
@@ -182,7 +182,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
           </div>
         ) : (
           <p className="mt-2 text-sm italic text-muted-foreground/60">
-            Tell customers about your business — this shows on your public page.
+            Tell customers about your business, this shows on your public page.
           </p>
         )}
       </div>

@@ -190,7 +190,7 @@ export const createOrganization = createServerFn({ method: "POST" })
         contact_phone: emptyToNull(data.contact_phone),
         whatsapp_number: emptyToNull(data.whatsapp_number),
         district: emptyToNull(data.district),
-        // Issue #412 B: legal identity — reviewed by staff before activation.
+        // Issue #412 B: legal identity, reviewed by staff before activation.
         legal_entity_name: data.legal_entity_name,
         trading_name: emptyToNull(data.trading_name),
         br_number: data.br_number,
@@ -415,7 +415,7 @@ function buildInviteEmailHtml(orgName: string, inviterLabel: string, planLabel: 
   return `<!doctype html><html><body style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;color:#0f172a;">
   <p>Hi,</p>
   <p>${inviterLabel} has invited you to be an admin of <strong>${orgName}</strong> on MatchMax (${planLabel} account).</p>
-  <p>To accept, sign in or sign up at <a href="https://matchmax.hk/auth">matchmax.hk/auth</a> using this email address — you'll get admin access automatically.</p>
+  <p>To accept, sign in or sign up at <a href="https://matchmax.hk/auth">matchmax.hk/auth</a> using this email address, you'll get admin access automatically.</p>
   <p>— The MatchMax Team</p>
 </body></html>`;
 }

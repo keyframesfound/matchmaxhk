@@ -1,19 +1,19 @@
 /**
- * Issues #217 + #311 — Profile tags, not a feed.
+ * Issues #217 + #311, Profile tags, not a feed.
  *
  * Up to five free-text tags per tutor, stored lowercase without the
  * leading "#". Shared by the admin TutorEditor, the tutor self-serve
  * profile form, the public card display, and the /tutors search filter.
  * The same vocabulary backs case tags (tutoring_cases.tags): a case
  * stores the parent's preset picks first, then the derived requirement
- * tags, capped at MAX_CASE_TAGS overall — never below the five-tag card
+ * tags, capped at MAX_CASE_TAGS overall, never below the five-tag card
  * cap, so requirement tags (subjects) survive even when the parent picks
  * five presets.
  *
  * Rules from the issues:
  * - cap of five tags per tutor card; a case keeps up to MAX_CASE_TAGS
  *   (parent picks first, derived requirement tags always present);
- * - parent case tags come from the preset chips only — non-preset input
+ * - parent case tags come from the preset chips only, non-preset input
  *   is dropped, and anything that looks like a phone number, email, or
  *   handle never reaches the public board (#215 contact filter);
  * - storage is lowercase, hash stripped; hyphens and underscores become
@@ -69,7 +69,7 @@ export type ProfileTagParseResult =
 /**
  * Validate a full tag list. Returns the clean list (normalized, deduped,
  * order kept) or why the list must not be saved. The error is a stable
- * code — the UIs translate it (settings form is bilingual; the admin
+ * code, the UIs translate it (settings form is bilingual; the admin
  * editor is English).
  */
 export function parseProfileTags(input: unknown): ProfileTagParseResult {
@@ -84,7 +84,7 @@ export function parseProfileTags(input: unknown): ProfileTagParseResult {
   if (tags.length > MAX_PROFILE_TAGS) return { ok: false, error: "too_many" };
   const contactTag = tags.find((tag) => hasContactDetails(tag));
   if (contactTag) return { ok: false, error: "contact", tag: contactTag };
-  // Issue #311: a tag starting with @ is a social handle — reject it even
+  // Issue #311: a tag starting with @ is a social handle, reject it even
   // though the #215 filter only names known channel words.
   const handleTag = tags.find((tag) => tag.startsWith("@"));
   if (handleTag) return { ok: false, error: "contact", tag: handleTag };
@@ -120,7 +120,7 @@ export function popularProfileTags(
  * Merge parent-picked case tags with the auto-derived requirement tags
  * (#311: one tag table). Parent preset picks come first, duplicates
  * collapse against the derived tags, everything is normalized, and the
- * result is capped at MAX_CASE_TAGS — derived requirement tags are kept
+ * result is capped at MAX_CASE_TAGS, derived requirement tags are kept
  * IN FULL, so five parent picks can never starve subjects/component/
  * pathway (the pre-#311 `buildCaseTags` cap is preserved as the floor).
  *
@@ -148,7 +148,7 @@ export function mergeCaseTags(parentTags: unknown, derivedTags: unknown): string
     derived.push(tag);
   }
   // Derived requirement tags always survive (they cannot exceed the cap by
-  // construction — buildCaseTags emits at most MAX_CASE_TAGS); the parent
+  // construction, buildCaseTags emits at most MAX_CASE_TAGS); the parent
   // tail yields first, so five parent picks never drop a subject.
   const keptDerived = derived.slice(0, MAX_CASE_TAGS);
   const room = Math.max(0, MAX_CASE_TAGS - keptDerived.length);

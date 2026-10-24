@@ -86,7 +86,7 @@ function NotificationsPage() {
     <div className="min-h-screen bg-[color:var(--background)]">
       <SiteHeader />
       <PageContainer>
-        <h1 className="text-2xl font-semibold tracking-tight text-[color:var(--ink)]">
+        <h1 className="text-2xl font-medium tracking-tight text-[color:var(--ink)]">
           {t("sor.notifications_title")}
         </h1>
 

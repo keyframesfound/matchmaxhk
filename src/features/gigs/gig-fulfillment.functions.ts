@@ -15,7 +15,7 @@ import { asAdminDb, base64ToBytes, type AdminDb } from "@/features/materials/sto
 /**
  * #328: tutor-side fulfillment for paid gig orders. Orders live on
  * material_orders with tutor_id denormalized at creation, so ownership is
- * one eq() — and the SELECT columns never include buyer_account_id: the
+ * one eq(), and the SELECT columns never include buyer_account_id: the
  * tutor sees the gig, the money and the deadline, NEVER the buyer's
  * identity. The ghosting fail-safe sweep runs before every read/write so
  * deadlines are enforced lazily (no cron dependency).
@@ -234,7 +234,7 @@ export const deliverGigOrder = createServerFn({ method: "POST" })
         ...(completionNote ? { completion_note: completionNote } : {}),
       })
       .eq("id", order.id)
-      // #374: guard the status the transition was validated against — a
+      // #374: guard the status the transition was validated against, a
       // concurrent deliver/refund must not double-increment sold_count.
       .eq("status", order.status)
       .select("id");
@@ -244,10 +244,10 @@ export const deliverGigOrder = createServerFn({ method: "POST" })
     }
     if (!updatedRows || updatedRows.length === 0) {
       if (deliveredFilePath) await db.storage.from(PRIVATE_BUCKET).remove([deliveredFilePath]);
-      throw new Error("This order was just updated elsewhere — refresh and retry.");
+      throw new Error("This order was just updated elsewhere, refresh and retry.");
     }
 
-    // #329: bought counts count DELIVERED orders only — keep sold_count in
+    // #329: bought counts count DELIVERED orders only, keep sold_count in
     // sync exactly like the notes release path (checkout.functions.ts).
     await db.rpc("increment_material_sold_count", { p_material_id: order.material_id });
 
@@ -259,9 +259,9 @@ const GigSourceUrlInput = z.object({ orderId: z.string().uuid() });
 /**
  * #328 file_back: the tutor's signed-URL read of the buyer's uploaded
  * source document. Grok review 2026-10-17 (merge-blocking): fulfillment
- * was upload-only — the tutor could return an annotated file but never
+ * was upload-only, the tutor could return an annotated file but never
  * download the one they are supposed to annotate. Owner gate (tutor_id),
- * state gate (in_fulfillment | past_due — the same windows uploadGigSourceFile
+ * state gate (in_fulfillment | past_due, the same windows uploadGigSourceFile
  * accepts), and the order's gig must be file_back. materials-originals is
  * PRIVATE: this fn is the only tutor-side door, and it never exposes the
  * buyer's identity.

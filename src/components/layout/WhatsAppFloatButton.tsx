@@ -14,11 +14,11 @@ export function WhatsAppIcon(props: React.SVGProps<SVGSVGElement>) {
 }
 
 /**
- * Floating WhatsApp support button (#207 — removed 2026-10-08 as a desktop
+ * Floating WhatsApp support button (#207, removed 2026-10-08 as a desktop
  * dead end, restored 2026-10-18 on Ryan's call: mobile-first traffic is the
  * audience and the wa.me link hands off to WhatsApp Web on desktop).
  * Hidden on /join (that flow has its own activation step) and while the
- * mobile tutor/case compare bar is up — both sit in the same 5rem bottom
+ * mobile tutor/case compare bar is up, both sit in the same 5rem bottom
  * band and the float (z-50) would paint over the bar's Compare/Clear
  * controls (mirrors BackToTopButton); the hotline
  * digits come from app_settings.whatsapp_number via the server value.

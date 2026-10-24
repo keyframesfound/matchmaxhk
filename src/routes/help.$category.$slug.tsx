@@ -99,7 +99,7 @@ function HelpArticlePage() {
               </li>
             </>
           ) : null}
-          <li aria-current="page" className="min-w-0 truncate font-semibold text-foreground">
+          <li aria-current="page" className="min-w-0 truncate font-medium text-foreground">
             {article.title}
           </li>
         </ol>
@@ -109,9 +109,7 @@ function HelpArticlePage() {
         <nav aria-label={t("help.toc_title")} className="hidden lg:block">
           {toc.length > 0 ? (
             <div className="sticky top-24">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                {t("help.toc_title")}
-              </p>
+              <p className="text-[11px] font-medium text-muted-foreground">{t("help.toc_title")}</p>
               <ul className="mt-4 space-y-1">
                 {toc.map((entry) => (
                   <li key={entry.id}>
@@ -137,15 +135,15 @@ function HelpArticlePage() {
           <header>
             <div className="flex flex-wrap items-center gap-2">
               {category ? (
-                <span className="rounded-full border border-border px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                <span className="rounded-full border border-border px-3 py-1 text-[11px] font-medium text-muted-foreground">
                   {category.name}
                 </span>
               ) : null}
-              <span className="rounded-full border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/5 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-[color:var(--brand-link)]">
+              <span className="rounded-full border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/5 px-3 py-1 text-[11px] font-medium text-[color:var(--brand-link)]">
                 {t(audienceLabel(article.audience))}
               </span>
             </div>
-            <h1 className="mt-4 text-balance text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl">
+            <h1 className="mt-4 text-balance text-3xl font-medium leading-tight tracking-tight text-foreground sm:text-4xl">
               {article.title}
             </h1>
             <p className="mt-3 text-pretty text-base leading-7 text-muted-foreground sm:text-lg">
@@ -166,7 +164,7 @@ function HelpArticlePage() {
               <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card">
                 <LifeBuoy className="h-5 w-5 text-[color:var(--brand-link)]" aria-hidden="true" />
               </span>
-              <h2 className="mt-4 text-xl font-extrabold tracking-tight text-foreground">
+              <h2 className="mt-4 text-xl font-medium tracking-tight text-foreground">
                 {t("help.coming_soon_title")}
               </h2>
               <p className="mt-2 max-w-xl text-base leading-7 text-muted-foreground">
@@ -175,7 +173,7 @@ function HelpArticlePage() {
               <div className="mt-6 flex flex-wrap items-center gap-3">
                 <Link
                   to="/help"
-                  className="inline-flex h-10 items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-5 text-sm font-semibold text-foreground transition-colors hover:bg-[color:var(--foreground)]/[0.04]"
+                  className="inline-flex h-10 items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-5 text-sm font-medium text-foreground transition-colors hover:bg-[color:var(--foreground)]/[0.04]"
                 >
                   {t("help.back_to_help")}
                 </Link>
@@ -184,7 +182,7 @@ function HelpArticlePage() {
                     href={supportHref}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex h-10 items-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-5 text-sm font-semibold text-white transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
+                    className="inline-flex h-10 items-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-5 text-sm font-medium text-white transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
                   >
                     <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
                     {t("help.contact_cta")}
@@ -200,7 +198,7 @@ function HelpArticlePage() {
 
           {related.length > 0 ? (
             <section className="mt-12 border-t border-border pt-8">
-              <h2 className="text-lg font-extrabold tracking-tight text-foreground">
+              <h2 className="text-lg font-medium tracking-tight text-foreground">
                 {t("help.related_title")}
               </h2>
               <ul className="mt-4">
@@ -210,12 +208,12 @@ function HelpArticlePage() {
                     className={cn("py-3", index > 0 && "border-t border-border")}
                   >
                     <HelpArticleLink article={entry} className="group block">
-                      <span className="text-sm font-semibold leading-6 text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors group-hover:text-[color:var(--brand-link)] group-hover:decoration-[color:var(--brand-link)]">
+                      <span className="text-sm font-medium leading-6 text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors group-hover:text-[color:var(--brand-link)] group-hover:decoration-[color:var(--brand-link)]">
                         {entry.title}
                       </span>
                     </HelpArticleLink>
                     {entry.status === "draft" ? (
-                      <span className="mt-1 inline-block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/80">
+                      <span className="mt-1 inline-block text-[11px] font-medium text-muted-foreground/80">
                         {t("help.coming_soon_badge")}
                       </span>
                     ) : null}
@@ -226,7 +224,7 @@ function HelpArticlePage() {
           ) : null}
 
           <section className="mt-12 rounded-2xl border border-border bg-muted/40 p-6 sm:p-8">
-            <h2 className="text-xl font-extrabold tracking-tight text-foreground">
+            <h2 className="text-xl font-medium tracking-tight text-foreground">
               {t("help.contact_title")}
             </h2>
             <p className="mt-2 max-w-xl text-base leading-7 text-muted-foreground">
@@ -238,7 +236,7 @@ function HelpArticlePage() {
                   href={supportHref}
                   target="_blank"
                   rel="noreferrer"
-                  className="inline-flex items-center gap-2 font-semibold text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors hover:text-[color:var(--brand-link)] hover:decoration-[color:var(--brand-link)]"
+                  className="inline-flex items-center gap-2 font-medium text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors hover:text-[color:var(--brand-link)] hover:decoration-[color:var(--brand-link)]"
                 >
                   <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
                   {t("help.contact_cta")}
@@ -246,7 +244,7 @@ function HelpArticlePage() {
               ) : null}
               <a
                 href="mailto:contact@matchmax.hk?subject=MatchMax%20platform%20feedback"
-                className="font-semibold text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors hover:text-[color:var(--brand-link)] hover:decoration-[color:var(--brand-link)]"
+                className="font-medium text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors hover:text-[color:var(--brand-link)] hover:decoration-[color:var(--brand-link)]"
               >
                 {t("help.feedback_link")}
               </a>

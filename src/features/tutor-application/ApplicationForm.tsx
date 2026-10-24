@@ -138,7 +138,7 @@ type ScoreRow = {
   gradeSystem: string;
   papers: { label: string; score: string }[];
 };
-// Issue #309: no evidence at /join — qualifications are TEXT answers only;
+// Issue #309: no evidence at /join, qualifications are TEXT answers only;
 // grade slips upload per-grade from the profile editor (tutor_grades).
 type Qualification = {
   curriculum: string;
@@ -231,7 +231,7 @@ const PROFESSIONAL_STEPS = [
 ];
 
 const labelClassName =
-  "mb-1.5 block text-sm font-bold text-[color:var(--ink)] after:ml-0.5 after:text-[color:var(--muted-foreground)]";
+  "mb-1.5 block text-sm font-medium text-[color:var(--ink)] after:ml-0.5 after:text-[color:var(--muted-foreground)]";
 const controlClassName = "h-11 w-full rounded-sm";
 const invalidInputClassName =
   "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30";
@@ -281,7 +281,7 @@ function Field({ label, error, optional, hint, className, children }: FieldProps
       </label>
       {control}
       {error && error !== "Required" ? (
-        <p className="mt-1 text-xs font-semibold text-destructive">{error}</p>
+        <p className="mt-1 text-xs font-medium text-destructive">{error}</p>
       ) : null}
       {hint ? <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{hint}</p> : null}
     </div>
@@ -303,9 +303,9 @@ const FIELD_LABELS: Record<string, string> = {
   email: "Email",
   profilePhoto: "Profile photo",
   country: "Country / Region",
-  countryOther: "Country / Region — specify",
+  countryOther: "Country / Region, specify",
   status: "Current Status",
-  statusOther: "Current Status — specify",
+  statusOther: "Current Status, specify",
   portfolioConsent: "Trophy cabinet photo consent",
   portfolioImages: "Trophy cabinet photos",
   university: "University / Institution",
@@ -336,21 +336,21 @@ const FIELD_LABELS: Record<string, string> = {
 function describeFieldError(key: string): string {
   if (FIELD_LABELS[key]) return FIELD_LABELS[key];
   let match = key.match(/^curriculum-(\d+)$/);
-  if (match) return `Qualification ${Number(match[1]) + 1} — Curriculum`;
+  if (match) return `Qualification ${Number(match[1]) + 1}, Curriculum`;
   match = key.match(/^overall-(\d+)$/);
-  if (match) return `Qualification ${Number(match[1]) + 1} — Overall achieved score/grades`;
+  if (match) return `Qualification ${Number(match[1]) + 1}, Overall achieved score/grades`;
   match = key.match(/^boards-(\d+)$/);
-  if (match) return `Qualification ${Number(match[1]) + 1} — Exam Board(s)`;
+  if (match) return `Qualification ${Number(match[1]) + 1}, Exam Board(s)`;
   match = key.match(/^subject-(\d+)-(\d+)$/);
   if (match)
-    return `Qualification ${Number(match[1]) + 1} — subject scores row ${Number(match[2]) + 1}: subject`;
+    return `Qualification ${Number(match[1]) + 1}, subject scores row ${Number(match[2]) + 1}: subject`;
   match = key.match(/^grade-(\d+)-(\d+)$/);
   if (match)
-    return `Qualification ${Number(match[1]) + 1} — subject scores row ${Number(match[2]) + 1}: grade`;
+    return `Qualification ${Number(match[1]) + 1}, subject scores row ${Number(match[2]) + 1}: grade`;
   match = key.match(/^achievement-title-(\d+)$/);
-  if (match) return `Achievement ${Number(match[1]) + 1} — Title`;
+  if (match) return `Achievement ${Number(match[1]) + 1}, Title`;
   match = key.match(/^achievement-description-(\d+)$/);
-  if (match) return `Achievement ${Number(match[1]) + 1} — Description`;
+  if (match) return `Achievement ${Number(match[1]) + 1}, Description`;
   return key;
 }
 
@@ -358,7 +358,7 @@ function isProfilePhoto(file: File) {
   return ["image/jpeg", "image/png"].includes(file.type) || /\.(jpe?g|png)$/i.test(file.name);
 }
 
-// Issue #97: Trophy Cabinet images — JPG/PNG/WebP. `File.type` can be empty on
+// Issue #97: Trophy Cabinet images, JPG/PNG/WebP. `File.type` can be empty on
 // some mobile pickers, so fall back to the extension.
 function isPortfolioImage(file: File) {
   return (
@@ -368,7 +368,7 @@ function isPortfolioImage(file: File) {
 
 /**
  * Issue #97: Trophy Cabinet multi-file picker (max 6 photos, 5MB each,
- * JPG/PNG/WebP). Strictly optional — the whole section renders no files and
+ * JPG/PNG/WebP). Strictly optional, the whole section renders no files and
  * no consent checkbox until the tutor adds one.
  */
 function TrophyCabinetUpload({
@@ -454,7 +454,7 @@ function TrophyCabinetUpload({
           />
         </label>
       ) : (
-        <p className="text-xs font-semibold text-muted-foreground">
+        <p className="text-xs font-medium text-muted-foreground">
           Maximum of {MAX_PORTFOLIO_FILES} photos reached. Remove one to add another.
         </p>
       )}
@@ -490,7 +490,7 @@ function TrophyCabinetUpload({
           ))}
         </ul>
       ) : null}
-      {error ? <p className="text-xs font-semibold text-destructive">{error}</p> : null}
+      {error ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
     </div>
   );
 }
@@ -562,7 +562,7 @@ function ProfilePhotoUpload({
           ) : (
             <span className="grid justify-items-center gap-1">
               <User className="h-6 w-6" aria-hidden="true" />
-              <span className="text-[10px] font-semibold leading-none">Add photo</span>
+              <span className="text-[10px] font-medium leading-none">Add photo</span>
             </span>
           )}
           <input
@@ -597,13 +597,13 @@ function ProfilePhotoUpload({
       </div>
       <div className="grid min-w-0 gap-1.5">
         <p className="text-xs leading-relaxed text-muted-foreground">
-          Optional — adding a photo makes your profile more personal, easier for parents to
+          Optional, adding a photo makes your profile more personal, easier for parents to
           recognise, and helps build trust. A clear headshot works best.
         </p>
         <p className="text-xs text-muted-foreground">
           JPG or PNG, up to {readableFileSize(MAX_FILE_BYTES)}.
         </p>
-        {error ? <p className="text-xs font-semibold text-destructive">{error}</p> : null}
+        {error ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
       </div>
     </div>
   );
@@ -864,7 +864,7 @@ function SubjectPicker({
         {[...selectedSubjects].map((subject) => (
           <span
             key={subject}
-            className="inline-flex items-center gap-1 rounded-md bg-[color:var(--foreground)]/[0.08] px-2.5 py-1.5 text-xs font-semibold text-[color:var(--ink)]"
+            className="inline-flex items-center gap-1 rounded-md bg-[color:var(--foreground)]/[0.08] px-2.5 py-1.5 text-xs font-medium text-[color:var(--ink)]"
           >
             {subject}
             <button
@@ -922,7 +922,7 @@ type ApplicationBaseState = {
   format: string;
   stations: string[];
   achievements: Achievement[];
-  // Issue #97: Trophy Cabinet — local File objects until submit; the consent
+  // Issue #97: Trophy Cabinet, local File objects until submit; the consent
   // flag is enforced server-side only when the array is non-empty.
   portfolioImages: File[];
   portfolioConsent: boolean;
@@ -952,7 +952,7 @@ type ApplicationBaseState = {
   terms: boolean;
   // Issue #214: the terms-gate checkbox (records WHICH ToS version was
   // accepted, server-side, on submit). Same checkbox serves signup and
-  // referral_signup — the surface tag is decided server-side by whether the
+  // referral_signup, the surface tag is decided server-side by whether the
   // submit arrived through a referrer link.
   termsGate: boolean;
 };
@@ -989,7 +989,7 @@ export function ApplicationForm() {
     return match ? match[0] : readStoredReferralCode();
   });
   // Issue #120: AI-drafted self-introduction, shown in the textarea for the
-  // applicant to review and edit — never auto-submitted.
+  // applicant to review and edit, never auto-submitted.
   const generateIntro = useServerFn(generateSelfIntroduction);
   const [introStatus, setIntroStatus] = useState<"idle" | "writing">("idle");
   // Issue #122: AI-suggested hourly rate, shown next to the rate input.
@@ -1008,10 +1008,10 @@ export function ApplicationForm() {
   // activation message so the team can match the chat to the stored row.
   const [applicationRef, setApplicationRef] = useState("");
   // Issue #310: tutor code of the card published at submit (empty when the
-  // server could not publish — the success screen hides the card link then).
+  // server could not publish, the success screen hides the card link then).
   const [liveTutorCode, setLiveTutorCode] = useState("");
   // Issue #358: true when submit reused a card that staff have since
-  // unpublished — the success screen must not claim the card is live.
+  // unpublished, the success screen must not claim the card is live.
   const [unpublishedReuse, setUnpublishedReuse] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -1080,7 +1080,7 @@ export function ApplicationForm() {
   const [boards, setBoards] = useState<string[]>([]);
   const [credentials, setCredentials] = useState<string[]>([]);
   const [removedStudiedSubjects, setRemovedStudiedSubjects] = useState<string[]>([]);
-  // Curriculum scope for the "Subjects Willing to Teach" picker — display
+  // Curriculum scope for the "Subjects Willing to Teach" picker, display
   // only; it narrows the suggestion list, never the submitted selection.
   const [taughtCurriculum, setTaughtCurriculum] = useState("");
   const [qualifications, setQualifications] = useState<Qualification[]>([blankQualification()]);
@@ -1175,7 +1175,7 @@ export function ApplicationForm() {
   // Issue #323 review: when a draft restores, the headline-autofill effect can
   // still fire in the SAME effect flush against pre-restore state (dirty flag
   // still false) and queue a setAcademicHeadline(build(oldQuals)) that lands
-  // AFTER the restored value — freezing the wrong headline. Suppress that one
+  // AFTER the restored value, freezing the wrong headline. Suppress that one
   // pass; the next pass runs against the restored state and honours the flag.
   const skipHeadlineAutofillRef = useRef(false);
 
@@ -1481,7 +1481,7 @@ export function ApplicationForm() {
     clearFieldError(key);
   }
   // Issue #113: live ≈HK$ equivalents under each base-rate input (hidden for
-  // HKD quoting or before rates load — the note never blocks submission).
+  // HKD quoting or before rates load, the note never blocks submission).
   const fxRates = useExchangeRates();
   const onlineRateApprox = approxHkdText(
     Number(base.onlineRate),
@@ -1563,7 +1563,7 @@ export function ApplicationForm() {
       if (base.country === "Other") required("countryOther", base.countryOther.trim());
       required("status", base.status);
       required("medium", base.medium);
-      // Issue #361: medium feeds the public languages column — run the same
+      // Issue #361: medium feeds the public languages column, run the same
       // step-level contact filter here that the server schema applies at
       // submit, so the tutor sees the error on the step that caused it.
       const mediumError = contactFilterError(base.medium.join(", "));
@@ -1620,7 +1620,7 @@ export function ApplicationForm() {
           next.universityCourses = verticalCoursesError;
         }
         // #190 review: the grade-map course keys also render on the public
-        // card — the DB insert guard now scans them, so name the field here.
+        // card, the DB insert guard now scans them, so name the field here.
         const gradeKeysError = contactFilterError(courseGrades.map((row) => row.course).join(", "));
         if (gradeKeysError && !next.courseGrades) {
           next.courseGrades = gradeKeysError;
@@ -1628,7 +1628,7 @@ export function ApplicationForm() {
         if (!verticalOnly)
           qualifications.forEach((qualification, index) => {
             required(`curriculum-${index}`, qualification.curriculum);
-            // Issue #323: overall score is optional — never block on a blank.
+            // Issue #323: overall score is optional, never block on a blank.
             if (["A-Level", "IGCSE / GCSE"].includes(qualification.curriculum))
               required(`boards-${index}`, qualification.boards);
           });
@@ -1654,7 +1654,7 @@ export function ApplicationForm() {
         qualifications.forEach((qualification, qualificationIndex) =>
           qualification.scores.forEach((score, scoreIndex) => {
             required(`subject-${qualificationIndex}-${scoreIndex}`, score.subject);
-            // Issue #323: the grade is optional — only the subject is required.
+            // Issue #323: the grade is optional, only the subject is required.
           }),
         );
     }
@@ -1665,7 +1665,7 @@ export function ApplicationForm() {
       if (verticalOnlyUni) required("subjectsTaught", universityCourses);
       else if (verticalOnlyKind) required("subjectsTaught", kindergartenTopics);
       else required("subjectsTaught", selectedTeachingSubjects);
-      // Issue #361: subjects feed the public card — filter them on-step too.
+      // Issue #361: subjects feed the public card, filter them on-step too.
       const taughtError = contactFilterError(
         verticalOnlyUni
           ? universityCourses.join(", ")
@@ -1679,7 +1679,7 @@ export function ApplicationForm() {
     if (step === lessonStep) {
       required("format", base.format);
       if (base.format !== "Online") required("stations", base.stations);
-      // Issue #361: stations feed the public card — filter them on-step too.
+      // Issue #361: stations feed the public card, filter them on-step too.
       const stationsError = contactFilterError(base.stations.join(", "));
       if (stationsError && !next.stations) next.stations = stationsError;
     }
@@ -1835,7 +1835,7 @@ export function ApplicationForm() {
                 const paperText = papers.length
                   ? ` (${papers.map((paper) => `${paper.label}: ${paper.score.trim()}`).join(", ")})`
                   : "";
-                // Issue #323: grade is optional — render "[Subject] - [Grade]"
+                // Issue #323: grade is optional, render "[Subject] - [Grade]"
                 // when filled, just "[Subject]" otherwise.
                 return `${score.subject}${score.grade ? ` - ${score.grade}` : ""}${paperText}`;
               })
@@ -1899,13 +1899,13 @@ export function ApplicationForm() {
               ? `Kindergarten topics: ${kindergartenTopics.join(", ")}`
               : subjectResults,
         awards: "",
-        // Issue #309: achievements are TEXT answers only — no evidence files
+        // Issue #309: achievements are TEXT answers only, no evidence files
         // at join time; slips upload per-grade from the profile editor.
         achievements: base.achievements.map((achievement) => ({
           title: achievement.title,
           description: achievement.description,
         })),
-        // Issue #97: Trophy Cabinet — files + publication consent (zod enforces
+        // Issue #97: Trophy Cabinet, files + publication consent (zod enforces
         // consent only when at least one photo is attached).
         portfolioImages: await Promise.all(
           base.portfolioImages.map(async (image) => ({
@@ -1925,7 +1925,7 @@ export function ApplicationForm() {
           .join("\n"),
         selfIntroduction: base.selfIntroduction,
         // Issue #319: two base rates + profile-only extras. hourlyRate is no
-        // longer collected — tutor-application.functions.ts derives it from
+        // longer collected, tutor-application.functions.ts derives it from
         // the min of the two base rates before the row is stored.
         onlineRate:
           base.format !== "Face to face" && base.onlineRate.trim() !== ""
@@ -1983,10 +1983,10 @@ export function ApplicationForm() {
       // contract the server fn re-validates before storing anything.
       await submit({ data: { ...parsed.data, legalAgreed: true } }).then((result) => {
         setApplicationRef(result?.applicationId ?? "");
-        // Issue #310: the card is published at submit — keep its public path
+        // Issue #310: the card is published at submit, keep its public path
         // so the success screen can link straight to the live card.
         // Issue #358: a reused card that staff have since unpublished is not
-        // live — hide the "View live card" button and swap the success copy
+        // live, hide the "View live card" button and swap the success copy
         // to a received-not-live variant (no published-success claim).
         const reusedUnpublished = result?.published === false;
         setUnpublishedReuse(reusedUnpublished);
@@ -2015,7 +2015,7 @@ export function ApplicationForm() {
             className="mx-auto h-12 w-12 text-[color:var(--muted-foreground)]"
             aria-hidden="true"
           />
-          <h1 className="mt-4 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">
+          <h1 className="mt-4 text-2xl font-medium text-[color:var(--ink)] sm:text-3xl">
             {unpublishedReuse ? t("join.success_unpublished_title") : t("join.success_title")}
           </h1>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
@@ -2026,7 +2026,7 @@ export function ApplicationForm() {
               asChild
               variant="solid"
               size="lg"
-              className="mt-6 h-12 rounded-sm bg-[color:var(--ink)] px-8 font-bold text-[color:var(--surface)] hover:opacity-90"
+              className="mt-6 h-12 rounded-sm bg-[color:var(--ink)] px-8 font-medium text-[color:var(--surface)] hover:opacity-90"
             >
               <Link to="/tutors/$tutorCode" params={{ tutorCode: liveTutorCode }}>
                 {t("join.view_live_card")}
@@ -2042,12 +2042,12 @@ export function ApplicationForm() {
             className="mx-auto h-12 w-12 text-[color:var(--brand-whatsapp)]"
             aria-hidden="true"
           />
-          <h2 className="mt-4 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">
+          <h2 className="mt-4 text-2xl font-medium text-[color:var(--ink)] sm:text-3xl">
             Step 2: Activate Your Application via WhatsApp
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
             Required. WhatsApp does not let businesses message you first, so your application stays
-            inactive until you open the chat. Tap below and send the pre-filled message — it starts
+            inactive until you open the chat. Tap below and send the pre-filled message, it starts
             the thread the MatchMax team will use for all your application updates.
           </p>
           {whatsappActivateHref ? (
@@ -2055,7 +2055,7 @@ export function ApplicationForm() {
               asChild
               variant="solid"
               size="lg"
-              className="mt-6 h-12 rounded-sm bg-[color:var(--brand-whatsapp)] px-8 font-bold text-white hover:bg-[color:var(--brand-whatsapp-hover)]"
+              className="mt-6 h-12 rounded-sm bg-[color:var(--brand-whatsapp)] px-8 font-medium text-white hover:bg-[color:var(--brand-whatsapp-hover)]"
             >
               <a href={whatsappActivateHref} target="_blank" rel="noreferrer">
                 <WhatsAppIcon className="mr-2 h-5 w-5" aria-hidden="true" />
@@ -2067,7 +2067,7 @@ export function ApplicationForm() {
               variant="solid"
               size="lg"
               disabled
-              className="mt-6 h-12 rounded-sm bg-[color:var(--brand-whatsapp)] px-8 font-bold text-white hover:bg-[color:var(--brand-whatsapp-hover)]"
+              className="mt-6 h-12 rounded-sm bg-[color:var(--brand-whatsapp)] px-8 font-medium text-white hover:bg-[color:var(--brand-whatsapp-hover)]"
             >
               <WhatsAppIcon className="mr-2 h-5 w-5" aria-hidden="true" />
               Open WhatsApp
@@ -2088,7 +2088,7 @@ export function ApplicationForm() {
     return (
       <div key={qualificationIndex} className="grid gap-4">
         <div className="flex items-center justify-between">
-          <p className="font-bold text-foreground">{qualification.curriculum} subject scores</p>
+          <p className="font-medium text-foreground">{qualification.curriculum} subject scores</p>
           {qualifications.length > 1 ? (
             <Button
               type="button"
@@ -2404,7 +2404,7 @@ export function ApplicationForm() {
                   disabled={stepNumber >= step}
                   onClick={() => changeStep(stepNumber)}
                   className={cn(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition-colors",
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-medium transition-colors",
                     isComplete &&
                       "cursor-pointer border-[color:var(--ink)] bg-[color:var(--ink)] text-white",
                     isCurrent &&
@@ -2436,7 +2436,7 @@ export function ApplicationForm() {
               <Gift className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <span>
                 Applied with referral code{" "}
-                <span className="font-semibold text-[color:var(--ink)]">{referralCode}</span> — they
+                <span className="font-medium text-[color:var(--ink)]">{referralCode}</span>, they
                 earn a 15% reward once you complete your first case.
               </span>
             </div>
@@ -2450,7 +2450,7 @@ export function ApplicationForm() {
               <div className="min-w-0">
                 <span>{error}</span>
                 {Object.keys(fieldErrors).length > 0 ? (
-                  <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs font-semibold">
+                  <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs font-medium">
                     {Object.keys(fieldErrors).map((key) => (
                       <li key={key}>{describeFieldError(key)}</li>
                     ))}
@@ -2471,10 +2471,10 @@ export function ApplicationForm() {
                   onSelect={(photo) => setBaseField("photo", photo)}
                   onRemove={() => setBaseField("photo", null)}
                 />
-                {/* Issue #215: warning only — a photo never blocks the form
+                {/* Issue #215: warning only, a photo never blocks the form
                     in v1; contact-in-photo reports go through staff review. */}
                 <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                  Face or teaching photo only. No contact details in the photo — no phone number,
+                  Face or teaching photo only. No contact details in the photo, no phone number,
                   handle, or QR code. Reports are reviewed.
                 </p>
               </Field>
@@ -2536,7 +2536,7 @@ export function ApplicationForm() {
                           placeholder="Enter country or region"
                         />
                         {fieldErrors.countryOther ? (
-                          <p className="mt-1 text-xs font-semibold text-destructive">
+                          <p className="mt-1 text-xs font-medium text-destructive">
                             {fieldErrors.countryOther}
                           </p>
                         ) : null}
@@ -2574,7 +2574,7 @@ export function ApplicationForm() {
                     label="Earliest Availability"
                     required
                     error={fieldErrors.startDate}
-                    hint="Parents see this on your profile — pick when you can truly start."
+                    hint="Parents see this on your profile, pick when you can truly start."
                   >
                     <SingleChoice
                       options={["Immediately", "From a specific date"]}
@@ -2600,7 +2600,7 @@ export function ApplicationForm() {
                           onChange={(event) => setBaseField("startDate", event.target.value)}
                         />
                         {fieldErrors.startDate ? (
-                          <p className="mt-1 text-xs font-semibold text-destructive">
+                          <p className="mt-1 text-xs font-medium text-destructive">
                             {fieldErrors.startDate}
                           </p>
                         ) : null}
@@ -2638,7 +2638,7 @@ export function ApplicationForm() {
                         placeholder="Please specify"
                       />
                       {fieldErrors.statusOther ? (
-                        <p className="mt-1 text-xs font-semibold text-destructive">
+                        <p className="mt-1 text-xs font-medium text-destructive">
                           {fieldErrors.statusOther}
                         </p>
                       ) : null}
@@ -2742,7 +2742,7 @@ export function ApplicationForm() {
                         placeholder="Type a course code or name, e.g. ECON1210"
                       />
                       <Hint>
-                        Course codes are searchable — students looking for ECON1210 will find you.
+                        Course codes are searchable, students looking for ECON1210 will find you.
                       </Hint>
                     </Field>
                   </div>
@@ -2755,9 +2755,7 @@ export function ApplicationForm() {
                           clearFieldError("courseGrades");
                         }}
                       />
-                      <Hint>
-                        Optional — grades you received in the courses you intend to tutor.
-                      </Hint>
+                      <Hint>Optional, grades you received in the courses you intend to tutor.</Hint>
                     </Field>
                   </div>
                 </div>
@@ -2827,7 +2825,7 @@ export function ApplicationForm() {
                     placeholder="HKUST"
                     list="university-suggestions"
                   />
-                  {/* Issue #190: suggestions + free text — any university works. */}
+                  {/* Issue #190: suggestions + free text, any university works. */}
                   <datalist id="university-suggestions">
                     {UNIVERSITY_SUGGESTIONS.map((name) => (
                       <option key={name} value={name} />
@@ -3022,7 +3020,7 @@ export function ApplicationForm() {
                           ) : null}
                         </div>
                         <div className="mt-5 border-t border-border pt-5">
-                          <h3 className="text-base font-bold text-[color:var(--ink)]">
+                          <h3 className="text-base font-medium text-[color:var(--ink)]">
                             Subject Scores
                           </h3>
                           <Hint>
@@ -3060,7 +3058,7 @@ export function ApplicationForm() {
                   label="Academic Headline"
                   required
                   error={fieldErrors.academicHeadline}
-                  hint={`Auto-filled from your qualifications — edit freely. Shown on your public card (${MAX_ACADEMIC_HEADLINE} characters max).`}
+                  hint={`Auto-filled from your qualifications, edit freely. Shown on your public card (${MAX_ACADEMIC_HEADLINE} characters max).`}
                 >
                   <Input
                     maxLength={MAX_ACADEMIC_HEADLINE}
@@ -3087,7 +3085,7 @@ export function ApplicationForm() {
               <Field
                 label="Curriculum"
                 optional
-                hint="Narrow the subject list to one curriculum — Primary School, Junior Secondary, or University Admissions & Test Prep (SAT, ACT, IELTS, TOEFL, UCAT, ISAT, personal statement, interview and portfolio support)."
+                hint="Narrow the subject list to one curriculum, Primary School, Junior Secondary, or University Admissions & Test Prep (SAT, ACT, IELTS, TOEFL, UCAT, ISAT, personal statement, interview and portfolio support)."
                 className="mb-5"
               >
                 <SearchableSelect
@@ -3213,7 +3211,7 @@ export function ApplicationForm() {
                                 setSuggestionStatus("idle");
                               }}
                               className={cn(
-                                "rounded-full border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] disabled:cursor-not-allowed disabled:opacity-50",
+                                "rounded-full border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] disabled:cursor-not-allowed disabled:opacity-50",
                                 travelBudget === budget && originStation
                                   ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-[color:var(--surface-invert-fg)]"
                                   : "border-border bg-card text-foreground hover:border-[color:var(--foreground)]/25",
@@ -3245,7 +3243,7 @@ export function ApplicationForm() {
                         {suggestionStatus !== "idle" ? (
                           <p
                             className={cn(
-                              "text-sm font-semibold transition-colors",
+                              "text-sm font-medium transition-colors",
                               suggestionStatus === "adding"
                                 ? "animate-pulse text-[color:var(--muted-foreground)]"
                                 : "text-emerald-700",
@@ -3267,7 +3265,7 @@ export function ApplicationForm() {
                     >
                       {MTR_LINES.map((line) => (
                         <AccordionItem key={line.id} value={line.id}>
-                          <AccordionTrigger className="font-semibold text-foreground hover:no-underline">
+                          <AccordionTrigger className="font-medium text-foreground hover:no-underline">
                             {line.label} -{" "}
                             {
                               line.stations.filter((station) => base.stations.includes(station))
@@ -3277,7 +3275,7 @@ export function ApplicationForm() {
                           </AccordionTrigger>
                           <AccordionContent className="pt-2">
                             <div className="grid gap-3 sm:grid-cols-3">
-                              <label className="flex items-center gap-2 text-sm font-semibold">
+                              <label className="flex items-center gap-2 text-sm font-medium">
                                 <Checkbox
                                   checked={line.stations.every((station) =>
                                     base.stations.includes(station),
@@ -3314,8 +3312,8 @@ export function ApplicationForm() {
               <Heading step={professional ? 5 : 5} title="Achievements and Experiences" />
               <Hint>
                 Achievements and experience are optional. Add only items you would like MatchMax to
-                consider. You do not upload any evidence here — grade slips are added later from
-                your profile editor, where MatchMax staff review them.
+                consider. You do not upload any evidence here, grade slips are added later from your
+                profile editor, where MatchMax staff review them.
               </Hint>
               <div className="mt-5 grid gap-4">
                 {base.achievements.map((achievement, index) => (
@@ -3436,7 +3434,7 @@ export function ApplicationForm() {
                   label="Self-Introduction / 簡介"
                   optional
                   error={fieldErrors.selfIntroduction}
-                  hint="Write what the form does not ask: how you teach, who you work well with, results not on the transcript, and any specific service (e.g. IA review). No phone number, email, or social handle — parents reach you through MatchMax. You may write in English, Chinese, or both. Paragraph breaks are kept."
+                  hint="Write what the form does not ask: how you teach, who you work well with, results not on the transcript, and any specific service (e.g. IA review). No phone number, email, or social handle, parents reach you through MatchMax. You may write in English, Chinese, or both. Paragraph breaks are kept."
                 >
                   {/* Issue #120: one-click AI draft from the academic data
                       already entered; the result lands in the textarea for
@@ -3465,7 +3463,7 @@ export function ApplicationForm() {
                       )}
                     </Button>
                     <span className="text-xs text-muted-foreground">
-                      Drafts from your academic details above — review and edit before submitting.
+                      Drafts from your academic details above, review and edit before submitting.
                     </span>
                   </div>
                   <Textarea
@@ -3492,7 +3490,7 @@ export function ApplicationForm() {
                     the shared HK-common vocabulary (src/features/tutors/sen.ts). */}
                 <label className="flex cursor-pointer items-start justify-between gap-3">
                   <span>
-                    <span className="block text-sm font-semibold text-[color:var(--ink)]">
+                    <span className="block text-sm font-medium text-[color:var(--ink)]">
                       {t("sen.join_toggle")}
                     </span>
                     <span className="mt-0.5 block text-xs text-muted-foreground">
@@ -3591,7 +3589,7 @@ export function ApplicationForm() {
                   aria-label={t("join.rates.currency_label")}
                   value={base.currency}
                   onChange={(event) => setBaseField("currency", event.target.value)}
-                  className="h-10 w-full max-w-48 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-3 text-sm font-semibold text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                  className="h-10 w-full max-w-48 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-3 text-sm font-medium text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
                 >
                   {SUPPORTED_CURRENCIES.map((code) => (
                     <option key={code} value={code}>
@@ -3608,11 +3606,11 @@ export function ApplicationForm() {
                   hint={onlineRateApprox ? `≈ ${onlineRateApprox} / hr` : undefined}
                 >
                   {/* Issue #122: data-backed AI rate suggestion, shown above
-                      the input — the applicant still sets their own price. */}
+                      the input, the applicant still sets their own price. */}
                   <div className="space-y-2">
                     {rateSuggestion ? (
                       <div className="rounded-sm border border-[color:var(--brand-link)]/30 bg-[color:var(--brand-link)]/[0.06] px-3 py-2 text-sm">
-                        <p className="font-bold text-[color:var(--ink)]">
+                        <p className="font-medium text-[color:var(--ink)]">
                           💡 MatchMax Suggested Rate: {rateSuggestion.suggested_range} HKD/hr
                         </p>
                         <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
@@ -3620,7 +3618,7 @@ export function ApplicationForm() {
                         </p>
                         <button
                           type="button"
-                          className="mt-1 text-xs font-bold text-[color:var(--brand-link)] underline underline-offset-2"
+                          className="mt-1 text-xs font-medium text-[color:var(--brand-link)] underline underline-offset-2"
                           onClick={() => {
                             const firstNumber =
                               /(\d{3,4})/.exec(rateSuggestion.suggested_range)?.[1] ?? "";
@@ -3633,7 +3631,7 @@ export function ApplicationForm() {
                     ) : (
                       <button
                         type="button"
-                        className="text-left text-sm font-bold text-[color:var(--brand-link)] underline underline-offset-2 disabled:opacity-60"
+                        className="text-left text-sm font-medium text-[color:var(--brand-link)] underline underline-offset-2 disabled:opacity-60"
                         disabled={rateStatus === "calculating"}
                         onClick={() => void calculateSuggestedRate()}
                       >
@@ -3686,7 +3684,7 @@ export function ApplicationForm() {
                 </Field>
               </div>
 
-              {/* Issue #319: optional travel note — only meaningful when the
+              {/* Issue #319: optional travel note, only meaningful when the
                   tutor teaches in person. */}
               {base.inpersonRate.trim() !== "" ? (
                 <Field
@@ -3722,9 +3720,7 @@ export function ApplicationForm() {
               {/* Issue #319: optional extra rate rows (profile-only). A row
                   saves only when BOTH the label and the rate are filled. */}
               <div className="rounded-md border border-border p-4">
-                <p className="text-sm font-semibold text-foreground">
-                  {t("join.rates.rows_label")}
-                </p>
+                <p className="text-sm font-medium text-foreground">{t("join.rates.rows_label")}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {t("join.rates.rows_hint", { max: MAX_RATE_ROWS })}
                 </p>
@@ -3737,7 +3733,7 @@ export function ApplicationForm() {
                       <div className="grid gap-1.5">
                         <Label
                           htmlFor={`rate-row-label-${index}`}
-                          className="text-xs font-semibold text-foreground"
+                          className="text-xs font-medium text-foreground"
                         >
                           {t("join.rates.row_label")}
                         </Label>
@@ -3752,12 +3748,12 @@ export function ApplicationForm() {
                       <div className="grid gap-1.5">
                         <Label
                           htmlFor={`rate-row-rate-${index}`}
-                          className="text-xs font-semibold text-foreground"
+                          className="text-xs font-medium text-foreground"
                         >
                           {t("join.rates.row_rate", { currency: base.currency })}
                         </Label>
                         <div className="relative">
-                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
                             {base.currency}
                           </span>
                           <Input
@@ -3829,7 +3825,7 @@ export function ApplicationForm() {
               <div className="rounded-md border border-border p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-foreground">Per-curriculum pricing</p>
+                    <p className="text-sm font-medium text-foreground">Per-curriculum pricing</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       Charge different rates for different curriculum levels, or keep one flat rate
                       across everything you teach.
@@ -3857,12 +3853,12 @@ export function ApplicationForm() {
                         <div key={`${qualification.curriculum}-${index}`} className="space-y-1.5">
                           <Label
                             htmlFor={`tier-rate-${index}`}
-                            className="text-xs font-semibold text-foreground"
+                            className="text-xs font-medium text-foreground"
                           >
                             {qualification.curriculum}
                           </Label>
                           <div className="relative">
-                            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
                               HK$
                             </span>
                             <Input
@@ -3886,7 +3882,7 @@ export function ApplicationForm() {
                                 clearFieldError("pricingTiers");
                               }}
                               placeholder={rateFloor || "450"}
-                              className="pl-11 text-sm font-semibold"
+                              className="pl-11 text-sm font-medium"
                             />
                           </div>
                         </div>
@@ -3918,7 +3914,7 @@ export function ApplicationForm() {
                     <span>
                       I agree to the MatchMax{" "}
                       <Link
-                        className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
+                        className="font-medium text-[color:var(--brand-link)] underline underline-offset-4"
                         to="/tos"
                         target="_blank"
                       >
@@ -3930,7 +3926,7 @@ export function ApplicationForm() {
                           Required
                         </span>
                       ) : null}
-                      {/* Issue #309: verification scope lines — part of the
+                      {/* Issue #309: verification scope lines, part of the
                           tutor terms consent, in both locales. */}
                       <ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-relaxed">
                         {([1, 2, 3, 4] as const).map((line) => (
@@ -3940,7 +3936,7 @@ export function ApplicationForm() {
                     </span>
                   </label>
                 </div>
-                {/* Issue #214: the terms gate — records which ToS version the
+                {/* Issue #214: the terms gate, records which ToS version the
                     applicant accepted (server-side) and links the matching,
                     verification and referral sections. */}
                 <TermsGateCheckbox
@@ -4008,7 +4004,7 @@ export function ApplicationForm() {
             <Button
               type="button"
               variant="outline"
-              className="h-12 rounded-sm px-6 font-bold"
+              className="h-12 rounded-sm px-6 font-medium"
               disabled={step === 1 || submitting}
               onClick={() => changeStep(step - 1)}
             >
@@ -4019,7 +4015,7 @@ export function ApplicationForm() {
               disabled={submitting}
               variant="solid"
               color="blue"
-              className="h-12 rounded-sm px-8 font-bold"
+              className="h-12 rounded-sm px-8 font-medium"
             >
               {submitting ? (
                 "Submitting…"
@@ -4044,7 +4040,7 @@ function Heading({ step, title }: { step: number; title: string }) {
   return (
     <div className="mb-6">
       <p className="text-xs font-medium text-[color:var(--muted-foreground)]">Step {step}</p>
-      <h2 className="mt-2 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">{title}</h2>
+      <h2 className="mt-2 text-2xl font-medium text-[color:var(--ink)] sm:text-3xl">{title}</h2>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 /**
- * SoR batch (#201/#204/#205/#287/#292) — structural DB types.
+ * SoR batch (#201/#204/#205/#287/#292), structural DB types.
  *
  * The new SoR tables are intentionally NOT in the generated Database types
  * (types.ts surgery is error-prone; see the stale-tables lesson). Server fns
@@ -60,13 +60,13 @@ export type SorCaseRow = {
   mode: "online" | "in_person" | "either" | null;
   contact_name: string | null;
   contact_phone: string | null;
-  status: string; // board status (case_request_status) — different axis from sor_status
+  status: string; // board status (case_request_status), different axis from sor_status
   source: string | null;
   matched_tutor_id: string | null;
   organisation_id: string | null;
   concierge_id: string | null;
   hourly_rate_hkd: number | null;
-  /** #391: per-case seat count (NOT NULL, default 1) — scales the admin fee. */
+  /** #391: per-case seat count (NOT NULL, default 1), scales the admin fee. */
   student_count: number;
   whatsapp_group_url: string | null;
   replacement_of_case_id: string | null;

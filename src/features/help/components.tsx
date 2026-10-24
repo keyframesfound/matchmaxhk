@@ -127,13 +127,13 @@ function HelpCopyBox({ label, text }: { label?: string; text: string }) {
   return (
     <div className="rounded-xl border border-[color:var(--brand-link)]/30 bg-[color:var(--brand-link)]/[0.04]">
       <div className="flex items-center justify-between gap-3 border-b border-[color:var(--brand-link)]/20 px-4 py-2">
-        <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-widest text-[color:var(--brand-link)]">
+        <span className="min-w-0 truncate text-[11px] font-medium text-[color:var(--brand-link)]">
           {label || t("help.copy_box_label")}
         </span>
         <button
           type="button"
           onClick={copy}
-          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-[color:var(--brand-link)]/40 bg-card px-3 text-xs font-semibold text-foreground transition-colors hover:bg-[color:var(--brand-link)]/10"
+          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-[color:var(--brand-link)]/40 bg-card px-3 text-xs font-medium text-foreground transition-colors hover:bg-[color:var(--brand-link)]/10"
           aria-label={t("help.copy_button")}
         >
           {copied ? (
@@ -167,7 +167,7 @@ function HighlightPlaceholders({ text }: { text: string }) {
     <p className="whitespace-pre-wrap text-sm leading-7 text-foreground sm:text-[15px]">
       {parts.map((part, index) =>
         /^\[[^\]\n]+\]$/.test(part) ? (
-          <span key={index} className="font-semibold text-[color:var(--brand-link)]">
+          <span key={index} className="font-medium text-[color:var(--brand-link)]">
             {part}
           </span>
         ) : (
@@ -189,7 +189,7 @@ function HelpDiagramPlaceholder({ title, body }: { title: string; body: string }
     <div className="rounded-xl border border-dashed border-border bg-muted/50">
       <div className="flex items-center gap-2 border-b border-dashed border-border px-4 py-2.5">
         <ImageIcon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-        <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+        <span className="min-w-0 truncate text-[11px] font-medium text-muted-foreground">
           {title || t("help.diagram_label")}
         </span>
       </div>
@@ -217,7 +217,7 @@ export function HelpMarkdown({ children }: { children: string }) {
           <thead className="border-b border-border">{headChildren}</thead>
         ),
         th: ({ children: thChildren }) => (
-          <th className="whitespace-nowrap px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+          <th className="whitespace-nowrap px-3 py-2.5 text-[11px] font-medium text-muted-foreground">
             {thChildren}
           </th>
         ),
@@ -258,7 +258,7 @@ export function HelpMarkdown({ children }: { children: string }) {
         h2: ({ children: headingChildren }) => (
           <h2
             id={slugifyHelpHeading(extractTextNode(headingChildren))}
-            className="scroll-mt-28 pt-8 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl"
+            className="scroll-mt-28 pt-8 text-2xl font-medium tracking-tight text-foreground sm:text-3xl"
           >
             {headingChildren}
           </h2>
@@ -266,7 +266,7 @@ export function HelpMarkdown({ children }: { children: string }) {
         h3: ({ children: headingChildren }) => (
           <h3
             id={slugifyHelpHeading(extractTextNode(headingChildren))}
-            className="scroll-mt-28 pt-6 text-xl font-bold tracking-tight text-foreground"
+            className="scroll-mt-28 pt-6 text-xl font-medium tracking-tight text-foreground"
           >
             {headingChildren}
           </h3>
@@ -275,14 +275,14 @@ export function HelpMarkdown({ children }: { children: string }) {
           <p className="text-base leading-7 text-muted-foreground sm:text-[17px]">{pChildren}</p>
         ),
         strong: ({ children: strongChildren }) => (
-          <strong className="font-semibold text-foreground">{strongChildren}</strong>
+          <strong className="font-medium text-foreground">{strongChildren}</strong>
         ),
         a: ({ children: aChildren, href }) => (
           <a
             href={href}
             target="_blank"
             rel="noreferrer"
-            className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
+            className="font-medium text-[color:var(--brand-link)] underline underline-offset-4"
           >
             {aChildren}
           </a>

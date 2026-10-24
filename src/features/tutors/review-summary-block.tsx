@@ -13,15 +13,15 @@ type TutorReviewSummary = {
 };
 
 /**
- * #205 + #287 — public case-review block on the tutor card: average + count +
+ * #205 + #287, public case-review block on the tutor card: average + count +
  * latest 5 parent reviews. Zero reviews shows "New tutor", never "0.0".
- * Reads the public SECURITY DEFINER summary RPC with the anon client — the
+ * Reads the public SECURITY DEFINER summary RPC with the anon client, the
  * RPC is granted to anon, so no service role is involved.
  */
 export function ReviewSummaryBlock({ tutorId }: { tutorId: string }) {
   const { t } = useTranslation();
   // Plain effect + state: React Query's queryFn left the rpc await unsettled
-  // in dev (standalone identical call resolves) — a simple read needs neither
+  // in dev (standalone identical call resolves), a simple read needs neither
   // cache coordination nor retries.
   const [summary, setSummary] = useState<TutorReviewSummary | null>(null);
   useEffect(() => {
@@ -58,7 +58,7 @@ export function ReviewSummaryBlock({ tutorId }: { tutorId: string }) {
     <div className="space-y-3">
       <p className="flex items-center gap-2 text-sm">
         <Star className="h-4 w-4 fill-current text-amber-500" aria-hidden="true" />
-        <span className="font-semibold text-[color:var(--ink)]">{summary.average?.toFixed(1)}</span>
+        <span className="font-medium text-[color:var(--ink)]">{summary.average?.toFixed(1)}</span>
         <span className="text-muted-foreground">
           {t("sor.review_count", { count: summary.count })}
         </span>
@@ -70,7 +70,7 @@ export function ReviewSummaryBlock({ tutorId }: { tutorId: string }) {
             i: number,
           ) => (
             <li key={i} className="rounded-lg border border-[color:var(--ink)]/10 p-3">
-              <p className="flex flex-wrap items-center gap-1 text-xs font-semibold text-[color:var(--ink)]">
+              <p className="flex flex-wrap items-center gap-1 text-xs font-medium text-[color:var(--ink)]">
                 {r.display_line}
                 <span className="flex text-amber-500" aria-label={`${r.rating}/5`}>
                   {Array.from({ length: 5 }, (_, s) => (

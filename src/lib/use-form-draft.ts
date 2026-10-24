@@ -26,7 +26,7 @@ export function useFormDraft<T>(key: string) {
         }
       }
     } catch {
-      // Corrupt or unavailable draft — start fresh.
+      // Corrupt or unavailable draft, start fresh.
     }
     return () => {
       if (timer.current) window.clearTimeout(timer.current);
@@ -41,7 +41,7 @@ export function useFormDraft<T>(key: string) {
           sessionStorage.setItem(storageKey, JSON.stringify({ value, at: Date.now() }));
           setSavedAt(Date.now());
         } catch {
-          // Storage unavailable — drafts are best-effort.
+          // Storage unavailable, drafts are best-effort.
         }
       }, SAVE_DEBOUNCE_MS);
     },

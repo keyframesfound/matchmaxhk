@@ -4,15 +4,15 @@ import { Body, Container, Head, Heading, Hr, Html, Preview, Text } from "@react-
 
 interface OrderDeliveredEmailProps {
   title: string;
-  /** "buyer" or "tutor" — the buyer never sees money split lines. */
+  /** "buyer" or "tutor", the buyer never sees money split lines. */
   variant: "buyer" | "tutor";
   grossHkd?: string;
   netHkd?: string;
 }
 
 /**
- * Issue #205 — note_order.delivered email. Buyer variant: title + delivery
- * confirmation only. Tutor variant: title, gross, net — and NEVER any buyer
+ * Issue #205, note_order.delivered email. Buyer variant: title + delivery
+ * confirmation only. Tutor variant: title, gross, net, and NEVER any buyer
  * name or contact (#205 acceptance: "Note-sold notification has no buyer
  * contact").
  */
@@ -38,7 +38,7 @@ export const OrderDeliveredEmail = ({
           <Text style={text}>Your net (after the 20% platform fee): {netHkd}</Text>
         )}
         <Hr style={hr} />
-        <Text style={footer}>Questions? Contact the MatchMax team — we're happy to help.</Text>
+        <Text style={footer}>Questions? Contact the MatchMax team, we're happy to help.</Text>
       </Container>
     </Body>
   </Html>

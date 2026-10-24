@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
  * /tos section (anchor ids live on that page). It is only the CLIENT half of
  * the gate: the surface that gets recorded and the terms_acceptances row are
  * written by the server fn that owns the gate, which independently validates
- * the checkbox (fail-closed) — see features/legal/terms-acceptance.server.ts.
+ * the checkbox (fail-closed), see features/legal/terms-acceptance.server.ts.
  */
 
 export type TermsGateSection = "matching" | "notes";
@@ -18,7 +18,7 @@ export type TermsGateSection = "matching" | "notes";
 type TermsGateCheckboxProps = {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
-  /** Which new ToS part the surface gates on — drives the label + anchor. */
+  /** Which new ToS part the surface gates on, drives the label + anchor. */
   section?: TermsGateSection;
   /** Shows the "Required" flag, matching the forms' field-error pattern. */
   invalid?: boolean;
@@ -50,7 +50,7 @@ export function TermsGateCheckbox({
             section: t(`terms.gate.section_${section}`),
           })}{" "}
           <Link
-            className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
+            className="font-medium text-[color:var(--brand-link)] underline underline-offset-4"
             to="/tos"
             hash={SECTION_ANCHORS[section]}
             target="_blank"

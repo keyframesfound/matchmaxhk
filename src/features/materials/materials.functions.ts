@@ -24,7 +24,7 @@ import { gigApprovalBlocker } from "@/features/gigs/gig-staff.functions";
  *
  * Flow (all server-side; the original PDF never reaches a public surface):
  *   1. Caller must be the linked account of a tutor whose verification_tier
- *      is 'tier_2_verified' (the Verified gate) — checked against the tutors
+ *      is 'tier_2_verified' (the Verified gate), checked against the tutors
  *      table with the caller's RLS-scoped client.
  *   2. Original PDF bytes go to the PRIVATE `materials-originals` bucket via
  *      the service-role client (RLS on storage.objects blocks every other
@@ -35,13 +35,13 @@ import { gigApprovalBlocker } from "@/features/gigs/gig-staff.functions";
  *   4. The listing row is created unpublished; admins (or the tutor via their
  *      owner policy) publish once the listing is checked.
  *
- * Plain PDF processing — no AI services.
+ * Plain PDF processing, no AI services.
  */
 
 const PRIVATE_BUCKET = "materials-originals";
 const PUBLIC_BUCKET = "materials-previews";
 // Repo upload cap: 20MB for every file kind (the issue's 40MB loses to the
-// Workers body limit — MAX_APKG_BYTES === MAX_PDF_BYTES by design).
+// Workers body limit, MAX_APKG_BYTES === MAX_PDF_BYTES by design).
 const MAX_UPLOAD_BYTES = MAX_APKG_BYTES;
 
 const UploadMaterialInput = z.object({
@@ -60,7 +60,7 @@ const UploadMaterialInput = z.object({
   priceHkd: z.number().min(0).max(100_000),
   schoolTag: z.string().trim().max(160).optional(),
   // #313 review fix: curriculum is the canonical list and subject is
-  // required on every path — no caller may skip the note-kind validation.
+  // required on every path, no caller may skip the note-kind validation.
   curriculumTag: z.enum(["IB", "DSE", "IGCSE", "A-Level", "Other"]),
   subjectTag: z.string().trim().min(1).max(160),
   // #313/#314 note kinds: the 4-way type (flashcards added by #314) replaces
@@ -70,7 +70,7 @@ const UploadMaterialInput = z.object({
   topic: z.string().trim().max(40).optional(),
   gradeAchieved: z.string().trim().max(20).optional(),
   exemplarPermission: z.boolean().optional(),
-  // #136: approximate word count — optional, positive integer when present.
+  // #136: approximate word count, optional, positive integer when present.
   wordCount: z.number().int().min(1).max(500_000).optional(),
   documentType: z.enum(["custom_notes", "ia", "ee", "tok_essay", "mock_exam"]).optional(),
   yearTag: z.string().trim().max(20).optional(),
@@ -90,9 +90,9 @@ export type UploadMaterialResult = {
   id: string;
   title: string;
   originalPath: string;
-  /** "" for .apkg decks — no preview is generated (#314). */
+  /** "" for .apkg decks, no preview is generated (#314). */
   previewUrl: string;
-  /** null for .apkg decks — the file has no pages (#314). */
+  /** null for .apkg decks, the file has no pages (#314). */
   previewPages: number | null;
 };
 
@@ -255,7 +255,7 @@ export const uploadStudyMaterial = createServerFn({ method: "POST" })
     });
     if (kindErrors.length > 0) throw new Error(kindErrors.join(" "));
 
-    // #314: the file kind must match the listing type — an .apkg deck only
+    // #314: the file kind must match the listing type, an .apkg deck only
     // rides a flashcards listing; everything else stays PDF-only.
     if (!isAllowedMaterialFile(effectiveType, data.fileName)) {
       throw new Error(
@@ -290,7 +290,7 @@ export const uploadStudyMaterial = createServerFn({ method: "POST" })
     if (originalError) throw new Error(originalError.message);
 
     try {
-      // #314: an .apkg deck skips the PDF-only pipeline entirely — no
+      // #314: an .apkg deck skips the PDF-only pipeline entirely, no
       // pdf-lib watermark, no preview URL, no page count. The buyer
       // downloads the deck; there is no in-browser reviewer or player.
       const watermark = isApkg
@@ -532,7 +532,7 @@ export const updateMaterialAdmin = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     // Grok review 2026-10-17 (soft #3, tightened): publishing from the admin
     // materials page must clear the same gig integrity gate as the review
-    // queue — otherwise an integrity-missing document_review gig can be
+    // queue, otherwise an integrity-missing document_review gig can be
     // flipped to published from the desk, bypassing gigApprovalBlocker.
     // Non-gig rows always pass (gigApprovalBlocker returns null for them).
     if (data.isPublished === true) {
@@ -603,7 +603,7 @@ export type PendingGigReviewRow = {
 };
 
 /**
- * #326/#327: the gig review queue — pending_review gig listings with the
+ * #326/#327: the gig review queue, pending_review gig listings with the
  * fields staff need to judge them (category, delivery type, turnaround,
  * cover, and the document_review integrity timestamp). Oldest first so the
  * queue drains in submission order.
@@ -652,7 +652,7 @@ export const listPendingGigReviews = createServerFn({ method: "POST" })
  *   - a document_review gig WITHOUT integrity_confirmed_at can never be
  *     approved (gigApprovalBlocker);
  *   - gigs carry NO original file / watermarked preview, so approval —
- *     unlike the notes stamp pipeline — requires no stamping at all.
+ *     unlike the notes stamp pipeline, requires no stamping at all.
  */
 export const reviewGigListing = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -705,8 +705,8 @@ export const reviewGigListing = createServerFn({ method: "POST" })
     if (!row) throw new Error("Listing not found.");
     // The integrity blocker gates PUBLISHING only (grok review 2026-10-17):
     // staff must always be able to REJECT an integrity-missing document_review
-    // gig with a written reason — that is the exact path the queue hint
-    // recommends — so the check runs on the approve branch alone.
+    // gig with a written reason, that is the exact path the queue hint
+    // recommends, so the check runs on the approve branch alone.
     if (data.approve) {
       const blocker = gigApprovalBlocker({
         materialType: row.material_type,
@@ -759,7 +759,7 @@ export type PendingListingChild = {
 export type PendingListingLesson = {
   position: number;
   title: string;
-  /** Raw link — STAFF-ONLY surface; the dialog renders the actual embed so
+  /** Raw link, STAFF-ONLY surface; the dialog renders the actual embed so
    * the human can check the video on-screen for WhatsApp/phone/IG/QR. */
   videoUrl: string | null;
   videoProvider: string | null;
@@ -782,7 +782,7 @@ export type PendingListingReviewRow = {
 /**
  * #392 review queue: pending folders (with each child's title + price) and
  * pending courses (with lesson titles, providers and the raw video links so
- * the dialog can render the ACTUAL embeds — human review is the reject path
+ * the dialog can render the ACTUAL embeds, human review is the reject path
  * for WA/phone/IG/QR visible in videos). Oldest first, same as gigs.
  */
 export const listPendingListingReviews = createServerFn({ method: "POST" })
@@ -915,7 +915,7 @@ export const listPendingListingReviews = createServerFn({ method: "POST" })
   });
 
 /**
- * #392 generalized review decision for folders + courses — same status
+ * #392 generalized review decision for folders + courses, same status
  * transitions and rejection_reason storage as the gig review. The gig
  * integrity blocker is folded in so the shared dialog can also (re)decide a
  * gig row without weakening that gate; folders/courses have no blocker.

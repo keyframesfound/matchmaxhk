@@ -1,5 +1,5 @@
 /**
- * Issue #392: pure rules for Topic Folder listings — deliberately free of
+ * Issue #392: pure rules for Topic Folder listings, deliberately free of
  * Supabase / TanStack imports so the vitest suite exercises them directly
  * (tests/folders/folder-rules.test.ts, tests/materials/* precedent).
  *
@@ -21,7 +21,7 @@ export const FOLDER_DESCRIPTION_MAX_LEN = 4000;
 /**
  * Which listing kinds may be bundled into a folder. Folders never nest
  * (CHECK topic_folder_no_nesting + this list) and GIGS are services with a
- * fulfillment clock — auto-granting one would fake a service delivery, so
+ * fulfillment clock, auto-granting one would fake a service delivery, so
  * only file/video-bearing kinds are pickable.
  */
 export const FOLDER_PICKABLE_TYPES = [
@@ -38,7 +38,7 @@ export type FolderChildInput = {
   /** Present list price of the child (HK$). Free children count as 0. */
   priceHkd: number;
   materialType?: string | null;
-  /** tutors.id of the child's owner — must equal the folder's tutor. */
+  /** tutors.id of the child's owner, must equal the folder's tutor. */
   tutorId?: string | null;
   /** digital_materials.status of the child at save/submit time. */
   status?: string | null;
@@ -46,7 +46,7 @@ export type FolderChildInput = {
 
 /**
  * Children gate: 2–20 of the tutor's OWN published non-folder listings, no
- * duplicates. Returns human-readable problems — empty array means clean.
+ * duplicates. Returns human-readable problems, empty array means clean.
  * `ownTutorId` is the folder owner's tutors.id; a child with a tutorId that
  * differs (or a non-published status) is rejected.
  */
@@ -112,9 +112,9 @@ export type FolderSubmitInput = {
 /**
  * Submit gate: title/description caps, cover REQUIRED (big-cover shop
  * card), and the bulk price must be a whole HK$ amount with 0 < bulk < sum
- * of the children's list prices — the whole point of a folder is a real
+ * of the children's list prices, the whole point of a folder is a real
  * discount (free children are allowed; they just contribute 0 to the sum).
- * Returns human-readable problems — empty array means clean.
+ * Returns human-readable problems, empty array means clean.
  */
 export function validateFolderForSubmit(input: FolderSubmitInput): string[] {
   const errors: string[] = [];
@@ -147,7 +147,7 @@ export function validateFolderForSubmit(input: FolderSubmitInput): string[] {
   return errors;
 }
 
-/** Editor line: { savings, percent } for "Save HK$X (Y%)" — 0 when no saving. */
+/** Editor line: { savings, percent } for "Save HK$X (Y%)", 0 when no saving. */
 export function folderBulkSavings(
   bulkHkd: number,
   children: FolderChildInput[],

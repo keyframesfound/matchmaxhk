@@ -43,7 +43,7 @@ export function InviteMemberModal({
       toast.success(
         result.emailSent
           ? `Invitation sent to ${email.trim()}`
-          : `Invite created for ${email.trim()} — they'll get admin access when they sign up with this email`,
+          : `Invite created for ${email.trim()}, they'll get admin access when they sign up with this email`,
       );
       setEmail("");
       onInvited();
@@ -82,7 +82,7 @@ export function InviteMemberModal({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={sending} className="font-bold">
+            <Button type="submit" disabled={sending} className="font-medium">
               {sending ? "Sending…" : "Send invite"}
             </Button>
           </DialogFooter>

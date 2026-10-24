@@ -47,7 +47,7 @@ export type CasesSearchState = CaseBoardFilters & {
   category?: string;
   district?: string;
   /** Issue #311: active single-tag chip filter. Lives on the route, not the
-   * search bar draft — applySearch preserves it, clearSearch clears it.
+   * search bar draft, applySearch preserves it, clearSearch clears it.
    * Multi-tag picks (advanced filters) live in `tags`. */
   tag?: string;
 };
@@ -87,7 +87,7 @@ const caseModeDisplay = (draft: CasesSearchState, t: (key: string) => string) =>
   return t("search_ui.any_value");
 };
 
-/** Segments for the compact nav pill — Airbnb "Anywhere | Anytime" style. */
+/** Segments for the compact nav pill, Airbnb "Anywhere | Anytime" style. */
 export function useCasesCompactSegments(draft: CasesSearchState): CompactSegment[] {
   const { t } = useTranslation();
   return [
@@ -248,7 +248,7 @@ function CaseSenContent({
   );
 }
 
-/** HKD rate bounds — min/max inputs, no histogram (few cases vs tutors). */
+/** HKD rate bounds, min/max inputs, no histogram (few cases vs tutors). */
 function CaseRateFields({
   draft,
   onDraftChange,
@@ -260,7 +260,7 @@ function CaseRateFields({
   return (
     <div className="flex items-end justify-between gap-3">
       <div className="w-28 space-y-1.5">
-        <span className="text-xs font-semibold text-[color:var(--ink)]/70">
+        <span className="text-xs font-medium text-[color:var(--ink)]/70">
           {t("search_ui.price_min")}
         </span>
         <Input
@@ -273,11 +273,11 @@ function CaseRateFields({
             onDraftChange({ rate_min: Number.isFinite(raw) && raw > 0 ? raw : undefined });
           }}
           aria-label={t("search_ui.price_min")}
-          className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-semibold tabular-nums"
+          className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-medium tabular-nums"
         />
       </div>
       <div className="w-28 space-y-1.5">
-        <span className="text-xs font-semibold text-[color:var(--ink)]/70">
+        <span className="text-xs font-medium text-[color:var(--ink)]/70">
           {t("search_ui.price_max")}
         </span>
         <Input
@@ -290,7 +290,7 @@ function CaseRateFields({
             onDraftChange({ rate_max: Number.isFinite(raw) && raw > 0 ? raw : undefined });
           }}
           aria-label={t("search_ui.price_max")}
-          className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-semibold tabular-nums"
+          className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-medium tabular-nums"
         />
       </div>
     </div>
@@ -298,7 +298,7 @@ function CaseRateFields({
 }
 
 /** Issue #423 section 2B: the shared requirement-tag vocabulary (#217/#311
- * presets) as multi-select chips — ALL picks must match. */
+ * presets) as multi-select chips, ALL picks must match. */
 function CaseTagsContent({
   draft,
   onDraftChange,
@@ -498,7 +498,7 @@ export function CasesSearchBar({
           onSubmit={() => onApply()}
           className="min-w-0 flex-1"
         />
-        {/* Issue #423 ship-order 5: advanced filters — the dialog carries the
+        {/* Issue #423 ship-order 5: advanced filters, the dialog carries the
             secondary chips + the dropdowns that don't fit the pill bar. */}
         <FiltersPillButton
           label={t("search_ui.filters")}
@@ -635,7 +635,7 @@ export function CasesSearchMobile({
       >
         <div className="space-y-6">
           <div>
-            <p className="mb-2 text-xl font-bold tracking-tight text-[color:var(--ink)]">
+            <p className="mb-2 text-xl font-medium tracking-tight text-[color:var(--ink)]">
               {t("search_ui.panel_keyword_title")}
             </p>
             <SearchBigInput

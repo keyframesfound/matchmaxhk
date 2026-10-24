@@ -6,8 +6,8 @@ import { accountStatusBlocksParticipation } from "@/features/admin-users/account
  * Issue #308: refuse all mutating participation for suspended/banned
  * accounts. Chain AFTER requireSupabaseAuth in any server function that
  * creates user content (case requests, tutor applications, uploads,
- * messages, reports). Suspended users keep read access — only this gate is
- * closed — and banned users should already be signed out client-side; this
+ * messages, reports). Suspended users keep read access, only this gate is
+ * closed, and banned users should already be signed out client-side; this
  * is the server-side backstop so a stale token cannot act either way.
  *
  * Uses the service-role client: one shared read path keeps the refusal

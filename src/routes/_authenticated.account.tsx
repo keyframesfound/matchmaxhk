@@ -89,7 +89,7 @@ const CASE_STATUS_KEY: Record<string, string> = {
 const MY_TUTOR_BLOCK_COLS =
   "id, display_name, tutor_code, photo_url, rating, review_count, hourly_rate, pricing_tiers, currency, subjects, self_introduction, lesson_mode, verification_tier, remaining_student_slots, is_accepting_students, start_immediately, earliest_start_date, is_published";
 
-/** P6 identity/profile block row — a slice of the tutors table (owner read). */
+/** P6 identity/profile block row, a slice of the tutors table (owner read). */
 type MyTutorCard = {
   id: string;
   display_name: string;
@@ -149,7 +149,7 @@ function AccountPage() {
     enabled: Boolean(user),
   });
 
-  // P6: the signed-in account's own card (RLS tutors_owner_select — includes
+  // P6: the signed-in account's own card (RLS tutors_owner_select, includes
   // an unpublished card, so the owner still sees it here).
   const myTutorQuery = useQuery({
     queryKey: ["account", "my-tutor-card", user?.id],
@@ -166,7 +166,7 @@ function AccountPage() {
   });
 
   // P6 parent block: cases this account created (guest legacy rows have no
-  // parent_id — they stay on the concierge path).
+  // parent_id, they stay on the concierge path).
   const myCasesQuery = useQuery({
     queryKey: ["account", "my-cases", user?.id],
     queryFn: async () => {
@@ -232,12 +232,12 @@ function AccountPage() {
     <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
       <SiteHeader />
       <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6">
-        <h1 className="text-2xl font-bold tracking-normal">{t("account.title")}</h1>
+        <h1 className="text-2xl font-medium tracking-normal">{t("account.title")}</h1>
 
-        {/* #141: post-signup checklist — first block, dismissible, hidden once done */}
+        {/* #141: post-signup checklist, first block, dismissible, hidden once done */}
         <SignupChecklistCard />
 
-        {/* P6: identity + rating — the store header */}
+        {/* P6: identity + rating, the store header */}
         <section className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card p-5">
           {tutor?.photo_url ? (
             <img
@@ -247,12 +247,12 @@ function AccountPage() {
               loading="lazy"
             />
           ) : (
-            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] text-xl font-semibold text-[color:var(--muted-foreground)]">
+            <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] text-xl font-medium text-[color:var(--muted-foreground)]">
               {(tutor?.display_name ?? parentName).slice(0, 1).toUpperCase()}
             </div>
           )}
           <div className="min-w-0 flex-1">
-            <p className="truncate text-lg font-bold text-[color:var(--ink)]">
+            <p className="truncate text-lg font-medium text-[color:var(--ink)]">
               {tutor?.display_name ?? parentName}
             </p>
             <p className="mt-0.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
@@ -265,13 +265,13 @@ function AccountPage() {
                     {t("account.reviews_count", { count: tutor.review_count ?? 0 })}
                   </span>
                 ) : (
-                  <span className="font-semibold text-[color:var(--ink)]">
+                  <span className="font-medium text-[color:var(--ink)]">
                     {t("account.new_label")}
                   </span>
                 )
               ) : null}
               {availabilityState && availabilityState !== "taking" ? (
-                <span className="rounded-md bg-[color:var(--ink)]/[0.06] px-2 py-0.5 text-xs font-bold text-[color:var(--ink)]">
+                <span className="rounded-md bg-[color:var(--ink)]/[0.06] px-2 py-0.5 text-xs font-medium text-[color:var(--ink)]">
                   {availabilityState === "full"
                     ? t("account.state_full")
                     : t("account.state_inactive")}
@@ -281,7 +281,7 @@ function AccountPage() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {tutor ? (
-              <Button variant="outline" className="font-semibold" asChild>
+              <Button variant="outline" className="font-medium" asChild>
                 <Link
                   to="/tutors/$tutorCode"
                   params={{ tutorCode: tutor.tutor_code }}
@@ -295,14 +295,14 @@ function AccountPage() {
             ) : null}
             {/* Issue #104: guided Preview-as-Parent sandbox. */}
             {tutor ? (
-              <Button variant="outline" className="font-semibold" asChild>
+              <Button variant="outline" className="font-medium" asChild>
                 <Link to="/account/preview">
                   <ScanEye className="mr-2 h-4 w-4" aria-hidden />
                   {t("account.preview_cta")}
                 </Link>
               </Button>
             ) : null}
-            <Button variant="outline" className="font-semibold" asChild>
+            <Button variant="outline" className="font-medium" asChild>
               <a href="/settings">
                 <Pencil className="mr-2 h-4 w-4" aria-hidden />
                 {t("account.edit_profile")}
@@ -311,15 +311,15 @@ function AccountPage() {
           </div>
         </section>
 
-        {/* P6: parent CTA — no card linked yet */}
+        {/* P6: parent CTA, no card linked yet */}
         {!tutor && !myTutorQuery.isLoading ? (
           <section className="mt-6 rounded-2xl border border-dashed border-border bg-card p-6">
-            <p className="text-sm font-semibold text-[color:var(--ink)]">
+            <p className="text-sm font-medium text-[color:var(--ink)]">
               {t("account.tutor_cta_title")}
             </p>
             <p className="mt-1 text-sm text-muted-foreground">{t("account.tutor_cta_body")}</p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button variant="solid" color="blue" className="font-bold" asChild>
+              <Button variant="solid" color="blue" className="font-medium" asChild>
                 <a href="/join">{t("account.become_tutor")}</a>
               </Button>
             </div>
@@ -330,8 +330,8 @@ function AccountPage() {
         {tutor ? (
           <section className="mt-8 rounded-2xl border border-border bg-card p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="text-lg font-bold">{t("account.profile_block")}</h2>
-              <Button variant="ghost" size="sm" className="font-semibold" asChild>
+              <h2 className="text-lg font-medium">{t("account.profile_block")}</h2>
+              <Button variant="ghost" size="sm" className="font-medium" asChild>
                 <a href="/settings#my-tutor">
                   <Pencil className="mr-2 h-4 w-4" aria-hidden />
                   {t("account.edit")}
@@ -340,26 +340,26 @@ function AccountPage() {
             </div>
             <dl className="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
               <div>
-                <dt className="text-xs font-semibold text-muted-foreground">
+                <dt className="text-xs font-medium text-muted-foreground">
                   {t("account.block_rate")}
                 </dt>
-                <dd className="mt-0.5 font-semibold text-[color:var(--ink)]">
+                <dd className="mt-0.5 font-medium text-[color:var(--ink)]">
                   {t("notes.price", { amount: tutor.hourly_rate })}
                 </dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold text-muted-foreground">
+                <dt className="text-xs font-medium text-muted-foreground">
                   {t("account.block_subjects")}
                 </dt>
-                <dd className="mt-0.5 font-semibold text-[color:var(--ink)]">
+                <dd className="mt-0.5 font-medium text-[color:var(--ink)]">
                   {(tutor.subjects ?? []).slice(0, 5).join(", ") || "—"}
                 </dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold text-muted-foreground">
+                <dt className="text-xs font-medium text-muted-foreground">
                   {t("settings.my_tutor.lesson_mode")}
                 </dt>
-                <dd className="mt-0.5 font-semibold text-[color:var(--ink)]">
+                <dd className="mt-0.5 font-medium text-[color:var(--ink)]">
                   {tutor.lesson_mode === "online"
                     ? t("settings.my_tutor.mode_online")
                     : tutor.lesson_mode === "in_person"
@@ -368,7 +368,7 @@ function AccountPage() {
                 </dd>
               </div>
               <div>
-                <dt className="text-xs font-semibold text-muted-foreground">
+                <dt className="text-xs font-medium text-muted-foreground">
                   {t("account.block_bio")}
                 </dt>
                 <dd className="mt-0.5 line-clamp-2 text-[color:var(--ink)]">
@@ -383,11 +383,11 @@ function AccountPage() {
         {tutor ? (
           <section className="mt-6 rounded-2xl border border-border bg-card p-5">
             <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="flex items-center gap-2 text-lg font-bold">
+              <h2 className="flex items-center gap-2 text-lg font-medium">
                 <CalendarClock className="h-5 w-5" aria-hidden />
                 {t("account.status_block")}
               </h2>
-              <Button variant="ghost" size="sm" className="font-semibold" asChild>
+              <Button variant="ghost" size="sm" className="font-medium" asChild>
                 <a href="/settings#availability">
                   <Pencil className="mr-2 h-4 w-4" aria-hidden />
                   {t("account.edit")}
@@ -395,7 +395,7 @@ function AccountPage() {
               </Button>
             </div>
             <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[color:var(--ink)]">
-              <span className="font-semibold">
+              <span className="font-medium">
                 {availabilityState === "taking"
                   ? t("account.state_taking")
                   : availabilityState === "full"
@@ -418,14 +418,14 @@ function AccountPage() {
           </section>
         ) : null}
 
-        {/* My notes (tutor side, P8) — drafts included */}
+        {/* My notes (tutor side, P8), drafts included */}
         <section className="mt-8 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="flex items-center gap-2 text-lg font-bold">
+            <h2 className="flex items-center gap-2 text-lg font-medium">
               <BookOpen className="h-5 w-5" aria-hidden />
               {t("account.my_notes")}
             </h2>
-            <Button variant="outline" className="font-semibold" asChild>
+            <Button variant="outline" className="font-medium" asChild>
               <a href="/account/notes/new">
                 <Plus className="mr-2 h-4 w-4" aria-hidden />
                 {t("account.add_note")}
@@ -441,7 +441,7 @@ function AccountPage() {
             <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-card p-10 text-center">
               <FilePlus2 className="h-8 w-8 text-muted-foreground" aria-hidden />
               <p className="text-sm text-muted-foreground">{t("account.no_notes")}</p>
-              <Button variant="solid" color="accent" className="font-bold" asChild>
+              <Button variant="solid" color="accent" className="font-medium" asChild>
                 <a href="/account/notes/new">
                   <Plus className="mr-2 h-4 w-4" aria-hidden />
                   {t("account.add_note")}
@@ -457,14 +457,14 @@ function AccountPage() {
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="truncate font-semibold">{material.title}</p>
+                      <p className="truncate font-medium">{material.title}</p>
                       <span
-                        className={`rounded-md px-2 py-0.5 text-xs font-bold ${STATUS_BADGE[material.status] ?? "bg-slate-500/10 text-slate-600"}`}
+                        className={`rounded-md px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[material.status] ?? "bg-slate-500/10 text-slate-600"}`}
                       >
                         {t(`account.status_${material.status}`)}
                       </span>
                       {material.editStatus === "pending_review" && (
-                        <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-700">
+                        <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700">
                           {t("account.edit_pending")}
                         </span>
                       )}
@@ -518,14 +518,14 @@ function AccountPage() {
           )}
         </section>
 
-        {/* Freestyle gigs (tutor side, #326/#328) — my services + fulfillment */}
+        {/* Freestyle gigs (tutor side, #326/#328), my services + fulfillment */}
         <section className="mt-8 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <h2 className="flex items-center gap-2 text-lg font-bold">
+            <h2 className="flex items-center gap-2 text-lg font-medium">
               <Briefcase className="h-5 w-5" aria-hidden />
               {t("account.my_services")}
             </h2>
-            <Button variant="outline" className="font-semibold" asChild>
+            <Button variant="outline" className="font-medium" asChild>
               <a href="/account/services/new">
                 <Plus className="mr-2 h-4 w-4" aria-hidden />
                 {t("account.add_service")}
@@ -541,7 +541,7 @@ function AccountPage() {
             <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-card p-10 text-center">
               <FilePlus2 className="h-8 w-8 text-muted-foreground" aria-hidden />
               <p className="text-sm text-muted-foreground">{t("account.no_services")}</p>
-              <Button variant="solid" color="accent" className="font-bold" asChild>
+              <Button variant="solid" color="accent" className="font-medium" asChild>
                 <a href="/account/services/new">
                   <Plus className="mr-2 h-4 w-4" aria-hidden />
                   {t("account.add_service")}
@@ -557,9 +557,9 @@ function AccountPage() {
                 >
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-center gap-2">
-                      <p className="truncate font-semibold">{gig.title}</p>
+                      <p className="truncate font-medium">{gig.title}</p>
                       <span
-                        className={`rounded-md px-2 py-0.5 text-xs font-bold ${STATUS_BADGE[gig.status] ?? "bg-slate-500/10 text-slate-600"}`}
+                        className={`rounded-md px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[gig.status] ?? "bg-slate-500/10 text-slate-600"}`}
                       >
                         {t(`account.status_${gig.status}`)}
                       </span>
@@ -596,7 +596,7 @@ function AccountPage() {
           {/* #328: open orders waiting on this tutor (swept server-side). */}
           {gigOrders.length > 0 ? (
             <div className="space-y-3">
-              <h3 className="flex items-center gap-2 text-sm font-bold">
+              <h3 className="flex items-center gap-2 text-sm font-medium">
                 <PackageCheck className="h-4 w-4" aria-hidden />
                 {t("account.orders_to_fulfill")}
               </h3>
@@ -617,7 +617,7 @@ function AccountPage() {
 
         {/* P6 parent block: my cases */}
         <section className="mt-12 space-y-4">
-          <h2 className="flex items-center gap-2 text-lg font-bold">
+          <h2 className="flex items-center gap-2 text-lg font-medium">
             <Inbox className="h-5 w-5" aria-hidden />
             {t("account.cases_block")}
           </h2>
@@ -644,14 +644,14 @@ function AccountPage() {
                   className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-border bg-card p-4"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{row.title}</p>
+                    <p className="truncate font-medium">{row.title}</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {(row.subjects ?? []).join(", ")} ·{" "}
                       {new Date(row.created_at).toLocaleDateString()}
                     </p>
                   </div>
                   <span
-                    className={`rounded-md px-2 py-0.5 text-xs font-bold ${CASE_STATUS_BADGE[row.status] ?? "bg-slate-500/10 text-slate-600"}`}
+                    className={`rounded-md px-2 py-0.5 text-xs font-medium ${CASE_STATUS_BADGE[row.status] ?? "bg-slate-500/10 text-slate-600"}`}
                   >
                     {t(CASE_STATUS_KEY[row.status] ?? "account.case_status_other")}
                   </span>
@@ -663,7 +663,7 @@ function AccountPage() {
 
         {/* Bought (parent side, P13) */}
         <section className="mt-12 space-y-4">
-          <h2 className="flex items-center gap-2 text-lg font-bold">
+          <h2 className="flex items-center gap-2 text-lg font-medium">
             <Download className="h-5 w-5" aria-hidden />
             {t("account.bought")}
           </h2>
@@ -690,7 +690,7 @@ function AccountPage() {
                   className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-border bg-card p-4"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate font-semibold">{row.title}</p>
+                    <p className="truncate font-medium">{row.title}</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {new Date(row.createdAt).toLocaleDateString()}
                       {" · "}
@@ -701,7 +701,7 @@ function AccountPage() {
                     <Button
                       variant="outline"
                       size="sm"
-                      className="font-semibold"
+                      className="font-medium"
                       disabled={downloadMutation.isPending}
                       onClick={() => downloadMutation.mutate(row.materialId)}
                     >
@@ -714,17 +714,17 @@ function AccountPage() {
                     </Button>
                   )}
                   {row.action === "refunded" && (
-                    <span className="rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-700">
+                    <span className="rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700">
                       {t("orders.refunded_badge")}
                     </span>
                   )}
                   {row.action === "preparing" && (
-                    <span className="rounded-md bg-accent px-2.5 py-1 text-xs font-bold text-accent-foreground">
+                    <span className="rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground">
                       {t("orders.preparing_badge")}
                     </span>
                   )}
                   {row.action === "awaiting_delivery" && (
-                    <span className="rounded-md bg-accent px-2.5 py-1 text-xs font-bold text-accent-foreground">
+                    <span className="rounded-md bg-accent px-2.5 py-1 text-xs font-medium text-accent-foreground">
                       {t("account.order_awaiting_delivery")}
                     </span>
                   )}
@@ -732,7 +732,7 @@ function AccountPage() {
                     <Link
                       to="/orders/$orderId"
                       params={{ orderId: row.orderId }}
-                      className="text-xs font-semibold text-rose-600 hover:underline"
+                      className="text-xs font-medium text-rose-600 hover:underline"
                     >
                       {t("account.order_past_due")}
                     </Link>
@@ -741,7 +741,7 @@ function AccountPage() {
                     <Link
                       to="/orders/$orderId"
                       params={{ orderId: row.orderId }}
-                      className="text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
+                      className="text-xs font-medium text-[color:var(--brand-link)] hover:underline"
                     >
                       {t("account.finish_payment")}
                     </Link>
@@ -758,7 +758,7 @@ function AccountPage() {
 }
 
 /**
- * #328: one open gig order with its delivery action — file_back uploads a
+ * #328: one open gig order with its delivery action, file_back uploads a
  * return file (PDF/DOCX); session/package mark complete with an optional
  * note. Buyer identity never appears here (the server fn never returns it).
  */
@@ -805,13 +805,13 @@ function GigFulfillRow({ order }: { order: MyGigOrderRow }) {
       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="truncate font-semibold">{order.title}</p>
+            <p className="truncate font-medium">{order.title}</p>
             {order.status === "past_due" ? (
-              <span className="rounded-md bg-[#F4212E]/10 px-2 py-0.5 text-xs font-bold text-[#B42318]">
+              <span className="rounded-md bg-[#F4212E]/10 px-2 py-0.5 text-xs font-medium text-[#B42318]">
                 {t("account.order_past_due")}
               </span>
             ) : (
-              <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-700">
+              <span className="rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700">
                 {t("account.order_awaiting_delivery")}
               </span>
             )}
@@ -837,7 +837,7 @@ function GigFulfillRow({ order }: { order: MyGigOrderRow }) {
                 type="button"
                 variant="outline"
                 size="sm"
-                className="font-semibold"
+                className="font-medium"
                 disabled={sourceUrl.isPending}
                 onClick={() => sourceUrl.mutate()}
               >
@@ -881,7 +881,7 @@ function GigFulfillRow({ order }: { order: MyGigOrderRow }) {
         <div>
           <Button
             variant="outline"
-            className="font-semibold"
+            className="font-medium"
             disabled={deliver.isPending || fileTooLarge || (isFileBack && !file)}
             onClick={() => deliver.mutate()}
           >

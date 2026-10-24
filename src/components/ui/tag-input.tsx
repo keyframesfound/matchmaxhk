@@ -120,7 +120,7 @@ export function TagInput({
             return (
               <span
                 key={tag}
-                className="inline-flex items-center gap-1 rounded-md bg-[color:var(--ink)]/[0.07] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--ink)]/[0.12]"
+                className="inline-flex items-center gap-1 rounded-md bg-[color:var(--ink)]/[0.07] px-2.5 py-1 text-xs font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--ink)]/[0.12]"
               >
                 <span>{label}</span>
                 {!disabled && (
@@ -201,7 +201,7 @@ export function TagInput({
                   onClick={() => {
                     addTag(trimmedInput);
                   }}
-                  className="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-xs font-semibold text-[color:var(--brand-link)] hover:bg-[color:var(--foreground)]/[0.06] text-left"
+                  className="flex w-full items-center justify-between rounded-md px-2.5 py-1.5 text-xs font-medium text-[color:var(--brand-link)] hover:bg-[color:var(--foreground)]/[0.06] text-left"
                 >
                   <span>Add &ldquo;{trimmedInput}&rdquo;</span>
                   <Plus className="h-3.5 w-3.5" />

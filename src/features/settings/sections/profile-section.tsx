@@ -94,7 +94,7 @@ export function ProfileSection({ user, profile, updateProfile }: SettingsSection
             {t("settings.profile.email_readonly_hint")}
           </p>
         </div>
-        <Button type="submit" disabled={!profile || saving} className="font-bold">
+        <Button type="submit" disabled={!profile || saving} className="font-medium">
           {saving ? t("settings.profile.saving") : t("settings.profile.save")}
         </Button>
       </form>

@@ -4,7 +4,7 @@ import { parseYouTubeUrl } from "./youtube";
  * Issue #392: Vimeo is the second EMBED-ONLY video host for course lessons.
  * Tutors paste an UNLISTED Vimeo link; the app parses it into a
  * player.vimeo.com embed. No video file upload path exists or may be added
- * (CEO hosting pivot 2026-10-21: bandwidth stays off MatchMax) — and every
+ * (CEO hosting pivot 2026-10-21: bandwidth stays off MatchMax), and every
  * other host (Google Drive, Loom, …) is rejected at validation time.
  */
 
@@ -20,7 +20,7 @@ export type VimeoVideoInfo = {
  *   - https://player.vimeo.com/video/<digits>
  * (trailing slash / query string tolerated). Album, channel, showcase,
  * review and private links carry path segments that are not a bare numeric
- * video id and are rejected — those URLs do not embed as a plain video.
+ * video id and are rejected, those URLs do not embed as a plain video.
  */
 const VIMEO_PATTERNS = [
   /(?:^|\/\/)(?:www\.)?vimeo\.com\/(\d{4,15})(?:[/?#]|$)/i,
@@ -49,7 +49,7 @@ export function parseVimeoUrl(raw: string | null | undefined): VimeoVideoInfo | 
  * The single course-video validator used everywhere (editor paste check,
  * submit gate, buyer access, admin review embeds). YouTube first (watch /
  * youtu.be / shorts / embed / live via parseYouTubeUrl → youtube-nocookie),
- * then Vimeo. Anything else — Google Drive, Loom, a bare MP4 URL — returns
+ * then Vimeo. Anything else, Google Drive, Loom, a bare MP4 URL, returns
  * null and the caller must reject it.
  */
 export type CourseVideoInfo = {

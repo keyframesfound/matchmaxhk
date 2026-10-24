@@ -25,7 +25,7 @@ type TutorAvailability = {
 };
 
 /**
- * "Availability" — tutor self-serve start date (issue #106). Saves through the
+ * "Availability", tutor self-serve start date (issue #106). Saves through the
  * update_my_availability RPC so the tutor can only ever touch these two
  * fields on their own card, with no admin review cycle.
  */
@@ -209,14 +209,14 @@ export function AvailabilitySection() {
             </p>
           ) : null}
 
-          <Button type="submit" disabled={saving || !dirty} className="font-bold">
+          <Button type="submit" disabled={saving || !dirty} className="font-medium">
             {saving ? t("settings.availability.saving") : t("settings.availability.save")}
           </Button>
 
           {/* Issue #103: self-serve "Capacity & Availability" card. */}
           <div className="space-y-4 border-t border-[color:var(--ink)]/10 pt-6">
             <div>
-              <p className="text-sm font-bold text-[color:var(--ink)]">
+              <p className="text-sm font-medium text-[color:var(--ink)]">
                 {t("settings.capacity.title")}
               </p>
               <p className="mt-1 text-xs leading-5 text-[color:var(--ink)]/60">
@@ -238,7 +238,7 @@ export function AvailabilitySection() {
               type="button"
               disabled={capacitySaving || !capacityDirty}
               onClick={() => void saveCapacity()}
-              className="font-bold"
+              className="font-medium"
             >
               {capacitySaving
                 ? t("settings.capacity.saving")

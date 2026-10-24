@@ -13,18 +13,18 @@ import {
 } from "@/features/tutors/profile-tags";
 
 /**
- * Issue #217 — shared editor for the up-to-five profile tags, used by the
+ * Issue #217, shared editor for the up-to-five profile tags, used by the
  * tutor self-serve settings form and the admin TutorEditor. Typing Enter or
  * comma commits a tag; tags render as removable chips. The cap and the
  * contact-detail rule come from parseProfileTags; local (non-i18n) error
- * messages on purpose — the admin editor is English-only, so the shared
+ * messages on purpose, the admin editor is English-only, so the shared
  * component stays language-neutral.
  *
- * Issue #311 — as the tutor types, existing tags with their tutor counts
+ * Issue #311, as the tutor types, existing tags with their tutor counts
  * are suggested ("ia review · 12"); picking one saves that spelling. The
  * preset tags (examiner, ia review, tok, ee, sba, oral, past-paper
  * practice) show as one-tap chips when not already saved. Both honor the
- * 5-tag cap — picking or committing a sixth shows the too_many error.
+ * 5-tag cap, picking or committing a sixth shows the too_many error.
  */
 
 type ProfileTagsFieldProps = {
@@ -46,7 +46,7 @@ export function ProfileTagsField({ tags, onChange, suggestions, id }: ProfileTag
       setError(
         result.error === "too_many"
           ? `Add no more than ${MAX_PROFILE_TAGS} tags`
-          : `Tag "${result.tag}" looks like contact details — not allowed`,
+          : `Tag "${result.tag}" looks like contact details, not allowed`,
       );
       return;
     }
@@ -110,7 +110,7 @@ export function ProfileTagsField({ tags, onChange, suggestions, id }: ProfileTag
         onChange={(e) => setDraft(e.target.value)}
         onKeyDown={handleKeyDown}
         onBlur={commitDraft}
-        placeholder="e.g. ia review, tok essay — press Enter after each (max 5)"
+        placeholder="e.g. ia review, tok essay, press Enter after each (max 5)"
         className="bg-[color:var(--surface)]"
       />
       {liveSuggestions.length > 0 ? (

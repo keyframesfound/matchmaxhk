@@ -7,7 +7,6 @@ import { z } from "zod";
 
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
 import { PublicPage } from "@/components/layout/PublicPage";
-import { Reveal } from "@/components/ui/reveal";
 import { useAuth } from "@/features/auth/useAuth";
 import { HelpArticleLink, useSupportWhatsAppHref } from "@/features/help/components";
 import {
@@ -28,14 +27,14 @@ export const Route = createFileRoute("/help/")({
       {
         name: "description",
         content:
-          "Guides and answers for MatchMax tutors and parents — parent communication, scheduling, pedagogy, payments, policies, and getting started with lessons.",
+          "Guides and answers for MatchMax tutors and parents, parent communication, scheduling, pedagogy, payments, policies, and getting started with lessons.",
       },
       { name: "robots", content: "index, follow" },
       { property: "og:title", content: "Help Centre | MatchMax" },
       {
         property: "og:description",
         content:
-          "Guides and answers for MatchMax tutors and parents — communication, scheduling, pedagogy, payments, and policies.",
+          "Guides and answers for MatchMax tutors and parents, communication, scheduling, pedagogy, payments, and policies.",
       },
       { property: "og:url", content: "https://matchmax.hk/help" },
     ],
@@ -61,20 +60,20 @@ function FeaturedGuideCard({ article }: { article: HelpArticle }) {
           aria-hidden="true"
         />
         {isHandbook ? (
-          <span className="absolute left-4 top-4 rounded-full bg-[color:var(--foreground)] px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-[color:var(--background)]">
+          <span className="absolute left-4 top-4 rounded-full bg-[color:var(--foreground)] px-3 py-1 text-[11px] font-medium text-[color:var(--background)]">
             {t("help.must_read")}
           </span>
         ) : null}
       </div>
       <div className="flex flex-1 flex-col p-5">
-        <p className="text-base font-bold leading-snug tracking-tight text-foreground sm:text-lg">
+        <p className="text-base font-medium leading-snug tracking-tight text-foreground sm:text-lg">
           {article.title}
         </p>
         <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted-foreground">
           {article.summary}
         </p>
         {article.status === "draft" ? (
-          <span className="mt-3 inline-flex w-fit items-center rounded-full border border-border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <span className="mt-3 inline-flex w-fit items-center rounded-full border border-border px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
             {t("help.coming_soon_badge")}
           </span>
         ) : null}
@@ -101,7 +100,7 @@ function TopicCategoryCard({
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-muted">
           <Icon className="h-5 w-5 text-[color:var(--brand-link)]" aria-hidden="true" />
         </span>
-        <h3 className="text-base font-bold leading-snug tracking-tight text-foreground">
+        <h3 className="text-base font-medium leading-snug tracking-tight text-foreground">
           {category.name}
         </h3>
       </div>
@@ -109,7 +108,7 @@ function TopicCategoryCard({
         {articles.map((article, index) => (
           <li key={article.slug} className={cn("py-3", index > 0 && "border-t border-border")}>
             <HelpArticleLink article={article} className="group block">
-              <span className="text-sm font-semibold leading-6 text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors group-hover:text-[color:var(--brand-link)] group-hover:decoration-[color:var(--brand-link)]">
+              <span className="text-sm font-medium leading-6 text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors group-hover:text-[color:var(--brand-link)] group-hover:decoration-[color:var(--brand-link)]">
                 {article.title}
               </span>
               <span className="mt-1 line-clamp-2 block text-sm leading-6 text-muted-foreground">
@@ -117,7 +116,7 @@ function TopicCategoryCard({
               </span>
             </HelpArticleLink>
             {article.status === "draft" ? (
-              <span className="mt-1.5 inline-block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/80">
+              <span className="mt-1.5 inline-block text-[11px] font-medium text-muted-foreground/80">
                 {t("help.coming_soon_badge")}
               </span>
             ) : null}
@@ -133,7 +132,7 @@ function SearchResults({ query, results }: { query: string; results: HelpArticle
 
   return (
     <section className="mx-auto w-full max-w-[1440px] px-5 py-12 sm:px-8 lg:px-12">
-      <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+      <h2 className="text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
         {results.length > 0 ? t("help.results_title") : t("help.no_results_title", { query })}
       </h2>
       {results.length > 0 ? (
@@ -150,14 +149,14 @@ function SearchResults({ query, results }: { query: string; results: HelpArticle
                   article={article}
                   className="group rounded-2xl border border-border bg-card p-5 transition-colors hover:border-[color:var(--foreground)]/25"
                 >
-                  <span className="text-sm font-bold leading-snug tracking-tight text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors group-hover:text-[color:var(--brand-link)] group-hover:decoration-[color:var(--brand-link)]">
+                  <span className="text-sm font-medium leading-snug tracking-tight text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors group-hover:text-[color:var(--brand-link)] group-hover:decoration-[color:var(--brand-link)]">
                     {article.title}
                   </span>
                   <span className="mt-2 line-clamp-2 block text-sm leading-6 text-muted-foreground">
                     {article.summary}
                   </span>
                   {categoryName ? (
-                    <span className="mt-3 inline-block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/80">
+                    <span className="mt-3 inline-block text-[11px] font-medium text-muted-foreground/80">
                       {categoryName}
                     </span>
                   ) : null}
@@ -209,7 +208,7 @@ function HelpCentrePage() {
     <PublicPage>
       <section className="border-b border-border">
         <div className="mx-auto w-full max-w-3xl px-5 pt-14 pb-10 text-center sm:pt-20 sm:pb-12">
-          <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
+          <h1 className="text-balance text-4xl font-medium tracking-tight text-foreground sm:text-5xl">
             {t("help.title")}
           </h1>
 
@@ -263,7 +262,7 @@ function HelpCentrePage() {
                 aria-selected={activeTab === tab}
                 onClick={() => setTab(tab)}
                 className={cn(
-                  "relative isolate h-9 shrink-0 whitespace-nowrap rounded-full px-5 text-sm font-semibold transition-colors",
+                  "relative isolate h-9 shrink-0 whitespace-nowrap rounded-full px-5 text-sm font-medium transition-colors",
                   activeTab === tab
                     ? "text-[color:var(--background)]"
                     : "text-muted-foreground hover:text-foreground",
@@ -293,72 +292,64 @@ function HelpCentrePage() {
         <SearchResults query={query.trim()} results={results} />
       ) : (
         <>
-          <Reveal>
-            <section className="mx-auto w-full max-w-[1440px] px-5 py-12 sm:px-8 lg:px-12">
-              <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-                {t("help.featured_title")}
-              </h2>
-              <div className="mt-6 grid gap-4 md:grid-cols-2">
-                {featured.map((article) => (
-                  <FeaturedGuideCard key={article.slug} article={article} />
-                ))}
-              </div>
-            </section>
-          </Reveal>
+          <section className="mx-auto w-full max-w-[1440px] px-5 py-12 sm:px-8 lg:px-12">
+            <h2 className="text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
+              {t("help.featured_title")}
+            </h2>
+            <div className="mt-6 grid gap-4 md:grid-cols-2">
+              {featured.map((article) => (
+                <FeaturedGuideCard key={article.slug} article={article} />
+              ))}
+            </div>
+          </section>
 
-          <Reveal>
-            <section className="mx-auto w-full max-w-[1440px] px-5 pb-14 sm:px-8 lg:px-12">
-              <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-                {t("help.topics_title")}
-              </h2>
-              <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {topics.map(({ category, articles }) => (
-                  <TopicCategoryCard
-                    key={category.slug}
-                    categorySlug={category.slug}
-                    articles={articles}
-                  />
-                ))}
-              </div>
-            </section>
-          </Reveal>
+          <section className="mx-auto w-full max-w-[1440px] px-5 pb-14 sm:px-8 lg:px-12">
+            <h2 className="text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
+              {t("help.topics_title")}
+            </h2>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {topics.map(({ category, articles }) => (
+                <TopicCategoryCard
+                  key={category.slug}
+                  categorySlug={category.slug}
+                  articles={articles}
+                />
+              ))}
+            </div>
+          </section>
         </>
       )}
 
-      <Reveal>
-        <section className="border-t border-border bg-muted/40">
-          <div className="mx-auto w-full max-w-2xl px-5 py-16 text-center">
-            <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card">
-              <LifeBuoy className="h-6 w-6 text-[color:var(--brand-link)]" aria-hidden="true" />
-            </span>
-            <h2 className="mt-5 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
-              {t("help.contact_title")}
-            </h2>
-            <p className="mt-3 text-base leading-7 text-muted-foreground">
-              {t("help.contact_body")}
-            </p>
-            {supportHref ? (
-              <a
-                href={supportHref}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-7 text-[15px] font-semibold text-white transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
-              >
-                <WhatsAppIcon className="h-5 w-5" aria-hidden="true" />
-                {t("help.contact_cta")}
-              </a>
-            ) : null}
-            <p className="mt-5 text-sm text-muted-foreground">
-              <a
-                href="mailto:contact@matchmax.hk?subject=MatchMax%20platform%20feedback"
-                className="font-semibold text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors hover:text-[color:var(--brand-link)] hover:decoration-[color:var(--brand-link)]"
-              >
-                {t("help.feedback_link")}
-              </a>
-            </p>
-          </div>
-        </section>
-      </Reveal>
+      <section className="border-t border-border bg-muted/40">
+        <div className="mx-auto w-full max-w-2xl px-5 py-16 text-center">
+          <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card">
+            <LifeBuoy className="h-6 w-6 text-[color:var(--brand-link)]" aria-hidden="true" />
+          </span>
+          <h2 className="mt-5 text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
+            {t("help.contact_title")}
+          </h2>
+          <p className="mt-3 text-base leading-7 text-muted-foreground">{t("help.contact_body")}</p>
+          {supportHref ? (
+            <a
+              href={supportHref}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-7 text-[15px] font-medium text-white transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
+            >
+              <WhatsAppIcon className="h-5 w-5" aria-hidden="true" />
+              {t("help.contact_cta")}
+            </a>
+          ) : null}
+          <p className="mt-5 text-sm text-muted-foreground">
+            <a
+              href="mailto:contact@matchmax.hk?subject=MatchMax%20platform%20feedback"
+              className="font-medium text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors hover:text-[color:var(--brand-link)] hover:decoration-[color:var(--brand-link)]"
+            >
+              {t("help.feedback_link")}
+            </a>
+          </p>
+        </div>
+      </section>
     </PublicPage>
   );
 }

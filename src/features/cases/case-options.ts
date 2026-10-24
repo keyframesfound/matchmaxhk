@@ -67,7 +67,7 @@ export const CURRICULUM_OPTIONS = [
 
 // Optional second-level filter for admissions requests: the umbrella splits
 // into the standardized-test hurdle and the application-support hurdle.
-// Purely a UI scope — narrowing the subject dropdown; the stored value stays
+// Purely a UI scope, narrowing the subject dropdown; the stored value stays
 // the subject itself.
 export const ADMISSIONS_CATEGORY_OPTIONS = [
   { value: "", label: "All admissions subjects" },
@@ -82,7 +82,7 @@ export const ADMISSIONS_CATEGORY_OPTIONS = [
 ];
 
 // Curriculum-specific components. The sentinel option is worded
-// "Subject Tutoring" (issue #182) — plain tutoring rather than a named
+// "Subject Tutoring" (issue #182), plain tutoring rather than a named
 // component like IA/EE/TOK; it is stripped before persisting.
 export const COMPONENT_SENTINEL = "Subject Tutoring";
 
@@ -177,7 +177,7 @@ export const SCHOOL_TYPE_OPTIONS = [
 
 // --- Issue #423 (sections 2+3): structured package fields -------------------
 
-/** Fee-rule packages — the card footer pill renders the same vocabulary. */
+/** Fee-rule packages, the card footer pill renders the same vocabulary. */
 export const PACKAGE_TYPE_OPTIONS = [
   { value: "ongoing_1_5", label: "Ongoing (>5 lessons)" },
   { value: "short_20", label: "Short package (≤5 lessons)" },
@@ -191,7 +191,7 @@ export const RATE_UNIT_OPTIONS = [
   { value: "month", label: "Per month" },
 ] as const;
 
-/** Hard student-count dropdown — card shows "👥 N students" when > 1. */
+/** Hard student-count dropdown, card shows "👥 N students" when > 1. */
 export const STUDENT_COUNT_OPTIONS = [1, 2, 3, 4, 5].map((count) => ({
   value: String(count),
   label: count === 1 ? "1 student" : `${count} students`,
@@ -226,7 +226,7 @@ export function getSubjectOptionsForCurriculum(curriculum: string): string[] {
  * Which curricula are coherent for each case-request funnel level. A
  * `Primary` case must never carry an `IB` curriculum (the "Primary: Chem HL"
  * auto-title bug), so the picker filters to this set and the submit handler
- * drops inconsistent pairs server-side (DROP-not-reject — unauthenticated-
+ * drops inconsistent pairs server-side (DROP-not-reject, unauthenticated-
  * adjacent path must never 500).
  *
  * Legacy stored curricula ("Local Primary", "Int'l Primary") stay readable
@@ -251,7 +251,7 @@ export function getCurriculumOptionsForLevel(
 /**
  * Server-side tier consistency for a submitted case: returns the
  * tier-coherent {curriculum, subjects} pair, DROPPING anything that
- * contradicts the funnel level (never throws — #396 precedent).
+ * contradicts the funnel level (never throws, #396 precedent).
  *
  * A curriculum outside the level's set is dropped together with the subjects
  * drawn from its pool; free-text/custom subjects survive (the subject picker
@@ -264,7 +264,7 @@ export function enforceCaseTierConsistency(payload: {
   subjects: string[];
 }): { curriculum: string | null; subjects: string[] } {
   const { supportType, academicLevel, subjects } = payload;
-  // Admissions auto-locks the curriculum umbrella — always coherent.
+  // Admissions auto-locks the curriculum umbrella, always coherent.
   if (supportType === "admissions") {
     return { curriculum: ADMISSIONS_CURRICULUM, subjects };
   }

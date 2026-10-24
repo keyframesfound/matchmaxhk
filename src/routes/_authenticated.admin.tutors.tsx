@@ -75,10 +75,19 @@ export const Route = createFileRoute("/_authenticated/admin/tutors")({
       typeof search.applicationId === "string" && search.applicationId.trim()
         ? search.applicationId.trim()
         : undefined,
+    // Filters live in the URL (same pattern as /admin/cases, issue #71) so a
+    // reload or shared link restores the exact desk view.
+    q: typeof search.q === "string" ? search.q : "",
+    visibility: typeof search.visibility === "string" ? search.visibility : "all",
+    format: typeof search.format === "string" ? search.format : "all",
+    subject: typeof search.subject === "string" ? search.subject : "all",
+    district: typeof search.district === "string" ? search.district : "all",
+    completeness: typeof search.completeness === "string" ? search.completeness : "all",
+    sort: typeof search.sort === "string" ? search.sort : "newest",
   }),
   head: () => ({
     meta: [
-      { title: "Tutors — MatchMax Admin" },
+      { title: "Tutors, MatchMax Admin" },
       { name: "description", content: "Manage tutors on MatchMax." },
       { name: "robots", content: "noindex" },
     ],
@@ -91,18 +100,27 @@ function AdminTutors() {
   const navigate = useNavigate();
   const routeSearch = Route.useSearch();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState("");
   const [editingTutor, setEditingTutor] = useState<Tutor | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirmBatchDelete, setConfirmBatchDelete] = useState(false);
-  const [visibilityFilter, setVisibilityFilter] = useState("all");
-  const [formatFilter, setFormatFilter] = useState("all");
-  const [subjectFilter, setSubjectFilter] = useState("all");
-  const [districtFilter, setDistrictFilter] = useState("all");
-  const [completenessFilter, setCompletenessFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("newest");
+  const {
+    q: search,
+    visibility: visibilityFilter,
+    format: formatFilter,
+    subject: subjectFilter,
+    district: districtFilter,
+    completeness: completenessFilter,
+    sort: sortBy,
+  } = routeSearch;
+  const updateDeskSearch = (patch: Record<string, string>) => {
+    navigate({
+      to: "/admin/tutors",
+      search: { ...routeSearch, ...patch },
+      replace: true,
+    }).catch(() => {});
+  };
 
   useEffect(() => {
     if (!loading && !hasAnyRole(["admin", "super_admin"])) {
@@ -123,7 +141,7 @@ function AdminTutors() {
     if (routeSearch.create || routeSearch.applicationId) {
       navigate({
         to: "/admin/tutors",
-        search: { create: undefined, applicationId: undefined },
+        search: { ...routeSearch, create: undefined, applicationId: undefined },
         replace: true,
       }).catch(() => {});
     }
@@ -185,12 +203,14 @@ function AdminTutors() {
     completenessFilter !== "all";
 
   const clearFilters = () => {
-    setSearch("");
-    setVisibilityFilter("all");
-    setFormatFilter("all");
-    setSubjectFilter("all");
-    setDistrictFilter("all");
-    setCompletenessFilter("all");
+    updateDeskSearch({
+      q: "",
+      visibility: "all",
+      format: "all",
+      subject: "all",
+      district: "all",
+      completeness: "all",
+    });
   };
 
   const filtered = useMemo(() => {
@@ -381,8 +401,8 @@ function AdminTutors() {
     onSuccess: (_data, variables) => {
       toast.success(
         variables.action === "approve"
-          ? "Account deleted — data wipe complete"
-          : "Deletion request denied — account on hold",
+          ? "Account deleted, data wipe complete"
+          : "Deletion request denied, account on hold",
       );
       invalidateTutorQueries();
     },
@@ -506,10 +526,10 @@ function AdminTutors() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-[color:var(--ink)]/10">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
+                    <h1 className="text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl">
                       Tutor Directory
                     </h1>
-                    <span className="rounded-full bg-[color:var(--ink)]/5 px-2.5 py-0.5 text-xs font-bold text-[color:var(--ink)]">
+                    <span className="rounded-full bg-[color:var(--ink)]/5 px-2.5 py-0.5 text-xs font-medium text-[color:var(--ink)]">
                       {tutors.length}
                     </span>
                   </div>
@@ -517,7 +537,7 @@ function AdminTutors() {
                     Add, edit, and organize verified tutors and their public profiles.
                   </p>
                 </div>
-                <Button onClick={() => setIsCreating(true)} className="font-bold">
+                <Button onClick={() => setIsCreating(true)} className="font-medium">
                   <Plus className="mr-2 h-4 w-4" /> Add New Tutor
                 </Button>
               </div>
@@ -531,16 +551,16 @@ function AdminTutors() {
                       className="h-4 w-4 text-amber-700 dark:text-amber-400"
                       aria-hidden="true"
                     />
-                    <h2 className="text-sm font-bold text-[color:var(--ink)]">
+                    <h2 className="text-sm font-medium text-[color:var(--ink)]">
                       Account Deletion Requests
                     </h2>
-                    <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300">
+                    <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-300">
                       {deletionRequests.length}
                     </span>
                   </div>
                   <p className="mt-1 text-xs text-[color:var(--ink)]/70">
                     Tutors asking to remove their accounts. Approve only after confirming no pending
-                    matching fees or active introductory cases — approval permanently wipes the
+                    matching fees or active introductory cases, approval permanently wipes the
                     account and cannot be undone.
                   </p>
                   <ul className="mt-3 space-y-2">
@@ -550,7 +570,7 @@ function AdminTutors() {
                         className="flex flex-col gap-2 rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface)] px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
                       >
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-[color:var(--ink)]">
+                          <p className="text-sm font-medium text-[color:var(--ink)]">
                             <span className="font-mono">{request.tutor_code || "Unnamed"}</span>
                             {request.display_name ? ` · ${request.display_name}` : ""}
                           </p>
@@ -569,7 +589,7 @@ function AdminTutors() {
                                   <Button
                                     size="sm"
                                     disabled={deletionRequestMutation.isPending}
-                                    className="bg-destructive font-bold text-[color:var(--destructive-foreground)] hover:bg-destructive/90"
+                                    className="bg-destructive font-medium text-[color:var(--destructive-foreground)] hover:bg-destructive/90"
                                   >
                                     Approve Deletion
                                   </Button>
@@ -621,7 +641,7 @@ function AdminTutors() {
                             </>
                           ) : (
                             <span className="text-xs text-muted-foreground">
-                              No linked account — resolve manually
+                              No linked account, resolve manually
                             </span>
                           )}
                         </div>
@@ -638,11 +658,14 @@ function AdminTutors() {
                   <Input
                     placeholder="Search by code, subject, card highlight..."
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => updateDeskSearch({ q: e.target.value })}
                     className="pl-9 h-10 bg-[color:var(--surface)] border-[color:var(--ink)]/15"
                   />
                 </div>
-                <Select value={visibilityFilter} onValueChange={setVisibilityFilter}>
+                <Select
+                  value={visibilityFilter}
+                  onValueChange={(v) => updateDeskSearch({ visibility: v })}
+                >
                   <SelectTrigger className="h-10 w-36 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
                     <SelectValue />
                   </SelectTrigger>
@@ -652,7 +675,7 @@ function AdminTutors() {
                     <SelectItem value="hidden">Hidden</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={formatFilter} onValueChange={setFormatFilter}>
+                <Select value={formatFilter} onValueChange={(v) => updateDeskSearch({ format: v })}>
                   <SelectTrigger className="h-10 w-36 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
                     <SelectValue />
                   </SelectTrigger>
@@ -663,7 +686,10 @@ function AdminTutors() {
                     <SelectItem value="either">Hybrid</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={completenessFilter} onValueChange={setCompletenessFilter}>
+                <Select
+                  value={completenessFilter}
+                  onValueChange={(v) => updateDeskSearch({ completeness: v })}
+                >
                   <SelectTrigger className="h-10 w-40 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
                     <SelectValue />
                   </SelectTrigger>
@@ -675,7 +701,7 @@ function AdminTutors() {
                 </Select>
                 <SearchableSelect
                   value={subjectFilter}
-                  onChange={setSubjectFilter}
+                  onChange={(v) => updateDeskSearch({ subject: v })}
                   options={[
                     { value: "all", label: "All subjects" },
                     ...subjectOptions.map((subject) => ({ value: subject, label: subject })),
@@ -686,7 +712,7 @@ function AdminTutors() {
                 />
                 <SearchableSelect
                   value={districtFilter}
-                  onChange={setDistrictFilter}
+                  onChange={(v) => updateDeskSearch({ district: v })}
                   options={[
                     { value: "all", label: "All districts" },
                     ...districtOptions.map((district) => ({ value: district, label: district })),
@@ -695,7 +721,7 @@ function AdminTutors() {
                   searchPlaceholder="Search district..."
                   className="h-10 w-44 rounded-md"
                 />
-                <Select value={sortBy} onValueChange={setSortBy}>
+                <Select value={sortBy} onValueChange={(v) => updateDeskSearch({ sort: v })}>
                   <SelectTrigger className="h-10 w-44 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
                     <SelectValue />
                   </SelectTrigger>
@@ -723,7 +749,7 @@ function AdminTutors() {
               {/* Batch actions */}
               {selectedIds.size > 0 ? (
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-4 py-3">
-                  <span className="text-sm font-bold text-[color:var(--ink)]">
+                  <span className="text-sm font-medium text-[color:var(--ink)]">
                     {selectedIds.size} selected
                   </span>
                   <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -775,8 +801,9 @@ function AdminTutors() {
               ) : null}
 
               <p className="text-sm text-muted-foreground">
-                Showing <span className="font-bold text-[color:var(--ink)]">{filtered.length}</span>{" "}
-                of {tutors.length} tutor{tutors.length === 1 ? "" : "s"}
+                Showing{" "}
+                <span className="font-medium text-[color:var(--ink)]">{filtered.length}</span> of{" "}
+                {tutors.length} tutor{tutors.length === 1 ? "" : "s"}
               </p>
 
               <ConsoleTable tableClassName="text-left">
@@ -852,13 +879,13 @@ function AdminTutors() {
                               className="h-10 w-10 rounded-xl object-cover ring-1 ring-[color:var(--ink)]/10"
                             />
                           ) : (
-                            <div className="grid h-10 w-10 place-items-center rounded-xl bg-[color:var(--ink)]/[0.06] text-xs font-bold text-[color:var(--ink)]/60">
+                            <div className="grid h-10 w-10 place-items-center rounded-xl bg-[color:var(--ink)]/[0.06] text-xs font-medium text-[color:var(--ink)]/60">
                               {(row.tutor_code || "MM").slice(0, 2)}
                             </div>
                           )}
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <span className="font-bold text-[color:var(--ink)] font-mono">
+                              <span className="font-medium text-[color:var(--ink)] font-mono">
                                 {row.tutor_code || "Unnamed"}
                               </span>
                               {getTutorGenderLabel(row.gender) && (
@@ -911,7 +938,7 @@ function AdminTutors() {
                         </div>
                       </ConsoleTd>
 
-                      <ConsoleTd className="font-semibold text-[color:var(--ink)]">
+                      <ConsoleTd className="font-medium text-[color:var(--ink)]">
                         HK${row.hourly_rate}
                         <span className="text-xs text-muted-foreground font-normal">/hr</span>
                       </ConsoleTd>
@@ -930,7 +957,7 @@ function AdminTutors() {
                           />
                           <span
                             className={cn(
-                              "text-xs font-semibold",
+                              "text-xs font-medium",
                               row.is_published
                                 ? "text-emerald-700 dark:text-emerald-400"
                                 : "text-muted-foreground",

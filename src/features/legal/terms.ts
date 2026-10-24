@@ -1,5 +1,5 @@
 /**
- * Issue #214 — Terms of Service gates.
+ * Issue #214, Terms of Service gates.
  *
  * Single source of truth for the terms version the gated surfaces
  * (signup, note upload, checkout, referral signup, case request, centre
@@ -35,7 +35,7 @@ export const TERMS_SURFACES = [
   "referral_signup",
   // Issue #253 (F2): the parent case-request form's matching-fee checkbox.
   "case_request",
-  // Issue #412: Partner Org join — authority checkbox + partnership terms.
+  // Issue #412: Partner Org join, authority checkbox + partnership terms.
   "centre_partnership",
 ] as const;
 
@@ -53,7 +53,7 @@ export type TermsAcceptanceInput = {
   subjectId?: string | null;
   /** #412 D: request IP at acceptance time (server-captured, best-effort). */
   ipAddress?: string | null;
-  /** #412 D: centre-partnership rows — the legal entity the rep bound. */
+  /** #412 D: centre-partnership rows, the legal entity the rep bound. */
   legalEntityName?: string | null;
   /** #412 D: exact checkbox label strings shown (audit trail outlives copy). */
   acceptanceDetails?: string[] | null;

@@ -15,7 +15,7 @@ import {
 } from "@/features/cases/engagement.functions";
 
 /**
- * Issue #412 F — the 1-page Engagement Summary card shared by the parent,
+ * Issue #412 F, the 1-page Engagement Summary card shared by the parent,
  * tutor, org, and admin surfaces. Both parties 1-click confirm the exact
  * version before contact details / lesson commencement are finalised, and
  * either party can report a material change (re-holds the case).
@@ -84,7 +84,7 @@ export function EngagementSummaryCard({
   return (
     <section className="rounded-xl border border-border bg-[color:var(--surface)] p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]">
+        <h2 className="flex items-center gap-2 text-sm font-medium text-[color:var(--ink)]">
           <FileText className="h-4 w-4 text-[color:var(--brand-link)]" aria-hidden="true" />
           {t("engagement.summary.title")}
         </h2>
@@ -131,7 +131,7 @@ export function EngagementSummaryCard({
           <span
             className={
               summary.customerConfirmedAt
-                ? "inline-flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400"
+                ? "inline-flex items-center gap-1 font-medium text-emerald-700 dark:text-emerald-400"
                 : "text-muted-foreground"
             }
           >
@@ -144,7 +144,7 @@ export function EngagementSummaryCard({
           <span
             className={
               summary.tutorConfirmedAt
-                ? "inline-flex items-center gap-1 font-semibold text-emerald-700 dark:text-emerald-400"
+                ? "inline-flex items-center gap-1 font-medium text-emerald-700 dark:text-emerald-400"
                 : "text-muted-foreground"
             }
           >
@@ -176,7 +176,7 @@ export function EngagementSummaryCard({
           </div>
         ) : null}
 
-        {/* Report a material change — re-holds the case for re-screening. */}
+        {/* Report a material change, re-holds the case for re-screening. */}
         {reporting ? (
           <div className="space-y-2">
             <Textarea
@@ -206,7 +206,7 @@ export function EngagementSummaryCard({
         ) : (
           <button
             type="button"
-            className="text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
+            className="text-xs font-medium text-[color:var(--brand-link)] hover:underline"
             onClick={() => setReporting(true)}
           >
             {t("engagement.summary.report_title")}
@@ -216,7 +216,7 @@ export function EngagementSummaryCard({
         {/* Open change reports (staff can resolve). */}
         {summary.openChangeReports.length > 0 ? (
           <div className="space-y-1.5 rounded-md bg-purple-500/[0.06] px-3 py-2">
-            <p className="text-[11px] font-bold text-purple-700 dark:text-purple-400">
+            <p className="text-[11px] font-medium text-purple-700 dark:text-purple-400">
               {t("engagement.summary.open_reports", { count: summary.openChangeReports.length })}
             </p>
             {summary.openChangeReports.map((r) => (

@@ -1,7 +1,7 @@
 import type { AppRole } from "./useAuth";
 
 /**
- * Friendly labels — never surface raw role slugs to users.
+ * Friendly labels, never surface raw role slugs to users.
  * i18n keys live under `roles.*` in the locale files.
  */
 export const ROLE_LABEL_KEY: Record<AppRole, string> = {

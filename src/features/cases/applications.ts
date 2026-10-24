@@ -1,14 +1,14 @@
 /**
- * Issue #81 — case applications: pure helpers + types.
+ * Issue #81, case applications: pure helpers + types.
  *
  * The 1-click Apply-to-staff record lives in the `case_applications` table
- * (RLS-deny, service-role server fns only — see applications.functions.ts).
+ * (RLS-deny, service-role server fns only, see applications.functions.ts).
  * This module holds the SHARED eligibility + note-validation logic so the
  * tutor board UI and the server fns can never drift, and so the vitest suite
  * can exercise the rules without a database:
  *   - canApplyToCase: the single gate both surfaces call.
  *   - caseGenderMismatch: the exact rule the WhatsApp Apply button has dimmed
- *     on since #423 — factored out of the detail page so in-app Apply blocks
+ *     on since #423, factored out of the detail page so in-app Apply blocks
  *     with the same reason.
  * No supabase imports here (contact-filter is pure).
  */
@@ -26,7 +26,7 @@ export function isApplicationStatus(value: unknown): value is CaseApplicationSta
   return typeof value === "string" && APPLICATION_STATUSES.includes(value as CaseApplicationStatus);
 }
 
-/** case_applications row (local type — the table is not in the generated DB types). */
+/** case_applications row (local type, the table is not in the generated DB types). */
 export type CaseApplicationRow = {
   id: string;
   case_id: string;
@@ -52,7 +52,7 @@ export type CaseApplicationAdminRow = CaseApplicationRow & {
 // Eligibility (#81): the ONE Apply gate
 // ---------------------------------------------------------------------------
 
-/** Stable reason tokens — the UI maps them to i18n copy, server re-checks them. */
+/** Stable reason tokens, the UI maps them to i18n copy, server re-checks them. */
 export type ApplicationBlockReason =
   | "CASE_NOT_ON_BOARD"
   | "CASE_CLOSED"
@@ -99,7 +99,7 @@ const CASE_CLOSED_STATUSES = new Set(["matched", "closed", "rejected", "complian
 /**
  * The single Apply gate, evaluated in the order the issue lists: on-board →
  * open status → tutor card → gender → centre screening. `duplicate` is
- * deliberately absent — UNIQUE (case_id, tutor_id) in the DB plus the
+ * deliberately absent, UNIQUE (case_id, tutor_id) in the DB plus the
  * `alreadyApplied` flag on the board cover it.
  */
 export function canApplyToCase(
@@ -128,7 +128,7 @@ export type NoteValidation = { ok: true; note: string | null } | { ok: false; er
 
 /**
  * Trim + validate the optional application pitch: ≤500 chars, and the shared
- * contact filter REJECTS (never strips — the tutor can rephrase, #215).
+ * contact filter REJECTS (never strips, the tutor can rephrase, #215).
  * Empty/whitespace notes normalise to null.
  */
 export function validateApplicationNote(note: string | null | undefined): NoteValidation {

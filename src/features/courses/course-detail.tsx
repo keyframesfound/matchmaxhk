@@ -30,7 +30,7 @@ import { ReportMenuButton } from "@/features/reports/report-button";
 /**
  * #392: the Video / General Course detail page (/notes/<slug> rails,
  * course branch). Unowned: locked lesson rows (title + provider chip +
- * lock) with the Buy CTA — the normal startCheckout works as-is and the
+ * lock) with the Buy CTA, the normal startCheckout works as-is and the
  * order page links back here. Owner of a DELIVERED order: inline 16:9
  * embeds (lazy) + per-lesson PDF download buttons via getCourseAccess.
  * Embed-only: unlisted YouTube (youtube-nocookie) / Vimeo links; no video
@@ -47,7 +47,7 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
 
   const isOwner = Boolean(user && note.tutorUserId && user.id === note.tutorUserId);
 
-  // Public lesson meta (titles + provider chips + hasPdf only — never the
+  // Public lesson meta (titles + provider chips + hasPdf only, never the
   // embed URLs) drives the locked list; the buyer gate drives the embeds.
   const slug = note.slug ?? note.id;
   const listingQuery = useQuery({
@@ -96,21 +96,21 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
           <section className="min-w-0 space-y-6">
             <header className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-md bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">
+                <span className="rounded-md bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground">
                   {shopKindLabel(note.materialType, t)}
                 </span>
                 {note.curriculumTag ? (
-                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-foreground/80">
                     {note.curriculumTag}
                   </span>
                 ) : null}
                 {note.subjectTag ? (
-                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-foreground/80">
                     {note.subjectTag}
                   </span>
                 ) : null}
               </div>
-              <h1 className="text-2xl font-bold leading-tight tracking-normal sm:text-3xl">
+              <h1 className="text-2xl font-medium leading-tight tracking-normal sm:text-3xl">
                 {note.title}
               </h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -133,7 +133,7 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
 
             {note.description ? (
               <section className="space-y-2">
-                <h2 className="text-lg font-bold">{t("notes.contents_title")}</h2>
+                <h2 className="text-lg font-medium">{t("notes.contents_title")}</h2>
                 <p className="whitespace-pre-line text-[0.95rem] leading-relaxed text-foreground/90">
                   {note.description}
                 </p>
@@ -142,7 +142,7 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
 
             {/* Lessons */}
             <section className="space-y-3">
-              <h2 className="flex items-center gap-2 text-lg font-bold">
+              <h2 className="flex items-center gap-2 text-lg font-medium">
                 <ListVideo className="h-5 w-5" aria-hidden />
                 {t("shop.course.lessons_title")}
               </h2>
@@ -174,10 +174,10 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
                         className="space-y-2 rounded-lg border border-border bg-card p-4"
                       >
                         <div className="flex flex-wrap items-center justify-between gap-2">
-                          <p className="text-sm font-bold text-[color:var(--ink)]">
+                          <p className="text-sm font-medium text-[color:var(--ink)]">
                             {lesson.position}. {lesson.title}
                           </p>
-                          <span className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                          <span className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                             {lesson.videoProvider ? (
                               <>
                                 <PlayCircle className="h-3.5 w-3.5" aria-hidden />
@@ -218,7 +218,7 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
                           </Button>
                         ) : null}
                         {!accessLesson ? (
-                          <p className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                          <p className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                             <Lock className="h-3.5 w-3.5" aria-hidden />
                             {t("shop.course.locked_lesson")}
                           </p>
@@ -234,7 +234,7 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
           {/* Buy rail */}
           <aside className="lg:sticky lg:top-24 lg:self-start" id="buy">
             <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
-              <p className="text-3xl font-bold tracking-normal">
+              <p className="text-3xl font-medium tracking-normal">
                 {note.priceHkd === 0 ? t("notes.card.free") : formatMoney(note.priceHkd)}
               </p>
               <a
@@ -245,7 +245,7 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
                 {note.tutorName}
               </a>
               {unlocked ? (
-                <p className="flex items-center gap-1.5 rounded-md border border-emerald-600/30 bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-700 dark:text-emerald-400">
+                <p className="flex items-center gap-1.5 rounded-md border border-emerald-600/30 bg-emerald-500/10 px-3 py-2 text-xs font-medium text-emerald-700 dark:text-emerald-400">
                   <PlayCircle className="h-4 w-4" aria-hidden />
                   {t("shop.course.unlocked_note")}
                 </p>
@@ -265,7 +265,7 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
                   <Button
                     variant="solid"
                     color="accent"
-                    className="w-full font-bold"
+                    className="w-full font-medium"
                     disabled={checkoutMutation.isPending || isOwner}
                     onClick={guard}
                   >

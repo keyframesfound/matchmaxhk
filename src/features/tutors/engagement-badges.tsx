@@ -4,7 +4,7 @@ import type { DemandBadgeKind } from "@/features/tutors/engagement";
 import { cn } from "@/lib/utils";
 
 // Issues #102/#151: dynamic demand + Parent Favorite badges. Presentational
-// only — the caller passes engagement data through the card's `engagement`
+// only, the caller passes engagement data through the card's `engagement`
 // prop (or renders these directly on the profile page). No shadows (repo
 // rule): elevation comes from borders + tinted backgrounds. Azure stays
 // reserved for money CTAs, so these use the issue's amber/red/neutral and a
@@ -34,7 +34,7 @@ export function DemandBadge({ kind, className }: { kind: DemandBadgeKind; classN
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center gap-1 whitespace-normal rounded-md border px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight",
+        "inline-flex max-w-full items-center gap-1 whitespace-normal rounded-md border px-1.5 py-0.5 text-center text-[11px] font-medium leading-tight",
         DEMAND_BADGE_STYLES[kind],
         className,
       )}
@@ -53,7 +53,7 @@ export function ParentFavoriteBadge({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center gap-1 whitespace-normal rounded-md border border-amber-600/40 bg-amber-500/10 px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight text-amber-700 dark:text-amber-400",
+        "inline-flex max-w-full items-center gap-1 whitespace-normal rounded-md border border-amber-600/40 bg-amber-500/10 px-1.5 py-0.5 text-center text-[11px] font-medium leading-tight text-amber-700 dark:text-amber-400",
         className,
       )}
     >
@@ -66,7 +66,7 @@ export function ParentFavoriteBadge({ className }: { className?: string }) {
 }
 
 /**
- * Issue #391: small-group availability pill — "👥 Group from $Y/hr". Y is the
+ * Issue #391: small-group availability pill, "👥 Group from $Y/hr". Y is the
  * cheapest per-student figure across the tutor's small-group rate rows and
  * open cohorts (badge is hidden when neither exists). Neutral pill like the
  * SEN badge: group rates must never be mistaken for the 1-on-1 card floor.
@@ -85,7 +85,7 @@ export function GroupClassBadge({
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center gap-1 whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight text-[color:var(--ink)]",
+        "inline-flex max-w-full items-center gap-1 whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-medium leading-tight text-[color:var(--ink)]",
         className,
       )}
       title={t("tutor_card.group_badge_title")}

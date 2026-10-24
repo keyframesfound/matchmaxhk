@@ -1,4 +1,4 @@
-// Issue #423 (sections 2+3) — shared unified case-card building blocks.
+// Issue #423 (sections 2+3), shared unified case-card building blocks.
 //
 // One implementation for both surfaces so the list card and the detail page
 // can never drift: the fee-rule pill (package_type), the 1-line logistics
@@ -35,7 +35,7 @@ export function useCaseTitles(item: PublicCaseBoardItem): {
   const { i18n } = useTranslation();
   const primaryLocale: CaseTitleLocale = i18n.language?.startsWith("zh") ? "zh-HK" : "en";
   const secondaryLocale: CaseTitleLocale = primaryLocale === "en" ? "zh-HK" : "en";
-  // Map the board item at the boundary — the raw item has examSystem/
+  // Map the board item at the boundary, the raw item has examSystem/
   // studentLevel, and an unmapped pass titles subject-only while shadowing
   // the stored title (GLM blocker, 2026-10-23).
   const titleFields = caseTitleFieldsFromBoard(item);
@@ -71,7 +71,7 @@ export function CaseFeePill({
   const { t } = useTranslation();
   return (
     <span
-      className={`inline-flex shrink-0 items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--card-tint)] px-2.5 py-0.5 text-xs font-semibold text-[color:var(--ink)] ${className}`}
+      className={`inline-flex shrink-0 items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--card-tint)] px-2.5 py-0.5 text-xs font-medium text-[color:var(--ink)] ${className}`}
     >
       {t(caseFeePillKey(packageType))}
     </span>
@@ -88,20 +88,20 @@ export function caseRateText(item: PublicCaseBoardItem): string {
  *
  * The RATE is deliberately NOT part of the line: the card renders it as its
  * own dedicated line below (converted bold + original for non-HKD tutors,
- * #113 — GLM round-2 blocker). Keeping it here printed the HKD string twice
+ * #113, GLM round-2 blocker). Keeping it here printed the HKD string twice
  * on every card and hid the converted figure entirely. */
 export function caseLogisticsParts(item: PublicCaseBoardItem): string[] {
   const modeLabel = CASE_MODE_LABEL[item.mode] ?? item.mode;
   // District-less cases (online) must not repeat the mode: the pin part IS
   // the mode there, so drop the bare label instead of Set-dedupe (which can't
-  // dedupe `📍 Online` vs `Online`) — GLM review, 2026-10-23.
+  // dedupe `📍 Online` vs `Online`), GLM review, 2026-10-23.
   const parts = item.district ? [`📍 ${item.district}`, modeLabel] : [`📍 ${modeLabel}`];
   parts.push(formatCaseSchedule(item.sessionsPerWeek, item.sessionLengthMinutes));
   // Dedupe mode when it already leads the line for online-only cases.
   return [...new Set(parts.filter(Boolean))];
 }
 
-/** One clickable chip — shared by the card row and the detail grouping. */
+/** One clickable chip, shared by the card row and the detail grouping. */
 export function CaseChipLink({ chip }: { chip: CaseChip }) {
   const { t } = useTranslation();
   const inner = (
@@ -150,7 +150,7 @@ export function CaseChipRow({ item }: { item: PublicCaseBoardItem }) {
   );
 }
 
-/** `👥 N students` — only rendered when student_count > 1 (caller + here). */
+/** `👥 N students`, only rendered when student_count > 1 (caller + here). */
 export function CaseStudentsRow({ item }: { item: PublicCaseBoardItem }) {
   const { t } = useTranslation();
   if ((item.studentCount ?? 1) <= 1) return null;
@@ -214,14 +214,14 @@ export function CaseIdentityRow({ item }: { item: PublicCaseBoardItem }) {
         <Link
           to="/business/$slug"
           params={{ slug: item.centre.slug }}
-          className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]"
+          className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-[color:var(--ink)]"
         >
           {inner}
         </Link>
       );
     }
     return (
-      <span className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]">
+      <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-[color:var(--ink)]">
         {inner}
       </span>
     );
@@ -233,11 +233,11 @@ export function CaseIdentityRow({ item }: { item: PublicCaseBoardItem }) {
   );
 }
 
-/** Permanent Cap.57 chip on centre cards — never reads as a job vacancy. */
+/** Permanent Cap.57 chip on centre cards, never reads as a job vacancy. */
 export function CaseCap57Chip() {
   const { t } = useTranslation();
   return (
-    <span className="inline-flex w-full items-center gap-1 overflow-hidden rounded-full border border-purple-500/30 bg-purple-500/[0.06] px-2 py-0.5 text-[11px] font-semibold text-purple-700 dark:text-purple-400">
+    <span className="inline-flex w-full items-center gap-1 overflow-hidden rounded-full border border-purple-500/30 bg-purple-500/[0.06] px-2 py-0.5 text-[11px] font-medium text-purple-700 dark:text-purple-400">
       <span className="truncate">{t("case_board.cap57_chip")}</span>
     </span>
   );

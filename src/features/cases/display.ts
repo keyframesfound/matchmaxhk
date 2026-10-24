@@ -92,7 +92,7 @@ export const CASE_START_LABEL_ZH: Record<string, string> = {
 };
 
 /**
- * Issue #423 rate formatter matrix — `HK$?` may NEVER render.
+ * Issue #423 rate formatter matrix, `HK$?` may NEVER render.
  *
  * | min    | max    | Render              |
  * |--------|--------|---------------------|
@@ -164,7 +164,7 @@ export function formatCaseBudgetHkd(item: {
 /**
  * Issue #113: an authenticated tutor's view of a case budget. Primary is the
  * HKD-normalized bounds converted into the tutor's quoting currency (null
- * when they quote HKD or rates are unavailable — callers keep the plain HKD
+ * when they quote HKD or rates are unavailable, callers keep the plain HKD
  * rendering); `original` always carries the HKD figure so nothing is hidden.
  */
 export function caseBudgetForTutor(

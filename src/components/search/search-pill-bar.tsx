@@ -70,8 +70,8 @@ type SearchPillBarProps = {
  * Desktop Airbnb-style segmented search pill. Clicking a segment greys the
  * bar, slides a full-height white pill under it and opens its panel below;
  * the panel persists across segment switches (click-driven, content swaps in
- * place). Hovering a segment shows a grey pill — whether or not a panel is
- * already open — but never moves the white pill or panel. Elevated with the
+ * place). Hovering a segment shows a grey pill, whether or not a panel is
+ * already open, but never moves the white pill or panel. Elevated with the
  * sanctioned `.pill-elevate-lg` shadow to match the mobile search bar.
  */
 export function SearchPillBar({
@@ -134,7 +134,7 @@ export function SearchPillBar({
     if (!form || !button) return null;
     // First segment starts flush at the left cap; the last segment's pill runs
     // through the submit button to the right cap (the button renders above it)
-    // — rounded caps would otherwise leave a grey rim of the wash visible.
+    //, rounded caps would otherwise leave a grey rim of the wash visible.
     const x = firstSegmentIdRef.current === segmentId ? 0 : button.offsetLeft;
     let width = button.offsetWidth;
     if (lastSegmentIdRef.current === segmentId) {
@@ -338,14 +338,14 @@ export function SearchPillBar({
                   segment.grow ?? "flex-1",
                 )}
               >
-                <span className="truncate text-[11px] font-bold tracking-wide text-[color:var(--ink)]">
+                <span className="truncate text-[11px] font-medium tracking-wide text-[color:var(--ink)]">
                   {segment.label}
                 </span>
                 <span
                   className={cn(
                     "truncate text-sm",
                     segment.filled
-                      ? "font-semibold text-[color:var(--ink)]"
+                      ? "font-medium text-[color:var(--ink)]"
                       : "text-muted-foreground",
                   )}
                 >
@@ -381,7 +381,7 @@ export function SearchPillBar({
           >
             <div key={openId}>
               {panelSegment.title ? (
-                <p className="mb-3 text-xl font-bold tracking-tight text-[color:var(--ink)]">
+                <p className="mb-3 text-xl font-medium tracking-tight text-[color:var(--ink)]">
                   {panelSegment.title}
                 </p>
               ) : null}

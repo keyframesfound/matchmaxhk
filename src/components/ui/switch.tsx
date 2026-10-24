@@ -16,7 +16,7 @@ const Switch = React.forwardRef<
     ref={ref}
   >
     {/*
-     * Thumb fill uses explicit surface tokens — the raw `bg-background`
+     * Thumb fill uses explicit surface tokens, the raw `bg-background`
      * utility is forced transparent by styles.css, which rendered the knob
      * invisible. Press feedback stretches the knob (scale-x) the way a
      * physical switch gives before it commits.

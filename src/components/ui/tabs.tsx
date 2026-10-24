@@ -7,7 +7,7 @@ import { cn } from "@/lib/utils";
 /*
  * The active-tab fill slides between triggers (Arc tabs / bottom-nav
  * pattern) via a shared layoutId pill. The root wrapper mirrors Radix's
- * value — controlled or internal — so triggers know which pill to host.
+ * value, controlled or internal, so triggers know which pill to host.
  */
 type TabsState = { active: string | undefined; layoutId: string };
 
