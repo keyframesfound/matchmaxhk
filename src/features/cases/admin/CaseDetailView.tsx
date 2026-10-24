@@ -47,6 +47,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConsolePanel } from "@/components/ui/console-panel";
+import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { cn } from "@/lib/utils";
 import {
   CASE_STATUSES,
@@ -55,6 +56,8 @@ import {
   START_LABEL,
   STATUS_LABEL,
   STATUS_PILL_CLASS,
+  STUDENT_GENDER_LABEL,
+  WHO_FOR_LABEL,
   caseBudgetHkdBounds,
   formatBudget,
   whatsappUrl,
@@ -364,6 +367,20 @@ export function CaseDetailView({
                 label="Tutor gender"
                 value={GENDER_LABEL[caseRow.preferred_gender] ?? caseRow.preferred_gender}
               />
+              {/* Issue #437: case-level demographics (legacy rows pre-date
+                  the columns — show a quiet placeholder, never a crash). */}
+              <DetailRow
+                label="Who is this for"
+                value={caseRow.who_for ? (WHO_FOR_LABEL[caseRow.who_for] ?? caseRow.who_for) : "—"}
+              />
+              <DetailRow
+                label="Student gender"
+                value={
+                  caseRow.student_gender
+                    ? (STUDENT_GENDER_LABEL[caseRow.student_gender] ?? caseRow.student_gender)
+                    : "—"
+                }
+              />
             </div>
             {caseRow.description ? (
               <div className="mt-5 border-t border-[color:var(--ink)]/[0.07] pt-4">
@@ -636,9 +653,12 @@ export function CaseDetailView({
                         className="h-9 w-9 rounded-lg object-cover ring-1 ring-[color:var(--ink)]/10"
                       />
                     ) : (
-                      <div className="grid h-9 w-9 place-items-center rounded-lg bg-[color:var(--ink)]/[0.06] text-[10px] font-bold text-[color:var(--ink)]/60">
-                        {(t.tutor_code || "MM").slice(0, 2)}
-                      </div>
+                      // Issue #437: branded deterministic initial avatar.
+                      <InitialAvatar
+                        stableId={t.tutor_code || t.id}
+                        name={t.display_name}
+                        className="h-9 w-9 text-[10px]"
+                      />
                     )}
                     <div className="min-w-0 flex-1">
                       <p className="truncate text-xs font-bold text-[color:var(--ink)]">

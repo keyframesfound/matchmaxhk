@@ -41,6 +41,11 @@ const phoneRegex = /^[+(\d][\d\s()./+-]{4,19}\d$/;
 const CaseRequestInput = z
   .object({
     requesterType: z.enum(["parent", "student"]),
+    // Issue #437: demographics live on the case, never the account.
+    whoFor: z.enum(["my_child", "myself", "someone_else"]),
+    studentGender: z.enum(["female", "male", "prefer_not_to_say"]),
+    // Case-level hard tutor gender preference (board dims Apply on mismatch).
+    tutorGenderPreference: z.enum(["any", "male", "female"]).default("any"),
     parentName: z.string().trim().min(1, "Name is required.").max(80),
     contactPhone: z.string().trim().regex(phoneRegex, "Please enter a valid phone number."),
     supportType: z.enum(["subject_tutoring", "admissions"]),
@@ -554,6 +559,11 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
         kindergartenTopics: data.kindergartenTopics,
       }),
       requester_type: data.requesterType,
+      // Issue #437: case-level student demographics + tutor gender
+      // preference (replaces the hardcoded "any" — the form now asks).
+      who_for: data.whoFor,
+      student_gender: data.studentGender,
+      preferred_gender: data.tutorGenderPreference,
       support_type: data.supportType,
       specific_component:
         data.supportType === "subject_tutoring" ? (data.specificComponent ?? null) : null,
@@ -578,7 +588,6 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       mode: MODE_TO_DB[data.mode] ?? "either",
       sessions_per_week: 1,
       session_length_minutes: 60,
-      preferred_gender: "any" as const,
       budget_min: data.budgetMin ?? null,
       budget_max: data.budgetMax ?? null,
       // Issue #423 (sections 2+3): the structured package fields.

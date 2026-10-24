@@ -1089,6 +1089,8 @@ export type Database = {
           specific_component: string | null;
           start_timing: string | null;
           status: Database["public"]["Enums"]["case_request_status"];
+          student_gender: string | null;
+          who_for: string | null;
           student_grade_current: string | null;
           student_level: string;
           student_school: string | null;
@@ -1152,6 +1154,7 @@ export type Database = {
           start_timing?: string | null;
           status?: Database["public"]["Enums"]["case_request_status"];
           student_grade_current?: string | null;
+          student_gender?: string | null;
           student_level: string;
           student_school?: string | null;
           sen_categories?: string[];
@@ -1175,6 +1178,7 @@ export type Database = {
           compliance_triage?: Json | null;
           organisation_id?: string | null;
           kindergarten_focus?: Json;
+          who_for?: string | null;
         };
         Update: {
           assigned_to?: string | null;
@@ -1183,6 +1187,8 @@ export type Database = {
           package_type?: string;
           rate_unit?: string;
           student_count?: number;
+          student_gender?: string | null;
+          who_for?: string | null;
           board_published_at?: string | null;
           budget_currency?: Database["public"]["Enums"]["supported_currency"];
           budget_max?: number | null;

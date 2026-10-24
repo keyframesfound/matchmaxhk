@@ -95,6 +95,9 @@ function parseValidationIssues(message: string): ValidationIssue[] | null {
 type FormState = {
   // Page 1: Contact
   requesterType: string;
+  // Issue #437: "Who is this for?" — demographics live on the case, never
+  // the account (no account-level gender/role/photo for clients).
+  whoFor: string;
   parentName: string;
   contactPhone: string;
   supportType: string;
@@ -117,6 +120,8 @@ type FormState = {
   year: string;
   schoolName: string;
   schoolType: string;
+  // Issue #437: case-level student demographics (never on the account).
+  studentGender: string;
   // Page 2 — Path B: Admissions
   admissionsCategory: string;
   targetPathway: string;
@@ -136,6 +141,9 @@ type FormState = {
   // Issue #114: the parent's native budget currency (HKD fallback).
   budgetCurrency: string;
   tutorBackground: string;
+  // Issue #437: tutor gender preference is a case-level hard preference
+  // (No preference / Male / Female) — the board dims Apply on hard mismatch.
+  tutorGenderPreference: string;
   notes: string;
   // Issue #199: SEN support requirements (step 3).
   senRequired: boolean;
@@ -155,6 +163,7 @@ type FormState = {
 
 const INITIAL_FORM: FormState = {
   requesterType: "",
+  whoFor: "",
   parentName: "",
   contactPhone: "",
   supportType: "",
@@ -175,6 +184,7 @@ const INITIAL_FORM: FormState = {
   year: "",
   schoolName: "",
   schoolType: "",
+  studentGender: "",
   admissionsCategory: "",
   targetPathway: "",
   targetSchool: "",
@@ -189,6 +199,7 @@ const INITIAL_FORM: FormState = {
   classFormat: "either",
   budgetCurrency: DEFAULT_CURRENCY,
   tutorBackground: "any",
+  tutorGenderPreference: "any",
   notes: "",
   senRequired: false,
   senCategories: [],
@@ -213,6 +224,23 @@ const PARENT_ENGAGER_OPTIONS = [
 const PARENT_DUTIES_OPTIONS = [
   { value: "no", label: "No" },
   { value: "yes", label: "Yes" },
+];
+// Issue #437: case-level demographics — these live on the Case Intake Form
+// only (never on account signup / Account settings).
+const WHO_FOR_OPTIONS = [
+  { value: "my_child", label: "My child" },
+  { value: "myself", label: "Myself" },
+  { value: "someone_else", label: "Someone else" },
+];
+const STUDENT_GENDER_OPTIONS = [
+  { value: "female", label: "Female" },
+  { value: "male", label: "Male" },
+  { value: "prefer_not_to_say", label: "Prefer not to say" },
+];
+const TUTOR_GENDER_OPTIONS = [
+  { value: "any", label: "No preference" },
+  { value: "male", label: "Male" },
+  { value: "female", label: "Female" },
 ];
 
 type CaseRequestFormProps = {
@@ -345,6 +373,16 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     )
       ? restored.nonTutoringDuties
       : "no";
+    // Issue #437: sanitize the demographics answers against tampered drafts.
+    const whoFor = WHO_FOR_OPTIONS.some((o) => o.value === restored.whoFor) ? restored.whoFor : "";
+    const studentGender = STUDENT_GENDER_OPTIONS.some((o) => o.value === restored.studentGender)
+      ? restored.studentGender
+      : "";
+    const tutorGenderPreference = TUTOR_GENDER_OPTIONS.some(
+      (o) => o.value === restored.tutorGenderPreference,
+    )
+      ? restored.tutorGenderPreference
+      : "any";
     setForm((prev) => ({
       ...prev,
       ...restored,
@@ -359,6 +397,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       notes,
       engager,
       nonTutoringDuties,
+      whoFor,
+      studentGender,
+      tutorGenderPreference,
       instructionLanguage: languages,
       tags,
     }));
@@ -378,7 +419,11 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         (key === "classFormat" && v === "either") ||
         // Issue #412 E: triage defaults are the blank state.
         (key === "engager" && v === "") ||
-        (key === "nonTutoringDuties" && v === "no"),
+        (key === "nonTutoringDuties" && v === "no") ||
+        // Issue #437: demographics defaults are the blank state.
+        (key === "whoFor" && v === "") ||
+        (key === "studentGender" && v === "") ||
+        (key === "tutorGenderPreference" && v === "any"),
     );
 
   const update = (patch: Partial<FormState>) => {
@@ -547,6 +592,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         nextErrors.secondaryBand = "Required";
       }
       if (!form.requesterType) nextErrors.requesterType = "Required";
+      // Issue #437: "Who is this for?" is a required case-level field.
+      if (!form.whoFor) nextErrors.whoFor = "Required";
       if (!form.parentName.trim()) nextErrors.parentName = "Required";
       if (!form.contactPhone.trim()) {
         nextErrors.contactPhone = "Required";
@@ -556,6 +603,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       if (!form.supportType) nextErrors.supportType = "Required";
     }
     if (target === 2) {
+      // Issue #437: student gender is captured at case level on both paths.
+      if (!form.studentGender) nextErrors.studentGender = "Required";
       if (form.supportType === "admissions") {
         if (!form.targetPathway) nextErrors.targetPathway = "Required";
         if (!form.interviewTest) nextErrors.interviewTest = "Required";
@@ -601,6 +650,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       return submitCaseRequest({
         data: {
           requesterType: form.requesterType as "parent" | "student",
+          // Issue #437: demographics live on the case, not the account.
+          whoFor: form.whoFor as "my_child" | "myself" | "someone_else",
+          studentGender: form.studentGender as "female" | "male" | "prefer_not_to_say",
+          tutorGenderPreference: (form.tutorGenderPreference || "any") as "any" | "male" | "female",
           parentName: form.parentName,
           contactPhone: form.contactPhone,
           supportType: form.supportType as "subject_tutoring" | "admissions",
@@ -1026,6 +1079,27 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 </p>
               ) : null}
             </div>
+            {/* Issue #437: required case-level "Who is this for?" — when
+                Myself is selected, the case-level student fields below ARE
+                the student (there are no account demographics). */}
+            <div>
+              <label className={labelClassName} htmlFor={`${idPrefix}-who-for`}>
+                Who is this for?
+                {errors.whoFor === "Required" ? <RequiredFlag /> : null}
+              </label>
+              <SearchableSelect
+                value={form.whoFor}
+                onChange={(v) => update({ whoFor: v })}
+                options={WHO_FOR_OPTIONS}
+                placeholder="Who is this for?"
+                searchPlaceholder="Search..."
+                className={controlClassName}
+                invalid={Boolean(errors.whoFor)}
+              />
+              {errors.whoFor && errors.whoFor !== "Required" ? (
+                <p className="mt-1 text-xs font-semibold text-destructive">{errors.whoFor}</p>
+              ) : null}
+            </div>
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-support-type`}>
                 Type of support
@@ -1227,6 +1301,28 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:col-span-2">
               Student info
             </p>
+            {/* Issue #437: case-level student gender (both tutoring and
+                admissions paths) — never an account field. */}
+            <div>
+              <label className={labelClassName} htmlFor={`${idPrefix}-student-gender`}>
+                Student gender
+                {errors.studentGender === "Required" ? <RequiredFlag /> : null}
+              </label>
+              <SearchableSelect
+                value={form.studentGender}
+                onChange={(v) => update({ studentGender: v })}
+                options={STUDENT_GENDER_OPTIONS}
+                placeholder="Select gender"
+                searchPlaceholder="Search gender..."
+                className={controlClassName}
+                invalid={Boolean(errors.studentGender)}
+              />
+              {errors.studentGender && errors.studentGender !== "Required" ? (
+                <p className="mt-1 text-xs font-semibold text-destructive">
+                  {errors.studentGender}
+                </p>
+              ) : null}
+            </div>
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-year`}>
                 Year (Optional)
@@ -1437,6 +1533,28 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:col-span-2">
               Student info
             </p>
+            {/* Issue #437: case-level student gender (both tutoring and
+                admissions paths) — never an account field. */}
+            <div>
+              <label className={labelClassName} htmlFor={`${idPrefix}-student-gender`}>
+                Student gender
+                {errors.studentGender === "Required" ? <RequiredFlag /> : null}
+              </label>
+              <SearchableSelect
+                value={form.studentGender}
+                onChange={(v) => update({ studentGender: v })}
+                options={STUDENT_GENDER_OPTIONS}
+                placeholder="Select gender"
+                searchPlaceholder="Search gender..."
+                className={controlClassName}
+                invalid={Boolean(errors.studentGender)}
+              />
+              {errors.studentGender && errors.studentGender !== "Required" ? (
+                <p className="mt-1 text-xs font-semibold text-destructive">
+                  {errors.studentGender}
+                </p>
+              ) : null}
+            </div>
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-year`}>
                 Year (Optional)
@@ -1630,6 +1748,21 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 Note: Official Examiners typically command double the hourly rate of University
                 Students
               </p>
+            </div>
+            {/* Issue #437: case-level tutor gender preference. Hard
+                preference — the case board dims Apply on a mismatch. */}
+            <div>
+              <label className={labelClassName} htmlFor={`${idPrefix}-tutor-gender`}>
+                Tutor gender preference
+              </label>
+              <SearchableSelect
+                value={form.tutorGenderPreference}
+                onChange={(v) => update({ tutorGenderPreference: v || "any" })}
+                options={TUTOR_GENDER_OPTIONS}
+                placeholder="No preference"
+                searchPlaceholder="Search preference..."
+                className={controlClassName}
+              />
             </div>
             {/* Issue #412 E: parent B2C compliance triage. A third-party
                 engager or non-tutoring duties puts the request on
@@ -1938,6 +2071,7 @@ function fieldStepOf(field: keyof FormState): number {
     field === "uniCourseCodes" ||
     field === "kindergartenTopics" ||
     field === "requesterType" ||
+    field === "whoFor" ||
     field === "parentName" ||
     field === "contactPhone" ||
     field === "supportType"
@@ -1948,6 +2082,7 @@ function fieldStepOf(field: keyof FormState): number {
     field === "curriculum" ||
     field === "subject1" ||
     field === "instructionLanguage" ||
+    field === "studentGender" ||
     field === "targetPathway" ||
     field === "interviewTest"
   ) {
