@@ -8,6 +8,7 @@ import { isUniqueViolation } from "@/features/materials/orders.functions";
 import {
   boughtListAction,
   buildOrderReference,
+  computeFolderAdjustedPrice,
   orderGrantsAccess,
   splitMaterialMoney,
 } from "@/features/materials/lifecycle";
@@ -22,10 +23,87 @@ import { sweepPastDueGigOrders } from "@/features/gigs/gig-buyer.functions";
  * message stating what they are buying). Staff mark the payment, then
  * release a per-order stamped copy; delivery is an in-account download.
  * Tutor and buyer never see each other's contact details.
+ *
+ * #392 shop kinds ride the same rail with two twists:
+ *   - topic_folder orders are priced server-side (proration): the buyer's
+ *     delivered orders on the folder's children are subtracted from the
+ *     bulk price, floored at 0; a $0 remainder becomes an immediate
+ *     delivered grant (no cashier round-trip) that unlocks the children.
+ *   - folder/course orders carry NO listing-level file, so releaseOrder
+ *     marks them delivered without stamping; folder delivery additionally
+ *     grants every child (delivered is_grant rows at HK$0).
  */
 
 const SCREENSHOTS_BUCKET = "orders-screenshots";
 const ORIGINALS_BUCKET = "materials-originals";
+
+/** #392: kinds that carry a listing-level source file (the stamp pipeline). */
+export const FILE_BEARING_MATERIAL_TYPES = ["notes", "mock", "exemplar", "flashcards"] as const;
+
+export const FOLDER_GRANT_REASON_PREFIX = "topic_folder:";
+export const FOLDER_PRORATION_GRANT_REASON = "folder_proration";
+
+/**
+ * Pure factory for the folder child grants (#250 grant shape): delivered
+ * is_grant rows at HK$0 across the board, one per child. Extracted for
+ * tests. `grantedBy` is the releasing staff user (null on the $0 proration
+ * path — no staff touched that order).
+ */
+export function buildFolderChildGrantRows(input: {
+  folderId: string;
+  childIds: string[];
+  buyerAccountId: string;
+  tutorId: string;
+  grantedBy: string | null;
+  now?: Date;
+}): Array<{
+  material_id: string;
+  buyer_account_id: string;
+  tutor_id: string;
+  gross_hkd: number;
+  platform_fee_hkd: number;
+  tutor_net_hkd: number;
+  status: string;
+  is_grant: boolean;
+  granted_by: string | null;
+  grant_reason: string;
+  delivered_at: string;
+  delivered_by: string | null;
+}> {
+  const deliveredAt = (input.now ?? new Date()).toISOString();
+  return input.childIds.map((materialId) => ({
+    material_id: materialId,
+    buyer_account_id: input.buyerAccountId,
+    tutor_id: input.tutorId,
+    gross_hkd: 0,
+    platform_fee_hkd: 0,
+    tutor_net_hkd: 0,
+    status: "delivered",
+    is_grant: true,
+    granted_by: input.grantedBy,
+    grant_reason: `${FOLDER_GRANT_REASON_PREFIX}${input.folderId}`,
+    delivered_at: deliveredAt,
+    delivered_by: input.grantedBy,
+  }));
+}
+
+/**
+ * Insert the folder's child grants, ignoring rows that already exist (the
+ * buyer may already hold a child via a direct purchase or an earlier
+ * folder). Children grants never bump child sold_count — the CALLER owns
+ * the single increment_material_sold_count call for the FOLDER.
+ */
+async function insertFolderChildGrants(
+  db: AdminDb,
+  rows: ReturnType<typeof buildFolderChildGrantRows>,
+): Promise<void> {
+  if (rows.length === 0) return;
+  const { error } = await db.from<never>("material_orders").upsert(rows, {
+    onConflict: "material_id,buyer_account_id",
+    ignoreDuplicates: true,
+  });
+  if (error) throw new Error(error.message);
+}
 
 export const ORDER_STATUSES = [
   "awaiting_payment",
@@ -183,10 +261,13 @@ export const startCheckout = createServerFn({ method: "POST" })
     if (!material || material.status !== "published") {
       throw new Error("This note is not available right now.");
     }
-    // #326: gigs have NO listing-level source file (file_back returns ride
-    // the ORDER after payment; session/package gigs carry no file at all),
-    // so the notes "original must exist" gate is notes-only.
-    if (material.material_type !== "gig" && !material.original_file_path) {
+    // #326 gigs have NO listing-level source file; #392 folders/courses
+    // don't either (courses deliver per-lesson embeds + PDFs). Only the
+    // notes kinds run the "original must exist" gate.
+    if (
+      (FILE_BEARING_MATERIAL_TYPES as readonly string[]).includes(material.material_type) &&
+      !material.original_file_path
+    ) {
       throw new Error("This note is not available right now.");
     }
     // #314: HK$0 free packs ARE purchasable — they run the same manual
@@ -227,6 +308,129 @@ export const startCheckout = createServerFn({ method: "POST" })
     }
 
     const reference = buildOrderReference();
+
+    // #392 folder proration: the SERVER owns the price. Sum the buyer's
+    // DELIVERED orders on the folder's CURRENT children (paid or granted —
+    // grants carry gross 0), subtract from the bulk price, floor at 0. The
+    // listing's price_hkd is only a display hint until this runs.
+    if (material.material_type === "topic_folder") {
+      const { data: items } = await db
+        .from<{ child_material_id: string }>("topic_folder_items")
+        .select("child_material_id")
+        .eq("folder_id", material.id);
+      const childIds = (items ?? []).map((item) => item.child_material_id);
+
+      let adjusted = Number(material.price_hkd);
+      if (childIds.length > 0) {
+        const { data: ownedOrders } = await db
+          .from<{ gross_hkd: number }>("material_orders")
+          .select("gross_hkd")
+          .eq("buyer_account_id", context.userId)
+          .eq("status", "delivered")
+          .in("material_id", childIds);
+        adjusted = computeFolderAdjustedPrice({
+          bulkHkd: Number(material.price_hkd),
+          paidChildGross: (ownedOrders ?? []).map((order) => Number(order.gross_hkd)),
+        }).adjusted;
+      }
+
+      if (childIds.length === 0 || adjusted === 0) {
+        // Fully prorated (or an empty folder — the submit gate forbids it,
+        // but stay safe): create the folder order as an immediate delivered
+        // grant at HK$0 and unlock the children right away. No cashier
+        // round-trip; the buyer lands on a delivered order page.
+        const grantReference = buildOrderReference();
+        const grantInsert = await db
+          .from<{ id: string }>("material_orders")
+          .insert({
+            material_id: material.id,
+            buyer_account_id: context.userId,
+            tutor_id: material.tutor_id,
+            gross_hkd: 0,
+            platform_fee_hkd: 0,
+            tutor_net_hkd: 0,
+            status: "delivered",
+            is_grant: true,
+            granted_by: null,
+            grant_reason: FOLDER_PRORATION_GRANT_REASON,
+            reference: grantReference,
+            delivered_at: new Date().toISOString(),
+          })
+          .select("id")
+          .single();
+        if (grantInsert.error || !grantInsert.data) {
+          // Lost a race to the unique index? The winner's row IS the grant
+          // the buyer needs — re-read and hand it back.
+          const { data: winnerRows } = await db
+            .from<OrderRow>("material_orders")
+            .select("*")
+            .eq("material_id", material.id)
+            .eq("buyer_account_id", context.userId)
+            .order("created_at", { ascending: false })
+            .limit(1);
+          const winner = winnerRows?.[0];
+          if (winner) {
+            await recordCheckoutAcceptance(context.userId, winner.id);
+            return { orderId: winner.id, reference: winner.reference ?? grantReference };
+          }
+          throw new Error(grantInsert.error?.message || "Could not create the order.");
+        }
+
+        await insertFolderChildGrants(
+          db,
+          buildFolderChildGrantRows({
+            folderId: material.id,
+            childIds,
+            buyerAccountId: context.userId,
+            tutorId: material.tutor_id,
+            grantedBy: null,
+          }),
+        );
+        // Sold count moves for the FOLDER only — child grants must not
+        // bump the children (they were not newly sold).
+        await db.rpc("increment_material_sold_count", { p_material_id: material.id });
+        await recordCheckoutAcceptance(context.userId, grantInsert.data.id);
+        return { orderId: grantInsert.data.id, reference: grantReference };
+      }
+
+      const { platformFeeHkd, tutorNetHkd } = splitMaterialMoney(adjusted);
+      const insert = await db
+        .from<{ id: string }>("material_orders")
+        .insert({
+          material_id: material.id,
+          buyer_account_id: context.userId,
+          tutor_id: material.tutor_id,
+          gross_hkd: adjusted,
+          platform_fee_hkd: platformFeeHkd,
+          tutor_net_hkd: tutorNetHkd,
+          status: "awaiting_payment",
+          reference,
+        })
+        .select("id")
+        .single();
+      if (insert.error || !insert.data) {
+        const { data: winnerRows } = await db
+          .from<OrderRow>("material_orders")
+          .select("*")
+          .eq("material_id", material.id)
+          .eq("buyer_account_id", context.userId)
+          .neq("status", "refunded")
+          .order("created_at", { ascending: false })
+          .limit(2);
+        const reusableWinner = pickReusableOrder(winnerRows ?? []);
+        if (reusableWinner) {
+          await recordCheckoutAcceptance(context.userId, reusableWinner.orderId);
+          return reusableWinner;
+        }
+        if (isUniqueViolation(insert.error)) {
+          throw new Error("Could not create the order. Please try again.");
+        }
+        throw new Error(insert.error?.message || "Could not create the order.");
+      }
+      await recordCheckoutAcceptance(context.userId, insert.data.id);
+      return { orderId: insert.data.id, reference };
+    }
+
     const { platformFeeHkd, tutorNetHkd } = splitMaterialMoney(Number(material.price_hkd));
     const insert = await db
       .from<{ id: string }>("material_orders")
@@ -565,7 +769,65 @@ export const releaseOrder = createServerFn({ method: "POST" })
       throw new Error("Only paid orders can be released.");
     }
     const material = order.digital_materials;
-    if (!material?.original_file_path) throw new Error("The note file is missing.");
+    if (!material) throw new Error("The note file is missing.");
+
+    // #392: folder and course orders carry NO listing-level file — there is
+    // nothing to stamp. They flip straight to delivered: courses unlock
+    // per-lesson embeds + PDFs via getCourseAccess, folders grant their
+    // children here. Notes/gigs keep the stamp pipeline below untouched.
+    if (
+      material.material_type === "topic_folder" ||
+      material.material_type === "video_course" ||
+      material.material_type === "general_course"
+    ) {
+      try {
+        const deliveredAt = new Date().toISOString();
+        const { error: deliveredError } = await db
+          .from<never>("material_orders")
+          .update({
+            status: "delivered",
+            delivered_at: deliveredAt,
+            delivered_by: context.userId,
+          })
+          .eq("id", order.id);
+        if (deliveredError) throw new Error(deliveredError.message);
+
+        if (material.material_type === "topic_folder") {
+          // One delivered is_grant row per child (already-held children are
+          // skipped by ON CONFLICT). granted_by = the releasing staff user.
+          const { data: items } = await db
+            .from<{ child_material_id: string }>("topic_folder_items")
+            .select("child_material_id")
+            .eq("folder_id", order.material_id);
+          await insertFolderChildGrants(
+            db,
+            buildFolderChildGrantRows({
+              folderId: order.material_id,
+              childIds: (items ?? []).map((item) => item.child_material_id),
+              buyerAccountId: order.buyer_account_id,
+              tutorId: order.tutor_id,
+              grantedBy: context.userId,
+            }),
+          );
+        }
+
+        // Sold count moves for the LISTING only — never for the children.
+        await db.rpc("increment_material_sold_count", { p_material_id: order.material_id });
+
+        // P12 marketplace bell v1: receipt email (order id, title, amount —
+        // no file, no tutor contact). Best-effort; delivery already succeeded.
+        void sendOrderReceipt(order.id).catch(() => undefined);
+        return { ok: true, status: "delivered" as const };
+      } catch (err) {
+        await db
+          .from<never>("material_orders")
+          .update({ status: "stamp_failed" })
+          .eq("id", order.id);
+        throw err;
+      }
+    }
+
+    if (!material.original_file_path) throw new Error("The note file is missing.");
 
     const { error: stampingError } = await db
       .from<never>("material_orders")

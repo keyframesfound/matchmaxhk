@@ -20,6 +20,8 @@ import { TermsGateCheckbox } from "@/features/legal/TermsGateCheckbox";
 import { NotePreviewViewer } from "@/features/materials/note-preview-viewer";
 import { formatMaterialTypeLabel } from "@/features/materials/queries";
 import { GigDetailPage } from "@/features/gigs/gig-detail";
+import { FolderDetailPage } from "@/features/folders/folder-detail";
+import { CourseDetailPage } from "@/features/courses/course-detail";
 import { ReportMenuButton } from "@/features/reports/report-button";
 
 /**
@@ -31,22 +33,29 @@ import { ReportMenuButton } from "@/features/reports/report-button";
  */
 
 export const Route = createFileRoute("/notes/$slug")({
-  head: ({ params, loaderData }) => ({
-    meta: [
-      {
-        // #326: gigs ride the /notes/$slug rails but are services, not notes.
-        title:
-          (loaderData as { note?: { materialType?: string } | null } | undefined)?.note
-            ?.materialType === "gig"
-            ? "Service | MatchMax"
-            : "Notes | MatchMax",
-      },
-      { property: "og:type", content: "product" },
-      { property: "og:url", content: `https://matchmax.hk/notes/${params.slug}` },
-      { name: "description", content: "Preview and buy study notes on MatchMax." },
-    ],
-    links: [{ rel: "canonical", href: `https://matchmax.hk/notes/${params.slug}` }],
-  }),
+  head: ({ params, loaderData }) => {
+    // #326/#392: gigs/folders/courses ride the /notes/$slug rails but are
+    // not notes — give each family its own document title.
+    const materialType = (loaderData as { note?: { materialType?: string } | null } | undefined)
+      ?.note?.materialType;
+    const title =
+      materialType === "gig"
+        ? "Service | MatchMax"
+        : materialType === "topic_folder"
+          ? "Topic Folder | MatchMax"
+          : materialType === "video_course" || materialType === "general_course"
+            ? "Course | MatchMax"
+            : "Notes | MatchMax";
+    return {
+      meta: [
+        { title },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: `https://matchmax.hk/notes/${params.slug}` },
+        { name: "description", content: "Preview and buy study notes on MatchMax." },
+      ],
+      links: [{ rel: "canonical", href: `https://matchmax.hk/notes/${params.slug}` }],
+    };
+  },
   loader: async ({ params }) => {
     const note = await getPublicNote({ data: { slug: params.slug } });
     // Render the 404 page (matches tutors.$tutorCode / tutor-requests.$caseCode)
@@ -58,14 +67,18 @@ export const Route = createFileRoute("/notes/$slug")({
 });
 
 /**
- * #326: one route, two products. Gigs ride the same slug/loader/404 rails as
- * notes but render the service page (no watermark viewer, no preview, no
- * view counter). Branching lives in sibling components so each keeps its own
- * stable hook order.
+ * #326 + #392: one route, many products. Gigs ride the same slug/loader/404
+ * rails as notes but render the service page; folders and courses render
+ * their own shop pages (children / lessons + buyer gating). Branching lives
+ * in sibling components so each keeps its own stable hook order.
  */
 function GigOrNotePage() {
   const { note } = Route.useLoaderData() as { note: PublicNote };
   if (note.materialType === "gig") return <GigDetailPage note={note} />;
+  if (note.materialType === "topic_folder") return <FolderDetailPage note={note} />;
+  if (note.materialType === "video_course" || note.materialType === "general_course") {
+    return <CourseDetailPage note={note} />;
+  }
   return <NotePage />;
 }
 

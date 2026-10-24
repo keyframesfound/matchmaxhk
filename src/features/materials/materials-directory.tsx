@@ -12,26 +12,38 @@ import {
   type MarketplaceMaterial,
 } from "@/features/materials/queries";
 import { StudyMaterialCard } from "@/features/materials/material-card";
-import { InlineReportLink } from "@/features/reports/report-button";
-import { buildBookLessonsWhatsAppUrl, buildBuyWhatsAppUrl } from "@/features/materials/whatsapp";
-import { GIG_CATEGORIES, gigCategoryLabelKey } from "@/features/gigs/gig";
-import { getPublicGigs } from "@/features/gigs/gigs.queries";
-import { GigCard } from "@/features/gigs/home-gigs-row";
 import { cn } from "@/lib/utils";
 
 /**
- * Issue #131: the "Study Materials" side of the /tutors directory toggle.
- * Client-side filtered (the whole published marketplace is one RLS read —
- * same pattern as the tutors list) with school/subject/curriculum dropdowns
- * plus a text search. Zero listings renders a friendly empty state, not an
- * error.
+ * Issue #131 + #392: the SHOP side of the /tutors directory toggle — ONE
+ * unified grid for every listing kind (notes, mocks, exemplars, flashcards,
+ * topic folders, video/general courses AND freestyle gigs) built from the
+ * big-cover expandable card. Client-side filtered (the whole published
+ * marketplace is one RLS read — same pattern as the tutors list) with the
+ * #392 kind filter chips (All / Notes / Courses / Folders / Services) plus
+ * the school/subject/curriculum dropdowns and text search. Gig orders keep
+ * their existing flow — only the card presentation changed; the old
+ * separate services section is gone (home-gigs-row is untouched). Every
+ * kind routes through its detail page, so the old per-card WhatsApp deep
+ * links are no longer needed here.
  */
-export function MaterialsDirectory({ whatsappNumber }: { whatsappNumber: string | undefined }) {
+
+type KindFilter = "all" | "notes" | "courses" | "folders" | "services";
+
+const KIND_FILTER_TYPES: Record<Exclude<KindFilter, "all">, string[]> = {
+  notes: ["notes", "mock", "exemplar", "flashcards"],
+  courses: ["video_course", "general_course"],
+  folders: ["topic_folder"],
+  services: ["gig"],
+};
+
+export function MaterialsDirectory() {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [school, setSchool] = useState("");
   const [subject, setSubject] = useState("");
   const [curriculum, setCurriculum] = useState("");
+  const [kind, setKind] = useState<KindFilter>("all");
   const { data: materials = [], isLoading } = useQuery({
     queryKey: ["materials", "marketplace"],
     queryFn: fetchMarketplaceMaterials,
@@ -55,7 +67,9 @@ export function MaterialsDirectory({ whatsappNumber }: { whatsappNumber: string 
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
+    const kindTypes = kind === "all" ? null : KIND_FILTER_TYPES[kind];
     return materials.filter((m) => {
+      if (kindTypes && !kindTypes.includes(m.material_type)) return false;
       if (school && (m.school_tag ?? "").trim().toLowerCase() !== school.toLowerCase())
         return false;
       if (subject && (m.subject_tag ?? "").trim().toLowerCase() !== subject.toLowerCase())
@@ -76,23 +90,52 @@ export function MaterialsDirectory({ whatsappNumber }: { whatsappNumber: string 
         return false;
       return true;
     });
-  }, [materials, query, school, subject, curriculum]);
+  }, [materials, query, school, subject, curriculum, kind]);
 
   const clearAll = () => {
     setQuery("");
     setSchool("");
     setSubject("");
     setCurriculum("");
+    setKind("all");
   };
-  const hasFilters = query || school || subject || curriculum;
+  const hasFilters = query || school || subject || curriculum || kind !== "all";
 
   useEffect(() => {
     document.title = "Study Materials Marketplace | MatchMax";
   }, []);
 
+  const kindChips: { value: KindFilter; label: string }[] = [
+    { value: "all", label: t("shop.filter_all") },
+    { value: "notes", label: t("shop.filter_notes") },
+    { value: "courses", label: t("shop.filter_courses") },
+    { value: "folders", label: t("shop.filter_folders") },
+    { value: "services", label: t("shop.filter_services") },
+  ];
+
   return (
     <section className="pt-6 pb-12 sm:pt-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        {/* Kind chips — #392 unified shop grid. */}
+        <div className="mb-4 flex flex-wrap items-center gap-2">
+          {kindChips.map((chip) => (
+            <button
+              key={chip.value}
+              type="button"
+              aria-pressed={kind === chip.value}
+              onClick={() => setKind(chip.value)}
+              className={cn(
+                "rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+                kind === chip.value
+                  ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--surface-invert-fg)]"
+                  : "border-border bg-card text-[color:var(--ink)]/70 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]",
+              )}
+            >
+              {chip.label}
+            </button>
+          ))}
+        </div>
+
         {/* Filter bar — flat, border-delineated, same chrome as the tutors bar. */}
         <div className="mb-6 flex flex-col gap-3 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-center">
           <input
@@ -160,7 +203,7 @@ export function MaterialsDirectory({ whatsappNumber }: { whatsappNumber: string 
         {isLoading && (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {Array.from({ length: 3 }).map((_, i) => (
-              <Skeleton key={i} className="h-[23rem] rounded-[10px] border border-border" />
+              <Skeleton key={i} className="h-[26rem] rounded-[10px] border border-border" />
             ))}
           </div>
         )}
@@ -196,111 +239,13 @@ export function MaterialsDirectory({ whatsappNumber }: { whatsappNumber: string 
                 tutorCode={material.tutor_code}
                 showTutorLink
                 verifiedTutor={material.tutor_verified}
-                actions={{
-                  buyHref: buildBuyWhatsAppUrl(
-                    whatsappNumber,
-                    material,
-                    material.tutor_display_name,
-                  ),
-                  bookHref: buildBookLessonsWhatsAppUrl(
-                    whatsappNumber,
-                    material.tutor_display_name,
-                    material.tutor_code,
-                  ),
-                  // Issue #216: report the note (copyright, fraud, …).
-                  reportAction: (
-                    <InlineReportLink
-                      targetType="material"
-                      targetId={material.id}
-                      label={material.title}
-                    />
-                  ),
-                }}
+                detailHref={`/notes/${material.slug ?? material.id}`}
               />
             ))}
           </div>
         )}
-
-        {/* #329: Tutor services (freestyle gigs) below the notes grid — the
-            notes directory above stays exactly as it was. */}
-        <GigServicesSection />
       </div>
     </section>
-  );
-}
-
-/**
- * Issue #329: the Services section of the materials directory — the four
- * gig categories as filter chips over the get_public_gigs RPC (already
- * sorted bought_count then newest in SQL). Renders NOTHING when no gigs are
- * published (or the RPC is missing) so the empty directory stays graceful.
- */
-function GigServicesSection() {
-  const { t } = useTranslation();
-  const [category, setCategory] = useState<string>("");
-
-  const { data: gigs = [], isLoading } = useQuery({
-    queryKey: ["gigs", "directory", category],
-    queryFn: () => getPublicGigs(category || null, 24),
-  });
-
-  // Cold-start grace vs dead-end filter (grok review 2026-10-17): the ""
-  // query IS the full list, so an empty "" result means no published gigs
-  // at all and the section stays hidden. A category filter returning zero
-  // must NOT unmount the chips — the parent would lose the "All services"
-  // way back — so filtered empties render an inline empty state instead.
-  if (!isLoading && category === "" && gigs.length === 0) return null;
-
-  const chips: { value: string; label: string }[] = [
-    { value: "", label: t("gigs.filter_all") },
-    ...GIG_CATEGORIES.map((value) => ({
-      value,
-      label: t(gigCategoryLabelKey(value)),
-    })),
-  ];
-
-  return (
-    <div id="services" className="mt-14 border-t border-border pt-10">
-      <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-3">
-        <h2 className="text-xl font-black tracking-tight text-[color:var(--ink)] sm:text-2xl">
-          {t("gigs.directory_title")}
-        </h2>
-        <div className="flex flex-wrap gap-2">
-          {chips.map((chip) => (
-            <button
-              key={chip.value}
-              type="button"
-              aria-pressed={category === chip.value}
-              onClick={() => setCategory(chip.value)}
-              className={cn(
-                "rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
-                category === chip.value
-                  ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--surface-invert-fg)]"
-                  : "border-border bg-card text-[color:var(--ink)]/70 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]",
-              )}
-            >
-              {chip.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {isLoading ? (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <Skeleton key={i} className="h-56 rounded-lg border border-border" />
-          ))}
-        </div>
-      ) : gigs.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("gigs.directory_empty")}</p>
-      ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {gigs.map((gig) => (
-            <GigCard key={gig.id} gig={gig} />
-          ))}
-        </div>
-      )}
-    </div>
   );
 }
 

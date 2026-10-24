@@ -536,7 +536,7 @@ function TutorsDirectory() {
             </StickySearchBar>
           ) : null}
           {directoryView === "materials" ? (
-            <MaterialsDirectory whatsappNumber={whatsappNumber || undefined} />
+            <MaterialsDirectory />
           ) : (
             <section className="pt-6 pb-12 sm:pt-8">
               <div className="mx-auto max-w-7xl px-4 sm:px-6">

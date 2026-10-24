@@ -40,10 +40,13 @@ import {
   getMaterialOriginalUrl,
   listAllMaterialsAdmin,
   listPendingGigReviews,
+  listPendingListingReviews,
   reviewGigListing,
+  reviewListing,
   updateMaterialAdmin,
   type AdminMaterialRow,
   type PendingGigReviewRow,
+  type PendingListingReviewRow,
 } from "@/features/materials/materials.functions";
 import {
   exportTutorPayoutCsv,
@@ -58,6 +61,8 @@ import {
 
 import { MaterialsOrdersDesk } from "@/features/materials/materials-orders-desk";
 import { formatMaterialTypeLabel } from "@/features/materials/queries";
+import { shopKindLabel } from "@/features/materials/material-card";
+import { validateCourseVideoUrl } from "@/lib/vimeo";
 import { MATERIAL_TYPES, NOTE_CURRICULA } from "@/features/materials/lifecycle";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { useAuth } from "@/features/auth/useAuth";
@@ -335,6 +340,13 @@ function AdminMaterials() {
           red-flag copy needs a human decision, never an auto-reject.
       ------------------------------------------------------------------ */}
       <GigReviewQueue />
+
+      {/* -----------------------------------------------------------------
+          #392 folder + course review queue: folders with itemised children,
+          courses with lesson titles + the ACTUAL embeds rendered on-screen —
+          the human eye is the reject path for WA/phone/IG/QR in videos.
+      ------------------------------------------------------------------ */}
+      <ListingReviewQueue />
 
       <ConsoleTable>
         <ConsoleTableHead>
@@ -936,6 +948,292 @@ function GigReviewQueue() {
               </Label>
               <textarea
                 id="gig-reject-reason"
+                rows={3}
+                maxLength={500}
+                value={rejectReason}
+                onChange={(event) => setRejectReason(event.target.value)}
+                className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setRejectTarget(null)}>
+              {t("gigs.admin_desk_cancel")}
+            </Button>
+            <Button
+              className="font-bold"
+              disabled={rejectReason.trim().length < 3 || reviewMutation.isPending}
+              onClick={() =>
+                rejectTarget &&
+                reviewMutation.mutate({
+                  materialId: rejectTarget.id,
+                  approve: false,
+                  reason: rejectReason.trim(),
+                })
+              }
+            >
+              {reviewMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+              ) : null}
+              {t("gigs.admin_review_reject_confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </section>
+  );
+}
+
+/** Reject presets for the #392 shop listings (stored in rejection_reason). */
+const LISTING_REJECT_PRESETS: { value: string }[] = [
+  {
+    value:
+      "Contact details: a WhatsApp number, phone, Instagram handle or QR code is visible in the listing or its videos. Remove them and resubmit — buyers are matched through MatchMax only.",
+  },
+  {
+    value:
+      "Not allowed on MatchMax: the listing copy or videos advertise off-platform tutoring or tutor-recruiting.",
+  },
+];
+
+/**
+ * #392: the folder + course review queue. Folders show every child (title +
+ * price); courses show lesson titles + provider chips AND render the ACTUAL
+ * embeds on-screen so staff can watch each video for WhatsApp numbers,
+ * phone numbers, Instagram handles or QR codes (the contact filter only
+ * covers copy — the VIDEO is the human-review reject path). Uses the
+ * generalized reviewListing for the decision; rejection presets store the
+ * reason the tutor sees.
+ */
+function ListingReviewQueue() {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [rejectTarget, setRejectTarget] = useState<PendingListingReviewRow | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+
+  const reviewsQuery = useQuery({
+    queryKey: ["admin", "listing-reviews"],
+    queryFn: listPendingListingReviews,
+  });
+
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: ["admin", "listing-reviews"] });
+    void queryClient.invalidateQueries({ queryKey: ["admin", "materials"] });
+  };
+
+  const reviewMutation = useMutation({
+    mutationFn: (input: { materialId: string; approve: boolean; reason?: string }) =>
+      reviewListing({ data: input }),
+    onSuccess: () => {
+      toast.success(t("gigs.admin_review_decided"));
+      setRejectTarget(null);
+      setRejectReason("");
+      void invalidate();
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Review failed."),
+  });
+
+  const rows = reviewsQuery.data ?? [];
+  if (reviewsQuery.isLoading || rows.length === 0) return null;
+
+  return (
+    <section className="space-y-3 rounded-md border border-amber-500/40 p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-base font-bold">{t("shop.admin_review_title")}</h3>
+        <p className="text-sm text-[color:var(--ink)]/65">
+          {t("shop.admin_review_count", { count: rows.length })}
+        </p>
+      </div>
+      <p className="rounded-md border border-amber-500/50 bg-amber-500/10 p-2 text-xs font-bold text-amber-800">
+        {t("shop.admin_review_video_banner")}
+      </p>
+      <div className="space-y-3">
+        {rows.map((row) => {
+          const isCourse =
+            row.material_type === "video_course" || row.material_type === "general_course";
+          const coverUrl = row.cover_image_path
+            ? (supabase.storage.from("materials-previews").getPublicUrl(row.cover_image_path).data
+                ?.publicUrl ?? "")
+            : "";
+          return (
+            <div key={row.id} className="space-y-2 rounded-md border border-border p-3">
+              <div className="flex flex-wrap items-start gap-3">
+                {coverUrl ? (
+                  <img
+                    src={coverUrl}
+                    alt={t("gigs.admin_cover_alt")}
+                    className="h-12 w-12 shrink-0 rounded-md border border-border object-cover"
+                    loading="lazy"
+                  />
+                ) : (
+                  <div
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground"
+                    aria-hidden
+                  >
+                    <ImageIcon className="h-5 w-5" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="truncate font-semibold text-[color:var(--ink)]">{row.title}</p>
+                  <p className="text-xs text-[color:var(--ink)]/55">
+                    {row.tutors?.display_name ?? "—"} ({row.tutors?.tutor_code ?? ""}) · HK$
+                    {Number(row.price_hkd).toFixed(0)}
+                  </p>
+                  {row.description ? (
+                    <p className="mt-1 line-clamp-2 text-xs leading-5 text-[color:var(--ink)]/65">
+                      {row.description}
+                    </p>
+                  ) : null}
+                </div>
+                <div className="flex flex-col items-end gap-2">
+                  <span className="rounded-md border border-border bg-muted/40 px-2 py-0.5 text-xs font-bold text-[color:var(--ink)]">
+                    {shopKindLabel(row.material_type, t)}
+                  </span>
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={reviewMutation.isPending}
+                      onClick={() => reviewMutation.mutate({ materialId: row.id, approve: true })}
+                    >
+                      <Check className="mr-1 h-4 w-4" aria-hidden />
+                      {t("gigs.admin_review_approve")}
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      aria-label={t("gigs.admin_review_reject")}
+                      onClick={() => {
+                        setRejectReason("");
+                        setRejectTarget(row);
+                      }}
+                    >
+                      <X className="h-4 w-4" aria-hidden />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+
+              {isCourse ? (
+                <div className="space-y-2">
+                  <p className="text-xs font-bold text-[color:var(--ink)]/70">
+                    {t("shop.admin_review_lessons", { count: row.lessons.length })}
+                  </p>
+                  <ul className="space-y-2">
+                    {row.lessons.map((lesson) => {
+                      const embed = validateCourseVideoUrl(lesson.videoUrl);
+                      return (
+                        <li
+                          key={`${row.id}-${lesson.position}`}
+                          className="rounded-md border border-border p-2"
+                        >
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="text-xs font-semibold text-[color:var(--ink)]">
+                              {lesson.position}. {lesson.title}
+                            </p>
+                            <span className="flex items-center gap-2 text-[11px] text-[color:var(--ink)]/60">
+                              {lesson.videoProvider ? (
+                                <span className="rounded-md bg-muted/50 px-1.5 py-0.5 font-bold uppercase">
+                                  {lesson.videoProvider}
+                                </span>
+                              ) : null}
+                              {lesson.hasPdf ? (
+                                <span className="rounded-md bg-muted/50 px-1.5 py-0.5 font-bold">
+                                  PDF
+                                </span>
+                              ) : null}
+                            </span>
+                          </div>
+                          {embed ? (
+                            <div className="mt-2 aspect-video w-full overflow-hidden rounded-md border border-border bg-muted/20">
+                              <iframe
+                                src={embed.embedUrl}
+                                title={lesson.title}
+                                loading="lazy"
+                                allow="accelerometer; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                className="h-full w-full"
+                              />
+                            </div>
+                          ) : (
+                            <p className="mt-1 text-[11px] text-[color:var(--ink)]/50">
+                              {t("shop.admin_review_no_embed")}
+                            </p>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-[color:var(--ink)]/70">
+                    {t("shop.admin_review_children", { count: row.children.length })}
+                  </p>
+                  <ul className="space-y-1">
+                    {row.children.map((child) => (
+                      <li
+                        key={child.id}
+                        className="flex items-center justify-between gap-2 rounded-md border border-border px-2 py-1 text-xs"
+                      >
+                        <span className="min-w-0 flex-1 truncate font-semibold text-[color:var(--ink)]">
+                          {child.title}
+                        </span>
+                        <span className="shrink-0 text-[color:var(--ink)]/60">
+                          {formatMaterialTypeLabel(child.materialType, t)}
+                        </span>
+                        <span className="shrink-0 font-bold text-[color:var(--ink)]">
+                          HK${Number(child.priceHkd).toFixed(0)}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Reject dialog — same shape as the gig queue. */}
+      <Dialog
+        open={Boolean(rejectTarget)}
+        onOpenChange={(open) => {
+          if (!open) setRejectTarget(null);
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("gigs.admin_review_reject_title")}</DialogTitle>
+            <DialogDescription>{rejectTarget?.title ?? ""}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label htmlFor="listing-reject-preset">{t("gigs.admin_reject_preset_label")}</Label>
+              <select
+                id="listing-reject-preset"
+                value=""
+                onChange={(event) => {
+                  const preset = LISTING_REJECT_PRESETS.find((p) => p.value === event.target.value);
+                  if (preset) setRejectReason(preset.value);
+                }}
+                className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+              >
+                <option value="">{t("gigs.admin_reject_preset_placeholder")}</option>
+                <option value={LISTING_REJECT_PRESETS[0].value}>
+                  {t("shop.admin_preset_contact")}
+                </option>
+                <option value={LISTING_REJECT_PRESETS[1].value}>
+                  {t("shop.admin_preset_offplatform")}
+                </option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="listing-reject-reason">
+                {t("gigs.admin_review_reject_reason_label")}
+              </Label>
+              <textarea
+                id="listing-reject-reason"
                 rows={3}
                 maxLength={500}
                 value={rejectReason}
