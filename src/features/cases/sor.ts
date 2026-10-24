@@ -66,11 +66,23 @@ export const FEE_MULTIPLIER = 1.5;
 /** #201 flow step 8: due in 3 days from invoice. */
 export const FEE_DUE_DAYS = 3;
 
-/** Fee amount is rate × multiplier at invoice time, in whole HKD cents. */
-export function computeFeeAmountHkd(rateHkd: number, multiplier: number = FEE_MULTIPLIER): number {
+/**
+ * Fee amount is rate × multiplier at invoice time, in whole HKD cents.
+ * #391: studentCount scales group cases (1.5 × per-student rate × N);
+ * legacy/1-on-1 cases pass nothing and compute ×1.
+ */
+export function computeFeeAmountHkd(
+  rateHkd: number,
+  multiplier: number = FEE_MULTIPLIER,
+  studentCount?: number,
+): number {
   if (!Number.isFinite(rateHkd) || rateHkd < 0) return 0;
   if (!Number.isFinite(multiplier) || multiplier <= 0) return 0;
-  return Math.round(rateHkd * multiplier * 100) / 100;
+  const count =
+    Number.isInteger(studentCount) && (studentCount as number) >= 1 ? (studentCount as number) : 1;
+  // Scale by the integer count first — keeps the product free of the
+  // 333 × 0.5 × 3 → 499.499… float trap before rounding.
+  return Math.round(rateHkd * count * multiplier * 100) / 100;
 }
 
 export function feeDueAtFrom(invoicedAt: Date): Date {

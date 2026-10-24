@@ -40,9 +40,9 @@ function GuideParentsPage() {
     ],
   );
 
-  const facts: [string, string][] = (["rates", "names", "fit", "sickness", "account"] as const).map(
-    (key) => [t(`guide.parents.fact_${key}_label`), t(`guide.parents.fact_${key}_body`)],
-  );
+  const facts: [string, string][] = (
+    ["rates", "names", "fit", "sickness", "account", "group"] as const
+  ).map((key) => [t(`guide.parents.fact_${key}_label`), t(`guide.parents.fact_${key}_body`)]);
 
   const notDo: [string, string][] = (["lessons", "cut", "schedule"] as const).map((key) => [
     t(`guide.parents.not_${key}_label`),

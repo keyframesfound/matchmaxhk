@@ -137,40 +137,38 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
   ];
 
   // #385 preset invoice paths: 100% Lesson 1 / 50% Lesson 2 balance / full 1.5×.
-  // Group scaling: tutoring_cases has no student_count column yet — every preset
-  // computes ×1 per case; × student_count scaling lands with issue #391.
+  // #391 group scaling: presets multiply by the case's student_count (×1 for
+  // legacy rows) and show "× N students" next to the rate when N > 1.
   const rateHkd = data.hourly_rate_hkd == null ? null : Number(data.hourly_rate_hkd);
-  const paidState = derivePaidState(data.fees, rateHkd);
+  const studentCount = data.student_count ?? 1;
+  const paidState = derivePaidState(data.fees, rateHkd, studentCount);
   // The 1.0× paid → 0.5× balance path can sit past fee_paid in the SoR machine
   // (fee actions advance it), so "Lesson 2 done" reads the lesson row too.
   const lesson2Done = data.sor_status === "lesson_2_done" || lesson2?.status === "done";
   const hasBlockingFee = data.fees.some(
     (f) => f.status === "not_due" || f.status === "invoiced" || f.status === "paid",
   );
-  const presetReason = {
-    l1: "preset 1.0 × Lesson 1",
-    l2Balance: "preset 0.5 × Lesson 2 balance",
-    full: "preset full 1.5 lessons",
-  };
+  const presetReason = (base: string) =>
+    studentCount > 1 ? `${base} × ${studentCount} students` : base;
   const presets = rateHkd
     ? {
         l1: {
-          amount: lesson1Amount(rateHkd),
+          amount: lesson1Amount(rateHkd, studentCount),
           enabled: data.sor_status === "lesson_1_done" && !hasBlockingFee && paidState === "none",
           multiplier: 1.0,
-          reason: presetReason.l1,
+          reason: presetReason("preset 1.0 × Lesson 1"),
         },
         l2Balance: {
-          amount: lesson2BalanceAmount(rateHkd),
+          amount: lesson2BalanceAmount(rateHkd, studentCount),
           enabled: lesson2Done && paidState === "partial_l1",
           multiplier: 0.5,
-          reason: presetReason.l2Balance,
+          reason: presetReason("preset 0.5 × Lesson 2 balance"),
         },
         full: {
-          amount: fullAdminFeeAmount(rateHkd),
+          amount: fullAdminFeeAmount(rateHkd, studentCount),
           enabled: lesson2Done && !hasBlockingFee,
           multiplier: 1.5,
-          reason: presetReason.full,
+          reason: presetReason("preset full 1.5 lessons"),
         },
       }
     : null;
@@ -289,7 +287,13 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
           )}
           {presets ? (
             <div className="mt-3 space-y-2">
-              <p className="text-xs text-muted-foreground">{t("sor.admin_fee_breakdown")}</p>
+              <p className="text-xs text-muted-foreground">
+                {t("sor.admin_fee_breakdown")}
+                {/* #391: make the per-student math explicit on group cases. */}
+                {rateHkd && studentCount > 1
+                  ? ` · ${feeHkd(rateHkd)} × ${studentCount} ${t("sor.admin_students_suffix")}`
+                  : ""}
+              </p>
               <div className="flex flex-wrap items-center gap-2">
                 {paidState === "partial_l1" && (
                   <span className="rounded-full border border-[color:var(--ink)]/15 px-2 py-0.5 text-xs text-muted-foreground">

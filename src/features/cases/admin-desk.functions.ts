@@ -228,6 +228,7 @@ export const getDeskCase = createServerFn({ method: "POST" })
       title: c.title,
       sor_status: c.sor_status,
       hourly_rate_hkd: c.hourly_rate_hkd,
+      student_count: c.student_count,
       exam_system: c.exam_system,
       subjects: c.subjects,
       student_level: c.student_level,
@@ -267,12 +268,11 @@ export const transitionCase = createServerFn({ method: "POST" })
     const db = asAdminDb(supabaseAdmin);
     await requireAdmin(db, context.userId);
 
-    const rows = await selectRows<Pick<SorCaseRow, "id" | "sor_status" | "hourly_rate_hkd">>(
-      db,
-      "tutoring_cases",
-      "id, sor_status, hourly_rate_hkd",
-      [{ col: "id", op: "eq", value: data.caseId }],
-    );
+    const rows = await selectRows<
+      Pick<SorCaseRow, "id" | "sor_status" | "hourly_rate_hkd" | "student_count">
+    >(db, "tutoring_cases", "id, sor_status, hourly_rate_hkd, student_count", [
+      { col: "id", op: "eq", value: data.caseId },
+    ]);
     const c = rows[0];
     if (!c) throw new Error("CASE_NOT_FOUND");
     if (!c.sor_status) throw new Error("NOT_A_SOR_CASE");
@@ -295,7 +295,9 @@ export const transitionCase = createServerFn({ method: "POST" })
       ]);
       if (open.length === 0) {
         if (c.hourly_rate_hkd == null) throw new Error("NO_RATE_ON_CASE");
-        const amount = computeFeeAmountHkd(Number(c.hourly_rate_hkd));
+        // #391: group cases pay 1.5 × per-student rate × student_count
+        // (rate_hkd stays the per-student quote; the total is scaled here).
+        const amount = computeFeeAmountHkd(Number(c.hourly_rate_hkd), 1.5, c.student_count);
         const { error: feeError } = await db
           .from<Row>("case_fees")
           .insert({
@@ -315,7 +317,7 @@ export const transitionCase = createServerFn({ method: "POST" })
           context.userId,
           null,
           "fee_invoiced",
-          `1.5 × HK$${c.hourly_rate_hkd}`,
+          `1.5 × HK$${c.hourly_rate_hkd} × ${c.student_count} student(s)`,
         );
       }
     }
@@ -355,16 +357,21 @@ export const feeInvoiceCustom = createServerFn({ method: "POST" })
     const db = asAdminDb(supabaseAdmin);
     await requireAdmin(db, context.userId);
 
-    const rows = await selectRows<Pick<SorCaseRow, "id" | "hourly_rate_hkd">>(
+    const rows = await selectRows<Pick<SorCaseRow, "id" | "hourly_rate_hkd" | "student_count">>(
       db,
       "tutoring_cases",
-      "id, hourly_rate_hkd",
+      "id, hourly_rate_hkd, student_count",
       [{ col: "id", op: "eq", value: data.caseId }],
     );
     if (!rows[0]) throw new Error("CASE_NOT_FOUND");
     if (rows[0].hourly_rate_hkd == null) throw new Error("NO_RATE_ON_CASE");
 
-    const amount = computeFeeAmountHkd(Number(rows[0].hourly_rate_hkd), data.multiplier);
+    // #391: custom multipliers scale per student on group cases too.
+    const amount = computeFeeAmountHkd(
+      Number(rows[0].hourly_rate_hkd),
+      data.multiplier,
+      rows[0].student_count,
+    );
     const { error } = await db
       .from<Row>("case_fees")
       .insert({

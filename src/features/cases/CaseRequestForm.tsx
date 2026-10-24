@@ -33,6 +33,7 @@ import {
   TARGET_SCHOOL_OPTIONS,
   TUTOR_BACKGROUND_OPTIONS,
   COMPONENT_SENTINEL,
+  CLASS_FORMAT_OPTIONS,
   PACKAGE_TYPE_OPTIONS,
   RATE_UNIT_OPTIONS,
   STUDENT_COUNT_OPTIONS,
@@ -130,6 +131,8 @@ type FormState = {
   packageType: string;
   studentCount: string;
   rateUnit: string;
+  // Issue #391: 1-on-1 only | open to small group (lower rate) | either.
+  classFormat: string;
   // Issue #114: the parent's native budget currency (HKD fallback).
   budgetCurrency: string;
   tutorBackground: string;
@@ -180,6 +183,7 @@ const INITIAL_FORM: FormState = {
   packageType: "ongoing_1_5",
   studentCount: "1",
   rateUnit: "hr",
+  classFormat: "either",
   budgetCurrency: DEFAULT_CURRENCY,
   tutorBackground: "any",
   notes: "",
@@ -306,6 +310,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     const rateUnit = RATE_UNIT_OPTIONS.some((o) => o.value === restored.rateUnit)
       ? restored.rateUnit
       : "hr";
+    const classFormat = CLASS_FORMAT_OPTIONS.some((o) => o.value === restored.classFormat)
+      ? restored.classFormat
+      : "either";
     // #380 review: a restored draft's budget currency (even an explicit
     // HKD) is the visitor's own choice — never re-sync it afterwards.
     budgetCurrencyTouched.current = true;
@@ -323,6 +330,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       packageType,
       studentCount,
       rateUnit,
+      classFormat,
       notes,
       instructionLanguage: languages,
       tags,
@@ -339,7 +347,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         // Issue #423: the package defaults are the blank state.
         (key === "packageType" && v === "ongoing_1_5") ||
         (key === "studentCount" && v === "1") ||
-        (key === "rateUnit" && v === "hr"),
+        (key === "rateUnit" && v === "hr") ||
+        (key === "classFormat" && v === "either"),
     );
 
   const update = (patch: Partial<FormState>) => {
@@ -597,6 +606,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             "ongoing_1_5" | "short_20" | "pro_bono",
           studentCount: Number(form.studentCount) || 1,
           rateUnit: (form.rateUnit || "hr") as "hr" | "lesson" | "month",
+          // Issue #391: class format preference (defaults to either).
+          classFormat: (form.classFormat || "either") as
+            "one_on_one_only" | "open_to_group" | "either",
           // Issue #114: the parent's native budget currency; the DB trigger
           // snapshots the HKD-equivalent bounds server-side.
           budgetCurrency: toCurrencyCode(form.budgetCurrency),
@@ -1547,6 +1559,21 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 options={RATE_UNIT_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
                 placeholder={t("case_board.form_rate_unit")}
                 searchPlaceholder={t("case_board.form_rate_unit")}
+                className={controlClassName}
+              />
+            </div>
+            {/* Issue #391: class format preference — lets staff match the
+                family into open small-group cohorts when they're open to it. */}
+            <div>
+              <label className={labelClassName} htmlFor={`${idPrefix}-class-format`}>
+                {t("case_board.form_class_format")}
+              </label>
+              <SearchableSelect
+                value={form.classFormat}
+                onChange={(v) => update({ classFormat: v || "either" })}
+                options={CLASS_FORMAT_OPTIONS.map((o) => ({ value: o.value, label: o.label }))}
+                placeholder={t("case_board.form_class_format")}
+                searchPlaceholder={t("case_board.form_class_format")}
                 className={controlClassName}
               />
             </div>

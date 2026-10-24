@@ -65,9 +65,12 @@ import {
   RATE_MAX,
   RATE_MIN,
   RATE_NOTE_MAX,
+  RATE_ROW_DESCRIPTION_MAX,
   RATE_ROW_LABEL_MAX,
+  RATE_ROW_MODES,
   TRAVEL_NOTE_MAX,
   normalizeTutorRateRows,
+  type TutorRateRowMode,
 } from "@/features/tutors/rates";
 import { suggestTutorRates } from "@/features/tutors/rates.functions";
 import {
@@ -113,8 +116,11 @@ function sortTiersForCompare(tiers: { curriculum: string; rate: number }[]) {
 }
 
 /** Draft shape for the rate editor (issue #319) — strings so an empty input
- * stays distinguishable from a typed 0 while the tutor is mid-edit. */
-type RateRowDraft = { label: string; rate: string };
+ * stays distinguishable from a typed 0 while the tutor is mid-edit. #391:
+ * each row carries its class mode and an optional 300-char description. */
+type RateRowDraft = { label: string; rate: string; mode: string; description: string };
+
+const EMPTY_RATE_ROW: RateRowDraft = { label: "", rate: "", mode: "one_on_one", description: "" };
 
 type RatesDraft = {
   currency: string;
@@ -130,7 +136,12 @@ type SavedRateColumns = {
   currency: string;
   online_rate: number | null;
   inperson_rate: number | null;
-  rate_rows: { label: string; rate: number }[];
+  rate_rows: {
+    label: string;
+    rate: number;
+    mode?: TutorRateRowMode;
+    description?: string;
+  }[];
   travel_note: string | null;
   rate_note: string | null;
 };
@@ -171,9 +182,15 @@ function ratesFromRow(row: MyTutorRow): RatesDraft {
     currency: toCurrencyCode(row.currency),
     onlineRate: typeof row.online_rate === "number" ? String(row.online_rate) : "",
     inPersonRate: typeof row.inperson_rate === "number" ? String(row.inperson_rate) : "",
-    rows: savedRows
-      .slice(0, MAX_RATE_ROWS)
-      .map((rateRow) => ({ label: rateRow.label ?? "", rate: String(rateRow.rate ?? "") })),
+    rows: savedRows.slice(0, MAX_RATE_ROWS).map((rateRow) => ({
+      label: rateRow.label ?? "",
+      rate: String(rateRow.rate ?? ""),
+      mode:
+        rateRow.mode && (RATE_ROW_MODES as readonly string[]).includes(rateRow.mode)
+          ? rateRow.mode
+          : "one_on_one",
+      description: rateRow.description ?? "",
+    })),
     travelNote: row.travel_note ?? "",
     rateNote: row.rate_note ?? "",
   };
@@ -1361,49 +1378,89 @@ export function MyTutorProfileSection() {
                   {t("settings.my_tutor.rate_rows_label")}
                 </Label>
                 {rates.rows.map((row, index) => (
-                  <div key={index} className="flex gap-2">
-                    <Input
-                      value={row.label}
-                      maxLength={RATE_ROW_LABEL_MAX}
-                      placeholder={t("settings.my_tutor.rate_row_label")}
-                      aria-label={t("settings.my_tutor.rate_row_label")}
-                      onChange={(e) => {
-                        const nextRows = [...rates.rows];
-                        nextRows[index] = { ...row, label: e.target.value };
-                        handleRateField({ rows: nextRows });
-                      }}
-                      className="flex-1 bg-[color:var(--surface)]"
-                    />
-                    <Input
-                      type="number"
-                      inputMode="numeric"
-                      step={1}
-                      min={RATE_MIN}
-                      max={RATE_MAX}
-                      value={row.rate}
-                      placeholder={t("settings.my_tutor.rate_row_rate")}
-                      aria-label={t("settings.my_tutor.rate_row_rate")}
-                      onChange={(e) => {
-                        const nextRows = [...rates.rows];
-                        nextRows[index] = {
-                          ...row,
-                          rate: e.target.value.replace(/[^\d]/gu, "").slice(0, 4),
-                        };
-                        handleRateField({ rows: nextRows });
-                      }}
-                      className="w-28 bg-[color:var(--surface)]"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      aria-label={t("settings.my_tutor.remove_rate_row")}
-                      onClick={() =>
-                        handleRateField({ rows: rates.rows.filter((_, i) => i !== index) })
-                      }
-                    >
-                      ×
-                    </Button>
+                  <div key={index} className="space-y-2 rounded-sm border border-border p-2.5">
+                    <div className="flex gap-2">
+                      <Input
+                        value={row.label}
+                        maxLength={RATE_ROW_LABEL_MAX}
+                        placeholder={t("settings.my_tutor.rate_row_label")}
+                        aria-label={t("settings.my_tutor.rate_row_label")}
+                        onChange={(e) => {
+                          const nextRows = [...rates.rows];
+                          nextRows[index] = { ...row, label: e.target.value };
+                          handleRateField({ rows: nextRows });
+                        }}
+                        className="flex-1 bg-[color:var(--surface)]"
+                      />
+                      {/* #391: what the rate buys — 1-on-1, per-student group
+                          band or bootcamp. Group rows never touch the card
+                          floor (they are profile-only extras, issue #319). */}
+                      <SearchableSelect
+                        value={row.mode}
+                        onChange={(v) => {
+                          const nextRows = [...rates.rows];
+                          nextRows[index] = { ...row, mode: v || "one_on_one" };
+                          handleRateField({ rows: nextRows });
+                        }}
+                        options={RATE_ROW_MODES.map((mode) => ({
+                          value: mode,
+                          label: t(`settings.my_tutor.rate_mode_${mode}`),
+                        }))}
+                        placeholder={t("settings.my_tutor.rate_mode_placeholder")}
+                        searchPlaceholder={t("settings.my_tutor.rate_mode_placeholder")}
+                        className="w-44 shrink-0 bg-[color:var(--surface)]"
+                      />
+                      <Input
+                        type="number"
+                        inputMode="numeric"
+                        step={1}
+                        min={RATE_MIN}
+                        max={RATE_MAX}
+                        value={row.rate}
+                        placeholder={t("settings.my_tutor.rate_row_rate")}
+                        aria-label={t("settings.my_tutor.rate_row_rate")}
+                        onChange={(e) => {
+                          const nextRows = [...rates.rows];
+                          nextRows[index] = {
+                            ...row,
+                            rate: e.target.value.replace(/[^\d]/gu, "").slice(0, 4),
+                          };
+                          handleRateField({ rows: nextRows });
+                        }}
+                        className="w-28 bg-[color:var(--surface)]"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        aria-label={t("settings.my_tutor.remove_rate_row")}
+                        onClick={() =>
+                          handleRateField({ rows: rates.rows.filter((_, i) => i !== index) })
+                        }
+                      >
+                        ×
+                      </Button>
+                    </div>
+                    {row.mode !== "one_on_one" ? (
+                      <div>
+                        <Textarea
+                          value={row.description}
+                          maxLength={RATE_ROW_DESCRIPTION_MAX}
+                          rows={2}
+                          placeholder={t("settings.my_tutor.rate_row_description_placeholder")}
+                          aria-label={t("settings.my_tutor.rate_row_description_placeholder")}
+                          onChange={(e) => {
+                            const nextRows = [...rates.rows];
+                            nextRows[index] = { ...row, description: e.target.value };
+                            handleRateField({ rows: nextRows });
+                          }}
+                          className="bg-[color:var(--surface)]"
+                        />
+                        <p className="mt-1 text-right text-xs text-muted-foreground">
+                          {row.description.length}/{RATE_ROW_DESCRIPTION_MAX}
+                        </p>
+                      </div>
+                    ) : null}
                   </div>
                 ))}
                 {errors.rate_rows ? (
@@ -1417,7 +1474,7 @@ export function MyTutorProfileSection() {
               variant="outline"
               size="sm"
               disabled={rates.rows.length >= MAX_RATE_ROWS}
-              onClick={() => handleRateField({ rows: [...rates.rows, { label: "", rate: "" }] })}
+              onClick={() => handleRateField({ rows: [...rates.rows, { ...EMPTY_RATE_ROW }] })}
             >
               <Plus className="mr-1.5 h-4 w-4" aria-hidden="true" />
               {t("settings.my_tutor.add_rate_row")}

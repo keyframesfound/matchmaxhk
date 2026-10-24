@@ -56,7 +56,8 @@
       "my_tutor": "My tutor profile",
       "materials": "Study Materials",
       "lessons": "Lessons",
-      "home": "Home"
+      "home": "Home",
+      "group_classes": "Group classes"
     },
     "referrals": {
       "title": "Refer & Earn 15%",
@@ -357,7 +358,14 @@
       "auto_translate": "Auto-Translate",
       "auto_translate_hint": "Auto-Translate drafts a Chinese version from the English headline — review and edit before saving.",
       "auto_translate_done": "Chinese draft filled in — please review and edit.",
-      "auto_translate_empty": "Enter an English headline first."
+      "auto_translate_empty": "Enter an English headline first.",
+      "rate_mode_one_on_one": "1-on-1",
+      "rate_mode_small_group_2": "Small group (1-to-2)",
+      "rate_mode_small_group_3_6": "Small group (1-to-3 to 6)",
+      "rate_mode_intensive_bootcamp": "Intensive / bootcamp",
+      "rate_mode_placeholder": "Class mode",
+      "rate_row_description_placeholder": "How does this mode work? (optional)",
+      "rate_row_details_toggle": "Details"
     },
     "grid": {
       "title": "Weekly availability grid",
@@ -892,7 +900,9 @@
     },
     "section_rates": "Rates",
     "rates_online": "Online",
-    "rates_inperson": "In person"
+    "rates_inperson": "In person",
+    "section_group_classes": "Group classes",
+    "group_classes_view_all": "View & book group classes"
   },
   "tutor_card": {
     "verified_fallback": "Self-reported academic profile",
@@ -918,7 +928,9 @@
     "verified_badge": "Verified",
     "verified_disclaimer": "Staff checked the grades shown. Not confirmed with the exam board. Ask the tutor for the slip before lesson one.",
     "view_all_grades": "View all {{count}} grades",
-    "show_fewer_grades": "Show fewer grades"
+    "show_fewer_grades": "Show fewer grades",
+    "group_badge_rate": "Group from ${{rate}}/hr",
+    "group_badge_title": "Small-group classes available at a lower per-student rate — it never changes the 1-on-1 rate above"
   },
   "help": {
     "title": "Hi, how can we help?",
@@ -1462,7 +1474,9 @@
       "not_schedule_label": "We don't manage your schedule",
       "not_schedule_body": "Rescheduling and the ongoing timetable are arranged directly with the tutor.",
       "cta_browse": "Browse tutor profiles",
-      "cta_request": "Request a tutor"
+      "cta_request": "Request a tutor",
+      "fact_group_label": "1-on-1 or small groups",
+      "fact_group_body": "Hire a private 1-on-1 tutor, or join a small group class (2–6 students) for a lower per-student rate. The same 1.5-lesson admin fee applies per student."
     },
     "tutors": {
       "eyebrow": "For tutors",
@@ -2315,7 +2329,8 @@
     "tutor_home_notes_note": "MatchMax pays notes net monthly. The admin fee above is the parent's fee and is never part of this total.",
     "tutor_home_notes_link": "View your listings",
     "tutor_home_open_lessons": "Open Lessons",
-    "bell_session_logged": "New session logged by your tutor"
+    "bell_session_logged": "New session logged by your tutor",
+    "admin_students_suffix": "students"
   },
   "currency": {
     "switcher_label": "Currency",
@@ -2462,7 +2477,8 @@
     "detail_pref_short": "Short package: up to 5 lessons · 20% admin fee",
     "detail_pref_probono": "Pro-bono case: HK$0 tuition · HK$0 admin fee",
     "detail_flexible": "flexible",
-    "detail_no_preference": "No preference"
+    "detail_no_preference": "No preference",
+    "form_class_format": "Class format preference"
   },
   "experience": {
     "lessons": "{{count}} lessons",
@@ -2505,5 +2521,81 @@
     "desk_empty": "No logged sessions.",
     "desk_revoke": "Revoke",
     "desk_revoked_ok": "Session revoked — public totals recalculated."
+  },
+  "group_classes": {
+    "board_eyebrow": "Group classes",
+    "board_title": "Small group classes (2–6 students)",
+    "board_intro": "Tutor-led cohorts at a lower per-student rate. The same 1.5-lesson admin fee applies per student, and every family keeps a private 1-on-1 case — unrelated parents never swap contact details.",
+    "board_empty": "No cohorts are recruiting right now. Check back soon, or look for the Group badge on tutor profiles.",
+    "loading": "Loading…",
+    "state_forming": "Forming",
+    "state_running": "Running",
+    "state_full": "Full",
+    "state_closed": "Closed",
+    "mode_online": "Online",
+    "mode_in_person": "In person",
+    "per_student": " / student",
+    "per_student_rate_suffix": " / student / hr",
+    "seats_line": "{{taken}}/{{max}} joined · starts at {{min}}",
+    "seats_summary": "{{taken}}/{{max}} seats joined · starts at {{min}}",
+    "seats_left": "{{left}} seats left",
+    "book": "Book seats",
+    "booking": "Booking…",
+    "book_confirm": "Book {{seats}} seat(s)",
+    "booking_title": "Book group seats",
+    "booked_toast": "Booked — request {{code}} created",
+    "booked_body": "Your booking is in. Request {{code}} was created for your family.",
+    "booked_next": "Our team will introduce the tutor and confirm Lesson 1. The 1.5-lesson admin fee covers your whole booking (all siblings).",
+    "view_cases": "View my requests",
+    "close": "Close",
+    "cancel": "Cancel",
+    "form_seats": "Seats",
+    "form_student_name": "Student {{index}} first name",
+    "form_student_name_placeholder": "First name",
+    "form_student_grade": "Student {{index}} grade",
+    "form_student_grade_placeholder": "e.g. P5 / Y9",
+    "form_contact_name": "Your name",
+    "form_contact_phone": "Phone number",
+    "form_whatsapp_ok": "OK to contact me on WhatsApp",
+    "form_notes": "Notes (optional)",
+    "form_notes_placeholder": "Anything the tutor should know?",
+    "fee_preview_title": "Admin fee (MatchMax policy)",
+    "fee_preview_total": "${{total}} = 1.5 × ${{rate}} × {{seats}} student(s)",
+    "fee_preview_split": "Lesson 1: ${{lesson1}} · Lesson 2 balance: ${{lesson2}}",
+    "fee_preview_note": "The tutor receives $0 for Lesson 1; you pay the Lesson 2 balance to the tutor directly.",
+    "terms_ack": "I agree to the Terms of Service and the anonymous-matching model.",
+    "fee_ack": "I understand the 1.5-lesson admin fee (100% of Lesson 1 + 50% of Lesson 2) applies per student and is paid to MatchMax by FPS.",
+    "manager_title": "Group classes",
+    "manager_description": "Run small-group cohorts (2–6 seats). Parents book per student; each family keeps a private 1-on-1 case, and the 1.5-lesson admin fee applies per student.",
+    "create_title": "New cohort",
+    "edit_title": "Edit cohort",
+    "create": "Create cohort",
+    "save": "Save changes",
+    "edit": "Edit",
+    "close_cohort": "Close cohort",
+    "empty": "No cohorts yet. Create one to start filling seats.",
+    "created_toast": "Cohort created",
+    "saved_toast": "Cohort saved",
+    "closed_toast": "Cohort closed",
+    "form_title": "Title",
+    "form_title_placeholder": "e.g. IBDP Maths AA — Paper 1 drilling (Saturdays)",
+    "form_curriculum": "Curriculum",
+    "form_subject": "Subject",
+    "form_student_level": "Student level",
+    "form_student_level_placeholder": "e.g. Y12 / S5",
+    "form_schedule": "Weekly schedule",
+    "form_schedule_placeholder": "e.g. Sat 10:00–11:30",
+    "form_mode": "Mode",
+    "form_district": "District",
+    "form_rate": "Per-student rate (HKD/hr)",
+    "form_rate_placeholder": "e.g. 220",
+    "form_rate_hint": "Lower than your 1-on-1 rate. Never changes the $X up/hr floor on your card.",
+    "form_min_seats": "Min seats to start",
+    "form_max_seats": "Max seats (2–6)",
+    "form_description": "Description",
+    "form_description_placeholder": "What happens in class? (no contact details)",
+    "form_status": "Status",
+    "form_status_hint": "Running = the class has started but seats can still fill; Forming = recruiting toward the min-seats bar.",
+    "min_gt_max_error": "Min seats cannot exceed max seats."
   }
 }

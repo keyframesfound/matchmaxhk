@@ -53,4 +53,34 @@ describe("fee breakdown (#385)", () => {
     expect(derivePaidState([{ status: "paid", amount_hkd: 400 }], null)).toBe("none");
     expect(derivePaidState([{ status: "paid", amount_hkd: 400 }], 0)).toBe("none");
   });
+
+  it("scales group cases by student count, rounding the total once (#391)", () => {
+    expect(lesson1Amount(500, 3)).toBe(1500);
+    expect(lesson2BalanceAmount(500, 3)).toBe(750);
+    expect(fullAdminFeeAmount(500, 3)).toBe(2250);
+    // Total-rounding: 0.5 × $333 × 3 → $500 (not 3 × $167 = $501).
+    expect(lesson2BalanceAmount(333, 3)).toBe(500);
+    expect(fullAdminFeeAmount(333, 3)).toBe(1499);
+    // Count <= 0 / fractional falls back to ×1 (legacy rows).
+    expect(fullAdminFeeAmount(500, 0)).toBe(750);
+    expect(fullAdminFeeAmount(500, 2.5)).toBe(750);
+    expect(fullAdminFeeAmount(500, undefined)).toBe(750);
+  });
+
+  it("derives paid states against the scaled group target (#391)", () => {
+    const rate = 400;
+    const count = 2; // full target = 1200, L1 target = 800
+    expect(derivePaidState([{ status: "paid", amount_hkd: 400 }], rate, count)).toBe("none");
+    expect(derivePaidState([{ status: "paid", amount_hkd: 800 }], rate, count)).toBe("partial_l1");
+    expect(
+      derivePaidState(
+        [
+          { status: "paid", amount_hkd: 800 },
+          { status: "paid", amount_hkd: 400 },
+        ],
+        rate,
+        count,
+      ),
+    ).toBe("full");
+  });
 });
