@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { cn } from "@/lib/utils";
+import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
 /**
  * Issue #208: shared shell for the guide hub. The sticky bar sits under the
@@ -19,6 +20,9 @@ export const GUIDE_TABS = [
   { to: "/guide/notes", key: "guide.tab_notes" },
   { to: "/guide/refer", key: "guide.tab_refer" },
   { to: "/guide/verification", key: "guide.tab_verification" },
+  // Issue #412 G: the B2B tab ships with the partners page but stays hidden
+  // until the centre market flag flips — the join CTA would 404 otherwise.
+  { to: "/guide/partners", key: "guide.tab_partners", enabled: CENTRE_MARKET_ENABLED },
 ] as const;
 
 export type GuideTab = (typeof GUIDE_TABS)[number]["to"];
@@ -34,6 +38,7 @@ export function GuideBar({ current, topOffset }: { current: GuideTab; topOffset:
       <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
         <ul className="flex items-center gap-1 overflow-x-auto whitespace-nowrap py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {GUIDE_TABS.map((tab) => {
+            if ("enabled" in tab && !tab.enabled) return null;
             const active = tab.to === current;
             return (
               <li key={tab.to}>

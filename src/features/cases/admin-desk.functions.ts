@@ -287,6 +287,20 @@ export const transitionCase = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     await insertAudit(db, c.id, context.userId, c.sor_status, to, data.reason ?? null);
 
+    // Issue #412 F: the engagement summary is created (or version-bumped)
+    // when the case reaches the engagement stage. Fail-open — a summary
+    // write failure must never block the desk transition; the next ensure
+    // (match panel, detail load) repairs it idempotently.
+    if (to === "introduced") {
+      try {
+        const { ensureEngagementSummaryRow } =
+          await import("@/features/cases/engagement.functions");
+        await ensureEngagementSummaryRow(c.id);
+      } catch (summaryError) {
+        console.error("[engagement] failed to ensure summary on introduced:", summaryError);
+      }
+    }
+
     // Side effects (#201 flow steps 8–9).
     if (to === "fee_invoiced") {
       const open = await selectRows<{ id: string }>(db, "case_fees", "id", [

@@ -8,12 +8,14 @@ import { formatPostedAgo } from "@/lib/relative-time";
 import {
   AlertTriangle,
   ArrowLeft,
+  Building2,
   CalendarClock,
   Check,
   Clock,
   GraduationCap,
   MapPin,
   Share2,
+  ShieldCheck,
   Wallet,
 } from "lucide-react";
 import { PublicPage } from "@/components/layout/PublicPage";
@@ -41,6 +43,12 @@ import {
   caseGradeLabel,
   useCaseTitles,
 } from "@/features/cases/case-card";
+import { caseScreeningLabel } from "@/features/cases/display";
+import { flagCaseComplianceConcern } from "@/features/cases/centre-case.functions";
+import { useServerFn } from "@tanstack/react-start";
+import { useMutation } from "@tanstack/react-query";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
 import { caseChips } from "@/features/cases/case-chips";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -144,6 +152,23 @@ function CaseDetailPage() {
   const genderMismatch =
     (item.preferredGender === "female" && viewerGender === "male") ||
     (item.preferredGender === "male" && viewerGender === "female");
+
+  // Issue #412 E: centre cases show the screening summary and require one
+  // radio before Apply — confirm enables the WhatsApp link; clarify posts
+  // the concern to the desk and re-holds the case instead.
+  const [screeningChoice, setScreeningChoice] = useState<"confirm" | "clarify" | null>(null);
+  const [clarifyNote, setClarifyNote] = useState("");
+  const flagConcernFn = useServerFn(flagCaseComplianceConcern);
+  const flagConcern = useMutation({
+    mutationFn: (note: string) => flagConcernFn({ data: { caseId: item.id, note } }),
+    onSuccess: () => {
+      toast.success(t("case_board.screening_clarify_sent"));
+      setClarifyNote("");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+  const screeningLocked = Boolean(item.centre) && screeningChoice !== "confirm";
+  const applyDisabled = screeningLocked || (Boolean(item.centre) && screeningChoice === "clarify");
 
   // Issue #423: "Rate TBA" is allowed ONLY on the detail page — the matrix
   // omits the rate everywhere else, and "HK$?" never renders.
@@ -435,23 +460,50 @@ function CaseDetailPage() {
                   <AlertTriangle className="h-5 w-5" aria-hidden="true" />
                 </span>
               ) : null}
-              <Button
-                asChild
-                size="lg"
-                variant="solid"
-                color="blue"
-                className={genderMismatch ? "opacity-50" : undefined}
-              >
-                <a
-                  href={applyUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  title={genderMismatch ? t("case_board.gender_mismatch_warning") : undefined}
+              {item.centre ? (
+                <Button
+                  size="lg"
+                  variant="solid"
+                  color="blue"
+                  disabled={applyDisabled || flagConcern.isPending}
+                  className={genderMismatch ? "opacity-50" : undefined}
+                  title={
+                    screeningLocked
+                      ? t("case_board.screening_confirm_required")
+                      : genderMismatch
+                        ? t("case_board.gender_mismatch_warning")
+                        : undefined
+                  }
+                  onClick={() => {
+                    if (applyDisabled) {
+                      toast.error(t("case_board.screening_confirm_required"));
+                      return;
+                    }
+                    window.open(applyUrl, "_blank", "noreferrer");
+                  }}
                 >
                   <WhatsAppIcon aria-hidden="true" />
                   {t("case_board.apply_now")}
-                </a>
-              </Button>
+                </Button>
+              ) : (
+                <Button
+                  asChild
+                  size="lg"
+                  variant="solid"
+                  color="blue"
+                  className={genderMismatch ? "opacity-50" : undefined}
+                >
+                  <a
+                    href={applyUrl}
+                    target="_blank"
+                    rel="noreferrer"
+                    title={genderMismatch ? t("case_board.gender_mismatch_warning") : undefined}
+                  >
+                    <WhatsAppIcon aria-hidden="true" />
+                    {t("case_board.apply_now")}
+                  </a>
+                </Button>
+              )}
             </div>
           </div>
 
@@ -484,6 +536,169 @@ function CaseDetailPage() {
                 ))}
               </ul>
             </div>
+
+            {/* Issue #412 E / #423 B2B: centre identity + Cap.57 chip +
+                the read-only screening summary with the confirm/clarify
+                gate. Parent cases never render this block. */}
+            {item.centre ? (
+              <div className="flex flex-col gap-3">
+                <SectionHeading>{t("case_board.centre_summary_title")}</SectionHeading>
+                <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-4 text-sm">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <Building2
+                      className="h-4 w-4 text-[color:var(--brand-link)]"
+                      aria-hidden="true"
+                    />
+                    <span className="font-semibold text-[color:var(--ink)]">
+                      {item.centre.name}
+                    </span>
+                    {item.centre.verified ? (
+                      <Badge
+                        variant="outline"
+                        className="gap-1 border-[color:var(--brand-link)]/40 text-[color:var(--brand-link)]"
+                      >
+                        <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+                        {t("case_board.centre_verified")}
+                      </Badge>
+                    ) : null}
+                    <Badge
+                      variant="outline"
+                      className="border-purple-500/40 text-purple-700 dark:text-purple-400"
+                    >
+                      {t("case_board.cap57_chip")}
+                    </Badge>
+                  </div>
+                  {item.centre.verified && item.centre.slug ? (
+                    <Link
+                      to="/business/$slug"
+                      params={{ slug: item.centre.slug }}
+                      className="text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
+                    >
+                      {t("case_board.centre_view_profile")}
+                    </Link>
+                  ) : null}
+                  {item.screening ? (
+                    <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+                      {(
+                        [
+                          [
+                            "case_board.screening_contracting",
+                            caseScreeningLabel(
+                              item.screening.contractingEntity,
+                              zh ? "zh-HK" : "en",
+                            ),
+                          ],
+                          [
+                            "case_board.screening_fee",
+                            [
+                              caseScreeningLabel(item.screening.feeStructure, zh ? "zh-HK" : "en"),
+                              item.screening.feeAmount,
+                              item.screening.feeOpenToCounter
+                                ? t("case_board.screening_open_to_counter")
+                                : null,
+                            ]
+                              .filter(Boolean)
+                              .join(" · "),
+                          ],
+                          [
+                            "case_board.screening_premises",
+                            caseScreeningLabel(
+                              item.screening.premisesProvider,
+                              zh ? "zh-HK" : "en",
+                            ),
+                          ],
+                          ["case_board.screening_scope", item.screening.scopeDescription],
+                          [
+                            "case_board.screening_zero_admin",
+                            item.screening.adminDutiesVerified
+                              ? t("case_board.screening_confirmed_no")
+                              : null,
+                          ],
+                          [
+                            "case_board.screening_methodology",
+                            caseScreeningLabel(
+                              item.screening.methodologyOwner,
+                              zh ? "zh-HK" : "en",
+                            ),
+                          ],
+                          [
+                            "case_board.screening_other_clients",
+                            caseScreeningLabel(
+                              item.screening.otherClientsAllowed,
+                              zh ? "zh-HK" : "en",
+                            ),
+                          ],
+                          [
+                            "case_board.screening_substitution",
+                            caseScreeningLabel(
+                              item.screening.substitutionAllowed,
+                              zh ? "zh-HK" : "en",
+                            ),
+                          ],
+                        ] as const
+                      )
+                        .filter(([, value]) => Boolean(value))
+                        .map(([labelKey, value]) => (
+                          <div key={labelKey} className="min-w-0">
+                            <dt className="text-[11px] font-medium text-muted-foreground">
+                              {t(labelKey)}
+                            </dt>
+                            <dd className="text-sm font-medium text-[color:var(--ink)]">{value}</dd>
+                          </div>
+                        ))}
+                    </dl>
+                  ) : null}
+                  {/* Confirm / clarify gate before Apply. */}
+                  <div className="space-y-2 border-t border-border pt-3">
+                    <p className="text-xs font-semibold text-[color:var(--ink)]">
+                      {t("case_board.screening_confirm_title")}
+                    </p>
+                    {(
+                      [
+                        ["confirm", "case_board.screening_confirm_option"],
+                        ["clarify", "case_board.screening_clarify_option"],
+                      ] as const
+                    ).map(([value, key]) => (
+                      <label
+                        key={value}
+                        className="flex cursor-pointer items-start gap-2.5 text-sm text-muted-foreground"
+                      >
+                        <input
+                          type="radio"
+                          name="centre-screening"
+                          className="mt-1 accent-[color:var(--brand-link)]"
+                          checked={screeningChoice === value}
+                          onChange={() => setScreeningChoice(value)}
+                        />
+                        <span>{t(key)}</span>
+                      </label>
+                    ))}
+                    {screeningChoice === "clarify" ? (
+                      <div className="space-y-2">
+                        <Textarea
+                          rows={3}
+                          maxLength={500}
+                          placeholder={t("case_board.screening_clarify_placeholder")}
+                          value={clarifyNote}
+                          onChange={(e) => setClarifyNote(e.target.value)}
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={clarifyNote.trim().length < 10 || flagConcern.isPending}
+                          onClick={() => flagConcern.mutate(clarifyNote.trim())}
+                        >
+                          {flagConcern.isPending
+                            ? t("case_board.screening_clarify_sending")
+                            : t("case_board.screening_clarify_submit")}
+                        </Button>
+                      </div>
+                    ) : null}
+                  </div>
+                </div>
+              </div>
+            ) : null}
 
             {payout ? (
               <div className="flex flex-col gap-3">

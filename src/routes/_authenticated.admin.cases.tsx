@@ -126,7 +126,7 @@ function AdminCases() {
       const { data, error } = await supabase
         .from("tutoring_cases")
         .select(
-          "id, case_code, title, description, subjects, exam_system, student_level, student_grade_current, student_school, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, district, mode, sessions_per_week, session_length_minutes, schedule_note, start_timing, preferred_gender, language_of_instruction, urgency, budget_min, budget_max, budget_currency, budget_min_hkd, budget_max_hkd, contact_name, contact_phone, status, matched_tutor_id, matched_at, fee_collected_at, fee_amount_cents, tags, source, last_contacted_at, board_published_at, created_at, updated_at",
+          "id, case_code, title, description, subjects, exam_system, student_level, student_grade_current, student_school, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, district, mode, sessions_per_week, session_length_minutes, schedule_note, start_timing, preferred_gender, language_of_instruction, urgency, budget_min, budget_max, budget_currency, budget_min_hkd, budget_max_hkd, contact_name, contact_phone, status, matched_tutor_id, matched_at, fee_collected_at, fee_amount_cents, tags, source, last_contacted_at, board_published_at, compliance_triage, compliance_note, created_at, updated_at",
         )
         .order("created_at", { ascending: false })
         .limit(500);
@@ -162,12 +162,23 @@ function AdminCases() {
 
   const batchStatusMutation = useMutation({
     mutationFn: async ({ ids, status }: { ids: string[]; status: CaseStatus }) => {
+      // Issue #412: held cases are locked — batch escalations skip them and
+      // report the count instead of silently moving a locked request.
+      const held = new Set(
+        cases.filter((row) => row.status === "compliance_hold").map((row) => row.id),
+      );
+      const targetIds = ids.filter(
+        (id) => !(held.has(id) && (status === "contacted" || status === "matched")),
+      );
+      if (targetIds.length === 0) {
+        throw new Error("Compliance hold: re-screen held cases individually before escalating.");
+      }
       const patch: Record<string, unknown> = { status };
       if (status === "contacted") patch.last_contacted_at = new Date().toISOString();
       const { error } = await supabase
         .from("tutoring_cases")
         .update(patch as never)
-        .in("id", ids);
+        .in("id", targetIds);
       if (error) throw error;
     },
     onSuccess: (_data, variables) => {

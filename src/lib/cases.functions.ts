@@ -21,6 +21,21 @@ import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "@/lib/money";
 import { sanitizeCaseFreeText } from "@/lib/contact-filter";
 import { buildCaseTitle as buildStructuredTitle } from "@/features/cases/case-title";
 
+/**
+ * #412 E: parent B2C triage routing. Exported for the vitest suite. A
+ * third-party engager (an organisation contracting through a parent form) or
+ * any non-tutoring household/staff duty puts the request on compliance_hold
+ * instead of the normal `new` desk queue.
+ */
+export function parentTriageStatus(triage: {
+  engager: "myself_child" | "organisation_third_party";
+  nonTutoringDuties: "no" | "yes";
+}): "new" | "compliance_hold" {
+  if (triage.engager === "organisation_third_party") return "compliance_hold";
+  if (triage.nonTutoringDuties === "yes") return "compliance_hold";
+  return "new";
+}
+
 const phoneRegex = /^[+(\d][\d\s()./+-]{4,19}\d$/;
 
 const CaseRequestInput = z
@@ -92,6 +107,12 @@ const CaseRequestInput = z
     // Issue #423: the public client note is capped at 500 chars and piped
     // through stripContactDetails (sanitizeCaseFreeText) at save time.
     notes: z.string().trim().max(500).optional().nullable(),
+    // Issue #412 E: parent B2C compliance triage — a third-party engager or
+    // non-tutoring/staff duties drops the request into compliance_hold.
+    triage: z.object({
+      engager: z.enum(["myself_child", "organisation_third_party"]),
+      nonTutoringDuties: z.enum(["no", "yes"]),
+    }),
     termsAck: z.literal(true),
     // Issue #253 (F2): the matching-fee agreement (fee-2026-10) is a
     // separate, mandatory checkbox; the version is recorded server-side.
@@ -190,10 +211,33 @@ export type PublicCaseBoardItem = {
   budgetMaxHkd: number | null;
   boardPublishedAt: string | null;
   createdAt: string;
+  // Issues #412 / #423 B2B slice: verified centre identity on centre cases
+  // (null on parent cases). verified = org status "active" post BR review.
+  centre: {
+    name: string;
+    slug: string | null;
+    verified: boolean;
+    orgType: string | null;
+  } | null;
+  // #412 E: read-only screening summary shown to tutors on centre cases —
+  // contracting entity, service nature, zero-admin-duty verification and the
+  // proposed rate/split. Never exposed for parent cases.
+  screening: {
+    contractingEntity: string | null;
+    feeStructure: string | null;
+    feeAmount: string | null;
+    feeOpenToCounter: boolean;
+    premisesProvider: string | null;
+    scopeDescription: string | null;
+    adminDutiesVerified: boolean;
+    methodologyOwner: string | null;
+    otherClientsAllowed: string | null;
+    substitutionAllowed: string | null;
+  } | null;
 };
 
 const PUBLIC_CASE_COLUMNS =
-  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, start_timing, package_type, student_count, rate_unit, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at";
+  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, start_timing, package_type, student_count, rate_unit, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, compliance_triage, organizations(name, slug, status, org_type)";
 
 // Never contact_name / contact_phone / student_school / student_grade_current.
 // sen_details is also withheld: the board is public and the free-text needs
@@ -256,6 +300,37 @@ function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
     budgetMaxHkd: (row.budget_max_hkd as number | null) ?? null,
     boardPublishedAt: (row.board_published_at as string | null) ?? null,
     createdAt: row.created_at as string,
+    // Issues #412 / #423: centre identity via the organisations embed —
+    // parent rows have no organisation link and map to null.
+    centre: (() => {
+      const org = row.organizations as
+        { name?: string; slug?: string; status?: string; org_type?: string } | null | undefined;
+      if (!org?.name) return null;
+      return {
+        name: org.name,
+        slug: org.slug ?? null,
+        verified: org.status === "active",
+        orgType: org.org_type ?? null,
+      };
+    })(),
+    // #412 E: the tutor-facing screening summary — centre triage answers
+    // only, and only the fields the issue sanctions showing.
+    screening: (() => {
+      const triage = row.compliance_triage as Record<string, unknown> | null;
+      if (!triage || triage.scope !== "centre") return null;
+      return {
+        contractingEntity: (triage.contractingEntity as string | null) ?? null,
+        feeStructure: (triage.feeStructure as string | null) ?? null,
+        feeAmount: (triage.feeAmount as string | null) ?? null,
+        feeOpenToCounter: triage.feeOpenToCounter === true,
+        premisesProvider: (triage.premisesProvider as string | null) ?? null,
+        scopeDescription: (triage.scopeDescription as string | null) ?? null,
+        adminDutiesVerified: triage.adminDutiesRequired === "no",
+        methodologyOwner: (triage.methodologyOwner as string | null) ?? null,
+        otherClientsAllowed: (triage.otherClientsAllowed as string | null) ?? null,
+        substitutionAllowed: (triage.substitutionAllowed as string | null) ?? null,
+      };
+    })(),
   };
 }
 
@@ -268,7 +343,7 @@ export const getPublicCaseBoard = createServerFn({ method: "GET" }).handler(asyn
       .from("tutoring_cases")
       .select(PUBLIC_CASE_COLUMNS)
       .not("board_published_at", "is", null)
-      .not("status", "in", "(matched,closed,rejected)")
+      .not("status", "in", "(matched,closed,rejected,compliance_hold)")
       .order("board_published_at", { ascending: false })
       .limit(60),
     supabaseAdmin.from("app_settings").select("value").eq("key", "whatsapp_number").maybeSingle(),
@@ -295,7 +370,7 @@ export const getPublicCaseByCode = createServerFn({ method: "GET" })
         .select(PUBLIC_CASE_COLUMNS)
         .eq("case_code", data.caseCode)
         .not("board_published_at", "is", null)
-        .not("status", "in", "(matched,closed,rejected)")
+        .not("status", "in", "(matched,closed,rejected,compliance_hold)")
         .maybeSingle(),
       supabaseAdmin.from("app_settings").select("value").eq("key", "whatsapp_number").maybeSingle(),
     ]);
@@ -516,7 +591,11 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       contact_name: data.parentName,
       contact_phone: data.contactPhone,
       source: "website",
-      status: "new" as const,
+      // Issue #412 E: triage routes to compliance_hold instead of `new` —
+      // held requests are invisible to the public board and locked in the
+      // admin desk until staff re-screen.
+      status: parentTriageStatus(data.triage),
+      compliance_triage: { scope: "parent", ...data.triage },
     };
 
     const { data: row, error } = await supabaseAdmin

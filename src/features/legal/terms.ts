@@ -1,18 +1,18 @@
 /**
  * Issue #214 — Terms of Service gates.
  *
- * Single source of truth for the terms version the four gated surfaces
- * (signup, note upload, checkout, referral signup) must record. Bump
- * TERMS_VERSION whenever the ToS changes materially; the next acceptance on
- * each surface then records the new version, and stale rows keep their old
- * version string as history.
+ * Single source of truth for the terms version the gated surfaces
+ * (signup, note upload, checkout, referral signup, case request, centre
+ * partnership) must record. Bump TERMS_VERSION whenever the ToS changes
+ * materially; the next acceptance on each surface then records the new
+ * version, and stale rows keep their old version string as history.
  *
  * The acceptance ROW is always written server-side by the service-role server
  * fn that owns the gate (terms_acceptances has no client INSERT policy) —
  * these helpers are the shared vocabulary that fn and its UI agree on.
  */
 
-export const TERMS_VERSION = "2026-10-16";
+export const TERMS_VERSION = "2026-10-24";
 
 /**
  * Issue #253 (F2): the matching-fee agreement on the case-request form has
@@ -21,6 +21,13 @@ export const TERMS_VERSION = "2026-10-16";
  */
 export const FEE_TERMS_VERSION = "fee-2026-10";
 
+/**
+ * Issue #412: the centre-partnership acceptance on the Partner Org join form
+ * records version `centre-2026-10` (aligned with #257's partnership terms the
+ * representative binds). Independent of the general ToS version.
+ */
+export const CENTRE_PARTNERSHIP_TERMS_VERSION = "centre-2026-10";
+
 export const TERMS_SURFACES = [
   "signup",
   "note_upload",
@@ -28,6 +35,8 @@ export const TERMS_SURFACES = [
   "referral_signup",
   // Issue #253 (F2): the parent case-request form's matching-fee checkbox.
   "case_request",
+  // Issue #412: Partner Org join — authority checkbox + partnership terms.
+  "centre_partnership",
 ] as const;
 
 export type TermsSurface = (typeof TERMS_SURFACES)[number];
@@ -42,6 +51,12 @@ export type TermsAcceptanceInput = {
   termsVersion?: string;
   /** Optional context row: application id, note draft id, or order id. */
   subjectId?: string | null;
+  /** #412 D: request IP at acceptance time (server-captured, best-effort). */
+  ipAddress?: string | null;
+  /** #412 D: centre-partnership rows — the legal entity the rep bound. */
+  legalEntityName?: string | null;
+  /** #412 D: exact checkbox label strings shown (audit trail outlives copy). */
+  acceptanceDetails?: string[] | null;
 };
 
 export type TermsAcceptanceRow = {
@@ -49,6 +64,9 @@ export type TermsAcceptanceRow = {
   surface: TermsSurface;
   terms_version: string;
   subject_id: string | null;
+  ip_address?: string | null;
+  legal_entity_name?: string | null;
+  acceptance_details?: string[] | null;
 };
 
 /**
@@ -65,6 +83,9 @@ export function buildTermsAcceptanceRow(input: TermsAcceptanceInput): TermsAccep
     surface: input.surface,
     terms_version: input.termsVersion ?? TERMS_VERSION,
     subject_id: input.subjectId ?? null,
+    ip_address: input.ipAddress ?? null,
+    legal_entity_name: input.legalEntityName ?? null,
+    acceptance_details: input.acceptanceDetails ?? null,
   };
 }
 

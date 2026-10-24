@@ -33,6 +33,7 @@ import { Route as CoursesCourseIdRouteImport } from './routes/courses.$courseId'
 import { Route as GuideIndexRouteImport } from './routes/guide.index'
 import { Route as GuideNotesRouteImport } from './routes/guide.notes'
 import { Route as GuideParentsRouteImport } from './routes/guide.parents'
+import { Route as GuidePartnersRouteImport } from './routes/guide.partners'
 import { Route as GuideReferRouteImport } from './routes/guide.refer'
 import { Route as GuideTutorsRouteImport } from './routes/guide.tutors'
 import { Route as GuideVerificationRouteImport } from './routes/guide.verification'
@@ -68,6 +69,7 @@ import { Route as HelpCategorySlugRouteImport } from './routes/help.$category.$s
 import { Route as AuthenticatedAccountCasesCaseIdRouteImport } from './routes/_authenticated.account.cases.$caseId'
 import { Route as AuthenticatedAccountNotesNewRouteImport } from './routes/_authenticated.account.notes.new'
 import { Route as AuthenticatedAccountServicesNewRouteImport } from './routes/_authenticated.account.services.new'
+import { Route as AuthenticatedBusinessCasesNewRouteImport } from './routes/_authenticated.business.cases.new'
 import { Route as LovableEmailAuthPreviewRouteImport } from './routes/lovable/email/auth/preview'
 import { Route as LovableEmailAuthWebhookRouteImport } from './routes/lovable/email/auth/webhook'
 import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/lovable/email/transactional/preview'
@@ -192,6 +194,11 @@ const GuideNotesRoute = GuideNotesRouteImport.update({
 const GuideParentsRoute = GuideParentsRouteImport.update({
   id: '/guide/parents',
   path: '/guide/parents',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GuidePartnersRoute = GuidePartnersRouteImport.update({
+  id: '/guide/partners',
+  path: '/guide/partners',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GuideReferRoute = GuideReferRouteImport.update({
@@ -390,6 +397,12 @@ const AuthenticatedAccountServicesNewRoute =
     path: '/services/new',
     getParentRoute: () => AuthenticatedAccountRoute,
   } as any)
+const AuthenticatedBusinessCasesNewRoute =
+  AuthenticatedBusinessCasesNewRouteImport.update({
+    id: '/business/cases/new',
+    path: '/business/cases/new',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const LovableEmailAuthPreviewRoute = LovableEmailAuthPreviewRouteImport.update({
   id: '/lovable/email/auth/preview',
   path: '/lovable/email/auth/preview',
@@ -441,6 +454,7 @@ export interface FileRoutesByFullPath {
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/guide/notes': typeof GuideNotesRoute
   '/guide/parents': typeof GuideParentsRoute
+  '/guide/partners': typeof GuidePartnersRoute
   '/guide/refer': typeof GuideReferRoute
   '/guide/tutors': typeof GuideTutorsRoute
   '/guide/verification': typeof GuideVerificationRoute
@@ -478,6 +492,7 @@ export interface FileRoutesByFullPath {
   '/account/cases/$caseId': typeof AuthenticatedAccountCasesCaseIdRoute
   '/account/notes/new': typeof AuthenticatedAccountNotesNewRoute
   '/account/services/new': typeof AuthenticatedAccountServicesNewRoute
+  '/business/cases/new': typeof AuthenticatedBusinessCasesNewRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -505,6 +520,7 @@ export interface FileRoutesByTo {
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/guide/notes': typeof GuideNotesRoute
   '/guide/parents': typeof GuideParentsRoute
+  '/guide/partners': typeof GuidePartnersRoute
   '/guide/refer': typeof GuideReferRoute
   '/guide/tutors': typeof GuideTutorsRoute
   '/guide/verification': typeof GuideVerificationRoute
@@ -542,6 +558,7 @@ export interface FileRoutesByTo {
   '/account/cases/$caseId': typeof AuthenticatedAccountCasesCaseIdRoute
   '/account/notes/new': typeof AuthenticatedAccountNotesNewRoute
   '/account/services/new': typeof AuthenticatedAccountServicesNewRoute
+  '/business/cases/new': typeof AuthenticatedBusinessCasesNewRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -572,6 +589,7 @@ export interface FileRoutesById {
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/guide/notes': typeof GuideNotesRoute
   '/guide/parents': typeof GuideParentsRoute
+  '/guide/partners': typeof GuidePartnersRoute
   '/guide/refer': typeof GuideReferRoute
   '/guide/tutors': typeof GuideTutorsRoute
   '/guide/verification': typeof GuideVerificationRoute
@@ -609,6 +627,7 @@ export interface FileRoutesById {
   '/_authenticated/account/cases/$caseId': typeof AuthenticatedAccountCasesCaseIdRoute
   '/_authenticated/account/notes/new': typeof AuthenticatedAccountNotesNewRoute
   '/_authenticated/account/services/new': typeof AuthenticatedAccountServicesNewRoute
+  '/_authenticated/business/cases/new': typeof AuthenticatedBusinessCasesNewRoute
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
@@ -639,6 +658,7 @@ export interface FileRouteTypes {
     | '/courses/$courseId'
     | '/guide/notes'
     | '/guide/parents'
+    | '/guide/partners'
     | '/guide/refer'
     | '/guide/tutors'
     | '/guide/verification'
@@ -676,6 +696,7 @@ export interface FileRouteTypes {
     | '/account/cases/$caseId'
     | '/account/notes/new'
     | '/account/services/new'
+    | '/business/cases/new'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -703,6 +724,7 @@ export interface FileRouteTypes {
     | '/courses/$courseId'
     | '/guide/notes'
     | '/guide/parents'
+    | '/guide/partners'
     | '/guide/refer'
     | '/guide/tutors'
     | '/guide/verification'
@@ -740,6 +762,7 @@ export interface FileRouteTypes {
     | '/account/cases/$caseId'
     | '/account/notes/new'
     | '/account/services/new'
+    | '/business/cases/new'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -769,6 +792,7 @@ export interface FileRouteTypes {
     | '/courses/$courseId'
     | '/guide/notes'
     | '/guide/parents'
+    | '/guide/partners'
     | '/guide/refer'
     | '/guide/tutors'
     | '/guide/verification'
@@ -806,6 +830,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account/cases/$caseId'
     | '/_authenticated/account/notes/new'
     | '/_authenticated/account/services/new'
+    | '/_authenticated/business/cases/new'
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
@@ -830,6 +855,7 @@ export interface RootRouteChildren {
   CoursesCourseIdRoute: typeof CoursesCourseIdRoute
   GuideNotesRoute: typeof GuideNotesRoute
   GuideParentsRoute: typeof GuideParentsRoute
+  GuidePartnersRoute: typeof GuidePartnersRoute
   GuideReferRoute: typeof GuideReferRoute
   GuideTutorsRoute: typeof GuideTutorsRoute
   GuideVerificationRoute: typeof GuideVerificationRoute
@@ -1015,6 +1041,13 @@ declare module '@tanstack/react-router' {
       path: '/guide/parents'
       fullPath: '/guide/parents'
       preLoaderRoute: typeof GuideParentsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/guide/partners': {
+      id: '/guide/partners'
+      path: '/guide/partners'
+      fullPath: '/guide/partners'
+      preLoaderRoute: typeof GuidePartnersRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/guide/refer': {
@@ -1262,6 +1295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountServicesNewRouteImport
       parentRoute: typeof AuthenticatedAccountRoute
     }
+    '/_authenticated/business/cases/new': {
+      id: '/_authenticated/business/cases/new'
+      path: '/business/cases/new'
+      fullPath: '/business/cases/new'
+      preLoaderRoute: typeof AuthenticatedBusinessCasesNewRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/lovable/email/auth/preview': {
       id: '/lovable/email/auth/preview'
       path: '/lovable/email/auth/preview'
@@ -1386,6 +1426,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedTutorRequestsCaseCodeRoute: typeof AuthenticatedTutorRequestsCaseCodeRoute
   AuthenticatedBusinessIndexRoute: typeof AuthenticatedBusinessIndexRoute
   AuthenticatedTutorRequestsIndexRoute: typeof AuthenticatedTutorRequestsIndexRoute
+  AuthenticatedBusinessCasesNewRoute: typeof AuthenticatedBusinessCasesNewRoute
 }
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
@@ -1403,6 +1444,7 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
     AuthenticatedTutorRequestsCaseCodeRoute,
   AuthenticatedBusinessIndexRoute: AuthenticatedBusinessIndexRoute,
   AuthenticatedTutorRequestsIndexRoute: AuthenticatedTutorRequestsIndexRoute,
+  AuthenticatedBusinessCasesNewRoute: AuthenticatedBusinessCasesNewRoute,
 }
 
 const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
@@ -1426,6 +1468,7 @@ const rootRouteChildren: RootRouteChildren = {
   CoursesCourseIdRoute: CoursesCourseIdRoute,
   GuideNotesRoute: GuideNotesRoute,
   GuideParentsRoute: GuideParentsRoute,
+  GuidePartnersRoute: GuidePartnersRoute,
   GuideReferRoute: GuideReferRoute,
   GuideTutorsRoute: GuideTutorsRoute,
   GuideVerificationRoute: GuideVerificationRoute,

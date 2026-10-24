@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
+
+import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 import {
   ArrowRight,
+  Building2,
   BookOpen,
   Clock3,
   CreditCard,
@@ -229,6 +232,17 @@ function GuideIndexPage() {
       title: t("guide.tab_verification"),
       body: t("guide.index_verification_body"),
     },
+    // Issue #412 G: hidden with the tab while the centre market is off.
+    ...(CENTRE_MARKET_ENABLED
+      ? [
+          {
+            to: "/guide/partners" as const,
+            icon: Building2,
+            title: t("guide.tab_partners"),
+            body: t("guide.index_partners_body"),
+          },
+        ]
+      : []),
   ];
 
   return (

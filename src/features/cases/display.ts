@@ -206,3 +206,30 @@ export function caseBudgetForTutor(
 export function formatCaseSchedule(sessionsPerWeek: number, sessionLengthMinutes: number): string {
   return `${sessionsPerWeek}x/week · ${sessionLengthMinutes} min`;
 }
+
+// Issue #412 E: the centre screening summary values shown to tutors, in both
+// locales. Keyed by the raw triage token; unknown tokens pass through.
+export const CASE_SCREENING_LABELS: Record<string, Record<"en" | "zh-HK", string>> = {
+  organisation_self: {
+    en: "The centre directly (verified BR entity)",
+    "zh-HK": "由機構直接委聘（已核實商業登記）",
+  },
+  third_party: { en: "A third-party organisation", "zh-HK": "第三方機構" },
+  hourly: { en: "Hourly service fee", "zh-HK": "按小時服務費" },
+  per_session: { en: "Per-session service fee", "zh-HK": "按節服務費" },
+  revenue_split: { en: "Course revenue-split ratio %", "zh-HK": "課程分成比例 %" },
+  organisation: { en: "Organisation", "zh-HK": "機構" },
+  educator: { en: "Educator", "zh-HK": "導師" },
+  online_shared: { en: "Online / shared", "zh-HK": "網上／共用" },
+  educator_method: { en: "Educator independently", "zh-HK": "由導師自行決定" },
+  mutual: { en: "Mutual alignment on syllabus goals", "zh-HK": "雙方就教學目標達成共識" },
+  centre_controlled: { en: "Strictly controlled by centre", "zh-HK": "由機構嚴格規定" },
+  yes: { en: "Yes", "zh-HK": "是" },
+  no: { en: "No", "zh-HK": "否" },
+  open: { en: "Open to discussion", "zh-HK": "可再商議" },
+};
+
+export function caseScreeningLabel(token: string | null, locale: "en" | "zh-HK"): string | null {
+  if (!token) return null;
+  return CASE_SCREENING_LABELS[token]?.[locale] ?? token;
+}

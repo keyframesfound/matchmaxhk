@@ -7,6 +7,8 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
+import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
+
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -199,6 +201,10 @@ function ParentCaseDetailPage() {
                 )}
               </section>
             )}
+
+            {/* Issue #412 F: engagement summary — dual-party confirmation
+                before contact details / lesson start are finalised. */}
+            <EngagementSummaryCard caseId={caseId} party="customer" />
 
             <ReviewSection caseId={caseId} detail={data} onChanged={invalidate} />
 
