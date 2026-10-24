@@ -32,6 +32,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { ROLE_DISPLAY_NAMES, ROLE_BADGE_STYLES } from "@/features/auth/roleLabel";
+import { InitialAvatar } from "@/components/ui/initial-avatar";
 import {
   accountStatusBadgeClass,
   accountStatusLabel,
@@ -48,23 +49,6 @@ interface UsersTableProps {
   onStatusAction: (user: UserRow, action: StatusAction) => void;
   /** Only admins (and super admins) may ban or restore. */
   canBan: boolean;
-}
-
-const AVATAR_COLORS = [
-  "bg-blue-500/10 text-blue-600 dark:text-blue-400 border-blue-500/20",
-  "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/20",
-  "bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20",
-  "bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/20",
-  "bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/20",
-  "bg-teal-500/10 text-teal-600 dark:text-teal-400 border-teal-500/20",
-];
-
-function getAvatarColor(id: string) {
-  let hash = 0;
-  for (let i = 0; i < id.length; i++) {
-    hash = id.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
 export function UsersTable({
@@ -109,22 +93,21 @@ export function UsersTable({
 
         {!isLoading &&
           users.map((user) => {
-            const initial = (user.display_name ?? user.email ?? "U")[0].toUpperCase();
-            const avatarColor = getAvatarColor(user.user_id);
-
             return (
               <tr
                 key={user.user_id}
                 className="group align-middle transition-colors hover:bg-[color:var(--surface-subtle)]/40"
               >
-                {/* User Identity Column */}
+                {/* User Identity Column — Issue #437: staff desk client faces
+                    use the shared branded initial avatar (Azure/Sky palette,
+                    deterministic per user_id). */}
                 <ConsoleTd>
                   <div className="flex items-center gap-3">
-                    <div
-                      className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full border font-bold text-xs ${avatarColor}`}
-                    >
-                      {initial}
-                    </div>
+                    <InitialAvatar
+                      stableId={user.user_id}
+                      name={user.display_name ?? user.email}
+                      className="h-9 w-9 text-xs"
+                    />
                     <div className="min-w-0">
                       <p className="truncate font-bold text-sm text-[color:var(--ink)]">
                         {user.display_name ?? "—"}

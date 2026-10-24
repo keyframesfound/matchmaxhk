@@ -48,12 +48,7 @@ import {
 import { useDisplayCurrency } from "@/features/currency/display-currency-context";
 import { convertedTextFromHkd } from "@/features/currency/convert";
 import { DEFAULT_CURRENCY, formatMoney, toCurrencyCode } from "@/lib/money";
-
-function getTutorInitials(tutorCode?: string | null) {
-  const normalized = (tutorCode ?? "").replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-  if (!normalized) return "MM";
-  return normalized.slice(0, 2);
-}
+import { InitialAvatar } from "@/components/ui/initial-avatar";
 
 function removeEmoji(value: string) {
   return value
@@ -379,9 +374,13 @@ export function PublicTutorCard({
                   className="h-11 w-11 rounded-full border border-border bg-muted object-cover md:h-[3.25rem] md:w-[3.25rem]"
                 />
               ) : (
-                <div className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-muted text-sm font-bold text-[color:var(--ink)] md:h-[3.25rem] md:w-[3.25rem] md:text-base">
-                  {getTutorInitials(tutor.tutor_code)}
-                </div>
+                // Issue #437: branded deterministic initial avatar replaces
+                // the grey/muted circle fallback (no silhouettes anywhere).
+                <InitialAvatar
+                  stableId={tutor.user_id ?? tutor.tutor_code}
+                  name={tutor.display_name || tutor.tutor_code}
+                  className="h-11 w-11 text-sm md:h-[3.25rem] md:w-[3.25rem] md:text-base"
+                />
               )}
             </div>
             <p className="whitespace-nowrap text-xs font-semibold text-muted-foreground">

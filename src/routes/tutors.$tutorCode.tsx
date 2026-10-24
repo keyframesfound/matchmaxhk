@@ -78,6 +78,7 @@ import {
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { ExperienceLine } from "@/features/tutors/experience-badge";
 import { TutorGroupClassesSection } from "@/features/cases/tutor-cohorts-section";
+import { InitialAvatar } from "@/components/ui/initial-avatar";
 import {
   normalizeUniversityCourses,
   normalizeUniversityGpa,
@@ -672,9 +673,12 @@ function TutorDetail() {
                     className="h-16 w-16 rounded-full object-cover sm:h-20 sm:w-20"
                   />
                 ) : (
-                  <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] text-xl font-semibold text-[color:var(--muted-foreground)] sm:h-20 sm:w-20 sm:text-2xl">
-                    {t.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
-                  </div>
+                  // Issue #437: branded deterministic initial avatar fallback.
+                  <InitialAvatar
+                    stableId={t.user_id ?? t.tutor_code}
+                    name={t.display_name || t.tutor_code}
+                    className="h-16 w-16 text-xl sm:h-20 sm:w-20 sm:text-2xl"
+                  />
                 )}
               </div>
               <div className="min-w-0 flex-1">

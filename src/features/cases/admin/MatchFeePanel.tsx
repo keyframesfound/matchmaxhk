@@ -11,6 +11,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConsolePanel } from "@/components/ui/console-panel";
+import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { formatMoneyFromCents } from "@/lib/money";
 import type { CaseRow } from "./shared";
 
@@ -47,10 +48,13 @@ function TutorAvatar({ hit }: { hit: TutorHit }) {
       />
     );
   }
+  // Issue #437: branded deterministic initial avatar (no grey placeholders).
   return (
-    <div className="grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-[color:var(--ink)]/[0.06] text-[10px] font-bold text-[color:var(--ink)]/60">
-      {(hit.tutor_code || "MM").slice(0, 2)}
-    </div>
+    <InitialAvatar
+      stableId={hit.tutor_code}
+      name={hit.display_name}
+      className="h-9 w-9 text-[10px]"
+    />
   );
 }
 
