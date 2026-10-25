@@ -7,44 +7,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { StarRating } from "@/components/ui/StarRating";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
-import { cn } from "@/lib/utils";
 
 type FeedbackRole = "parent_student" | "tutor";
-
-type StarRatingProps = {
-  value: number;
-  onChange: (value: number) => void;
-  label: string;
-};
-
-/** Accessible 5-star row: radio group semantics over star buttons. */
-function StarRating({ value, onChange, label }: StarRatingProps) {
-  const { t } = useTranslation();
-  return (
-    <div role="radiogroup" aria-label={label} className="flex items-center gap-1">
-      {[1, 2, 3, 4, 5].map((star) => (
-        <button
-          key={star}
-          type="button"
-          role="radio"
-          aria-checked={value === star}
-          aria-label={t("feedback.star_label_other", { count: star })}
-          onClick={() => onChange(star)}
-          className={cn(
-            "text-2xl leading-none transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]",
-            star <= value
-              ? "text-amber-500"
-              : "text-[color:var(--foreground)]/20 hover:text-amber-300",
-          )}
-        >
-          ★
-        </button>
-      ))}
-    </div>
-  );
-}
 
 type RatingKey = "speed" | "smoothness" | "service";
 
@@ -181,6 +148,7 @@ export default function Feedback() {
                       value={ratings[key]}
                       onChange={(value) => setRatings((prev) => ({ ...prev, [key]: value }))}
                       label={prompt}
+                      size={24}
                     />
                   </div>
                 ))}

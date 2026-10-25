@@ -14,39 +14,48 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useDisplayCurrency } from "@/features/currency/display-currency-context";
 import { SUPPORTED_CURRENCIES, type CurrencyCode } from "@/lib/money";
+import { cn } from "@/lib/utils";
 
 export function CurrencyToggle({ className }: { className?: string }) {
   const { t } = useTranslation();
   const { currency, setCurrency } = useDisplayCurrency();
 
   return (
-    <label className={cnToggleLabel(className)} aria-label={t("currency.switcher_label")}>
-      <Banknote className="h-5 w-5 shrink-0" strokeWidth={2.5} aria-hidden="true" />
-      <select
-        value={currency}
-        onChange={(event) => setCurrency(event.target.value as CurrencyCode)}
-        className="cursor-pointer appearance-none bg-transparent text-[15px] font-medium text-[color:var(--ink)] outline-none"
+    <Select value={currency} onValueChange={(v) => setCurrency(v as CurrencyCode)}>
+      <SelectTrigger
+        aria-label={t("currency.switcher_label")}
+        className={cnToggleTrigger(className)}
       >
+        <span className="flex items-center gap-2">
+          <Banknote className="h-5 w-5 shrink-0" strokeWidth={2.5} aria-hidden="true" />
+          <SelectValue />
+        </span>
+      </SelectTrigger>
+      <SelectContent>
         {SUPPORTED_CURRENCIES.map((code) => (
-          <option key={code} value={code}>
+          <SelectItem key={code} value={code}>
             {code}
-          </option>
+          </SelectItem>
         ))}
-      </select>
-    </label>
+      </SelectContent>
+    </Select>
   );
 }
 
-function cnToggleLabel(className?: string) {
-  return [
-    "flex h-10 items-center gap-2 rounded-full px-3 font-medium text-[color:var(--ink)]",
-    "transition-colors hover:bg-[color:var(--foreground)]/[0.06]",
-    className ?? "",
-  ]
-    .filter(Boolean)
-    .join(" ");
+function cnToggleTrigger(className?: string) {
+  return cn(
+    "h-10 min-h-10 w-auto gap-2 rounded-full border-0 bg-transparent px-3 text-[15px] font-medium text-[color:var(--ink)] hover:border-transparent hover:bg-[color:var(--foreground)]/[0.06]",
+    className,
+  );
 }
 
 export function CurrencyMenuSub() {

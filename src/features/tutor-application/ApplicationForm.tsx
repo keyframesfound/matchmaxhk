@@ -3585,18 +3585,18 @@ export function ApplicationForm() {
                   Issue #113: the tutor picks the currency every rate is
                   quoted in; labels + the ≈HK$ note follow it. */}
               <Field label={t("join.rates.currency_label")}>
-                <select
-                  aria-label={t("join.rates.currency_label")}
-                  value={base.currency}
-                  onChange={(event) => setBaseField("currency", event.target.value)}
-                  className="h-10 w-full max-w-48 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-3 text-sm font-medium text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
-                >
-                  {SUPPORTED_CURRENCIES.map((code) => (
-                    <option key={code} value={code}>
-                      {code}
-                    </option>
-                  ))}
-                </select>
+                <Select value={base.currency} onValueChange={(v) => setBaseField("currency", v)}>
+                  <SelectTrigger aria-label={t("join.rates.currency_label")} className="max-w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUPPORTED_CURRENCIES.map((code) => (
+                      <SelectItem key={code} value={code}>
+                        {code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <Field
