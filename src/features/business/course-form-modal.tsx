@@ -3,6 +3,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
 import {
   Dialog,
   DialogContent,
@@ -359,21 +360,21 @@ export function CourseFormModal({
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
                 <Label htmlFor="course-start-date">First class</Label>
-                <Input
+                <DatePicker
                   id="course-start-date"
-                  type="date"
-                  value={form.start_date}
-                  onChange={(e) => setField({ start_date: e.target.value })}
+                  label="First class"
+                  value={isoToDate(form.start_date)}
+                  onChange={(date) => setField({ start_date: dateToIso(date) })}
                 />
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="course-end-date">Last class</Label>
-                <Input
+                <DatePicker
                   id="course-end-date"
-                  type="date"
-                  min={form.start_date || undefined}
-                  value={form.end_date}
-                  onChange={(e) => setField({ end_date: e.target.value })}
+                  label="Last class"
+                  value={isoToDate(form.end_date)}
+                  min={isoToDate(form.start_date)}
+                  onChange={(date) => setField({ end_date: dateToIso(date) })}
                 />
               </div>
             </div>

@@ -28,6 +28,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
   ConsoleTable,
   ConsoleTableBody,
   ConsoleTableEmpty,
@@ -80,6 +87,10 @@ export const Route = createFileRoute("/_authenticated/admin/materials")({
 });
 
 type AdminTutorOption = { id: string; display_name: string; tutor_code: string };
+
+/* Radix Select items can't hold an empty value, so the reject dialog's
+ * "no preset chosen" state rides this sentinel and maps back to "". */
+const REJECT_NONE_VALUE = "__none__";
 
 /**
  * Issue #131/#133/#134: admin management for the study-materials marketplace.
@@ -402,21 +413,27 @@ function AdminMaterials() {
                   </span>
                 </ConsoleTd>
                 <ConsoleTd>
-                  <select
+                  <Select
                     value={row.commission_status}
-                    onChange={(event) =>
+                    onValueChange={(v) =>
                       updateMutation.mutate({
                         materialId: row.id,
-                        commissionStatus: event.target.value as "pending" | "invoiced" | "settled",
+                        commissionStatus: v as "pending" | "invoiced" | "settled",
                       })
                     }
-                    className="h-8 rounded-md border border-border bg-transparent px-1.5 text-xs"
-                    aria-label="Commission status"
                   >
-                    <option value="pending">Pending</option>
-                    <option value="invoiced">Invoiced</option>
-                    <option value="settled">Settled</option>
-                  </select>
+                    <SelectTrigger
+                      aria-label="Commission status"
+                      className="h-8 min-h-8 w-auto px-2 text-xs"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="pending">Pending</SelectItem>
+                      <SelectItem value="invoiced">Invoiced</SelectItem>
+                      <SelectItem value="settled">Settled</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </ConsoleTd>
                 <ConsoleTd>
                   <button
@@ -499,20 +516,22 @@ function AdminMaterials() {
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5 sm:col-span-2">
                 <Label htmlFor="admin-material-tutor">Tutor (author)</Label>
-                <select
-                  id="admin-material-tutor"
-                  value={form.tutorId}
-                  onChange={(event) => setField({ tutorId: event.target.value })}
-                  className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                <Select
                   required
+                  value={form.tutorId}
+                  onValueChange={(v) => setField({ tutorId: v })}
                 >
-                  <option value="">Select a tutor…</option>
-                  {(tutorsQuery.data ?? []).map((option) => (
-                    <option key={option.id} value={option.id}>
-                      {option.display_name} ({option.tutor_code})
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger id="admin-material-tutor" className="w-full">
+                    <SelectValue placeholder="Select a tutor…" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(tutorsQuery.data ?? []).map((option) => (
+                      <SelectItem key={option.id} value={option.id}>
+                        {option.display_name} ({option.tutor_code})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5 sm:col-span-2">
                 <Label htmlFor="admin-material-title">{t("materials.field_title")}</Label>
@@ -539,43 +558,41 @@ function AdminMaterials() {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="admin-material-curriculum">{t("materials.field_curriculum")}</Label>
-                <select
-                  id="admin-material-curriculum"
-                  value={form.curriculumTag}
-                  onChange={(event) =>
-                    setField({ curriculumTag: event.target.value, subjectTag: "" })
-                  }
+                <Select
                   required
-                  className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                  value={form.curriculumTag}
+                  onValueChange={(v) => setField({ curriculumTag: v, subjectTag: "" })}
                 >
-                  <option value="" disabled>
-                    {t("notes.form.curriculum_placeholder")}
-                  </option>
-                  {NOTE_CURRICULA.map((entry) => (
-                    <option key={entry} value={entry}>
-                      {entry === "Other" ? t("notes.form.curriculum_other") : entry}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger id="admin-material-curriculum" className="w-full">
+                    <SelectValue placeholder={t("notes.form.curriculum_placeholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {NOTE_CURRICULA.map((entry) => (
+                      <SelectItem key={entry} value={entry}>
+                        {entry === "Other" ? t("notes.form.curriculum_other") : entry}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="admin-material-subject">{t("materials.field_subject")}</Label>
-                <select
-                  id="admin-material-subject"
-                  value={form.subjectTag}
-                  onChange={(event) => setField({ subjectTag: event.target.value })}
+                <Select
                   required
-                  className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
+                  value={form.subjectTag}
+                  onValueChange={(v) => setField({ subjectTag: v })}
                 >
-                  <option value="" disabled>
-                    {t("notes.form.subject_placeholder")}
-                  </option>
-                  {getSubjectOptionsForCategory(form.curriculumTag || undefined).map((entry) => (
-                    <option key={entry} value={entry}>
-                      {entry}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger id="admin-material-subject" className="w-full">
+                    <SelectValue placeholder={t("notes.form.subject_placeholder")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {getSubjectOptionsForCategory(form.curriculumTag || undefined).map((entry) => (
+                      <SelectItem key={entry} value={entry}>
+                        {entry}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="admin-material-school">{t("materials.field_school_tag")}</Label>
@@ -588,25 +605,26 @@ function AdminMaterials() {
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="admin-material-type">{t("notes.form.field_type")}</Label>
-                <select
-                  id="admin-material-type"
+                <Select
                   value={form.materialType}
-                  onChange={(event) =>
+                  onValueChange={(v) =>
                     setField({
-                      materialType: event.target.value as typeof form.materialType,
-                      ...(event.target.value !== "exemplar"
-                        ? { gradeAchieved: "", exemplarPermission: false }
-                        : {}),
+                      materialType: v as typeof form.materialType,
+                      ...(v !== "exemplar" ? { gradeAchieved: "", exemplarPermission: false } : {}),
                     })
                   }
-                  className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
                 >
-                  {MATERIAL_TYPES.map((type) => (
-                    <option key={type} value={type}>
-                      {t(`notes.form.type_${type}`)}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger id="admin-material-type" className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {MATERIAL_TYPES.map((type) => (
+                      <SelectItem key={type} value={type}>
+                        {t(`notes.form.type_${type}`)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-1.5">
                 <Label htmlFor="admin-material-topic">{t("notes.form.field_topic")}</Label>
@@ -632,11 +650,10 @@ function AdminMaterials() {
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
                     <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
-                      <input
-                        type="checkbox"
+                      <Checkbox
                         checked={form.exemplarPermission}
-                        onChange={(event) => setField({ exemplarPermission: event.target.checked })}
-                        className="mt-1 h-4 w-4 shrink-0"
+                        onCheckedChange={(c) => setField({ exemplarPermission: c === true })}
+                        className="mt-1"
                       />
                       <span>{t("notes.form.exemplar_permission")}</span>
                     </label>
@@ -924,23 +941,29 @@ function GigReviewQueue() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="gig-reject-preset">{t("gigs.admin_reject_preset_label")}</Label>
-              <select
-                id="gig-reject-preset"
-                value={presetKey}
-                onChange={(event) => {
-                  setPresetKey(event.target.value);
-                  const preset = GIG_REJECT_PRESETS.find((p) => p.labelKey === event.target.value);
+              <Select
+                value={presetKey === "" ? REJECT_NONE_VALUE : presetKey}
+                onValueChange={(v) => {
+                  const next = v === REJECT_NONE_VALUE ? "" : v;
+                  setPresetKey(next);
+                  const preset = GIG_REJECT_PRESETS.find((p) => p.labelKey === next);
                   if (preset) setRejectReason(preset.value);
                 }}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
               >
-                <option value="">{t("gigs.admin_reject_preset_placeholder")}</option>
-                {GIG_REJECT_PRESETS.map((preset) => (
-                  <option key={preset.labelKey} value={preset.labelKey}>
-                    {t(preset.labelKey)}
-                  </option>
-                ))}
-              </select>
+                <SelectTrigger id="gig-reject-preset" className="w-full">
+                  <SelectValue placeholder={t("gigs.admin_reject_preset_placeholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={REJECT_NONE_VALUE}>
+                    {t("gigs.admin_reject_preset_placeholder")}
+                  </SelectItem>
+                  {GIG_REJECT_PRESETS.map((preset) => (
+                    <SelectItem key={preset.labelKey} value={preset.labelKey}>
+                      {t(preset.labelKey)}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="gig-reject-reason">
@@ -1210,23 +1233,25 @@ function ListingReviewQueue() {
           <div className="space-y-4">
             <div className="space-y-1.5">
               <Label htmlFor="listing-reject-preset">{t("gigs.admin_reject_preset_label")}</Label>
-              <select
-                id="listing-reject-preset"
+              <Select
                 value=""
-                onChange={(event) => {
-                  const preset = LISTING_REJECT_PRESETS.find((p) => p.value === event.target.value);
+                onValueChange={(v) => {
+                  const preset = LISTING_REJECT_PRESETS.find((p) => p.value === v);
                   if (preset) setRejectReason(preset.value);
                 }}
-                className="h-9 w-full rounded-md border border-input bg-transparent px-3 text-sm"
               >
-                <option value="">{t("gigs.admin_reject_preset_placeholder")}</option>
-                <option value={LISTING_REJECT_PRESETS[0].value}>
-                  {t("shop.admin_preset_contact")}
-                </option>
-                <option value={LISTING_REJECT_PRESETS[1].value}>
-                  {t("shop.admin_preset_offplatform")}
-                </option>
-              </select>
+                <SelectTrigger id="listing-reject-preset" className="w-full">
+                  <SelectValue placeholder={t("gigs.admin_reject_preset_placeholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value={LISTING_REJECT_PRESETS[0].value}>
+                    {t("shop.admin_preset_contact")}
+                  </SelectItem>
+                  <SelectItem value={LISTING_REJECT_PRESETS[1].value}>
+                    {t("shop.admin_preset_offplatform")}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="listing-reject-reason">

@@ -10,6 +10,7 @@ import {
   BadgeCheck,
   BookOpen,
   CalendarDays,
+  ChevronDown,
   Clock,
   Coins,
   Flame,
@@ -36,6 +37,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ReviewSummaryBlock } from "@/features/tutors/review-summary-block";
 import { Button } from "@/components/ui/button";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import {
@@ -1171,20 +1173,20 @@ function TutorDetail() {
                         {/* #391: optional expandable per-row description
                             (contact-filtered at save time, max 300 chars). */}
                         {row.description ? (
-                          <details className="group mt-1">
-                            <summary className="cursor-pointer list-none text-xs font-medium text-muted-foreground hover:text-[color:var(--ink)]">
+                          <Collapsible className="mt-1">
+                            <CollapsibleTrigger className="group cursor-pointer text-xs font-medium text-muted-foreground transition-colors hover:text-[color:var(--ink)]">
                               {translate("settings.my_tutor.rate_row_details_toggle")}
-                              <span
-                                className="ml-1 inline-block transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-open:rotate-180 motion-reduce:transition-none"
+                              <ChevronDown
+                                className="ml-1 inline-block h-3 w-3 transition-transform duration-200 ease-[cubic-bezier(0.22,1,0.36,1)] group-data-[state=open]:rotate-180 motion-reduce:transition-none"
                                 aria-hidden="true"
-                              >
-                                ▾
-                              </span>
-                            </summary>
-                            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                              {row.description}
-                            </p>
-                          </details>
+                              />
+                            </CollapsibleTrigger>
+                            <CollapsibleContent>
+                              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                                {row.description}
+                              </p>
+                            </CollapsibleContent>
+                          </Collapsible>
                         ) : null}
                       </li>
                     ))}

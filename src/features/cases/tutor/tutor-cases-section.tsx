@@ -6,7 +6,15 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ConsolePanel } from "@/components/ui/console-panel";
 import { cn } from "@/lib/utils";
 import {
@@ -324,14 +332,16 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
             <div className="grid gap-2 sm:grid-cols-3">
               <label className="grid gap-1 text-xs text-muted-foreground">
                 {t("experience.log_date")}
-                <Input
-                  type="date"
-                  max={today}
-                  min={`${new Date(Date.parse(`${today}T00:00:00Z`) - 7 * 86400000)
-                    .toISOString()
-                    .slice(0, 10)}`}
-                  value={logDate}
-                  onChange={(e) => setLogDate(e.target.value)}
+                <DatePicker
+                  label={t("experience.log_date")}
+                  value={isoToDate(logDate)}
+                  max={isoToDate(today)}
+                  min={isoToDate(
+                    new Date(Date.parse(`${today}T00:00:00Z`) - 7 * 86400000)
+                      .toISOString()
+                      .slice(0, 10),
+                  )}
+                  onChange={(date) => setLogDate(dateToIso(date))}
                 />
               </label>
               <label className="grid gap-1 text-xs text-muted-foreground">
@@ -340,17 +350,21 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
               </label>
               <label className="grid gap-1 text-xs text-muted-foreground">
                 {t("experience.log_duration")}
-                <select
-                  className="h-9 rounded-md border border-input bg-transparent px-2 text-sm"
-                  value={durationMin}
-                  onChange={(e) => setDurationMin(Number(e.target.value))}
+                <Select
+                  value={String(durationMin)}
+                  onValueChange={(v) => setDurationMin(Number(v))}
                 >
-                  {LOG_DURATION_CHOICES_MIN.map((min) => (
-                    <option key={min} value={min}>
-                      {minutesLabel(min)}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-9 min-h-9 w-auto px-2.5">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LOG_DURATION_CHOICES_MIN.map((min) => (
+                      <SelectItem key={min} value={String(min)}>
+                        {minutesLabel(min)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </label>
             </div>
             {guard ? (

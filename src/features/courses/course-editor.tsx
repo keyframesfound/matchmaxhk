@@ -7,6 +7,13 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { findContactViolations } from "@/lib/contact-filter";
 import { validateCourseVideoUrl } from "@/lib/vimeo";
 import {
@@ -253,19 +260,22 @@ export function CourseEditorForm({ courseId }: { courseId?: string }) {
 
       <div className="space-y-1.5">
         <Label htmlFor="course-kind">{t("shop.form.field_course_kind")}</Label>
-        <select
-          id="course-kind"
+        <Select
           value={kind}
-          onChange={(e) => {
-            if (e.target.value === "video_course" || e.target.value === "general_course") {
-              setKind(e.target.value);
+          onValueChange={(v) => {
+            if (v === "video_course" || v === "general_course") {
+              setKind(v);
             }
           }}
-          className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-[0.95rem]"
         >
-          <option value="video_course">{t("shop.kind_video_course")}</option>
-          <option value="general_course">{t("shop.kind_general_course")}</option>
-        </select>
+          <SelectTrigger id="course-kind" className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="video_course">{t("shop.kind_video_course")}</SelectItem>
+            <SelectItem value="general_course">{t("shop.kind_general_course")}</SelectItem>
+          </SelectContent>
+        </Select>
         <p className="text-xs text-muted-foreground">{t("shop.form.course_kind_hint")}</p>
       </div>
 

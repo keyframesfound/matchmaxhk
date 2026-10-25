@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
-import { Star } from "lucide-react";
 
+import { StarRating } from "@/components/ui/StarRating";
 import { cn } from "@/lib/utils";
 
 /**
@@ -18,30 +18,6 @@ export type TutorReview = {
   student_grade_school: string | null;
   created_at: string;
 };
-
-export function StarRating({ rating, className }: { rating: number; className?: string }) {
-  const { t } = useTranslation();
-  return (
-    <span
-      className={cn("inline-flex items-center gap-0.5", className)}
-      role="img"
-      aria-label={t("profile.reviews_rating_aria", { rating, max: 5 })}
-    >
-      {[1, 2, 3, 4, 5].map((star) => (
-        <Star
-          key={star}
-          className={cn(
-            "h-4 w-4",
-            star <= rating
-              ? "fill-[color:var(--brand-link)] text-[color:var(--brand-link)]"
-              : "text-border",
-          )}
-          strokeWidth={1.5}
-        />
-      ))}
-    </span>
-  );
-}
 
 export function TutorReviews({
   reviews,
@@ -71,7 +47,12 @@ export function TutorReviews({
                 ) : null}
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                <StarRating rating={review.rating} />
+                <StarRating
+                  value={review.rating}
+                  readOnly
+                  size={16}
+                  label={t("profile.reviews_rating_aria", { rating: review.rating, max: 5 })}
+                />
                 <time
                   dateTime={review.created_at.slice(0, 10)}
                   className="text-xs text-muted-foreground"

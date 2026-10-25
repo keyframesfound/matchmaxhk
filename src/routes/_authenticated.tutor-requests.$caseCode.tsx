@@ -23,6 +23,8 @@ import { PublicPage } from "@/components/layout/PublicPage";
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import {
   CASE_GENDER_LABEL,
@@ -828,26 +830,26 @@ function CaseDetailPage() {
                     <p className="text-xs font-medium text-[color:var(--ink)]">
                       {t("case_board.screening_confirm_title")}
                     </p>
-                    {(
-                      [
-                        ["confirm", "case_board.screening_confirm_option"],
-                        ["clarify", "case_board.screening_clarify_option"],
-                      ] as const
-                    ).map(([value, key]) => (
-                      <label
-                        key={value}
-                        className="flex cursor-pointer items-start gap-2.5 text-sm text-muted-foreground"
-                      >
-                        <input
-                          type="radio"
-                          name="centre-screening"
-                          className="mt-1 accent-[color:var(--brand-link)]"
-                          checked={screeningChoice === value}
-                          onChange={() => setScreeningChoice(value)}
-                        />
-                        <span>{t(key)}</span>
-                      </label>
-                    ))}
+                    <RadioGroup
+                      value={screeningChoice}
+                      onValueChange={(v) => setScreeningChoice(v as "confirm" | "clarify")}
+                      className="gap-2.5"
+                    >
+                      {(
+                        [
+                          ["confirm", "case_board.screening_confirm_option"],
+                          ["clarify", "case_board.screening_clarify_option"],
+                        ] as const
+                      ).map(([value, key]) => (
+                        <Label
+                          key={value}
+                          className="flex cursor-pointer items-start gap-2.5 text-sm font-normal text-muted-foreground"
+                        >
+                          <RadioGroupItem value={value} className="mt-1" />
+                          <span>{t(key)}</span>
+                        </Label>
+                      ))}
+                    </RadioGroup>
                     {screeningChoice === "clarify" ? (
                       <div className="space-y-2">
                         <Textarea

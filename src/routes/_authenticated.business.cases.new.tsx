@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioCards } from "@/components/ui/radio-cards";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Select,
@@ -343,18 +344,21 @@ function CentreCaseRequestPage() {
                 <div className="space-y-1.5">
                   <Label>Service fee budget (per hour)</Label>
                   <div className="flex items-center gap-2">
-                    <select
-                      aria-label="Budget currency"
-                      className="h-10 shrink-0 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-2 text-sm font-medium text-[color:var(--ink)] outline-none"
+                    <Select
                       value={form.budgetCurrency}
-                      onChange={(e) => setField({ budgetCurrency: e.target.value })}
+                      onValueChange={(v) => setField({ budgetCurrency: v })}
                     >
-                      {SUPPORTED_CURRENCIES.map((code) => (
-                        <option key={code} value={code}>
-                          {code}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger aria-label="Budget currency" className="w-24 shrink-0 px-3">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SUPPORTED_CURRENCIES.map((code) => (
+                          <SelectItem key={code} value={code}>
+                            {code}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <Input
                       aria-label="Minimum budget"
                       placeholder="Min"
@@ -404,41 +408,29 @@ function CentreCaseRequestPage() {
                 Part 1: Nature of this request *
               </p>
               <div className="space-y-2">
-                {[
-                  {
-                    value: "independent_services",
-                    label:
-                      "Engaging an independent educator for a specific course module, exam clinic, or class series (Contract for Services)",
-                  },
-                  {
-                    value: "employment",
-                    label:
-                      "Recruiting a full-time or part-time staff member / employee (Contract of Employment)",
-                  },
-                  {
-                    value: "third_party",
-                    label: "Arranging services on behalf of an external third-party organisation",
-                  },
-                  { value: "unsure", label: "Other / Unsure" },
-                ].map((option) => (
-                  <label
-                    key={option.value}
-                    className="flex cursor-pointer items-start gap-3 text-sm text-muted-foreground"
-                  >
-                    <input
-                      type="radio"
-                      name="engagementCategory"
-                      className="mt-1 accent-[color:var(--brand-link)]"
-                      checked={
-                        option.value === "employment"
-                          ? false
-                          : form.engagementCategory === option.value
-                      }
-                      onChange={() => handleCategoryChange(option.value)}
-                    />
-                    <span>{option.label}</span>
-                  </label>
-                ))}
+                <RadioCards
+                  layout="list"
+                  aria-label="Nature of this request"
+                  value={form.engagementCategory}
+                  onValueChange={handleCategoryChange}
+                  options={[
+                    {
+                      value: "independent_services",
+                      label:
+                        "Engaging an independent educator for a specific course module, exam clinic, or class series (Contract for Services)",
+                    },
+                    {
+                      value: "employment",
+                      label:
+                        "Recruiting a full-time or part-time staff member / employee (Contract of Employment)",
+                    },
+                    {
+                      value: "third_party",
+                      label: "Arranging services on behalf of an external third-party organisation",
+                    },
+                    { value: "unsure", label: "Other / Unsure" },
+                  ]}
+                />
               </div>
               <p className="text-xs leading-relaxed text-muted-foreground">
                 MatchMax is an independent educator marketplace. Requests to recruit employees are

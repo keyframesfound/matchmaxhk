@@ -16,6 +16,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { MtrStationSelect } from "@/components/ui/mtr-station-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { submitCaseRequest } from "@/lib/cases.functions";
 import {
@@ -1611,23 +1618,26 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 {errors.budgetMax === "Required" ? <RequiredFlag /> : null}
               </label>
               <div className="flex items-center gap-2">
-                <select
-                  aria-label="Budget currency"
-                  className="h-10 shrink-0 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-2 text-sm font-medium text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
+                <Select
                   value={form.budgetCurrency}
-                  onChange={(e) => {
+                  onValueChange={(v) => {
                     // #380 review: freeze the seed sync once the visitor
                     // picks a currency themselves.
                     budgetCurrencyTouched.current = true;
-                    update({ budgetCurrency: e.target.value });
+                    update({ budgetCurrency: v });
                   }}
                 >
-                  {SUPPORTED_CURRENCIES.map((code) => (
-                    <option key={code} value={code}>
-                      {code}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger aria-label="Budget currency" className="w-24 shrink-0 px-3">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUPPORTED_CURRENCIES.map((code) => (
+                      <SelectItem key={code} value={code}>
+                        {code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Input
                   id={`${idPrefix}-budget-min`}
                   aria-label={`Minimum hourly budget in ${form.budgetCurrency}`}

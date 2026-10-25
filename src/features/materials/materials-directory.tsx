@@ -5,6 +5,13 @@ import { BookOpen, SearchX, Users } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   fetchMarketplaceMaterials,
@@ -29,6 +36,10 @@ import { cn } from "@/lib/utils";
  */
 
 type KindFilter = "all" | "notes" | "courses" | "folders" | "services";
+
+/* Radix Select items can't hold an empty value, so each filter's "all"
+ * choice rides this sentinel and maps back to "". */
+const MATERIALS_ALL_VALUE = "__all__";
 
 const KIND_FILTER_TYPES: Record<Exclude<KindFilter, "all">, string[]> = {
   notes: ["notes", "mock", "exemplar", "flashcards"],
@@ -147,45 +158,69 @@ export function MaterialsDirectory() {
             aria-label={t("materials.search_placeholder")}
           />
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-            <select
-              value={school}
-              onChange={(event) => setSchool(event.target.value)}
-              className="h-10 rounded-md border border-border bg-background px-2 text-sm text-[color:var(--ink)]"
-              aria-label={t("materials.filter_school_all")}
+            <Select
+              value={school === "" ? MATERIALS_ALL_VALUE : school}
+              onValueChange={(v) => setSchool(v === MATERIALS_ALL_VALUE ? "" : v)}
             >
-              <option value="">{t("materials.filter_school_all")}</option>
-              {schools.map((entry) => (
-                <option key={entry} value={entry}>
-                  {entry}
-                </option>
-              ))}
-            </select>
-            <select
-              value={subject}
-              onChange={(event) => setSubject(event.target.value)}
-              className="h-10 rounded-md border border-border bg-background px-2 text-sm text-[color:var(--ink)]"
-              aria-label={t("materials.filter_subject_all")}
+              <SelectTrigger
+                aria-label={t("materials.filter_school_all")}
+                className="h-10 min-h-10 w-full px-3"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={MATERIALS_ALL_VALUE}>
+                  {t("materials.filter_school_all")}
+                </SelectItem>
+                {schools.map((entry) => (
+                  <SelectItem key={entry} value={entry}>
+                    {entry}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={subject === "" ? MATERIALS_ALL_VALUE : subject}
+              onValueChange={(v) => setSubject(v === MATERIALS_ALL_VALUE ? "" : v)}
             >
-              <option value="">{t("materials.filter_subject_all")}</option>
-              {subjects.map((entry) => (
-                <option key={entry} value={entry}>
-                  {entry}
-                </option>
-              ))}
-            </select>
-            <select
-              value={curriculum}
-              onChange={(event) => setCurriculum(event.target.value)}
-              className="h-10 rounded-md border border-border bg-background px-2 text-sm text-[color:var(--ink)]"
-              aria-label={t("materials.filter_curriculum_all")}
+              <SelectTrigger
+                aria-label={t("materials.filter_subject_all")}
+                className="h-10 min-h-10 w-full px-3"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={MATERIALS_ALL_VALUE}>
+                  {t("materials.filter_subject_all")}
+                </SelectItem>
+                {subjects.map((entry) => (
+                  <SelectItem key={entry} value={entry}>
+                    {entry}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={curriculum === "" ? MATERIALS_ALL_VALUE : curriculum}
+              onValueChange={(v) => setCurriculum(v === MATERIALS_ALL_VALUE ? "" : v)}
             >
-              <option value="">{t("materials.filter_curriculum_all")}</option>
-              {curricula.map((entry) => (
-                <option key={entry} value={entry}>
-                  {entry}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                aria-label={t("materials.filter_curriculum_all")}
+                className="h-10 min-h-10 w-full px-3"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={MATERIALS_ALL_VALUE}>
+                  {t("materials.filter_curriculum_all")}
+                </SelectItem>
+                {curricula.map((entry) => (
+                  <SelectItem key={entry} value={entry}>
+                    {entry}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

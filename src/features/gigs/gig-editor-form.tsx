@@ -5,8 +5,16 @@ import { Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { findContactViolations } from "@/lib/contact-filter";
 import {
   DEFAULT_TURNAROUND_HOURS,
@@ -31,6 +39,10 @@ import {
 import { NOTE_CURRICULA } from "@/features/materials/lifecycle";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { fileToBase64 } from "@/features/gigs/gig-files";
+
+/* Radix Select items can't hold an empty value, so the optional "any"
+ * curriculum/subject choices ride this sentinel and map back to "". */
+const GIG_ANY_VALUE = "__any__";
 
 /**
  * #326/#327: the draft-or-submit gig form, shared by
@@ -227,57 +239,57 @@ export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="gig-category">{t("gigs.form.field_category")}</Label>
-          <select
-            id="gig-category"
+          <Select
             value={category}
-            onChange={(e) => {
-              setCategory(e.target.value);
-              if (e.target.value !== "document_review") setIntegrityConfirmed(false);
+            onValueChange={(v) => {
+              setCategory(v);
+              if (v !== "document_review") setIntegrityConfirmed(false);
             }}
-            className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-[0.95rem]"
           >
-            <option value="" disabled>
-              {t("gigs.form.category_placeholder")}
-            </option>
-            {GIG_CATEGORIES.map((entry) => (
-              <option key={entry} value={entry}>
-                {t(gigCategoryLabelKey(entry))}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger id="gig-category" className="w-full">
+              <SelectValue placeholder={t("gigs.form.category_placeholder")} />
+            </SelectTrigger>
+            <SelectContent>
+              {GIG_CATEGORIES.map((entry) => (
+                <SelectItem key={entry} value={entry}>
+                  {t(gigCategoryLabelKey(entry))}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="gig-delivery">{t("gigs.form.field_delivery")}</Label>
-          <select
-            id="gig-delivery"
-            value={deliveryType}
-            onChange={(e) => setDeliveryType(e.target.value)}
-            className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-[0.95rem]"
-          >
-            <option value="" disabled>
-              {t("gigs.form.field_delivery")}
-            </option>
-            {GIG_DELIVERY_TYPES.map((entry) => (
-              <option key={entry} value={entry}>
-                {t(gigDeliveryLabelKey(entry))}
-              </option>
-            ))}
-          </select>
+          <Select value={deliveryType} onValueChange={setDeliveryType}>
+            <SelectTrigger id="gig-delivery" className="w-full">
+              <SelectValue placeholder={t("gigs.form.field_delivery")} />
+            </SelectTrigger>
+            <SelectContent>
+              {GIG_DELIVERY_TYPES.map((entry) => (
+                <SelectItem key={entry} value={entry}>
+                  {t(gigDeliveryLabelKey(entry))}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="gig-turnaround">{t("gigs.form.field_turnaround")}</Label>
-          <select
-            id="gig-turnaround"
-            value={turnaroundHours}
-            onChange={(e) => setTurnaroundHours(Number(e.target.value))}
-            className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-[0.95rem]"
+          <Select
+            value={String(turnaroundHours)}
+            onValueChange={(v) => setTurnaroundHours(Number(v))}
           >
-            {TURNAROUND_PRESETS.map((preset) => (
-              <option key={preset.hours} value={preset.hours}>
-                {t("gigs.form.turnaround_hours", { hours: preset.hours })}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger id="gig-turnaround" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TURNAROUND_PRESETS.map((preset) => (
+                <SelectItem key={preset.hours} value={String(preset.hours)}>
+                  {t("gigs.form.turnaround_hours", { hours: preset.hours })}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <p className="text-xs text-muted-foreground">{t("gigs.form.turnaround_hint")}</p>
         </div>
         <div className="space-y-1.5">
@@ -294,43 +306,49 @@ export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="gig-curriculum">{t("gigs.form.field_curriculum")}</Label>
-          <select
-            id="gig-curriculum"
-            value={curriculum}
-            onChange={(e) => {
-              setCurriculum(e.target.value);
+          <Select
+            value={curriculum === "" ? GIG_ANY_VALUE : curriculum}
+            onValueChange={(v) => {
+              setCurriculum(v === GIG_ANY_VALUE ? "" : v);
               setSubject("");
             }}
-            className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-[0.95rem]"
           >
-            <option value="">{t("gigs.form.curriculum_placeholder")}</option>
-            {NOTE_CURRICULA.map((entry) => (
-              <option key={entry} value={entry}>
-                {entry}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger id="gig-curriculum" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={GIG_ANY_VALUE}>{t("gigs.form.curriculum_placeholder")}</SelectItem>
+              {NOTE_CURRICULA.map((entry) => (
+                <SelectItem key={entry} value={entry}>
+                  {entry}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="gig-subject">{t("gigs.form.field_subject")}</Label>
-          <select
-            id="gig-subject"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-[0.95rem]"
+          <Select
+            value={subject === "" ? GIG_ANY_VALUE : subject}
+            onValueChange={(v) => setSubject(v === GIG_ANY_VALUE ? "" : v)}
           >
-            <option value="">{t("gigs.form.subject_placeholder")}</option>
-            {subjectOptions.map((entry) => (
-              <option key={entry} value={entry}>
-                {entry}
-              </option>
-            ))}
-            {subject && !subjectOptions.includes(subject) ? (
-              <option value={subject}>
-                {subject} ({t("gigs.form.legacy_value")})
-              </option>
-            ) : null}
-          </select>
+            <SelectTrigger id="gig-subject" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value={GIG_ANY_VALUE}>{t("gigs.form.subject_placeholder")}</SelectItem>
+              {subjectOptions.map((entry) => (
+                <SelectItem key={entry} value={entry}>
+                  {entry}
+                </SelectItem>
+              ))}
+              {subject && !subjectOptions.includes(subject) ? (
+                <SelectItem value={subject}>
+                  {subject} ({t("gigs.form.legacy_value")})
+                </SelectItem>
+              ) : null}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -342,11 +360,10 @@ export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
 
       {category === "document_review" ? (
         <label className="flex cursor-pointer items-start gap-3 rounded-2xl border border-border bg-muted/30 p-4 text-sm leading-6 sm:p-5">
-          <input
-            type="checkbox"
+          <Checkbox
             checked={integrityConfirmed}
-            onChange={(e) => setIntegrityConfirmed(e.target.checked)}
-            className="mt-1 h-4 w-4 shrink-0"
+            onCheckedChange={(c) => setIntegrityConfirmed(c === true)}
+            className="mt-1"
           />
           <span>{t("gigs.form.integrity_label")}</span>
         </label>
