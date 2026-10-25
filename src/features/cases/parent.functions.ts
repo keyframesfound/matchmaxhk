@@ -51,7 +51,8 @@ async function myCase(db: Db, caseId: string, userId: string) {
     parent_id: string | null;
     matched_tutor_id: string | null;
     sor_status: SorStatus | null;
-  }>(db, "tutoring_cases", "id, parent_id, matched_tutor_id, sor_status", [
+    status: string;
+  }>(db, "tutoring_cases", "id, parent_id, matched_tutor_id, sor_status, status", [
     { col: "id", op: "eq", value: caseId },
   ]);
   const c = rows[0];
@@ -70,6 +71,8 @@ export type ParentCaseListItem = {
   subject: string | null;
   exam_system: string | null;
   tutor_code: string | null;
+  status: string;
+  matched_tutor_id: string | null;
   sor_status: SorStatus | null;
   fee_status: FeeStatus | null;
   fee_amount_hkd: number | null;
@@ -87,6 +90,7 @@ export const getMyParentCases = createServerFn({ method: "POST" })
       title: string;
       subjects: string[] | null;
       exam_system: string | null;
+      status: string;
       sor_status: SorStatus | null;
       matched_tutor_id: string | null;
       tutors: { tutor_code: string | null } | null;
@@ -94,7 +98,7 @@ export const getMyParentCases = createServerFn({ method: "POST" })
     }>(
       db,
       "tutoring_cases",
-      "id, case_code, title, subjects, exam_system, sor_status, matched_tutor_id, tutors(tutor_code), created_at",
+      "id, case_code, title, subjects, exam_system, status, sor_status, matched_tutor_id, tutors(tutor_code), created_at",
       [{ col: "parent_id", op: "eq", value: context.userId }],
       { col: "created_at", asc: false, limit: 100 },
     );
@@ -136,6 +140,8 @@ export const getMyParentCases = createServerFn({ method: "POST" })
       subject: c.subjects?.[0] ?? null,
       exam_system: c.exam_system,
       tutor_code: c.tutors?.tutor_code ?? null,
+      status: c.status,
+      matched_tutor_id: c.matched_tutor_id,
       sor_status: c.sor_status,
       fee_status: openFee.get(c.id)?.status ?? null,
       fee_amount_hkd: openFee.get(c.id)?.amount ?? null,
@@ -151,6 +157,8 @@ export type ParentCaseDetail = {
   exam_system: string | null;
   student_level: string | null;
   tutor_code: string | null;
+  status: string;
+  matched_tutor_id: string | null;
   sor_status: SorStatus | null;
   fee: { status: FeeStatus; amount_hkd: number } | null;
   lessons: {
@@ -194,12 +202,13 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         subjects: string[] | null;
         exam_system: string | null;
         student_level: string | null;
+        status: string;
         matched_tutor_id: string | null;
         tutors: { tutor_code: string | null } | null;
       }>(
         db,
         "tutoring_cases",
-        "case_code, title, subjects, exam_system, student_level, matched_tutor_id, tutors(tutor_code)",
+        "case_code, title, subjects, exam_system, student_level, status, matched_tutor_id, tutors(tutor_code)",
         [{ col: "id", op: "eq", value: c.id }],
       ),
       selectRows<{
@@ -324,6 +333,8 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
       exam_system: head?.exam_system ?? null,
       student_level: head?.student_level ?? null,
       tutor_code: head?.tutors?.tutor_code ?? null,
+      status: head?.status ?? c.status,
+      matched_tutor_id: head?.matched_tutor_id ?? null,
       sor_status: c.sor_status,
       fee: openFee ? { status: openFee.status, amount_hkd: openFee.amount_hkd } : null,
       lessons: lessons.map((l) => ({

@@ -476,7 +476,7 @@ const SECTIONS: Section[] = [
     blocks: [
       {
         kind: "p",
-        text: "This section applies when MatchMax introduces a Customer to a Tutor for tuition (a “match”). It works alongside sections 3, 5 and 6; the matching fee described here is charged under the Fee Agreement accepted when the case is confirmed, as section 6 requires.",
+        text: "This section applies when MatchMax introduces a Customer to a Tutor for tuition (a “match”). It works alongside sections 3, 5 and 6; the matching fee described here is charged under the Fee Agreement the Tutor accepts when the match is confirmed, as section 6 requires.",
       },
       {
         kind: "p",
@@ -492,7 +492,7 @@ const SECTIONS: Section[] = [
       },
       {
         kind: "p",
-        text: "Using the introduction and then taking lessons without paying the admin fee when it falls due is a breach of these Terms. The remedy is the unpaid fee, closure of the case, and a bar on new requests through the Platform. No other penalty applies.",
+        text: "A Tutor who takes lessons from an introduction without paying the admin fee when it falls due is in breach of these Terms. The remedy is the unpaid fee, closure of the case, and a bar on new introductions through the Platform. No other penalty applies.",
       },
       {
         kind: "p",
@@ -651,7 +651,7 @@ function TermsOfUsePage() {
     <PublicPage>
       <PageIntro
         description="The ground rules for using MatchMax, what you can expect from us and what we expect from you."
-        meta="Effective 16 October 2026"
+        meta="Effective 25 October 2026"
         title="Terms and Conditions"
       />
 

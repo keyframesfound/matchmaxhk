@@ -94,7 +94,15 @@ export function caseGenderMismatch(
 }
 
 /** Board statuses that take a case off the apply-able set. */
-const CASE_CLOSED_STATUSES = new Set(["matched", "closed", "rejected", "compliance_hold"]);
+const CASE_CLOSED_STATUSES = new Set([
+  "matched",
+  "closed",
+  "rejected",
+  "compliance_hold",
+  // #449: the failed match enters the desk-driven rematch pivot; the
+  // rematch itself is a NEW case.
+  "failed_trial_pivot",
+]);
 
 /**
  * The single Apply gate, evaluated in the order the issue lists: on-board →

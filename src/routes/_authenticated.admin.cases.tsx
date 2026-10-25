@@ -48,6 +48,7 @@ import { SorDeskTools } from "@/features/cases/admin/sor-desk";
 import {
   ADMIN_CASE_SELECT_COLUMNS,
   CASE_STATUSES,
+  DESK_LANGUAGE_LABEL,
   MODE_LABEL,
   START_LABEL,
   STATUS_LABEL,
@@ -289,6 +290,7 @@ function AdminCases() {
       { label: "Case code", value: (row) => row.case_code },
       { label: "Title", value: (row) => row.title },
       { label: "Status", value: (row) => STATUS_LABEL[row.status] },
+      { label: "Desk language", value: (row) => row.desk_language },
       { label: "Contact name", value: (row) => row.contact_name },
       { label: "Contact phone", value: (row) => row.contact_phone },
       { label: "Subjects", value: (row) => (row.subjects ?? []).join("; ") },
@@ -792,6 +794,13 @@ function AdminCases() {
                             )}
                           >
                             {STATUS_LABEL[row.status]}
+                          </span>
+                          {/* #451: desk language flag beside the status pill */}
+                          <span
+                            className="ml-1.5 inline-flex items-center rounded-full border border-[color:var(--foreground)]/15 px-2 py-0.5 text-[11px] font-bold text-muted-foreground"
+                            title="Desk language"
+                          >
+                            {DESK_LANGUAGE_LABEL[row.desk_language] ?? row.desk_language}
                           </span>
                         </ConsoleTd>
                         <ConsoleTd>

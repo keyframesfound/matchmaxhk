@@ -52,6 +52,7 @@ import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { cn } from "@/lib/utils";
 import {
   CASE_STATUSES,
+  DESK_LANGUAGE_LABEL,
   GENDER_LABEL,
   MODE_LABEL,
   START_LABEL,
@@ -248,6 +249,11 @@ export function CaseDetailView({
     if (next === "contacted" && !caseRow.last_contacted_at) {
       patch.last_contacted_at = new Date().toISOString();
     }
+    // Issue #449: entering the failed-trial pivot pulls the failed case off
+    // the public board; the rematch is a new case that circulates instead.
+    if (next === "failed_trial_pivot") {
+      patch.board_published_at = null;
+    }
     updateMutation.mutate(patch);
   };
 
@@ -257,6 +263,11 @@ export function CaseDetailView({
       // selection cannot publish a compliance_hold case to the board.
       if (publish && caseRow.status === "compliance_hold") {
         throw new Error("Compliance hold: this request cannot be published until re-screened.");
+      }
+      // Issue #449: a failed-trial pivot is desk-driven (next ≤2 from the
+      // original criteria); the public board only sees the rematch case.
+      if (publish && caseRow.status === "failed_trial_pivot") {
+        throw new Error("Failed-trial pivot: the rematch case is published instead.");
       }
       const { error } = await supabase
         .from("tutoring_cases")
@@ -540,6 +551,34 @@ export function CaseDetailView({
                 <Clock className="mr-1.5 h-3.5 w-3.5" />
                 {caseRow.last_contacted_at ? "Mark contacted again" : "Mark as contacted"}
               </Button>
+              {/* #451: desk language flag — macros insert this language first */}
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-muted-foreground">Desk language</p>
+                <Select
+                  value={caseRow.desk_language}
+                  onValueChange={(v) =>
+                    updateMutation.mutate({
+                      desk_language: v as CaseRow["desk_language"],
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-9 w-full text-sm font-bold">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(DESK_LANGUAGE_LABEL) as Array<CaseRow["desk_language"]>).map(
+                      (lang) => (
+                        <SelectItem key={lang} value={lang}>
+                          {DESK_LANGUAGE_LABEL[lang]}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] leading-snug text-muted-foreground">
+                  WhatsApp macros insert this language block first.
+                </p>
+              </div>
             </div>
             <div className="mt-4 space-y-2 border-t border-[color:var(--ink)]/[0.07] pt-4 text-xs">
               <div className="flex items-center gap-1.5 text-muted-foreground">

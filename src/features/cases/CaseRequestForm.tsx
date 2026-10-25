@@ -49,6 +49,7 @@ import {
   getSubjectOptionsForCurriculum,
 } from "@/features/cases/case-options";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
+import { MatchStatusCard } from "@/features/cases/parent/match-status-card";
 import { MAX_PROFILE_TAGS, PRESET_PROFILE_TAGS } from "@/features/tutors/profile-tags";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
@@ -787,9 +788,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         <p className="mt-4 font-mono text-2xl font-bold tracking-tight text-[color:var(--ink)]">
           {result.caseCode}
         </p>
-        <p className="mx-auto mt-4 max-w-md text-sm font-bold text-[color:var(--ink)]">
-          The MatchMax team will contact you shortly on WhatsApp.
-        </p>
+        {/* #466: match-status card at the RECEIVED stage */}
+        <div className="mx-auto mt-6 max-w-md">
+          <MatchStatusCard status="new" matchedTutorId={null} sorStatus={null} />
+        </div>
         <p className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-muted-foreground">
           Our team reviews every request, once approved, your case appears on this board so
           qualified tutors can apply.

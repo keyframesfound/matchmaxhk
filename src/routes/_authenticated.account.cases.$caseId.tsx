@@ -8,6 +8,7 @@ import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
+import { MatchStatusCard } from "@/features/cases/parent/match-status-card";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -105,6 +106,13 @@ function ParentCaseDetailPage() {
                 {data.sor_status ? ` · ${t(`sor.status_${data.sor_status}`)}` : ""}
               </p>
             </div>
+
+            {/* #466: parent match-status card (WhatsApp-first stage tracker) */}
+            <MatchStatusCard
+              status={data.status}
+              matchedTutorId={data.matched_tutor_id}
+              sorStatus={data.sor_status}
+            />
 
             {/* Fee (amount + status only; no tutor contact) */}
             {data.fee && (
