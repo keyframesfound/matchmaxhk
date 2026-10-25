@@ -398,18 +398,22 @@ function OrderPage() {
                   })}
                 </p>
                 <div>
-                  <Button
-                    variant="outline"
-                    disabled={receivedMutation.isPending}
-                    onClick={() => receivedMutation.mutate()}
-                  >
-                    {receivedMutation.isPending ? (
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-                    ) : (
-                      <Check className="mr-2 h-4 w-4" aria-hidden />
-                    )}
-                    {t("orders.received_button")}
-                  </Button>
+                  {/* An open dispute freezes the hold — staff decide it, the
+                      buyer cannot self-release the funds mid-dispute. */}
+                  {order.disputeStatus !== "open" && (
+                    <Button
+                      variant="outline"
+                      disabled={receivedMutation.isPending}
+                      onClick={() => receivedMutation.mutate()}
+                    >
+                      {receivedMutation.isPending ? (
+                        <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                      ) : (
+                        <Check className="mr-2 h-4 w-4" aria-hidden />
+                      )}
+                      {t("orders.received_button")}
+                    </Button>
+                  )}
                 </div>
               </div>
             )}

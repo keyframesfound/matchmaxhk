@@ -37,6 +37,8 @@ export type AdminUpdateChain = {
   eq: (col: string, value: unknown) => AdminUpdateChain;
   /** #429 hold sweep: hold_until <= now flips expired holds to released. */
   lte: (col: string, value: unknown) => AdminUpdateChain;
+  /** #429: PostgREST or-filter, e.g. "dispute_status.is.null,dispute_status.neq.open". */
+  or: (filter: string) => AdminUpdateChain;
 } & PromiseLike<{ error: DbError; count: number | null }> & {
     catch: (
       onrejected?: ((reason: unknown) => unknown) | null | undefined,

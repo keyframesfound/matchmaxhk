@@ -88,9 +88,9 @@ describe("kindergarten topics", () => {
       normalizeKindergartenTopics([
         "Kindergarten Phonics",
         "IBDP",
-        "P1 Interview — General Knowledge",
+        "P1 Interview, General Knowledge",
       ]),
-    ).toEqual(["Kindergarten Phonics", "P1 Interview — General Knowledge"]);
+    ).toEqual(["Kindergarten Phonics", "P1 Interview, General Knowledge"]);
   });
 
   it("matches every active toggle (AND semantics)", () => {

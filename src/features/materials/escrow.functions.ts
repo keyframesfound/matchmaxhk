@@ -41,6 +41,8 @@ async function isAdmin(db: AdminDb, userId: string): Promise<boolean> {
 /**
  * Lazy hold-expiry sweep: held rows past their hold_until flip to
  * released/hold_expired so the desk + payout export see them as payable.
+ * Rows with an OPEN dispute are skipped: the dispute freezes the release
+ * until staff decide (a refund is only possible from still-held funds).
  * Advisory (never throws) exactly like the #328 gig sweep.
  */
 export async function sweepExpiredHolds(db: AdminDb): Promise<void> {
@@ -53,7 +55,8 @@ export async function sweepExpiredHolds(db: AdminDb): Promise<void> {
         released_reason: "hold_expired",
       })
       .eq("status", "held")
-      .lte("hold_until", new Date().toISOString());
+      .lte("hold_until", new Date().toISOString())
+      .or("dispute_status.is.null,dispute_status.neq.open");
   } catch {
     // Advisory: pre-migration env or a hiccup must not break the read.
   }
@@ -87,14 +90,24 @@ export const confirmOrderReceived = createServerFn({ method: "POST" })
     const db = asAdminDb(supabaseAdmin);
 
     const { data: order } = await db
-      .from<{ id: string; status: string; buyer_account_id: string }>("material_orders")
-      .select("id, status, buyer_account_id")
+      .from<{
+        id: string;
+        status: string;
+        buyer_account_id: string;
+        dispute_status: string | null;
+      }>("material_orders")
+      .select("id, status, buyer_account_id, dispute_status")
       .eq("id", data.orderId)
       .eq("buyer_account_id", context.userId)
       .maybeSingle();
     if (!order) throw new Error("Order not found.");
     if (order.status !== "held") {
       throw new Error("This order is not on hold.");
+    }
+    // An open dispute freezes the hold: staff decide it (refund or reject),
+    // so the buyer cannot self-release the funds mid-dispute.
+    if (order.dispute_status === "open") {
+      throw new Error("A dispute is open on this order. Our team will review it.");
     }
 
     const { error } = await db
