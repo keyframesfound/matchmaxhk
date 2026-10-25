@@ -23,7 +23,7 @@ export const Route = createFileRoute("/tos")({
 type Block = { kind: "p"; text: string } | { kind: "ul"; items: string[] };
 
 const INTRO_TEXT = `MatchMax Terms of Service
-Effective date: October 24, 2026
+Effective date: October 25, 2026
 Operator: Hau Yui Chan, trading as MatchMax (“MatchMax”, “we”, “us”)
 Business Registration number: 41690777
 Address: Shop T163, 3/F, The Capital, 61–65 Chatham Road South, Tsim Sha Tsui, Kowloon, Hong Kong
@@ -484,11 +484,11 @@ const SECTIONS: Section[] = [
       },
       {
         kind: "p",
-        text: "The matching fee for a standard match equals 100% of the agreed tuition for Lesson 1 plus 50% of the agreed tuition for Lesson 2, 1.5 lessons in total (the “admin fee”), multiplied by the number of enrolled students on the case. It is the only money MatchMax keeps for matching. The Customer pays the admin fee to MatchMax by FPS; the Tutor receives nothing for Lesson 1, and the Customer is responsible for paying the Tutor the remaining 50% of Lesson 2 directly. After the admin fee is paid, the Customer pays the Tutor directly for further tuition, and MatchMax does not hold or process ongoing tuition payments.",
+        text: "The matching fee for a standard match equals 100% of the agreed tuition for Lesson 1 plus 50% of the agreed tuition for Lesson 2, 1.5 lessons in total (the “admin fee”), multiplied by the number of enrolled students on the case. It is the only money MatchMax keeps for matching. The admin fee is owed by the Tutor, who is self-employed, and is paid to MatchMax by FPS. The Customer does not pay MatchMax a matching fee; the Customer pays the Tutor directly for tuition, and MatchMax does not hold or process ongoing tuition payments.",
       },
       {
         kind: "p",
-        text: "The admin fee is charged once per match and is owed by the Customer on the case, the parent, or the centre where an agreed partnership says so. It is a fee for MatchMax’s introduction; it is not a tutor placement commission, and the Tutor is never the payer. For example, at a HK$400 hourly rate with 60-minute lessons, the admin fee is HK$400 for Lesson 1 plus HK$200 for Lesson 2, HK$600 in total. A short case, one the client has asked to run for 5 lessons or fewer, carries a fee of 20% of the scheduled package instead of the standard calculation above, which MatchMax’s team records and can audit.",
+        text: "The admin fee is charged once per match and is owed by the self-employed Tutor on the case, for both parent (B2C) matches and centre or organisation (B2B) matches. It is a fee for MatchMax’s introduction; it is not a tutor placement commission, and Customers and centres do not pay MatchMax a matching fee. For example, at a HK$400 hourly rate with 60-minute lessons, the standard admin fee is HK$400 for Lesson 1 plus HK$200 for Lesson 2, HK$600 in total. A short case, one the client has asked to run for 5 lessons or fewer, carries a fee of 20% of the scheduled package instead of the standard calculation above: the hourly rate multiplied by the hours per lesson and the number of scheduled lessons, then multiplied by 0.20 (rate × hours per lesson × lesson count × 0.20), which MatchMax’s team records and can audit.",
       },
       {
         kind: "p",
@@ -500,7 +500,7 @@ const SECTIONS: Section[] = [
       },
       {
         kind: "p",
-        text: "A cancellation or no-show before Lesson 1 is completed results in no admin fee. Once Lesson 1 is completed, the Lesson 1 portion, 100% of the agreed tuition for Lesson 1, is accrued and immediately payable to MatchMax, even if either party cancels or declines to proceed with Lesson 2. Replacement introductions are handled as a new case, to which the same fee terms apply.",
+        text: "A cancellation or no-show before Lesson 1 is completed results in no admin fee. On a standard case, once Lesson 1 is completed, the Lesson 1 portion, 100% of the agreed tuition for Lesson 1, is accrued and immediately payable to MatchMax by the Tutor, even if either party cancels or declines to proceed with Lesson 2. On a short case, the 20%-of-package fee is invoiced after Lesson 1 is completed, or at booking when the case is a single scheduled lesson. Replacement introductions are handled as a new case, to which the same fee terms apply.",
       },
       {
         kind: "p",

@@ -12,14 +12,16 @@
  * these helpers are the shared vocabulary that fn and its UI agree on.
  */
 
-export const TERMS_VERSION = "2026-10-24";
+export const TERMS_VERSION = "2026-10-25";
 
 /**
  * Issue #253 (F2): the matching-fee agreement on the case-request form has
  * its own version string, independent of the general ToS. Bump it when the
- * fee rule changes; the checkbox label quotes it verbatim.
+ * fee rule changes; the checkbox label quotes it verbatim. v2 (issue #444):
+ * the admin fee is owed by the self-employed tutor (B2C and B2B/centre) —
+ * re-gates case requests recorded at the old fee-2026-10 version.
  */
-export const FEE_TERMS_VERSION = "fee-2026-10";
+export const FEE_TERMS_VERSION = "fee-2026-10-v2";
 
 /**
  * Issue #412: the centre-partnership acceptance on the Partner Org join form
