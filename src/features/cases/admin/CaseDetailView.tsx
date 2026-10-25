@@ -21,6 +21,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import { SorCasePanel } from "@/features/cases/admin/sor-desk";
 import { Button } from "@/components/ui/button";
+import { RiskFlagBadge } from "@/features/admin/risk-flag-badge";
+import { RiskFlagEditor } from "@/features/admin/risk-flag-editor";
+import { listRiskFlags } from "@/features/admin/risk-flags.functions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -148,6 +151,14 @@ export function CaseDetailView({
   const invalidateCase = () => {
     queryClient.invalidateQueries({ queryKey: ["admin", "cases"] });
   };
+
+  // Issue #441: this case's staff risk flag (badge + editor below). Same
+  // query key the editor saves through.
+  const { data: riskFlagRows } = useQuery({
+    queryKey: ["admin", "risk-flags", "case"],
+    queryFn: () => listRiskFlags({ data: { entity: "case" } }),
+  });
+  const riskFlagRow = riskFlagRows?.find((row) => row.case_id === caseRow.id) ?? null;
 
   const { data: profile } = useQuery({
     queryKey: ["admin", "profile", user?.id],
@@ -334,6 +345,18 @@ export function CaseDetailView({
         {/* SoR panel (#201): status machine, lessons 1–2, admin fee, audit */}
         <div className="space-y-6 lg:col-span-3">
           <SorCasePanel caseId={caseRow.id} />
+        </div>
+        {/* Issue #441: manual staff risk flag (REVIEW/BLOCKED + note). */}
+        <div className="space-y-6 lg:col-span-3">
+          <ConsolePanel>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-semibold text-muted-foreground">Risk flag</h2>
+              <RiskFlagBadge flag={riskFlagRow?.risk_flag} note={riskFlagRow?.risk_note} />
+            </div>
+            <div className="mt-4">
+              <RiskFlagEditor entity="case" entityId={caseRow.id} />
+            </div>
+          </ConsolePanel>
         </div>
         {/* Left column: requirements + contact + notes */}
         <div className="space-y-6 lg:col-span-2">

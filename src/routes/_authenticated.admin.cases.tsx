@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
-import { Clock, Download, Flame, Inbox, MessageCircle, Search, Trash2, X } from "lucide-react";
+import { Ban, Clock, Download, Flame, Inbox, MessageCircle, Search, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -62,6 +62,9 @@ import {
   findCasesByTutorCode,
   type TutorCodeCaseHit,
 } from "@/features/cases/desk-search.functions";
+import { RiskFlagBadge } from "@/features/admin/risk-flag-badge";
+import { listRiskFlags, type RiskFlagRow } from "@/features/admin/risk-flags.functions";
+import { normalizeRiskFlag } from "@/features/admin/risk-flags";
 import {
   applyCaseFilters,
   caseFilterOptions,
@@ -149,6 +152,24 @@ function AdminCases() {
   const filterOptions = useMemo(() => caseFilterOptions(cases), [cases]);
 
   const filtered = useMemo(() => applyCaseFilters(cases, filters), [cases, filters]);
+
+  // Issue #441: staff risk flags for the desk rows. Same query key the
+  // detail editor writes through, so a save in CaseDetailView refreshes
+  // these badges (and vice versa).
+  const riskFlagsQuery = useQuery({
+    queryKey: ["admin", "risk-flags", "case"],
+    queryFn: () => listRiskFlags({ data: { entity: "case" } }),
+  });
+  const riskFlagByCaseId = useMemo(() => {
+    const map = new Map<string, RiskFlagRow>();
+    for (const row of riskFlagsQuery.data ?? []) {
+      if (row.case_id) map.set(row.case_id, row);
+    }
+    return map;
+  }, [riskFlagsQuery.data]);
+  // Optional V1 chip (issue #441): hide BLOCKED cases from the skim, OFF by
+  // default. Session-only — BLOCKED rows still exist and stay listed.
+  const [hideBlocked, setHideBlocked] = useState(false);
   const hasActiveFilters = !isDefaultFilters(filters);
 
   // Issue #55: staff search by tutor code. The desk's q filter only sees
@@ -174,10 +195,18 @@ function AdminCases() {
     return (tutorCodeSearch.data?.items ?? []) as TutorCodeCaseHit[] as AdminDeskRow[];
   }, [tutorCodeDebounced, tutorCodeSearch.data]);
   const displayed = useMemo<AdminDeskRow[]>(() => {
-    if (tutorCodeHits.length === 0) return filtered;
+    // Issue #441: the optional Hide-BLOCKED chip (off by default) drops
+    // blocked rows from the skim only — the flag is never a data filter.
+    const blocked = (rows: AdminDeskRow[]) =>
+      hideBlocked
+        ? rows.filter(
+            (row) => normalizeRiskFlag(riskFlagByCaseId.get(row.id)?.risk_flag) !== "BLOCKED",
+          )
+        : rows;
+    if (tutorCodeHits.length === 0) return blocked(filtered);
     const hitIds = new Set(tutorCodeHits.map((row) => row.id));
-    return [...tutorCodeHits, ...filtered.filter((row) => !hitIds.has(row.id))];
-  }, [filtered, tutorCodeHits]);
+    return blocked([...tutorCodeHits, ...filtered.filter((row) => !hitIds.has(row.id))]);
+  }, [filtered, hideBlocked, riskFlagByCaseId, tutorCodeHits]);
 
   const rateBandLabels: Record<CaseFilters["rateBand"], string> = {
     all: t("caseFilters.rate_any", { defaultValue: "Any rate" }),
@@ -416,6 +445,18 @@ function AdminCases() {
                         </SelectContent>
                       </Select>
                     ) : null}
+                    {/* Issue #441: optional skim filter, OFF by default — a
+                        BLOCKED case only leaves the list when CS asks. */}
+                    <Button
+                      size="sm"
+                      variant={hideBlocked ? "secondary" : "ghost"}
+                      aria-pressed={hideBlocked}
+                      onClick={() => setHideBlocked((v) => !v)}
+                      className="h-10 text-muted-foreground hover:text-[color:var(--ink)]"
+                    >
+                      <Ban className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                      {t("risk.hide_blocked", { defaultValue: "Hide BLOCKED" })}
+                    </Button>
                     {hasActiveFilters ? (
                       <Button
                         size="sm"
@@ -676,6 +717,8 @@ function AdminCases() {
 
                   {displayed.map((row) => {
                     const budgetBounds = caseBudgetHkdBounds(row);
+                    // Issue #441: staff risk flag for this case (absent = NONE).
+                    const flagRow = riskFlagByCaseId.get(row.id);
                     return (
                       <tr
                         key={row.id}
@@ -711,10 +754,21 @@ function AdminCases() {
                                 On board
                               </span>
                             )}
+                            {flagRow ? (
+                              <RiskFlagBadge flag={flagRow.risk_flag} note={flagRow.risk_note} />
+                            ) : null}
                           </div>
                           <p className="mt-0.5 max-w-xs truncate text-xs text-muted-foreground">
                             {row.title}
                           </p>
+                          {flagRow?.risk_note ? (
+                            <p className="mt-0.5 max-w-xs truncate text-[11px] text-muted-foreground">
+                              {t("risk.note_line", {
+                                defaultValue: "Risk: {{note}}",
+                                note: flagRow.risk_note,
+                              })}
+                            </p>
+                          ) : null}
                           {/* Issue #55: how this row matched the tutor-code search. */}
                           {row.matchedTutor ? (
                             <p className="mt-0.5 truncate text-[11px] font-medium text-muted-foreground">

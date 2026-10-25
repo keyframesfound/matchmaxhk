@@ -1437,6 +1437,21 @@
     "failed": "舉報未能提交，請再試一次。",
     "self_own_profile": "唔可以舉報自己嘅檔案。"
   },
+  "risk": {
+    "flag_none": "無",
+    "flag_review": "審查",
+    "flag_blocked": "已封鎖",
+    "blocked_stop": "已封鎖——請勿聯絡",
+    "saved": "已儲存風險標記",
+    "flag_label": "標記",
+    "note_label": "備註（僅職員可見）",
+    "note_placeholder": "簡短原因，例如：來電者不符、懷疑虛假個案",
+    "save": "儲存標記",
+    "audit_set": "上次設定：{{when}}",
+    "operator_hint": "任何職員均可設定「審查」。「已封鎖」只能由營運管理員（admin）設定或清除。",
+    "hide_blocked": "隱藏已封鎖",
+    "note_line": "風險：{{note}}"
+  },
   "guide": {
     "tab_why": "為何選擇我們",
     "tab_parents": "家長",

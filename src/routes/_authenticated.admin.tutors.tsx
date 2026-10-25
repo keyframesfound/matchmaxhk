@@ -57,6 +57,9 @@ import {
   type Tutor,
 } from "@/features/tutors/queries";
 import { collectEducationValueSets } from "@/features/tutors/education-filters";
+import { RiskFlagBadge } from "@/features/admin/risk-flag-badge";
+import { listRiskFlags, type RiskFlagRow } from "@/features/admin/risk-flags.functions";
+import { normalizeRiskFlag } from "@/features/admin/risk-flags";
 import { TutorEditor } from "@/features/tutors/admin/TutorEditor";
 import { resolveAccountDeletion } from "@/lib/account.functions";
 
@@ -212,6 +215,20 @@ function AdminTutors() {
       completeness: "all",
     });
   };
+
+  // Issue #441: staff risk flags for the tutor list rows (badge + note).
+  // Same query key the TutorEditor section saves through.
+  const riskFlagsQuery = useQuery({
+    queryKey: ["admin", "risk-flags", "tutor"],
+    queryFn: () => listRiskFlags({ data: { entity: "tutor" } }),
+  });
+  const riskFlagByTutorId = useMemo(() => {
+    const map = new Map<string, RiskFlagRow>();
+    for (const row of riskFlagsQuery.data ?? []) {
+      if (row.tutor_id) map.set(row.tutor_id, row);
+    }
+    return map;
+  }, [riskFlagsQuery.data]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -893,6 +910,11 @@ function AdminTutors() {
                                   · {getTutorGenderLabel(row.gender)}
                                 </span>
                               )}
+                              {/* Issue #441: renders nothing for an unflagged tutor. */}
+                              <RiskFlagBadge
+                                flag={riskFlagByTutorId.get(row.id)?.risk_flag}
+                                note={riskFlagByTutorId.get(row.id)?.risk_note}
+                              />
                             </div>
                             <div className="mt-0.5 max-w-sm space-y-0.5 text-xs text-muted-foreground">
                               {getTutorCardHighlights(row).length > 0 ? (
@@ -904,6 +926,11 @@ function AdminTutors() {
                               ) : (
                                 <p>No card highlights added</p>
                               )}
+                              {riskFlagByTutorId.get(row.id)?.risk_note ? (
+                                <p className="line-clamp-1 font-medium text-amber-700 dark:text-amber-400">
+                                  {riskFlagByTutorId.get(row.id)?.risk_note}
+                                </p>
+                              ) : null}
                             </div>
                           </div>
                         </div>
