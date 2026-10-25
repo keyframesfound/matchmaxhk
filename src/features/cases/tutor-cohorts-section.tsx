@@ -65,7 +65,7 @@ export function TutorGroupClassesSection({ tutorId }: { tutorId: string }) {
     <section className="border-t border-border py-8 sm:py-10">
       <div className="mb-4 flex items-center gap-2">
         <Users className="h-4 w-4 text-[color:var(--brand-link)]" aria-hidden="true" />
-        <h2 className="text-base font-medium text-[color:var(--ink)]">
+        <h2 className="text-lg font-medium text-[color:var(--ink)]">
           {t("profile.section_group_classes")}
         </h2>
       </div>

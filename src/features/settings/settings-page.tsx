@@ -265,7 +265,7 @@ export function SettingsPage() {
       "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
       active
         ? "bg-[color:var(--ink)]/5 font-medium text-[color:var(--ink)]"
-        : "font-medium text-[color:var(--ink)]/70 hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]",
+        : "font-medium text-muted-foreground hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]",
     );
 
   function selectCategory(category: SettingsCategory) {
@@ -284,7 +284,7 @@ export function SettingsPage() {
             <h1 className="text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl">
               {t("settings.title")}
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--ink)]/70">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
               {t("settings.subtitle")}
             </p>
           </header>
@@ -333,7 +333,7 @@ export function SettingsPage() {
               <nav className="hidden space-y-1 lg:block" aria-label={t("settings.title")}>
                 <Link
                   to="/saved-posts"
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--ink)]/70 transition-colors hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
                 >
                   <Bookmark className="h-4 w-4" aria-hidden="true" />
                   {t("settings.nav.saved_posts")}

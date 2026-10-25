@@ -90,7 +90,7 @@ function GuideParentsPage() {
                   />
                   {label}
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-[color:var(--ink)]/70">{body}</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
               </div>
             ))}
           </div>
@@ -105,7 +105,7 @@ function GuideParentsPage() {
                 className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--surface-subtle)] p-5 sm:p-6"
               >
                 <h3 className="text-base font-medium tracking-tight">{label}</h3>
-                <p className="mt-2 text-sm leading-6 text-[color:var(--ink)]/70">{body}</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
               </div>
             ))}
           </div>

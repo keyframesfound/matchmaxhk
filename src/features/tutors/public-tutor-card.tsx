@@ -510,7 +510,7 @@ export function PublicTutorCard({
         ) : null}
         {breakdown.length > 0 || academicChips.length > 0 ? (
           <section className="border-b border-border pb-2.5 md:pb-3">
-            <h3 className="flex items-center gap-1.5 text-sm font-medium text-[color:var(--ink)] @max-sm:text-xs">
+            <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
               <LineChart
                 className="h-3.5 w-3.5 text-[color:var(--brand-link)] @max-sm:h-3 @max-sm:w-3"
                 strokeWidth={2.5}
@@ -609,7 +609,7 @@ export function PublicTutorCard({
         <section
           className={cn("flex flex-1 flex-col", academicChips.length > 0 ? "pt-2.5" : "pt-0")}
         >
-          <h3 className="flex items-center gap-1.5 text-sm font-medium text-[color:var(--ink)] @max-sm:text-xs">
+          <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <Award
               className="h-3.5 w-3.5 text-[color:var(--brand-link)] @max-sm:h-3 @max-sm:w-3"
               strokeWidth={2.5}
@@ -647,7 +647,7 @@ export function PublicTutorCard({
                 as="li"
                 maxLines={1}
                 contentKey={highlight}
-                className="whitespace-nowrap text-xs font-medium leading-snug text-[color:var(--ink)] md:text-sm @max-sm:text-xs!"
+                className="whitespace-nowrap text-xs leading-snug text-[color:var(--ink)] md:text-sm @max-sm:text-xs!"
               >
                 {removeEmoji(highlight)}
               </FitText>

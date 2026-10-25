@@ -244,7 +244,7 @@ export function MaterialsOrdersDesk() {
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-base font-medium">Orders</h3>
+        <h3 className="text-lg font-medium">Orders</h3>
         <p className="text-sm text-[color:var(--ink)]/65">
           {pending + gigPending > 0
             ? t("gigs.admin_desk_awaiting", { count: pending + gigPending })

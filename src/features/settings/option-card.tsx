@@ -76,7 +76,7 @@ export function OptionCard({
         {badge}
       </span>
       {description ? (
-        <span className="text-xs leading-5 text-[color:var(--ink)]/60">{description}</span>
+        <span className="text-xs leading-5 text-muted-foreground">{description}</span>
       ) : null}
     </button>
   );

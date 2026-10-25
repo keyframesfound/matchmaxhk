@@ -607,7 +607,7 @@ function BusinessPublicProfile() {
                   </div>
 
                   <div className="rounded-lg border border-border bg-muted/40 p-4">
-                    <h3 className="text-sm font-medium text-[color:var(--ink)]">Details</h3>
+                    <h3 className="text-base font-medium text-[color:var(--ink)]">Details</h3>
                     <ul className="mt-3 flex flex-col gap-2.5 text-sm text-muted-foreground">
                       <li className="flex items-center gap-2.5">
                         <MapPin className="h-4 w-4 shrink-0" />
@@ -649,7 +649,7 @@ function BusinessPublicProfile() {
 
                 {faqItems.length > 0 && (
                   <div className="mt-6 border-t border-border pt-5">
-                    <h3 className="text-sm font-medium text-[color:var(--ink)]">
+                    <h3 className="text-base font-medium text-[color:var(--ink)]">
                       Frequently asked questions
                     </h3>
                     <Accordion type="single" collapsible className="mt-2">

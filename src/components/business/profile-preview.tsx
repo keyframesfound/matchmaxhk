@@ -155,7 +155,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
 
       {/* About */}
       <div className="border-t border-border px-5 py-5">
-        <h2 className="text-base font-medium tracking-tight text-[color:var(--ink)]">About</h2>
+        <h2 className="text-lg font-medium tracking-tight text-[color:var(--ink)]">About</h2>
         {data.introVideoUrl ? (
           <div className="relative mt-3 aspect-video w-full overflow-hidden rounded-lg border border-border bg-black">
             <img

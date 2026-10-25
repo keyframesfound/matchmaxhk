@@ -298,7 +298,7 @@ function BusinessOverview() {
             <div className="mt-6 grid gap-4 lg:grid-cols-2">
               <section className="rounded-lg border border-border bg-card p-5">
                 <div>
-                  <h2 className="text-base font-medium text-[color:var(--ink)]">Reach</h2>
+                  <h2 className="text-lg font-medium text-[color:var(--ink)]">Reach</h2>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     Directory impressions and public profile views over the last 30 days
                   </p>
@@ -378,7 +378,7 @@ function BusinessOverview() {
 
               <section className="rounded-lg border border-border bg-card p-5">
                 <div>
-                  <h2 className="text-base font-medium text-[color:var(--ink)]">Engagement</h2>
+                  <h2 className="text-lg font-medium text-[color:var(--ink)]">Engagement</h2>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     Course views and contact clicks over the last 30 days
                   </p>
@@ -448,7 +448,7 @@ function BusinessOverview() {
                 <section className="overflow-hidden rounded-lg border border-border bg-card">
                   <div className="flex items-start justify-between gap-3 border-b border-border p-6 pb-4">
                     <div className="flex flex-col gap-2">
-                      <h2 className="text-base font-medium text-[color:var(--ink)]">
+                      <h2 className="text-lg font-medium text-[color:var(--ink)]">
                         Getting started
                       </h2>
                       <span className="text-xs tabular-nums text-muted-foreground">
@@ -511,7 +511,7 @@ function BusinessOverview() {
               )}
 
               <section className="rounded-lg border border-border bg-card p-6">
-                <h2 className="text-base font-medium text-[color:var(--ink)]">Plan & usage</h2>
+                <h2 className="text-lg font-medium text-[color:var(--ink)]">Plan & usage</h2>
                 {usage ? (
                   <div className="mt-4 space-y-4">
                     <UsageMeter
@@ -534,7 +534,7 @@ function BusinessOverview() {
 
             <section className="mt-8">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-base font-medium text-[color:var(--ink)]">Recent posts</h2>
+                <h2 className="text-lg font-medium text-[color:var(--ink)]">Recent posts</h2>
                 <Button variant="outline" size="sm" onClick={() => switchTab("courses")}>
                   Manage courses
                 </Button>

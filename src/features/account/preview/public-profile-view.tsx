@@ -108,7 +108,7 @@ function ProfileSection({
         <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
           <Icon className={`h-4 w-4 ${iconClassName}`} strokeWidth={2.1} />
         </span>
-        <h2 className="text-base font-medium tracking-tight text-[color:var(--ink)] sm:text-lg">
+        <h2 className="text-lg font-medium tracking-tight text-[color:var(--ink)] sm:text-xl">
           {title}
         </h2>
       </div>

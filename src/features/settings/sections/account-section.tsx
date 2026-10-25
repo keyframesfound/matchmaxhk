@@ -40,7 +40,7 @@ function formatDate(value: string | null, locale: string) {
 function OverviewRow({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div className="flex flex-col gap-0.5 sm:flex-row sm:items-baseline sm:justify-between sm:gap-6">
-      <span className="text-sm font-medium text-[color:var(--ink)]/70">{label}</span>
+      <span className="text-sm font-medium text-muted-foreground">{label}</span>
       <span className="text-sm font-medium text-[color:var(--ink)]">{value}</span>
     </div>
   );
@@ -165,7 +165,7 @@ export function AccountSection({ user, profile, updateProfile }: SettingsSection
               value={user.email ?? ""}
               disabled
               readOnly
-              className="border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] text-[color:var(--ink)]/60"
+              className="border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] text-muted-foreground"
             />
           </div>
           <div className="space-y-2">

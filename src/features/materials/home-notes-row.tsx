@@ -270,7 +270,7 @@ export function TutorAuthoredNotes({ tutorCode }: { tutorCode: string }) {
         <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
           <FileText className="h-4 w-4 text-[color:var(--muted-foreground)]" strokeWidth={2.1} />
         </span>
-        <h2 className="text-base font-medium tracking-tight text-[color:var(--ink)] sm:text-lg">
+        <h2 className="text-lg font-medium tracking-tight text-[color:var(--ink)] sm:text-xl">
           {t("notes.home.authored_heading")}
         </h2>
       </div>

@@ -147,7 +147,7 @@ function ProfileSection({
     <section className="border-b border-border last:border-b-0 px-5 py-5 sm:px-6">
       <div className="flex items-center gap-2.5">
         <Icon className={`h-5 w-5 ${iconClassName}`} strokeWidth={1.75} aria-hidden="true" />
-        <h2 className="text-base font-medium tracking-tight text-[color:var(--ink)] sm:text-lg">
+        <h2 className="text-lg font-medium tracking-tight text-[color:var(--ink)] sm:text-xl">
           {title}
         </h2>
       </div>
@@ -718,14 +718,14 @@ function TutorDetail() {
                     </span>
                   ) : null}
                 </div>
-                <h1 className="mt-1 break-words text-xl font-medium leading-tight text-[color:var(--ink)] sm:text-2xl">
+                <h1 className="mt-1 break-words text-2xl font-medium leading-tight text-[color:var(--ink)] sm:text-3xl">
                   {activeHeadline ?? t.tutor_code}
                 </h1>
                 {/* Issue #387: verified lessons · hours · tenure, verified
                     sessions only; hides completely at zero. */}
                 <ExperienceLine tutorId={t.id} className="mt-1" />
                 {t.has_postgrad && (t.postgrad_university || t.postgrad_degree) ? (
-                  <p className="mt-2 flex items-start gap-1.5 text-base font-medium leading-snug text-[color:var(--ink)] sm:text-lg">
+                  <p className="mt-2 flex items-start gap-1.5 text-base leading-snug text-[color:var(--ink)] sm:text-lg">
                     <GraduationCap
                       className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
                       aria-hidden="true"
@@ -737,7 +737,7 @@ function TutorDetail() {
                   </p>
                 ) : null}
                 {t.undergrad_university || t.undergrad_degree ? (
-                  <p className="mt-1 flex items-start gap-1.5 text-base font-medium leading-snug text-[color:var(--ink)] sm:text-lg">
+                  <p className="mt-1 flex items-start gap-1.5 text-base leading-snug text-[color:var(--ink)] sm:text-lg">
                     <GraduationCap
                       className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
                       aria-hidden="true"
@@ -749,7 +749,7 @@ function TutorDetail() {
                   </p>
                 ) : null}
                 {t.secondary_school ? (
-                  <p className="mt-1 flex items-start gap-1.5 text-base font-medium leading-snug text-[color:var(--ink)] sm:text-lg">
+                  <p className="mt-1 flex items-start gap-1.5 text-base leading-snug text-[color:var(--ink)] sm:text-lg">
                     <School
                       className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
                       aria-hidden="true"

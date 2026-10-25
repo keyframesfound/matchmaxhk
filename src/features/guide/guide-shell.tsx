@@ -49,7 +49,7 @@ export function GuideBar({ current, topOffset }: { current: GuideTab; topOffset:
                     "inline-flex rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
                     active
                       ? "bg-[color:var(--foreground)] text-[color:var(--background)]"
-                      : "text-[color:var(--ink)]/60 hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]",
+                      : "text-muted-foreground hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]",
                   )}
                 >
                   {t(tab.key)}
@@ -76,7 +76,7 @@ export function ContentsRow({ items }: { items: { id: string; label: string }[] 
           <a
             key={item.id}
             href={`#${item.id}`}
-            className="font-medium text-[color:var(--ink)]/70 underline-offset-4 transition-colors hover:text-[color:var(--ink)] hover:underline"
+            className="font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-[color:var(--ink)] hover:underline"
           >
             {item.label}
           </a>
@@ -100,7 +100,7 @@ export function GuideSteps({ steps }: { steps: [string, string, string][] }) {
           </span>
           <div>
             <h3 className="text-lg font-medium tracking-tight sm:text-xl">{title}</h3>
-            <p className="mt-2 max-w-2xl text-sm leading-7 text-[color:var(--ink)]/70">{text}</p>
+            <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">{text}</p>
           </div>
         </li>
       ))}

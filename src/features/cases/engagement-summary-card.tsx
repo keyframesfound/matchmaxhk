@@ -84,7 +84,7 @@ export function EngagementSummaryCard({
   return (
     <section className="rounded-xl border border-border bg-[color:var(--surface)] p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h2 className="flex items-center gap-2 text-sm font-medium text-[color:var(--ink)]">
+        <h2 className="flex items-center gap-2 text-base font-medium text-[color:var(--ink)]">
           <FileText className="h-4 w-4 text-[color:var(--brand-link)]" aria-hidden="true" />
           {t("engagement.summary.title")}
         </h2>

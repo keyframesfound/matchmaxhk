@@ -219,7 +219,7 @@ function OrderPage() {
             {/* FPS instructions */}
             {order.action === "pay" && (
               <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
-                <h2 className="flex items-center gap-2 text-base font-medium">
+                <h2 className="flex items-center gap-2 text-lg font-medium">
                   <Receipt className="h-4 w-4" aria-hidden />
                   {t("orders.fps_title")}
                 </h2>
@@ -285,7 +285,7 @@ function OrderPage() {
 
             {/* Timeline */}
             <div className="rounded-2xl border border-border bg-card p-6">
-              <h2 className="text-base font-medium">{t("orders.timeline_title")}</h2>
+              <h2 className="text-lg font-medium">{t("orders.timeline_title")}</h2>
               <ol className="mt-4 space-y-3">
                 {steps.map((step) => (
                   <li key={step.key} className="flex items-center gap-3 text-sm">

@@ -203,6 +203,8 @@ Sizes come from this ladder only: 11, 12, 14, 16, 18, 22, 28, 36, 52, 72px. 11px
 - **Subtitle** (400, 16 to 18px): The one supporting line under a heading, when it adds information.
 - **Body** (400, 16px, 1.6): All running text. Small text at 14px, micro at 11 to 12px.
 - **Label** (500, 12 to 14px, sentence case): Buttons, chips, form labels, table headers, step indicators.
+- **The Heading Step Rule.** A heading sits at least one full ladder step above its content: page sections at 22 to 28px, panel and card-section headings at 18px minimum over 14 to 16px content. Inside a dense card, a section caption takes the Label role instead (12px, 500, secondary ink): it is signage for the group, not a title, and never competes with the card title.
+- **Weight rationing.** 500 belongs to titles, labels, chips, controls, and key figures. Body copy, list content, and the supporting lines under a heading sit at 400. When a heading fails to stand out, the fix is a size step, a colour step, or demoting nearby content to 400; never a heavier weight.
 - Numbers that change or align in columns use `font-variant-numeric: tabular-nums`.
 
 ### Named Rules
