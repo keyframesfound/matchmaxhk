@@ -22,8 +22,6 @@ import {
   ArrowDown,
   ArrowUp,
   BookOpen,
-  ChevronLeft,
-  ChevronRight,
   ChevronsUpDown,
   Copy,
   ExternalLink,
@@ -37,6 +35,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Pagination } from "@/components/ui/pagination";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -635,32 +634,12 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
               </TableBody>
             </Table>
 
-            <div className="flex items-center justify-between gap-4 border-t border-border bg-muted/20 px-4 py-2.5">
-              <p className="text-xs text-muted-foreground">
-                Page {table.state.pagination.pageIndex + 1} of {Math.max(pageCount, 1)}
-              </p>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="size-7"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                  aria-label="Previous page"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="size-7"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                  aria-label="Next page"
-                >
-                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </Button>
-              </div>
+            <div className="border-t border-border bg-muted/20 px-4 py-2">
+              <Pagination
+                page={table.state.pagination.pageIndex + 1}
+                pageCount={Math.max(pageCount, 1)}
+                onPageChange={(p) => table.setPageIndex(p - 1)}
+              />
             </div>
           </div>
 

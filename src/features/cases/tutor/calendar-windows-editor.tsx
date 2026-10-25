@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -225,12 +226,11 @@ export function CalendarWindowsEditor() {
             )}
           </ul>
           <div className="mt-2 flex items-center gap-2">
-            <Input
-              type="date"
+            <DatePicker
               className="w-40"
-              value={newBlackout}
-              onChange={(e) => setNewBlackout(e.target.value)}
-              aria-label={t("sor.tutor_blackout_add")}
+              label={t("sor.tutor_blackout_add")}
+              value={isoToDate(newBlackout)}
+              onChange={(d) => setNewBlackout(dateToIso(d))}
             />
             <Button
               size="sm"

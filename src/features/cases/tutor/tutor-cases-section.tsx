@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -331,14 +332,16 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
             <div className="grid gap-2 sm:grid-cols-3">
               <label className="grid gap-1 text-xs text-muted-foreground">
                 {t("experience.log_date")}
-                <Input
-                  type="date"
-                  max={today}
-                  min={`${new Date(Date.parse(`${today}T00:00:00Z`) - 7 * 86400000)
-                    .toISOString()
-                    .slice(0, 10)}`}
-                  value={logDate}
-                  onChange={(e) => setLogDate(e.target.value)}
+                <DatePicker
+                  label={t("experience.log_date")}
+                  value={isoToDate(logDate)}
+                  max={isoToDate(today)}
+                  min={isoToDate(
+                    new Date(Date.parse(`${today}T00:00:00Z`) - 7 * 86400000)
+                      .toISOString()
+                      .slice(0, 10),
+                  )}
+                  onChange={(date) => setLogDate(dateToIso(date))}
                 />
               </label>
               <label className="grid gap-1 text-xs text-muted-foreground">

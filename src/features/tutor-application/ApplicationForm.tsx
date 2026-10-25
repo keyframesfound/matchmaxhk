@@ -23,6 +23,7 @@ import { useTranslation } from "react-i18next";
 
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
 import { Button } from "@/components/ui/button";
+import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
 import {
   Accordion,
   AccordionContent,
@@ -2588,16 +2589,13 @@ export function ApplicationForm() {
                     />
                     {!base.startImmediately ? (
                       <div className="mt-2">
-                        <Input
-                          type="date"
-                          className={cn(
-                            controlClassName,
-                            fieldErrors.startDate && invalidInputClassName,
-                          )}
-                          aria-invalid={fieldErrors.startDate ? true : undefined}
-                          value={base.startDate}
-                          min={new Date().toISOString().slice(0, 10)}
-                          onChange={(event) => setBaseField("startDate", event.target.value)}
+                        <DatePicker
+                          label="Earliest Availability"
+                          className={controlClassName}
+                          invalid={Boolean(fieldErrors.startDate)}
+                          value={isoToDate(base.startDate)}
+                          min={new Date()}
+                          onChange={(date) => setBaseField("startDate", dateToIso(date))}
                         />
                         {fieldErrors.startDate ? (
                           <p className="mt-1 text-xs font-medium text-destructive">

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -621,12 +622,11 @@ function AdminLessonRow({
         <span className="text-sm text-muted-foreground">
           {t("sor.tutor_lesson_n", { n: sequence })}
         </span>
-        <Input
-          type="date"
+        <DatePicker
           className="w-40"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          aria-label={t("sor.admin_lesson_date")}
+          label={t("sor.admin_lesson_date")}
+          value={isoToDate(date)}
+          onChange={(d) => setDate(dateToIso(d))}
         />
         <Input
           className="w-52"

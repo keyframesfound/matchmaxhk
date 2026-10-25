@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
@@ -185,13 +186,13 @@ export function AvailabilitySection() {
               <Label htmlFor="settings-availability-date" className="text-[color:var(--ink)]">
                 {t("settings.availability.date_label")}
               </Label>
-              <Input
+              <DatePicker
                 id="settings-availability-date"
-                type="date"
-                value={startDate}
-                min={new Date().toISOString().slice(0, 10)}
-                onChange={(event) => {
-                  setStartDate(event.target.value);
+                label={t("settings.availability.date_label")}
+                value={isoToDate(startDate)}
+                min={new Date()}
+                onChange={(date) => {
+                  setStartDate(dateToIso(date));
                   setDirty(true);
                 }}
                 className="bg-[color:var(--surface)] sm:max-w-xs"

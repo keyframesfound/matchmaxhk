@@ -35,6 +35,7 @@ import { Link } from "@tanstack/react-router";
 import { ConsolePanel } from "@/components/ui/console-panel";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -2099,11 +2100,11 @@ export function TutorEditor({
                   error={errors.earliest_start_date}
                   className="sm:max-w-xs"
                 >
-                  <Input
-                    type="date"
-                    value={form.earliest_start_date}
-                    min={new Date().toISOString().slice(0, 10)}
-                    onChange={(e) => setForm({ ...form, earliest_start_date: e.target.value })}
+                  <DatePicker
+                    label="Earliest Start Date"
+                    value={isoToDate(form.earliest_start_date)}
+                    min={new Date()}
+                    onChange={(date) => setForm({ ...form, earliest_start_date: dateToIso(date) })}
                   />
                 </FormField>
               ) : null}
