@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
+import { canonicalUrl, hreflangLinks } from "@/features/i18n/seo";
 export const Route = createFileRoute("/pricing")({
   beforeLoad: () => {
     if (!CENTRE_MARKET_ENABLED) throw notFound();
@@ -31,9 +32,9 @@ export const Route = createFileRoute("/pricing")({
       },
       { name: "robots", content: "index, follow" },
       { property: "og:title", content: "Plans for Tutoring Businesses | MatchMax" },
-      { property: "og:url", content: "https://matchmax.hk/pricing" },
+      { property: "og:url", content: canonicalUrl("/pricing") },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/pricing" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/pricing") }, ...hreflangLinks("/pricing")],
   }),
   component: PricingPage,
 });

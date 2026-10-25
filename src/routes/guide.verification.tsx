@@ -5,6 +5,7 @@ import { ArrowRight, FileText, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContentsRow, GuideHeading, GuidePage } from "@/features/guide/guide-shell";
 
+import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/guide/verification")({
   head: () => ({
     meta: [
@@ -21,9 +22,9 @@ export const Route = createFileRoute("/guide/verification")({
         content:
           "What MatchMax checks before a tutor card goes live: transcripts, component scores, university enrolment, and what verification does not mean.",
       },
-      { property: "og:url", content: "https://matchmax.hk/guide/verification" },
+      { property: "og:url", content: canonicalUrl("/guide/verification") },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/guide/verification" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/guide/verification") }],
   }),
   component: GuideVerificationPage,
 });

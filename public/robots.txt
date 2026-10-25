@@ -13,5 +13,25 @@ Disallow: /courses
 Disallow: /business
 Disallow: /pricing
 Disallow: /lovable/
+Disallow: /en/admin
+Disallow: /zh/admin
+Disallow: /en/dashboard
+Disallow: /zh/dashboard
+Disallow: /en/auth
+Disallow: /zh/auth
+Disallow: /en/my-cases
+Disallow: /zh/my-cases
+Disallow: /en/post-case
+Disallow: /zh/post-case
+Disallow: /en/cases
+Disallow: /zh/cases
+Disallow: /en/courses
+Disallow: /zh/courses
+Disallow: /en/business
+Disallow: /zh/business
+Disallow: /en/pricing
+Disallow: /zh/pricing
+Disallow: /en/lovable/
+Disallow: /zh/lovable/
 
 Sitemap: https://matchmax.hk/sitemap.xml

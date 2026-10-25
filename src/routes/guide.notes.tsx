@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowRight, CircleCheck, CircleX } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { canonicalUrl } from "@/features/i18n/seo";
 import {
   ContentsRow,
   GuideHeading,
@@ -27,9 +28,9 @@ export const Route = createFileRoute("/guide/notes")({
         content:
           "How the MatchMax notes marketplace works, what tutors may sell, and the ban list: no school papers, no HKEAA or IB past papers, no contact details in files.",
       },
-      { property: "og:url", content: "https://matchmax.hk/guide/notes" },
+      { property: "og:url", content: canonicalUrl("/guide/notes") },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/guide/notes" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/guide/notes") }],
   }),
   component: GuideNotesPage,
 });

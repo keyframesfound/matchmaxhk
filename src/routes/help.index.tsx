@@ -19,6 +19,7 @@ import {
 } from "@/features/help/content";
 import { cn } from "@/lib/utils";
 
+import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/help/")({
   validateSearch: z.object({ audience: z.enum(["tutors", "parents"]).optional() }),
   head: () => ({
@@ -36,7 +37,7 @@ export const Route = createFileRoute("/help/")({
         content:
           "Guides and answers for MatchMax tutors and parents, communication, scheduling, pedagogy, payments, and policies.",
       },
-      { property: "og:url", content: "https://matchmax.hk/help" },
+      { property: "og:url", content: canonicalUrl("/help") },
     ],
   }),
   component: HelpCentrePage,

@@ -5,6 +5,7 @@ import { ArrowRight, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContentsRow, GuideHeading, GuidePage, GuideSteps } from "@/features/guide/guide-shell";
 
+import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/guide/tutors")({
   head: () => ({
     meta: [
@@ -21,9 +22,9 @@ export const Route = createFileRoute("/guide/tutors")({
         content:
           "How tutors use MatchMax: submit credentials, get listed anonymously, claim cases that fit your commute, and keep the hourly fee after the 1.5-lesson admin fee.",
       },
-      { property: "og:url", content: "https://matchmax.hk/guide/tutors" },
+      { property: "og:url", content: canonicalUrl("/guide/tutors") },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/guide/tutors" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/guide/tutors") }],
   }),
   component: GuideTutorsPage,
 });

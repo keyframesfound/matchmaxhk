@@ -18,6 +18,7 @@ import {
   type HelpArticle,
 } from "@/features/help/content";
 import { cn } from "@/lib/utils";
+import { canonicalUrl } from "@/features/i18n/seo";
 
 export const Route = createFileRoute("/help/$category/$slug")({
   beforeLoad: ({ params }) => {
@@ -38,7 +39,7 @@ export const Route = createFileRoute("/help/$category/$slug")({
         { property: "og:description", content: article.summary },
         {
           property: "og:url",
-          content: `https://matchmax.hk/help/${article.category}/${article.slug}`,
+          content: canonicalUrl(`/help/${article.category}/${article.slug}`),
         },
       ],
     };

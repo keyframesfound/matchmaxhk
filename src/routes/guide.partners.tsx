@@ -5,6 +5,7 @@ import { ArrowRight, Building2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContentsRow, GuideHeading, GuidePage } from "@/features/guide/guide-shell";
 
+import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/guide/partners")({
   head: () => ({
     meta: [
@@ -21,9 +22,9 @@ export const Route = createFileRoute("/guide/partners")({
         content:
           "How tutorial centres, schools, and NGOs engage independent educators on MatchMax, Contracts for Services only, never staff recruitment.",
       },
-      { property: "og:url", content: "https://matchmax.hk/guide/partners" },
+      { property: "og:url", content: canonicalUrl("/guide/partners") },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/guide/partners" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/guide/partners") }],
   }),
   component: GuidePartnersPage,
 });

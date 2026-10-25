@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { PageBackButton } from "@/components/layout/page-back-button";
 
+import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/legal/notes-terms")({
   head: () => ({
     meta: [
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/legal/notes-terms")({
       },
       { name: "robots", content: "index, follow" },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/legal/notes-terms" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/legal/notes-terms") }],
   }),
   component: NotesTermsPage,
 });

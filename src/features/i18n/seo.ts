@@ -2,14 +2,16 @@
  * Issue #401: locale-aware SEO meta titles & descriptions.
  *
  * head() callbacks run outside React (and may run during SSR), so they can't
- * use useTranslation(); this module resolves the active locale from the same
- * chain the i18n detector uses (?hl → localStorage → cookie) and falls back
- * to `navigator` soft-defaulting, with English as the source of truth.
+ * use useTranslation(); this module resolves the active locale for meta from
+ * the URL segment (/en, /zh) — set per request/navigation by the router's
+ * rewrite pair — with English as the source of truth.
  *
- * CEO lock 2026-10-21: hybrid architecture, no locale subpaths or hreflang
- * yet (deferred until zh-HK copy is stable); zh-CN UI strings are deferred,
- * so mainland browsers stay on English for now.
+ * 2026-10-25: locale subpaths shipped (user decision), superseding the old
+ * CEO lock of "no locale subpaths". zh-CN UI strings remain deferred, so
+ * mainland browsers still soft-default to English at the / gate.
  */
+
+import { getActiveUrlLocale, segmentOfLocale } from "./routing";
 
 export type SeoLocale = "en" | "zh-HK";
 
@@ -17,6 +19,8 @@ export const LOCALE_STORAGE_KEY = "matchmax.locale";
 export const LOCALE_COOKIE_KEY = "matchmax.locale";
 
 const SUPPORTED_LOCALES: readonly SeoLocale[] = ["en", "zh-HK"];
+
+export const SITE_URL = "https://matchmax.hk";
 
 export function isSupportedLocale(value: string | null | undefined): value is SeoLocale {
   return value === "en" || value === "zh-HK";
@@ -73,9 +77,9 @@ export function readPreferredLocale(): SeoLocale | null {
   return isSupportedLocale(cookie) ? cookie : null;
 }
 
-/** Locale for head() calls: explicit choice → soft navigator default → en. */
+/** Locale for head() calls: URL segment → stored choice → navigator → en. */
 export function currentSeoLocale(): SeoLocale {
-  return readPreferredLocale() ?? navigatorLocale();
+  return getActiveUrlLocale() ?? readPreferredLocale() ?? navigatorLocale();
 }
 
 export function seoLocaleFromLanguage(language: string | undefined): SeoLocale {
@@ -126,3 +130,24 @@ export function ogLocaleMeta(locale: SeoLocale): { property: string; content: st
 }
 
 export const SUPPORTED_SEO_LOCALES = SUPPORTED_LOCALES;
+
+/**
+ * Self-referencing canonical/og URL for a route path under the active locale:
+ * canonicalUrl("/pricing") on /zh/pricing → https://matchmax.hk/zh/pricing.
+ * `path` is the internal (unprefixed) route path.
+ */
+export function canonicalUrl(path: string, locale: SeoLocale = currentSeoLocale()): string {
+  const base = path === "/" ? "" : path.startsWith("/") ? path : `/${path}`;
+  return `${SITE_URL}/${segmentOfLocale(locale)}${base}`;
+}
+
+/** hreflang alternates (en + zh-HK + x-default → en) for a route's head links. */
+export function hreflangLinks(
+  path: string,
+): { rel: "alternate"; hreflang: string; href: string }[] {
+  return [
+    { rel: "alternate", hreflang: "en", href: canonicalUrl(path, "en") },
+    { rel: "alternate", hreflang: "zh-HK", href: canonicalUrl(path, "zh-HK") },
+    { rel: "alternate", hreflang: "x-default", href: canonicalUrl(path, "en") },
+  ];
+}

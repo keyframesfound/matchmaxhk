@@ -3,6 +3,12 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { setRuntimeBindings } from "./lib/runtime-env";
+import {
+  buildLocalePath,
+  parseLocalePath,
+  resolvePreferredLocaleForRequest,
+  segmentOfLocale,
+} from "./features/i18n/routing";
 
 const CANONICAL_ORIGIN = "https://matchmax.hk";
 const CANONICAL_HOST = new URL(CANONICAL_ORIGIN).hostname;
@@ -105,6 +111,48 @@ function getCanonicalRedirect(request: Request): Response | null {
   return Response.redirect(url.toString(), 308);
 }
 
+// Locale URL prefixes (/en, /zh) — 2026-10-25. Prefixed page URLs pass
+// through (the router's rewrite pair strips the segment for matching);
+// everything else page-like gets redirected to the visitor's preferred
+// locale: saved choice cookie → ?hl= override → Accept-Language → English.
+// 307 + no-store, never 308: the target varies per visitor, so it must not
+// be permanently cached.
+const LOCALE_GATE_BYPASS_PREFIXES = ["/_", "/lovable"];
+
+function looksLikeFilePath(pathname: string): boolean {
+  const lastSegment = pathname.slice(pathname.lastIndexOf("/") + 1);
+  return lastSegment.includes(".");
+}
+
+function getLocaleRedirect(request: Request): Response | null {
+  if (request.method !== "GET" && request.method !== "HEAD") return null;
+
+  const url = new URL(request.url);
+  const pathname = url.pathname;
+
+  // Legacy full-tag prefix: /zh-HK/... → /zh/...
+  if (pathname === "/zh-HK" || pathname.startsWith("/zh-HK/")) {
+    url.pathname = `/zh${pathname.slice("/zh-HK".length) || ""}`;
+    return new Response(null, {
+      status: 307,
+      headers: { Location: url.pathname + url.search, "Cache-Control": "no-store" },
+    });
+  }
+
+  if (parseLocalePath(pathname)) return null;
+
+  if (LOCALE_GATE_BYPASS_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return null;
+  if (looksLikeFilePath(pathname)) return null;
+
+  const segment = segmentOfLocale(resolvePreferredLocaleForRequest(request));
+  url.pathname = buildLocalePath(segment, pathname);
+  // Relative Location: immune to host/port reconstruction behind proxies.
+  return new Response(null, {
+    status: 307,
+    headers: { Location: url.pathname + url.search, "Cache-Control": "no-store" },
+  });
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
@@ -114,6 +162,11 @@ export default {
       const canonicalRedirect = getCanonicalRedirect(request);
       if (canonicalRedirect) {
         return canonicalRedirect;
+      }
+
+      const localeRedirect = getLocaleRedirect(request);
+      if (localeRedirect) {
+        return localeRedirect;
       }
 
       const handler = await getServerEntry();

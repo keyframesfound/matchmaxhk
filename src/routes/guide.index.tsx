@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
+import { canonicalUrl, currentSeoLocale, hreflangLinks, localizedMeta } from "@/features/i18n/seo";
 
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 import {
@@ -43,9 +43,9 @@ export const Route = createFileRoute("/guide/")({
           },
         }),
         { name: "robots", content: "index, follow" },
-        { property: "og:url", content: "https://matchmax.hk/guide" },
+        { property: "og:url", content: canonicalUrl("/guide") },
       ],
-      links: [{ rel: "canonical", href: "https://matchmax.hk/guide" }],
+      links: [{ rel: "canonical", href: canonicalUrl("/guide") }, ...hreflangLinks("/guide")],
     };
   },
   component: GuideIndexPage,

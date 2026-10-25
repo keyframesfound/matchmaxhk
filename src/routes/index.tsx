@@ -6,7 +6,7 @@ import { ArrowRight, ChevronLeft, ChevronRight, Flame } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
-import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
+import { canonicalUrl, currentSeoLocale, hreflangLinks, localizedMeta } from "@/features/i18n/seo";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -96,7 +96,7 @@ export const Route = createFileRoute("/")({
           },
         }),
         { name: "robots", content: "index, follow" },
-        { property: "og:url", content: "https://matchmax.hk/" },
+        { property: "og:url", content: canonicalUrl("/") },
         { property: "og:type", content: "website" },
         { property: "og:site_name", content: "MatchMax" },
         { property: "og:image", content: OG_IMAGE },
@@ -120,7 +120,8 @@ export const Route = createFileRoute("/")({
         { name: "twitter:image", content: OG_IMAGE },
       ],
       links: [
-        { rel: "canonical", href: "https://matchmax.hk/" },
+        { rel: "canonical", href: canonicalUrl("/") },
+        ...hreflangLinks("/"),
         { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
         { rel: "shortcut icon", href: "/favicon.ico" },
         { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },

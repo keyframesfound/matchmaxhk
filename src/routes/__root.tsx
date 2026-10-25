@@ -23,7 +23,9 @@ import { ReferralCapture } from "@/components/layout/ReferralCapture";
 import { WhatsAppFloatButton } from "@/components/layout/WhatsAppFloatButton";
 import { CompareSelectionReset } from "@/features/cases/compare-cases";
 import { Toaster } from "@/components/ui/sonner";
-import { currentSeoLocale, localizedMeta, ogLocaleMeta } from "@/features/i18n/seo";
+import { currentSeoLocale, localizedMeta, ogLocaleMeta, canonicalUrl } from "@/features/i18n/seo";
+import { getActiveUrlLocale } from "@/features/i18n/routing";
+import { applyUrlLocale, persistUrlLocaleChoice } from "@/features/i18n/config";
 
 export function NotFoundComponent() {
   return (
@@ -87,6 +89,15 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 }
 
 export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()({
+  beforeLoad: () => {
+    // URL is the source of truth for language (2026-10-25 locale prefixes):
+    // keep the i18n instance in step on every request/navigation, and adopt
+    // a differing URL locale as the visitor's saved choice (client only) so
+    // the next plain visit to / opens in it.
+    const locale = getActiveUrlLocale();
+    applyUrlLocale(locale);
+    persistUrlLocaleChoice(locale);
+  },
   head: () => {
     // Issue #401: the root fallback title/description follow the active
     // locale; routes with their own head() override these. English copy is
@@ -110,7 +121,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { name: "author", content: "MatchMax" },
         { property: "og:site_name", content: "MatchMax" },
         { property: "og:type", content: "website" },
-        { property: "og:url", content: "https://matchmax.hk" },
+        { property: "og:url", content: canonicalUrl("/") },
         ...ogLocaleMeta(locale),
         { property: "og:image", content: "https://matchmax.hk/matchmax-logo.png" },
         { name: "twitter:card", content: "summary_large_image" },
@@ -147,7 +158,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
             url: "https://matchmax.hk",
             potentialAction: {
               "@type": "SearchAction",
-              target: "https://matchmax.hk/tutors?q={search_term_string}",
+              target: `${canonicalUrl("/tutors")}?q={search_term_string}`,
               "query-input": "required name=search_term_string",
             },
           }),
@@ -165,8 +176,11 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
 const themeInitScript = `(function(){try{var t=localStorage.getItem('matchmax-theme')||'light';var d=t==='dark'||(t==='system'&&window.matchMedia('(prefers-color-scheme: dark)').matches);document.documentElement.classList.toggle('dark',d);}catch(e){}})();`;
 
 function RootShell({ children }: { children: ReactNode }) {
+  // Follows the URL locale (set by the router's rewrite input) so SSR emits
+  // the right lang for /zh pages; HtmlLangSync keeps it in step client-side.
+  const locale = getActiveUrlLocale();
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={locale === "zh-HK" ? "zh-HK" : "en"} suppressHydrationWarning>
       <head>
         <HeadContent />
         <meta name="theme-color" content="#ffffff" />

@@ -5,6 +5,7 @@ import { ArrowRight, Search, UserRoundCheck } from "lucide-react";
 import { ContentsRow, GuideHeading, GuidePage, GuideSteps } from "@/features/guide/guide-shell";
 import { Button } from "@/components/ui/button";
 
+import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/guide/parents")({
   head: () => ({
     meta: [
@@ -21,9 +22,9 @@ export const Route = createFileRoute("/guide/parents")({
         content:
           "How parents use MatchMax: browse tutor profiles or send a request, the concierge introduction, the 1.5-lesson admin fee, and what MatchMax does not do.",
       },
-      { property: "og:url", content: "https://matchmax.hk/guide/parents" },
+      { property: "og:url", content: canonicalUrl("/guide/parents") },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/guide/parents" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/guide/parents") }],
   }),
   component: GuideParentsPage,
 });

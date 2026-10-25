@@ -3,7 +3,14 @@ import { initReactI18next } from "react-i18next";
 
 import en from "./locales/en.json";
 import zh from "./locales/zh-HK.json";
-import { LOCALE_COOKIE_KEY, LOCALE_STORAGE_KEY, navigatorLocale, readPreferredLocale } from "./seo";
+import {
+  LOCALE_COOKIE_KEY,
+  LOCALE_STORAGE_KEY,
+  navigatorLocale,
+  readPreferredLocale,
+  type SeoLocale,
+} from "./seo";
+import { urlLocaleFromWindow } from "./routing";
 
 /** Persist the choice to localStorage + cookie (issue #401 acceptance). */
 function persistLocale(lng: string) {
@@ -22,6 +29,26 @@ function persistLocale(lng: string) {
 }
 
 /**
+ * The visitor landed on a /en or /zh URL different from their stored choice —
+ * treat the URL as the newest expression of intent (it's now the source of
+ * truth) so the next plain visit to / opens in that locale.
+ */
+export function persistUrlLocaleChoice(locale: SeoLocale) {
+  if (typeof window === "undefined") return;
+  if (readPreferredLocale() === locale) return;
+  persistLocale(locale);
+}
+
+/**
+ * Sync the i18n language to the URL segment (root beforeLoad, both sides).
+ * Never persists: persistence flows through explicit switches (setLocale)
+ * or persistUrlLocaleChoice.
+ */
+export function applyUrlLocale(locale: SeoLocale) {
+  if (i18n.language !== locale) void i18n.changeLanguage(locale);
+}
+
+/**
  * Explicit language switch (header toggle, settings picker, account-locale
  * adoption): change the language AND persist it as the visitor's choice.
  *
@@ -37,11 +64,11 @@ export function setLocale(lng: string) {
   persistLocale(lng);
 }
 
-// Issue #401: custom i18next language detector, the built-in
-// i18next-browser-languagedetector can't map zh-TW/zh-MO/generic-zh onto
-// zh-HK while keeping deferred zh-CN browsers on English, and we need cookie
-// persistence alongside localStorage plus a soft ?hl= override for
-// shareable links. Soft defaults only: switching to English is always one tap.
+// Issue #401: custom i18next language detector. Since the 2026-10-25
+// locale-prefix restructure the URL segment (/en, /zh) wins; the stored
+// choice chain and the zh-TW/zh-MO → zh-HK navigator soft-default (with
+// zh-CN browsers kept on English until zh-CN UI ships) only steer the
+// initial / redirect and pre-router moments.
 const matchmaxDetector = {
   type: "languageDetector" as const,
   async: false as const,
@@ -49,7 +76,7 @@ const matchmaxDetector = {
     // Nothing to bootstrap, lookup helpers are pure module functions in seo.ts.
   },
   detect(): string | undefined {
-    return readPreferredLocale() ?? navigatorLocale();
+    return urlLocaleFromWindow() ?? readPreferredLocale() ?? navigatorLocale();
   },
   cacheUserLanguage() {
     // Deliberately no-op: detection results (including the soft ?hl=

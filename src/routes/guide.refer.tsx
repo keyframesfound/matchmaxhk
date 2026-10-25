@@ -5,6 +5,7 @@ import { ArrowRight, Copy, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HelpArticleLink } from "@/features/help/components";
 import { getHelpArticle } from "@/features/help/content";
+import { canonicalUrl } from "@/features/i18n/seo";
 import {
   ContentsRow,
   GuideHeading,
@@ -29,9 +30,9 @@ export const Route = createFileRoute("/guide/refer")({
         content:
           "Share your link, your friend applies as a tutor, and after their first case completes two lessons and the fee you earn 15% of the MatchMax admin fee.",
       },
-      { property: "og:url", content: "https://matchmax.hk/guide/refer" },
+      { property: "og:url", content: canonicalUrl("/guide/refer") },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/guide/refer" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/guide/refer") }],
   }),
   component: GuideReferPage,
 });

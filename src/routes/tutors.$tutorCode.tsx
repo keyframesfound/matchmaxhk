@@ -107,6 +107,7 @@ import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MarkdownText } from "@/components/ui/markdown-text";
 import { shareOrCopy } from "@/lib/share";
+import { canonicalUrl, hreflangLinks } from "@/features/i18n/seo";
 
 function buildTutorSeoMeta(tutor: Tutor, url: string) {
   const subjects = (tutor.subjects ?? []).filter(Boolean);
@@ -361,7 +362,7 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
   pendingMs: 0,
   pendingMinMs: 400,
   head: ({ loaderData, params }) => {
-    const url = `https://matchmax.hk/tutors/${params.tutorCode}`;
+    const url = canonicalUrl(`/tutors/${params.tutorCode}`);
     if (!loaderData) {
       return {
         meta: [{ title: "Tutor not found | MatchMax" }, { name: "robots", content: "noindex" }],
@@ -385,7 +386,7 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
             ]
           : []),
       ],
-      links: [{ rel: "canonical", href: url }],
+      links: [{ rel: "canonical", href: url }, ...hreflangLinks(`/tutors/${params.tutorCode}`)],
     };
   },
   notFoundComponent: function TutorNotFound() {

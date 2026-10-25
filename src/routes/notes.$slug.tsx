@@ -23,6 +23,7 @@ import { GigDetailPage } from "@/features/gigs/gig-detail";
 import { FolderDetailPage } from "@/features/folders/folder-detail";
 import { CourseDetailPage } from "@/features/courses/course-detail";
 import { ReportMenuButton } from "@/features/reports/report-button";
+import { canonicalUrl } from "@/features/i18n/seo";
 
 /**
  * #203 + P8/P14: the public note page, the marketplace's Clastify-style
@@ -50,10 +51,10 @@ export const Route = createFileRoute("/notes/$slug")({
       meta: [
         { title },
         { property: "og:type", content: "product" },
-        { property: "og:url", content: `https://matchmax.hk/notes/${params.slug}` },
+        { property: "og:url", content: canonicalUrl(`/notes/${params.slug}`) },
         { name: "description", content: "Preview and buy study notes on MatchMax." },
       ],
-      links: [{ rel: "canonical", href: `https://matchmax.hk/notes/${params.slug}` }],
+      links: [{ rel: "canonical", href: canonicalUrl(`/notes/${params.slug}`) }],
     };
   },
   loader: async ({ params }) => {

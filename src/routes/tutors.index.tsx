@@ -33,7 +33,7 @@ import {
 } from "@/features/tutors/tutor-display";
 import { DirectoryToggle, MaterialsDirectory } from "@/features/materials/materials-directory";
 import { ParentCoachTour } from "@/features/tours/ParentCoachTour";
-import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
+import { canonicalUrl, currentSeoLocale, hreflangLinks, localizedMeta } from "@/features/i18n/seo";
 import {
   fetchPublishedTutors,
   getTutorCardHighlights,
@@ -139,9 +139,9 @@ export const Route = createFileRoute("/tutors/")({
           },
         }),
         { name: "robots", content: "index, follow" },
-        { property: "og:url", content: "https://matchmax.hk/tutors" },
+        { property: "og:url", content: canonicalUrl("/tutors") },
       ],
-      links: [{ rel: "canonical", href: "https://matchmax.hk/tutors" }],
+      links: [{ rel: "canonical", href: canonicalUrl("/tutors") }, ...hreflangLinks("/tutors")],
     };
   },
   component: TutorsDirectory,

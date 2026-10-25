@@ -23,6 +23,7 @@ import { useBusinessTracker } from "@/features/business/use-analytics";
 import { fetchPublishedCourseSubjects, fetchPublishedCourses } from "@/features/courses/queries";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
+import { canonicalUrl } from "@/features/i18n/seo";
 const searchSchema = z.object({
   subject: z.string().optional(),
   level: z.string().optional(),
@@ -51,9 +52,9 @@ export const Route = createFileRoute("/courses/")({
       },
       { name: "robots", content: "index, follow" },
       { property: "og:title", content: "Courses | MatchMax" },
-      { property: "og:url", content: "https://matchmax.hk/courses" },
+      { property: "og:url", content: canonicalUrl("/courses") },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/courses" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/courses") }],
   }),
   component: CoursesDirectory,
 });

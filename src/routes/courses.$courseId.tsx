@@ -31,6 +31,7 @@ import {
 } from "@/features/courses/queries";
 import type { CourseWithOrganization } from "@/features/courses/queries";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
+import { canonicalUrl } from "@/features/i18n/seo";
 
 export const Route = createFileRoute("/courses/$courseId")({
   beforeLoad: () => {
@@ -43,7 +44,7 @@ export const Route = createFileRoute("/courses/$courseId")({
   },
   head: ({ match }) => {
     const course = match.loaderData as CourseWithOrganization | undefined;
-    const url = `https://matchmax.hk/courses/${match.params.courseId}`;
+    const url = canonicalUrl(`/courses/${match.params.courseId}`);
     if (!course) {
       return {
         meta: [{ title: "Course | MatchMax" }, { name: "robots", content: "noindex" }],

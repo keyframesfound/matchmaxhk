@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, BookOpen, Briefcase, ChevronRight, UserRoundCheck } from "lucide-react";
 
-import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
+import { canonicalUrl, currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
 import { PageBackButton } from "@/components/layout/page-back-button";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/tutor-playbook")({
           },
         }),
         { name: "robots", content: "index, follow" },
-        { property: "og:url", content: "https://matchmax.hk/tutor-playbook" },
+        { property: "og:url", content: canonicalUrl("/tutor-playbook") },
       ],
     };
   },

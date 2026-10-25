@@ -1,10 +1,11 @@
 import { Globe } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
-import { setLocale } from "@/features/i18n/config";
+import { useSwitchLocale } from "@/features/i18n/switch-locale";
 
 export function LanguageToggle() {
   const { i18n } = useTranslation();
+  const switchLocale = useSwitchLocale();
   const current = i18n.language?.startsWith("zh") ? "zh-HK" : "en";
   const next = current === "en" ? "zh-HK" : "en";
 
@@ -12,7 +13,7 @@ export function LanguageToggle() {
     <Button
       variant="ghost"
       size="sm"
-      onClick={() => setLocale(next)}
+      onClick={() => switchLocale(next)}
       className="flex h-10 items-center gap-2 rounded-full px-3 font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
       aria-label={`Change language to ${next === "en" ? "English" : "Traditional Chinese"}`}
     >
