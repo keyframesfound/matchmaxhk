@@ -259,8 +259,12 @@ html {
 
 /*
  * Dark theme — "Twitter Azure" dim mode (dark-mode-guide compliant).
- * Elevation ladder instead of pure black: canvas #121212 · cards #1E1E1E ·
- * popovers #232327 · hovers #26282C · borders #2E3033 · secondary text #9BA1A6.
+ * Elevation ladder instead of pure black: canvas #121212 · header band #17181B ·
+ * cards #1E1E1E · popovers #232327 · hovers #26282C · borders #41454B ·
+ * secondary text #A3AAB1. Border and input strokes sit ~2:1 over the canvas so
+ * hairlines stay visible on dark surrounds (light-mode hairlines only need
+ * ~1.2:1 — dark needs the wider step to read at all). The header/search band
+ * lifts one step off the canvas the same way the grey band does on light.
  * Statuses are lightened/desaturated for dark (success #4ADE80, warning #FCD34D,
  * destructive #F87171) with dark-ink text on fills.
  * The azure accent (#1D9BF0) stays the action colour in both themes.
@@ -268,7 +272,7 @@ html {
 .dark {
   --ink: #e7e9ea;
   --surface: #121212;
-  --surface-header: #121212;
+  --surface-header: #17181b;
   --surface-subtle: #1a1c1e;
   --surface-raised: #232327;
   --surface-hover: #26282c;
@@ -276,7 +280,7 @@ html {
   --surface-invert-hover: #d9dde0;
   --surface-invert-fg: #0f1419;
   --brand-link: #1d9bf0;
-  --subtle-foreground: #9ba1a6;
+  --subtle-foreground: #a3aab1;
   --disabled-foreground: #8a8e93;
   --success: #4ade80;
   --success-foreground: #052e16;
@@ -289,8 +293,8 @@ html {
     color-mix(in oklab, var(--brand-teal) 8%, var(--color-card)),
     var(--color-card)
   );
-  --stepper-inactive-bg: #26282c;
-  --stepper-inactive-fg: #9ba1a6;
+  --stepper-inactive-bg: #2a2d33;
+  --stepper-inactive-fg: #a3aab1;
   --stepper-active-bg: #1273b4;
   --stepper-active-fg: #ffffff;
   --stepper-complete-bg: #4ade80;
@@ -312,26 +316,26 @@ html {
   --secondary: #f0f3f4;
   --secondary-foreground: #0f1419;
   --muted: #1e1e1e;
-  --muted-foreground: #9ba1a6;
-  --accent: #1e2d37;
+  --muted-foreground: #a3aab1;
+  --accent: #20303e;
   --accent-foreground: #1c9cf0;
   --destructive: #f87171;
   --destructive-foreground: #2b0a0c;
-  --border: #2e3033;
-  --input: #22303c;
+  --border: #41454b;
+  --input: #3e4b58;
   --ring: #1da1f2;
   --chart-1: #1e9df1;
   --chart-2: #00b87a;
-  --chart-3: #f7b928;
+  --chart-3: #fcd34d;
   --chart-4: #17bf63;
   --chart-5: #e0245e;
   --sidebar: #1a1c1e;
   --sidebar-foreground: #e7e9ea;
   --sidebar-primary: #1da1f2;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1e2d37;
+  --sidebar-accent: #20303e;
   --sidebar-accent-foreground: #1c9cf0;
-  --sidebar-border: #3a3d42;
+  --sidebar-border: #41454b;
   --sidebar-ring: #1da1f2;
 
   /* Accent button in dark — Azure stays the signal (Inverted Signal Rule) */

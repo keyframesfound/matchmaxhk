@@ -20,14 +20,15 @@ colors:
   status-success: "#157F47"
   status-warning: "#F7B928"
   dark-canvas: "#121212"
+  dark-header-band: "#17181B"
   dark-surface-subtle: "#1A1C1E"
   dark-card: "#1E1E1E"
   dark-raised: "#232327"
   dark-hover: "#26282C"
-  dark-border: "#2E3033"
-  dark-secondary-ink: "#9BA1A6"
+  dark-border: "#41454B"
+  dark-secondary-ink: "#A3AAB1"
   dark-disabled-ink: "#8A8E93"
-  dark-input: "#22303C"
+  dark-input: "#3E4B58"
   dark-success: "#4ADE80"
   dark-warning: "#FCD34D"
   dark-destructive: "#F87171"
@@ -151,7 +152,7 @@ MatchMax pairs the **Twitter Azure palette** (21st.dev community theme by serafi
 - Flat surfaces, hairline borders; shadows exist only on layers that float above the page
 - Motion explains a change; entrance choreography is retired from the system
 - Sentence-case copy, no eyebrows, no em dashes, buttons are verbs with objects
-- Full dark theme: dim `#121212` canvas with a luminosity elevation ladder, azure stays the signal in both themes
+- Full dark theme: dim `#121212` canvas on a luminosity ladder with visible night hairlines (`#41454B`), chrome bands that lift off the canvas (`#17181B`), and azure as the signal in both themes
 - Bilingual-first: EN and zh-HK parity, CJK system-font fallback, layouts never assume Latin-only metrics
 
 ## Colors
@@ -176,7 +177,7 @@ The palette is a quiet news feed: ink text, paper and card-tint surfaces, hairli
 - **Input Tint** (`#F7F9FA`, `--input`) and **Hover Wash** (`#EFF3F4`, `--surface-hover`): Wells and hover states.
 - **Secondary Ink** (`#46535E`, `--muted-foreground`): Secondary text on light, and the only secondary grey: ad-hoc palette greys (`text-slate-*`, `text-gray-*`) and hardcoded status hexes are retired.
 - **Hairline** (`#E1EAEF`, `--border`): Borders and separators on light.
-- **Night Canvas** (`#121212`) / **Night Card** (`#1E1E1E`) / **Night Border** (`#2E3033`): Dark-theme surfaces on a luminosity elevation ladder, canvas `#121212`, subtle and sidebar `#1A1C1E`, cards and muted `#1E1E1E`, popovers and raised `#232327`, hovers `#26282C`; primary ink everywhere `#E7E9EA` (~15:1), secondary text `#9BA1A6`, disabled text `#8A8E93`, inputs `#22303C`, dark sidebar border `#3A3D42`. Dark statuses lighten for comfort, each with dark-ink text on fills.
+- **Night Canvas** (`#121212`) / **Night Band** (`#17181B`) / **Night Card** (`#1E1E1E`) / **Night Border** (`#41454B`): Dark-theme surfaces on a luminosity elevation ladder, canvas `#121212`, the header and sticky search band `#17181B` (chrome lifts one step off the canvas, mirroring the grey band on light), subtle and sidebar `#1A1C1E`, cards and muted `#1E1E1E`, popovers and raised `#232327`, hovers `#26282C`; primary ink everywhere `#E7E9EA` (~15:1), secondary text `#A3AAB1` (~7.5:1), disabled text `#8A8E93`, input strokes `#3E4B58`, sidebar border `#41454B`. Dark statuses lighten for comfort, each with dark-ink text on fills, and the dark chart series ride the same lightened status hues (amber `#FCD34D`).
 
 ### Named Rules
 **The Scarcity Rule.** Azure (`--btn-accent`/`--ring`/`--brand-link`) owns exactly three things: (1) money-CTA fills, the ~10% of buttons that start a conversion flow, (2) text links, (3) focus rings and selected or active states. Everything else is ink or neutral. Test: *does this button start a conversion flow?* If not, it is neutral (white or ink). Do not colour headings, card backgrounds, or every icon with it.
@@ -255,6 +256,12 @@ Group with proximity first, a one-pixel `--border` second, a card only for a rea
 
 ### Named Rules
 **The Floating Shadow Rule.** If it does not float over the page, it does not get a shadow. Reach for a 1px border or a surface step before any elevation.
+
+**The Night Ladder Rule.** In dark mode, fill steps between surfaces are near-invisible (1.1 to 1.2:1 at night luminances), so boundaries are carried by hairlines and the ladder is carried by named tokens:
+- Night hairlines must be plainly visible: `--border` `#41454B` sits ~1.9:1 over the canvas. (Light hairlines survive at ~1.2:1; dark surrounds compress perceived contrast, so the night step is wider.) Input strokes get their own blue-tinged `--input` `#3E4B58`. Never ship a dark surface that separates by fill alone.
+- Sticky chrome (site header, directory search band, mobile top and bottom bars) rides `--surface-header` `#17181B`, exactly one step above the canvas, the way the grey band reads on light. Never let band and canvas share a colour.
+- Floating layers ride `--popover` `#232327` plus the night lift shadow; they are the only layers above the ladder.
+- Dark is a first-class theme, not a derivative: every new surface, chart series, badge, and illustration is checked in dark before it ships (charts use the lightened dark status hues, photography dims to ~0.18 with `.logo-dark-recolor`, nav PNGs take the `dark:invert` treatment). The `.dark .bg-white` remap in styles.css is a safety net for stray paper fills, not a design tool; on always-ink sections, spell white accents explicitly (`bg-[#ffffff] dark:bg-[color:var(--surface-invert)]`, the tutor-playbook tray pattern) so the remap cannot strand dark artwork on a dark fill.
 
 ## Motion
 
@@ -366,6 +373,7 @@ The codebase still carries pre-Arc artifacts that this system retires. Fold them
 - **Do** pair every animation with a `prefers-reduced-motion` branch that preserves final state and feedback.
 - **Do** verify both EN and zh-HK renderings of any new copy or component; layouts must not assume Latin widths.
 - **Do** use azure (`--brand-link`) for text links in both themes, and dim photographic backdrops in dark mode (opacity ~0.18) with `.logo-dark-recolor`.
+- **Do** check every new screen in dark before shipping it: borders visible on the night canvas, sticky chrome on `--surface-header`, chart and status colours on the lightened dark hues, no paper-white leftovers.
 
 ### Don't:
 - **Don't** set font weights above 500, fake bold, uppercase transforms, or wide tracking on small labels.
@@ -374,6 +382,7 @@ The codebase still carries pre-Arc artifacts that this system retires. Fold them
 - **Don't** put icons in decorative rounded tiles or circles; plain icons beside labels, status shapes excepted.
 - **Don't** use gradient text or gradient fills beyond the wordmark, footer sign-off, and hero backdrops.
 - **Don't** give resting elements shadows; shadows belong to floating layers only, and are never coloured.
+- **Don't** rely on fill-only separation in dark mode (surfaces a few luminance points apart read as one blob), and don't lean on the `.dark .bg-white` remap to rescue light-mode fills; write the dark variant explicitly.
 - **Don't** nest cards, or leave 1 to 4px gaps between sibling card borders.
 - **Don't** choreograph entrances: no section reveals, no staggered lists, no hero text effects, no loops except live status.
 - **Don't** spread azure into passive decoration, add new accent hues, or use azure-tinted greys outside `--accent`; emphasis is hierarchy (size, weight is capped, position), never more colour.

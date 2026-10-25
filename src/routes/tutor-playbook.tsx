@@ -718,7 +718,9 @@ function TutorPlaybookPage() {
                 to={card.to}
                 className="group flex overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] transition-colors hover:bg-white/10"
               >
-                <div className="flex w-20 shrink-0 items-center justify-center self-stretch bg-white sm:w-24">
+                {/* bg-white would trigger the global `.dark .bg-white` remap and
+                 * strand the ink icon on a dark fill; keep the tray explicitly white. */}
+                <div className="flex w-20 shrink-0 items-center justify-center self-stretch bg-[#ffffff] dark:bg-[color:var(--surface-invert)] sm:w-24">
                   <card.icon className="h-8 w-8 text-[#0f1419]" aria-hidden="true" />
                 </div>
                 <div className="flex flex-1 flex-col justify-center p-5">
