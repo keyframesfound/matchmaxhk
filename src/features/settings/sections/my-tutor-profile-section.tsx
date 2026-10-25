@@ -9,6 +9,13 @@ import { Link } from "@tanstack/react-router";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
 import { toCurrencyCode, SUPPORTED_CURRENCIES } from "@/lib/money";
@@ -1285,19 +1292,25 @@ export function MyTutorProfileSection() {
                 >
                   {t("settings.my_tutor.rates_currency")}
                 </Label>
-                <select
-                  id="myt-rate-currency"
-                  aria-label={t("settings.my_tutor.rates_currency")}
+                <Select
                   value={rates.currency}
-                  onChange={(e) => handleRateField({ currency: e.target.value })}
-                  className="h-9 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-2 text-sm font-medium text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
+                  onValueChange={(v) => handleRateField({ currency: v })}
                 >
-                  {SUPPORTED_CURRENCIES.map((code) => (
-                    <option key={code} value={code}>
-                      {code}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger
+                    id="myt-rate-currency"
+                    aria-label={t("settings.my_tutor.rates_currency")}
+                    className="h-9 min-h-9 w-auto px-2.5"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUPPORTED_CURRENCIES.map((code) => (
+                      <SelectItem key={code} value={code}>
+                        {code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Button
                   type="button"
                   variant="outline"

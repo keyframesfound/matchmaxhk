@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -162,11 +163,9 @@ export function CapacityEditorFields({
                 key={window}
                 className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] px-3 py-2 text-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--ink)]/[0.04]"
               >
-                <input
-                  type="checkbox"
-                  className="h-4 w-4 accent-[color:var(--ink)]"
+                <Checkbox
                   checked={checked}
-                  onChange={() =>
+                  onCheckedChange={() =>
                     onChange({
                       ...value,
                       timeWindows: checked

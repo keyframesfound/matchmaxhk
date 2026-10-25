@@ -929,15 +929,15 @@ function CreateCaseDialog({
               value={form.rate}
               onChange={(e) => setForm({ ...form, rate: e.target.value.replace(/[^0-9.]/g, "") })}
             />
-            <select
-              aria-label={t("sor.admin_mode")}
-              className="rounded-md border border-[color:var(--ink)]/15 bg-transparent px-2 py-2 text-sm"
-              value={form.mode}
-              onChange={(e) => setForm({ ...form, mode: e.target.value })}
-            >
-              <option value="f2f">{t("sor.admin_mode_f2f")}</option>
-              <option value="online">{t("sor.admin_mode_online")}</option>
-            </select>
+            <Select value={form.mode} onValueChange={(v) => setForm({ ...form, mode: v })}>
+              <SelectTrigger aria-label={t("sor.admin_mode")} className="w-auto px-3">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="f2f">{t("sor.admin_mode_f2f")}</SelectItem>
+                <SelectItem value="online">{t("sor.admin_mode_online")}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <Input
             placeholder={t("sor.admin_whatsapp_url")}

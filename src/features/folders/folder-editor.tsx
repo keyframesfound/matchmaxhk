@@ -5,6 +5,7 @@ import { Check, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { findContactViolations } from "@/lib/contact-filter";
@@ -321,15 +322,13 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
                         : "flex cursor-pointer items-center gap-3 rounded-md border border-border bg-card px-3 py-2 transition-colors hover:bg-[color:var(--surface-subtle)]"
                     }
                   >
-                    <input
-                      type="checkbox"
+                    <Checkbox
                       checked={checked}
-                      onChange={(e) => {
+                      onCheckedChange={(c) => {
                         setSelectedIds((prev) =>
-                          e.target.checked ? [...prev, row.id] : prev.filter((id) => id !== row.id),
+                          c ? [...prev, row.id] : prev.filter((id) => id !== row.id),
                         );
                       }}
-                      className="h-4 w-4 shrink-0"
                     />
                     <span className="min-w-0 flex-1 truncate text-sm font-medium text-[color:var(--ink)]">
                       {row.title}

@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { SettingsCard } from "@/features/settings/option-card";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -156,29 +157,27 @@ export function AvailabilitySection() {
         >
           <div className="space-y-2">
             <Label className="text-[color:var(--ink)]">{t("settings.availability.question")}</Label>
-            <div className="flex flex-wrap gap-x-6 gap-y-3">
+            <RadioGroup
+              value={startImmediately ? "immediately" : "date"}
+              onValueChange={(v) => {
+                setStartImmediately(v === "immediately");
+                setDirty(true);
+              }}
+              className="flex flex-wrap gap-x-6 gap-y-3"
+            >
               {[
                 { value: "immediately", label: t("settings.availability.option_immediately") },
                 { value: "date", label: t("settings.availability.option_date") },
               ].map((option) => (
-                <label
+                <Label
                   key={option.value}
-                  className="flex min-h-11 cursor-pointer items-center gap-2 py-1 text-sm text-[color:var(--ink)]"
+                  className="flex min-h-11 cursor-pointer items-center gap-2 py-1 text-sm font-normal text-[color:var(--ink)]"
                 >
-                  <input
-                    type="radio"
-                    name="availability-mode"
-                    className="h-4 w-4 accent-[color:var(--ink)]"
-                    checked={startImmediately === (option.value === "immediately")}
-                    onChange={() => {
-                      setStartImmediately(option.value === "immediately");
-                      setDirty(true);
-                    }}
-                  />
+                  <RadioGroupItem value={option.value} />
                   <span>{option.label}</span>
-                </label>
+                </Label>
               ))}
-            </div>
+            </RadioGroup>
           </div>
 
           {!startImmediately ? (
