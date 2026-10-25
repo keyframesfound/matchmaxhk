@@ -1019,7 +1019,7 @@
       },
       "s3": {
         "title": "Meet & Settle",
-        "detail": "We guide you through your first lessons. The admin fee is 1.5 lessons in total, 100% of the first lesson plus 50% of the second, paid to MatchMax by FPS, and you pay the remaining 50% of Lesson 2 directly to the tutor."
+        "detail": "We guide you through your first lessons. The admin fee is 1.5 lessons in total, 100% of the first lesson plus 50% of the second, owed by the self-employed tutor and paid to MatchMax by FPS. Parents do not pay MatchMax a matching fee; you pay the tutor directly for tuition."
       },
       "s4": {
         "title": "Exclusive Study Materials",
@@ -1170,7 +1170,7 @@
     "billing_faq": {
       "pay": {
         "q": "How and when do I pay for the lessons?",
-        "a": "MatchMax charges one administrative matching fee for a standard match: 100% of the first lesson plus 50% of the second lesson, 1.5 lessons in total, paid to MatchMax by FPS. The tutor receives nothing for Lesson 1, and you pay the remaining 50% of Lesson 2 directly to the tutor. Our concierge stays close for those first lessons and makes sure the match is right. For short-term assignments (5 lessons or fewer) the fee is instead 20% of the total scheduled package. After the fee is settled, you pay your tutor directly for every remaining lesson."
+        "a": "MatchMax charges one administrative matching fee for a standard match: 100% of the first lesson plus 50% of the second lesson, 1.5 lessons in total, owed by the self-employed tutor and paid to MatchMax by FPS. Parents do not pay MatchMax a matching fee. Our concierge stays close for those first lessons and makes sure the match is right. For short-term assignments (5 lessons or fewer) the fee is instead 20% of the total scheduled package. You pay your tutor directly for tuition; MatchMax does not handle tuition payments."
       },
       "rematch": {
         "q": "What if the tutor stops or isn't a good fit?",
@@ -1464,7 +1464,7 @@
     "index_verification_body": "What we check at each tier, and what verification does not promise.",
     "index_verification_link": "Full verification details",
     "match_parents_title": "For parents",
-    "match_parents_body": "Browse the tutor cards or send the request form. We shortlist, the concierge introduces, and the first lessons run with us on call. The admin fee is 1.5 lessons in total, 100% of Lesson 1 plus 50% of Lesson 2, paid to MatchMax by FPS, and you pay the remaining 50% of Lesson 2 directly to the tutor.",
+    "match_parents_body": "Browse the tutor cards or send the request form. We shortlist, the concierge introduces, and the first lessons run with us on call. The admin fee is 1.5 lessons in total, 100% of Lesson 1 plus 50% of Lesson 2, owed by the self-employed tutor and paid to MatchMax by FPS. Parents do not pay MatchMax a matching fee.",
     "match_parents_link": "Read the parent guide",
     "match_tutors_title": "For tutors",
     "match_tutors_body": "Upload your credentials, we check them manually, and your anonymous card goes live. Claim open cases that fit your commute and keep the hourly fee after the 1.5-lesson admin fee.",
@@ -1476,8 +1476,8 @@
       "s1_body": "Search the curated tutor cards by subject, station, and budget, or submit a case request and let the concierge shortlist for you.",
       "s2_title": "We introduce a tutor and stay close",
       "s2_body": "We check the tutor's documents, make the introduction, and stay involved for the first two lessons.",
-      "s3_title": "Pay MatchMax the 1.5-lesson admin fee",
-      "s3_body": "The admin fee is 100% of Lesson 1 plus 50% of Lesson 2, 1.5 lessons in total, paid to MatchMax by FPS. The tutor receives nothing for Lesson 1; you pay the remaining 50% of Lesson 2 directly to the tutor.",
+      "s3_title": "The tutor pays MatchMax the 1.5-lesson admin fee",
+      "s3_body": "The admin fee is 100% of Lesson 1 plus 50% of Lesson 2, 1.5 lessons in total, owed by the self-employed tutor and paid to MatchMax by FPS. Parents do not pay MatchMax a matching fee.",
       "s4_title": "Pay the tutor directly after that",
       "s4_body": "From the third lesson on, you settle the tutor's hourly rate directly. MatchMax steps out of the schedule.",
       "fact_rates_label": "Rates are the tutor's",
@@ -1895,7 +1895,7 @@
   },
   "case_request": {
     "fee_notice_title": "The matching fee",
-    "fee_notice": "The admin fee is 1.5 lessons in total: 100% of Lesson 1 plus 50% of Lesson 2, paid to MatchMax by FPS. A HK$400 hour means HK$400 once Lesson 1 is completed and HK$200 for Lesson 2. The tutor receives nothing for Lesson 1; you pay the remaining 50% of Lesson 2 directly to the tutor. A request for 5 lessons or fewer is 20% of that package instead.",
+    "fee_notice": "The admin fee is 1.5 lessons in total: 100% of Lesson 1 plus 50% of Lesson 2, owed by the self-employed tutor and paid to MatchMax by FPS. Parents do not pay MatchMax a matching fee; you pay the tutor directly for tuition. A HK$400 hour means the standard fee is HK$400 for Lesson 1 plus HK$200 for Lesson 2. A request for 5 lessons or fewer is instead 20% of the scheduled package: hourly rate × hours per lesson × lesson count × 0.20.",
     "fee_agree_pre": "I agree to the",
     "fee_agree_link": "matching fee terms",
     "fee_agree_post": ", version {{version}}.",
@@ -2362,11 +2362,11 @@
     "tutor_home_next_none": "No upcoming lessons scheduled.",
     "tutor_home_awaiting": "Waiting for your confirm",
     "tutor_home_fees_title": "Admin fee",
-    "tutor_home_fee_note": "This is the parent's fee to MatchMax, it is not your earnings.",
+    "tutor_home_fee_note": "This is the admin fee you owe MatchMax as a self-employed tutor; it is not your earnings.",
     "tutor_home_notes_title": "Study materials",
     "tutor_home_notes_month": "Delivered this month: {{n}}",
     "tutor_home_notes_net": "Net owed to you: HK${{n}}",
-    "tutor_home_notes_note": "MatchMax pays notes net monthly. The admin fee above is the parent's fee and is never part of this total.",
+    "tutor_home_notes_note": "MatchMax pays notes net monthly. The admin fee above is the tutor's own cost and is never part of this total.",
     "tutor_home_notes_link": "View your listings",
     "tutor_home_open_lessons": "Open Lessons",
     "bell_session_logged": "New session logged by your tutor",
@@ -2655,9 +2655,9 @@
     "fee_preview_title": "Admin fee (MatchMax policy)",
     "fee_preview_total": "${{total}} = 1.5 × ${{rate}} × {{seats}} student(s)",
     "fee_preview_split": "Lesson 1: ${{lesson1}} · Lesson 2 balance: ${{lesson2}}",
-    "fee_preview_note": "The tutor receives $0 for Lesson 1; you pay the Lesson 2 balance to the tutor directly.",
+    "fee_preview_note": "The admin fee is paid to MatchMax by the self-employed tutor; parents do not pay MatchMax a matching fee.",
     "terms_ack": "I agree to the Terms of Service and the anonymous-matching model.",
-    "fee_ack": "I understand the 1.5-lesson admin fee (100% of Lesson 1 + 50% of Lesson 2) applies per student and is paid to MatchMax by FPS.",
+    "fee_ack": "I understand the 1.5-lesson admin fee (100% of Lesson 1 + 50% of Lesson 2) applies per student and is paid to MatchMax by the self-employed tutor.",
     "manager_title": "Group classes",
     "manager_description": "Run small-group cohorts (2–6 seats). Parents book per student; each family keeps a private 1-on-1 case, and the 1.5-lesson admin fee applies per student.",
     "create_title": "New cohort",

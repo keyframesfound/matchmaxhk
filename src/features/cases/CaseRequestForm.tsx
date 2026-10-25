@@ -161,7 +161,8 @@ type FormState = {
   // always keeps the derived tags regardless of how many presets are picked.
   tags: string[];
   termsAgreed: boolean;
-  // Issue #253 (F2): matching-fee agreement, version fee-2026-10.
+  // Issue #253 (F2) + #444: matching-fee agreement, version fee-2026-10-v2
+  // (v2 = payer is the self-employed tutor).
   feeAgreed: boolean;
   // Issue #412 E: parent B2C triage (compliance screening).
   engager: string;
