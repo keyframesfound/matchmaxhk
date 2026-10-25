@@ -40,7 +40,7 @@ function StatePill({ state }: { state: string }) {
   return (
     <span
       className={cn(
-        "whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-medium",
+        "whitespace-nowrap rounded-full border px-2.5 py-0.5 text-xs font-semibold",
         styles[state] ?? styles.closed,
       )}
     >
@@ -55,13 +55,13 @@ function CohortCard({ cohort, onBook }: { cohort: GroupCohortView; onBook: () =>
     <li className="flex flex-col rounded-sm border border-border bg-card p-5 transition-[transform,border-color] duration-200 ease-out hover:-translate-y-1 hover:border-[color:var(--ink)]/25 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
       <div className="flex flex-wrap items-center gap-2">
         <StatePill state={cohort.state} />
-        <span className="rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-medium text-[color:var(--ink)]">
+        <span className="rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-semibold text-[color:var(--ink)]">
           {cohort.curriculum}
         </span>
       </div>
-      <h3 className="mt-2.5 text-base font-medium text-[color:var(--ink)]">{cohort.title}</h3>
+      <h3 className="mt-2.5 text-base font-bold text-[color:var(--ink)]">{cohort.title}</h3>
       <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-        <span className="font-medium text-[color:var(--ink)]">
+        <span className="font-semibold text-[color:var(--ink)]">
           {cohort.tutorCode ?? cohort.tutorName}
         </span>
         {cohort.verified ? (
@@ -97,7 +97,7 @@ function CohortCard({ cohort, onBook }: { cohort: GroupCohortView; onBook: () =>
       ) : null}
       <div className="mt-auto flex flex-wrap items-end justify-between gap-2 pt-4">
         <div>
-          <p className="text-xl font-medium leading-none text-[color:var(--ink)]">
+          <p className="text-xl font-bold leading-none text-[color:var(--ink)]">
             ${cohort.perStudentRateHkd}
             <span className="ml-1 text-[0.55em] font-medium text-muted-foreground">
               {t("group_classes.per_student_rate_suffix")}
@@ -216,7 +216,7 @@ function BookingDialog({ cohort, onClose }: { cohort: GroupCohortView; onClose: 
           ) : (
             <div className="space-y-4">
               <div className="rounded-sm border border-border p-3">
-                <p className="text-sm font-medium text-[color:var(--ink)]">{cohort.title}</p>
+                <p className="text-sm font-bold text-[color:var(--ink)]">{cohort.title}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {cohort.curriculum} · {cohort.subject} · {cohort.weeklySchedule} ·{" "}
                   {cohort.mode === "online"
@@ -311,7 +311,7 @@ function BookingDialog({ cohort, onClose }: { cohort: GroupCohortView; onClose: 
 
               {/* #391 fee preview, same math the desk invoices with. */}
               <div className="rounded-sm border border-border p-3 text-xs text-muted-foreground">
-                <p className="font-medium text-[color:var(--ink)]">
+                <p className="font-semibold text-[color:var(--ink)]">
                   {t("group_classes.fee_preview_title")}
                 </p>
                 <p className="mt-1">
@@ -375,7 +375,7 @@ export function GroupClassesBoard() {
   return (
     <div className="mx-auto w-full max-w-[1600px] px-5 py-10 sm:px-8 lg:px-12">
       <header className="max-w-2xl">
-        <h1 className="text-3xl font-medium text-[color:var(--ink)] sm:text-4xl">
+        <h1 className="text-3xl font-bold text-[color:var(--ink)] sm:text-4xl">
           {t("group_classes.board_title")}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">

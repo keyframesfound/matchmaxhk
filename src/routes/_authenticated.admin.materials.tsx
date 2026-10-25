@@ -338,7 +338,7 @@ function AdminMaterials() {
             )}
             Export payouts
           </Button>
-          <Button onClick={() => setAddOpen(true)} className="font-medium">
+          <Button onClick={() => setAddOpen(true)} className="font-bold">
             <FileUp className="mr-2 h-4 w-4" aria-hidden />
             Add listing
           </Button>
@@ -382,7 +382,7 @@ function AdminMaterials() {
             (materialsQuery.data ?? []).map((row) => (
               <tr key={row.id} className="border-b border-border last:border-b-0">
                 <ConsoleTd className="max-w-[16rem]">
-                  <span className="block truncate font-medium text-[color:var(--ink)]">
+                  <span className="block truncate font-semibold text-[color:var(--ink)]">
                     {row.title}
                   </span>
                   <span className="text-xs text-[color:var(--ink)]/55">
@@ -446,9 +446,9 @@ function AdminMaterials() {
                     }
                     className={
                       row.status === "published"
-                        ? "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700"
+                        ? "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-700"
                         : row.status === "pending_review"
-                          ? "rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-medium text-amber-700"
+                          ? "rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-700"
                           : "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-medium text-muted-foreground"
                     }
                   >
@@ -724,7 +724,7 @@ function AdminMaterials() {
               </Label>
             </div>
             <DialogFooter>
-              <Button type="submit" disabled={submitting || !legalAgreed} className="font-medium">
+              <Button type="submit" disabled={submitting || !legalAgreed} className="font-bold">
                 {submitting ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
                 ) : (
@@ -817,7 +817,7 @@ function GigReviewQueue() {
   return (
     <section className="space-y-3 rounded-md border border-amber-500/40 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-base font-medium">{t("gigs.admin_review_title")}</h3>
+        <h3 className="text-base font-bold">{t("gigs.admin_review_title")}</h3>
         <p className="text-sm text-[color:var(--ink)]/65">
           {t("gigs.admin_review_count", { count: rows.length })}
         </p>
@@ -850,7 +850,7 @@ function GigReviewQueue() {
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-[color:var(--ink)]">{row.title}</p>
+                  <p className="truncate font-semibold text-[color:var(--ink)]">{row.title}</p>
                   <p className="text-xs text-[color:var(--ink)]/55">
                     {row.tutors?.display_name ?? "—"} ({row.tutors?.tutor_code ?? ""}) · HK$
                     {Number(row.price_hkd).toFixed(0)}
@@ -876,8 +876,8 @@ function GigReviewQueue() {
                     <span
                       className={
                         integrityMissing
-                          ? "rounded-md bg-rose-500/10 px-2 py-0.5 text-xs font-medium text-rose-700"
-                          : "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-medium text-emerald-700"
+                          ? "rounded-md bg-rose-500/10 px-2 py-0.5 text-xs font-bold text-rose-700"
+                          : "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-700"
                       }
                     >
                       {integrityMissing
@@ -912,7 +912,7 @@ function GigReviewQueue() {
               </div>
               {flags.length > 0 && (
                 <div className="rounded-md border border-amber-500/50 bg-amber-500/10 p-2">
-                  <p className="text-xs font-medium text-amber-800">
+                  <p className="text-xs font-bold text-amber-800">
                     {t("gigs.admin_review_red_flag_banner")}
                   </p>
                   <p className="mt-1 break-all font-mono text-[11px] text-amber-700">
@@ -984,7 +984,7 @@ function GigReviewQueue() {
               {t("gigs.admin_desk_cancel")}
             </Button>
             <Button
-              className="font-medium"
+              className="font-bold"
               disabled={rejectReason.trim().length < 3 || reviewMutation.isPending}
               onClick={() =>
                 rejectTarget &&
@@ -1062,12 +1062,12 @@ function ListingReviewQueue() {
   return (
     <section className="space-y-3 rounded-md border border-amber-500/40 p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-base font-medium">{t("shop.admin_review_title")}</h3>
+        <h3 className="text-base font-bold">{t("shop.admin_review_title")}</h3>
         <p className="text-sm text-[color:var(--ink)]/65">
           {t("shop.admin_review_count", { count: rows.length })}
         </p>
       </div>
-      <p className="rounded-md border border-amber-500/50 bg-amber-500/10 p-2 text-xs font-medium text-amber-800">
+      <p className="rounded-md border border-amber-500/50 bg-amber-500/10 p-2 text-xs font-bold text-amber-800">
         {t("shop.admin_review_video_banner")}
       </p>
       <div className="space-y-3">
@@ -1097,7 +1097,7 @@ function ListingReviewQueue() {
                   </div>
                 )}
                 <div className="min-w-0 flex-1">
-                  <p className="truncate font-medium text-[color:var(--ink)]">{row.title}</p>
+                  <p className="truncate font-semibold text-[color:var(--ink)]">{row.title}</p>
                   <p className="text-xs text-[color:var(--ink)]/55">
                     {row.tutors?.display_name ?? "—"} ({row.tutors?.tutor_code ?? ""}) · HK$
                     {Number(row.price_hkd).toFixed(0)}
@@ -1109,7 +1109,7 @@ function ListingReviewQueue() {
                   ) : null}
                 </div>
                 <div className="flex flex-col items-end gap-2">
-                  <span className="rounded-md border border-border bg-muted/40 px-2 py-0.5 text-xs font-medium text-[color:var(--ink)]">
+                  <span className="rounded-md border border-border bg-muted/40 px-2 py-0.5 text-xs font-bold text-[color:var(--ink)]">
                     {shopKindLabel(row.material_type, t)}
                   </span>
                   <div className="flex items-center gap-2">
@@ -1139,7 +1139,7 @@ function ListingReviewQueue() {
 
               {isCourse ? (
                 <div className="space-y-2">
-                  <p className="text-xs font-medium text-[color:var(--ink)]/70">
+                  <p className="text-xs font-bold text-[color:var(--ink)]/70">
                     {t("shop.admin_review_lessons", { count: row.lessons.length })}
                   </p>
                   <ul className="space-y-2">
@@ -1151,17 +1151,17 @@ function ListingReviewQueue() {
                           className="rounded-md border border-border p-2"
                         >
                           <div className="flex flex-wrap items-center justify-between gap-2">
-                            <p className="text-xs font-medium text-[color:var(--ink)]">
+                            <p className="text-xs font-bold text-[color:var(--ink)]">
                               {lesson.position}. {lesson.title}
                             </p>
                             <span className="flex items-center gap-2 text-[11px] text-[color:var(--ink)]/60">
                               {lesson.videoProvider ? (
-                                <span className="rounded-md bg-muted/50 px-1.5 py-0.5 font-medium uppercase">
+                                <span className="rounded-md bg-muted/50 px-1.5 py-0.5 font-bold uppercase">
                                   {lesson.videoProvider}
                                 </span>
                               ) : null}
                               {lesson.hasPdf ? (
-                                <span className="rounded-md bg-muted/50 px-1.5 py-0.5 font-medium">
+                                <span className="rounded-md bg-muted/50 px-1.5 py-0.5 font-bold">
                                   PDF
                                 </span>
                               ) : null}
@@ -1190,7 +1190,7 @@ function ListingReviewQueue() {
                 </div>
               ) : (
                 <div className="space-y-1">
-                  <p className="text-xs font-medium text-[color:var(--ink)]/70">
+                  <p className="text-xs font-bold text-[color:var(--ink)]/70">
                     {t("shop.admin_review_children", { count: row.children.length })}
                   </p>
                   <ul className="space-y-1">
@@ -1199,13 +1199,13 @@ function ListingReviewQueue() {
                         key={child.id}
                         className="flex items-center justify-between gap-2 rounded-md border border-border px-2 py-1 text-xs"
                       >
-                        <span className="min-w-0 flex-1 truncate font-medium text-[color:var(--ink)]">
+                        <span className="min-w-0 flex-1 truncate font-semibold text-[color:var(--ink)]">
                           {child.title}
                         </span>
                         <span className="shrink-0 text-[color:var(--ink)]/60">
                           {formatMaterialTypeLabel(child.materialType, t)}
                         </span>
-                        <span className="shrink-0 font-medium text-[color:var(--ink)]">
+                        <span className="shrink-0 font-bold text-[color:var(--ink)]">
                           HK${Number(child.priceHkd).toFixed(0)}
                         </span>
                       </li>
@@ -1272,7 +1272,7 @@ function ListingReviewQueue() {
               {t("gigs.admin_desk_cancel")}
             </Button>
             <Button
-              className="font-medium"
+              className="font-bold"
               disabled={rejectReason.trim().length < 3 || reviewMutation.isPending}
               onClick={() =>
                 rejectTarget &&
@@ -1359,7 +1359,7 @@ function EditMaterialDialog({
                 summary: summary || null,
               })
             }
-            className="font-medium"
+            className="font-bold"
           >
             Save
           </Button>

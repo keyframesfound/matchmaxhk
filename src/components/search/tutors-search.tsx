@@ -205,7 +205,7 @@ export function TierToggleRow({
             aria-selected={isActive}
             onClick={() => onChange(option)}
             className={cn(
-              "min-w-0 truncate rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+              "min-w-0 truncate rounded-full px-4 py-2 text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
               isActive
                 ? "bg-[color:var(--ink)] text-[color:var(--surface-invert-fg)]"
                 : "text-[color:var(--ink)]/70 hover:text-[color:var(--ink)]",
@@ -674,7 +674,7 @@ export function TutorsSearchBar({
               href={whatsappUrl}
               target="_blank"
               rel="noreferrer"
-              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
+              className="inline-flex shrink-0 items-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
             >
               <WhatsAppIcon className="h-4 w-4" aria-hidden="true" />
               {t("directory.empty_whatsapp")}
@@ -975,7 +975,7 @@ export function TutorsSearchMobile({
       >
         <div className="space-y-6">
           <div>
-            <p className="mb-2 text-xl font-medium tracking-tight text-[color:var(--ink)]">
+            <p className="mb-2 text-xl font-bold tracking-tight text-[color:var(--ink)]">
               {t("search_ui.panel_keyword_title")}
             </p>
             <SearchBigInput
@@ -1290,7 +1290,7 @@ function PriceFields({
       />
       <div className="flex items-end justify-between gap-3">
         <div className="w-28 space-y-1.5">
-          <span className="text-xs font-medium text-[color:var(--ink)]/70">
+          <span className="text-xs font-semibold text-[color:var(--ink)]/70">
             {t("search_ui.price_min")}
           </span>
           <Input
@@ -1307,11 +1307,11 @@ function PriceFields({
               onDraftChange({ min_price: clamped > PRICE_MIN ? clamped : undefined });
             }}
             aria-label={t("search_ui.price_min")}
-            className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-medium tabular-nums"
+            className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-semibold tabular-nums"
           />
         </div>
         <div className="w-28 space-y-1.5">
-          <span className="text-xs font-medium text-[color:var(--ink)]/70">
+          <span className="text-xs font-semibold text-[color:var(--ink)]/70">
             {t("search_ui.price_max")}
           </span>
           <Input
@@ -1328,7 +1328,7 @@ function PriceFields({
               onDraftChange({ max_price: clamped < PRICE_MAX ? clamped : undefined });
             }}
             aria-label={t("search_ui.price_max")}
-            className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-medium tabular-nums"
+            className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-semibold tabular-nums"
           />
         </div>
       </div>

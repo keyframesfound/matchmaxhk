@@ -56,10 +56,10 @@ function ApplicationRow({
     <div className="rounded-xl border border-[color:var(--ink)]/[0.07] bg-[color:var(--surface-subtle)]/40 px-3.5 py-3">
       <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-[color:var(--ink)]">
+          <p className="flex min-w-0 items-center gap-1.5 text-xs font-bold text-[color:var(--ink)]">
             <span className="truncate">{tutor?.display_name ?? "—"}</span>
             {tutor?.tutor_code ? (
-              <span className="shrink-0 rounded bg-[color:var(--ink)]/[0.06] px-1.5 py-0.5 font-mono text-[11px] font-medium text-[color:var(--ink)]">
+              <span className="shrink-0 rounded bg-[color:var(--ink)]/[0.06] px-1.5 py-0.5 font-mono text-[11px] font-bold text-[color:var(--ink)]">
                 {tutor.tutor_code}
               </span>
             ) : null}
@@ -75,7 +75,7 @@ function ApplicationRow({
           disabled={pending}
           onValueChange={(v) => onStatusChange(v as CaseApplicationStatus)}
         >
-          <SelectTrigger className="h-7 w-[118px] shrink-0 text-xs font-medium">
+          <SelectTrigger className="h-7 w-[118px] shrink-0 text-xs font-semibold">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -120,7 +120,7 @@ export function CaseApplicationsCard({ caseId }: { caseId: string }) {
   return (
     <ConsolePanel>
       <div className="flex items-center justify-between">
-        <h2 className="text-xs font-medium text-muted-foreground">
+        <h2 className="text-xs font-semibold text-muted-foreground">
           {t("caseApplications.title", { defaultValue: "Applications" })}
         </h2>
         <Inbox className="h-4 w-4 text-muted-foreground" aria-hidden="true" />

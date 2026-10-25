@@ -80,8 +80,9 @@ surfaces are flat and border-delineated; only layers that float above the page m
 
 ## UI Arc (design authority)
 
-DESIGN.md follows the Arc (uiarc.dev) design bar: Geist display + Inter body at weights 400/500
-only, concentric radii (`--radius-control` 18px / `--radius-panel` 26px / `--radius-surface` 34px),
+DESIGN.md follows the Arc (uiarc.dev) design bar: Geist display + Inter body on the weight
+ladder 400 body / 500 labels / 600 controls and card titles / 700 headings (800 is wordmark-only,
+see DESIGN.md "Weight ladder"), concentric radii (`--radius-control` 18px / `--radius-panel` 26px / `--radius-surface` 34px),
 sentence-case copy with no eyebrows or em dashes in English, plain icons beside labels (no
 decorative icon tiles), and motion that only explains state changes (no entrance choreography).
 Restyle existing components toward these rules; do not add new sections or decorative flourishes.

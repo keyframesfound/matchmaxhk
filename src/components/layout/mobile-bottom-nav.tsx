@@ -153,7 +153,7 @@ export function MobileBottomNav() {
                     className="h-11 w-11 border-0 text-base"
                   />
                   <span className="min-w-0">
-                    <span className="block truncate text-[15px] font-medium text-[color:var(--ink)]">
+                    <span className="block truncate text-[15px] font-bold text-[color:var(--ink)]">
                       {accountName}
                     </span>
                     <span className="block truncate text-xs font-normal text-[color:var(--ink)]/60">
@@ -201,7 +201,7 @@ export function MobileBottomNav() {
                   <Button
                     asChild
                     variant="outline"
-                    className="h-11 w-full rounded-full text-sm font-medium"
+                    className="h-11 w-full rounded-full text-sm font-bold"
                   >
                     <Link to="/auth" onClick={() => setAccountOpen(false)}>
                       <LogIn className="h-4 w-4" aria-hidden="true" />
@@ -212,7 +212,7 @@ export function MobileBottomNav() {
                     asChild
                     variant="solid"
                     color="blue"
-                    className="h-11 w-full rounded-full text-sm font-medium"
+                    className="h-11 w-full rounded-full text-sm font-bold"
                   >
                     <Link to="/auth" onClick={() => setAccountOpen(false)}>
                       <UserRoundPlus className="h-4 w-4" aria-hidden="true" />
@@ -235,7 +235,7 @@ export function MobileBottomNav() {
               {useDarkTheme ? t("nav.dark_mode") : t("nav.light_mode")}
             </button>
             <div className="mt-2 flex items-center justify-between gap-3 border-t border-border px-3 pt-3">
-              <span className="flex items-center gap-3 text-[15px] font-medium text-[color:var(--ink)]">
+              <span className="flex items-center gap-3 text-[15px] font-semibold text-[color:var(--ink)]">
                 <Globe className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
                 {t("nav.account_language")}
               </span>

@@ -85,7 +85,7 @@ export function BlocklistTab() {
   return (
     <div className="space-y-4">
       <div className="rounded-xl border border-border/70 bg-card p-4">
-        <p className="text-sm font-medium text-[color:var(--ink)]">Block list</p>
+        <p className="text-sm font-bold text-[color:var(--ink)]">Block list</p>
         <p className="mt-1 text-xs text-muted-foreground">
           Blocked emails and banned accounts' Google identities are refused at signup, including
           OAuth sign-in with a different Google account. Ban an existing account instead of adding
@@ -111,7 +111,7 @@ export function BlocklistTab() {
             size="sm"
             onClick={() => void handleAdd()}
             disabled={busy || !email.trim()}
-            className="h-9 gap-1.5 font-medium text-xs"
+            className="h-9 gap-1.5 font-bold text-xs"
           >
             <Plus className="h-3.5 w-3.5" />
             Block email
@@ -172,7 +172,7 @@ export function BlocklistTab() {
                     size="sm"
                     variant="ghost"
                     onClick={() => void handleRemove(entry.id, entry.email)}
-                    className="h-7 gap-1 px-2 text-[11px] font-medium text-muted-foreground hover:text-destructive"
+                    className="h-7 gap-1 px-2 text-[11px] font-semibold text-muted-foreground hover:text-destructive"
                   >
                     <Trash2 className="h-3 w-3" />
                     Remove

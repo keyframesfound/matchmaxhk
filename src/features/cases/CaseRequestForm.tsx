@@ -71,7 +71,7 @@ import { cn } from "@/lib/utils";
 const PHONE_REGEX = /^[+(\d][\d\s()./+-]{4,19}\d$/;
 
 const labelClassName =
-  "mb-1.5 block text-sm font-medium text-[color:var(--ink)] after:ml-0.5 after:text-[color:var(--muted-foreground)]";
+  "mb-1.5 block text-sm font-bold text-[color:var(--ink)] after:ml-0.5 after:text-[color:var(--muted-foreground)]";
 const controlClassName = "h-11 w-full rounded-sm";
 const invalidInputClassName =
   "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30";
@@ -779,14 +779,14 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           className="mx-auto h-12 w-12 text-[color:var(--muted-foreground)]"
           aria-hidden="true"
         />
-        <h2 className="mt-4 text-3xl font-medium text-[color:var(--ink)]">Case request received</h2>
+        <h2 className="mt-4 text-3xl font-bold text-[color:var(--ink)]">Case request received</h2>
         <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
           Keep this reference for your records.
         </p>
-        <p className="mt-4 font-mono text-2xl font-medium tracking-tight text-[color:var(--ink)]">
+        <p className="mt-4 font-mono text-2xl font-bold tracking-tight text-[color:var(--ink)]">
           {result.caseCode}
         </p>
-        <p className="mx-auto mt-4 max-w-md text-sm font-medium text-[color:var(--ink)]">
+        <p className="mx-auto mt-4 max-w-md text-sm font-bold text-[color:var(--ink)]">
           The MatchMax team will contact you shortly on WhatsApp.
         </p>
         <p className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-muted-foreground">
@@ -797,7 +797,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button
               asChild
-              className="h-11 rounded-sm bg-[#25D366] px-6 font-medium text-white hover:bg-[#1ebe5b]"
+              className="h-11 rounded-sm bg-[#25D366] px-6 font-bold text-white hover:bg-[#1ebe5b]"
             >
               <a href={whatsappHref} target="_blank" rel="noreferrer">
                 Continue on WhatsApp
@@ -805,7 +805,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             </Button>
             <Button
               variant="outline"
-              className="h-11 rounded-sm px-6 font-medium"
+              className="h-11 rounded-sm px-6 font-bold"
               onClick={resetForm}
             >
               Submit another request
@@ -815,7 +815,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           <div className="mt-8 flex justify-center">
             <Button
               variant="outline"
-              className="h-11 rounded-sm px-6 font-medium"
+              className="h-11 rounded-sm px-6 font-bold"
               onClick={resetForm}
             >
               Submit another request
@@ -846,7 +846,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 disabled={stepNumber >= step}
                 onClick={() => setStep(stepNumber)}
                 className={cn(
-                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-medium transition-colors",
+                  "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition-colors",
                   isComplete &&
                     "cursor-pointer border-[color:var(--ink)] bg-[color:var(--ink)] text-white",
                   isCurrent &&
@@ -859,7 +859,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               </button>
               <span
                 className={cn(
-                  "truncate text-xs font-medium sm:text-sm",
+                  "truncate text-xs font-bold sm:text-sm",
                   isCurrent || isComplete ? "text-[color:var(--ink)]" : "text-muted-foreground",
                 )}
               >
@@ -886,7 +886,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           <p className="text-xs font-medium text-muted-foreground">
             {t("case_board.title_preview")}
           </p>
-          <p className="mt-1.5 text-lg font-medium tracking-tight text-[color:var(--ink)]">
+          <p className="mt-1.5 text-lg font-bold tracking-tight text-[color:var(--ink)]">
             {titlePreview.en || t("case_board.title_preview_empty")}
           </p>
           {titlePreview.zh && titlePreview.zh !== titlePreview.en ? (
@@ -969,7 +969,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                   invalid={Boolean(errors.secondaryBand)}
                 />
                 {errors.secondaryBand && errors.secondaryBand !== "Required" ? (
-                  <p className="mt-1 text-xs font-medium text-destructive">
+                  <p className="mt-1 text-xs font-semibold text-destructive">
                     {errors.secondaryBand}
                   </p>
                 ) : null}
@@ -1100,7 +1100,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 invalid={Boolean(errors.whoFor)}
               />
               {errors.whoFor && errors.whoFor !== "Required" ? (
-                <p className="mt-1 text-xs font-medium text-destructive">{errors.whoFor}</p>
+                <p className="mt-1 text-xs font-semibold text-destructive">{errors.whoFor}</p>
               ) : null}
             </div>
             <div>
@@ -1118,7 +1118,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 invalid={Boolean(errors.supportType)}
               />
               {errors.supportType && errors.supportType !== "Required" ? (
-                <p className="mt-1 text-xs font-medium text-destructive">{errors.supportType}</p>
+                <p className="mt-1 text-xs font-semibold text-destructive">{errors.supportType}</p>
               ) : null}
             </div>
             <div>
@@ -1135,7 +1135,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 onChange={(e) => update({ parentName: e.target.value })}
               />
               {errors.parentName && errors.parentName !== "Required" ? (
-                <p className="mt-1 text-xs font-medium text-destructive">{errors.parentName}</p>
+                <p className="mt-1 text-xs font-semibold text-destructive">{errors.parentName}</p>
               ) : null}
             </div>
             <div>
@@ -1153,7 +1153,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 onChange={(e) => update({ contactPhone: e.target.value })}
               />
               {errors.contactPhone && errors.contactPhone !== "Required" ? (
-                <p className="mt-1 text-xs font-medium text-destructive">{errors.contactPhone}</p>
+                <p className="mt-1 text-xs font-semibold text-destructive">{errors.contactPhone}</p>
               ) : null}
             </div>
           </>
@@ -1176,7 +1176,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 invalid={Boolean(errors.curriculum)}
               />
               {errors.curriculum && errors.curriculum !== "Required" ? (
-                <p className="mt-1 text-xs font-medium text-destructive">{errors.curriculum}</p>
+                <p className="mt-1 text-xs font-semibold text-destructive">{errors.curriculum}</p>
               ) : null}
             </div>
             <div>
@@ -1211,7 +1211,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 invalid={Boolean(errors.subject1)}
               />
               {errors.subject1 && errors.subject1 !== "Required" ? (
-                <p className="mt-1 text-xs font-medium text-destructive">{errors.subject1}</p>
+                <p className="mt-1 text-xs font-semibold text-destructive">{errors.subject1}</p>
               ) : null}
             </div>
             <div>
@@ -1296,7 +1296,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               </ToggleGroup>
               <p className="mt-1.5 text-xs text-muted-foreground">You can select more than one.</p>
               {errors.instructionLanguage && errors.instructionLanguage !== "Required" ? (
-                <p className="mt-1 text-xs font-medium text-destructive">
+                <p className="mt-1 text-xs font-semibold text-destructive">
                   {errors.instructionLanguage}
                 </p>
               ) : null}
@@ -1421,7 +1421,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 invalid={Boolean(errors.subject1)}
               />
               {errors.subject1 && errors.subject1 !== "Required" ? (
-                <p className="mt-1 text-xs font-medium text-destructive">{errors.subject1}</p>
+                <p className="mt-1 text-xs font-semibold text-destructive">{errors.subject1}</p>
               ) : null}
             </div>
             <div>
@@ -1591,7 +1591,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 invalid={Boolean(errors.deliveryMode)}
               />
               {errors.deliveryMode && errors.deliveryMode !== "Required" ? (
-                <p className="mt-1 text-xs font-medium text-destructive">{errors.deliveryMode}</p>
+                <p className="mt-1 text-xs font-semibold text-destructive">{errors.deliveryMode}</p>
               ) : null}
             </div>
             {showMtr ? (
@@ -1608,7 +1608,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                   invalid={Boolean(errors.district)}
                 />
                 {errors.district && errors.district !== "Required" ? (
-                  <p className="mt-1 text-xs font-medium text-destructive">{errors.district}</p>
+                  <p className="mt-1 text-xs font-semibold text-destructive">{errors.district}</p>
                 ) : null}
               </div>
             ) : null}
@@ -1647,7 +1647,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                   value={form.budgetMin}
                   onChange={(e) => update({ budgetMin: e.target.value.replace(/[^\d]/g, "") })}
                 />
-                <span className="text-sm font-medium text-muted-foreground">&ndash;</span>
+                <span className="text-sm font-bold text-muted-foreground">&ndash;</span>
                 <Input
                   id={`${idPrefix}-budget-max`}
                   className={cn(controlClassName, errors.budgetMax && invalidInputClassName)}
@@ -1666,7 +1666,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 </p>
               ) : null}
               {errors.budgetMax && errors.budgetMax !== "Required" ? (
-                <p className="mt-1 text-xs font-medium text-destructive">{errors.budgetMax}</p>
+                <p className="mt-1 text-xs font-semibold text-destructive">{errors.budgetMax}</p>
               ) : null}
             </div>
             {/* Issue #423 (sections 2+3): structured package dropdowns —
@@ -1776,7 +1776,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 invalid={Boolean(errors.engager)}
               />
               {errors.engager && errors.engager !== "Required" ? (
-                <p className="mt-1 text-xs font-medium text-destructive">{errors.engager}</p>
+                <p className="mt-1 text-xs font-semibold text-destructive">{errors.engager}</p>
               ) : null}
             </div>
             <div>
@@ -1954,7 +1954,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         <div className="mt-6 grid gap-1.5">
           {/* Issue #253 (F2): the fee rule, shown before the payer agrees. */}
           <div className="rounded-sm border border-border bg-muted/50 p-4 text-sm">
-            <p className="font-medium">{t("case_request.fee_notice_title")}</p>
+            <p className="font-semibold">{t("case_request.fee_notice_title")}</p>
             <p className="mt-1 text-muted-foreground">{t("case_request.fee_notice")}</p>
           </div>
           <label className="flex gap-3 text-sm text-muted-foreground">
@@ -1967,7 +1967,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             <span>
               {t("case_request.fee_agree_pre")}{" "}
               <Link
-                className="font-medium text-[color:var(--brand-link)] underline underline-offset-4"
+                className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
                 to="/tos"
                 hash="tos-matching"
                 target="_blank"
@@ -1992,7 +1992,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             <span>
               I agree to the MatchMax{" "}
               <Link
-                className="font-medium text-[color:var(--brand-link)] underline underline-offset-4"
+                className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
                 to="/tos"
                 target="_blank"
               >
@@ -2014,7 +2014,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           <Button
             type="button"
             variant="outline"
-            className="h-12 rounded-sm px-6 font-medium"
+            className="h-12 rounded-sm px-6 font-bold"
             disabled={step === 1}
             onClick={() => {
               setStep((prev) => Math.max(1, prev - 1));
@@ -2028,7 +2028,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
             disabled={submitMutation.isPending}
             variant="solid"
             color="blue"
-            className="h-12 rounded-sm px-8 font-medium"
+            className="h-12 rounded-sm px-8 font-bold"
           >
             {submitMutation.isPending ? (
               "Submitting…"

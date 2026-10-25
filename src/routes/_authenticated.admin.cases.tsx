@@ -340,7 +340,7 @@ function AdminCases() {
               <div className="flex flex-col gap-4 border-b border-[color:var(--ink)]/10 pb-6 sm:flex-row sm:items-center sm:justify-between">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h1 className="text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl">
+                    <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
                       Case Requests
                     </h1>
                     <span className="rounded-full bg-[color:var(--ink)]/5 px-2.5 py-0.5 text-xs font-medium tabular-nums text-[color:var(--ink)]">
@@ -568,7 +568,7 @@ function AdminCases() {
               {/* Batch actions */}
               {selectedIds.size > 0 ? (
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-4 py-3">
-                  <span className="text-sm font-medium text-[color:var(--ink)]">
+                  <span className="text-sm font-bold text-[color:var(--ink)]">
                     {selectedIds.size} selected
                   </span>
                   <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -692,18 +692,18 @@ function AdminCases() {
                         </ConsoleTd>
                         <ConsoleTd>
                           <div className="flex items-center gap-1.5">
-                            <span className="font-mono text-sm font-medium text-[color:var(--ink)]">
+                            <span className="font-mono text-sm font-bold text-[color:var(--ink)]">
                               {row.case_code}
                             </span>
                             {row.start_timing === "asap" && (
-                              <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-medium text-amber-700 dark:text-amber-400">
+                              <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-bold text-amber-700 dark:text-amber-400">
                                 <Flame className="mr-0.5 h-3 w-3" aria-hidden="true" />
                                 ASAP
                               </span>
                             )}
                             {row.board_published_at && (
                               <span
-                                className="inline-flex items-center rounded bg-emerald-500/15 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400"
+                                className="inline-flex items-center rounded bg-emerald-500/15 px-1.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-400"
                                 title="Live on the public tutor request board"
                               >
                                 On board
@@ -718,7 +718,7 @@ function AdminCases() {
                             <p className="mt-0.5 truncate text-[11px] font-medium text-muted-foreground">
                               {t("caseDesk.matched_tutor_label", { defaultValue: "Matched tutor" })}
                               :{" "}
-                              <span className="font-mono font-medium">
+                              <span className="font-mono font-bold">
                                 {row.matchedTutor.tutor_code ?? "—"}
                               </span>
                               {row.matchedTutor.display_name
@@ -731,7 +731,7 @@ function AdminCases() {
                           </p>
                         </ConsoleTd>
                         <ConsoleTd>
-                          <div className="text-sm font-medium text-[color:var(--ink)]">
+                          <div className="text-sm font-bold text-[color:var(--ink)]">
                             {row.contact_name}
                           </div>
                           <a
@@ -772,7 +772,7 @@ function AdminCases() {
                             {row.district ?? "Any area"}
                           </div>
                         </ConsoleTd>
-                        <ConsoleTd className="text-xs font-medium text-[color:var(--ink)]">
+                        <ConsoleTd className="text-xs font-semibold text-[color:var(--ink)]">
                           {budgetBounds.min === null && budgetBounds.max === null ? (
                             <span className="font-normal text-muted-foreground">Not set</span>
                           ) : (
@@ -787,7 +787,7 @@ function AdminCases() {
                         <ConsoleTd>
                           <span
                             className={cn(
-                              "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium",
+                              "inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold",
                               STATUS_PILL_CLASS[row.status],
                             )}
                           >
@@ -803,7 +803,7 @@ function AdminCases() {
                                 {(row.tags ?? []).slice(0, 2).map((t) => (
                                   <span
                                     key={t}
-                                    className="inline-flex items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2 py-0.5 text-[11px] font-medium text-[color:var(--foreground)]"
+                                    className="inline-flex items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2 py-0.5 text-[11px] font-bold text-[color:var(--foreground)]"
                                   >
                                     {t}
                                   </span>

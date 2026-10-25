@@ -253,7 +253,7 @@ export function TutorGradesEditor() {
           <div className="flex min-w-0 items-start gap-2.5">
             <Bell className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden="true" />
             <div className="min-w-0 text-xs leading-5 text-[color:var(--ink)]/80">
-              <p className="font-medium text-[color:var(--ink)]">
+              <p className="font-semibold text-[color:var(--ink)]">
                 {notice.kind === "grade_approved"
                   ? t("settings.my_tutor.notice_approved_title")
                   : t("settings.my_tutor.notice_rejected_title")}
@@ -278,7 +278,7 @@ export function TutorGradesEditor() {
                 {notice.payload?.grade_id ? (
                   <a
                     href={`#grade-${notice.payload.grade_id}`}
-                    className="font-medium text-[color:var(--brand-link)] underline underline-offset-2"
+                    className="font-semibold text-[color:var(--brand-link)] underline underline-offset-2"
                   >
                     {t("settings.my_tutor.notice_open_grade")}
                   </a>
@@ -336,7 +336,7 @@ export function TutorGradesEditor() {
                 />
                 <span
                   className={cn(
-                    "rounded-full px-2.5 py-0.5 text-[11px] font-medium",
+                    "rounded-full px-2.5 py-0.5 text-[11px] font-bold",
                     STATUS_BADGE_CLASS[grade.status],
                   )}
                 >
@@ -365,7 +365,7 @@ export function TutorGradesEditor() {
               <div className="flex flex-wrap items-center gap-2">
                 <Label
                   htmlFor={`grade-slip-${grade.id}`}
-                  className="cursor-pointer text-xs font-medium text-[color:var(--brand-link)] underline-offset-2 hover:underline"
+                  className="cursor-pointer text-xs font-semibold text-[color:var(--brand-link)] underline-offset-2 hover:underline"
                 >
                   {grade.file_path
                     ? t("settings.my_tutor.grades_replace_slip")

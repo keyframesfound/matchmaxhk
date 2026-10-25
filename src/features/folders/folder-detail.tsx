@@ -89,26 +89,26 @@ export function FolderDetailPage({ note }: { note: PublicNote }) {
           <section className="min-w-0 space-y-6">
             <header className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-md bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground">
+                <span className="rounded-md bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">
                   {shopKindLabel(note.materialType, t)}
                 </span>
                 {note.curriculumTag ? (
-                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-foreground/80">
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
                     {note.curriculumTag}
                   </span>
                 ) : null}
                 {note.subjectTag ? (
-                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-foreground/80">
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
                     {note.subjectTag}
                   </span>
                 ) : null}
                 {note.yearTag ? (
-                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-medium text-foreground/80">
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
                     {note.yearTag}
                   </span>
                 ) : null}
               </div>
-              <h1 className="text-2xl font-medium leading-tight tracking-normal sm:text-3xl">
+              <h1 className="text-2xl font-bold leading-tight tracking-normal sm:text-3xl">
                 {note.title}
               </h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -131,7 +131,7 @@ export function FolderDetailPage({ note }: { note: PublicNote }) {
 
             {note.description ? (
               <section className="space-y-2">
-                <h2 className="text-lg font-medium">{t("notes.contents_title")}</h2>
+                <h2 className="text-lg font-bold">{t("notes.contents_title")}</h2>
                 <p className="whitespace-pre-line text-[0.95rem] leading-relaxed text-foreground/90">
                   {note.description}
                 </p>
@@ -140,7 +140,7 @@ export function FolderDetailPage({ note }: { note: PublicNote }) {
 
             {/* What's inside */}
             <section className="space-y-3">
-              <h2 className="flex items-center gap-2 text-lg font-medium">
+              <h2 className="flex items-center gap-2 text-lg font-bold">
                 <Layers className="h-5 w-5" aria-hidden />
                 {t("shop.folder.whats_inside", { count: children.length })}
               </h2>
@@ -159,7 +159,7 @@ export function FolderDetailPage({ note }: { note: PublicNote }) {
                         key={child.id}
                         className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-3"
                       >
-                        <span className="w-5 shrink-0 text-center text-xs font-medium text-muted-foreground">
+                        <span className="w-5 shrink-0 text-center text-xs font-bold text-muted-foreground">
                           {index + 1}
                         </span>
                         {cover ? (
@@ -180,7 +180,7 @@ export function FolderDetailPage({ note }: { note: PublicNote }) {
                         <div className="min-w-0 flex-1">
                           <a
                             href={`/notes/${child.slug ?? child.id}`}
-                            className="block truncate text-sm font-medium text-[color:var(--ink)] hover:text-[color:var(--brand-link)] hover:underline"
+                            className="block truncate text-sm font-bold text-[color:var(--ink)] hover:text-[color:var(--brand-link)] hover:underline"
                           >
                             {child.title}
                           </a>
@@ -188,7 +188,7 @@ export function FolderDetailPage({ note }: { note: PublicNote }) {
                             {formatMaterialTypeLabel(child.materialType, t)}
                           </p>
                         </div>
-                        <span className="shrink-0 text-sm font-medium text-[color:var(--ink)]">
+                        <span className="shrink-0 text-sm font-bold text-[color:var(--ink)]">
                           {child.priceHkd === 0
                             ? t("notes.card.free")
                             : formatMoney(child.priceHkd)}
@@ -215,11 +215,11 @@ export function FolderDetailPage({ note }: { note: PublicNote }) {
           {/* Buy rail */}
           <aside className="lg:sticky lg:top-24 lg:self-start" id="buy">
             <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
-              <p className="text-3xl font-medium tracking-normal">
+              <p className="text-3xl font-bold tracking-normal">
                 {displayPrice === 0 ? t("shop.folder.included_label") : formatMoney(displayPrice)}
               </p>
               {quote && quote.ownedSum > 0 ? (
-                <p className="rounded-md border border-emerald-600/30 bg-emerald-500/10 px-3 py-2 text-xs leading-relaxed font-medium text-emerald-700 dark:text-emerald-400">
+                <p className="rounded-md border border-emerald-600/30 bg-emerald-500/10 px-3 py-2 text-xs leading-relaxed font-semibold text-emerald-700 dark:text-emerald-400">
                   {t("shop.folder.proration_explainer", {
                     credit: formatMoney(quote.ownedSum),
                     bulk: formatMoney(quote.bulk),
@@ -247,7 +247,7 @@ export function FolderDetailPage({ note }: { note: PublicNote }) {
               <Button
                 variant="solid"
                 color="accent"
-                className="w-full font-medium"
+                className="w-full font-bold"
                 disabled={buyFolderMutation.isPending || isOwner}
                 onClick={() => guard(() => buyFolderMutation.mutate())}
               >

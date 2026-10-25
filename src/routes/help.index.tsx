@@ -67,7 +67,7 @@ function FeaturedGuideCard({ article }: { article: HelpArticle }) {
         ) : null}
       </div>
       <div className="flex flex-1 flex-col p-5">
-        <p className="text-base font-medium leading-snug tracking-tight text-foreground sm:text-lg">
+        <p className="text-base font-bold leading-snug tracking-tight text-foreground sm:text-lg">
           {article.title}
         </p>
         <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted-foreground">
@@ -101,7 +101,7 @@ function TopicCategoryCard({
         <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-muted">
           <Icon className="h-5 w-5 text-[color:var(--brand-link)]" aria-hidden="true" />
         </span>
-        <h3 className="text-base font-medium leading-snug tracking-tight text-foreground">
+        <h3 className="text-base font-bold leading-snug tracking-tight text-foreground">
           {category.name}
         </h3>
       </div>
@@ -109,7 +109,7 @@ function TopicCategoryCard({
         {articles.map((article, index) => (
           <li key={article.slug} className={cn("py-3", index > 0 && "border-t border-border")}>
             <HelpArticleLink article={article} className="group block">
-              <span className="text-sm font-medium leading-6 text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors group-hover:text-[color:var(--brand-link)] group-hover:decoration-[color:var(--brand-link)]">
+              <span className="text-sm font-semibold leading-6 text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors group-hover:text-[color:var(--brand-link)] group-hover:decoration-[color:var(--brand-link)]">
                 {article.title}
               </span>
               <span className="mt-1 line-clamp-2 block text-sm leading-6 text-muted-foreground">
@@ -133,7 +133,7 @@ function SearchResults({ query, results }: { query: string; results: HelpArticle
 
   return (
     <section className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 lg:px-12">
-      <h2 className="text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
+      <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
         {results.length > 0 ? t("help.results_title") : t("help.no_results_title", { query })}
       </h2>
       {results.length > 0 ? (
@@ -150,7 +150,7 @@ function SearchResults({ query, results }: { query: string; results: HelpArticle
                   article={article}
                   className="group rounded-2xl border border-border bg-card p-5 transition-colors hover:border-[color:var(--foreground)]/25"
                 >
-                  <span className="text-sm font-medium leading-snug tracking-tight text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors group-hover:text-[color:var(--brand-link)] group-hover:decoration-[color:var(--brand-link)]">
+                  <span className="text-sm font-bold leading-snug tracking-tight text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors group-hover:text-[color:var(--brand-link)] group-hover:decoration-[color:var(--brand-link)]">
                     {article.title}
                   </span>
                   <span className="mt-2 line-clamp-2 block text-sm leading-6 text-muted-foreground">
@@ -209,7 +209,7 @@ function HelpCentrePage() {
     <PublicPage>
       <section className="border-b border-border">
         <div className="mx-auto w-full max-w-3xl px-5 pt-14 pb-10 text-center sm:pt-20 sm:pb-12">
-          <h1 className="text-balance text-4xl font-medium tracking-tight text-foreground sm:text-5xl">
+          <h1 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             {t("help.title")}
           </h1>
 
@@ -263,7 +263,7 @@ function HelpCentrePage() {
                 aria-selected={activeTab === tab}
                 onClick={() => setTab(tab)}
                 className={cn(
-                  "relative isolate h-9 shrink-0 whitespace-nowrap rounded-full px-5 text-sm font-medium transition-colors",
+                  "relative isolate h-9 shrink-0 whitespace-nowrap rounded-full px-5 text-sm font-semibold transition-colors",
                   activeTab === tab
                     ? "text-[color:var(--background)]"
                     : "text-muted-foreground hover:text-foreground",
@@ -294,7 +294,7 @@ function HelpCentrePage() {
       ) : (
         <>
           <section className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 lg:px-12">
-            <h2 className="text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               {t("help.featured_title")}
             </h2>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -305,7 +305,7 @@ function HelpCentrePage() {
           </section>
 
           <section className="mx-auto w-full max-w-[1600px] px-5 pb-14 sm:px-8 lg:px-12">
-            <h2 className="text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               {t("help.topics_title")}
             </h2>
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -326,7 +326,7 @@ function HelpCentrePage() {
           <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card">
             <LifeBuoy className="h-6 w-6 text-[color:var(--brand-link)]" aria-hidden="true" />
           </span>
-          <h2 className="mt-5 text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
+          <h2 className="mt-5 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {t("help.contact_title")}
           </h2>
           <p className="mt-3 text-base leading-7 text-muted-foreground">{t("help.contact_body")}</p>
@@ -335,7 +335,7 @@ function HelpCentrePage() {
               href={supportHref}
               target="_blank"
               rel="noreferrer"
-              className="mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-7 text-[15px] font-medium text-white transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
+              className="mt-7 inline-flex h-12 items-center justify-center gap-2 rounded-full bg-[color:var(--brand-whatsapp)] px-7 text-[15px] font-semibold text-white transition-colors hover:bg-[color:var(--brand-whatsapp-hover)]"
             >
               <WhatsAppIcon className="h-5 w-5" aria-hidden="true" />
               {t("help.contact_cta")}
@@ -344,7 +344,7 @@ function HelpCentrePage() {
           <p className="mt-5 text-sm text-muted-foreground">
             <a
               href="mailto:contact@matchmax.hk?subject=MatchMax%20platform%20feedback"
-              className="font-medium text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors hover:text-[color:var(--brand-link)] hover:decoration-[color:var(--brand-link)]"
+              className="font-semibold text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors hover:text-[color:var(--brand-link)] hover:decoration-[color:var(--brand-link)]"
             >
               {t("help.feedback_link")}
             </a>

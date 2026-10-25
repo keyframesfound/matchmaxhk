@@ -193,7 +193,7 @@ function AdminGrades() {
     <div className="mx-auto w-full max-w-7xl space-y-4 p-4 md:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="flex items-center gap-2 text-lg font-medium text-[color:var(--ink)]">
+          <h1 className="flex items-center gap-2 text-lg font-bold text-[color:var(--ink)]">
             <ShieldCheck className="h-5 w-5 text-[color:var(--brand-link)]" aria-hidden="true" />
             Grade review queue
           </h1>
@@ -241,7 +241,7 @@ function AdminGrades() {
                 const rejection = rejections[row.id] ?? { reason: "" as const, note: "" };
                 return (
                   <tr key={row.id} className="border-t border-border align-top">
-                    <td className="px-3 py-3 font-medium text-[color:var(--ink)]">
+                    <td className="px-3 py-3 font-semibold text-[color:var(--ink)]">
                       {row.tutor_code ? (
                         <a
                           href={`/tutors/${row.tutor_code}`}
@@ -355,7 +355,7 @@ function AdminGrades() {
       {/* Issue #284: document-backed credential changes from verified tutors. */}
       <div className="space-y-3">
         <div>
-          <h2 className="text-sm font-medium text-[color:var(--ink)]">Credential edits</h2>
+          <h2 className="text-sm font-bold text-[color:var(--ink)]">Credential edits</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Verified tutors request credential changes with a supporting document. The old value
             stays public until you approve; rejecting requires a reason and keeps it.
@@ -389,7 +389,7 @@ function AdminGrades() {
                   const reason = credReasons[row.id] ?? "";
                   return (
                     <tr key={row.id} className="border-t border-border align-top">
-                      <td className="px-3 py-3 font-medium text-[color:var(--ink)]">
+                      <td className="px-3 py-3 font-semibold text-[color:var(--ink)]">
                         {row.tutor_code ? (
                           <a
                             href={`/tutors/${row.tutor_code}`}

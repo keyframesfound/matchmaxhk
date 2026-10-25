@@ -136,7 +136,7 @@ export function MaterialsDirectory() {
               aria-pressed={kind === chip.value}
               onClick={() => setKind(chip.value)}
               className={cn(
-                "rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+                "rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
                 kind === chip.value
                   ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--surface-invert-fg)]"
                   : "border-border bg-card text-[color:var(--ink)]/70 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]",
@@ -229,7 +229,7 @@ export function MaterialsDirectory() {
             <Skeleton className="h-4 w-28" />
           ) : (
             <p className="text-sm text-muted-foreground">
-              <span className="font-medium text-foreground">{filtered.length}</span>{" "}
+              <span className="font-bold text-foreground">{filtered.length}</span>{" "}
               {t("materials.result_count", { count: filtered.length })}
             </p>
           )}
@@ -251,7 +251,7 @@ export function MaterialsDirectory() {
                 aria-hidden="true"
               />
             </div>
-            <h2 className="mt-4 text-xl font-medium tracking-tight text-[color:var(--ink)] sm:text-2xl">
+            <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
               {hasFilters ? t("materials.empty_results") : t("materials.empty_state")}
             </h2>
             {hasFilters ? (
@@ -314,7 +314,7 @@ export function DirectoryToggle({
             aria-selected={isActive}
             onClick={() => onChange(key)}
             className={cn(
-              "relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+              "relative inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
               isActive
                 ? "text-[color:var(--surface-invert-fg)]"
                 : "text-[color:var(--ink)]/70 hover:text-[color:var(--ink)]",

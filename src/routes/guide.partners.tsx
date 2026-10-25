@@ -55,7 +55,7 @@ function GuidePartnersPage() {
       />
       <section className="mx-auto max-w-[1600px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
         <div className="max-w-3xl">
-          <h1 className="text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl">
+          <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
             {t("guide.partners.title")}
           </h1>
           <p className="mt-4 text-lg leading-8 text-[color:var(--ink)]/65">
@@ -71,11 +71,11 @@ function GuidePartnersPage() {
                 key={title}
                 className="grid grid-cols-[3rem_minmax(0,1fr)] gap-5 border-b border-[color:var(--ink)]/15 py-6 sm:gap-8 sm:py-7"
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--foreground)]/[0.06] text-sm font-medium">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--foreground)]/[0.06] text-sm font-bold">
                   {index + 1}
                 </span>
                 <div>
-                  <h3 className="text-lg font-medium tracking-tight sm:text-xl">{title}</h3>
+                  <h3 className="text-lg font-bold tracking-tight sm:text-xl">{title}</h3>
                   <p className="mt-2 max-w-2xl text-sm leading-7 text-[color:var(--ink)]/70">
                     {body}
                   </p>

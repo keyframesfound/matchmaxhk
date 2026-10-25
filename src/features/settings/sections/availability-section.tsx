@@ -209,14 +209,14 @@ export function AvailabilitySection() {
             </p>
           ) : null}
 
-          <Button type="submit" disabled={saving || !dirty} className="font-medium">
+          <Button type="submit" disabled={saving || !dirty} className="font-bold">
             {saving ? t("settings.availability.saving") : t("settings.availability.save")}
           </Button>
 
           {/* Issue #103: self-serve "Capacity & Availability" card. */}
           <div className="space-y-4 border-t border-[color:var(--ink)]/10 pt-6">
             <div>
-              <p className="text-sm font-medium text-[color:var(--ink)]">
+              <p className="text-sm font-bold text-[color:var(--ink)]">
                 {t("settings.capacity.title")}
               </p>
               <p className="mt-1 text-xs leading-5 text-[color:var(--ink)]/60">
@@ -238,7 +238,7 @@ export function AvailabilitySection() {
               type="button"
               disabled={capacitySaving || !capacityDirty}
               onClick={() => void saveCapacity()}
-              className="font-medium"
+              className="font-bold"
             >
               {capacitySaving
                 ? t("settings.capacity.saving")

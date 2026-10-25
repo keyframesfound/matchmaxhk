@@ -59,7 +59,7 @@ export function AvailabilityGrid({
                 <th
                   key={day}
                   scope="col"
-                  className="pb-1 text-xs font-medium text-[color:var(--ink)] sm:text-sm"
+                  className="pb-1 text-xs font-bold text-[color:var(--ink)] sm:text-sm"
                 >
                   {t(`profile.grid_day_${day}`)}
                 </th>

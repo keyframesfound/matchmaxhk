@@ -67,21 +67,21 @@ export function GigCard({ gig, className }: { gig: PublicGig; className?: string
       <div className="flex min-h-0 flex-1 flex-col gap-3 p-5 pt-0">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <p className="text-xs font-medium text-muted-foreground">
+            <p className="text-xs font-semibold text-muted-foreground">
               {t(gigCategoryLabelKey(gig.gigCategory))}
               {gig.subjectTag ? ` · ${gig.subjectTag}` : ""}
             </p>
-            <h3 className="mt-1 text-base font-medium leading-snug text-[color:var(--ink)]">
+            <h3 className="mt-1 text-base font-bold leading-snug text-[color:var(--ink)]">
               {gig.title}
             </h3>
           </div>
-          <p className="shrink-0 text-lg font-medium text-[color:var(--ink)]">
+          <p className="shrink-0 text-lg font-bold text-[color:var(--ink)]">
             HK${Number(gig.priceHkd).toFixed(0)}
           </p>
         </div>
 
         {gig.boughtCount > 0 ? (
-          <p className="text-xs font-medium text-muted-foreground">
+          <p className="text-xs font-semibold text-muted-foreground">
             {t("gigs.bought_count_suffix", { count: gig.boughtCount })}
           </p>
         ) : null}
@@ -101,7 +101,7 @@ export function GigCard({ gig, className }: { gig: PublicGig; className?: string
             {gig.tutorCode}
             {/* #314 honesty: the Verified tag shows for tier_2_verified only. */}
             {gig.verificationTier === "tier_2_verified" ? (
-              <span className="ml-1.5 font-medium text-[color:var(--brand-link)]">
+              <span className="ml-1.5 font-semibold text-[color:var(--brand-link)]">
                 · {t("gigs.verified")}
               </span>
             ) : null}
@@ -134,7 +134,7 @@ function SeeAllTile({ className }: { className?: string }) {
         strokeWidth={1.75}
         aria-hidden="true"
       />
-      <span className="text-sm font-medium text-[color:var(--ink)]">{t("gigs.view_all")}</span>
+      <span className="text-sm font-bold text-[color:var(--ink)]">{t("gigs.view_all")}</span>
     </a>
   );
 }
@@ -214,7 +214,7 @@ export function HomeGigsRow() {
   return (
     <section className="mx-auto max-w-[1536px]">
       <div className="mb-4 flex items-center gap-2 sm:gap-3">
-        <h2 className="min-w-0 truncate text-xl font-medium tracking-tight text-[color:var(--ink)] md:text-2xl">
+        <h2 className="min-w-0 truncate text-xl font-bold tracking-tight text-[color:var(--ink)] md:text-2xl">
           {t("gigs.home_row_title")}
         </h2>
         <Button
@@ -222,7 +222,7 @@ export function HomeGigsRow() {
           variant="ghost"
           refined
           hoverArrow
-          className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-medium text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
+          className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
         >
           <a href="/tutors?view=materials#services">
             {t("gigs.view_all")}

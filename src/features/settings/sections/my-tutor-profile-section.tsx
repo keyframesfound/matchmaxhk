@@ -839,7 +839,7 @@ export function MyTutorProfileSection() {
                 params={{ tutorCode: current.tutor_code }}
                 target="_blank"
                 data-tour="tutor-preview"
-                className="inline-flex items-center gap-1.5 text-sm font-medium text-[color:var(--ink)] underline-offset-4 hover:underline"
+                className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--ink)] underline-offset-4 hover:underline"
               >
                 <ExternalLink className="h-4 w-4" aria-hidden="true" />
                 {t("settings.my_tutor.view_public")}
@@ -850,7 +850,7 @@ export function MyTutorProfileSection() {
           {/* Issue #101: instant visibility toggle, reuses is_published. */}
           <div className="flex items-center justify-between gap-4 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 py-3">
             <div>
-              <Label className="text-sm font-medium text-[color:var(--ink)]">
+              <Label className="text-sm font-bold text-[color:var(--ink)]">
                 {t("settings.my_tutor.hide_profile_label")}
               </Label>
               <p className="mt-0.5 text-xs text-[color:var(--ink)]/60">
@@ -871,14 +871,14 @@ export function MyTutorProfileSection() {
           {/* Issue #101: deletion requests are queued for admin review, no
               self-serve wipe, so active cases and matching fees stay settled. */}
           <div className="rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 py-3">
-            <Label className="text-sm font-medium text-[color:var(--ink)]">
+            <Label className="text-sm font-bold text-[color:var(--ink)]">
               {t("settings.my_tutor.deletion_label")}
             </Label>
             <p className="mt-1 text-xs leading-5 text-[color:var(--ink)]/60">
               {t("settings.my_tutor.deletion_help")}
             </p>
             {deletionPending ? (
-              <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-400">
+              <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400">
                 {t("settings.my_tutor.deletion_pending_badge")}
               </p>
             ) : (
@@ -1080,7 +1080,7 @@ export function MyTutorProfileSection() {
                   <div key={field} className="space-y-1">
                     <Label
                       htmlFor={`cred-evidence-${field}`}
-                      className="cursor-pointer text-xs font-medium text-[color:var(--brand-link)] underline-offset-2 hover:underline"
+                      className="cursor-pointer text-xs font-semibold text-[color:var(--brand-link)] underline-offset-2 hover:underline"
                     >
                       {t("credEdits.field_evidence_label", { field: credFieldLabel(field) })}
                     </Label>
@@ -1130,12 +1130,12 @@ export function MyTutorProfileSection() {
                       key={edit.id}
                       className="flex flex-wrap items-center gap-x-3 gap-y-1 rounded-lg border border-[color:var(--ink)]/10 px-3 py-2.5"
                     >
-                      <span className="text-sm font-medium text-[color:var(--ink)]">
+                      <span className="text-sm font-semibold text-[color:var(--ink)]">
                         {credFieldLabel(edit.field)}
                       </span>
                       <span
                         className={cn(
-                          "rounded-full px-2.5 py-0.5 text-[11px] font-medium",
+                          "rounded-full px-2.5 py-0.5 text-[11px] font-bold",
                           edit.status === "pending" &&
                             "bg-amber-500/15 text-amber-700 dark:text-amber-400",
                           edit.status === "approved" &&
@@ -1224,7 +1224,7 @@ export function MyTutorProfileSection() {
                       <label
                         key={category}
                         className={cn(
-                          "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-medium transition-colors",
+                          "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-xs font-semibold transition-colors",
                           active
                             ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.08] text-[color:var(--ink)]"
                             : "border-border bg-[color:var(--surface)] text-[color:var(--ink)] hover:bg-muted/40",
@@ -1288,7 +1288,7 @@ export function MyTutorProfileSection() {
                     Changing it re-snapshots the HKD bounds on save. */}
                 <Label
                   htmlFor="myt-rate-currency"
-                  className="text-xs font-medium text-[color:var(--ink)]/70"
+                  className="text-xs font-semibold text-[color:var(--ink)]/70"
                 >
                   {t("settings.my_tutor.rates_currency")}
                 </Label>
@@ -1663,7 +1663,7 @@ export function MyTutorProfileSection() {
                   <label
                     key={level}
                     className={cn(
-                      "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
+                      "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors",
                       active
                         ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.08] text-[color:var(--ink)]"
                         : "border-border bg-[color:var(--surface)] text-[color:var(--ink)] hover:bg-muted/40",
@@ -1698,7 +1698,7 @@ export function MyTutorProfileSection() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="myt-uni-year"
-                    className="text-xs font-medium text-[color:var(--ink)]/70"
+                    className="text-xs font-semibold text-[color:var(--ink)]/70"
                   >
                     {t("verticals.editor_year_of_study")}
                   </Label>
@@ -1719,7 +1719,7 @@ export function MyTutorProfileSection() {
                 <div className="space-y-2">
                   <Label
                     htmlFor="myt-uni-gpa"
-                    className="text-xs font-medium text-[color:var(--ink)]/70"
+                    className="text-xs font-semibold text-[color:var(--ink)]/70"
                   >
                     {t("verticals.editor_gpa")}
                   </Label>
@@ -1879,7 +1879,7 @@ export function MyTutorProfileSection() {
                     <label
                       key={topic}
                       className={cn(
-                        "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-colors",
+                        "flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm font-semibold transition-colors",
                         active
                           ? "border-[color:var(--ring)] bg-[color:var(--ring)]/[0.08] text-[color:var(--ink)]"
                           : "border-border bg-[color:var(--surface)] text-[color:var(--ink)] hover:bg-muted/40",

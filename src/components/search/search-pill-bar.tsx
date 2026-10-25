@@ -338,14 +338,14 @@ export function SearchPillBar({
                   segment.grow ?? "flex-1",
                 )}
               >
-                <span className="truncate text-[11px] font-medium tracking-wide text-[color:var(--ink)]">
+                <span className="truncate text-[11px] font-bold tracking-wide text-[color:var(--ink)]">
                   {segment.label}
                 </span>
                 <span
                   className={cn(
                     "truncate text-sm",
                     segment.filled
-                      ? "font-medium text-[color:var(--ink)]"
+                      ? "font-semibold text-[color:var(--ink)]"
                       : "text-muted-foreground",
                   )}
                 >
@@ -381,7 +381,7 @@ export function SearchPillBar({
           >
             <div key={openId}>
               {panelSegment.title ? (
-                <p className="mb-3 text-xl font-medium tracking-tight text-[color:var(--ink)]">
+                <p className="mb-3 text-xl font-bold tracking-tight text-[color:var(--ink)]">
                   {panelSegment.title}
                 </p>
               ) : null}

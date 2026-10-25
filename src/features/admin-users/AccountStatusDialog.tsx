@@ -142,7 +142,7 @@ export function AccountStatusDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="max-w-lg border-border bg-card">
         <AlertDialogHeader>
-          <AlertDialogTitle className="text-lg font-medium text-[color:var(--ink)]">
+          <AlertDialogTitle className="text-lg font-bold text-[color:var(--ink)]">
             {copy.title}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-xs text-muted-foreground">
@@ -157,7 +157,7 @@ export function AccountStatusDialog({
                 key={option}
                 type="button"
                 onClick={() => onActionChange(option)}
-                className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-medium capitalize transition-colors ${
+                className={`flex-1 rounded-lg border px-2 py-1.5 text-xs font-bold capitalize transition-colors ${
                   action === option
                     ? "border-[color:var(--ink)]/40 bg-[color:var(--ink)]/5 text-[color:var(--ink)]"
                     : "border-border/60 text-muted-foreground hover:text-[color:var(--ink)]"
@@ -171,9 +171,9 @@ export function AccountStatusDialog({
           {action !== "restore" && (
             <>
               <div>
-                <p className="mb-1 text-xs font-medium text-[color:var(--ink)]">Reason</p>
+                <p className="mb-1 text-xs font-bold text-[color:var(--ink)]">Reason</p>
                 <Select value={reason} onValueChange={setReason}>
-                  <SelectTrigger className="h-9 w-full text-xs font-medium">
+                  <SelectTrigger className="h-9 w-full text-xs font-semibold">
                     <SelectValue placeholder="Pick a reason" />
                   </SelectTrigger>
                   <SelectContent>
@@ -187,7 +187,7 @@ export function AccountStatusDialog({
               </div>
 
               <div>
-                <p className="mb-1 text-xs font-medium text-[color:var(--ink)]">Note (optional)</p>
+                <p className="mb-1 text-xs font-bold text-[color:var(--ink)]">Note (optional)</p>
                 <Textarea
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
@@ -201,11 +201,11 @@ export function AccountStatusDialog({
           )}
 
           <div>
-            <p className="mb-1 text-xs font-medium text-[color:var(--ink)]">
+            <p className="mb-1 text-xs font-bold text-[color:var(--ink)]">
               Link a report (optional)
             </p>
             <Select value={reportId} onValueChange={setReportId}>
-              <SelectTrigger className="h-9 w-full text-xs font-medium">
+              <SelectTrigger className="h-9 w-full text-xs font-semibold">
                 <SelectValue placeholder="No report linked" />
               </SelectTrigger>
               <SelectContent>
@@ -229,7 +229,7 @@ export function AccountStatusDialog({
         </div>
 
         <AlertDialogFooter className="gap-2 sm:gap-0">
-          <AlertDialogCancel disabled={isPending} className="h-9 text-xs font-medium">
+          <AlertDialogCancel disabled={isPending} className="h-9 text-xs font-bold">
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
@@ -238,7 +238,7 @@ export function AccountStatusDialog({
               void handleConfirm();
             }}
             disabled={isPending}
-            className={`h-9 text-xs font-medium ${
+            className={`h-9 text-xs font-bold ${
               destructive
                 ? "bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 : "bg-[color:var(--ink)] text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--ink)]/90"

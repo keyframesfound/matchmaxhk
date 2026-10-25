@@ -40,7 +40,7 @@ function ParentCasesPage() {
     <div className="min-h-screen bg-[color:var(--background)]">
       <SiteHeader />
       <PageContainer>
-        <h1 className="text-2xl font-medium tracking-tight text-[color:var(--ink)]">
+        <h1 className="text-2xl font-semibold tracking-tight text-[color:var(--ink)]">
           {t("sor.parent_cases_title")}
         </h1>
 
@@ -62,7 +62,7 @@ function ParentCasesPage() {
             >
               <div className="flex flex-wrap items-center justify-between gap-2">
                 <div>
-                  <p className="text-sm font-medium text-[color:var(--ink)]">
+                  <p className="text-sm font-semibold text-[color:var(--ink)]">
                     {c.case_code} · {c.title}
                   </p>
                   <p className="text-xs text-muted-foreground">

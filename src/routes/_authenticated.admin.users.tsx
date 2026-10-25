@@ -274,10 +274,10 @@ function AdminUsers() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-border/60">
             <div>
               <div className="flex items-center gap-2.5">
-                <h1 className="text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl">
+                <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
                   User Directory & Access
                 </h1>
-                <span className="rounded-full bg-[color:var(--ink)]/5 px-2.5 py-0.5 text-xs font-medium text-[color:var(--ink)]">
+                <span className="rounded-full bg-[color:var(--ink)]/5 px-2.5 py-0.5 text-xs font-bold text-[color:var(--ink)]">
                   {rows.length} {rows.length === 1 ? "User" : "Users"}
                 </span>
               </div>
@@ -293,7 +293,7 @@ function AdminUsers() {
                 size="sm"
                 onClick={() => refetch()}
                 disabled={isRefetching}
-                className="h-9 gap-1.5 font-medium text-xs"
+                className="h-9 gap-1.5 font-bold text-xs"
               >
                 <RefreshCw className={`h-3.5 w-3.5 ${isRefetching ? "animate-spin" : ""}`} />
                 Refresh
@@ -301,7 +301,7 @@ function AdminUsers() {
               <Button
                 size="sm"
                 onClick={() => setIsInviteOpen(true)}
-                className="h-9 gap-1.5 font-medium text-xs"
+                className="h-9 gap-1.5 font-bold text-xs"
               >
                 <UserPlus className="h-4 w-4" />
                 Invite User
@@ -319,16 +319,16 @@ function AdminUsers() {
           <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as "users" | "roles")}>
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b border-border/60 pb-3">
               <TabsList className="bg-muted/60 p-1">
-                <TabsTrigger value="users" className="gap-2 text-xs font-medium">
+                <TabsTrigger value="users" className="gap-2 text-xs font-bold">
                   <Users className="h-3.5 w-3.5" />
                   All Users ({filteredUsers.length})
                 </TabsTrigger>
-                <TabsTrigger value="roles" className="gap-2 text-xs font-medium">
+                <TabsTrigger value="roles" className="gap-2 text-xs font-bold">
                   <Shield className="h-3.5 w-3.5" />
                   Roles & Matrix
                 </TabsTrigger>
                 {canBan && (
-                  <TabsTrigger value="blocklist" className="gap-2 text-xs font-medium">
+                  <TabsTrigger value="blocklist" className="gap-2 text-xs font-bold">
                     <Ban className="h-3.5 w-3.5" />
                     Block List
                   </TabsTrigger>
@@ -360,7 +360,7 @@ function AdminUsers() {
 
                 <div className="flex flex-wrap items-center gap-2">
                   <Select value={roleFilter} onValueChange={setRoleFilter}>
-                    <SelectTrigger className="h-9 w-[150px] text-xs font-medium">
+                    <SelectTrigger className="h-9 w-[150px] text-xs font-semibold">
                       <SelectValue placeholder="Filter by Role" />
                     </SelectTrigger>
                     <SelectContent>
@@ -379,7 +379,7 @@ function AdminUsers() {
                     value={sortBy}
                     onValueChange={(v) => setSortBy(v as "newest" | "oldest" | "name")}
                   >
-                    <SelectTrigger className="h-9 w-[140px] text-xs font-medium">
+                    <SelectTrigger className="h-9 w-[140px] text-xs font-semibold">
                       <SelectValue placeholder="Sort Order" />
                     </SelectTrigger>
                     <SelectContent>
@@ -394,7 +394,7 @@ function AdminUsers() {
                       variant="ghost"
                       size="sm"
                       onClick={clearFilters}
-                      className="h-9 text-xs font-medium text-muted-foreground hover:text-[color:var(--ink)]"
+                      className="h-9 text-xs font-semibold text-muted-foreground hover:text-[color:var(--ink)]"
                     >
                       Clear
                     </Button>

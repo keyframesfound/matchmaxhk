@@ -468,7 +468,7 @@ export function CompactSearchPill({
                 expand(segment.id);
               }}
               className={cn(
-                "min-w-0 flex-1 truncate text-[13px] font-medium text-[color:var(--ink)]",
+                "min-w-0 flex-1 truncate text-[13px] font-semibold text-[color:var(--ink)]",
                 segment.id && "cursor-pointer",
               )}
             >

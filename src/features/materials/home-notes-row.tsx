@@ -57,21 +57,21 @@ export function HomeNoteCard({ note, className }: { note: HomeNote; className?: 
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-medium text-muted-foreground">
+          <p className="text-xs font-semibold text-muted-foreground">
             {formatMaterialTypeLabel(note.materialType, t)}
             {note.curriculumTag ? ` · ${note.curriculumTag}` : ""}
             {note.subjectTag ? ` · ${note.subjectTag}` : ""}
           </p>
-          <h3 className="mt-1 text-base font-medium leading-snug text-[color:var(--ink)]">
+          <h3 className="mt-1 text-base font-bold leading-snug text-[color:var(--ink)]">
             {note.title}
           </h3>
         </div>
-        <p className="shrink-0 text-lg font-medium text-[color:var(--ink)]">
+        <p className="shrink-0 text-lg font-bold text-[color:var(--ink)]">
           HK${Number(note.priceHkd).toFixed(0)}
         </p>
       </div>
 
-      <p className="text-xs font-medium text-muted-foreground">
+      <p className="text-xs font-semibold text-muted-foreground">
         {t("notes.home.bought_count", { count: note.boughtCount })}
       </p>
 
@@ -83,7 +83,7 @@ export function HomeNoteCard({ note, className }: { note: HomeNote; className?: 
           onClick={(event) => event.stopPropagation()}
           className="text-xs text-muted-foreground hover:underline"
         >
-          <span className="font-medium text-[color:var(--brand-link)]">{note.tutorCode}</span>
+          <span className="font-bold text-[color:var(--brand-link)]">{note.tutorCode}</span>
           {" · "}
           {note.tutorDisplayName}
         </a>
@@ -114,7 +114,7 @@ function SeeAllTile({ className }: { className?: string }) {
         strokeWidth={1.75}
         aria-hidden="true"
       />
-      <span className="text-sm font-medium text-[color:var(--ink)]">
+      <span className="text-sm font-bold text-[color:var(--ink)]">
         {t("materials.toggle_materials")}
       </span>
     </a>
@@ -196,7 +196,7 @@ export function HomeNotesRow() {
   return (
     <section className="mx-auto max-w-[1536px]">
       <div className="mb-4 flex items-center gap-2 sm:gap-3">
-        <h2 className="min-w-0 truncate text-xl font-medium tracking-tight text-[color:var(--ink)] md:text-2xl">
+        <h2 className="min-w-0 truncate text-xl font-bold tracking-tight text-[color:var(--ink)] md:text-2xl">
           {t("notes.home.heading")}
         </h2>
         <Button
@@ -204,7 +204,7 @@ export function HomeNotesRow() {
           variant="ghost"
           refined
           hoverArrow
-          className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-medium text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
+          className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
         >
           <a href="/tutors?view=materials">
             {t("notes.home.view_all")}
@@ -270,7 +270,7 @@ export function TutorAuthoredNotes({ tutorCode }: { tutorCode: string }) {
         <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
           <FileText className="h-4 w-4 text-[color:var(--muted-foreground)]" strokeWidth={2.1} />
         </span>
-        <h2 className="text-lg font-medium tracking-tight text-[color:var(--ink)] sm:text-xl">
+        <h2 className="text-lg font-bold tracking-tight text-[color:var(--ink)] sm:text-xl">
           {t("notes.home.authored_heading")}
         </h2>
       </div>

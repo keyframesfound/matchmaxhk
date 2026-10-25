@@ -109,7 +109,7 @@ function CommunityCommitmentDialog({
         onInteractOutside={(event) => event.preventDefault()}
         className="top-auto bottom-0 left-1/2 w-full max-w-[460px] translate-x-[-50%] translate-y-0 gap-0 rounded-t-3xl border-0 bg-[color:var(--surface)] p-6 pb-8 text-center data-[state=open]:slide-in-from-bottom-1/2 data-[state=closed]:slide-out-to-bottom-full sm:top-1/2 sm:bottom-auto sm:translate-y-[-50%] sm:rounded-3xl sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=open]:zoom-in-95"
       >
-        <DialogTitle className="text-2xl font-medium tracking-tight text-[color:var(--ink)]">
+        <DialogTitle className="text-2xl font-bold tracking-tight text-[color:var(--ink)]">
           {t("auth.commitment_title")}
         </DialogTitle>
         <DialogDescription className="mt-3 text-base leading-relaxed text-muted-foreground">
@@ -124,7 +124,7 @@ function CommunityCommitmentDialog({
             color="neutral"
             loading={agreeing}
             onClick={agree}
-            className="h-12 w-full rounded-xl text-base font-medium"
+            className="h-12 w-full rounded-xl text-base font-bold"
           >
             {t("auth.commitment_agree")}
           </Button>
@@ -132,7 +132,7 @@ function CommunityCommitmentDialog({
             variant="ghost"
             onClick={onDecline}
             disabled={agreeing}
-            className="h-10 w-full rounded-xl font-medium text-[color:var(--ink)] underline underline-offset-4"
+            className="h-10 w-full rounded-xl font-bold text-[color:var(--ink)] underline underline-offset-4"
           >
             {t("auth.commitment_decline")}
           </Button>

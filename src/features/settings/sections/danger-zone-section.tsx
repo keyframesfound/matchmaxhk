@@ -51,7 +51,7 @@ export function DangerZoneSection(_props: SettingsSectionProps) {
             <Button
               type="button"
               disabled={deleting}
-              className="shrink-0 bg-destructive font-medium text-[color:var(--destructive-foreground)] hover:bg-destructive/90"
+              className="shrink-0 bg-destructive font-bold text-[color:var(--destructive-foreground)] hover:bg-destructive/90"
             >
               {t("settings.danger.delete")}
             </Button>

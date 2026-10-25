@@ -27,7 +27,7 @@ export function PageIntro({
   return (
     <section className={cn("border-b border-border", dense ? "py-6 sm:py-8" : "py-14 sm:py-20")}>
       <PageContainer width={width} className={cn(centered && "text-center")}>
-        <h1 className="text-balance text-4xl font-medium text-foreground sm:text-5xl">{title}</h1>
+        <h1 className="text-balance text-4xl font-bold text-foreground sm:text-5xl">{title}</h1>
         {description ? (
           <p
             className={cn(

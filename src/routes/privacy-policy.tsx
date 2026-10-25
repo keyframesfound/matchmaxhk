@@ -315,7 +315,7 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
 function renderInline(text: string) {
   return text.split(/\*\*(.+?)\*\*/g).map((part, index) =>
     index % 2 === 1 ? (
-      <strong key={index} className="font-medium text-foreground">
+      <strong key={index} className="font-semibold text-foreground">
         {part}
       </strong>
     ) : (
@@ -345,9 +345,7 @@ function PrivacyPolicyPage() {
                 key={section.title}
                 className="border-b border-border pb-12 last:border-b-0 last:pb-0"
               >
-                <h2 className="text-2xl font-medium text-foreground sm:text-3xl">
-                  {section.title}
-                </h2>
+                <h2 className="text-2xl font-bold text-foreground sm:text-3xl">{section.title}</h2>
                 <div className="mt-5 space-y-5 text-base leading-7 text-muted-foreground">
                   {section.blocks.map((block, index) =>
                     block.kind === "ul" ? (
@@ -372,14 +370,14 @@ function PrivacyPolicyPage() {
             ))}
 
             <article className="border-t border-border pt-12">
-              <h2 className="text-2xl font-medium text-foreground sm:text-3xl">
+              <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
                 Questions About Privacy?
               </h2>
               <p className="mt-5 max-w-2xl text-base leading-7 text-muted-foreground">
                 For questions about how we handle your data, or to submit a data access or
                 correction request, contact us at{" "}
                 <a
-                  className="font-medium text-[color:var(--brand-link)] underline underline-offset-4"
+                  className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
                   href="mailto:contact@matchmax.hk"
                 >
                   contact@matchmax.hk

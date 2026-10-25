@@ -264,7 +264,7 @@ export function SettingsPage() {
     cn(
       "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
       active
-        ? "bg-[color:var(--ink)]/5 font-medium text-[color:var(--ink)]"
+        ? "bg-[color:var(--ink)]/5 font-semibold text-[color:var(--ink)]"
         : "font-medium text-muted-foreground hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]",
     );
 
@@ -281,7 +281,7 @@ export function SettingsPage() {
       <main className="flex-1">
         <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
           <header className="border-b border-[color:var(--ink)]/10 pb-8">
-            <h1 className="text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl">
+            <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
               {t("settings.title")}
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
@@ -318,7 +318,7 @@ export function SettingsPage() {
                       className={cn(
                         "flex shrink-0 items-center gap-1.5 rounded-full border px-3.5 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
                         active
-                          ? "border-[color:var(--ink)]/20 bg-[color:var(--ink)]/5 font-medium text-[color:var(--ink)]"
+                          ? "border-[color:var(--ink)]/20 bg-[color:var(--ink)]/5 font-bold text-[color:var(--ink)]"
                           : "border-[color:var(--ink)]/10 bg-[color:var(--surface)] font-medium text-[color:var(--ink)]/65 hover:bg-[color:var(--ink)]/5",
                       )}
                     >
@@ -360,7 +360,7 @@ export function SettingsPage() {
                 <Button
                   variant="outline"
                   onClick={() => void signOut()}
-                  className="w-full justify-start gap-2 border-[color:var(--ink)]/15 text-sm font-medium text-[color:var(--ink)] hover:bg-[color:var(--destructive)]/10 hover:text-[color:var(--destructive)]"
+                  className="w-full justify-start gap-2 border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--destructive)]/10 hover:text-[color:var(--destructive)]"
                 >
                   <LogOut className="h-4 w-4" aria-hidden="true" />
                   {t("settings.nav.sign_out")}

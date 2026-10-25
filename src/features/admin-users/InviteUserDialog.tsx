@@ -73,7 +73,7 @@ export function InviteUserDialog({
                 <UserPlus className="h-5 w-5" />
               </div>
               <div>
-                <DialogTitle className="text-xl font-medium text-[color:var(--ink)]">
+                <DialogTitle className="text-xl font-bold text-[color:var(--ink)]">
                   Provision New User
                 </DialogTitle>
                 <DialogDescription className="text-xs text-muted-foreground">
@@ -85,7 +85,7 @@ export function InviteUserDialog({
 
           <div className="my-5 space-y-4">
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-[color:var(--ink)]">Email Address *</Label>
+              <Label className="text-xs font-bold text-[color:var(--ink)]">Email Address *</Label>
               <Input
                 type="email"
                 placeholder="name@example.com"
@@ -97,7 +97,7 @@ export function InviteUserDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-[color:var(--ink)]">
+              <Label className="text-xs font-bold text-[color:var(--ink)]">
                 Display Name <span className="text-muted-foreground font-normal">(Optional)</span>
               </Label>
               <Input
@@ -110,7 +110,7 @@ export function InviteUserDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-[color:var(--ink)]">Initial Role *</Label>
+              <Label className="text-xs font-bold text-[color:var(--ink)]">Initial Role *</Label>
               <Select value={role} onValueChange={(v) => setRole(v as AppRole)}>
                 <SelectTrigger className="h-9">
                   <SelectValue placeholder="Select initial role" />
@@ -119,7 +119,7 @@ export function InviteUserDialog({
                   {ROLE_DEFINITIONS.map((def) => (
                     <SelectItem key={def.role} value={def.role}>
                       <div className="flex items-center gap-2">
-                        <span className="font-medium">{def.title}</span>
+                        <span className="font-semibold">{def.title}</span>
                       </div>
                     </SelectItem>
                   ))}
@@ -128,7 +128,7 @@ export function InviteUserDialog({
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-medium text-[color:var(--ink)]">
+              <Label className="text-xs font-bold text-[color:var(--ink)]">
                 Password{" "}
                 <span className="text-muted-foreground font-normal">(Auto-generated if empty)</span>
               </Label>
@@ -149,14 +149,14 @@ export function InviteUserDialog({
               variant="outline"
               onClick={() => onOpenChange(false)}
               disabled={isPending}
-              className="h-9 font-medium text-xs"
+              className="h-9 font-bold text-xs"
             >
               Cancel
             </Button>
             <Button
               type="submit"
               disabled={isPending || !email.trim()}
-              className="h-9 font-medium text-xs"
+              className="h-9 font-bold text-xs"
             >
               <Sparkles className="mr-1.5 h-3.5 w-3.5" />
               {isPending ? "Creating..." : "Provision Account"}

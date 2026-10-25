@@ -453,7 +453,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           type="submit"
           variant="solid"
           color="accent"
-          className="font-medium"
+          className="font-bold"
           disabled={
             saving ||
             blockedByContact ||

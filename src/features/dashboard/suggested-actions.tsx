@@ -100,13 +100,13 @@ export function SuggestedActionCard({
     >
       <span
         className={cn(
-          "inline-flex w-fit items-center rounded-md px-2 py-1 text-[11px] font-medium tracking-wide uppercase",
+          "inline-flex w-fit items-center rounded-md px-2 py-1 text-[11px] font-bold tracking-wide uppercase",
           TAG_STYLES[tagColor],
         )}
       >
         {t(tagKey)}
       </span>
-      <h3 className="mt-3 text-base font-medium tracking-tight text-[color:var(--ink)]">
+      <h3 className="mt-3 text-base font-bold tracking-tight text-[color:var(--ink)]">
         {t(headlineKey)}
       </h3>
       <p className="mt-1.5 flex-1 text-sm leading-relaxed text-muted-foreground">

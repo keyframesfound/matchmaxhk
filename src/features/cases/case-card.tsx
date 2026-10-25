@@ -71,7 +71,7 @@ export function CaseFeePill({
   const { t } = useTranslation();
   return (
     <span
-      className={`inline-flex shrink-0 items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--card-tint)] px-2.5 py-0.5 text-xs font-medium text-[color:var(--ink)] ${className}`}
+      className={`inline-flex shrink-0 items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--card-tint)] px-2.5 py-0.5 text-xs font-semibold text-[color:var(--ink)] ${className}`}
     >
       {t(caseFeePillKey(packageType))}
     </span>
@@ -214,14 +214,14 @@ export function CaseIdentityRow({ item }: { item: PublicCaseBoardItem }) {
         <Link
           to="/business/$slug"
           params={{ slug: item.centre.slug }}
-          className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-[color:var(--ink)]"
+          className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]"
         >
           {inner}
         </Link>
       );
     }
     return (
-      <span className="flex min-w-0 items-center gap-1.5 text-xs font-medium text-[color:var(--ink)]">
+      <span className="flex min-w-0 items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]">
         {inner}
       </span>
     );
@@ -237,7 +237,7 @@ export function CaseIdentityRow({ item }: { item: PublicCaseBoardItem }) {
 export function CaseCap57Chip() {
   const { t } = useTranslation();
   return (
-    <span className="inline-flex w-full items-center gap-1 overflow-hidden rounded-full border border-purple-500/30 bg-purple-500/[0.06] px-2 py-0.5 text-[11px] font-medium text-purple-700 dark:text-purple-400">
+    <span className="inline-flex w-full items-center gap-1 overflow-hidden rounded-full border border-purple-500/30 bg-purple-500/[0.06] px-2 py-0.5 text-[11px] font-semibold text-purple-700 dark:text-purple-400">
       <span className="truncate">{t("case_board.cap57_chip")}</span>
     </span>
   );

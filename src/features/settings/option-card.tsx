@@ -21,7 +21,7 @@ export function SettingsCard({
   return (
     <ConsolePanel padding="none" className={className}>
       <div className="border-b border-[color:var(--ink)]/10 px-6 py-5 sm:px-8">
-        <h2 className="text-lg font-medium text-[color:var(--ink)]">{title}</h2>
+        <h2 className="text-lg font-bold text-[color:var(--ink)]">{title}</h2>
         {description ? (
           <p className="mt-1 text-sm text-[color:var(--ink)]/65">{description}</p>
         ) : null}
@@ -71,7 +71,7 @@ export function OptionCard({
       )}
     >
       {preview}
-      <span className="flex items-center gap-2 text-sm font-medium text-[color:var(--ink)]">
+      <span className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]">
         {label}
         {badge}
       </span>

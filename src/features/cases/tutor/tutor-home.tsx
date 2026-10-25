@@ -139,7 +139,7 @@ function NotesBlock({ t }: { t: ReturnType<typeof useTranslation>["t"] }) {
     <ConsolePanel title={t("sor.tutor_home_notes_title")}>
       <ul className="space-y-1 p-4 text-sm text-[color:var(--ink)]">
         <li>{t("sor.tutor_home_notes_month", { n: data.deliveredThisMonth })}</li>
-        <li className="font-medium">
+        <li className="font-semibold">
           {t("sor.tutor_home_notes_net", { n: fmtHkd(data.netOwedHkd) })}
         </li>
       </ul>
@@ -147,7 +147,7 @@ function NotesBlock({ t }: { t: ReturnType<typeof useTranslation>["t"] }) {
       <p className="px-4 pb-4">
         <Link
           to="/account"
-          className="text-sm font-medium text-[color:var(--brand-link)] underline-offset-4 hover:underline"
+          className="text-sm font-bold text-[color:var(--brand-link)] underline-offset-4 hover:underline"
         >
           {t("sor.tutor_home_notes_link")}
         </Link>
@@ -192,7 +192,7 @@ export function TutorHomeSection() {
             <p className="mt-3">
               <Link
                 to="/tutor-requests"
-                className="text-sm font-medium text-[color:var(--brand-link)] underline-offset-4 hover:underline"
+                className="text-sm font-bold text-[color:var(--brand-link)] underline-offset-4 hover:underline"
               >
                 {t("sor.tutor_home_empty_cta")}
               </Link>
@@ -211,7 +211,7 @@ export function TutorHomeSection() {
           <p className="p-4 text-sm text-muted-foreground">{t("sor.tutor_home_next_none")}</p>
         ) : (
           <div className="p-4">
-            <p className="flex items-center gap-2 text-base font-medium text-[color:var(--ink)]">
+            <p className="flex items-center gap-2 text-base font-semibold text-[color:var(--ink)]">
               <CalendarClock className="h-4 w-4" aria-hidden="true" />
               {format(new Date(next.startsAt), "EEE d MMM, HH:mm")}
             </p>
@@ -233,7 +233,7 @@ export function TutorHomeSection() {
               <Link
                 to="/dashboard"
                 hash="lessons"
-                className="text-sm font-medium text-[color:var(--brand-link)] underline-offset-4 hover:underline"
+                className="text-sm font-bold text-[color:var(--brand-link)] underline-offset-4 hover:underline"
               >
                 {t("sor.tutor_home_open_lessons")}
               </Link>

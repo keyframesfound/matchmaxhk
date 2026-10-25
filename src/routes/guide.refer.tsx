@@ -67,7 +67,7 @@ function GuideReferPage() {
       />
       <section className="mx-auto max-w-[1600px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
         <div className="max-w-3xl">
-          <h1 className="flex flex-wrap items-center gap-3 text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl">
+          <h1 className="flex flex-wrap items-center gap-3 text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
             <Gift className="h-9 w-9 text-[color:var(--brand-link)]" aria-hidden="true" />
             {t("guide.tab_refer")}
           </h1>
@@ -101,7 +101,7 @@ function GuideReferPage() {
               <p className="mt-5 border-t border-[color:var(--ink)]/10 pt-4 text-sm">
                 <HelpArticleLink
                   article={feeArticle}
-                  className="font-medium text-[color:var(--brand-link)] underline underline-offset-4 hover:opacity-80"
+                  className="font-bold text-[color:var(--brand-link)] underline underline-offset-4 hover:opacity-80"
                 >
                   {t("guide.refer.fee_link")}
                 </HelpArticleLink>

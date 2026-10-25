@@ -64,7 +64,7 @@ function SaveFooter({
       <Button type="button" variant="ghost" onClick={onCancel} disabled={saving}>
         Cancel
       </Button>
-      <Button type="submit" loading={saving} className="font-medium">
+      <Button type="submit" loading={saving} className="font-bold">
         Save changes
       </Button>
     </DialogFooter>

@@ -113,7 +113,7 @@ export function MobileSearchOverlay({
             type="button"
             onClick={tab.onSelect}
             aria-current={tab.active ? "true" : undefined}
-            className={`relative flex min-w-12 flex-col items-center gap-0.5 py-1 text-[13px] font-medium transition-colors ${
+            className={`relative flex min-w-12 flex-col items-center gap-0.5 py-1 text-[13px] font-semibold transition-colors ${
               tab.active
                 ? "text-[color:var(--ink)]"
                 : "text-[color:var(--ink)]/55 hover:text-[color:var(--ink)]"
@@ -122,7 +122,7 @@ export function MobileSearchOverlay({
             <span className="relative">
               {tab.icon}
               {tab.badge ? (
-                <span className="absolute -right-6 -top-2.5 rounded-full bg-[color:var(--foreground)] px-1.5 py-px text-[11px] font-medium uppercase leading-none text-[color:var(--background)]">
+                <span className="absolute -right-6 -top-2.5 rounded-full bg-[color:var(--foreground)] px-1.5 py-px text-[11px] font-bold uppercase leading-none text-[color:var(--background)]">
                   {tab.badge}
                 </span>
               ) : null}
@@ -150,7 +150,7 @@ export function MobileSearchOverlay({
           type="button"
           variant="ghost"
           onClick={onClear}
-          className="h-10 shrink-0 px-2 text-[15px] font-medium text-[color:var(--ink)] underline underline-offset-4 hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
+          className="h-10 shrink-0 px-2 text-[15px] font-semibold text-[color:var(--ink)] underline underline-offset-4 hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
         >
           {clearLabel}
         </Button>
@@ -159,7 +159,7 @@ export function MobileSearchOverlay({
           variant="solid"
           color="blue"
           onClick={onSubmit}
-          className="h-12 min-w-0 flex-1 rounded-full px-6 text-base font-medium sm:flex-none"
+          className="h-12 min-w-0 flex-1 rounded-full px-6 text-base font-bold sm:flex-none"
         >
           <Search className="h-4 w-4 shrink-0" aria-hidden="true" />
           <span className="truncate">{submitLabel}</span>

@@ -83,7 +83,7 @@ export default function Feedback() {
               <p className="text-4xl" aria-hidden>
                 🙏
               </p>
-              <h1 className="mt-4 text-2xl font-medium tracking-tight text-[color:var(--ink)]">
+              <h1 className="mt-4 text-2xl font-bold tracking-tight text-[color:var(--ink)]">
                 {t("feedback.thanks_title")}
               </h1>
               <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -97,7 +97,7 @@ export default function Feedback() {
             <section aria-labelledby="feedback-title" className="text-center">
               <h1
                 id="feedback-title"
-                className="text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl"
+                className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl"
               >
                 {t("feedback.routing_title")}
               </h1>
@@ -126,7 +126,7 @@ export default function Feedback() {
             <section aria-labelledby="feedback-form-title">
               <h1
                 id="feedback-form-title"
-                className="text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl"
+                className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl"
               >
                 {t("feedback.form_title")}
               </h1>
@@ -193,7 +193,7 @@ export default function Feedback() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <Button type="submit" disabled={submitting || !valid} className="font-medium">
+                  <Button type="submit" disabled={submitting || !valid} className="font-bold">
                     {submitting ? t("feedback.submitting") : t("feedback.submit")}
                   </Button>
                   <Button

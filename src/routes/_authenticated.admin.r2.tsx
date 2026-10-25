@@ -156,7 +156,7 @@ function AdminR2Images() {
         <div className="mx-auto max-w-[1536px] px-4 py-12 sm:px-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h1 className="text-4xl font-medium tracking-tight text-[color:var(--ink)] sm:text-5xl">
+              <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
                 R2 tutor images
               </h1>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -164,7 +164,7 @@ function AdminR2Images() {
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-md border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-4 text-sm font-medium text-[color:var(--foreground)] hover:bg-[color:var(--muted)]">
+              <label className="inline-flex h-10 cursor-pointer items-center gap-2 rounded-md border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-4 text-sm font-bold text-[color:var(--foreground)] hover:bg-[color:var(--muted)]">
                 {upload.isPending ? (
                   <Loader2 className="h-4 w-4 animate-spin" />
                 ) : (

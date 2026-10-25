@@ -151,7 +151,7 @@ function PricingPage() {
       <main className="flex-1">
         <section className="border-b border-border py-16">
           <div className="mx-auto max-w-[1536px] px-4 text-center sm:px-6">
-            <h1 className="text-4xl font-medium tracking-tight text-[color:var(--ink)] sm:text-5xl">
+            <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
               For tutoring businesses
             </h1>
             <p className="mx-auto mt-4 max-w-2xl text-base text-muted-foreground sm:text-lg">
@@ -171,7 +171,7 @@ function PricingPage() {
                 />
                 Compare plans
               </Badge>
-              <h2 className="text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl">
+              <h2 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
                 Find the right plan for your team
               </h2>
               <p className="mt-3 text-sm text-muted-foreground">
@@ -181,7 +181,7 @@ function PricingPage() {
             </div>
 
             <div className="relative">
-              <Badge className="absolute bottom-full left-[68%] z-20 mb-2 -translate-x-1/2 border-none bg-[color:var(--foreground)] font-medium text-[color:var(--background)]">
+              <Badge className="absolute bottom-full left-[68%] z-20 mb-2 -translate-x-1/2 border-none bg-[color:var(--foreground)] font-bold text-[color:var(--background)]">
                 Most popular
               </Badge>
               <div className="overflow-x-auto rounded-lg border border-border">
@@ -189,7 +189,7 @@ function PricingPage() {
                   <TableHeader>
                     <TableRow className="hover:bg-transparent">
                       <TableHead className="sticky top-0 z-20 w-[36%] border-b border-border bg-background align-bottom">
-                        <span className="inline-block pb-3 text-sm font-medium text-muted-foreground">
+                        <span className="inline-block pb-3 text-sm font-semibold text-muted-foreground">
                           Features
                         </span>
                       </TableHead>
@@ -204,10 +204,10 @@ function PricingPage() {
                           )}
                         >
                           <div className="flex flex-col items-center gap-1 py-3">
-                            <span className="text-sm font-medium text-[color:var(--ink)]">
+                            <span className="text-sm font-bold text-[color:var(--ink)]">
                               {plan.name}
                             </span>
-                            <span className="text-lg font-medium text-[color:var(--ink)]">
+                            <span className="text-lg font-bold text-[color:var(--ink)]">
                               {plan.price}
                             </span>
                             <span className="text-xs font-normal text-muted-foreground">
@@ -225,7 +225,7 @@ function PricingPage() {
                         <TableRow className="bg-muted/40 hover:bg-muted/40">
                           <TableCell
                             colSpan={4}
-                            className="py-2 text-xs font-medium text-[color:var(--ink)]"
+                            className="py-2 text-xs font-semibold text-[color:var(--ink)]"
                           >
                             {group.section}
                           </TableCell>
@@ -266,7 +266,7 @@ function PricingPage() {
                             size="sm"
                             variant={plan.highlighted ? "solid" : "outline"}
                             color={plan.highlighted ? "blue" : undefined}
-                            className="w-full font-medium"
+                            className="w-full font-bold"
                           >
                             {plan.name === "Enterprise" ? (
                               <Link to="/business/join" search={{ plan: "enterprise" }}>

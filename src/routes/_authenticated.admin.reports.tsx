@@ -113,7 +113,7 @@ function AdminReports() {
     <div className="mx-auto w-full max-w-7xl">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-medium tracking-tight">Reports</h2>
+          <h2 className="text-xl font-bold tracking-tight">Reports</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             User reports on tutor cards, photos, introductions and notes. Upholding hides the item;
             a second uphold on one tutor pauses the card.
@@ -122,7 +122,7 @@ function AdminReports() {
       </div>
 
       <section className="mt-6">
-        <h3 className="pb-3 text-sm font-medium tracking-tight">Open ({open.length})</h3>
+        <h3 className="pb-3 text-sm font-semibold tracking-tight">Open ({open.length})</h3>
         <ConsoleTable minTableWidth="900px">
           <ConsoleTableHead>
             <tr>
@@ -251,7 +251,7 @@ function ReportRowView({
         {formatPostedAgo(row.created_at)}
       </ConsoleTd>
       <ConsoleTd className="text-xs">
-        <span className="font-medium">{TARGET_LABELS[row.target_type] ?? row.target_type}</span>
+        <span className="font-semibold">{TARGET_LABELS[row.target_type] ?? row.target_type}</span>
         {row.target_label ? (
           <span className="block max-w-[200px] truncate text-muted-foreground">
             {row.target_label}
@@ -270,7 +270,7 @@ function ReportRowView({
           <Button
             type="button"
             variant="outline"
-            className="h-8 px-3 text-xs font-medium"
+            className="h-8 px-3 text-xs font-bold"
             disabled={busy}
             onClick={() => onAct("reject")}
           >
@@ -280,7 +280,7 @@ function ReportRowView({
             type="button"
             variant="solid"
             color="blue"
-            className="h-8 px-3 text-xs font-medium"
+            className="h-8 px-3 text-xs font-bold"
             disabled={busy}
             onClick={() => onAct("uphold")}
           >
@@ -299,7 +299,7 @@ function StatusPill({ status }: { status: string }) {
       : "border-border bg-[color:var(--surface)] text-muted-foreground";
   return (
     <span
-      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-medium ${styles}`}
+      className={`inline-flex items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold ${styles}`}
     >
       {status === "upheld" ? "Upheld" : "Rejected"}
     </span>

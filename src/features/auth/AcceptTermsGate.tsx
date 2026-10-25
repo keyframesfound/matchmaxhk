@@ -44,7 +44,7 @@ export function AcceptTermsDialog({ userId, onAccepted, onDecline }: AcceptTerms
         onInteractOutside={(event) => event.preventDefault()}
         className="top-auto bottom-0 left-1/2 w-full max-w-[420px] translate-x-[-50%] translate-y-0 gap-0 rounded-t-3xl border-0 bg-[color:var(--surface)] p-6 pb-10 data-[state=open]:slide-in-from-bottom-1/2 data-[state=closed]:slide-out-to-bottom-full sm:top-1/2 sm:bottom-auto sm:translate-y-[-50%] sm:rounded-3xl sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=open]:zoom-in-95"
       >
-        <DialogTitle className="text-2xl font-medium tracking-tight text-[color:var(--ink)]">
+        <DialogTitle className="text-2xl font-bold tracking-tight text-[color:var(--ink)]">
           {t("auth.tos_title")}
         </DialogTitle>
         <DialogDescription className="mt-2 text-base leading-relaxed text-muted-foreground">
@@ -53,7 +53,7 @@ export function AcceptTermsDialog({ userId, onAccepted, onDecline }: AcceptTerms
             to="/tos"
             target="_blank"
             rel="noreferrer"
-            className="font-medium text-[color:var(--brand-link)] underline underline-offset-4 hover:opacity-80"
+            className="font-bold text-[color:var(--brand-link)] underline underline-offset-4 hover:opacity-80"
           >
             {t("auth.tos_terms")}
           </Link>
@@ -62,7 +62,7 @@ export function AcceptTermsDialog({ userId, onAccepted, onDecline }: AcceptTerms
             to="/privacy-policy"
             target="_blank"
             rel="noreferrer"
-            className="font-medium text-[color:var(--brand-link)] underline underline-offset-4 hover:opacity-80"
+            className="font-bold text-[color:var(--brand-link)] underline underline-offset-4 hover:opacity-80"
           >
             {t("auth.tos_privacy")}
           </Link>
@@ -74,7 +74,7 @@ export function AcceptTermsDialog({ userId, onAccepted, onDecline }: AcceptTerms
             color="neutral"
             loading={accepting}
             onClick={accept}
-            className="h-12 w-full rounded-xl text-base font-medium"
+            className="h-12 w-full rounded-xl text-base font-bold"
           >
             {t("auth.tos_accept")}
           </Button>
@@ -82,7 +82,7 @@ export function AcceptTermsDialog({ userId, onAccepted, onDecline }: AcceptTerms
             variant="ghost"
             onClick={onDecline}
             disabled={accepting}
-            className="h-10 w-full rounded-xl font-medium text-[color:var(--ink)] underline underline-offset-4"
+            className="h-10 w-full rounded-xl font-bold text-[color:var(--ink)] underline underline-offset-4"
           >
             {t("auth.tos_decline")}
           </Button>

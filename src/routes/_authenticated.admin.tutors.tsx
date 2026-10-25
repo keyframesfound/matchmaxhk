@@ -526,10 +526,10 @@ function AdminTutors() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-[color:var(--ink)]/10">
                 <div>
                   <div className="flex items-center gap-2">
-                    <h1 className="text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl">
+                    <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
                       Tutor Directory
                     </h1>
-                    <span className="rounded-full bg-[color:var(--ink)]/5 px-2.5 py-0.5 text-xs font-medium text-[color:var(--ink)]">
+                    <span className="rounded-full bg-[color:var(--ink)]/5 px-2.5 py-0.5 text-xs font-bold text-[color:var(--ink)]">
                       {tutors.length}
                     </span>
                   </div>
@@ -537,7 +537,7 @@ function AdminTutors() {
                     Add, edit, and organize verified tutors and their public profiles.
                   </p>
                 </div>
-                <Button onClick={() => setIsCreating(true)} className="font-medium">
+                <Button onClick={() => setIsCreating(true)} className="font-bold">
                   <Plus className="mr-2 h-4 w-4" /> Add New Tutor
                 </Button>
               </div>
@@ -551,10 +551,10 @@ function AdminTutors() {
                       className="h-4 w-4 text-amber-700 dark:text-amber-400"
                       aria-hidden="true"
                     />
-                    <h2 className="text-sm font-medium text-[color:var(--ink)]">
+                    <h2 className="text-sm font-bold text-[color:var(--ink)]">
                       Account Deletion Requests
                     </h2>
-                    <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-medium text-amber-800 dark:text-amber-300">
+                    <span className="rounded-full bg-amber-500/15 px-2.5 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300">
                       {deletionRequests.length}
                     </span>
                   </div>
@@ -570,7 +570,7 @@ function AdminTutors() {
                         className="flex flex-col gap-2 rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface)] px-3 py-2.5 sm:flex-row sm:items-center sm:justify-between"
                       >
                         <div className="min-w-0">
-                          <p className="text-sm font-medium text-[color:var(--ink)]">
+                          <p className="text-sm font-bold text-[color:var(--ink)]">
                             <span className="font-mono">{request.tutor_code || "Unnamed"}</span>
                             {request.display_name ? ` · ${request.display_name}` : ""}
                           </p>
@@ -589,7 +589,7 @@ function AdminTutors() {
                                   <Button
                                     size="sm"
                                     disabled={deletionRequestMutation.isPending}
-                                    className="bg-destructive font-medium text-[color:var(--destructive-foreground)] hover:bg-destructive/90"
+                                    className="bg-destructive font-bold text-[color:var(--destructive-foreground)] hover:bg-destructive/90"
                                   >
                                     Approve Deletion
                                   </Button>
@@ -749,7 +749,7 @@ function AdminTutors() {
               {/* Batch actions */}
               {selectedIds.size > 0 ? (
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-4 py-3">
-                  <span className="text-sm font-medium text-[color:var(--ink)]">
+                  <span className="text-sm font-bold text-[color:var(--ink)]">
                     {selectedIds.size} selected
                   </span>
                   <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -879,13 +879,13 @@ function AdminTutors() {
                               className="h-10 w-10 rounded-xl object-cover ring-1 ring-[color:var(--ink)]/10"
                             />
                           ) : (
-                            <div className="grid h-10 w-10 place-items-center rounded-xl bg-[color:var(--ink)]/[0.06] text-xs font-medium text-[color:var(--ink)]/60">
+                            <div className="grid h-10 w-10 place-items-center rounded-xl bg-[color:var(--ink)]/[0.06] text-xs font-bold text-[color:var(--ink)]/60">
                               {(row.tutor_code || "MM").slice(0, 2)}
                             </div>
                           )}
                           <div>
                             <div className="flex items-center gap-1.5">
-                              <span className="font-medium text-[color:var(--ink)] font-mono">
+                              <span className="font-bold text-[color:var(--ink)] font-mono">
                                 {row.tutor_code || "Unnamed"}
                               </span>
                               {getTutorGenderLabel(row.gender) && (
@@ -938,7 +938,7 @@ function AdminTutors() {
                         </div>
                       </ConsoleTd>
 
-                      <ConsoleTd className="font-medium text-[color:var(--ink)]">
+                      <ConsoleTd className="font-semibold text-[color:var(--ink)]">
                         HK${row.hourly_rate}
                         <span className="text-xs text-muted-foreground font-normal">/hr</span>
                       </ConsoleTd>
@@ -957,7 +957,7 @@ function AdminTutors() {
                           />
                           <span
                             className={cn(
-                              "text-xs font-medium",
+                              "text-xs font-semibold",
                               row.is_published
                                 ? "text-emerald-700 dark:text-emerald-400"
                                 : "text-muted-foreground",

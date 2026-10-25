@@ -120,14 +120,14 @@ export function NotePreviewViewer({
               <Lock className="h-5 w-5 text-accent-foreground" aria-hidden />
             </span>
             <div>
-              <p className="text-sm font-medium">{lockedLabel}</p>
+              <p className="text-sm font-bold">{lockedLabel}</p>
               <p className="text-xs text-muted-foreground">
                 {t("notes.pages_locked", { count: total - crisp })}
               </p>
             </div>
             <a
               href="#buy"
-              className="ml-2 shrink-0 rounded-md bg-[color:var(--btn-accent)] px-3 py-2 text-xs font-medium text-white transition-colors hover:bg-[#1A8CD8]"
+              className="ml-2 shrink-0 rounded-md bg-[color:var(--btn-accent)] px-3 py-2 text-xs font-semibold text-white transition-colors hover:bg-[#1A8CD8]"
             >
               {ctaLabel}
             </a>

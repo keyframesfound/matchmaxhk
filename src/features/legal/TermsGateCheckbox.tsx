@@ -50,7 +50,7 @@ export function TermsGateCheckbox({
             section: t(`terms.gate.section_${section}`),
           })}{" "}
           <Link
-            className="font-medium text-[color:var(--brand-link)] underline underline-offset-4"
+            className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
             to="/tos"
             hash={SECTION_ANCHORS[section]}
             target="_blank"

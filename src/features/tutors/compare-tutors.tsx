@@ -53,7 +53,7 @@ function CompareBar({
             className="h-4 w-4 shrink-0 text-[color:var(--muted-foreground)]"
             aria-hidden="true"
           />
-          <p className="truncate text-sm font-medium text-[color:var(--ink)]">
+          <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
             {count} of {MAX_COMPARE} selected
             {count === 1 ? ", pick at least 2" : ""}
           </p>
@@ -61,7 +61,7 @@ function CompareBar({
         <div className="flex shrink-0 items-center gap-2">
           <Button
             size="sm"
-            className="h-9 rounded-full px-4 text-[13px] font-medium"
+            className="h-9 rounded-full px-4 text-[13px] font-bold"
             disabled={count < 2}
             onClick={onOpenCompare}
           >
@@ -70,7 +70,7 @@ function CompareBar({
           <Button
             size="sm"
             variant="ghost"
-            className="h-9 rounded-full px-3 text-[13px] font-medium text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)]"
+            className="h-9 rounded-full px-3 text-[13px] font-bold text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)]"
             onClick={onClear}
           >
             Clear
@@ -100,15 +100,15 @@ function CompareDialog({
         const price = getTutorPriceDisplay(t);
         // Issue #125: flagged pricing strips the rate, show a dash.
         if (price.baseRate <= 0) {
-          return <p className="text-lg font-medium text-muted-foreground">—</p>;
+          return <p className="text-lg font-bold text-muted-foreground">—</p>;
         }
         return (
-          <p className="text-lg font-medium text-[color:var(--ink)]">
+          <p className="text-lg font-bold text-[color:var(--ink)]">
             HK${price.baseRate}
             {price.isRange ? (
-              <span className="ml-0.5 text-xs font-medium text-muted-foreground">up</span>
+              <span className="ml-0.5 text-xs font-semibold text-muted-foreground">up</span>
             ) : null}
-            <span className="ml-1 text-xs font-medium text-muted-foreground">/hr</span>
+            <span className="ml-1 text-xs font-semibold text-muted-foreground">/hr</span>
           </p>
         );
       },
@@ -120,14 +120,14 @@ function CompareDialog({
         return (
           <div className="space-y-0.5">
             {t.academic_headline ? (
-              <p className="text-[13px] font-medium leading-snug text-[color:var(--ink)]">
+              <p className="text-[13px] font-semibold leading-snug text-[color:var(--ink)]">
                 {t.academic_headline}
               </p>
             ) : null}
             {educationLines.map((line, index) => (
               <p
                 key={`${line.icon}-${index}`}
-                className="text-[13px] font-medium leading-snug text-[color:var(--ink)]"
+                className="text-[13px] font-semibold leading-snug text-[color:var(--ink)]"
               >
                 {line.text}
               </p>
@@ -149,7 +149,7 @@ function CompareDialog({
             {groups.map((line) => (
               <p
                 key={line}
-                className="text-[13px] font-medium leading-snug text-[color:var(--ink)]"
+                className="text-[13px] font-semibold leading-snug text-[color:var(--ink)]"
               >
                 {line}
               </p>
@@ -161,7 +161,7 @@ function CompareDialog({
     {
       label: "Lesson mode",
       render: (t) => (
-        <p className="text-[13px] font-medium text-[color:var(--ink)]">
+        <p className="text-[13px] font-bold text-[color:var(--ink)]">
           {(getTutorLessonModeLabel(t.lesson_mode) ?? "—").replace(/ tutoring$/, "")}
         </p>
       ),
@@ -169,7 +169,7 @@ function CompareDialog({
     {
       label: "Location",
       render: (t) => (
-        <p className="text-[13px] font-medium text-[color:var(--ink)]">
+        <p className="text-[13px] font-bold text-[color:var(--ink)]">
           {t.stations.length > 0 ? t.stations.slice(0, 3).join(", ") : (t.district ?? "—")}
         </p>
       ),
@@ -178,13 +178,13 @@ function CompareDialog({
       label: "Gender",
       render: (t) => {
         const label = getTutorGenderLabel(t.gender);
-        return <p className="text-[13px] font-medium text-[color:var(--ink)]">{label || "—"}</p>;
+        return <p className="text-[13px] font-semibold text-[color:var(--ink)]">{label || "—"}</p>;
       },
     },
     {
       label: "Languages",
       render: (t) => (
-        <p className="text-[13px] font-medium text-[color:var(--ink)]">
+        <p className="text-[13px] font-bold text-[color:var(--ink)]">
           {t.languages.length > 0 ? t.languages.join(", ") : "—"}
         </p>
       ),
@@ -192,7 +192,7 @@ function CompareDialog({
     {
       label: "Experience",
       render: (t) => (
-        <p className="text-[13px] font-medium text-[color:var(--ink)]">
+        <p className="text-[13px] font-bold text-[color:var(--ink)]">
           {t.experience_years != null ? `${t.experience_years} yrs` : "—"}
         </p>
       ),
@@ -217,7 +217,7 @@ function CompareDialog({
       render: (t) => {
         const inquiry = getTutorInquiryAction(t, whatsappNumber, "en");
         return (
-          <Button asChild size="sm" className="h-9 rounded-sm px-4 text-[13px] font-medium">
+          <Button asChild size="sm" className="h-9 rounded-sm px-4 text-[13px] font-bold">
             <a href={inquiry.href} target="_blank" rel="noreferrer">
               {inquiry.label}
             </a>
@@ -231,7 +231,7 @@ function CompareDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[90vh] w-[95vw] max-w-6xl overflow-y-auto rounded-sm p-0 sm:rounded-sm">
         <DialogHeader className="border-b border-border px-5 py-4 text-left sm:px-6">
-          <DialogTitle className="text-lg font-medium tracking-tight text-[color:var(--ink)]">
+          <DialogTitle className="text-lg font-bold tracking-tight text-[color:var(--ink)]">
             Compare tutors
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
@@ -257,7 +257,7 @@ function CompareDialog({
                     className="mx-auto h-12 w-12 text-sm"
                   />
                 )}
-                <p className="mt-1.5 text-sm font-medium text-[color:var(--ink)]">
+                <p className="mt-1.5 text-sm font-semibold text-[color:var(--ink)]">
                   {formatTutorCode(t.tutor_code)}
                 </p>
               </div>

@@ -247,7 +247,7 @@ export function SearchableSelect({
                   isHighlighted
                     ? "bg-[color:var(--ring)]/[0.08]"
                     : "hover:bg-[color:var(--surface-subtle)]",
-                  isSelected && "font-medium",
+                  isSelected && "font-semibold",
                 )}
               >
                 <div className="flex flex-col min-w-0 pr-2">
@@ -273,10 +273,10 @@ export function SearchableSelect({
               <button
                 type="button"
                 onClick={() => handleSelect(query.trim())}
-                className="flex w-full items-center justify-between rounded-md px-3 py-2 text-xs font-medium text-[color:var(--brand-link)] hover:bg-[color:var(--foreground)]/[0.06] text-left"
+                className="flex w-full items-center justify-between rounded-md px-3 py-2 text-xs font-semibold text-[color:var(--brand-link)] hover:bg-[color:var(--foreground)]/[0.06] text-left"
               >
                 <span>Add &ldquo;{query.trim()}&rdquo;</span>
-                <span className="text-xs font-medium text-muted-foreground">Custom</span>
+                <span className="text-xs font-semibold text-muted-foreground">Custom</span>
               </button>
             </div>
           )}

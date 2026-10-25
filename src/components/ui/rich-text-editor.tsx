@@ -146,7 +146,7 @@ export function RichTextEditor({
           <span
             className={cn(
               "ml-auto pr-1.5 text-[11px] tabular-nums text-muted-foreground",
-              overLimit && "font-medium text-destructive",
+              overLimit && "font-semibold text-destructive",
             )}
           >
             {normalizedValue.length}/{maxLength}

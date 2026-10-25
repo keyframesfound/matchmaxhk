@@ -46,7 +46,7 @@ export function GuideBar({ current, topOffset }: { current: GuideTab; topOffset:
                   to={tab.to}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "inline-flex rounded-full px-3.5 py-1.5 text-sm font-medium transition-colors",
+                    "inline-flex rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors",
                     active
                       ? "bg-[color:var(--foreground)] text-[color:var(--background)]"
                       : "text-muted-foreground hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]",
@@ -95,11 +95,11 @@ export function GuideSteps({ steps }: { steps: [string, string, string][] }) {
           key={number}
           className="grid grid-cols-[3rem_minmax(0,1fr)] gap-5 border-b border-[color:var(--ink)]/15 py-6 sm:gap-8 sm:py-7"
         >
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--foreground)]/[0.06] text-sm font-medium">
+          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--foreground)]/[0.06] text-sm font-bold">
             {number}
           </span>
           <div>
-            <h3 className="text-lg font-medium tracking-tight sm:text-xl">{title}</h3>
+            <h3 className="text-lg font-bold tracking-tight sm:text-xl">{title}</h3>
             <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">{text}</p>
           </div>
         </li>
@@ -114,7 +114,7 @@ export function GuideRules({ items }: { items: [string, string][] }) {
     <ul className="space-y-3">
       {items.map(([marker, text]) => (
         <li key={marker} className="flex gap-3 text-sm leading-7 text-[color:var(--ink)]/80">
-          <span aria-hidden="true" className="font-medium text-[color:var(--brand-link)]">
+          <span aria-hidden="true" className="font-bold text-[color:var(--brand-link)]">
             {marker}
           </span>
           <span>{text}</span>
@@ -127,7 +127,7 @@ export function GuideRules({ items }: { items: [string, string][] }) {
 /** Section heading used by every guide block. */
 export function GuideHeading({ children }: { children: ReactNode }) {
   return (
-    <h2 className="text-3xl font-medium leading-[1.05] tracking-tight sm:text-4xl">{children}</h2>
+    <h2 className="text-3xl font-bold leading-[1.05] tracking-tight sm:text-4xl">{children}</h2>
   );
 }
 

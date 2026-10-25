@@ -119,7 +119,7 @@ function CheckItem({ children }: { children: React.ReactNode }) {
 }
 
 function SectionHeading({ children }: { children: React.ReactNode }) {
-  return <h2 className="text-lg font-medium tracking-tight text-[color:var(--ink)]">{children}</h2>;
+  return <h2 className="text-lg font-bold tracking-tight text-[color:var(--ink)]">{children}</h2>;
 }
 
 /** #81: stable block reasons from canApplyToCase → i18n copy. */
@@ -166,7 +166,7 @@ function CaseApplyControl({
   if (alreadyApplied) {
     return (
       <span
-        className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 text-sm font-medium text-emerald-700 dark:text-emerald-400"
+        className="inline-flex h-11 shrink-0 items-center gap-1.5 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-4 text-sm font-bold text-emerald-700 dark:text-emerald-400"
         title={t("caseApplications.applied_title", {
           defaultValue: "You have applied for this case",
         })}
@@ -545,7 +545,7 @@ function CaseDetailPage() {
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
             <div className="flex min-w-0 flex-col gap-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="w-fit rounded-md bg-muted px-2 py-0.5 font-mono text-xs font-medium text-muted-foreground">
+                <span className="w-fit rounded-md bg-muted px-2 py-0.5 font-mono text-xs font-semibold text-muted-foreground">
                   {item.caseCode}
                 </span>
                 <CaseFeePill packageType={item.packageType} />
@@ -557,7 +557,7 @@ function CaseDetailPage() {
               </div>
               {/* Bilingual auto-title block (#411 pattern): locale-primary
                   headline, parallel locale line beneath. */}
-              <h1 className="text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-3xl">
+              <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
                 {title}
               </h1>
               {titleSecondary ? (
@@ -749,7 +749,7 @@ function CaseDetailPage() {
                     <Link
                       to="/business/$slug"
                       params={{ slug: item.centre.slug }}
-                      className="text-xs font-medium text-[color:var(--brand-link)] hover:underline"
+                      className="text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
                     >
                       {t("case_board.centre_view_profile")}
                     </Link>
@@ -827,7 +827,7 @@ function CaseDetailPage() {
                   ) : null}
                   {/* Confirm / clarify gate before Apply. */}
                   <div className="space-y-2 border-t border-border pt-3">
-                    <p className="text-xs font-medium text-[color:var(--ink)]">
+                    <p className="text-xs font-bold text-[color:var(--ink)]">
                       {t("case_board.screening_confirm_title")}
                     </p>
                     <RadioGroup
@@ -896,7 +896,7 @@ function CaseDetailPage() {
 
           <div className="flex flex-col gap-4 rounded-xl border border-border bg-muted/30 p-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-1">
-              <p className="text-sm font-medium text-[color:var(--ink)]">
+              <p className="text-sm font-bold text-[color:var(--ink)]">
                 {t("case_board.ready_title")}
               </p>
               <p className="text-sm text-muted-foreground">{t("case_board.ready_body")}</p>

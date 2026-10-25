@@ -210,7 +210,7 @@ function BusinessOverview() {
                   onClick={() => navigate({ to: "/business/join" })}
                   variant="solid"
                   color="blue"
-                  className="font-medium"
+                  className="font-bold"
                 >
                   Create a business account
                 </Button>
@@ -238,9 +238,7 @@ function BusinessOverview() {
       >
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <h1 className="text-2xl font-medium tracking-tight text-[color:var(--ink)]">
-              Overview
-            </h1>
+            <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)]">Overview</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {organization.tagline ?? "Your business account on MatchMax"}
             </p>
@@ -250,7 +248,7 @@ function BusinessOverview() {
 
         {organization.status === "pending" && (
           <div className="mt-6 rounded-lg border border-amber-200 bg-amber-50 p-4 dark:border-amber-500/20 dark:bg-amber-500/10">
-            <p className="text-sm font-medium text-amber-800 dark:text-amber-400">
+            <p className="text-sm font-semibold text-amber-800 dark:text-amber-400">
               Your account is pending activation
             </p>
             <p className="mt-1 text-sm text-amber-700/80 dark:text-amber-400/80">
@@ -298,7 +296,7 @@ function BusinessOverview() {
             <div className="mt-6 grid gap-4 lg:grid-cols-2">
               <section className="rounded-lg border border-border bg-card p-5">
                 <div>
-                  <h2 className="text-lg font-medium text-[color:var(--ink)]">Reach</h2>
+                  <h2 className="text-lg font-bold text-[color:var(--ink)]">Reach</h2>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     Directory impressions and public profile views over the last 30 days
                   </p>
@@ -378,7 +376,7 @@ function BusinessOverview() {
 
               <section className="rounded-lg border border-border bg-card p-5">
                 <div>
-                  <h2 className="text-lg font-medium text-[color:var(--ink)]">Engagement</h2>
+                  <h2 className="text-lg font-bold text-[color:var(--ink)]">Engagement</h2>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     Course views and contact clicks over the last 30 days
                   </p>
@@ -448,9 +446,7 @@ function BusinessOverview() {
                 <section className="overflow-hidden rounded-lg border border-border bg-card">
                   <div className="flex items-start justify-between gap-3 border-b border-border p-6 pb-4">
                     <div className="flex flex-col gap-2">
-                      <h2 className="text-lg font-medium text-[color:var(--ink)]">
-                        Getting started
-                      </h2>
+                      <h2 className="text-lg font-bold text-[color:var(--ink)]">Getting started</h2>
                       <span className="text-xs tabular-nums text-muted-foreground">
                         {completedSteps} of {onboardingSteps.length} complete
                       </span>
@@ -511,7 +507,7 @@ function BusinessOverview() {
               )}
 
               <section className="rounded-lg border border-border bg-card p-6">
-                <h2 className="text-lg font-medium text-[color:var(--ink)]">Plan & usage</h2>
+                <h2 className="text-lg font-bold text-[color:var(--ink)]">Plan & usage</h2>
                 {usage ? (
                   <div className="mt-4 space-y-4">
                     <UsageMeter
@@ -534,7 +530,7 @@ function BusinessOverview() {
 
             <section className="mt-8">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-lg font-medium text-[color:var(--ink)]">Recent posts</h2>
+                <h2 className="text-lg font-bold text-[color:var(--ink)]">Recent posts</h2>
                 <Button variant="outline" size="sm" onClick={() => switchTab("courses")}>
                   Manage courses
                 </Button>
@@ -568,7 +564,7 @@ function BusinessOverview() {
                           </span>
                         )}
                         <div className="min-w-0 flex-1">
-                          <p className="truncate text-sm font-medium text-[color:var(--ink)]">
+                          <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
                             {course.title}
                           </p>
                           <p className="mt-0.5 truncate text-xs text-muted-foreground">
@@ -630,7 +626,7 @@ function EngagementStat({
         <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden />
         {label}
       </span>
-      <span className="text-xl font-medium tabular-nums text-[color:var(--ink)]">
+      <span className="text-xl font-bold tabular-nums text-[color:var(--ink)]">
         {loading ? "…" : value.toLocaleString("en-HK")}
       </span>
       <span className="flex items-center gap-1 text-[11px] text-muted-foreground">
@@ -638,7 +634,7 @@ function EngagementStat({
         {delta !== null && (
           <span
             className={cn(
-              "inline-flex items-center gap-0.5 font-medium",
+              "inline-flex items-center gap-0.5 font-semibold",
               delta > 0
                 ? "text-emerald-600 dark:text-emerald-400"
                 : delta < 0
@@ -663,7 +659,7 @@ function PlanBadgeInline({ plan, status }: { plan: string; status: string }) {
   return (
     <div className="flex items-center gap-2">
       <span
-        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
+        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${
           plan === "enterprise"
             ? "bg-violet-50 text-violet-700 ring-violet-700/10 dark:bg-violet-500/10 dark:text-violet-400 dark:ring-violet-400/20"
             : "bg-blue-50 text-blue-700 ring-blue-700/10 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-400/20"
@@ -672,7 +668,7 @@ function PlanBadgeInline({ plan, status }: { plan: string; status: string }) {
         {plan === "enterprise" ? "Enterprise" : "Business"}
       </span>
       <span
-        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset ${
+        className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset ${
           status === "active"
             ? "bg-emerald-50 text-emerald-700 ring-emerald-700/10 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-400/20"
             : status === "pending"
@@ -705,12 +701,12 @@ function RequestsPanel({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-lg font-medium text-[color:var(--ink)]">Case requests</h2>
+          <h2 className="text-lg font-bold text-[color:var(--ink)]">Case requests</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Independent educator engagements requested by your organisation.
           </p>
         </div>
-        <Button asChild variant="solid" color="blue" className="font-medium">
+        <Button asChild variant="solid" color="blue" className="font-bold">
           <a href="/business/cases/new">New case request</a>
         </Button>
       </div>
@@ -730,7 +726,7 @@ function RequestsPanel({
           title="No case requests yet"
           description="Engage an independent educator for a course module, exam clinic, or class series."
           action={
-            <Button variant="solid" color="blue" className="font-medium" asChild>
+            <Button variant="solid" color="blue" className="font-bold" asChild>
               <a href="/business/cases/new">New case request</a>
             </Button>
           }
@@ -743,7 +739,7 @@ function RequestsPanel({
               <div key={row.id} className="px-4 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-medium text-[color:var(--ink)]">
+                    <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
                       {row.title}
                       <span className="ml-2 text-xs font-normal text-muted-foreground">
                         {row.case_code}
@@ -764,7 +760,7 @@ function RequestsPanel({
                   </div>
                   <span
                     className={cn(
-                      "shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium",
+                      "shrink-0 rounded-full px-2.5 py-0.5 text-xs font-semibold",
                       held
                         ? "bg-purple-500/15 text-purple-700 dark:text-purple-400"
                         : row.status === "matched"

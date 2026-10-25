@@ -121,7 +121,7 @@ export function TutorReviewsAdmin({ tutorId }: { tutorId: string }) {
             >
               <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1.5">
                 <div className="min-w-0">
-                  <p className="truncate text-sm font-medium text-[color:var(--ink)]">
+                  <p className="truncate text-sm font-bold text-[color:var(--ink)]">
                     {review.reviewer_display_name}
                     {review.student_grade_school ? (
                       <span className="ml-2 text-xs font-medium text-muted-foreground">
@@ -144,7 +144,7 @@ export function TutorReviewsAdmin({ tutorId }: { tutorId: string }) {
                   </span>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <label className="flex cursor-pointer items-center gap-1.5 text-xs font-medium text-muted-foreground">
+                  <label className="flex cursor-pointer items-center gap-1.5 text-xs font-semibold text-muted-foreground">
                     <Checkbox
                       checked={review.is_published}
                       disabled={setPublished.isPending}
@@ -244,7 +244,7 @@ export function TutorReviewsAdmin({ tutorId }: { tutorId: string }) {
           />
         </div>
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <label className="flex cursor-pointer items-center gap-2 text-sm font-medium text-[color:var(--ink)]">
+          <label className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-[color:var(--ink)]">
             <Checkbox
               checked={form.is_published}
               onCheckedChange={(checked) => setForm({ ...form, is_published: checked === true })}

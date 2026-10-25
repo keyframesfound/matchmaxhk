@@ -255,7 +255,7 @@ export function InlineReportLink({
             setGateOpen(true);
           }
         }}
-        className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground underline underline-offset-4 transition-colors hover:text-[color:var(--ink)]"
+        className="inline-flex items-center gap-1.5 text-xs font-semibold text-muted-foreground underline underline-offset-4 transition-colors hover:text-[color:var(--ink)]"
       >
         <Flag className="h-3.5 w-3.5" aria-hidden="true" />
         {t("report.inline_link", { item: label })}
@@ -472,7 +472,7 @@ function ReportDialog({
             >
               <Check className="h-7 w-7 text-[color:var(--brand-link)]" strokeWidth={2.6} />
             </span>
-            <DialogTitle className="mt-4 text-lg font-medium text-[color:var(--ink)]">
+            <DialogTitle className="mt-4 text-lg font-bold text-[color:var(--ink)]">
               {t("report.sent_title")}
             </DialogTitle>
             <DialogDescription className="mt-2 max-w-[280px] text-sm leading-relaxed text-muted-foreground">
@@ -482,7 +482,7 @@ function ReportDialog({
               type="button"
               variant="solid"
               color="blue"
-              className="mt-6 h-9 px-6 text-sm font-medium"
+              className="mt-6 h-9 px-6 text-sm font-bold"
               onClick={() => onOpenChange(false)}
             >
               {t("report.sent_done")}
@@ -491,7 +491,7 @@ function ReportDialog({
         ) : (
           <>
             <DialogHeader className="border-b border-border px-5 py-4">
-              <DialogTitle className="text-base font-medium text-[color:var(--ink)]">
+              <DialogTitle className="text-base font-bold text-[color:var(--ink)]">
                 {step === "reason"
                   ? t("report.step_reason_title", { item: label })
                   : t("report.step_details_title")}
@@ -515,7 +515,7 @@ function ReportDialog({
                           className={cn(
                             "flex w-full items-center gap-2.5 rounded-sm border px-3 py-2.5 text-left text-sm transition-colors",
                             selected
-                              ? "border-[color:var(--foreground)] bg-muted font-medium text-[color:var(--ink)]"
+                              ? "border-[color:var(--foreground)] bg-muted font-semibold text-[color:var(--ink)]"
                               : "border-border bg-[color:var(--surface)] text-muted-foreground hover:bg-muted/50",
                           )}
                         >
@@ -538,12 +538,12 @@ function ReportDialog({
                 </ul>
               ) : (
                 <div>
-                  <p className="rounded-sm border border-border bg-muted/50 px-3 py-2 text-xs font-medium text-[color:var(--ink)]">
+                  <p className="rounded-sm border border-border bg-muted/50 px-3 py-2 text-xs font-semibold text-[color:var(--ink)]">
                     {reason ? t(`report.reason_${reason}`) : null}
                   </p>
                   <label
                     htmlFor="report-note"
-                    className="mt-3 block text-xs font-medium text-[color:var(--ink)]"
+                    className="mt-3 block text-xs font-bold text-[color:var(--ink)]"
                   >
                     {reason === "other" ? t("report.note_label") : t("report.note_label_optional")}
                   </label>
@@ -567,7 +567,7 @@ function ReportDialog({
                 <Button
                   type="button"
                   variant="ghost"
-                  className="h-9 text-sm font-medium"
+                  className="h-9 text-sm font-bold"
                   onClick={() => setStep("reason")}
                 >
                   {t("report.back")}
@@ -580,7 +580,7 @@ function ReportDialog({
                   type="button"
                   variant="solid"
                   color="blue"
-                  className="h-9 px-5 text-sm font-medium"
+                  className="h-9 px-5 text-sm font-bold"
                   disabled={reason === null}
                   onClick={() => setStep("details")}
                 >
@@ -591,7 +591,7 @@ function ReportDialog({
                   type="button"
                   variant="solid"
                   color="blue"
-                  className="h-9 px-5 text-sm font-medium"
+                  className="h-9 px-5 text-sm font-bold"
                   disabled={!canSubmit || pending}
                   onClick={onSubmit}
                 >

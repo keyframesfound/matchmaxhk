@@ -108,7 +108,7 @@ function ProfileSection({
         <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
           <Icon className={`h-4 w-4 ${iconClassName}`} strokeWidth={2.1} />
         </span>
-        <h2 className="text-lg font-medium tracking-tight text-[color:var(--ink)] sm:text-xl">
+        <h2 className="text-lg font-bold tracking-tight text-[color:var(--ink)] sm:text-xl">
           {title}
         </h2>
       </div>
@@ -136,7 +136,7 @@ function LessonDetailRow({
         strokeWidth={2.35}
       />
       <p className="text-sm leading-relaxed sm:text-base">
-        <span className="font-medium text-[color:var(--ink)]">{label}:</span>{" "}
+        <span className="font-bold text-[color:var(--ink)]">{label}:</span>{" "}
         <span className="text-muted-foreground">{value}</span>
       </p>
     </li>
@@ -189,9 +189,9 @@ function AcademicQualification({ result }: { result: ExamResult }) {
               className="border-l-2 border-[color:var(--brand-link)] pl-3"
             >
               <div className="flex items-baseline gap-2">
-                <span className="text-sm font-medium text-[color:var(--ink)]">{entry.subject}</span>
+                <span className="text-sm font-bold text-[color:var(--ink)]">{entry.subject}</span>
                 {entry.grade.trim() ? (
-                  <span className="text-sm font-medium text-[color:var(--brand-link)]">
+                  <span className="text-sm font-bold text-[color:var(--brand-link)]">
                     – {gradeNoun}{" "}
                     {entry.grade
                       // Issue #206: hide the intake-era "(legacy)" suffix.
@@ -201,7 +201,7 @@ function AcademicQualification({ result }: { result: ExamResult }) {
                 ) : null}
               </div>
               {papers.length > 0 ? (
-                <p className="mt-0.5 text-xs font-medium text-[color:var(--brand-link)]">
+                <p className="mt-0.5 text-xs font-semibold text-[color:var(--brand-link)]">
                   {papers.map((paper, paperIndex) => (
                     <span key={`${paper.label}-${paperIndex}`}>
                       {paperIndex > 0 ? <strong> · </strong> : null}
@@ -226,7 +226,7 @@ function RateValue({ rate, nativeCurrency }: { rate: number; nativeCurrency: str
   const converted = nativeToDisplayText(rate, native, displayCurrency, fxRates);
   const nativeText = native === DEFAULT_CURRENCY ? `$${rate}` : formatMoney(rate, native);
   return (
-    <span className="shrink-0 text-sm font-medium text-[color:var(--ink)]">
+    <span className="shrink-0 text-sm font-bold text-[color:var(--ink)]">
       {converted ?? nativeText}
       <span className="ml-0.5 text-xs font-medium text-muted-foreground">
         {t("featured.per_hour")}
@@ -373,14 +373,14 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                   className="h-16 w-16 rounded-full object-cover sm:h-20 sm:w-20"
                 />
               ) : (
-                <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] text-xl font-medium text-[color:var(--muted-foreground)] sm:h-20 sm:w-20 sm:text-2xl">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] text-xl font-semibold text-[color:var(--muted-foreground)] sm:h-20 sm:w-20 sm:text-2xl">
                   {tutor.tutor_code?.slice(0, 2).toUpperCase() || "TP"}
                 </div>
               )}
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-center gap-2">
-                <h1 className="text-xl font-medium text-[color:var(--ink)] sm:text-2xl">
+                <h1 className="text-xl font-bold text-[color:var(--ink)] sm:text-2xl">
                   {tutor.tutor_code}
                   {genderLabel ? (
                     <>
@@ -390,7 +390,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                   ) : null}
                 </h1>
                 {statusKey ? (
-                  <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-medium text-[color:var(--ink)]">
+                  <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-[color:var(--ink)]">
                     <UserRound
                       className="h-3 w-3 text-[color:var(--brand-link)]"
                       aria-hidden="true"
@@ -400,7 +400,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                 ) : null}
               </div>
               {tutor.academic_headline || tutor.undergrad_university || tutor.secondary_school ? (
-                <div className="mt-2 space-y-1 text-base font-medium leading-snug text-[color:var(--ink)] sm:text-lg">
+                <div className="mt-2 space-y-1 text-base font-semibold leading-snug text-[color:var(--ink)] sm:text-lg">
                   {tutor.academic_headline ? (
                     <p className="break-words">{tutor.academic_headline}</p>
                   ) : null}
@@ -448,10 +448,10 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
             <div className="w-full sm:w-auto sm:text-right">
               <div className="flex items-center justify-start gap-1.5 sm:justify-end">
                 {price.baseRate > 0 ? (
-                  <p className="text-3xl font-medium text-[color:var(--ink)]">
+                  <p className="text-3xl font-bold text-[color:var(--ink)]">
                     {convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) ??
                       `$${price.baseRate}`}
-                    <span className="ml-1 text-sm font-medium text-muted-foreground">
+                    <span className="ml-1 text-sm font-semibold text-muted-foreground">
                       {translate("tutor_card.price_up")}
                       {translate("featured.per_hour")}
                     </span>
@@ -492,7 +492,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                 </Button>
               </div>
               {availabilityReadiness === "pre_booking" && tutor.earliest_start_date ? (
-                <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-medium text-amber-700 dark:text-amber-400">
+                <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:text-amber-400">
                   <CalendarDays className="h-3.5 w-3.5" aria-hidden="true" />
                   {translate("tutor_card.available_from", {
                     date: formatAvailabilityDate(tutor.earliest_start_date, i18n.language),
@@ -500,14 +500,14 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                 </p>
               ) : null}
               {inquiry.kind === "waitlist" ? (
-                <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-medium text-[color:var(--ink)]">
+                <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
                   <Lock className="h-3.5 w-3.5" aria-hidden="true" />
                   {translate("profile.fully_booked")}
                 </p>
               ) : null}
               {inquiry.kind !== "waitlist" && preferredTimeWindows.length > 0 ? (
                 <div className="mt-3 space-y-1.5">
-                  <p className="inline-flex flex-wrap items-center gap-1.5 text-xs font-medium text-[color:var(--ink)]">
+                  <p className="inline-flex flex-wrap items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]">
                     <Clock
                       className="h-3.5 w-3.5 text-[color:var(--brand-link)]"
                       aria-hidden="true"
@@ -523,7 +523,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                 </div>
               ) : null}
               {inquiry.kind === "status" ? (
-                <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-medium text-[color:var(--ink)]">
+                <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
                   <Lock className="h-3.5 w-3.5" aria-hidden="true" />
                   {inquiry.label}
                 </p>
@@ -532,7 +532,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                   asChild
                   variant="solid"
                   color="blue"
-                  className="mt-3 w-full rounded-sm font-medium sm:w-auto"
+                  className="mt-3 w-full rounded-sm font-bold sm:w-auto"
                 >
                   <a href={waUrl} target="_blank" rel="noopener noreferrer">
                     <MessageCircle className="mr-2 h-4 w-4" /> {inquiry.label}
@@ -543,7 +543,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                   asChild
                   variant="solid"
                   color="blue"
-                  className="mt-3 w-full font-medium sm:w-auto"
+                  className="mt-3 w-full font-bold sm:w-auto"
                 >
                   <Link to="/tutor-requests" search={{ post: true }}>
                     <MessageCircle className="mr-2 h-4 w-4" /> Request via our team
@@ -583,7 +583,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                             strokeWidth={2.1}
                           />
                           <div className="min-w-0">
-                            <p className="text-sm font-medium text-[color:var(--ink)]">
+                            <p className="text-sm font-bold text-[color:var(--ink)]">
                               {achievement.short_text}
                             </p>
                             {achievement.detail_text ? (
@@ -631,7 +631,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                     <div className="space-y-1">
                       {subjectGroups.map((group) => (
                         <p key={group.systemId} className="leading-relaxed text-sm">
-                          <span className="font-medium text-[color:var(--ink)]">
+                          <span className="font-bold text-[color:var(--ink)]">
                             {group.systemLabel}:
                           </span>{" "}
                           <span className="text-muted-foreground">{group.subjects.join(", ")}</span>
@@ -641,7 +641,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                   ) : null}
                   {tutor.ia_ee_tok_support.length > 0 ? (
                     <p className="mt-1 text-muted-foreground">
-                      <span className="font-medium text-[color:var(--ink)]">IA / EE / TOK:</span>{" "}
+                      <span className="font-bold text-[color:var(--ink)]">IA / EE / TOK:</span>{" "}
                       {tutor.ia_ee_tok_support.join(", ")}
                       {tutor.ia_ee_tok_notes ? `, ${tutor.ia_ee_tok_notes}` : ""}
                     </p>
@@ -655,7 +655,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                 <ul className="divide-y divide-border overflow-hidden rounded-sm border border-border">
                   {tutor.online_rate !== null ? (
                     <li className="flex items-center justify-between gap-4 px-4 py-2.5">
-                      <span className="text-sm font-medium text-[color:var(--ink)]">
+                      <span className="text-sm font-bold text-[color:var(--ink)]">
                         {translate("profile.rates_online")}
                       </span>
                       <RateValue rate={tutor.online_rate} nativeCurrency={tutor.currency} />
@@ -664,7 +664,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                   {tutor.inperson_rate !== null ? (
                     <li className="px-4 py-2.5">
                       <div className="flex items-center justify-between gap-4">
-                        <span className="text-sm font-medium text-[color:var(--ink)]">
+                        <span className="text-sm font-bold text-[color:var(--ink)]">
                           {translate("profile.rates_inperson")}
                         </span>
                         <RateValue rate={tutor.inperson_rate} nativeCurrency={tutor.currency} />
@@ -679,9 +679,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                       key={`${row.label}-${index}`}
                       className="flex items-center justify-between gap-4 px-4 py-2.5"
                     >
-                      <span className="text-sm font-medium text-[color:var(--ink)]">
-                        {row.label}
-                      </span>
+                      <span className="text-sm font-bold text-[color:var(--ink)]">{row.label}</span>
                       <RateValue rate={row.rate} nativeCurrency={tutor.currency} />
                     </li>
                   ))}
@@ -756,7 +754,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
           <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <h2 className="text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
                   {translate("profile.suggested_title")}
                 </h2>
               </div>
@@ -781,13 +779,13 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                     }
                     footerAction={
                       candidateInquiry.kind === "status" ? (
-                        <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-medium text-[color:var(--ink)]">
+                        <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)]">
                           {candidateInquiry.label}
                         </span>
                       ) : (
                         <Button
                           asChild
-                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-medium text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                         >
                           <a
                             href={candidateInquiry.href}

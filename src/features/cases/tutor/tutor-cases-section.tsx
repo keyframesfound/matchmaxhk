@@ -453,7 +453,7 @@ export function TutorCasesSection() {
               <li key={c.id} className="rounded-xl border border-[color:var(--ink)]/10 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
-                    <p className="text-sm font-medium text-[color:var(--ink)]">
+                    <p className="text-sm font-semibold text-[color:var(--ink)]">
                       {c.case_code} · {c.student_first_name}
                       {c.subject ? ` · ${c.subject}` : ""}
                       {c.exam_system ? ` (${c.exam_system})` : ""}

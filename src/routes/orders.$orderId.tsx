@@ -198,13 +198,13 @@ function OrderPage() {
                   <p className="text-xs font-medium text-muted-foreground">
                     {t("orders.reference_label")}
                   </p>
-                  <p className="font-mono text-xl font-medium tracking-wide">{order.reference}</p>
+                  <p className="font-mono text-xl font-bold tracking-wide">{order.reference}</p>
                 </div>
                 <div className="text-right">
                   <p className="text-xs font-medium text-muted-foreground">
                     {t("orders.amount_label")}
                   </p>
-                  <p className="text-xl font-medium">
+                  <p className="text-xl font-bold">
                     {t("notes.price", { amount: order.grossHkd })}
                   </p>
                 </div>
@@ -219,7 +219,7 @@ function OrderPage() {
             {/* FPS instructions */}
             {order.action === "pay" && (
               <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
-                <h2 className="flex items-center gap-2 text-lg font-medium">
+                <h2 className="flex items-center gap-2 text-lg font-bold">
                   <Receipt className="h-4 w-4" aria-hidden />
                   {t("orders.fps_title")}
                 </h2>
@@ -267,7 +267,7 @@ function OrderPage() {
                   href={buyUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-10 w-full items-center justify-center rounded-md bg-[#25D366] text-sm font-medium text-white transition-colors hover:bg-[#1EBE57]"
+                  className="flex h-10 w-full items-center justify-center rounded-md bg-[#25D366] text-sm font-bold text-white transition-colors hover:bg-[#1EBE57]"
                 >
                   <MessageCircle className="mr-2 h-4 w-4" aria-hidden />
                   {t("orders.pay_whatsapp_button")}
@@ -285,7 +285,7 @@ function OrderPage() {
 
             {/* Timeline */}
             <div className="rounded-2xl border border-border bg-card p-6">
-              <h2 className="text-lg font-medium">{t("orders.timeline_title")}</h2>
+              <h2 className="text-lg font-bold">{t("orders.timeline_title")}</h2>
               <ol className="mt-4 space-y-3">
                 {steps.map((step) => (
                   <li key={step.key} className="flex items-center gap-3 text-sm">
@@ -302,7 +302,7 @@ function OrderPage() {
                     )}
                     <span
                       className={
-                        step.done || step.current ? "font-medium" : "text-muted-foreground"
+                        step.done || step.current ? "font-semibold" : "text-muted-foreground"
                       }
                     >
                       {t(step.key)}
@@ -321,19 +321,19 @@ function OrderPage() {
                 <Link
                   to="/notes/$slug"
                   params={{ slug: order.materialSlug }}
-                  className="mt-1 block font-medium text-[color:var(--brand-link)] hover:underline"
+                  className="mt-1 block font-semibold text-[color:var(--brand-link)] hover:underline"
                 >
                   {order.materialTitle}
                 </Link>
               ) : (
-                <p className="mt-1 font-medium">{order.materialTitle}</p>
+                <p className="mt-1 font-semibold">{order.materialTitle}</p>
               )}
               <p className="mt-3 border-t border-border pt-3 text-sm text-muted-foreground">
                 {t("orders.licence_note")}
               </p>
             </div>
             {order.action === "download" && isShopProduct && order.materialSlug ? (
-              <Button asChild variant="solid" color="accent" className="w-full font-medium">
+              <Button asChild variant="solid" color="accent" className="w-full font-bold">
                 <a href={`/notes/${order.materialSlug}`}>
                   <PlayCircle className="mr-2 h-4 w-4" aria-hidden />
                   {t("orders.open_course_button")}
@@ -346,7 +346,7 @@ function OrderPage() {
                 <Button
                   variant="solid"
                   color="accent"
-                  className="w-full font-medium"
+                  className="w-full font-bold"
                   disabled={downloadMutation.isPending}
                   onClick={() => downloadMutation.mutate()}
                 >
@@ -359,12 +359,12 @@ function OrderPage() {
                 </Button>
               )}
             {order.action === "request_refund" && (
-              <p className="rounded-md bg-[#F4212E]/10 px-3 py-2 text-center text-xs font-medium text-destructive">
+              <p className="rounded-md bg-[#F4212E]/10 px-3 py-2 text-center text-xs font-bold text-destructive">
                 {t("gigs.past_due_badge")}
               </p>
             )}
             {order.action === "refunded" && (
-              <p className="rounded-md bg-amber-500/10 px-3 py-2 text-center text-xs font-medium text-amber-700">
+              <p className="rounded-md bg-amber-500/10 px-3 py-2 text-center text-xs font-bold text-amber-700">
                 {t("orders.refunded_badge")}
               </p>
             )}
@@ -392,7 +392,7 @@ function OrderPage() {
               </div>
             )}
             {order.action === "preparing" && (
-              <p className="rounded-md bg-accent px-3 py-2 text-center text-xs font-medium text-accent-foreground">
+              <p className="rounded-md bg-accent px-3 py-2 text-center text-xs font-bold text-accent-foreground">
                 {t("orders.preparing_badge")}
               </p>
             )}

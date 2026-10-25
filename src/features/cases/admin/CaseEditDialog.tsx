@@ -369,7 +369,7 @@ export function CaseEditDialog({
                 value={form.budgetMin}
                 onChange={(e) => update({ budgetMin: e.target.value.replace(/[^\d]/g, "") })}
               />
-              <span className="text-sm font-medium text-muted-foreground">–</span>
+              <span className="text-sm font-bold text-muted-foreground">–</span>
               <Input
                 aria-label="Maximum budget per hour"
                 className={controlClassName}
@@ -420,7 +420,7 @@ export function CaseEditDialog({
           <Button
             onClick={() => saveMutation.mutate()}
             disabled={saveMutation.isPending}
-            className="font-medium"
+            className="font-bold"
           >
             {saveMutation.isPending ? "Saving…" : "Save changes"}
           </Button>

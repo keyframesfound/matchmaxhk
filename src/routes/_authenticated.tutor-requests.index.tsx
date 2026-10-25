@@ -220,7 +220,7 @@ function CaseShareButton({ item }: { item: PublicCaseBoardItem }) {
 function CaseAppliedPill() {
   const { t } = useTranslation();
   return (
-    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
       <Check className="h-3 w-3" aria-hidden="true" />
       {t("caseApplications.applied", { defaultValue: "Applied" })}
     </span>
@@ -247,7 +247,7 @@ function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applie
       <div className="flex items-center justify-between gap-2">
         <CaseIdentityRow item={item} />
         {item.startTiming === "asap" ? (
-          <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-[color:var(--warning)]/15 px-1.5 py-0.5 text-xs font-medium text-[#a16207] dark:text-[color:var(--warning)]">
+          <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-[color:var(--warning)]/15 px-1.5 py-0.5 text-xs font-bold text-[#a16207] dark:text-[color:var(--warning)]">
             <CalendarClock className="h-3 w-3" aria-hidden="true" />
             {t("case_board.badge_asap")}
           </span>
@@ -261,7 +261,7 @@ function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applie
         params={{ caseCode: item.caseCode }}
         className="mt-2 block min-w-0"
       >
-        <h3 className="truncate text-base font-medium text-[color:var(--ink)]">{primary}</h3>
+        <h3 className="truncate text-base font-bold text-[color:var(--ink)]">{primary}</h3>
         {secondary ? <p className="truncate text-sm text-muted-foreground">{secondary}</p> : null}
       </Link>
 
@@ -272,7 +272,7 @@ function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applie
           blocker, the logistics line no longer carries the rate. */}
       {budget.primary ? (
         <p className="mt-0.5 truncate text-xs text-muted-foreground">
-          <span className="font-medium text-[color:var(--ink)]">{budget.primary}</span> (
+          <span className="font-semibold text-[color:var(--ink)]">{budget.primary}</span> (
           {budget.original})
         </p>
       ) : rateHkd ? (
@@ -303,7 +303,7 @@ function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applie
           <Link
             to="/tutor-requests/$caseCode"
             params={{ caseCode: item.caseCode }}
-            className="group ml-1 flex shrink-0 items-center gap-1 text-sm font-medium text-[color:var(--ink)] hover:underline"
+            className="group ml-1 flex shrink-0 items-center gap-1 text-sm font-semibold text-[color:var(--ink)] hover:underline"
           >
             {t("case_board.view_details")}
             <ArrowRight
@@ -551,7 +551,7 @@ function TutorRequestsPage() {
               <Badge variant="outline" className="mb-4">
                 Tutor requests
               </Badge>
-              <h1 className="text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-3xl">
+              <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
                 Requesting a tutor that meets your requirements?
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -564,7 +564,7 @@ function TutorRequestsPage() {
                   variant="solid"
                   color="neutral"
                   shape="pill"
-                  className="h-11 px-6 font-medium"
+                  className="h-11 px-6 font-bold"
                 >
                   {formOpen ? "Hide form" : "Post your request"}
                 </Button>
@@ -585,7 +585,7 @@ function TutorRequestsPage() {
             <div ref={formSectionRef} className="scroll-mt-24">
               <PageContainer width="default" className="py-10 sm:py-12">
                 <div className="mb-6">
-                  <h2 className="text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                  <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
                     Post your request
                   </h2>
                   <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
@@ -618,7 +618,7 @@ function TutorRequestsPage() {
                   strokeWidth={1.75}
                   aria-hidden="true"
                 />
-                <DialogTitle className="mt-6 text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-[28px]">
+                <DialogTitle className="mt-6 text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-[28px]">
                   Requesting a tutor that meets your requirements?
                 </DialogTitle>
                 <DialogDescription className="mt-2 text-base leading-relaxed">
@@ -634,7 +634,7 @@ function TutorRequestsPage() {
                     variant="solid"
                     color="neutral"
                     shape="pill"
-                    className="h-13 w-full text-base font-medium"
+                    className="h-13 w-full text-base font-bold"
                   >
                     Post your request
                   </Button>
@@ -657,11 +657,11 @@ function TutorRequestsPage() {
                 <Badge variant="outline" className="mb-4">
                   Tutor requests
                 </Badge>
-                <h2 className="text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
                   Open requests
                 </h2>
                 {hasActiveFilters ? (
-                  <p className="mt-2 text-sm font-medium text-[color:var(--ink)]/70">
+                  <p className="mt-2 text-sm font-semibold text-[color:var(--ink)]/70">
                     {filteredCases.length} {filteredCases.length === 1 ? "match" : "matches"}
                   </p>
                 ) : null}
@@ -701,7 +701,7 @@ function TutorRequestsPage() {
                         aria-hidden="true"
                       />
                     </div>
-                    <h3 className="mt-4 text-xl font-medium tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                    <h3 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
                       No open requests right now
                     </h3>
                     <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -714,7 +714,7 @@ function TutorRequestsPage() {
                         variant="solid"
                         color="neutral"
                         shape="pill"
-                        className="h-11 px-6 font-medium"
+                        className="h-11 px-6 font-bold"
                       >
                         Post your request
                       </Button>
@@ -728,7 +728,7 @@ function TutorRequestsPage() {
                         aria-hidden="true"
                       />
                     </div>
-                    <h3 className="mt-4 text-xl font-medium tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                    <h3 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
                       {t("directory.empty_title")}
                     </h3>
                     <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">

@@ -28,7 +28,7 @@ export function EmptyState({
           <Icon className="h-6 w-6 text-muted-foreground" />
         </span>
       )}
-      <h3 className="mt-4 text-base font-medium text-[color:var(--ink)]">{title}</h3>
+      <h3 className="mt-4 text-base font-semibold text-[color:var(--ink)]">{title}</h3>
       {description ? (
         <p className="mt-1.5 max-w-md text-sm text-muted-foreground">{description}</p>
       ) : null}

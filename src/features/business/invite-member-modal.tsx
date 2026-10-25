@@ -82,7 +82,7 @@ export function InviteMemberModal({
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={sending} className="font-medium">
+            <Button type="submit" disabled={sending} className="font-bold">
               {sending ? "Sending…" : "Send invite"}
             </Button>
           </DialogFooter>

@@ -125,7 +125,7 @@ function OnboardingRoleDialog({
         onInteractOutside={(event) => event.preventDefault()}
         className="top-auto bottom-0 left-1/2 w-full max-w-[520px] translate-x-[-50%] translate-y-0 gap-0 rounded-t-3xl border-0 bg-[color:var(--surface)] p-6 pb-8 data-[state=closed]:slide-out-to-bottom-full data-[state=open]:slide-in-from-bottom-1/2 sm:top-1/2 sm:bottom-auto sm:translate-y-[-50%] sm:rounded-3xl sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=open]:zoom-in-95"
       >
-        <DialogTitle className="text-2xl font-medium tracking-tight text-[color:var(--ink)]">
+        <DialogTitle className="text-2xl font-bold tracking-tight text-[color:var(--ink)]">
           {displayName
             ? t("auth.onboarding_title_named", { name: displayName })
             : t("auth.onboarding_title")}
@@ -171,7 +171,7 @@ function OnboardingRoleDialog({
                   <Icon className="h-6 w-6" strokeWidth={2} />
                 </span>
                 <span className="flex flex-col gap-0.5">
-                  <span className="font-medium text-[color:var(--ink)]">{option.label}</span>
+                  <span className="font-bold text-[color:var(--ink)]">{option.label}</span>
                   <span className="text-sm leading-snug text-muted-foreground">{option.desc}</span>
                 </span>
               </button>
@@ -184,7 +184,7 @@ function OnboardingRoleDialog({
           loading={submitting}
           disabled={!choice}
           onClick={confirm}
-          className="mt-6 h-12 w-full rounded-xl text-base font-medium"
+          className="mt-6 h-12 w-full rounded-xl text-base font-bold"
         >
           {t("auth.onboarding_next")}
         </Button>

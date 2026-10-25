@@ -109,7 +109,7 @@ export function UsersTable({
                       className="h-9 w-9 text-xs"
                     />
                     <div className="min-w-0">
-                      <p className="truncate font-medium text-sm text-[color:var(--ink)]">
+                      <p className="truncate font-bold text-sm text-[color:var(--ink)]">
                         {user.display_name ?? "—"}
                       </p>
                       <p className="truncate text-xs text-muted-foreground font-mono">
@@ -139,7 +139,7 @@ export function UsersTable({
                 <ConsoleTd>
                   <Badge
                     variant="outline"
-                    className={`text-[11px] font-medium ${accountStatusBadgeClass(user.account_status)}`}
+                    className={`text-[11px] font-bold ${accountStatusBadgeClass(user.account_status)}`}
                     title={user.account_status_reason ?? undefined}
                   >
                     {accountStatusLabel(user.account_status)}
@@ -156,7 +156,7 @@ export function UsersTable({
                         <Badge
                           key={role}
                           variant="outline"
-                          className={`text-[11px] font-medium ${ROLE_BADGE_STYLES[role]}`}
+                          className={`text-[11px] font-bold ${ROLE_BADGE_STYLES[role]}`}
                         >
                           {ROLE_DISPLAY_NAMES[role]}
                         </Badge>
@@ -166,7 +166,7 @@ export function UsersTable({
                       size="sm"
                       variant="ghost"
                       onClick={() => onManageRoles(user)}
-                      className="h-6 px-1.5 text-[11px] font-medium text-muted-foreground hover:text-[color:var(--ink)]"
+                      className="h-6 px-1.5 text-[11px] font-semibold text-muted-foreground hover:text-[color:var(--ink)]"
                     >
                       Edit
                     </Button>
@@ -187,7 +187,7 @@ export function UsersTable({
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="end" className="w-48">
-                      <DropdownMenuLabel className="text-xs font-medium">
+                      <DropdownMenuLabel className="text-xs font-bold">
                         User Actions
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />

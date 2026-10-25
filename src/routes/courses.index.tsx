@@ -123,7 +123,7 @@ function CoursesDirectory() {
         <main className="flex-1">
           <section className="border-b border-border bg-[color:var(--surface-header)] py-10 sm:py-12 lg:border-b-0">
             <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
-              <h1 className="text-4xl font-medium tracking-tight text-[color:var(--ink)] sm:text-5xl">
+              <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
                 Find the right course
               </h1>
               <p className="mt-3 max-w-2xl text-base text-muted-foreground sm:text-lg">
@@ -160,7 +160,7 @@ function CoursesDirectory() {
                   <Skeleton className="h-4 w-28" />
                 ) : (
                   <p className="text-sm text-muted-foreground">
-                    <span className="font-medium text-foreground">{results.length}</span>{" "}
+                    <span className="font-bold text-foreground">{results.length}</span>{" "}
                     {results.length === 1 ? "course" : "courses"} found
                   </p>
                 )}

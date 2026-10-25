@@ -36,19 +36,19 @@ typography:
   display:
     fontFamily: "Geist, ui-sans-serif, system-ui, -apple-system, 'PingFang HK', 'Microsoft JhengHei', sans-serif"
     fontSize: "clamp(2.25rem, 5vw, 4.5rem)"
-    fontWeight: 500
+    fontWeight: 700
     lineHeight: 1.1
     letterSpacing: "-0.03em"
   headline:
     fontFamily: "Geist, ui-sans-serif, system-ui, -apple-system, 'PingFang HK', 'Microsoft JhengHei', sans-serif"
     fontSize: "clamp(1.75rem, 2vw + 1.1rem, 2.45rem)"
-    fontWeight: 500
+    fontWeight: 700
     lineHeight: 1.1
     letterSpacing: "-0.03em"
   title:
     fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, 'PingFang HK', 'Microsoft JhengHei', sans-serif"
     fontSize: "clamp(1.35rem, 1.1vw + 1rem, 1.75rem)"
-    fontWeight: 500
+    fontWeight: 700
     lineHeight: 1.2
     letterSpacing: "-0.01em"
   subtitle:
@@ -89,7 +89,7 @@ components:
     rounded: "{rounded.control}"
     height: "36px (44px for mobile-primary CTAs, 50px for hero lg)"
     padding: "8px 16px"
-    fontWeight: 500
+    fontWeight: 600
   button-primary-hover:
     backgroundColor: "#0A6296"
   button-neutral:
@@ -98,14 +98,14 @@ components:
     rounded: "{rounded.control}"
     height: "36px"
     padding: "8px 16px"
-    fontWeight: 500
+    fontWeight: 600
   button-outline:
     backgroundColor: "{colors.paper-white}"
     textColor: "{colors.ink}"
     rounded: "{rounded.control}"
     height: "36px"
     padding: "8px 16px"
-    fontWeight: 500
+    fontWeight: 600
   button-outline-hover:
     backgroundColor: "{colors.hover-wash}"
   input:
@@ -143,7 +143,7 @@ MatchMax pairs the **Twitter Azure palette** (21st.dev community theme by serafi
 **Relationship to Arc.** Arc (uiarc.dev) is the style authority for type, geometry, copy, surfaces, and motion. When this document says "Arc", it cites the rule, not a package: nothing here requires installing Arc components. Existing shadcn-based components are styled toward these values; Arc components, patterns, and skills remain the first reference when building or reviewing UI (PR #455's in-place adaptations are the model).
 
 **Key characteristics:**
-- Calm type: Geist for large headings, Inter everywhere else, weights 400 and 500 only. Hierarchy comes from size, colour, and spacing, never from bold
+- Calm type: Geist for large headings, Inter everywhere else. Weight ladder (owner decision, 2026-10-25): 400 body, 500 labels, 600 controls and card titles, 700 headings
 - Scarcity of accent: azure fills appear only on money CTAs (~10% of buttons); everything else is white, grey, or ink monochrome
 - Azure owns interaction: accent fills, links, focus rings, selected and active states, progress meters, data-viz series
 - AA floor: every text and indicator pair passes WCAG AA in both themes (4.5:1 text, 3:1 non-text); the azure signal deepens on light surfaces to hold it, and never rides an alpha wash
@@ -192,7 +192,7 @@ The palette is a quiet news feed: ink text, paper and card-tint surfaces, hairli
 **Body font: Inter** (400/500) for body text, labels, controls, and small headings below 30px.
 Load them as `--font-display` and `--font-body`. Both are Latin-only; zh-HK text falls back to the system CJK stack in both fonts, unchanged from today.
 
-**Character:** hierarchy comes from size, colour (`--foreground` over secondary ink), and spacing. Weights are 400 and 500 only, never 600, 700, or 800. Display tracking is `-0.03em`, body and label tracking `-0.01em`. Never `text-transform: uppercase`, never wide tracking on small labels, never an eyebrow line above a heading (see Copy).
+**Character:** hierarchy comes from size, colour (`--foreground` over secondary ink), spacing, and the weight ladder (400 body, 500 labels, 600 controls/card titles, 700 headings; 800 is wordmark-only). Display tracking is `-0.03em`, body and label tracking `-0.01em`. Never `text-transform: uppercase`, never wide tracking on small labels, never an eyebrow line above a heading (see Copy).
 
 ### The size scale
 Sizes come from this ladder only: 11, 12, 14, 16, 18, 22, 28, 36, 52, 72px. 11px is the floor, for captions and dense meta only; nothing smaller ships.
@@ -205,7 +205,7 @@ Sizes come from this ladder only: 11, 12, 14, 16, 18, 22, 28, 36, 52, 72px. 11px
 - **Body** (400, 16px, 1.6): All running text. Small text at 14px, micro at 11 to 12px.
 - **Label** (500, 12 to 14px, sentence case): Buttons, chips, form labels, table headers, step indicators.
 - **The Heading Step Rule.** A heading sits at least one full ladder step above its content: page sections at 22 to 28px, panel and card-section headings at 18px minimum over 14 to 16px content. Inside a dense card, a section caption takes the Label role instead (12px, 500, secondary ink): it is signage for the group, not a title, and never competes with the card title.
-- **Weight rationing.** 500 belongs to titles, labels, chips, controls, and key figures. Body copy, list content, and the supporting lines under a heading sit at 400. When a heading fails to stand out, the fix is a size step, a colour step, or demoting nearby content to 400; never a heavier weight.
+- **Weight ladder.** 700 belongs to headings and display titles, 600 to controls, buttons, and card/panel titles, 500 to labels, chips, and key figures, 400 to body copy and supporting lines under a heading. Never go above 700 outside the wordmarks (Poppins 800, Open Sans 700).
 - Numbers that change or align in columns use `font-variant-numeric: tabular-nums`.
 
 ### Named Rules
@@ -314,7 +314,7 @@ Corners are always symmetric. Borders are 1px hairlines; dividers use `border-bo
 For each component: one clear primary action, calm signage, tactile feedback.
 
 ### Buttons
-- **Shape:** `--radius-control` (18px). Heights: 36px default, 44px for mobile-primary and full-width CTAs, 50px for hero large. Weight 500, verb-plus-object labels.
+- **Shape:** `--radius-control` (18px). Heights: 36px default, 44px for mobile-primary and full-width CTAs, 50px for hero large. Weight 600, verb-plus-object labels.
 - **Neutral default** (`variant="default"`): white fill, ink text, hairline `foreground/15` border, no shadow; hover washes to the hover wash and deepens the border. The resting state of ~90% of buttons.
 - **Accent** (`variant="solid" color="blue"`, `color="accent"` is an alias): the money CTA. `--btn-accent` fill (`#0F7DB8` light, `#1273B4` dark) with white text, hover `#0A6296`/`#0E66A1`. Reserved for the conversion list: hero Find a Tutor, directory Search, Post your request (and submit), Join as Tutor (and final submit), Contact and Request Tutor, header Sign up, auth continue, pricing highlighted CTA, dashboard and case CTAs, Publish course, business signup.
 - **Request-tutor decision:** the full-size "Request tutor" CTA on the tutor profile page is the one azure contact CTA; on tutor cards (home rails, directory, suggested tutors) the compact "Request tutor" WhatsApp button ships neutral so the card stays scannable and azure stays scarce. Do not flip card contact buttons to azure.
@@ -332,7 +332,7 @@ For each component: one clear primary action, calm signage, tactile feedback.
 - **Internal padding:** `p-6` standard; the marketing search panel keeps `p-2.5 sm:p-5`.
 
 ### Inputs and fields
-- **Style:** 44px tall (`--control-height-md`), transparent fill, 1px `--input` stroke (`--border-strong` semantics on emphasis), `--radius-control` corners, 16px text (14px at sm breakpoints), 400 weight.
+- **Style:** 44px tall (`--control-height-md`), transparent fill, 1px `--input` stroke (`--border-strong` semantics on emphasis), `--radius-control` corners, 16px text (14px at sm breakpoints), 400 weight; a selected/entered value renders at 600.
 - **Focus:** border shifts to the ring colour plus a solid `ring-2` for keyboard focus only; no glow, no alpha washes, no ring on pointer focus.
 - **Error and disabled:** destructive styling per shadcn form wiring, error text beside the field saying what to fix; disabled at 50% opacity with `cursor-not-allowed`.
 
@@ -353,13 +353,13 @@ For each component: one clear primary action, calm signage, tactile feedback.
 ## Migration debt
 
 The codebase still carries pre-Arc artifacts that this system retires. Fold them in as files are touched, or in a dedicated pass:
-- Font swap: Open Sans to Geist (display) and Inter (body), loaded as `--font-display` and `--font-body`, with weights above 500 stripped from headings.
+- Font swap: Open Sans to Geist (display) and Inter (body), loaded as `--font-display` and `--font-body`; the 2026-10-25 weight restore re-added 600/700 so titles carry real weight again.
 - Radius tokens: `--radius-control` 8px to 18px, cards ~25px to 34px, plus concentric nesting in composed cards.
 - Eyebrow and kicker lines folded into headings or descriptions.
 - `Reveal` wrappers, the blur-highlight hero text, and the banner entrance choreography removed; motion reduced to the state-change vocabulary above.
 - Decorative icon tiles and medallions flattened to plain icons beside labels.
 - The ESLint no-shadow rule amended with a floating-layer carve-out (dialogs, menus, popovers, sheets, the WhatsApp float, `.pill-elevate` pills).
-- Any 600/700/800 font-weight utilities replaced with size, colour, or spacing hierarchy.
+- Weight utilities follow the ladder: `font-semibold` on controls and card titles, `font-bold` on headings; nothing above 700 outside wordmarks.
 
 ## Do's and Don'ts
 
@@ -376,7 +376,7 @@ The codebase still carries pre-Arc artifacts that this system retires. Fold them
 - **Do** check every new screen in dark before shipping it: borders visible on the night canvas, sticky chrome on `--surface-header`, chart and status colours on the lightened dark hues, no paper-white leftovers.
 
 ### Don't:
-- **Don't** set font weights above 500, fake bold, uppercase transforms, or wide tracking on small labels.
+- **Don't** set font weights above 700 (800 is wordmark-only), fake bold, uppercase transforms, or wide tracking on small labels.
 - **Don't** dim text with opacity classes, invent ad-hoc greys or hardcoded status hexes, or alpha-fade focus rings; secondary text is `--muted-foreground`, statuses are tokens, rings are solid `--ring`.
 - **Don't** add eyebrow lines, em dashes in English copy, or periods at the end of headings.
 - **Don't** put icons in decorative rounded tiles or circles; plain icons beside labels, status shapes excepted.
@@ -385,6 +385,6 @@ The codebase still carries pre-Arc artifacts that this system retires. Fold them
 - **Don't** rely on fill-only separation in dark mode (surfaces a few luminance points apart read as one blob), and don't lean on the `.dark .bg-white` remap to rescue light-mode fills; write the dark variant explicitly.
 - **Don't** nest cards, or leave 1 to 4px gaps between sibling card borders.
 - **Don't** choreograph entrances: no section reveals, no staggered lists, no hero text effects, no loops except live status.
-- **Don't** spread azure into passive decoration, add new accent hues, or use azure-tinted greys outside `--accent`; emphasis is hierarchy (size, weight is capped, position), never more colour.
+- **Don't** spread azure into passive decoration, add new accent hues, or use azure-tinted greys outside `--accent`; emphasis is hierarchy (size, weight ladder, position), never more colour.
 - **Don't** introduce a third type family; and never fix text to containers that break with CJK fallback fonts or letter-space Chinese text.
 - **Don't** exceed the rails: 1600px for header and hero, `max-w-[1536px]` for content; no edge-to-edge text columns.

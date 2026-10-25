@@ -32,7 +32,7 @@ export const Route = createFileRoute("/legal/notes-terms")({
 function Clause({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="border-t border-[color:var(--ink)]/10 py-7">
-      <h2 className="text-xl font-medium tracking-tight">{title}</h2>
+      <h2 className="text-xl font-bold tracking-tight">{title}</h2>
       <div className="mt-3 space-y-3 text-sm leading-7 text-[color:var(--ink)]/75">{children}</div>
     </section>
   );
@@ -93,7 +93,7 @@ function NotesTermsPage() {
           </div>
 
           <p className="mt-10 border-t border-[color:var(--ink)]/10 pt-6 text-sm">
-            <Link to="/guide/notes" className="font-medium underline underline-offset-4">
+            <Link to="/guide/notes" className="font-bold underline underline-offset-4">
               {t("legal.notes_terms.back_to_guide")}
             </Link>
           </p>

@@ -232,7 +232,7 @@ const PROFESSIONAL_STEPS = [
 ];
 
 const labelClassName =
-  "mb-1.5 block text-sm font-medium text-[color:var(--ink)] after:ml-0.5 after:text-[color:var(--muted-foreground)]";
+  "mb-1.5 block text-sm font-bold text-[color:var(--ink)] after:ml-0.5 after:text-[color:var(--muted-foreground)]";
 const controlClassName = "h-11 w-full rounded-sm";
 const invalidInputClassName =
   "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30";
@@ -282,7 +282,7 @@ function Field({ label, error, optional, hint, className, children }: FieldProps
       </label>
       {control}
       {error && error !== "Required" ? (
-        <p className="mt-1 text-xs font-medium text-destructive">{error}</p>
+        <p className="mt-1 text-xs font-semibold text-destructive">{error}</p>
       ) : null}
       {hint ? <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">{hint}</p> : null}
     </div>
@@ -455,7 +455,7 @@ function TrophyCabinetUpload({
           />
         </label>
       ) : (
-        <p className="text-xs font-medium text-muted-foreground">
+        <p className="text-xs font-semibold text-muted-foreground">
           Maximum of {MAX_PORTFOLIO_FILES} photos reached. Remove one to add another.
         </p>
       )}
@@ -491,7 +491,7 @@ function TrophyCabinetUpload({
           ))}
         </ul>
       ) : null}
-      {error ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
+      {error ? <p className="text-xs font-semibold text-destructive">{error}</p> : null}
     </div>
   );
 }
@@ -563,7 +563,7 @@ function ProfilePhotoUpload({
           ) : (
             <span className="grid justify-items-center gap-1">
               <User className="h-6 w-6" aria-hidden="true" />
-              <span className="text-[11px] font-medium leading-none">Add photo</span>
+              <span className="text-[11px] font-semibold leading-none">Add photo</span>
             </span>
           )}
           <input
@@ -604,7 +604,7 @@ function ProfilePhotoUpload({
         <p className="text-xs text-muted-foreground">
           JPG or PNG, up to {readableFileSize(MAX_FILE_BYTES)}.
         </p>
-        {error ? <p className="text-xs font-medium text-destructive">{error}</p> : null}
+        {error ? <p className="text-xs font-semibold text-destructive">{error}</p> : null}
       </div>
     </div>
   );
@@ -865,7 +865,7 @@ function SubjectPicker({
         {[...selectedSubjects].map((subject) => (
           <span
             key={subject}
-            className="inline-flex items-center gap-1 rounded-md bg-[color:var(--foreground)]/[0.08] px-2.5 py-1.5 text-xs font-medium text-[color:var(--ink)]"
+            className="inline-flex items-center gap-1 rounded-md bg-[color:var(--foreground)]/[0.08] px-2.5 py-1.5 text-xs font-semibold text-[color:var(--ink)]"
           >
             {subject}
             <button
@@ -2016,7 +2016,7 @@ export function ApplicationForm() {
             className="mx-auto h-12 w-12 text-[color:var(--muted-foreground)]"
             aria-hidden="true"
           />
-          <h1 className="mt-4 text-2xl font-medium text-[color:var(--ink)] sm:text-3xl">
+          <h1 className="mt-4 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">
             {unpublishedReuse ? t("join.success_unpublished_title") : t("join.success_title")}
           </h1>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
@@ -2027,7 +2027,7 @@ export function ApplicationForm() {
               asChild
               variant="solid"
               size="lg"
-              className="mt-6 h-12 rounded-sm bg-[color:var(--ink)] px-8 font-medium text-[color:var(--surface)] hover:opacity-90"
+              className="mt-6 h-12 rounded-sm bg-[color:var(--ink)] px-8 font-bold text-[color:var(--surface)] hover:opacity-90"
             >
               <Link to="/tutors/$tutorCode" params={{ tutorCode: liveTutorCode }}>
                 {t("join.view_live_card")}
@@ -2043,7 +2043,7 @@ export function ApplicationForm() {
             className="mx-auto h-12 w-12 text-[color:var(--brand-whatsapp)]"
             aria-hidden="true"
           />
-          <h2 className="mt-4 text-2xl font-medium text-[color:var(--ink)] sm:text-3xl">
+          <h2 className="mt-4 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">
             Step 2: Activate Your Application via WhatsApp
           </h2>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-muted-foreground">
@@ -2056,7 +2056,7 @@ export function ApplicationForm() {
               asChild
               variant="solid"
               size="lg"
-              className="mt-6 h-12 rounded-sm bg-[color:var(--brand-whatsapp)] px-8 font-medium text-white hover:bg-[color:var(--brand-whatsapp-hover)]"
+              className="mt-6 h-12 rounded-sm bg-[color:var(--brand-whatsapp)] px-8 font-bold text-white hover:bg-[color:var(--brand-whatsapp-hover)]"
             >
               <a href={whatsappActivateHref} target="_blank" rel="noreferrer">
                 <WhatsAppIcon className="mr-2 h-5 w-5" aria-hidden="true" />
@@ -2068,7 +2068,7 @@ export function ApplicationForm() {
               variant="solid"
               size="lg"
               disabled
-              className="mt-6 h-12 rounded-sm bg-[color:var(--brand-whatsapp)] px-8 font-medium text-white hover:bg-[color:var(--brand-whatsapp-hover)]"
+              className="mt-6 h-12 rounded-sm bg-[color:var(--brand-whatsapp)] px-8 font-bold text-white hover:bg-[color:var(--brand-whatsapp-hover)]"
             >
               <WhatsAppIcon className="mr-2 h-5 w-5" aria-hidden="true" />
               Open WhatsApp
@@ -2089,7 +2089,7 @@ export function ApplicationForm() {
     return (
       <div key={qualificationIndex} className="grid gap-4">
         <div className="flex items-center justify-between">
-          <p className="font-medium text-foreground">{qualification.curriculum} subject scores</p>
+          <p className="font-bold text-foreground">{qualification.curriculum} subject scores</p>
           {qualifications.length > 1 ? (
             <Button
               type="button"
@@ -2160,7 +2160,7 @@ export function ApplicationForm() {
                   />
                 )}
                 {fieldErrors[`subject-${qualificationIndex}-${scoreIndex}`] ? (
-                  <p className="text-xs font-medium text-destructive">
+                  <p className="text-xs font-semibold text-destructive">
                     {fieldErrors[`subject-${qualificationIndex}-${scoreIndex}`]}
                   </p>
                 ) : null}
@@ -2231,7 +2231,7 @@ export function ApplicationForm() {
                   </Select>
                 )}
                 {fieldErrors[`grade-${qualificationIndex}-${scoreIndex}`] ? (
-                  <p className="text-xs font-medium text-destructive">
+                  <p className="text-xs font-semibold text-destructive">
                     {fieldErrors[`grade-${qualificationIndex}-${scoreIndex}`]}
                   </p>
                 ) : null}
@@ -2405,7 +2405,7 @@ export function ApplicationForm() {
                   disabled={stepNumber >= step}
                   onClick={() => changeStep(stepNumber)}
                   className={cn(
-                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-medium transition-colors",
+                    "flex h-8 w-8 shrink-0 items-center justify-center rounded-full border text-sm font-bold transition-colors",
                     isComplete &&
                       "cursor-pointer border-[color:var(--ink)] bg-[color:var(--ink)] text-white",
                     isCurrent &&
@@ -2451,7 +2451,7 @@ export function ApplicationForm() {
               <div className="min-w-0">
                 <span>{error}</span>
                 {Object.keys(fieldErrors).length > 0 ? (
-                  <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs font-medium">
+                  <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs font-semibold">
                     {Object.keys(fieldErrors).map((key) => (
                       <li key={key}>{describeFieldError(key)}</li>
                     ))}
@@ -2537,7 +2537,7 @@ export function ApplicationForm() {
                           placeholder="Enter country or region"
                         />
                         {fieldErrors.countryOther ? (
-                          <p className="mt-1 text-xs font-medium text-destructive">
+                          <p className="mt-1 text-xs font-semibold text-destructive">
                             {fieldErrors.countryOther}
                           </p>
                         ) : null}
@@ -2598,7 +2598,7 @@ export function ApplicationForm() {
                           onChange={(date) => setBaseField("startDate", dateToIso(date))}
                         />
                         {fieldErrors.startDate ? (
-                          <p className="mt-1 text-xs font-medium text-destructive">
+                          <p className="mt-1 text-xs font-semibold text-destructive">
                             {fieldErrors.startDate}
                           </p>
                         ) : null}
@@ -2636,7 +2636,7 @@ export function ApplicationForm() {
                         placeholder="Please specify"
                       />
                       {fieldErrors.statusOther ? (
-                        <p className="mt-1 text-xs font-medium text-destructive">
+                        <p className="mt-1 text-xs font-semibold text-destructive">
                           {fieldErrors.statusOther}
                         </p>
                       ) : null}
@@ -3018,7 +3018,7 @@ export function ApplicationForm() {
                           ) : null}
                         </div>
                         <div className="mt-5 border-t border-border pt-5">
-                          <h3 className="text-base font-medium text-[color:var(--ink)]">
+                          <h3 className="text-base font-bold text-[color:var(--ink)]">
                             Subject Scores
                           </h3>
                           <Hint>
@@ -3192,7 +3192,7 @@ export function ApplicationForm() {
                         </Button>
                       </div>
                       {locationMessage ? (
-                        <p className="text-xs font-medium text-[color:var(--ink)]/70">
+                        <p className="text-xs font-semibold text-[color:var(--ink)]/70">
                           {locationMessage}
                         </p>
                       ) : null}
@@ -3209,7 +3209,7 @@ export function ApplicationForm() {
                                 setSuggestionStatus("idle");
                               }}
                               className={cn(
-                                "rounded-full border px-3 py-2 text-sm font-medium transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] disabled:cursor-not-allowed disabled:opacity-50",
+                                "rounded-full border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] disabled:cursor-not-allowed disabled:opacity-50",
                                 travelBudget === budget && originStation
                                   ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-[color:var(--surface-invert-fg)]"
                                   : "border-border bg-card text-foreground hover:border-[color:var(--foreground)]/25",
@@ -3241,7 +3241,7 @@ export function ApplicationForm() {
                         {suggestionStatus !== "idle" ? (
                           <p
                             className={cn(
-                              "text-sm font-medium transition-colors",
+                              "text-sm font-semibold transition-colors",
                               suggestionStatus === "adding"
                                 ? "animate-pulse text-[color:var(--muted-foreground)]"
                                 : "text-emerald-700",
@@ -3263,7 +3263,7 @@ export function ApplicationForm() {
                     >
                       {MTR_LINES.map((line) => (
                         <AccordionItem key={line.id} value={line.id}>
-                          <AccordionTrigger className="font-medium text-foreground hover:no-underline">
+                          <AccordionTrigger className="font-semibold text-foreground hover:no-underline">
                             {line.label} -{" "}
                             {
                               line.stations.filter((station) => base.stations.includes(station))
@@ -3273,7 +3273,7 @@ export function ApplicationForm() {
                           </AccordionTrigger>
                           <AccordionContent className="pt-2">
                             <div className="grid gap-3 sm:grid-cols-3">
-                              <label className="flex items-center gap-2 text-sm font-medium">
+                              <label className="flex items-center gap-2 text-sm font-semibold">
                                 <Checkbox
                                   checked={line.stations.every((station) =>
                                     base.stations.includes(station),
@@ -3488,7 +3488,7 @@ export function ApplicationForm() {
                     the shared HK-common vocabulary (src/features/tutors/sen.ts). */}
                 <label className="flex cursor-pointer items-start justify-between gap-3">
                   <span>
-                    <span className="block text-sm font-medium text-[color:var(--ink)]">
+                    <span className="block text-sm font-semibold text-[color:var(--ink)]">
                       {t("sen.join_toggle")}
                     </span>
                     <span className="mt-0.5 block text-xs text-muted-foreground">
@@ -3538,7 +3538,7 @@ export function ApplicationForm() {
                         );
                       })}
                       {fieldErrors.senCategories ? (
-                        <p className="text-xs font-medium text-destructive">
+                        <p className="text-xs font-semibold text-destructive">
                           {fieldErrors.senCategories}
                         </p>
                       ) : null}
@@ -3608,7 +3608,7 @@ export function ApplicationForm() {
                   <div className="space-y-2">
                     {rateSuggestion ? (
                       <div className="rounded-sm border border-[color:var(--brand-link)]/30 bg-[color:var(--brand-link)]/[0.06] px-3 py-2 text-sm">
-                        <p className="font-medium text-[color:var(--ink)]">
+                        <p className="font-bold text-[color:var(--ink)]">
                           💡 MatchMax Suggested Rate: {rateSuggestion.suggested_range} HKD/hr
                         </p>
                         <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
@@ -3616,7 +3616,7 @@ export function ApplicationForm() {
                         </p>
                         <button
                           type="button"
-                          className="mt-1 text-xs font-medium text-[color:var(--brand-link)] underline underline-offset-2"
+                          className="mt-1 text-xs font-bold text-[color:var(--brand-link)] underline underline-offset-2"
                           onClick={() => {
                             const firstNumber =
                               /(\d{3,4})/.exec(rateSuggestion.suggested_range)?.[1] ?? "";
@@ -3629,7 +3629,7 @@ export function ApplicationForm() {
                     ) : (
                       <button
                         type="button"
-                        className="text-left text-sm font-medium text-[color:var(--brand-link)] underline underline-offset-2 disabled:opacity-60"
+                        className="text-left text-sm font-bold text-[color:var(--brand-link)] underline underline-offset-2 disabled:opacity-60"
                         disabled={rateStatus === "calculating"}
                         onClick={() => void calculateSuggestedRate()}
                       >
@@ -3731,7 +3731,7 @@ export function ApplicationForm() {
                       <div className="grid gap-1.5">
                         <Label
                           htmlFor={`rate-row-label-${index}`}
-                          className="text-xs font-medium text-foreground"
+                          className="text-xs font-semibold text-foreground"
                         >
                           {t("join.rates.row_label")}
                         </Label>
@@ -3746,12 +3746,12 @@ export function ApplicationForm() {
                       <div className="grid gap-1.5">
                         <Label
                           htmlFor={`rate-row-rate-${index}`}
-                          className="text-xs font-medium text-foreground"
+                          className="text-xs font-semibold text-foreground"
                         >
                           {t("join.rates.row_rate", { currency: base.currency })}
                         </Label>
                         <div className="relative">
-                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
                             {base.currency}
                           </span>
                           <Input
@@ -3823,7 +3823,7 @@ export function ApplicationForm() {
               <div className="rounded-md border border-border p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-medium text-foreground">Per-curriculum pricing</p>
+                    <p className="text-sm font-semibold text-foreground">Per-curriculum pricing</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       Charge different rates for different curriculum levels, or keep one flat rate
                       across everything you teach.
@@ -3851,12 +3851,12 @@ export function ApplicationForm() {
                         <div key={`${qualification.curriculum}-${index}`} className="space-y-1.5">
                           <Label
                             htmlFor={`tier-rate-${index}`}
-                            className="text-xs font-medium text-foreground"
+                            className="text-xs font-semibold text-foreground"
                           >
                             {qualification.curriculum}
                           </Label>
                           <div className="relative">
-                            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-medium text-muted-foreground">
+                            <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
                               HK$
                             </span>
                             <Input
@@ -3880,7 +3880,7 @@ export function ApplicationForm() {
                                 clearFieldError("pricingTiers");
                               }}
                               placeholder={rateFloor || "450"}
-                              className="pl-11 text-sm font-medium"
+                              className="pl-11 text-sm font-semibold"
                             />
                           </div>
                         </div>
@@ -3912,7 +3912,7 @@ export function ApplicationForm() {
                     <span>
                       I agree to the MatchMax{" "}
                       <Link
-                        className="font-medium text-[color:var(--brand-link)] underline underline-offset-4"
+                        className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
                         to="/tos"
                         target="_blank"
                       >
@@ -4002,7 +4002,7 @@ export function ApplicationForm() {
             <Button
               type="button"
               variant="outline"
-              className="h-12 rounded-sm px-6 font-medium"
+              className="h-12 rounded-sm px-6 font-bold"
               disabled={step === 1 || submitting}
               onClick={() => changeStep(step - 1)}
             >
@@ -4013,7 +4013,7 @@ export function ApplicationForm() {
               disabled={submitting}
               variant="solid"
               color="blue"
-              className="h-12 rounded-sm px-8 font-medium"
+              className="h-12 rounded-sm px-8 font-bold"
             >
               {submitting ? (
                 "Submitting…"
@@ -4038,7 +4038,7 @@ function Heading({ step, title }: { step: number; title: string }) {
   return (
     <div className="mb-6">
       <p className="text-xs font-medium text-[color:var(--muted-foreground)]">Step {step}</p>
-      <h2 className="mt-2 text-2xl font-medium text-[color:var(--ink)] sm:text-3xl">{title}</h2>
+      <h2 className="mt-2 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">{title}</h2>
     </div>
   );
 }

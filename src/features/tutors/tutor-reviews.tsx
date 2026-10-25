@@ -37,7 +37,7 @@ export function TutorReviews({
           <li key={review.id} className="px-4 py-3.5">
             <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-[color:var(--ink)]">
+                <p className="truncate text-sm font-bold text-[color:var(--ink)]">
                   {review.reviewer_display_name}
                 </p>
                 {review.student_grade_school ? (

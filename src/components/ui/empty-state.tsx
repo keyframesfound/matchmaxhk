@@ -21,7 +21,7 @@ export function EmptyState({ icon: Icon, title, description, action, className }
           aria-hidden="true"
         />
       ) : null}
-      <p className="text-sm font-medium text-[color:var(--ink)]">{title}</p>
+      <p className="text-sm font-semibold text-[color:var(--ink)]">{title}</p>
       {description ? <p className="mt-0.5 text-xs text-muted-foreground">{description}</p> : null}
       {action ? <div className="mt-4">{action}</div> : null}
     </div>

@@ -34,7 +34,7 @@ export function DemandBadge({ kind, className }: { kind: DemandBadgeKind; classN
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center gap-1 whitespace-normal rounded-md border px-1.5 py-0.5 text-center text-[11px] font-medium leading-tight",
+        "inline-flex max-w-full items-center gap-1 whitespace-normal rounded-md border px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight",
         DEMAND_BADGE_STYLES[kind],
         className,
       )}
@@ -53,7 +53,7 @@ export function ParentFavoriteBadge({ className }: { className?: string }) {
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center gap-1 whitespace-normal rounded-md border border-amber-600/40 bg-amber-500/10 px-1.5 py-0.5 text-center text-[11px] font-medium leading-tight text-amber-700 dark:text-amber-400",
+        "inline-flex max-w-full items-center gap-1 whitespace-normal rounded-md border border-amber-600/40 bg-amber-500/10 px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight text-amber-700 dark:text-amber-400",
         className,
       )}
     >
@@ -85,7 +85,7 @@ export function GroupClassBadge({
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center gap-1 whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-medium leading-tight text-[color:var(--ink)]",
+        "inline-flex max-w-full items-center gap-1 whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight text-[color:var(--ink)]",
         className,
       )}
       title={t("tutor_card.group_badge_title")}

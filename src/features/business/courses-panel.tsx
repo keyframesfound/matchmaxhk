@@ -305,7 +305,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
         header: () => <span className="text-xs font-medium text-muted-foreground">Status</span>,
         cell: ({ row }) => (
           <span
-            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${
+            className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${
               row.original.is_published
                 ? "bg-emerald-50 text-emerald-700 ring-emerald-700/10 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-400/20"
                 : "bg-gray-100 text-muted-foreground ring-gray-500/10 dark:bg-gray-500/10 dark:text-[color:var(--muted-foreground)] dark:ring-gray-400/20"
@@ -480,7 +480,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
           }}
           variant="solid"
           color="blue"
-          className="font-medium"
+          className="font-bold"
         >
           <PlusCircle className="mr-2 h-4 w-4" />
           New course
@@ -511,7 +511,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
                 onClick={() => setFormOpen(true)}
                 variant="solid"
                 color="blue"
-                className="font-medium"
+                className="font-bold"
               >
                 <PlusCircle className="mr-2 h-4 w-4" />
                 Post your first course

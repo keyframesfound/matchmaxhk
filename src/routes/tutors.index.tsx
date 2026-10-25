@@ -483,7 +483,7 @@ function TutorsDirectory() {
             <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h1 className="text-4xl font-medium tracking-tight text-[color:var(--ink)] sm:text-5xl">
+                  <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
                     {directoryView === "materials"
                       ? t("materials.directory_title")
                       : "Find elite tutors"}
@@ -545,7 +545,7 @@ function TutorsDirectory() {
                     <Skeleton className="h-4 w-28" />
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      <span className="font-medium text-foreground">{filtered.length}</span>{" "}
+                      <span className="font-bold text-foreground">{filtered.length}</span>{" "}
                       {filtered.length === 1 ? "tutor" : "tutors"} found
                     </p>
                   )}
@@ -604,7 +604,7 @@ function TutorsDirectory() {
                       strokeWidth={1.75}
                       aria-hidden="true"
                     />
-                    <h2 className="mt-4 text-xl font-medium tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                    <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
                       {t("directory.empty_edu_title")}
                     </h2>
                     <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -635,13 +635,13 @@ function TutorsDirectory() {
                                   <>
                                     <TutorSaveButton tutorId={tut.id} compact />
                                     {inquiry.kind === "status" ? (
-                                      <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-medium text-[color:var(--ink)]">
+                                      <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)]">
                                         {inquiry.label}
                                       </span>
                                     ) : (
                                       <Button
                                         asChild
-                                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-medium text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                                       >
                                         <a
                                           href={inquiry.href}
@@ -676,7 +676,7 @@ function TutorsDirectory() {
                       strokeWidth={1.75}
                       aria-hidden="true"
                     />
-                    <h2 className="mt-4 text-xl font-medium tracking-tight text-[color:var(--ink)] sm:text-2xl">
+                    <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
                       {t(tierEmptyTitleKey)}
                     </h2>
                     <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -697,7 +697,7 @@ function TutorsDirectory() {
                           </a>
                         </Button>
                       ) : null}
-                      <Button asChild variant="solid" color="blue" className="font-medium">
+                      <Button asChild variant="solid" color="blue" className="font-bold">
                         <Link to="/tutor-requests" search={{ post: true }}>
                           {t("directory.empty_case")}
                         </Link>
@@ -734,7 +734,7 @@ function TutorsDirectory() {
                               />
                               <Button
                                 asChild
-                                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-medium text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                               >
                                 <a
                                   href={inquiry.href}

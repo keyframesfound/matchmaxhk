@@ -180,7 +180,7 @@ function AdminOrganizations() {
         <div className="mx-auto max-w-7xl">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
-              <h1 className="flex items-center gap-2 text-2xl font-medium tracking-tight text-[color:var(--ink)]">
+              <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-[color:var(--ink)]">
                 <Building2 className="h-6 w-6 text-[color:var(--muted-foreground)]" />
                 Organizations
               </h1>
@@ -237,7 +237,7 @@ function AdminOrganizations() {
                 filtered.map((org) => (
                   <tr key={org.id}>
                     <ConsoleTd>
-                      <p className="font-medium text-[color:var(--ink)]">{org.name}</p>
+                      <p className="font-semibold text-[color:var(--ink)]">{org.name}</p>
                       <p className="text-xs text-muted-foreground">
                         /business/{org.slug}
                         {org.district ? ` · ${org.district}` : ""}
@@ -307,13 +307,13 @@ function AdminOrganizations() {
                         <span className="text-xs text-muted-foreground">—</span>
                       )}
                     </ConsoleTd>
-                    <ConsoleTd className="font-medium text-[color:var(--ink)]">
+                    <ConsoleTd className="font-semibold text-[color:var(--ink)]">
                       {org.courses?.[0]?.count ?? 0}
                       {org.plan === "business" ? (
                         <span className="text-xs font-normal text-muted-foreground"> / 10</span>
                       ) : null}
                     </ConsoleTd>
-                    <ConsoleTd className="font-medium text-[color:var(--ink)]">
+                    <ConsoleTd className="font-semibold text-[color:var(--ink)]">
                       {org.organization_members?.[0]?.count ?? 0}
                       <span className="text-xs font-normal text-muted-foreground">
                         {" "}

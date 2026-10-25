@@ -73,7 +73,7 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
           <section className="min-w-0 space-y-6">
             <header className="space-y-3">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-md bg-accent px-2.5 py-0.5 text-xs font-medium text-accent-foreground">
+                <span className="rounded-md bg-accent px-2.5 py-0.5 text-xs font-semibold text-accent-foreground">
                   {formatMaterialTypeLabel(note.materialType, t)}
                 </span>
                 {note.gigCategory && (
@@ -97,7 +97,7 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
                   </span>
                 )}
               </div>
-              <h1 className="text-2xl font-medium leading-tight tracking-normal sm:text-3xl">
+              <h1 className="text-2xl font-bold leading-tight tracking-normal sm:text-3xl">
                 {note.title}
               </h1>
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
@@ -111,7 +111,7 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
                 <span className="inline-flex items-center gap-1.5">
                   <span className="font-medium text-muted-foreground">{note.tutorCode}</span>
                   {note.tutorVerificationTier === "tier_2_verified" && (
-                    <span className="inline-flex items-center gap-1 font-medium text-[color:var(--brand-link)]">
+                    <span className="inline-flex items-center gap-1 font-semibold text-[color:var(--brand-link)]">
                       <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
                       {t("gigs.verified")}
                     </span>
@@ -145,7 +145,7 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
 
             {note.description && (
               <section className="space-y-2">
-                <h2 className="text-lg font-medium">{t("gigs.about_title")}</h2>
+                <h2 className="text-lg font-bold">{t("gigs.about_title")}</h2>
                 <p className="whitespace-pre-line text-[0.95rem] leading-relaxed text-muted-foreground">
                   {note.description}
                 </p>
@@ -153,12 +153,12 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
             )}
 
             <section className="space-y-3">
-              <h2 className="text-lg font-medium">{t("gigs.details_title")}</h2>
+              <h2 className="text-lg font-bold">{t("gigs.details_title")}</h2>
               <dl className="grid grid-cols-1 gap-x-8 gap-y-2 rounded-xl border border-border bg-card p-5 text-sm sm:grid-cols-2">
                 {note.gigCategory && (
                   <div className="flex justify-between gap-4 sm:block">
                     <dt className="text-muted-foreground">{t("gigs.field_category")}</dt>
-                    <dd className="font-medium">{t(gigCategoryLabelKey(note.gigCategory))}</dd>
+                    <dd className="font-semibold">{t(gigCategoryLabelKey(note.gigCategory))}</dd>
                   </div>
                 )}
                 {note.gigDeliveryType && (
@@ -169,12 +169,12 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
                 )}
                 <div className="flex justify-between gap-4 sm:block">
                   <dt className="text-muted-foreground">{t("gigs.field_turnaround")}</dt>
-                  <dd className="font-medium">{turnaroundText}</dd>
+                  <dd className="font-semibold">{turnaroundText}</dd>
                 </div>
                 {isFileBack && (
                   <div className="flex justify-between gap-4 sm:block">
                     <dt className="text-muted-foreground">{t("gigs.field_source_format")}</dt>
-                    <dd className="font-medium">{t("gigs.source_format_value")}</dd>
+                    <dd className="font-semibold">{t("gigs.source_format_value")}</dd>
                   </div>
                 )}
               </dl>
@@ -191,7 +191,7 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
           {/* Buy rail */}
           <aside className="lg:sticky lg:top-24 lg:self-start" id="buy">
             <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
-              <p className="text-3xl font-medium tracking-normal">
+              <p className="text-3xl font-bold tracking-normal">
                 {t("notes.price", { amount: note.priceHkd })}
               </p>
               <a
@@ -215,7 +215,7 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
               <Button
                 variant="solid"
                 color="accent"
-                className="w-full font-medium"
+                className="w-full font-bold"
                 disabled={checkoutMutation.isPending || isOwner}
                 onClick={() => {
                   if (!user) {

@@ -65,7 +65,7 @@ function StatusPill({ status }: { status: TutorApplicationStatus }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium",
+        "inline-flex items-center px-2 py-0.5 rounded-full text-xs font-semibold",
         status === "pending" && "bg-amber-500/15 text-amber-700 dark:text-amber-400",
         status === "rejected" && "bg-red-500/10 text-red-700 dark:text-red-400",
         status === "accepted" && "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
@@ -87,7 +87,7 @@ function ApplicationNotFound({ onBack }: { onBack: () => void }) {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 border-b border-[color:var(--ink)]/10 pb-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
             Application not found
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -100,7 +100,7 @@ function ApplicationNotFound({ onBack }: { onBack: () => void }) {
           variant="outline"
           size="sm"
           onClick={onBack}
-          className="h-9 text-xs font-medium"
+          className="h-9 text-xs font-bold"
         >
           <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
           Back to all applications
@@ -205,7 +205,7 @@ function AdminJoinRequests() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-[color:var(--ink)]/10">
         <div>
-          <h1 className="text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl">
+          <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
             Tutor Join Requests
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
@@ -224,7 +224,7 @@ function AdminJoinRequests() {
               type="button"
               onClick={() => setTab(value)}
               className={cn(
-                "rounded-lg px-3.5 py-1.5 text-xs font-medium transition-colors",
+                "rounded-lg px-3.5 py-1.5 text-xs font-bold transition-colors",
                 tab === value
                   ? "bg-[color:var(--ink)] text-[color:var(--surface)]"
                   : "text-muted-foreground hover:text-[color:var(--ink)]",
@@ -294,16 +294,16 @@ function AdminJoinRequests() {
               onClick={() => openDetail(row.id)}
             >
               <ConsoleTd>
-                <div className="font-medium text-[color:var(--ink)]">{row.data.name || "—"}</div>
+                <div className="font-bold text-[color:var(--ink)]">{row.data.name || "—"}</div>
                 <div className="mt-0.5 text-xs text-muted-foreground">{row.data.email}</div>
               </ConsoleTd>
-              <ConsoleTd className="text-xs font-medium text-[color:var(--ink)]">
+              <ConsoleTd className="text-xs font-semibold text-[color:var(--ink)]">
                 {getApplicationPathLabel(row)}
               </ConsoleTd>
-              <ConsoleTd className="text-xs font-medium text-[color:var(--ink)]">
+              <ConsoleTd className="text-xs font-semibold text-[color:var(--ink)]">
                 {row.data.overallScore || "—"}
               </ConsoleTd>
-              <ConsoleTd className="font-medium text-[color:var(--ink)]">
+              <ConsoleTd className="font-semibold text-[color:var(--ink)]">
                 HK${row.data.hourlyRate}
                 <span className="text-xs text-muted-foreground font-normal">/hr</span>
               </ConsoleTd>
@@ -313,7 +313,7 @@ function AdminJoinRequests() {
                     to="/tutors/$tutorCode"
                     params={{ tutorCode: row.linked_tutor_code }}
                     target="_blank"
-                    className="text-xs font-medium text-[color:var(--ink)] underline decoration-[color:var(--ink)]/30 underline-offset-2 hover:decoration-[color:var(--ink)]"
+                    className="text-xs font-bold text-[color:var(--ink)] underline decoration-[color:var(--ink)]/30 underline-offset-2 hover:decoration-[color:var(--ink)]"
                     onClick={(e) => e.stopPropagation()}
                   >
                     {row.linked_tutor_code}
@@ -506,7 +506,7 @@ function VerificationPanel({ application }: { application: TutorApplicationRecor
 
   return (
     <ConsolePanel padding="lg">
-      <h2 className="text-base font-medium text-[color:var(--ink)]">Transcript verification</h2>
+      <h2 className="text-base font-bold text-[color:var(--ink)]">Transcript verification</h2>
       {items.length === 0 ? (
         <p className="mt-1 text-xs text-muted-foreground">
           Nothing submitted for verification, the applicant did not provide an overall score or
@@ -521,7 +521,7 @@ function VerificationPanel({ application }: { application: TutorApplicationRecor
           <ul className="mt-3 space-y-1.5">
             {items.map((item) => (
               <li key={item.key}>
-                <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-[color:var(--ink)]/10 px-3 py-2 text-sm font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)]/60">
+                <label className="flex cursor-pointer items-center gap-2.5 rounded-lg border border-[color:var(--ink)]/10 px-3 py-2 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)]/60">
                   <Checkbox
                     checked={checked[item.key] === true}
                     onCheckedChange={(value) =>
@@ -530,7 +530,7 @@ function VerificationPanel({ application }: { application: TutorApplicationRecor
                   />
                   <span>{item.label}</span>
                   {checked[item.key] === true ? (
-                    <span className="ml-auto rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-400">
+                    <span className="ml-auto rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
                       Verified
                     </span>
                   ) : null}
@@ -581,7 +581,7 @@ function ApplicationDetail({
           </Button>
           <div>
             <div className="flex items-center gap-2">
-              <h1 className="text-2xl font-medium tracking-tight text-[color:var(--ink)]">
+              <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)]">
                 {row.data.name || "Application"}
               </h1>
               <StatusPill status={row.status} />
@@ -601,7 +601,7 @@ function ApplicationDetail({
               to="/tutors/$tutorCode"
               params={{ tutorCode: row.linked_tutor_code }}
               target="_blank"
-              className="inline-flex h-9 items-center rounded-sm border border-[color:var(--ink)]/20 px-3 text-xs font-medium text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)]"
+              className="inline-flex h-9 items-center rounded-sm border border-[color:var(--ink)]/20 px-3 text-xs font-bold text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)]"
             >
               View live card · {row.linked_tutor_code}
             </Link>
@@ -616,7 +616,7 @@ function ApplicationDetail({
         </div>
       ) : null}
       {row.linked_tutor_code ? (
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/[0.06] px-4 py-3 text-xs font-medium text-emerald-800 dark:text-emerald-300">
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/[0.06] px-4 py-3 text-xs font-semibold text-emerald-800 dark:text-emerald-300">
           Published at submit, live card {row.linked_tutor_code}. Manage it (unpublish / suspend /
           ban) from the Tutors page.
         </div>
@@ -624,7 +624,7 @@ function ApplicationDetail({
 
       {/* Evidence files */}
       <ConsolePanel padding="lg">
-        <h2 className="text-base font-medium text-[color:var(--ink)]">Evidence files</h2>
+        <h2 className="text-base font-bold text-[color:var(--ink)]">Evidence files</h2>
         <p className="mt-0.5 text-xs text-muted-foreground">
           Documents uploaded with this application and stored in R2.
         </p>
@@ -655,7 +655,7 @@ function ApplicationDetail({
                     </div>
                   )}
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-xs font-medium text-[color:var(--ink)]">
+                    <p className="truncate text-xs font-bold text-[color:var(--ink)]">
                       {file.filename}
                     </p>
                     <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
@@ -685,7 +685,7 @@ function ApplicationDetail({
       {/* Submitted data */}
       {sections.map((section) => (
         <ConsolePanel key={section.title} padding="lg">
-          <h2 className="text-base font-medium text-[color:var(--ink)]">{section.title}</h2>
+          <h2 className="text-base font-bold text-[color:var(--ink)]">{section.title}</h2>
           <div className="mt-2">
             {section.rows.map((infoRow) => (
               <InfoRow key={infoRow.label} label={infoRow.label} value={infoRow.value} />
@@ -721,12 +721,12 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
           <ul className="mt-2 space-y-1.5 text-xs">
             <li className="flex items-center gap-2">
               <ImageIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-              <span className="font-medium text-[color:var(--ink)]">
+              <span className="font-semibold text-[color:var(--ink)]">
                 Enrollment evidence for university / major (legacy)
               </span>
               <span
                 className={cn(
-                  "ml-auto rounded-full px-2 py-0.5 text-[11px] font-medium",
+                  "ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold",
                   studentCard
                     ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
                     : "bg-amber-500/15 text-amber-700 dark:text-amber-400",
@@ -747,10 +747,10 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
             {transcripts.map((doc, index) => (
               <li key={`${doc.curriculum}-${index}`} className="flex items-center gap-2">
                 <FileText className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                <span className="font-medium text-[color:var(--ink)]">{doc.curriculum}</span>
+                <span className="font-semibold text-[color:var(--ink)]">{doc.curriculum}</span>
                 <span
                   className={cn(
-                    "ml-auto rounded-full px-2 py-0.5 text-[11px] font-medium",
+                    "ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold",
                     doc.file
                       ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
                       : doc.status === "provide_later"
@@ -775,10 +775,10 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
               <li key={`${achievement.title}-${index}`} className="space-y-1">
                 <div className="flex items-center gap-2">
                   <ImageIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                  <span className="font-medium text-[color:var(--ink)]">{achievement.title}</span>
+                  <span className="font-semibold text-[color:var(--ink)]">{achievement.title}</span>
                   <span
                     className={cn(
-                      "ml-auto rounded-full px-2 py-0.5 text-[11px] font-medium",
+                      "ml-auto rounded-full px-2 py-0.5 text-[11px] font-bold",
                       achievement.proof
                         ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400"
                         : achievement.proofStatus === "provide_later"

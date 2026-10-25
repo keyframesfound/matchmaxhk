@@ -133,9 +133,9 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
       <GuideHeading>{title}</GuideHeading>
       <div className="mt-5 rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--card)] p-5 md:p-8">
         <div className="hidden gap-x-10 border-b border-[color:var(--ink)]/20 pb-4 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)]">
-          <p className="text-sm font-medium text-[color:var(--ink)]/55">{t("hiw.table_aspect")}</p>
-          <p className="text-sm font-medium text-[color:var(--ink)]/55">{t("hiw.table_old")}</p>
-          <p className="text-sm font-medium text-[color:var(--brand-link)]">{t("hiw.table_max")}</p>
+          <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.table_aspect")}</p>
+          <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.table_old")}</p>
+          <p className="text-sm font-bold text-[color:var(--brand-link)]">{t("hiw.table_max")}</p>
         </div>
         <ul>
           {rows.map((row, index) => {
@@ -147,7 +147,7 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
                   isLast ? "" : "border-b border-[color:var(--ink)]/12"
                 }`}
               >
-                <h3 className="text-lg font-medium tracking-tight">{row.aspect}</h3>
+                <h3 className="text-lg font-bold tracking-tight">{row.aspect}</h3>
                 <div className="max-md:mt-4">
                   <p className="mb-1 text-xs font-medium text-[color:var(--ink)]/45 md:hidden">
                     {t("hiw.table_old_mobile")}
@@ -166,7 +166,7 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
                     {t("hiw.table_max")}
                   </p>
                   <p className="text-sm leading-6 text-[color:var(--ink)]">
-                    <strong className="font-medium text-[color:var(--brand-link)]">
+                    <strong className="font-bold text-[color:var(--brand-link)]">
                       {row.advantage}:
                     </strong>{" "}
                     {row.detail}
@@ -187,7 +187,7 @@ function FaqAccordion({ items }: { items: FaqItem[] }) {
     <Accordion type="single" collapsible>
       {items.map((item, index) => (
         <AccordionItem key={index} value={`item-${index}`}>
-          <AccordionTrigger className="font-medium hover:no-underline">
+          <AccordionTrigger className="font-semibold hover:no-underline">
             {item.title}
           </AccordionTrigger>
           <AccordionContent className="text-muted-foreground">{item.content}</AccordionContent>
@@ -289,18 +289,18 @@ function GuideIndexPage() {
         <div className="mx-auto max-w-[1600px] px-5 text-white sm:px-8 lg:px-12">
           <div className="grid gap-6 md:grid-cols-[0.7fr_1.3fr] md:items-end">
             <div>
-              <div className="mt-5 flex items-center gap-3 text-sm font-medium">
+              <div className="mt-5 flex items-center gap-3 text-sm font-bold">
                 <Clock3 className="h-5 w-5" /> {t("hiw.flow_speed")}
               </div>
             </div>
             <div>
-              <h2 className="max-w-3xl text-4xl font-medium leading-[1.02] tracking-tight text-white sm:text-5xl">
+              <h2 className="max-w-3xl text-4xl font-bold leading-[1.02] tracking-tight text-white sm:text-5xl">
                 {t("hiw.flow_title")}
               </h2>
               <p className="mt-5 max-w-xl text-base leading-7 text-white/70">
                 {t("hiw.flow_body")}
               </p>
-              <p className="mt-3 max-w-xl text-base font-medium leading-7 text-white">
+              <p className="mt-3 max-w-xl text-base font-bold leading-7 text-white">
                 {t("hiw.flow_oneliner")}
               </p>
             </div>
@@ -317,7 +317,7 @@ function GuideIndexPage() {
                 className="rounded-2xl border border-white/15 bg-white/[0.04] p-6 transition-colors hover:border-white/30 sm:p-8"
               >
                 <Icon className="h-6 w-6" aria-hidden="true" />
-                <h3 className="mt-4 text-xl font-medium tracking-tight text-white">
+                <h3 className="mt-4 text-xl font-bold tracking-tight text-white">
                   {t(`guide.match_${key}_title`)}
                 </h3>
                 <p className="mt-3 text-sm leading-7 text-white/75">
@@ -325,7 +325,7 @@ function GuideIndexPage() {
                 </p>
                 <Link
                   to={key === "parents" ? "/guide/parents" : "/guide/tutors"}
-                  className="mt-4 inline-flex items-center text-sm font-medium transition-transform hover:translate-x-1"
+                  className="mt-4 inline-flex items-center text-sm font-bold transition-transform hover:translate-x-1"
                 >
                   {t(`guide.match_${key}_link`)} <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -346,7 +346,7 @@ function GuideIndexPage() {
               className="group rounded-2xl border border-[color:var(--ink)]/12 p-6 transition-colors hover:border-[color:var(--brand-link)]/40"
             >
               <Icon className="h-6 w-6 text-[color:var(--brand-link)]" aria-hidden="true" />
-              <h3 className="mt-4 flex items-center gap-2 text-lg font-medium tracking-tight">
+              <h3 className="mt-4 flex items-center gap-2 text-lg font-bold tracking-tight">
                 {title}
                 <ArrowRight className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
               </h3>
@@ -366,7 +366,7 @@ function GuideIndexPage() {
             <GuideHeading>{t("hiw.verification_title")}</GuideHeading>
             <div className="mt-8 grid gap-5 md:grid-cols-2">
               <div className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--card)] p-6 transition-colors hover:border-[color:var(--ink)]/25 md:p-8">
-                <h3 className="flex items-center gap-2 text-lg font-medium tracking-tight sm:text-xl">
+                <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight sm:text-xl">
                   <ShieldCheck
                     className="h-5 w-5 text-[color:var(--brand-link)]"
                     aria-hidden="true"
@@ -378,7 +378,7 @@ function GuideIndexPage() {
                 </p>
               </div>
               <div className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--card)] p-6 transition-colors hover:border-[color:var(--ink)]/25 md:p-8">
-                <h3 className="flex items-center gap-2 text-lg font-medium tracking-tight sm:text-xl">
+                <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight sm:text-xl">
                   <FileText
                     className="h-5 w-5 text-[color:var(--muted-foreground)]"
                     aria-hidden="true"
@@ -395,7 +395,7 @@ function GuideIndexPage() {
             </p>
             <Link
               to="/guide/verification"
-              className="mt-4 inline-flex items-center text-sm font-medium transition-transform hover:translate-x-1"
+              className="mt-4 inline-flex items-center text-sm font-bold transition-transform hover:translate-x-1"
             >
               {t("guide.index_verification_link")} <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
@@ -412,7 +412,7 @@ function GuideIndexPage() {
           <GuideHeading>{t("hiw.faq_title")}</GuideHeading>
 
           <div className="mt-12">
-            <h3 className="flex items-center gap-2 text-2xl font-medium tracking-tight">
+            <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
               <UserRoundCheck
                 className="h-6 w-6 text-[color:var(--muted-foreground)]"
                 aria-hidden="true"
@@ -425,7 +425,7 @@ function GuideIndexPage() {
           </div>
 
           <div className="mt-12">
-            <h3 className="flex items-center gap-2 text-2xl font-medium tracking-tight">
+            <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
               <Search className="h-6 w-6 text-[color:var(--muted-foreground)]" aria-hidden="true" />
               {t("hiw.faq_parents")}
             </h3>
@@ -435,7 +435,7 @@ function GuideIndexPage() {
           </div>
 
           <div className="mt-12">
-            <h3 className="flex items-center gap-2 text-2xl font-medium tracking-tight">
+            <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
               <CreditCard
                 className="h-6 w-6 text-[color:var(--muted-foreground)]"
                 aria-hidden="true"

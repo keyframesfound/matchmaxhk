@@ -173,7 +173,7 @@ export function MtrStationPickerContent({
     cn(
       "flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-2 text-left text-sm font-medium text-[color:var(--ink)] transition-colors",
       isHighlighted ? "bg-[color:var(--ring)]/[0.08]" : "hover:bg-[color:var(--surface-subtle)]",
-      isSelected && "font-medium",
+      isSelected && "font-semibold",
     );
 
   const renderRow = (
@@ -252,7 +252,7 @@ export function MtrStationPickerContent({
               "nearby",
               renderIndex++,
               <span className="flex min-w-0 flex-col pr-2">
-                <span className="truncate font-medium">{t("search_panel.nearby")}</span>
+                <span className="truncate font-semibold">{t("search_panel.nearby")}</span>
                 <span className="truncate text-xs font-normal text-muted-foreground">
                   {nearby.hint}
                 </span>
@@ -465,7 +465,7 @@ export function MtrStationMultiSelect({
                   <span className="text-[11px] font-medium text-muted-foreground">
                     {group.label}
                   </span>
-                  <span className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+                  <span className="flex items-center gap-1.5 text-[11px] font-semibold text-muted-foreground">
                     {selectedCount > 0 ? `${selectedCount} selected` : "Select all"}
                     {allSelected ? (
                       <Check className="h-3 w-3 text-[color:var(--ring)]" strokeWidth={2.5} />
@@ -479,7 +479,7 @@ export function MtrStationMultiSelect({
                     onClick={() => toggleStation(station)}
                     className={cn(
                       "flex w-full cursor-pointer items-center justify-between rounded-md px-3 py-1.5 text-left text-[13px] font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)]",
-                      selected.has(station) && "font-medium",
+                      selected.has(station) && "font-semibold",
                     )}
                   >
                     <span className="truncate pr-2">{station}</span>

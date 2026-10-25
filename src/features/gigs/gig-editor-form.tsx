@@ -427,7 +427,7 @@ export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
           type="submit"
           variant="solid"
           color="accent"
-          className="font-medium"
+          className="font-bold"
           disabled={saving || blockedByContact || missing.length > 0 || coverTooLarge}
         >
           {saving && submitMutation.isPending ? (

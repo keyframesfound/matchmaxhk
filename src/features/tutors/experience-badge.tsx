@@ -96,7 +96,7 @@ export function ExperiencePill({ tutorId, className }: { tutorId: string; classN
   return (
     <span
       className={cn(
-        "inline-flex max-w-full items-center whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-medium leading-tight text-[color:var(--ink)]",
+        "inline-flex max-w-full items-center whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight text-[color:var(--ink)]",
         className,
       )}
       title={data.title}

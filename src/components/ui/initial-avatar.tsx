@@ -46,7 +46,7 @@ export function InitialAvatar({ stableId, name, className }: InitialAvatarProps)
     <span
       aria-hidden="true"
       className={cn(
-        "flex shrink-0 select-none items-center justify-center rounded-full border border-border font-medium text-white",
+        "flex shrink-0 select-none items-center justify-center rounded-full border border-border font-bold text-white",
         className,
       )}
       style={{ backgroundColor: avatarColorFor(stableId) }}

@@ -29,7 +29,7 @@ export function PlanBadge({ plan }: { plan: Organization["plan"] }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ring-1 ring-inset",
+        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold ring-1 ring-inset",
         isEnterprise
           ? "bg-violet-50 text-violet-700 ring-violet-700/10 dark:bg-violet-500/10 dark:text-violet-400 dark:ring-violet-400/20"
           : "bg-blue-50 text-blue-700 ring-blue-700/10 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-400/20",
@@ -57,7 +57,7 @@ export function UsageMeter({
         <p className="text-xs font-medium text-muted-foreground">{label}</p>
         <p
           className={cn(
-            "text-xs font-medium",
+            "text-xs font-semibold",
             nearLimit ? "text-amber-600 dark:text-amber-400" : "text-[color:var(--ink)]",
           )}
         >
@@ -136,7 +136,7 @@ export function BusinessLayout({
             className="size-6 rounded-md border border-border object-cover"
           />
         ) : (
-          <span className="flex size-6 items-center justify-center rounded-md bg-[color:var(--foreground)] text-[color:var(--background)] text-[11px] font-medium">
+          <span className="flex size-6 items-center justify-center rounded-md bg-[color:var(--foreground)] text-[color:var(--background)] text-[11px] font-bold">
             {initials || "MM"}
           </span>
         )

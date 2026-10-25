@@ -64,12 +64,12 @@ export function CurrencyMenuSub() {
 
   return (
     <DropdownMenuSub>
-      <DropdownMenuSubTrigger className="text-[15px] font-medium text-[color:var(--ink)]">
+      <DropdownMenuSubTrigger className="text-[15px] font-semibold text-[color:var(--ink)]">
         <span className="flex items-center gap-2.5">
           <Banknote className="size-5" strokeWidth={2.5} aria-hidden="true" />
           {t("currency.switcher_label")}
         </span>
-        <span className="ml-auto text-xs font-medium text-[color:var(--ink)]/55">{currency}</span>
+        <span className="ml-auto text-xs font-bold text-[color:var(--ink)]/55">{currency}</span>
       </DropdownMenuSubTrigger>
       <DropdownMenuPortal>
         <DropdownMenuSubContent className="max-h-72 overflow-y-auto">

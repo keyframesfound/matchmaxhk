@@ -184,13 +184,13 @@ function CurriculumTutorSection({
             <>
               <TutorSaveButton tutorId={tutor.id} compact />
               {inquiry.kind === "status" ? (
-                <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-medium text-[color:var(--ink)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs">
+                <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs">
                   {inquiry.label}
                 </span>
               ) : (
                 <Button
                   asChild
-                  className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-medium text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
+                  className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
                 >
                   <a
                     href={inquiry.href}
@@ -223,14 +223,14 @@ function CurriculumTutorSection({
         strokeWidth={1.75}
         aria-hidden="true"
       />
-      <span className="text-sm font-medium text-[color:var(--ink)]">{t("featured.see_all")}</span>
+      <span className="text-sm font-bold text-[color:var(--ink)]">{t("featured.see_all")}</span>
     </Link>
   );
 
   return (
     <section className="mx-auto max-w-[1536px]">
       <div className="mb-4 flex items-center gap-2 sm:gap-3">
-        <h2 className="min-w-0 truncate text-xl font-medium tracking-tight text-[color:var(--ink)] md:text-2xl">
+        <h2 className="min-w-0 truncate text-xl font-bold tracking-tight text-[color:var(--ink)] md:text-2xl">
           {label} tutors
         </h2>
         <Button
@@ -238,7 +238,7 @@ function CurriculumTutorSection({
           variant="ghost"
           refined
           hoverArrow
-          className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-medium text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
+          className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
         >
           <Link to="/tutors" search={{ category }}>
             {t("featured.view_all")}
@@ -382,7 +382,7 @@ function TrendingTutorsSection({
           strokeWidth={1.75}
           aria-hidden="true"
         />
-        <h2 className="min-w-0 truncate text-xl font-medium tracking-tight text-[color:var(--ink)] md:text-2xl">
+        <h2 className="min-w-0 truncate text-xl font-bold tracking-tight text-[color:var(--ink)] md:text-2xl">
           {t("home.trending_title")}
         </h2>
         <div className="ml-auto hidden shrink-0 items-center gap-1.5 md:flex">
@@ -427,7 +427,7 @@ function TrendingTutorsSection({
                   <>
                     <TutorSaveButton tutorId={tutor.id} compact />
                     {inquiry.kind === "status" ? (
-                      <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-medium text-[color:var(--ink)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs">
+                      <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs">
                         {inquiry.label}
                       </span>
                     ) : (
@@ -437,7 +437,7 @@ function TrendingTutorsSection({
                       >
                         <Button
                           asChild
-                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-medium text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
+                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
                         >
                           <a
                             href={inquiry.href}

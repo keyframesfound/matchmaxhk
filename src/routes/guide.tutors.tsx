@@ -73,7 +73,7 @@ function GuideTutorsPage() {
           <p className="mt-3 text-base leading-7 text-[color:var(--ink)]/65">
             <Link
               to="/tutor-playbook"
-              className="font-medium underline underline-offset-4 hover:opacity-80"
+              className="font-bold underline underline-offset-4 hover:opacity-80"
             >
               {t("guide.tutors.support_link_label")}
             </Link>
@@ -96,7 +96,7 @@ function GuideTutorsPage() {
                 key={label}
                 className="rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6"
               >
-                <h3 className="text-base font-medium tracking-tight">{label}</h3>
+                <h3 className="text-base font-bold tracking-tight">{label}</h3>
                 <p className="mt-2 text-sm leading-6 text-[color:var(--ink)]/70">{body}</p>
               </div>
             ))}
@@ -111,7 +111,7 @@ function GuideTutorsPage() {
                 key={label}
                 className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--surface-subtle)] p-5 sm:p-6"
               >
-                <h3 className="text-base font-medium tracking-tight">{label}</h3>
+                <h3 className="text-base font-bold tracking-tight">{label}</h3>
                 <p className="mt-2 text-sm leading-6 text-[color:var(--ink)]/70">{body}</p>
               </div>
             ))}
@@ -131,7 +131,7 @@ function GuideTutorsPage() {
 
         <p className="mt-8 flex items-center gap-2 text-sm text-[color:var(--ink)]/60">
           <ClipboardList className="h-4 w-4" aria-hidden="true" />
-          <Link to="/tutor-playbook" className="font-medium underline underline-offset-4">
+          <Link to="/tutor-playbook" className="font-bold underline underline-offset-4">
             {t("guide.tutors.playbook_link")}
           </Link>
         </p>

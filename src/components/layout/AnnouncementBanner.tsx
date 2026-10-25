@@ -77,7 +77,7 @@ export function AnnouncementBanner() {
             >
               <span>{item.text}</span>
               {item.cta ? (
-                <span className="whitespace-nowrap font-medium underline decoration-2">
+                <span className="whitespace-nowrap font-bold underline decoration-2">
                   {item.cta}
                 </span>
               ) : null}

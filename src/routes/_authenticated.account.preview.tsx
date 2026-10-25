@@ -155,7 +155,7 @@ function PreviewPage() {
                       {inquiry && inquiry.kind !== "status" ? (
                         <Button
                           asChild
-                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-medium text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                         >
                           <a
                             href={inquiry.href}
@@ -184,13 +184,13 @@ function PreviewPage() {
           /* No live card yet (#356: it goes live when /join is submitted). */
           <section className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6">
             <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
-              <p className="text-sm font-medium text-[color:var(--ink)]">
+              <p className="text-sm font-bold text-[color:var(--ink)]">
                 {t("preview.empty_title")}
               </p>
               <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
                 {t("preview.empty_body")}
               </p>
-              <Button asChild variant="solid" color="blue" className="mt-4 font-medium">
+              <Button asChild variant="solid" color="blue" className="mt-4 font-bold">
                 <a href="/join">{t("preview.empty_cta")}</a>
               </Button>
             </div>
@@ -205,7 +205,7 @@ function PreviewPage() {
       {/* Sticky bottom action toolbar: border-top, no shadow. */}
       <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 border-t border-border bg-[color:var(--surface)] lg:bottom-0">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <Button variant="outline" className="font-medium" asChild>
+          <Button variant="outline" className="font-semibold" asChild>
             <a href="/dashboard#my-tutor">
               <Pencil className="mr-2 h-4 w-4" aria-hidden />
               {t("preview.edit_cta")}
@@ -215,7 +215,7 @@ function PreviewPage() {
               live, a live card shows no submit button. /join owns the
               existing confirmation flow (ack + verification + publish). */}
           {showGoLiveCta ? (
-            <Button variant="solid" color="blue" className="font-medium" asChild>
+            <Button variant="solid" color="blue" className="font-bold" asChild>
               <a href="/join">
                 <Rocket className="mr-2 h-4 w-4" aria-hidden />
                 {t("preview.submit_cta")}

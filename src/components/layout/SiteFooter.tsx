@@ -82,7 +82,7 @@ export function SiteFooter({
 
           <div className="grid grid-cols-1 gap-8 sm:grid-cols-3 lg:col-span-3">
             <div>
-              <h4 className="mb-4 text-sm font-medium text-foreground">{t("footer.product")}</h4>
+              <h4 className="mb-4 text-sm font-semibold text-foreground">{t("footer.product")}</h4>
               <ul className="space-y-3">
                 {productLinks.map((link) => (
                   <li key={link.to}>
@@ -98,7 +98,7 @@ export function SiteFooter({
             </div>
 
             <div>
-              <h4 className="mb-4 text-sm font-medium text-foreground">{t("footer.company")}</h4>
+              <h4 className="mb-4 text-sm font-semibold text-foreground">{t("footer.company")}</h4>
               <ul className="space-y-3">
                 {companyLinks.map((link) => (
                   <li key={link.key}>
@@ -115,7 +115,7 @@ export function SiteFooter({
             </div>
 
             <div>
-              <h4 className="mb-4 text-sm font-medium text-foreground">{t("footer.support")}</h4>
+              <h4 className="mb-4 text-sm font-semibold text-foreground">{t("footer.support")}</h4>
               <ul className="space-y-3">
                 {supportLinks.map((link) => (
                   <li key={link.key}>

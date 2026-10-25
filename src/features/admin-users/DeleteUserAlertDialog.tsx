@@ -37,7 +37,7 @@ export function DeleteUserAlertDialog({
               <AlertTriangle className="h-5 w-5" />
             </div>
             <div>
-              <AlertDialogTitle className="text-lg font-medium text-[color:var(--ink)]">
+              <AlertDialogTitle className="text-lg font-bold text-[color:var(--ink)]">
                 Delete User Account?
               </AlertDialogTitle>
               <AlertDialogDescription className="text-xs text-muted-foreground">
@@ -48,9 +48,9 @@ export function DeleteUserAlertDialog({
         </AlertDialogHeader>
 
         <div className="my-2 space-y-2 rounded-lg border border-destructive/20 bg-destructive/5 p-3.5 text-xs text-destructive dark:text-red-400">
-          <p className="font-medium">
+          <p className="font-semibold">
             You are about to delete account{" "}
-            <span className="font-medium underline">{user.display_name ?? user.email}</span>
+            <span className="font-bold underline">{user.display_name ?? user.email}</span>
           </p>
           <ul className="list-disc pl-4 space-y-1 text-[11px] opacity-90">
             <li>User profile and Auth credentials will be permanently removed.</li>
@@ -62,7 +62,7 @@ export function DeleteUserAlertDialog({
         </div>
 
         <AlertDialogFooter className="gap-2 sm:gap-0">
-          <AlertDialogCancel disabled={isDeleting} className="h-9 text-xs font-medium">
+          <AlertDialogCancel disabled={isDeleting} className="h-9 text-xs font-bold">
             Cancel
           </AlertDialogCancel>
           <AlertDialogAction
@@ -71,7 +71,7 @@ export function DeleteUserAlertDialog({
               onConfirmDelete(user.user_id);
             }}
             disabled={isDeleting}
-            className="h-9 bg-destructive text-xs font-medium text-destructive-foreground hover:bg-destructive/90"
+            className="h-9 bg-destructive text-xs font-bold text-destructive-foreground hover:bg-destructive/90"
           >
             <Trash2 className="mr-1.5 h-3.5 w-3.5" />
             {isDeleting ? "Deleting..." : "Confirm Delete"}

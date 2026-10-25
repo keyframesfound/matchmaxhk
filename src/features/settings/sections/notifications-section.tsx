@@ -83,7 +83,7 @@ export function NotificationsSection({ profile, updateProfile }: SettingsSection
               <div className="min-w-0">
                 <Label
                   htmlFor={`notif-${row.key}`}
-                  className="text-sm font-medium text-[color:var(--ink)]"
+                  className="text-sm font-bold text-[color:var(--ink)]"
                 >
                   {t(row.titleKey)}
                 </Label>

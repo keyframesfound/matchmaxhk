@@ -1,5 +1,5 @@
-@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap");
 @import "tailwindcss" source(none);
@@ -145,8 +145,9 @@ html {
   --radius-control: 18px;
   --radius-panel: 26px;
   --radius-surface: 34px;
-  /* Arc type: Geist display, Inter body, weights 400/500 only. System CJK
-   * covers zh-HK in both faces (per-glyph fallback), unchanged. */
+  /* Arc type: Geist display, Inter body. Weight ladder (owner decision,
+   * 2026-10-25): 400 body, 500 labels, 600 controls/card titles, 700 headings.
+   * System CJK covers zh-HK in both faces (per-glyph fallback), unchanged. */
   --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-heading: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
@@ -446,7 +447,8 @@ html {
   h5,
   h6 {
     font-family: var(--font-heading);
-    font-weight: 500; /* Arc: 400/500 only — hierarchy is size, colour, spacing */
+    font-weight: 700; /* Titles carry real weight: 700 headings, 600 controls
+     * and card titles, 500 labels, 400 body (owner decision, 2026-10-25). */
     line-height: 1.15;
     letter-spacing: normal;
     color: var(--color-foreground);
@@ -473,7 +475,6 @@ html {
 
   h4 {
     font-size: 1rem;
-    font-weight: 500;
   }
 
   /* Arc tracking, Latin only: CJK glyphs are never letter-spaced, so the

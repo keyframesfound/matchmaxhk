@@ -58,7 +58,7 @@ export function ReviewSummaryBlock({ tutorId }: { tutorId: string }) {
     <div className="space-y-3">
       <p className="flex items-center gap-2 text-sm">
         <Star className="h-4 w-4 fill-current text-amber-500" aria-hidden="true" />
-        <span className="font-medium text-[color:var(--ink)]">{summary.average?.toFixed(1)}</span>
+        <span className="font-semibold text-[color:var(--ink)]">{summary.average?.toFixed(1)}</span>
         <span className="text-muted-foreground">
           {t("sor.review_count", { count: summary.count })}
         </span>
@@ -70,7 +70,7 @@ export function ReviewSummaryBlock({ tutorId }: { tutorId: string }) {
             i: number,
           ) => (
             <li key={i} className="rounded-lg border border-[color:var(--ink)]/10 p-3">
-              <p className="flex flex-wrap items-center gap-1 text-xs font-medium text-[color:var(--ink)]">
+              <p className="flex flex-wrap items-center gap-1 text-xs font-semibold text-[color:var(--ink)]">
                 {r.display_line}
                 <span className="flex text-amber-500" aria-label={`${r.rating}/5`}>
                   {Array.from({ length: 5 }, (_, s) => (

@@ -21,7 +21,7 @@ const SelectTrigger = React.forwardRef<
   <SelectPrimitive.Trigger
     ref={ref}
     className={cn(
-      "group flex min-h-11 w-full items-center justify-between whitespace-nowrap rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-4 py-2.5 text-sm font-medium text-[color:var(--ink)] ring-offset-background transition-[border-color,background-color] duration-150 cursor-pointer data-[placeholder]:text-[color:var(--ink)]/50 hover:border-[color:var(--ink)]/35 hover:bg-[color:var(--surface)] focus:outline-none focus:ring-4 focus:ring-[color:var(--ring)]/25 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
+      "group flex min-h-11 w-full items-center justify-between whitespace-nowrap rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-4 py-2.5 text-sm font-semibold text-[color:var(--ink)] ring-offset-background transition-[border-color,background-color] duration-150 cursor-pointer data-[placeholder]:text-[color:var(--ink)]/50 hover:border-[color:var(--ink)]/35 hover:bg-[color:var(--surface)] focus:outline-none focus:ring-4 focus:ring-[color:var(--ring)]/25 disabled:cursor-not-allowed disabled:opacity-50 [&>span]:line-clamp-1",
       className,
     )}
     {...props}
@@ -115,7 +115,7 @@ const SelectLabel = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <SelectPrimitive.Label
     ref={ref}
-    className={cn("px-2 py-1.5 text-sm font-medium", className)}
+    className={cn("px-2 py-1.5 text-sm font-semibold", className)}
     {...props}
   />
 ));
@@ -128,7 +128,7 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex min-h-10 w-full cursor-default select-none items-center rounded-md py-2 pl-3 pr-9 text-sm font-medium text-[color:var(--ink)] outline-none transition-colors focus:bg-[color:var(--accent)] focus:text-[color:var(--ink)] data-[state=checked]:bg-[color:var(--ink)]/[0.07] data-[state=checked]:font-medium data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex min-h-10 w-full cursor-default select-none items-center rounded-md py-2 pl-3 pr-9 text-sm font-semibold text-[color:var(--ink)] outline-none transition-colors focus:bg-[color:var(--accent)] focus:text-[color:var(--ink)] data-[state=checked]:bg-[color:var(--ink)]/[0.07] data-[state=checked]:font-medium data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className,
     )}
     {...props}

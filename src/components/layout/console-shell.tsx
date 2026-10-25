@@ -146,7 +146,7 @@ export function ConsoleShell({
             </span>
             <span
               className={cn(
-                "truncate font-medium tracking-tight group-data-[collapsible=icon]:hidden",
+                "truncate font-bold tracking-tight group-data-[collapsible=icon]:hidden",
                 comfortable ? "text-base" : "text-sm",
               )}
             >
@@ -198,7 +198,7 @@ export function ConsoleShell({
               </AvatarFallback>
             </Avatar>
             <div className="min-w-0 flex-1 group-data-[collapsible=icon]:hidden">
-              <p className="truncate text-sm font-medium">{account.name}</p>
+              <p className="truncate text-sm font-semibold">{account.name}</p>
               <p className="truncate text-xs text-muted-foreground">{account.email}</p>
             </div>
             <Button
@@ -223,7 +223,7 @@ export function ConsoleShell({
         >
           <SidebarTrigger className="-ml-1" />
           <div>
-            <h1 className={cn("font-medium tracking-tight", comfortable ? "text-lg" : "text-sm")}>
+            <h1 className={cn("font-bold tracking-tight", comfortable ? "text-lg" : "text-sm")}>
               {title}
             </h1>
           </div>

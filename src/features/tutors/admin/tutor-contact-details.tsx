@@ -81,12 +81,12 @@ function ContactRow({
             href={href}
             target="_blank"
             rel="noreferrer"
-            className="mt-0.5 block truncate text-sm font-medium text-[color:var(--ink)] underline decoration-[color:var(--ink)]/20 underline-offset-2 hover:decoration-[color:var(--ink)]"
+            className="mt-0.5 block truncate text-sm font-semibold text-[color:var(--ink)] underline decoration-[color:var(--ink)]/20 underline-offset-2 hover:decoration-[color:var(--ink)]"
           >
             {value}
           </a>
         ) : (
-          <p className="mt-0.5 truncate text-sm font-medium text-[color:var(--ink)]">{value}</p>
+          <p className="mt-0.5 truncate text-sm font-semibold text-[color:var(--ink)]">{value}</p>
         )}
       </div>
       <div className="flex shrink-0 items-center gap-1">
@@ -201,7 +201,7 @@ export function TutorContactDetails({
     <div className="space-y-5">
       {/* Assigned MatchMax account */}
       <div className="space-y-3">
-        <p className="text-sm font-medium text-[color:var(--ink)]">Assigned account</p>
+        <p className="text-sm font-bold text-[color:var(--ink)]">Assigned account</p>
         {contact.account_email ? (
           <ContactRow
             icon={Mail}
@@ -231,7 +231,7 @@ export function TutorContactDetails({
 
       {/* Join application intake details */}
       <div className="space-y-3 border-t border-[color:var(--ink)]/10 pt-5">
-        <p className="text-sm font-medium text-[color:var(--ink)]">Join application</p>
+        <p className="text-sm font-bold text-[color:var(--ink)]">Join application</p>
         {contact.application_id ? (
           <>
             {applicationLabel ? (

@@ -182,7 +182,7 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
         {/* Status machine */}
         <div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-3 py-1 text-xs font-medium text-[color:var(--ink)]">
+            <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-3 py-1 text-xs font-semibold text-[color:var(--ink)]">
               {data.sor_status ? t(`sor.status_${data.sor_status}`) : t("sor.admin_not_sor")}
             </span>
             {data.tutor_code && (

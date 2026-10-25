@@ -180,7 +180,7 @@ export function AuthGateDialog({
           <div className="mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--muted)]">
             <Sparkles className="h-6 w-6 text-[color:var(--ink)]" aria-hidden="true" />
           </div>
-          <DialogTitle className="text-2xl font-medium tracking-tight text-[color:var(--ink)]">
+          <DialogTitle className="text-2xl font-bold tracking-tight text-[color:var(--ink)]">
             {title}
           </DialogTitle>
           <p className="mt-2 text-base leading-relaxed text-muted-foreground">{description}</p>
@@ -189,7 +189,7 @@ export function AuthGateDialog({
               type="button"
               variant="solid"
               color="neutral"
-              className="h-12 w-full rounded-xl text-base font-medium"
+              className="h-12 w-full rounded-xl text-base font-bold"
               onClick={(event: MouseEvent<HTMLButtonElement>) => {
                 event.stopPropagation();
                 goWithEmail();
@@ -200,7 +200,7 @@ export function AuthGateDialog({
             <Button
               type="button"
               variant="outline"
-              className="h-12 w-full rounded-xl font-medium"
+              className="h-12 w-full rounded-xl font-bold"
               onClick={(event: MouseEvent<HTMLButtonElement>) => {
                 event.stopPropagation();
                 void signInWithGoogle();

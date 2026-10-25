@@ -260,7 +260,7 @@ function CaseRateFields({
   return (
     <div className="flex items-end justify-between gap-3">
       <div className="w-28 space-y-1.5">
-        <span className="text-xs font-medium text-[color:var(--ink)]/70">
+        <span className="text-xs font-semibold text-[color:var(--ink)]/70">
           {t("search_ui.price_min")}
         </span>
         <Input
@@ -273,11 +273,11 @@ function CaseRateFields({
             onDraftChange({ rate_min: Number.isFinite(raw) && raw > 0 ? raw : undefined });
           }}
           aria-label={t("search_ui.price_min")}
-          className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-medium tabular-nums"
+          className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-semibold tabular-nums"
         />
       </div>
       <div className="w-28 space-y-1.5">
-        <span className="text-xs font-medium text-[color:var(--ink)]/70">
+        <span className="text-xs font-semibold text-[color:var(--ink)]/70">
           {t("search_ui.price_max")}
         </span>
         <Input
@@ -290,7 +290,7 @@ function CaseRateFields({
             onDraftChange({ rate_max: Number.isFinite(raw) && raw > 0 ? raw : undefined });
           }}
           aria-label={t("search_ui.price_max")}
-          className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-medium tabular-nums"
+          className="h-11 rounded-full border-[color:var(--ink)]/15 bg-card text-center font-semibold tabular-nums"
         />
       </div>
     </div>
@@ -635,7 +635,7 @@ export function CasesSearchMobile({
       >
         <div className="space-y-6">
           <div>
-            <p className="mb-2 text-xl font-medium tracking-tight text-[color:var(--ink)]">
+            <p className="mb-2 text-xl font-bold tracking-tight text-[color:var(--ink)]">
               {t("search_ui.panel_keyword_title")}
             </p>
             <SearchBigInput

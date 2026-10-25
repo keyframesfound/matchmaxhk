@@ -278,7 +278,7 @@ function AdminReferrals() {
   return (
     <div className="space-y-10">
       <div>
-        <h1 className="text-2xl font-medium tracking-tight text-[color:var(--ink)]">
+        <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)]">
           Referrals &amp; bounties
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -311,7 +311,7 @@ function AdminReferrals() {
             className="rounded-2xl border border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-4"
           >
             <p className="text-xs font-medium text-[color:var(--ink)]/60">{card.label}</p>
-            <p className="mt-1 text-2xl font-medium tracking-tight text-[color:var(--ink)]">
+            <p className="mt-1 text-2xl font-bold tracking-tight text-[color:var(--ink)]">
               {card.value}
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">{card.hint}</p>
@@ -321,7 +321,7 @@ function AdminReferrals() {
 
       <section className="space-y-4">
         <div>
-          <h2 className="text-lg font-medium text-[color:var(--ink)]">Referred tutors</h2>
+          <h2 className="text-lg font-bold text-[color:var(--ink)]">Referred tutors</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Each tutor card created from a referred application appears here once it is saved.
           </p>
@@ -333,7 +333,7 @@ function AdminReferrals() {
               type="button"
               onClick={() => setStatusFilter(value)}
               className={cn(
-                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
+                "rounded-full border px-3 py-1 text-xs font-bold transition-colors",
                 statusFilter === value
                   ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--surface)]"
                   : "border-[color:var(--ink)]/15 text-muted-foreground hover:text-[color:var(--ink)]",
@@ -345,7 +345,7 @@ function AdminReferrals() {
           <button
             type="button"
             onClick={() => setSortDir((dir) => (dir === "newest" ? "oldest" : "newest"))}
-            className="ml-auto rounded-full border border-[color:var(--ink)]/15 px-3 py-1 text-xs font-medium text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
+            className="ml-auto rounded-full border border-[color:var(--ink)]/15 px-3 py-1 text-xs font-bold text-muted-foreground transition-colors hover:text-[color:var(--ink)]"
           >
             Card created: {sortDir === "newest" ? "newest first" : "oldest first"}
           </button>
@@ -391,13 +391,13 @@ function AdminReferrals() {
                 className="transition-colors hover:bg-[color:var(--surface-subtle)]/40"
               >
                 <ConsoleTd>
-                  <div className="font-medium text-[color:var(--ink)]">{row.display_name}</div>
+                  <div className="font-bold text-[color:var(--ink)]">{row.display_name}</div>
                   <div className="mt-0.5 font-mono text-xs text-muted-foreground">
                     {row.tutor_code}
                   </div>
                 </ConsoleTd>
                 <ConsoleTd>
-                  <div className="text-sm font-medium text-[color:var(--ink)]">
+                  <div className="text-sm font-bold text-[color:var(--ink)]">
                     {row.referrer?.display_name ?? "—"}
                   </div>
                   <div className="mt-0.5 font-mono text-xs text-muted-foreground">
@@ -412,7 +412,7 @@ function AdminReferrals() {
                 <ConsoleTd className="text-xs text-muted-foreground">
                   {row.bounty?.source_case ? (
                     <div>
-                      <div className="font-mono text-xs font-medium text-[color:var(--ink)]">
+                      <div className="font-mono text-xs font-semibold text-[color:var(--ink)]">
                         {row.bounty.source_case.case_code}
                       </div>
                       <div className="mt-0.5">
@@ -430,13 +430,13 @@ function AdminReferrals() {
                     <div className="space-y-1">
                       <span
                         className={cn(
-                          "inline-block rounded-full px-2.5 py-0.5 text-xs font-medium",
+                          "inline-block rounded-full px-2.5 py-0.5 text-xs font-bold",
                           BOUNTY_STATUS_PILL[row.bounty.status].className,
                         )}
                       >
                         {BOUNTY_STATUS_PILL[row.bounty.status].label}
                       </span>
-                      <div className="text-sm font-medium text-[color:var(--ink)]">
+                      <div className="text-sm font-bold text-[color:var(--ink)]">
                         {formatHkd(row.bounty.amount_cents)}
                       </div>
                       {row.bounty.paid_at ? (
@@ -454,7 +454,7 @@ function AdminReferrals() {
                     {!row.bounty ? (
                       <Button
                         size="sm"
-                        className="h-8 gap-1.5 text-xs font-medium"
+                        className="h-8 gap-1.5 text-xs font-bold"
                         onClick={() => openAmountDialog(row)}
                       >
                         <HandCoins className="h-3.5 w-3.5" />
@@ -473,7 +473,7 @@ function AdminReferrals() {
                         </Button>
                         <Button
                           size="sm"
-                          className="h-8 text-xs font-medium"
+                          className="h-8 text-xs font-bold"
                           disabled={amountPending}
                           onClick={() =>
                             updateBounty.mutate({
@@ -498,7 +498,7 @@ function AdminReferrals() {
                         </Button>
                         <Button
                           size="sm"
-                          className="h-8 text-xs font-medium"
+                          className="h-8 text-xs font-bold"
                           disabled={amountPending}
                           onClick={() =>
                             updateBounty.mutate({ bountyId: row.bounty!.id, status: "paid" })
@@ -520,7 +520,7 @@ function AdminReferrals() {
 
       <section className="space-y-4">
         <div>
-          <h2 className="text-lg font-medium text-[color:var(--ink)]">Referred applications</h2>
+          <h2 className="text-lg font-bold text-[color:var(--ink)]">Referred applications</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
             Applications submitted through a referral link. They count toward the referrer's
             &ldquo;Friends joined&rdquo; stat as soon as they arrive; create their tutor card from
@@ -560,7 +560,7 @@ function AdminReferrals() {
                 className="transition-colors hover:bg-[color:var(--surface-subtle)]/40"
               >
                 <ConsoleTd>
-                  <div className="font-medium text-[color:var(--ink)]">{row.data.name || "—"}</div>
+                  <div className="font-bold text-[color:var(--ink)]">{row.data.name || "—"}</div>
                   <div className="mt-0.5 text-xs text-muted-foreground">{row.data.email}</div>
                 </ConsoleTd>
                 <ConsoleTd className="text-sm text-[color:var(--ink)]">
@@ -569,7 +569,7 @@ function AdminReferrals() {
                 <ConsoleTd>
                   <span
                     className={cn(
-                      "inline-block rounded-full px-2.5 py-0.5 text-xs font-medium capitalize",
+                      "inline-block rounded-full px-2.5 py-0.5 text-xs font-bold capitalize",
                       APPLICATION_STATUS_PILL[row.status],
                     )}
                   >
@@ -591,7 +591,7 @@ function AdminReferrals() {
           The bounty is the referrer's 15% cut of the collected matching fee (1.5 &times; the agreed
           hourly rate; 20% of the package for short-term cases). Example: HK$500/hr tutor → HK$750
           fee → HK$112.50 bounty. Bounties auto-log when the fee is recorded on the case in{" "}
-          <span className="font-medium text-[color:var(--ink)]">Cases</span>; the manual
+          <span className="font-semibold text-[color:var(--ink)]">Cases</span>; the manual
           &ldquo;Record 1st case&rdquo; fallback covers cases that never get logged there. Mark a
           bounty paid only after the FPS transfer is sent.
         </span>
@@ -613,7 +613,7 @@ function AdminReferrals() {
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-2">
-            <label htmlFor="bounty-amount" className="text-sm font-medium text-[color:var(--ink)]">
+            <label htmlFor="bounty-amount" className="text-sm font-bold text-[color:var(--ink)]">
               Bounty amount (HKD)
             </label>
             <Input
@@ -635,7 +635,7 @@ function AdminReferrals() {
             <Button variant="outline" onClick={() => setAmountDialog(null)}>
               Cancel
             </Button>
-            <Button className="font-medium" disabled={amountPending} onClick={submitAmount}>
+            <Button className="font-bold" disabled={amountPending} onClick={submitAmount}>
               {amountDialog?.bountyId ? "Save amount" : "Record bounty"}
             </Button>
           </DialogFooter>

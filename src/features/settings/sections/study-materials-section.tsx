@@ -20,7 +20,7 @@ export function StudyMaterialsSection() {
       title={t("materials.upload_title")}
       description={t("materials.redirect_description")}
     >
-      <Button asChild className="w-full font-medium">
+      <Button asChild className="w-full font-bold">
         <Link to="/account/notes/new">
           <FilePlus2 className="mr-2 h-4 w-4" aria-hidden />
           {t("notes.form.new_title")}

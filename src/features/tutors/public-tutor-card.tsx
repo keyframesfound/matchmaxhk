@@ -76,7 +76,7 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
       {grade ? (
         <>
           <span className="mx-0.5 shrink-0 text-muted-foreground">:</span>
-          <span className="shrink-0 font-medium">
+          <span className="shrink-0 font-semibold">
             {grade.prefix}
             {grade.value}
           </span>
@@ -383,14 +383,14 @@ export function PublicTutorCard({
                 />
               )}
             </div>
-            <p className="whitespace-nowrap text-xs font-medium text-muted-foreground">
+            <p className="whitespace-nowrap text-xs font-semibold text-muted-foreground">
               {formatTutorCode(tutor.tutor_code)}
             </p>
             {/* Issues #77/#52: tutor status badge (uni student / full-part-time
                 / examiner) under the tutor code. Wraps to two lines for long
                 labels instead of ellipsizing. */}
             {statusLabel ? (
-              <span className="max-w-full whitespace-normal rounded-md bg-muted px-1.5 py-0.5 text-center text-[11px] font-medium leading-tight text-[color:var(--ink)]">
+              <span className="max-w-full whitespace-normal rounded-md bg-muted px-1.5 py-0.5 text-center text-[11px] font-semibold leading-tight text-[color:var(--ink)]">
                 {statusLabel}
               </span>
             ) : null}
@@ -398,7 +398,7 @@ export function PublicTutorCard({
                 for money CTAs). Shown only when sen_enabled. */}
             {tutor.sen_enabled ? (
               <span
-                className="max-w-full whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-medium leading-tight text-[color:var(--ink)]"
+                className="max-w-full whitespace-normal rounded-md border border-border bg-muted px-1.5 py-0.5 text-center text-[11px] font-bold leading-tight text-[color:var(--ink)]"
                 title={t("sen.badge_title")}
               >
                 SEN
@@ -437,7 +437,7 @@ export function PublicTutorCard({
               maxLines={2}
               contentKey={primaryCredential}
               className={cn(
-                "break-words text-sm font-medium leading-tight text-[color:var(--ink)] md:text-base @max-sm:text-xs!",
+                "break-words text-sm font-bold leading-tight text-[color:var(--ink)] md:text-base @max-sm:text-xs!",
                 // Keep the headline clear of the absolutely-positioned gender badge.
                 genderLabel && "pr-16 md:pr-[4.5rem]",
               )}
@@ -470,7 +470,7 @@ export function PublicTutorCard({
           </div>
 
           {genderLabel ? (
-            <span className="absolute right-3 top-2.5 inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-medium text-[color:var(--ink)] @max-sm:px-1.5 @max-sm:py-0.5 @max-sm:text-[11px] md:right-4 md:top-3">
+            <span className="absolute right-3 top-2.5 inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-[color:var(--ink)] @max-sm:px-1.5 @max-sm:py-0.5 @max-sm:text-[11px] md:right-4 md:top-3">
               <UserRound className="h-3 w-3 text-[color:var(--brand-link)]" aria-hidden="true" />
               {genderLabel}
             </span>
@@ -486,7 +486,7 @@ export function PublicTutorCard({
       ) : null}
 
       {availabilityReadiness === "pre_booking" && tutor.earliest_start_date ? (
-        <p className="flex items-center gap-1.5 border-b border-border bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-700 md:px-4 dark:text-amber-400">
+        <p className="flex items-center gap-1.5 border-b border-border bg-amber-500/10 px-3 py-1.5 text-xs font-semibold text-amber-700 md:px-4 dark:text-amber-400">
           <CalendarDays className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
           {t("tutor_card.available_from", {
             date: formatAvailabilityDate(tutor.earliest_start_date, i18n.language),
@@ -501,7 +501,7 @@ export function PublicTutorCard({
             {verticalTierChips.map((label) => (
               <span
                 key={label}
-                className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-medium leading-tight text-[color:var(--ink)]"
+                className="inline-flex items-center rounded-full border border-border bg-muted px-2 py-0.5 text-[11px] font-semibold leading-tight text-[color:var(--ink)]"
               >
                 {label}
               </span>
@@ -540,7 +540,7 @@ export function PublicTutorCard({
                   key={`${group.curriculum}-${groupIndex}`}
                   className={groupIndex > 0 ? "mt-2 border-t border-border pt-2" : "mt-2"}
                 >
-                  <p className="text-xs font-medium leading-snug text-[color:var(--ink)]">
+                  <p className="text-xs font-bold leading-snug text-[color:var(--ink)]">
                     {group.total ? `${group.curriculum}: ${group.total}` : group.curriculum}
                   </p>
                   {gradesShown.length > 0 ? (
@@ -690,7 +690,7 @@ export function PublicTutorCard({
             as="p"
             maxLines={1}
             contentKey={`${price.baseRate}-${priceSuffix}`}
-            className="min-w-0 flex-1 whitespace-nowrap text-xl font-medium leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!"
+            className="min-w-0 flex-1 whitespace-nowrap text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!"
             title={
               displayCurrency !== DEFAULT_CURRENCY &&
               convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) &&

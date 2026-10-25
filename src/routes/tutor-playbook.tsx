@@ -368,7 +368,7 @@ function renderInline(text: string) {
   return text.split(/(\*\*[^*]+\*\*|\*[^*]+\*)/g).map((part, index) => {
     if (part.startsWith("**") && part.endsWith("**")) {
       return (
-        <strong key={index} className="font-medium text-foreground">
+        <strong key={index} className="font-semibold text-foreground">
           {part.slice(2, -2)}
         </strong>
       );
@@ -419,7 +419,7 @@ function TemplateCards({ cards }: { cards: [TemplateCardData, TemplateCardData] 
     <div className="grid gap-4 sm:grid-cols-2">
       {cards.map((card) => (
         <div key={card.label} className="rounded-xl border border-border bg-card p-5">
-          <p className="text-sm font-medium text-foreground">{card.label}</p>
+          <p className="text-sm font-bold text-foreground">{card.label}</p>
           <div className="mt-3 space-y-3">
             {card.lines.map((line, index) => (
               <p key={index} className="text-sm leading-7 text-foreground/80">
@@ -440,7 +440,7 @@ function ScenarioRows({ rows }: { rows: Scenario[] }) {
         const isLast = index === rows.length - 1;
         return (
           <div key={row.title} className={`py-6 ${isLast ? "" : "border-b border-border"}`}>
-            <h4 className="text-base font-medium tracking-tight text-foreground sm:text-lg">
+            <h4 className="text-base font-bold tracking-tight text-foreground sm:text-lg">
               {row.title}
             </h4>
             <p className="mt-2 text-sm leading-7 text-muted-foreground">
@@ -472,7 +472,7 @@ function SectionBlocks({ blocks }: { blocks: Block[] }) {
             return (
               <h3
                 key={index}
-                className="pt-5 text-xl font-medium tracking-tight text-foreground sm:text-2xl"
+                className="pt-5 text-xl font-bold tracking-tight text-foreground sm:text-2xl"
               >
                 {block.text}
               </h3>
@@ -615,7 +615,7 @@ function TutorPlaybookPage() {
                 href={`#${section.id}`}
                 className={`-mb-px whitespace-nowrap border-b-[3px] py-3 text-[15px] transition-colors ${
                   activeSection === section.id
-                    ? "border-foreground font-medium text-foreground"
+                    ? "border-foreground font-semibold text-foreground"
                     : "border-transparent text-muted-foreground"
                 }`}
               >
@@ -644,11 +644,11 @@ function TutorPlaybookPage() {
                       href={`#${section.id}`}
                       className={`-ml-4 block border-l-2 py-2 pl-4 text-sm leading-6 transition-colors ${
                         activeSection === section.id
-                          ? "border-[color:var(--brand-link)] font-medium text-foreground"
+                          ? "border-[color:var(--brand-link)] font-semibold text-foreground"
                           : "border-border text-muted-foreground hover:text-foreground"
                       }`}
                     >
-                      <span className="mr-2 font-medium text-[color:var(--brand-link)]">
+                      <span className="mr-2 font-bold text-[color:var(--brand-link)]">
                         {SECTION_NUMBERS[index]}
                       </span>
                       {section.title}
@@ -690,10 +690,10 @@ function TutorPlaybookPage() {
                 className="scroll-mt-32 border-b border-border py-12 first-of-type:mt-12 lg:py-16"
               >
                 <div className="flex items-baseline gap-4">
-                  <span className="text-sm font-medium text-[color:var(--brand-link)]">
+                  <span className="text-sm font-bold text-[color:var(--brand-link)]">
                     {SECTION_NUMBERS[index]}
                   </span>
-                  <h2 className="text-3xl font-medium tracking-tight text-foreground sm:text-4xl">
+                  <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                     {section.title}
                   </h2>
                 </div>
@@ -708,9 +708,7 @@ function TutorPlaybookPage() {
 
       <section className="bg-[#0f1419] text-white">
         <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
-          <h2 className="text-3xl font-medium tracking-tight text-white sm:text-4xl">
-            Explore more
-          </h2>
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Explore more</h2>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {EXPLORE_CARDS.map((card) => (
               <Link
@@ -724,7 +722,7 @@ function TutorPlaybookPage() {
                   <card.icon className="h-8 w-8 text-[#0f1419]" aria-hidden="true" />
                 </div>
                 <div className="flex flex-1 flex-col justify-center p-5">
-                  <p className="text-lg font-medium text-white">{card.title}</p>
+                  <p className="text-lg font-bold text-white">{card.title}</p>
                   <p className="mt-1 text-sm leading-6 text-white/70">{card.subtitle}</p>
                 </div>
               </Link>

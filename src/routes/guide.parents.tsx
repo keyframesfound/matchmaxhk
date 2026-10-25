@@ -84,7 +84,7 @@ function GuideParentsPage() {
                 key={label}
                 className="rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6"
               >
-                <h3 className="flex items-start gap-2 text-base font-medium tracking-tight">
+                <h3 className="flex items-start gap-2 text-base font-bold tracking-tight">
                   <UserRoundCheck
                     className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
                     aria-hidden="true"
@@ -105,7 +105,7 @@ function GuideParentsPage() {
                 key={label}
                 className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--surface-subtle)] p-5 sm:p-6"
               >
-                <h3 className="text-base font-medium tracking-tight">{label}</h3>
+                <h3 className="text-base font-bold tracking-tight">{label}</h3>
                 <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
               </div>
             ))}

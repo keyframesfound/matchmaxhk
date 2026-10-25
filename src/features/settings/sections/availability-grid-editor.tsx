@@ -98,7 +98,7 @@ export function AvailabilityGridEditor({ className }: { className?: string }) {
             type="button"
             disabled={saving || !dirty}
             onClick={() => void save()}
-            className="font-medium"
+            className="font-bold"
           >
             {saving ? t("settings.grid.saving") : t("settings.grid.save")}
           </Button>

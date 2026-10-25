@@ -636,7 +636,7 @@ const COMMUNITY_COMMITMENT_I18N_KEYS = {
 function renderInline(text: string) {
   return text.split(/\*\*(.+?)\*\*/g).map((part, index) =>
     index % 2 === 1 ? (
-      <strong key={index} className="font-medium text-foreground">
+      <strong key={index} className="font-semibold text-foreground">
         {part}
       </strong>
     ) : (
@@ -670,9 +670,7 @@ function TermsOfUsePage() {
                   section.id ? " scroll-mt-24" : ""
                 }`}
               >
-                <h2 className="text-2xl font-medium text-foreground sm:text-3xl">
-                  {section.title}
-                </h2>
+                <h2 className="text-2xl font-bold text-foreground sm:text-3xl">{section.title}</h2>
                 <div className="mt-5 space-y-5 text-base leading-7 text-muted-foreground">
                   {section.blocks.map((block, index) =>
                     block.kind === "ul" ? (
@@ -700,7 +698,7 @@ function TermsOfUsePage() {
               id="community-commitment"
               className="scroll-mt-24 border-b border-border pb-12 last:border-b-0 last:pb-0"
             >
-              <h2 className="text-2xl font-medium text-foreground sm:text-3xl">
+              <h2 className="text-2xl font-bold text-foreground sm:text-3xl">
                 {t(COMMUNITY_COMMITMENT_I18N_KEYS.title)}
               </h2>
               <div className="mt-5 space-y-5 text-base leading-7 text-muted-foreground">

@@ -31,7 +31,7 @@ export function AccountStatusBanners() {
         >
           <ShieldBan className="mt-0.5 h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
           <div className="min-w-0">
-            <p className="text-sm font-medium text-[color:var(--ink)]">
+            <p className="text-sm font-bold text-[color:var(--ink)]">
               {t("auth.account_blocked_title")}
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
@@ -49,14 +49,14 @@ export function AccountStatusBanners() {
         <div className="mx-auto flex max-w-7xl items-start gap-3 px-4 py-2.5 sm:px-6">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-medium text-[color:var(--ink)]">
+            <p className="text-sm font-bold text-[color:var(--ink)]">
               {t("account.suspended_banner_title")}
             </p>
             <p className="mt-0.5 text-xs text-muted-foreground">
               {t("account.suspended_banner_body")}
             </p>
             {suspensionReason ? (
-              <p className="mt-0.5 text-xs font-medium text-[color:var(--ink)]">
+              <p className="mt-0.5 text-xs font-semibold text-[color:var(--ink)]">
                 {t("account.suspended_reason_label", { reason: suspensionReason })}
               </p>
             ) : null}
