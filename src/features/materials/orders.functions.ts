@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { hktDateKey } from "@/features/cases/sor";
+import { PAYOUT_PAYABLE_STATUSES } from "@/features/materials/lifecycle";
 
 /**
  * Issue #250 groundwork (stacked on the #131–#134 marketplace MVP):
@@ -470,9 +471,9 @@ export const exportTutorPayoutCsv = createServerFn({ method: "POST" })
       supabaseAdmin as unknown as {
         from: (t: string) => {
           select: (c: string) => {
-            eq: (
+            in: (
               c: string,
-              v: string,
+              v: string[],
             ) => {
               eq: (
                 c: string,
@@ -522,7 +523,11 @@ export const exportTutorPayoutCsv = createServerFn({ method: "POST" })
       .select(
         "id, delivered_at, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, is_grant, digital_materials(title), tutors(display_name)",
       )
-      .eq("status", "delivered")
+      // #429: the manual monthly FPS run pays rows whose hold has ENDED —
+      // legacy delivered + released, plus refunded_from_hold rows whose net
+      // survived a partial refund. 'held' is NEVER payable (seller funds are
+      // still locked); grants and HK$0 nets drop out below.
+      .in("status", [...PAYOUT_PAYABLE_STATUSES])
       .eq("is_grant", false)
       // What we actually pay out: filter on net with a real number (the
       // old string "0" against NUMERIC relied on PostgREST coercion), so
@@ -641,9 +646,9 @@ export const getMyNotesSummary = createServerFn({ method: "POST" })
               c: string,
               v: string,
             ) => {
-              eq: (
+              in: (
                 c: string,
-                v: string,
+                v: string[],
               ) => Promise<{
                 data: Array<{
                   delivered_at: string;
@@ -660,7 +665,10 @@ export const getMyNotesSummary = createServerFn({ method: "POST" })
       .from("material_orders")
       .select("delivered_at, tutor_net_hkd, is_grant")
       .eq("tutor_id", tutorId)
-      .eq("status", "delivered");
+      // #429: released orders are the completed sales (hold ended); legacy
+      // delivered rows count as before. Held rows stay out — their funds are
+      // still in escrow, neither counted as payable net nor hidden forever.
+      .in("status", ["delivered", "released"]);
     if (error) throw new Error(error.message);
 
     return summarizeMyNotesOrders(orders ?? [], new Date());

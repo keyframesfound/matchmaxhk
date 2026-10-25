@@ -7,11 +7,14 @@ import { asAdminDb, type AdminDb } from "@/features/materials/storage-helpers";
 import { isUniqueViolation } from "@/features/materials/orders.functions";
 import {
   boughtListAction,
+  buildEscrowReleaseFields,
   buildOrderReference,
   computeFolderAdjustedPrice,
   orderGrantsAccess,
   splitMaterialMoney,
 } from "@/features/materials/lifecycle";
+import { getTutorHoldWindowHours, sweepExpiredHolds } from "@/features/materials/escrow.functions";
+import { SHOP_TERMS_VERSION } from "@/features/legal/terms";
 import { gigOrderBuyerAction } from "@/features/gigs/gig";
 import { sweepPastDueGigOrders } from "@/features/gigs/gig-buyer.functions";
 
@@ -121,6 +124,12 @@ export const ORDER_STATUSES = [
   "stamp_failed",
   "rejected",
   "refunded",
+  // #429 escrow states: delivered -> held (hold_until) -> released |
+  // refunded_from_hold. Legacy 'delivered' rows (pre-escrow, and HK$0
+  // orders/grants) stay payable as before.
+  "held",
+  "released",
+  "refunded_from_hold",
 ] as const;
 
 type OrderRow = {
@@ -147,6 +156,17 @@ type OrderRow = {
   buyer_source_path: string | null;
   completion_note: string | null;
   refund_requested_at: string | null;
+  // #429 escrow columns (null until delivery/hold).
+  hold_until: string | null;
+  released_at: string | null;
+  released_reason: string | null;
+  refund_amount: number | null;
+  dispute_status: string | null;
+  dispute_reason: string | null;
+  dispute_detail: string | null;
+  dispute_evidence_path: string | null;
+  dispute_opened_at: string | null;
+  shop_terms_version: string | null;
 };
 
 type PublicMaterialRow = {
@@ -226,11 +246,43 @@ export function escapeHtml(text: string): string {
 /**
  * Issue #214: record the checkout acceptance for an order. Thin wrapper so
  * all three startCheckout paths (create, reuse, race-winner) stay fail-closed
- *, a failed insert throws and the whole checkout fails.
+ * , a failed insert throws and the whole checkout fails.
  */
 async function recordCheckoutAcceptance(userId: string, orderId: string): Promise<void> {
   const { recordTermsAcceptance } = await import("@/features/legal/terms-acceptance.server");
   await recordTermsAcceptance({ userId, surface: "checkout", subjectId: orderId });
+}
+
+/**
+ * #429: order kinds the SHOP acknowledgment gates (everything that releases
+ * escrow-held money on the notes-shop rails). Gigs keep their own service
+ * flow and are exempt (no hold window, their dispute path is the #330 hook).
+ */
+export function isShopAcknowledgmentKind(materialType: string): boolean {
+  return (
+    (FILE_BEARING_MATERIAL_TYPES as readonly string[]).includes(materialType) ||
+    materialType === "topic_folder" ||
+    materialType === "video_course" ||
+    materialType === "general_course"
+  );
+}
+
+/**
+ * #429: persist the shop acknowledgment ON THE ORDER ROW (shop_terms_version
+ * + accepted timestamp — the additive-column home, no terms_acceptances
+ * surgery). The zod gate only accepts literal true, so an unsent field (gig
+ * checkouts) skips silently and any explicit non-true value fails the parse.
+ */
+async function persistShopTermsAck(db: AdminDb, orderId: string, agreed: boolean): Promise<void> {
+  if (!agreed) return;
+  const { error } = await db
+    .from<never>("material_orders")
+    .update({
+      shop_terms_version: SHOP_TERMS_VERSION,
+      shop_terms_accepted_at: new Date().toISOString(),
+    })
+    .eq("id", orderId);
+  if (error) throw new Error(error.message);
 }
 
 /**
@@ -252,6 +304,13 @@ export const startCheckout = createServerFn({ method: "POST" })
         // click, the checkbox must arrive true, and the handler records the
         // terms_acceptances row (surface checkout, subject_id = order id).
         legalAgreed: z.literal(true),
+        // #429: the SHOP acknowledgment (digital goods / escrow hold /
+        // dispute window) must arrive literal true for shop kinds — the
+        // handler enforces it after the listing kind is known and persists
+        // shop_terms_version + accepted_at on the ORDER ROW. Gigs send
+        // nothing (their flow is exempt) and any explicit non-true value
+        // fails this parse.
+        shopTermsAgreed: z.literal(true).optional(),
       })
       .parse(data),
   )
@@ -268,6 +327,11 @@ export const startCheckout = createServerFn({ method: "POST" })
       .maybeSingle();
     if (!material || material.status !== "published") {
       throw new Error("This note is not available right now.");
+    }
+    // #429: the SHOP acknowledgment is REQUIRED for every kind that releases
+    // escrow-held money (notes kinds + folders + courses). Fail-closed.
+    if (isShopAcknowledgmentKind(material.material_type) && data.shopTermsAgreed !== true) {
+      throw new Error("Please confirm the shop terms to continue.");
     }
     // #326 gigs have NO listing-level source file; #392 folders/courses
     // don't either (courses deliver per-lesson embeds + PDFs). Only the
@@ -312,6 +376,8 @@ export const startCheckout = createServerFn({ method: "POST" })
       // Issue #214: the gate fires on the reuse path too, the checkbox was
       // still clicked, so record the acceptance for the returned order.
       await recordCheckoutAcceptance(context.userId, reusable.orderId);
+      // #429: refresh the order-row shop acknowledgment (re-ticked).
+      await persistShopTermsAck(db, reusable.orderId, data.shopTermsAgreed === true);
       return reusable;
     }
 
@@ -363,6 +429,10 @@ export const startCheckout = createServerFn({ method: "POST" })
             grant_reason: FOLDER_PRORATION_GRANT_REASON,
             reference: grantReference,
             delivered_at: new Date().toISOString(),
+            // #429: the proration grant is still an order the buyer walked
+            // the shop acknowledgment for (topic_folder is a gated kind).
+            shop_terms_version: SHOP_TERMS_VERSION,
+            shop_terms_accepted_at: new Date().toISOString(),
           })
           .select("id")
           .single();
@@ -414,6 +484,9 @@ export const startCheckout = createServerFn({ method: "POST" })
           tutor_net_hkd: tutorNetHkd,
           status: "awaiting_payment",
           reference,
+          // #429: shop acknowledgment lives on the order row.
+          shop_terms_version: SHOP_TERMS_VERSION,
+          shop_terms_accepted_at: new Date().toISOString(),
         })
         .select("id")
         .single();
@@ -452,6 +525,9 @@ export const startCheckout = createServerFn({ method: "POST" })
         tutor_net_hkd: tutorNetHkd,
         status: "awaiting_payment",
         reference,
+        // #429: shop acknowledgment lives on the order row.
+        shop_terms_version: SHOP_TERMS_VERSION,
+        shop_terms_accepted_at: new Date().toISOString(),
       })
       .select("id")
       .single();
@@ -497,6 +573,16 @@ export type MyOrder = {
   createdAt: string;
   deliveredAt: string | null;
   action: "download" | "refunded" | "preparing" | "pay" | "awaiting_delivery" | "request_refund";
+  // --- #429 escrow fields (null until delivery/hold).
+  holdUntil: string | null;
+  releasedAt: string | null;
+  releasedReason: string | null;
+  refundAmountHkd: number | null;
+  disputeStatus: string | null;
+  disputeReason: string | null;
+  disputeDetail: string | null;
+  disputeOpenedAt: string | null;
+  shopTermsVersion: string | null;
   // --- Freestyle gig fields (#328): populated only for material_type 'gig'.
   materialType: string;
   gigCategory: string | null;
@@ -507,10 +593,15 @@ export type MyOrder = {
   hasDeliveredFile: boolean;
 };
 
-function orderAction(status: string, materialType?: string): MyOrder["action"] {
+function orderAction(
+  status: string,
+  materialType?: string,
+  refundAmountHkd?: number | null,
+  grossHkd?: number,
+): MyOrder["action"] {
   if (materialType === "gig") return gigOrderBuyerAction(status);
   if (status === "awaiting_payment" || status === "rejected") return "pay";
-  return boughtListAction(status);
+  return boughtListAction(status, refundAmountHkd, grossHkd);
 }
 
 /** The buyer's own order (checkout/status page). */
@@ -524,11 +615,13 @@ export const getMyOrder = createServerFn({ method: "POST" })
     // #328 lazy sweep first: the buyer's read is the freshest chance to flip
     // an over-due in_fulfillment gig to past_due (advisory, never throws).
     await sweepPastDueGigOrders(db);
+    // #429: flip expired holds to released/hold_expired (advisory, no cron).
+    await sweepExpiredHolds(db);
 
     const { data: order } = await db
       .from<OrderWithMaterial>("material_orders")
       .select(
-        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, buyer_source_path, completion_note, fulfillment_due_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id, gig_category, gig_delivery_type)",
+        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, buyer_source_path, completion_note, fulfillment_due_at, hold_until, released_at, released_reason, refund_amount, dispute_status, dispute_reason, dispute_detail, dispute_opened_at, shop_terms_version, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id, gig_category, gig_delivery_type)",
       )
       .eq("id", data.orderId)
       .eq("buyer_account_id", context.userId)
@@ -548,6 +641,15 @@ export const getMyOrder = createServerFn({ method: "POST" })
       createdAt: order.created_at,
       deliveredAt: order.delivered_at,
       action: orderAction(order.status, material?.material_type),
+      holdUntil: order.hold_until,
+      releasedAt: order.released_at,
+      releasedReason: order.released_reason,
+      refundAmountHkd: order.refund_amount == null ? null : Number(order.refund_amount),
+      disputeStatus: order.dispute_status,
+      disputeReason: order.dispute_reason,
+      disputeDetail: order.dispute_detail,
+      disputeOpenedAt: order.dispute_opened_at,
+      shopTermsVersion: order.shop_terms_version,
       materialType: material?.material_type ?? "notes",
       gigCategory: material?.gig_category ?? null,
       gigDeliveryType: material?.gig_delivery_type ?? null,
@@ -567,11 +669,13 @@ export const getBoughtMaterials = createServerFn({ method: "POST" })
 
     // #328 lazy sweep first (advisory) so the library shows fresh past_due.
     await sweepPastDueGigOrders(db);
+    // #429: flip expired holds to released/hold_expired (advisory, no cron).
+    await sweepExpiredHolds(db);
 
     const { data, error } = await db
       .from<OrderWithMaterial>("material_orders")
       .select(
-        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id, gig_category, gig_delivery_type)",
+        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, refund_amount, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id, gig_category, gig_delivery_type)",
       )
       .eq("buyer_account_id", context.userId)
       .in("status", [
@@ -584,6 +688,9 @@ export const getBoughtMaterials = createServerFn({ method: "POST" })
         "stamp_failed",
         "rejected",
         "refunded",
+        "held",
+        "released",
+        "refunded_from_hold",
       ])
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
@@ -600,8 +707,22 @@ export const getBoughtMaterials = createServerFn({ method: "POST" })
         materialType: material?.material_type ?? "notes",
         deliveredAt: order.delivered_at,
         createdAt: order.created_at,
-        action: orderAction(order.status, material?.material_type),
-        grantsAccess: orderGrantsAccess(order.status),
+        action: orderAction(
+          order.status,
+          material?.material_type,
+          order.refund_amount == null ? null : Number(order.refund_amount),
+          Number(order.gross_hkd),
+        ),
+        // #429: a partially refunded order keeps the file, a full refund
+        // does not — boughtListAction already encodes the split.
+        grantsAccess:
+          orderGrantsAccess(order.status) ||
+          (order.status === "refunded_from_hold" &&
+            boughtListAction(
+              order.status,
+              order.refund_amount == null ? null : Number(order.refund_amount),
+              Number(order.gross_hkd),
+            ) === "download"),
       };
     });
   });
@@ -791,12 +912,21 @@ export const releaseOrder = createServerFn({ method: "POST" })
     ) {
       try {
         const deliveredAt = new Date().toISOString();
+        // #429: real money enters the escrow hold (48/72h by the seller's
+        // track record); HK$0 orders/grants deliver straight as before.
+        const holdHours = await getTutorHoldWindowHours(db, order.tutor_id);
+        const escrow = buildEscrowReleaseFields({
+          grossHkd: Number(order.gross_hkd),
+          holdHours,
+          deliveredAtIso: deliveredAt,
+        });
         const { error: deliveredError } = await db
           .from<never>("material_orders")
           .update({
-            status: "delivered",
+            status: escrow.status,
             delivered_at: deliveredAt,
             delivered_by: context.userId,
+            ...(escrow.status === "held" ? { hold_until: escrow.holdUntilIso } : {}),
           })
           .eq("id", order.id);
         if (deliveredError) throw new Error(deliveredError.message);
@@ -873,13 +1003,21 @@ export const releaseOrder = createServerFn({ method: "POST" })
       if (uploadError) throw new Error(uploadError.message);
 
       const deliveredAt = new Date().toISOString();
+      // #429: the stamped delivery enters the escrow hold the same way.
+      const holdHours = await getTutorHoldWindowHours(db, order.tutor_id);
+      const escrow = buildEscrowReleaseFields({
+        grossHkd: Number(order.gross_hkd),
+        holdHours,
+        deliveredAtIso: deliveredAt,
+      });
       const { error: deliveredError } = await db
         .from<never>("material_orders")
         .update({
-          status: "delivered",
+          status: escrow.status,
           delivered_file_path: path,
           delivered_at: deliveredAt,
           delivered_by: context.userId,
+          ...(escrow.status === "held" ? { hold_until: escrow.holdUntilIso } : {}),
         })
         .eq("id", order.id);
       if (deliveredError) throw new Error(deliveredError.message);

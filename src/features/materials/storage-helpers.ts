@@ -35,6 +35,8 @@ export type Rows<T> = {
  */
 export type AdminUpdateChain = {
   eq: (col: string, value: unknown) => AdminUpdateChain;
+  /** #429 hold sweep: hold_until <= now flips expired holds to released. */
+  lte: (col: string, value: unknown) => AdminUpdateChain;
 } & PromiseLike<{ error: DbError; count: number | null }> & {
     catch: (
       onrejected?: ((reason: unknown) => unknown) | null | undefined,

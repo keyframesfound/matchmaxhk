@@ -14,6 +14,7 @@ import { materialCoverUrl, shopKindLabel } from "@/features/materials/material-c
 import { getFolderPriceQuote, getPublicListing } from "@/features/materials/listings.functions";
 import { startCheckout } from "@/features/materials/checkout.functions";
 import { TermsGateCheckbox } from "@/features/legal/TermsGateCheckbox";
+import { ShopTermsCheckbox } from "@/features/legal/shop-terms-checkbox";
 import { formatMaterialTypeLabel } from "@/features/materials/queries";
 import type { PublicNote } from "@/features/materials/notes.functions";
 import { ReportMenuButton } from "@/features/reports/report-button";
@@ -34,6 +35,9 @@ export function FolderDetailPage({ note }: { note: PublicNote }) {
   const [gateOpen, setGateOpen] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsGateInvalid, setTermsGateInvalid] = useState(false);
+  // #429: shop acknowledgment (escrow hold + dispute window), separate gate.
+  const [shopTermsAgreed, setShopTermsAgreed] = useState(false);
+  const [shopTermsInvalid, setShopTermsInvalid] = useState(false);
 
   const isOwner = Boolean(user && note.tutorUserId && user.id === note.tutorUserId);
   const slug = note.slug ?? note.id;
@@ -53,7 +57,8 @@ export function FolderDetailPage({ note }: { note: PublicNote }) {
   const displayPrice = quote ? quote.adjusted : note.priceHkd;
 
   const buyFolderMutation = useMutation({
-    mutationFn: () => startCheckout({ data: { materialId: note.id, legalAgreed: true } }),
+    mutationFn: () =>
+      startCheckout({ data: { materialId: note.id, legalAgreed: true, shopTermsAgreed: true } }),
     onSuccess: ({ orderId }) => {
       void navigate({ to: `/orders/${orderId}` });
     },
@@ -62,7 +67,7 @@ export function FolderDetailPage({ note }: { note: PublicNote }) {
 
   const buyChildMutation = useMutation({
     mutationFn: (childId: string) =>
-      startCheckout({ data: { materialId: childId, legalAgreed: true } }),
+      startCheckout({ data: { materialId: childId, legalAgreed: true, shopTermsAgreed: true } }),
     onSuccess: ({ orderId }) => {
       void navigate({ to: `/orders/${orderId}` });
     },
@@ -76,6 +81,11 @@ export function FolderDetailPage({ note }: { note: PublicNote }) {
     }
     if (!termsAccepted) {
       setTermsGateInvalid(true);
+      return;
+    }
+    // #429: the shop acknowledgment is required for shop checkouts too.
+    if (!shopTermsAgreed) {
+      setShopTermsInvalid(true);
       return;
     }
     run();
@@ -241,6 +251,16 @@ export function FolderDetailPage({ note }: { note: PublicNote }) {
                   onCheckedChange={(checked) => {
                     setTermsAccepted(checked);
                     if (checked) setTermsGateInvalid(false);
+                  }}
+                />
+              ) : null}
+              {!isOwner ? (
+                <ShopTermsCheckbox
+                  checked={shopTermsAgreed}
+                  invalid={shopTermsInvalid}
+                  onCheckedChange={(checked) => {
+                    setShopTermsAgreed(checked);
+                    if (checked) setShopTermsInvalid(false);
                   }}
                 />
               ) : null}

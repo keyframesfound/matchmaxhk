@@ -17,6 +17,7 @@ import {
 } from "@/features/materials/notes.functions";
 import { startCheckout } from "@/features/materials/checkout.functions";
 import { TermsGateCheckbox } from "@/features/legal/TermsGateCheckbox";
+import { ShopTermsCheckbox } from "@/features/legal/shop-terms-checkbox";
 import { NotePreviewViewer } from "@/features/materials/note-preview-viewer";
 import { formatMaterialTypeLabel } from "@/features/materials/queries";
 import { GigDetailPage } from "@/features/gigs/gig-detail";
@@ -96,6 +97,11 @@ function NotePage() {
   // the terms_acceptances row (surface checkout, subject_id = order id).
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsGateInvalid, setTermsGateInvalid] = useState(false);
+  // #429: the SHOP acknowledgment (digital goods / escrow hold / dispute
+  // window) — a second, separate checkbox; the server persists the version
+  // + timestamp on the order row.
+  const [shopTermsAgreed, setShopTermsAgreed] = useState(false);
+  const [shopTermsInvalid, setShopTermsInvalid] = useState(false);
   // Owner check uses the tutor's AUTH id (tutors.user_id), not the tutors
   // row id, review fix: note.tutorId is the FK, user.id is an auth uid.
   const isOwner = Boolean(user && note.tutorUserId && user.id === note.tutorUserId);
@@ -122,7 +128,8 @@ function NotePage() {
   });
 
   const checkoutMutation = useMutation({
-    mutationFn: () => startCheckout({ data: { materialId: note.id, legalAgreed: true } }),
+    mutationFn: () =>
+      startCheckout({ data: { materialId: note.id, legalAgreed: true, shopTermsAgreed: true } }),
     onSuccess: ({ orderId }) => {
       void navigate({ to: `/orders/${orderId}` });
     },
@@ -318,6 +325,16 @@ function NotePage() {
                   }}
                 />
               )}
+              {!isOwner && (
+                <ShopTermsCheckbox
+                  checked={shopTermsAgreed}
+                  invalid={shopTermsInvalid}
+                  onCheckedChange={(checked) => {
+                    setShopTermsAgreed(checked);
+                    if (checked) setShopTermsInvalid(false);
+                  }}
+                />
+              )}
               <Button
                 variant="solid"
                 color="accent"
@@ -332,6 +349,11 @@ function NotePage() {
                   // gate unchecked (client half; server re-validates).
                   if (!termsAccepted) {
                     setTermsGateInvalid(true);
+                    return;
+                  }
+                  // #429: the shop acknowledgment is required too.
+                  if (!shopTermsAgreed) {
+                    setShopTermsInvalid(true);
                     return;
                   }
                   checkoutMutation.mutate();

@@ -718,6 +718,22 @@ function AccountPage() {
                       {t("orders.refunded_badge")}
                     </span>
                   )}
+                  {/* #429 escrow badges on the Bought rows. */}
+                  {row.status === "held" && (
+                    <span className="rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-700">
+                      {t("account.order_held")}
+                    </span>
+                  )}
+                  {row.status === "released" && (
+                    <span className="rounded-md bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                      {t("account.order_released")}
+                    </span>
+                  )}
+                  {row.status === "refunded_from_hold" && (
+                    <span className="rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-700">
+                      {t("orders.refunded_from_hold_badge")}
+                    </span>
+                  )}
                   {row.action === "preparing" && (
                     <span className="rounded-md bg-accent px-2.5 py-1 text-xs font-bold text-accent-foreground">
                       {t("orders.preparing_badge")}
