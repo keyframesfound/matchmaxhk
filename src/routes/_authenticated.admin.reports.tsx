@@ -110,7 +110,7 @@ function AdminReports() {
   const resolved = rows.filter((row) => row.status !== "open");
 
   return (
-    <div className="mx-auto w-full max-w-6xl">
+    <div className="mx-auto w-full max-w-7xl">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-medium tracking-tight">Reports</h2>

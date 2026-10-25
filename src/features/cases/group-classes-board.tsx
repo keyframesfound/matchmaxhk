@@ -373,7 +373,7 @@ export function GroupClassesBoard() {
   const cohorts = cohortsQuery.data ?? [];
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-5 py-10 sm:px-8 lg:px-12">
+    <div className="mx-auto w-full max-w-[1600px] px-5 py-10 sm:px-8 lg:px-12">
       <header className="max-w-2xl">
         <h1 className="text-3xl font-medium text-[color:var(--ink)] sm:text-4xl">
           {t("group_classes.board_title")}

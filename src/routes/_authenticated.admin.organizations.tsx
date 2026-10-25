@@ -177,7 +177,7 @@ function AdminOrganizations() {
   return (
     <div>
       <main className="flex-1 px-4 py-10 sm:px-6">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-7xl">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1 className="flex items-center gap-2 text-2xl font-medium tracking-tight text-[color:var(--ink)]">

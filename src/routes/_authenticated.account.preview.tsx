@@ -117,7 +117,7 @@ function PreviewPage() {
       {/* Dismissible instructional banner (issue #104). */}
       {bannerVisible ? (
         <div className="border-b border-border bg-[color:var(--accent)]/10">
-          <div className="mx-auto flex w-full max-w-5xl items-start justify-between gap-3 px-4 py-3 sm:px-6">
+          <div className="mx-auto flex w-full max-w-7xl items-start justify-between gap-3 px-4 py-3 sm:px-6">
             <p className="text-sm leading-relaxed text-[color:var(--ink)]">{t("preview.banner")}</p>
             <button
               type="button"
@@ -133,7 +133,7 @@ function PreviewPage() {
 
       <main className="flex-1">
         {isLoading ? (
-          <div className="mx-auto w-full max-w-5xl space-y-4 px-4 py-10 sm:px-6" aria-busy="true">
+          <div className="mx-auto w-full max-w-7xl space-y-4 px-4 py-10 sm:px-6" aria-busy="true">
             <Skeleton className="h-5 w-64" />
             <Skeleton className="h-80 w-full max-w-md rounded-[var(--radius-panel)]" />
             <Skeleton className="h-40 w-full rounded-[var(--radius-panel)]" />
@@ -141,7 +141,7 @@ function PreviewPage() {
         ) : isLive && liveTutor ? (
           <>
             {/* The /tutors grid card, same component, same props shape. */}
-            <section className="mx-auto w-full max-w-5xl px-4 pt-6 sm:px-6">
+            <section className="mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6">
               <div className="max-w-md">
                 <PublicTutorCard
                   tutor={liveTutor}
@@ -182,7 +182,7 @@ function PreviewPage() {
           </>
         ) : (
           /* No live card yet (#356: it goes live when /join is submitted). */
-          <section className="mx-auto w-full max-w-5xl px-4 pt-8 sm:px-6">
+          <section className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6">
             <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
               <p className="text-sm font-medium text-[color:var(--ink)]">
                 {t("preview.empty_title")}
@@ -204,7 +204,7 @@ function PreviewPage() {
 
       {/* Sticky bottom action toolbar: border-top, no shadow. */}
       <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 border-t border-border bg-[color:var(--surface)] lg:bottom-0">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Button variant="outline" className="font-medium" asChild>
             <a href="/dashboard#my-tutor">
               <Pencil className="mr-2 h-4 w-4" aria-hidden />

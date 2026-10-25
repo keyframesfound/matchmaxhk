@@ -258,7 +258,7 @@ function GuideIndexPage() {
       {/* Why us */}
       <section
         id="why-us"
-        className="mx-auto max-w-[1440px] scroll-mt-32 px-5 py-16 text-center sm:px-8 sm:py-24 lg:px-12"
+        className="mx-auto max-w-[1600px] scroll-mt-32 px-5 py-16 text-center sm:px-8 sm:py-24 lg:px-12"
       >
         <h1 className="mx-auto max-w-4xl text-5xl font-medium leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
           {t("hiw.hero_title")}
@@ -286,7 +286,7 @@ function GuideIndexPage() {
         id="matching"
         className="scroll-mt-32 bg-[#0f1419] py-16 text-[#0f1419] dark:bg-[color:var(--surface-subtle)] dark:text-white sm:py-24"
       >
-        <div className="mx-auto max-w-[1440px] px-5 text-white sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-[1600px] px-5 text-white sm:px-8 lg:px-12">
           <div className="grid gap-6 md:grid-cols-[0.7fr_1.3fr] md:items-end">
             <div>
               <div className="mt-5 flex items-center gap-3 text-sm font-medium">
@@ -336,7 +336,7 @@ function GuideIndexPage() {
       </section>
 
       {/* Explore the guides */}
-      <section className="mx-auto max-w-[1440px] px-5 py-16 sm:px-8 sm:py-24 lg:px-12">
+      <section className="mx-auto max-w-[1600px] px-5 py-16 sm:px-8 sm:py-24 lg:px-12">
         <GuideHeading>{t("guide.index_explore_title")}</GuideHeading>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {guideCards.map(({ to, icon: Icon, title, body }) => (
@@ -361,7 +361,7 @@ function GuideIndexPage() {
         id="verification"
         className="scroll-mt-32 border-t border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] py-16 sm:py-24"
       >
-        <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12">
           <div className="mx-auto max-w-4xl">
             <GuideHeading>{t("hiw.verification_title")}</GuideHeading>
             <div className="mt-8 grid gap-5 md:grid-cols-2">
@@ -406,7 +406,7 @@ function GuideIndexPage() {
       {/* FAQ, all three groups live here (Ryan: subpages stay lean) */}
       <section
         id="faq"
-        className="mx-auto max-w-[1440px] scroll-mt-32 px-5 py-16 sm:px-8 sm:py-24 lg:px-12"
+        className="mx-auto max-w-[1600px] scroll-mt-32 px-5 py-16 sm:px-8 sm:py-24 lg:px-12"
       >
         <div className="mx-auto max-w-4xl">
           <GuideHeading>{t("hiw.faq_title")}</GuideHeading>

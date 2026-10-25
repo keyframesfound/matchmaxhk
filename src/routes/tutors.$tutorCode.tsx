@@ -285,7 +285,7 @@ function TutorProfileSkeleton() {
       <SiteHeader />
       <main className="flex-1" aria-busy="true" aria-label={t("profile.loading_aria")}>
         <section className="border-b border-border bg-muted/30 py-8 sm:py-10">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8">
+          <div className="mx-auto max-w-[1536px] px-5 sm:px-8">
             <Skeleton className="h-9 w-24 rounded-md" />
             <div className="mt-6 flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
               <Skeleton className="h-16 w-16 shrink-0 rounded-full sm:h-20 sm:w-20" />
@@ -302,7 +302,7 @@ function TutorProfileSkeleton() {
           </div>
         </section>
         <section className="py-8 sm:py-10">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
             <div className="overflow-hidden rounded-lg border border-border">
               {[0, 1, 2].map((section) => (
                 <div
@@ -638,7 +638,7 @@ function TutorDetail() {
             Wrong-person claims are safe: the RPC routes them to staff review. */}
         {user && !t.user_id ? (
           <div className="border-b border-[color:var(--border)] bg-[color:var(--accent)]/10">
-            <div className="mx-auto flex max-w-7xl flex-wrap items-center justify-between gap-2 px-5 py-2.5 sm:px-8">
+            <div className="mx-auto flex max-w-[1536px] flex-wrap items-center justify-between gap-2 px-5 py-2.5 sm:px-8">
               <p className="text-sm text-[color:var(--muted-foreground)]">
                 {translate("profile.claim_banner.text")}
               </p>
@@ -653,7 +653,7 @@ function TutorDetail() {
           </div>
         ) : null}
         <section className="border-b border-border bg-muted/30 py-8 sm:py-10">
-          <div className="mx-auto max-w-7xl px-5 sm:px-8">
+          <div className="mx-auto max-w-[1536px] px-5 sm:px-8">
             <Button
               type="button"
               variant="link"
@@ -916,7 +916,7 @@ function TutorDetail() {
         </section>
 
         <section className="py-8 sm:py-10">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
             <div>
               {/* Issue #394 (TDO liability): non-Gold-Verified profiles must
                   proactively flag their scores as self-reported, never render a
@@ -1276,7 +1276,7 @@ function TutorDetail() {
 
         {suggestedTutors.length > 0 ? (
           <section className="border-t border-border bg-muted/30 py-10 sm:py-12">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
                   <h2 className="text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-3xl">

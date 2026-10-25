@@ -149,7 +149,7 @@ function PricingPage() {
       <SiteHeader />
       <main className="flex-1">
         <section className="border-b border-border py-16">
-          <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
+          <div className="mx-auto max-w-[1536px] px-4 text-center sm:px-6">
             <h1 className="text-4xl font-medium tracking-tight text-[color:var(--ink)] sm:text-5xl">
               For tutoring businesses
             </h1>
@@ -161,7 +161,7 @@ function PricingPage() {
         </section>
 
         <section className="py-12 sm:py-16">
-          <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
+          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
             <div className="mb-10 max-w-2xl">
               <Badge variant="outline" className="mb-4 gap-1.5">
                 <Sparkles

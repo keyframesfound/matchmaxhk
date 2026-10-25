@@ -591,7 +591,7 @@ function TutorPlaybookPage() {
 
   return (
     <PublicPage>
-      <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-6 lg:hidden">
+      <div className="mx-auto w-full max-w-7xl px-4 pt-5 sm:px-6 lg:hidden">
         <PageBackButton fallbackTo="/guide" />
       </div>
 
@@ -633,7 +633,7 @@ function TutorPlaybookPage() {
       </nav>
 
       <section className="py-14 sm:py-20">
-        <div className="mx-auto grid w-full max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-16">
+        <div className="mx-auto grid w-full max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-16">
           <nav aria-label="Playbook sections" className="hidden lg:block">
             <div className="sticky top-24">
               <p className="text-[11px] font-medium text-muted-foreground">In this playbook</p>
@@ -707,7 +707,7 @@ function TutorPlaybookPage() {
       </section>
 
       <section className="bg-[#0f1419] text-white">
-        <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
+        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
           <h2 className="text-3xl font-medium tracking-tight text-white sm:text-4xl">
             Explore more
           </h2>

@@ -87,7 +87,7 @@ function AdminOverview() {
   const navigate = useNavigate();
 
   return (
-    <div className="mx-auto w-full max-w-6xl">
+    <div className="mx-auto w-full max-w-7xl">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-medium tracking-tight">Admin overview</h2>

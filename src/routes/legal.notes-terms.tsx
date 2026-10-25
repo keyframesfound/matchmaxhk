@@ -48,7 +48,7 @@ function NotesTermsPage() {
     <div className="flex min-h-screen flex-col bg-[color:var(--surface)] text-[color:var(--ink)]">
       <SiteHeader />
       <main className="flex-1">
-        <div className="mx-auto max-w-3xl px-5 py-10 sm:px-8 sm:py-14">
+        <div className="mx-auto max-w-4xl px-5 py-10 sm:px-8 sm:py-14">
           <div className="lg:hidden">
             <PageBackButton />
           </div>

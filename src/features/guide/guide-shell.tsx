@@ -35,7 +35,7 @@ export function GuideBar({ current, topOffset }: { current: GuideTab; topOffset:
       className="sticky z-40 border-b border-[color:var(--ink)]/10 bg-[color:var(--surface)]/95 backdrop-blur-sm"
       style={{ top: topOffset }}
     >
-      <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12">
         <ul className="flex items-center gap-1 overflow-x-auto whitespace-nowrap py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {GUIDE_TABS.map((tab) => {
             if ("enabled" in tab && !tab.enabled) return null;
@@ -67,7 +67,7 @@ export function GuideBar({ current, topOffset }: { current: GuideTab; topOffset:
 export function ContentsRow({ items }: { items: { id: string; label: string }[] }) {
   const { t } = useTranslation();
   return (
-    <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+    <div className="mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12">
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-[color:var(--ink)]/10 py-4 text-sm">
         <span className="text-xs font-medium text-[color:var(--muted-foreground)]">
           {t("guide.on_this_page")}

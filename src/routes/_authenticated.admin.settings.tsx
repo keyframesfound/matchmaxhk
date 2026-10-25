@@ -168,7 +168,7 @@ function AdminSettings() {
   return (
     <div>
       <main className="flex-1">
-        <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+        <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
           <h1 className="text-4xl font-medium tracking-tight text-[color:var(--ink)] sm:text-5xl">
             {t("admin.settings_title")}
           </h1>

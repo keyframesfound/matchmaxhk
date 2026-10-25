@@ -131,7 +131,7 @@ function SearchResults({ query, results }: { query: string; results: HelpArticle
   const { t } = useTranslation();
 
   return (
-    <section className="mx-auto w-full max-w-[1440px] px-5 py-12 sm:px-8 lg:px-12">
+    <section className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 lg:px-12">
       <h2 className="text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
         {results.length > 0 ? t("help.results_title") : t("help.no_results_title", { query })}
       </h2>
@@ -292,7 +292,7 @@ function HelpCentrePage() {
         <SearchResults query={query.trim()} results={results} />
       ) : (
         <>
-          <section className="mx-auto w-full max-w-[1440px] px-5 py-12 sm:px-8 lg:px-12">
+          <section className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 lg:px-12">
             <h2 className="text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
               {t("help.featured_title")}
             </h2>
@@ -303,7 +303,7 @@ function HelpCentrePage() {
             </div>
           </section>
 
-          <section className="mx-auto w-full max-w-[1440px] px-5 pb-14 sm:px-8 lg:px-12">
+          <section className="mx-auto w-full max-w-[1600px] px-5 pb-14 sm:px-8 lg:px-12">
             <h2 className="text-2xl font-medium tracking-tight text-foreground sm:text-3xl">
               {t("help.topics_title")}
             </h2>

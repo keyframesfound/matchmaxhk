@@ -74,11 +74,11 @@ function HelpArticlePage() {
 
   return (
     <PublicPage>
-      <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-6 lg:hidden">
+      <div className="mx-auto w-full max-w-7xl px-4 pt-5 sm:px-6 lg:hidden">
         <PageBackButton fallbackTo="/help" />
       </div>
 
-      <nav aria-label="Breadcrumb" className="mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6">
+      <nav aria-label="Breadcrumb" className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6">
         <ol className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted-foreground">
           <li>
             <Link
@@ -105,7 +105,7 @@ function HelpArticlePage() {
         </ol>
       </nav>
 
-      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-16">
+      <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-16">
         <nav aria-label={t("help.toc_title")} className="hidden lg:block">
           {toc.length > 0 ? (
             <div className="sticky top-24">

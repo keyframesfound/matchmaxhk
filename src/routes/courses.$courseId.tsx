@@ -270,7 +270,7 @@ function CourseDetail() {
       <SiteHeader />
       <main className="flex-1">
         <section className="border-b border-border py-10">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <Link
               to="/courses"
               className="inline-flex items-center gap-1.5 text-sm font-medium text-[color:var(--brand-link)]"
@@ -328,7 +328,7 @@ function CourseDetail() {
 
         {course && (
           <section className="py-10">
-            <div className="mx-auto grid max-w-5xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
+            <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
               <div>
                 {course.image_url ? (
                   <img

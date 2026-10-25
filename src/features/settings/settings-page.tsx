@@ -279,7 +279,7 @@ export function SettingsPage() {
       <TutorCoachTour enabled={hasLinkedTutor && tutorVerifiedQuery.data?.is_published === true} />
       <SiteHeader />
       <main className="flex-1">
-        <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+        <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
           <header className="border-b border-[color:var(--ink)]/10 pb-8">
             <h1 className="text-3xl font-medium tracking-tight text-[color:var(--ink)] sm:text-4xl">
               {t("settings.title")}

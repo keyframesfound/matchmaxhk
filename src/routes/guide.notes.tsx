@@ -68,7 +68,7 @@ function GuideNotesPage() {
           { id: "enforcement", label: t("guide.notes.enforcement_title") },
         ]}
       />
-      <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
+      <section className="mx-auto max-w-[1600px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
         <div className="max-w-3xl">
           <h1 className="text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl">
             {t("guide.tab_notes")}

@@ -324,7 +324,7 @@ function AdminCases() {
   return (
     <div>
       <main className="flex-1 bg-[color:var(--surface)]">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1536px] px-4 py-8 sm:px-6 lg:px-8">
           {openCase ? (
             <CaseDetailView
               caseRow={openCase}

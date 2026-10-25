@@ -190,7 +190,7 @@ function AdminGrades() {
   const rows = queueQuery.data ?? [];
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-4 p-4 md:p-6">
+    <div className="mx-auto w-full max-w-7xl space-y-4 p-4 md:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-lg font-medium text-[color:var(--ink)]">

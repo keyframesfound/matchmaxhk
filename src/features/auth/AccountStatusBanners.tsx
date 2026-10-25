@@ -46,7 +46,7 @@ export function AccountStatusBanners() {
   if (accountStatus === "suspended" && !dismissed) {
     return (
       <div className="sticky top-0 z-40 border-b border-amber-500/30 bg-amber-500/10">
-        <div className="mx-auto flex max-w-6xl items-start gap-3 px-4 py-2.5 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-start gap-3 px-4 py-2.5 sm:px-6">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-medium text-[color:var(--ink)]">

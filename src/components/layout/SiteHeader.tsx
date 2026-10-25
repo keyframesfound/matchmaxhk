@@ -206,7 +206,7 @@ export function SiteHeader({
           className,
         )}
       >
-        <div className="relative mx-auto flex h-[72px] max-w-[1440px] items-center gap-2 px-4 sm:px-8 lg:gap-0 xl:px-10">
+        <div className="relative mx-auto flex h-[72px] max-w-[1600px] items-center gap-2 px-4 sm:px-8 lg:gap-0 xl:px-10">
           {merged && centerSlot ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <motion.div

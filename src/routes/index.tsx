@@ -64,7 +64,7 @@ const CURRICULUM_CATEGORIES = [
   { label: "Examiner/pro teachers", value: "International" },
 ];
 
-const TUTORS_PER_PAGE = 3;
+const TUTORS_PER_PAGE = 4;
 const MAX_HOME_TUTORS = 6;
 
 // Issue #151 Option A: the home trending showcase. Candidates come from the
@@ -227,7 +227,7 @@ function CurriculumTutorSection({
   );
 
   return (
-    <section className="mx-auto max-w-7xl">
+    <section className="mx-auto max-w-[1536px]">
       <div className="mb-4 flex items-center gap-2 sm:gap-3">
         <h2 className="min-w-0 truncate text-xl font-medium tracking-tight text-[color:var(--ink)] md:text-2xl">
           {label} tutors
@@ -269,7 +269,7 @@ function CurriculumTutorSection({
       </div>
 
       {loading ? (
-        <div className="-mx-4 flex gap-3 overflow-hidden px-4 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:px-0 lg:grid-cols-3">
+        <div className="-mx-4 flex gap-3 overflow-hidden px-4 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:px-0 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: TUTORS_PER_PAGE }).map((_, index) => (
             <Skeleton
               key={index}
@@ -303,7 +303,7 @@ function CurriculumTutorSection({
                     key={pageIndex}
                     inert={!isCurrentPage}
                     aria-hidden={!isCurrentPage}
-                    className="grid w-full shrink-0 grid-cols-2 gap-6 lg:grid-cols-3"
+                    className="grid w-full shrink-0 grid-cols-2 gap-6 lg:grid-cols-3 xl:grid-cols-4"
                   >
                     {pageTutors.map((tutor) => renderTutorCard(tutor))}
                     {withSeeAllTile ? seeAllTile("min-h-[23rem]") : null}
@@ -374,7 +374,7 @@ function TrendingTutorsSection({
   };
 
   return (
-    <section className="mx-auto max-w-7xl">
+    <section className="mx-auto max-w-[1536px]">
       <div className="mb-4 flex items-center gap-2 sm:gap-3">
         <Flame
           className="h-5 w-5 shrink-0 text-[color:var(--brand-link)] sm:h-6 sm:w-6"
@@ -668,7 +668,7 @@ function Landing() {
         />
 
         <StickySearchBar>
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 py-3">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6 py-3">
             <TutorsSearchBar
               draft={homeSearch}
               onDraftChange={setHomeSearchParam}
@@ -682,7 +682,7 @@ function Landing() {
         {/* #307: grey band behind the mobile search pill, mirroring the
             desktop StickySearchBar band -- full-bleed, hairline bottom. */}
         <div className="relative z-20 border-b border-border bg-[color:var(--surface-header)] lg:hidden">
-          <div className="mx-auto max-w-[1440px] px-4 md:px-6">
+          <div className="mx-auto max-w-[1600px] px-4 md:px-6">
             <div className="py-2.5 sm:p-5">
               <TutorsSearchMobile
                 draft={homeSearch}
@@ -696,7 +696,7 @@ function Landing() {
         </div>
 
         <section className="relative pb-10 md:pt-6 md:pb-16">
-          <div className="mx-auto max-w-[1440px] px-4 md:px-6">
+          <div className="mx-auto max-w-[1600px] px-4 md:px-6">
             <div className="mt-4 space-y-10 md:mt-10 md:space-y-12">
               {/* Issue #312: approved notes under the search bar, above the
                   IB rail; renders nothing below three public notes. The

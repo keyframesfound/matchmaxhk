@@ -121,7 +121,7 @@ function CoursesDirectory() {
         <SiteHeader merged centerSlot={<CompactSearchPill segments={compactSegments} />} />
         <main className="flex-1">
           <section className="border-b border-border bg-[color:var(--surface-header)] py-10 sm:py-12 lg:border-b-0">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
               <h1 className="text-4xl font-medium tracking-tight text-[color:var(--ink)] sm:text-5xl">
                 Find the right course
               </h1>
@@ -141,7 +141,7 @@ function CoursesDirectory() {
             </div>
           </section>
           <StickySearchBar>
-            <div className="mx-auto max-w-4xl px-4 sm:px-6 py-3">
+            <div className="mx-auto max-w-5xl px-4 sm:px-6 py-3">
               <CoursesSearchBar
                 draft={draft}
                 onDraftChange={setDraftParam}
@@ -153,7 +153,7 @@ function CoursesDirectory() {
           </StickySearchBar>
 
           <section className="py-12">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
               <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
                 {isLoading ? (
                   <Skeleton className="h-4 w-28" />

@@ -195,7 +195,7 @@ export function HomeGigsRow() {
 
   if (isLoading) {
     return (
-      <section className="mx-auto max-w-7xl">
+      <section className="mx-auto max-w-[1536px]">
         <Skeleton className="mb-4 h-8 w-40" />
         <div className="-mx-4 flex gap-3 overflow-hidden px-4 md:mx-0 md:grid md:grid-cols-4 md:gap-6 md:px-0">
           {Array.from({ length: GIGS_PER_PAGE }).map((_, index) => (
@@ -212,7 +212,7 @@ export function HomeGigsRow() {
   if (visible.length < MIN_HOME_GIGS) return null;
 
   return (
-    <section className="mx-auto max-w-7xl">
+    <section className="mx-auto max-w-[1536px]">
       <div className="mb-4 flex items-center gap-2 sm:gap-3">
         <h2 className="min-w-0 truncate text-xl font-medium tracking-tight text-[color:var(--ink)] md:text-2xl">
           {t("gigs.home_row_title")}

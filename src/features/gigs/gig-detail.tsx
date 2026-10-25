@@ -67,7 +67,7 @@ export function GigDetailPage({ note }: { note: PublicNote }) {
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
       <SiteHeader />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
         <div className="grid gap-8 lg:grid-cols-[1fr_340px] lg:gap-10">
           {/* Service column */}
           <section className="min-w-0 space-y-6">

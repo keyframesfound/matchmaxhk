@@ -237,12 +237,12 @@ Patterns:
 
 ## Layout
 
-Content rides on a max-width rail system. The site header and full-bleed marketing sections (how-it-works) run at `max-w-[1440px]` with `px-4 → sm:px-8 → lg:px-10/12`; standard landing and directory content uses `max-w-7xl` with `px-4 → md:px-6`; detail pages (tutor, course, business) tighten to `max-w-5xl`; consoles use `max-w-6xl/7xl` with `py-8 to 12`. A `PageContainer` utility offers narrow (`max-w-3xl`), default (`max-w-4xl`), wide (`max-w-5xl`) rails at `px-4 sm:px-6` for form-led pages. Auth cards cap at `max-w-[420px]`.
+Content rides on a max-width rail system. The site header and full-bleed marketing sections (how-it-works) run at `max-w-[1600px]` with `px-4 → sm:px-8 → lg:px-10/12`; standard landing and directory content uses `max-w-[1536px]` with `px-4 → md:px-6`; detail pages (tutor, course, business) ride `max-w-7xl`; consoles use `max-w-7xl` with `py-8 to 12`. A `PageContainer` utility offers narrow (`max-w-4xl`), default (`max-w-6xl`), wide (`max-w-7xl`) rails at `px-4 sm:px-6` for form-led pages. Auth cards cap at `max-w-[420px]`. Card grids turn extra width into columns, not stretched cards: tutor and saved-post grids run `md:grid-cols-2 → lg:grid-cols-3 → xl:grid-cols-4`.
 
 Spacing rhythm follows Arc's context rule: 16px inside groups, 24px between regions, 32 to 48px between long-form sections, 24 to 32px page padding; marketing sections breathe at 64 to 120px vertical (`py-20 sm:py-28` today). Card interiors `p-6`; grid gaps 16 to 24px. Base grid is Tailwind's 4px scale. Internal control spacing stays fixed as the viewport grows; only outer gutters grow. Breakpoints are Tailwind defaults. Mobile patterns: horizontal snap rails for tutor rows, full-width stacked CTAs, and the StaggeredMobileMenu.
 
 ### Named Rules
-**The 1440 Rail Rule.** Header and hero rails stop at 1440px; inner content stops at `max-w-7xl`. Nothing stretches edge-to-edge except full-bleed tinted sections.
+**The 1600 Rail Rule.** Header and hero rails stop at 1600px; inner content stops at `max-w-[1536px]`. Nothing stretches edge-to-edge except full-bleed tinted sections. Long-form prose keeps a readable measure inside the wide rails (guide/legal text blocks stay capped at `max-w-3xl/4xl`).
 
 ## Surfaces and elevation
 
@@ -387,4 +387,4 @@ The codebase still carries pre-Arc artifacts that this system retires. Fold them
 - **Don't** choreograph entrances: no section reveals, no staggered lists, no hero text effects, no loops except live status.
 - **Don't** spread azure into passive decoration, add new accent hues, or use azure-tinted greys outside `--accent`; emphasis is hierarchy (size, weight is capped, position), never more colour.
 - **Don't** introduce a third type family; and never fix text to containers that break with CJK fallback fonts or letter-space Chinese text.
-- **Don't** exceed the rails: 1440px for header and hero, `max-w-7xl` for content; no edge-to-edge text columns.
+- **Don't** exceed the rails: 1600px for header and hero, `max-w-[1536px]` for content; no edge-to-edge text columns.

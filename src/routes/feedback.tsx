@@ -77,7 +77,7 @@ export default function Feedback() {
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
       <main className="flex-1">
-        <div className="mx-auto w-full max-w-2xl px-4 py-12 sm:px-6 sm:py-16">
+        <div className="mx-auto w-full max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
           {submitted ? (
             <div className="rounded-[var(--radius-panel)] border border-border bg-card p-8 text-center sm:p-12">
               <p className="text-4xl" aria-hidden>

@@ -126,7 +126,7 @@ export function MaterialsDirectory() {
 
   return (
     <section className="pt-6 pb-12 sm:pt-8">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
+      <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
         {/* Kind chips, #392 unified shop grid. */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
           {kindChips.map((chip) => (

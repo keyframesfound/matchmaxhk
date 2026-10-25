@@ -153,7 +153,7 @@ function AdminR2Images() {
   return (
     <div>
       <main className="flex-1">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+        <div className="mx-auto max-w-[1536px] px-4 py-12 sm:px-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h1 className="text-4xl font-medium tracking-tight text-[color:var(--ink)] sm:text-5xl">

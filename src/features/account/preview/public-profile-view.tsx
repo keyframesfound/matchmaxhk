@@ -363,7 +363,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
     <>
       {/* Profile hero, identical to the public page's header block. */}
       <section className="border-b border-border bg-muted/30 py-8 sm:py-10">
-        <div className="mx-auto max-w-7xl px-5 sm:px-8">
+        <div className="mx-auto max-w-[1536px] px-5 sm:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
             <div className="relative shrink-0 self-start">
               {tutor.photo_url ? (
@@ -556,7 +556,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
       </section>
 
       <section className="py-8 sm:py-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
           <div>
             {examResults.length > 0 ? (
               <ProfileSection icon={LineChart} title={translate("profile.section_academic")}>
@@ -753,7 +753,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
 
       {suggestedTutors.length > 0 ? (
         <section className="border-t border-border bg-muted/30 py-10 sm:py-12">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
                 <h2 className="text-2xl font-medium tracking-tight text-[color:var(--ink)] sm:text-3xl">

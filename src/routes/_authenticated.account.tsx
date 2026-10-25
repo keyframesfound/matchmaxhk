@@ -231,7 +231,7 @@ function AccountPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
       <SiteHeader />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6">
         <h1 className="text-2xl font-medium tracking-normal">{t("account.title")}</h1>
 
         {/* #141: post-signup checklist, first block, dismissible, hidden once done */}
