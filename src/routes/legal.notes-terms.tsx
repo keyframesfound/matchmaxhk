@@ -45,6 +45,11 @@ function NotesTermsPage() {
     ["school_papers", "publisher", "hkeaa", "ib", "classmate", "contact"] as const
   ).map((key) => t(`guide.notes.banned_${key}`));
 
+  // #429 escrow clause bullet points (bilingual, same pattern as bannedSummary).
+  const escrowPoints: string[] = (["hold", "refund_source", "no_warranty", "remedy"] as const).map(
+    (key) => t(`legal.notes_terms.escrow_${key}`),
+  );
+
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--surface)] text-[color:var(--ink)]">
       <SiteHeader />
@@ -77,6 +82,15 @@ function NotesTermsPage() {
             </Clause>
             <Clause title={t("legal.notes_terms.delivery_title")}>
               <p>{t("legal.notes_terms.delivery_body")}</p>
+            </Clause>
+            {/* #429: the escrow hold + seller-funded refund locks. */}
+            <Clause title={t("legal.notes_terms.escrow_title")}>
+              <p>{t("legal.notes_terms.escrow_body")}</p>
+              <ul className="list-inside list-disc space-y-1.5">
+                {escrowPoints.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
             </Clause>
             <Clause title={t("legal.notes_terms.refund_title")}>
               <p>{t("legal.notes_terms.refund_body")}</p>

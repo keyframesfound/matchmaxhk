@@ -24,6 +24,7 @@ import { getPublicListing } from "@/features/materials/listings.functions";
 import { getCourseAccess, COURSE_LOCKED_ERROR } from "@/features/materials/orders.functions";
 import { startCheckout } from "@/features/materials/checkout.functions";
 import { TermsGateCheckbox } from "@/features/legal/TermsGateCheckbox";
+import { ShopTermsCheckbox } from "@/features/legal/shop-terms-checkbox";
 import type { PublicNote } from "@/features/materials/notes.functions";
 import { ReportMenuButton } from "@/features/reports/report-button";
 
@@ -44,6 +45,9 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
   const [gateOpen, setGateOpen] = useState(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsGateInvalid, setTermsGateInvalid] = useState(false);
+  // #429: shop acknowledgment (escrow hold + dispute window), separate gate.
+  const [shopTermsAgreed, setShopTermsAgreed] = useState(false);
+  const [shopTermsInvalid, setShopTermsInvalid] = useState(false);
 
   const isOwner = Boolean(user && note.tutorUserId && user.id === note.tutorUserId);
 
@@ -69,7 +73,8 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
   const unlocked = Boolean(access);
 
   const checkoutMutation = useMutation({
-    mutationFn: () => startCheckout({ data: { materialId: note.id, legalAgreed: true } }),
+    mutationFn: () =>
+      startCheckout({ data: { materialId: note.id, legalAgreed: true, shopTermsAgreed: true } }),
     onSuccess: ({ orderId }) => {
       void navigate({ to: `/orders/${orderId}` });
     },
@@ -83,6 +88,11 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
     }
     if (!termsAccepted) {
       setTermsGateInvalid(true);
+      return;
+    }
+    // #429: the shop acknowledgment is required for shop checkouts too.
+    if (!shopTermsAgreed) {
+      setShopTermsInvalid(true);
       return;
     }
     checkoutMutation.mutate();
@@ -259,6 +269,16 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
                       onCheckedChange={(checked) => {
                         setTermsAccepted(checked);
                         if (checked) setTermsGateInvalid(false);
+                      }}
+                    />
+                  ) : null}
+                  {!isOwner ? (
+                    <ShopTermsCheckbox
+                      checked={shopTermsAgreed}
+                      invalid={shopTermsInvalid}
+                      onCheckedChange={(checked) => {
+                        setShopTermsAgreed(checked);
+                        if (checked) setShopTermsInvalid(false);
                       }}
                     />
                   ) : null}

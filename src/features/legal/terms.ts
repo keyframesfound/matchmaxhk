@@ -28,6 +28,14 @@ export const FEE_TERMS_VERSION = "fee-2026-10";
  */
 export const CENTRE_PARTNERSHIP_TERMS_VERSION = "centre-2026-10";
 
+/**
+ * Issue #429: the checkout SHOP acknowledgment (digital goods / escrow hold /
+ * dispute window) has its own version string, recorded ON THE ORDER ROW
+ * (shop_terms_version + shop_terms_accepted_at), not in terms_acceptances.
+ * Bump it when the shop rules change materially.
+ */
+export const SHOP_TERMS_VERSION = "shop-2026-10";
+
 export const TERMS_SURFACES = [
   "signup",
   "note_upload",

@@ -3,6 +3,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useRef, useState } from "react";
 import {
+  AlertTriangle,
   Check,
   CircleDashed,
   Download,
@@ -10,6 +11,7 @@ import {
   MessageCircle,
   PlayCircle,
   Receipt,
+  ShieldCheck,
   X,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -17,8 +19,18 @@ import { toast } from "sonner";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useAuth } from "@/features/auth/useAuth";
 import {
   getMyOrder,
@@ -27,6 +39,12 @@ import {
   type MyOrder,
 } from "@/features/materials/checkout.functions";
 import { getOwnedMaterialUrl } from "@/features/materials/orders.functions";
+import { confirmOrderReceived, openOrderDispute } from "@/features/materials/escrow.functions";
+import {
+  DISPUTE_REASONS,
+  canOpenDispute,
+  disputeReasonLabelKey,
+} from "@/features/materials/lifecycle";
 import { gigTimelineSteps } from "@/features/gigs/gig";
 import { GigOrderPanels } from "@/features/gigs/gig-order-view";
 import { ReportMenuButton } from "@/features/reports/report-button";
@@ -114,6 +132,67 @@ function OrderPage() {
     onError: (error) => toast.error(error instanceof Error ? error.message : "Download failed."),
   });
 
+  // #429: buyer taps "Received / No issue" — the held funds release early.
+  const receivedMutation = useMutation({
+    mutationFn: () => confirmOrderReceived({ data: { orderId } }),
+    onSuccess: () => {
+      toast.success(t("orders.received_done"));
+      void queryClient.invalidateQueries({ queryKey: ["order", orderId] });
+    },
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : t("orders.dispute_failed")),
+  });
+
+  // #429: dispute form state + open mutation (evidence rides the same call,
+  // same private bucket as the FPS proof).
+  const [disputeDialogOpen, setDisputeDialogOpen] = useState(false);
+  const [disputeReason, setDisputeReason] = useState<string>("");
+  const [disputeDetail, setDisputeDetail] = useState("");
+  const [disputeEvidence, setDisputeEvidence] = useState<File | null>(null);
+  const [disputeUploading, setDisputeUploading] = useState(false);
+  const disputeFileRef = useRef<HTMLInputElement>(null);
+
+  const disputeMutation = useMutation({
+    mutationFn: async (input: { reason: string; detail: string; file: File | null }) => {
+      let base64Data: string | undefined;
+      let contentType: "image/jpeg" | "image/png" | "image/webp" | undefined;
+      if (input.file) {
+        base64Data = await new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
+          reader.onerror = () => reject(new Error("Could not read the file."));
+          reader.readAsDataURL(input.file as File);
+        });
+        contentType =
+          input.file.type === "image/png"
+            ? "image/png"
+            : input.file.type === "image/webp"
+              ? "image/webp"
+              : "image/jpeg";
+      }
+      return openOrderDispute({
+        data: {
+          orderId,
+          reason: input.reason as (typeof DISPUTE_REASONS)[number],
+          detail: input.detail,
+          base64Data,
+          contentType,
+        },
+      });
+    },
+    onSuccess: () => {
+      toast.success(t("orders.dispute_submitted"));
+      setDisputeDialogOpen(false);
+      setDisputeReason("");
+      setDisputeDetail("");
+      setDisputeEvidence(null);
+      void queryClient.invalidateQueries({ queryKey: ["order", orderId] });
+    },
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : t("orders.dispute_failed")),
+    onSettled: () => setDisputeUploading(false),
+  });
+
   if (!user) {
     return (
       <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
@@ -161,15 +240,27 @@ function OrderPage() {
         },
         {
           key: "orders.step_paid",
-          done: ["stamping", "delivered"].includes(order.status),
+          done: ["stamping", "delivered", "held", "released", "refunded_from_hold"].includes(
+            order.status,
+          ),
           current: order.status === "paid",
         },
         {
           key: "orders.step_stamping",
-          done: order.status === "delivered",
+          done: ["delivered", "held", "released", "refunded_from_hold"].includes(order.status),
           current: order.status === "stamping",
         },
-        { key: "orders.step_delivered", done: order.status === "delivered", current: false },
+        {
+          key: "orders.step_delivered",
+          done: ["delivered", "held", "released", "refunded_from_hold"].includes(order.status),
+          current: false,
+        },
+        {
+          key: "orders.step_held",
+          done: ["released", "refunded_from_hold"].includes(order.status),
+          current: order.status === "held",
+        },
+        { key: "orders.step_released", done: order.status === "released", current: false },
       ];
 
   return (
@@ -177,7 +268,7 @@ function OrderPage() {
       <SiteHeader />
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10 sm:px-6">
         <h1 className="text-2xl font-medium tracking-normal">
-          {order.status === "delivered"
+          {order.status === "delivered" || order.status === "held" || order.status === "released"
             ? isGig
               ? t("gigs.delivered_title")
               : t("orders.delivered_title")
@@ -283,6 +374,87 @@ function OrderPage() {
               </div>
             )}
 
+            {/* #429 escrow: while held, the payment is protected and can be
+                refunded in full from the held funds; the buyer can end the
+                hold early with Received / No issue. */}
+            {!isGig && order.status === "held" && (
+              <div className="space-y-3 rounded-2xl border border-amber-500/40 bg-amber-500/5 p-5">
+                <h2 className="flex items-center gap-2 text-lg font-bold">
+                  <ShieldCheck className="h-4 w-4" aria-hidden />
+                  {t("orders.escrow_banner_title")}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {t("orders.escrow_banner_held", {
+                    date: order.holdUntil
+                      ? new Date(order.holdUntil).toLocaleString("en-HK", {
+                          timeZone: "Asia/Hong_Kong",
+                          day: "numeric",
+                          month: "short",
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                        })
+                      : "—",
+                  })}
+                </p>
+                <div>
+                  <Button
+                    variant="outline"
+                    disabled={receivedMutation.isPending}
+                    onClick={() => receivedMutation.mutate()}
+                  >
+                    {receivedMutation.isPending ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+                    ) : (
+                      <Check className="mr-2 h-4 w-4" aria-hidden />
+                    )}
+                    {t("orders.received_button")}
+                  </Button>
+                </div>
+              </div>
+            )}
+            {!isGig && order.status === "released" && (
+              <div className="flex items-start gap-3 rounded-2xl border border-[#17BF63]/30 bg-[#17BF63]/5 p-5 text-sm">
+                <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden />
+                <p>{t("orders.escrow_banner_released")}</p>
+              </div>
+            )}
+
+            {/* #429 dispute (notes orders only — gigs keep their #330 report
+                hook): open while delivered/held; window = the hold period. */}
+            {!isGig && canOpenDispute(order.status) && !order.disputeStatus && (
+              <div className="rounded-2xl border border-border bg-card p-6">
+                <h2 className="flex items-center gap-2 text-lg font-bold">
+                  <AlertTriangle className="h-4 w-4" aria-hidden />
+                  {t("orders.dispute_title")}
+                </h2>
+                <p className="mt-2 text-sm text-muted-foreground">{t("orders.dispute_note")}</p>
+                <div className="mt-3">
+                  <Button variant="outline" onClick={() => setDisputeDialogOpen(true)}>
+                    {t("orders.dispute_open_button")}
+                  </Button>
+                </div>
+              </div>
+            )}
+            {!isGig && order.disputeStatus === "open" && (
+              <div className="flex items-start gap-3 rounded-2xl border border-amber-500/40 bg-amber-500/5 p-5 text-sm">
+                <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" aria-hidden />
+                <div>
+                  <p className="font-semibold">{t("orders.dispute_open_badge")}</p>
+                  <p className="mt-1 text-muted-foreground">
+                    {t("orders.dispute_open_note", {
+                      date: order.disputeOpenedAt
+                        ? new Date(order.disputeOpenedAt).toLocaleDateString("en-HK")
+                        : "—",
+                    })}
+                  </p>
+                  <p className="mt-1 text-muted-foreground">
+                    {t(disputeReasonLabelKey(order.disputeReason ?? ""))}
+                  </p>
+                </div>
+              </div>
+            )}
+
             {/* Timeline */}
             <div className="rounded-2xl border border-border bg-card p-6">
               <h2 className="text-lg font-bold">{t("orders.timeline_title")}</h2>
@@ -368,6 +540,13 @@ function OrderPage() {
                 {t("orders.refunded_badge")}
               </p>
             )}
+            {order.status === "refunded_from_hold" && order.refundAmountHkd != null && (
+              <p className="rounded-md bg-amber-500/10 px-3 py-2 text-center text-xs font-bold text-amber-700">
+                {t("orders.refund_amount_line", {
+                  amount: Number(order.refundAmountHkd).toFixed(0),
+                })}
+              </p>
+            )}
             {/* #330: post-delivery quality disputes go through the #216 report
                 hook, operator-reviewed, refunds stay self-serve for past_due
                 non-delivery only, never auto-clawed back after delivery. */}
@@ -399,6 +578,92 @@ function OrderPage() {
           </aside>
         </div>
       </main>
+
+      {/* #429: the buyer's dispute form (reason + detail + optional evidence
+          image into the private orders-screenshots bucket). */}
+      <Dialog open={disputeDialogOpen} onOpenChange={setDisputeDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("orders.dispute_dialog_title")}</DialogTitle>
+            <DialogDescription>{t("orders.dispute_note")}</DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-1.5">
+              <Label>{t("orders.dispute_reason_label")}</Label>
+              <div className="space-y-2">
+                {DISPUTE_REASONS.map((reason) => (
+                  <label key={reason} className="flex items-center gap-2 text-sm">
+                    <input
+                      type="radio"
+                      name="dispute-reason"
+                      value={reason}
+                      checked={disputeReason === reason}
+                      onChange={() => setDisputeReason(reason)}
+                      className="h-4 w-4 accent-[color:var(--brand-link)]"
+                    />
+                    {t(disputeReasonLabelKey(reason))}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="dispute-detail">{t("orders.dispute_detail_label")}</Label>
+              <Textarea
+                id="dispute-detail"
+                value={disputeDetail}
+                onChange={(event) => setDisputeDetail(event.target.value)}
+                maxLength={1000}
+                rows={4}
+                placeholder={t("orders.dispute_detail_placeholder")}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="dispute-evidence">{t("orders.dispute_evidence_label")}</Label>
+              <Input
+                id="dispute-evidence"
+                ref={disputeFileRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                className="h-11 cursor-pointer"
+                onChange={(event) => setDisputeEvidence(event.target.files?.[0] ?? null)}
+              />
+              {disputeEvidence && disputeEvidence.size > 5 * 1024 * 1024 && (
+                <p className="text-xs font-medium text-destructive">
+                  {t("orders.screenshot_too_large")}
+                </p>
+              )}
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDisputeDialogOpen(false)}>
+              {t("gigs.admin_desk_cancel")}
+            </Button>
+            <Button
+              className="font-bold"
+              disabled={
+                disputeUploading ||
+                disputeReason === "" ||
+                disputeDetail.trim().length < 10 ||
+                Boolean(disputeEvidence && disputeEvidence.size > 5 * 1024 * 1024)
+              }
+              onClick={() => {
+                setDisputeUploading(true);
+                disputeMutation.mutate({
+                  reason: disputeReason,
+                  detail: disputeDetail.trim(),
+                  file: disputeEvidence,
+                });
+              }}
+            >
+              {disputeUploading ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+              ) : null}
+              {t("orders.dispute_submit")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       <SiteFooter />
     </div>
   );
