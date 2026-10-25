@@ -23,6 +23,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ConsolePanel } from "@/components/ui/console-panel";
+import { RiskFlagBadge } from "@/features/admin/risk-flag-badge";
+import { listRiskFlags, type RiskFlagRow } from "@/features/admin/risk-flags.functions";
 import {
   listCaseApplicationsAdmin,
   updateApplicationStatus,
@@ -42,10 +44,12 @@ const STATUS_LABEL_KEY: Record<CaseApplicationStatus, string> = {
 
 function ApplicationRow({
   application,
+  flagRow,
   onStatusChange,
   pending,
 }: {
   application: CaseApplicationAdminRow;
+  flagRow: RiskFlagRow | null;
   onStatusChange: (status: CaseApplicationStatus) => void;
   pending: boolean;
 }) {
@@ -63,6 +67,8 @@ function ApplicationRow({
                 {tutor.tutor_code}
               </span>
             ) : null}
+            {/* Issue #441: risk badge so agents don't re-ping a flagged tutor. */}
+            <RiskFlagBadge flag={flagRow?.risk_flag} note={flagRow?.risk_note} />
           </p>
           <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
             {subjects.length > 0
@@ -108,6 +114,17 @@ export function CaseApplicationsCard({ caseId }: { caseId: string }) {
     queryFn: () => listCaseApplicationsAdmin({ data: { caseId } }),
   });
 
+  // Issue #441: risk badges on the applicant rows (stop marker on BLOCKED
+  // so agents don't re-ping). Same query key the TutorEditor saves through.
+  const { data: tutorRiskFlags = [] } = useQuery({
+    queryKey: ["admin", "risk-flags", "tutor"],
+    queryFn: () => listRiskFlags({ data: { entity: "tutor" } }),
+  });
+  const flagByTutorId = new Map<string, RiskFlagRow>();
+  for (const row of tutorRiskFlags) {
+    if (row.tutor_id) flagByTutorId.set(row.tutor_id, row);
+  }
+
   const statusMutation = useMutation({
     mutationFn: (input: { id: string; status: CaseApplicationStatus }) =>
       updateApplicationStatus({ data: input }),
@@ -140,6 +157,7 @@ export function CaseApplicationsCard({ caseId }: { caseId: string }) {
             <ApplicationRow
               key={application.id}
               application={application}
+              flagRow={flagByTutorId.get(application.tutor_id) ?? null}
               pending={statusMutation.isPending && statusMutation.variables?.id === application.id}
               onStatusChange={(status) => statusMutation.mutate({ id: application.id, status })}
             />

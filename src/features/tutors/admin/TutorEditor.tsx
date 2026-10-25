@@ -22,6 +22,7 @@ import {
   MessageSquareQuote,
   Phone,
   Plus,
+  ShieldAlert,
   Sparkles,
   Trash2,
   Upload,
@@ -137,6 +138,7 @@ import {
 import { AutofillDialog } from "./AutofillDialog";
 import { TutorReviewsAdmin } from "./tutor-reviews-admin";
 import { TutorContactDetails } from "./tutor-contact-details";
+import { RiskFlagEditor } from "@/features/admin/risk-flag-editor";
 import {
   MAX_RATE_ROWS,
   RATE_MAX,
@@ -2339,6 +2341,20 @@ export function TutorEditor({
                 id="contact-details"
               >
                 <TutorContactDetails tutorId={initialData.id} tutorCode={initialData.tutor_code} />
+              </EditorSection>
+            ) : null}
+
+            {/* Issue #441: manual CS risk flag (REVIEW/BLOCKED + note).
+                Staff-only visibility metadata — never public, never
+                auto-set, never blocks matching or phone unlock by itself. */}
+            {initialData ? (
+              <EditorSection
+                icon={ShieldAlert}
+                title="Risk Flag"
+                description="Manual CS flag for suspicious tutors. Review can be set by any staff member; Blocked is an Operator (admin) action. Badges show on the tutor list and case shortlists."
+                id="risk-flag"
+              >
+                <RiskFlagEditor entity="tutor" entityId={initialData.id} />
               </EditorSection>
             ) : null}
 

@@ -1437,6 +1437,21 @@
     "failed": "Could not submit the report. Please try again.",
     "self_own_profile": "You cannot report your own profile."
   },
+  "risk": {
+    "flag_none": "None",
+    "flag_review": "Review",
+    "flag_blocked": "Blocked",
+    "blocked_stop": "Blocked — do not contact",
+    "saved": "Risk flag saved",
+    "flag_label": "Flag",
+    "note_label": "Note (staff only)",
+    "note_placeholder": "Short reason — e.g. caller mismatch, suspected fake request",
+    "save": "Save flag",
+    "audit_set": "Last set {{when}}",
+    "operator_hint": "Review can be set by any staff member. Blocked can only be set or cleared by an Operator (admin).",
+    "hide_blocked": "Hide BLOCKED",
+    "note_line": "Risk: {{note}}"
+  },
   "guide": {
     "tab_why": "Why us",
     "tab_parents": "Parents",
