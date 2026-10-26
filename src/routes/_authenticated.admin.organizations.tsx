@@ -36,7 +36,7 @@ import { useAuth } from "@/features/auth/useAuth";
 export const Route = createFileRoute("/_authenticated/admin/organizations")({
   head: () => ({
     meta: [
-      { title: "Organizations — MatchMax Admin" },
+      { title: "Organizations, MatchMax Admin" },
       { name: "description", content: "Review and manage tutoring organizations on MatchMax." },
       { name: "robots", content: "noindex" },
     ],
@@ -114,7 +114,7 @@ function AdminOrganizations() {
       id: string;
       patch: { plan?: "business" | "enterprise"; status?: "pending" | "active" | "suspended" };
     }) => {
-      // Issue #412: activation is gated on the BR review — staff must have
+      // Issue #412: activation is gated on the BR review, staff must have
       // stamped br_reviewed_at (or the org must already carry BR identity)
       // before the org can go live on the public directory.
       if (patch.status === "active") {
@@ -125,7 +125,7 @@ function AdminOrganizations() {
           .maybeSingle();
         if (org && !org.br_reviewed_at && !org.br_number) {
           throw new Error(
-            "Review the Business Registration first — open Review and stamp it before activating.",
+            "Review the Business Registration first, open Review and stamp it before activating.",
           );
         }
       }
@@ -177,7 +177,7 @@ function AdminOrganizations() {
   return (
     <div>
       <main className="flex-1 px-4 py-10 sm:px-6">
-        <div className="mx-auto max-w-6xl">
+        <div className="mx-auto max-w-7xl">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div>
               <h1 className="flex items-center gap-2 text-2xl font-bold tracking-tight text-[color:var(--ink)]">
@@ -328,7 +328,7 @@ function AdminOrganizations() {
             </ConsoleTableBody>
           </ConsoleTable>
 
-          {/* Issue #412: BR review dialog — staff verify the Business
+          {/* Issue #412: BR review dialog, staff verify the Business
               Registration (and EDB/charity identifier when present) against
               the official records before stamping; activation stays blocked
               until the stamp exists. */}

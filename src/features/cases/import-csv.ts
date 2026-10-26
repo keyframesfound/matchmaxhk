@@ -1,12 +1,12 @@
 /**
- * Issue #201 — one-time case import.
+ * Issue #201, one-time case import.
  *
  * CSV columns (header row required, order-insensitive):
  *   parent name, phone, tutor, subject, rate, lesson dates, fee paid
  *
  * Accepts the issue's plain headers plus a few obvious aliases. Parsing is
  * pure; the admin server fn resolves names to tutor/parent rows and reuses
- * organisations on rerun (no duplicate org, slug, or owner row — enforced by
+ * organisations on rerun (no duplicate org, slug, or owner row, enforced by
  * admin_create_sor_case + the unique organisation_members pair).
  */
 

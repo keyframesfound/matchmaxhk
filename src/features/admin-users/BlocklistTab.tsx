@@ -87,7 +87,7 @@ export function BlocklistTab() {
       <div className="rounded-xl border border-border/70 bg-card p-4">
         <p className="text-sm font-bold text-[color:var(--ink)]">Block list</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Blocked emails and banned accounts' Google identities are refused at signup — including
+          Blocked emails and banned accounts' Google identities are refused at signup, including
           OAuth sign-in with a different Google account. Ban an existing account instead of adding
           it here; restoring a banned account removes its entry automatically.
         </p>

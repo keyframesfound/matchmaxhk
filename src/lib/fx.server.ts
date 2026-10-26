@@ -1,8 +1,8 @@
 // Server-only FX engine (issue #112): fetches daily ECB reference rates via
 // Frankfurter (free, no API key, covers every supported currency against the
 // HKD base) and upserts them into the public.exchange_rates table through the
-// service-role client. Only server code can write rates — the table has no
-// INSERT/UPDATE policies — so callers can never poison conversions.
+// service-role client. Only server code can write rates, the table has no
+// INSERT/UPDATE policies, so callers can never poison conversions.
 //
 // The refresh is idempotent; concurrent runs just upsert the same values.
 // When Frankfurter is unreachable the last stored rates keep serving (they
@@ -72,7 +72,7 @@ async function readRateRows(): Promise<ExchangeRateRowWithUpdatedAt[]> {
 
 /**
  * Fetches current rates and upserts them. Throws only when the fetch or the
- * write fails — callers decide whether stale rates are acceptable.
+ * write fails, callers decide whether stale rates are acceptable.
  */
 export async function refreshFxRates(): Promise<{ date: string }> {
   const data = await fetchFrankfurterRates();
@@ -105,7 +105,7 @@ async function isStale(maxAgeMs: number): Promise<boolean> {
 
 /**
  * Returns the stored HKD rate rows, refreshing them first when older than
- * `maxAgeHours`. Fetch failures degrade to serving the stale rows — the
+ * `maxAgeHours`. Fetch failures degrade to serving the stale rows, the
  * daily cron (or the next request) retries.
  */
 export async function ensureFreshRates(

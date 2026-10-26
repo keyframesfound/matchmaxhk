@@ -5,6 +5,7 @@ import { ArrowRight, ClipboardList } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ContentsRow, GuideHeading, GuidePage, GuideSteps } from "@/features/guide/guide-shell";
 
+import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/guide/tutors")({
   head: () => ({
     meta: [
@@ -21,14 +22,14 @@ export const Route = createFileRoute("/guide/tutors")({
         content:
           "How tutors use MatchMax: submit credentials, get listed anonymously, claim cases that fit your commute, and keep the hourly fee after the 1.5-lesson admin fee.",
       },
-      { property: "og:url", content: "https://matchmax.hk/guide/tutors" },
+      { property: "og:url", content: canonicalUrl("/guide/tutors") },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/guide/tutors" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/guide/tutors") }],
   }),
   component: GuideTutorsPage,
 });
 
-/** Issue #210: the tutor guide — steps, money, and what MatchMax does not do. */
+/** Issue #210: the tutor guide, steps, money, and what MatchMax does not do. */
 function GuideTutorsPage() {
   const { t } = useTranslation();
 
@@ -58,12 +59,9 @@ function GuideTutorsPage() {
           { id: "not-do", label: t("guide.nav_not_do") },
         ]}
       />
-      <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
+      <section className="mx-auto max-w-[1600px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
         <div className="max-w-3xl">
-          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-            {t("guide.tutors.eyebrow")}
-          </p>
-          <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">
+          <h1 className="text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl">
             {t("guide.tab_tutors")}
           </h1>
           <p className="mt-4 text-lg leading-8 text-[color:var(--ink)]/65">

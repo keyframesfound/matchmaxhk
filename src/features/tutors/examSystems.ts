@@ -32,7 +32,7 @@ export type ExamSystem = {
   paperScoreOptionsFor?: (label: string) => readonly string[];
   /**
    * True when the system is a qualification (e.g. IELTS) whose "subjects"
-   * are score entries, not teachable subjects — they are excluded from
+   * are score entries, not teachable subjects, they are excluded from
    * the site-wide teaching-subject pickers.
    */
   qualificationsOnly?: boolean;
@@ -370,7 +370,7 @@ export const EXAM_SYSTEMS: ExamSystem[] = [
     grades: [],
     gradesFor: satGradesFor,
     // SAT "subjects" are score entries (Total/EBRW/Math), not teachable
-    // subjects — teachable SAT support lives in ADMISSIONS_TEST_SUBJECTS.
+    // subjects, teachable SAT support lives in ADMISSIONS_TEST_SUBJECTS.
     qualificationsOnly: true,
   },
   {

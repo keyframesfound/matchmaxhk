@@ -1,5 +1,5 @@
 /**
- * Issues #205 + #287 — parent-side pure helpers: review submit state machine
+ * Issues #205 + #287, parent-side pure helpers: review submit state machine
  * and slot-request validation. No DB access; vitest-covered.
  */
 

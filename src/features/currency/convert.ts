@@ -1,4 +1,4 @@
-// Issue #113 + #114 — display-currency helpers. Pure functions over the
+// Issue #113 + #114, display-currency helpers. Pure functions over the
 // money.ts primitives so every surface (cards, profile rates, forms, case
 // feeds) converts and formats the same way. The FX rates themselves come from
 // the exchange_rates table (fx.server.ts refreshes them from Frankfurter);
@@ -16,7 +16,7 @@ import {
 /** localStorage key for the parent display currency (#114). */
 export const DISPLAY_CURRENCY_STORAGE_KEY = "matchmax.display_currency";
 
-/** Safe localStorage read — returns DEFAULT_CURRENCY when unset/corrupt. */
+/** Safe localStorage read, returns DEFAULT_CURRENCY when unset/corrupt. */
 export function readStoredCurrency(storage: Pick<Storage, "getItem"> | null): CurrencyCode {
   if (!storage) return DEFAULT_CURRENCY;
   try {
@@ -29,7 +29,7 @@ export function readStoredCurrency(storage: Pick<Storage, "getItem"> | null): Cu
 /**
  * Converted display text for an HKD-denominated amount ("£30" for 233 HKD at
  * 0.128 GBP/HKD). Null when the display currency is HKD (caller keeps its
- * existing HKD rendering) or no rate is available — conversion must never
+ * existing HKD rendering) or no rate is available, conversion must never
  * break a price that used to render.
  */
 export function convertedTextFromHkd(
@@ -47,7 +47,7 @@ export function convertedTextFromHkd(
  * Native-currency amount → display text for the profile Rates table
  * (#114): the tutor's stored rate is native, the viewer picked a display
  * currency. Null when either side is HKD (already native) or rates are
- * missing — callers then show the stored value unchanged.
+ * missing, callers then show the stored value unchanged.
  */
 export function nativeToDisplayText(
   amount: number,
@@ -62,7 +62,7 @@ export function nativeToDisplayText(
 }
 
 /**
- * True only when the display switcher is actually converting — display ≠ HKD
+ * True only when the display switcher is actually converting, display ≠ HKD
  * AND a usable rate exists for it. Gates "viewing converted" chrome such as
  * the profile FX disclaimer (#380 review): when rates fail to load every
  * surface fail-softs back to HKD figures, and a disclaimer claiming prices
@@ -76,7 +76,7 @@ export function hasActiveConversion(display: CurrencyCode, rates: HkdRates): boo
 /**
  * Live ≈HK$ baseline for native-currency inputs (#113/#114 forms):
  * "≈ HK$3,129" for a £400/hr input. Null when the input currency is HKD or
- * no rate is available — the note simply does not render.
+ * no rate is available, the note simply does not render.
  */
 export function approxHkdText(amount: number, from: CurrencyCode, rates: HkdRates): string | null {
   if (!Number.isFinite(amount) || amount <= 0) return null;

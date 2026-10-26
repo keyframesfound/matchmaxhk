@@ -46,7 +46,7 @@ const coursesModeLabel = (value: string, t: (key: string) => string) => {
   return t("search_ui.mode_open");
 };
 
-/** Segments for the compact nav pill — Airbnb "Anywhere | Anytime" style. */
+/** Segments for the compact nav pill, Airbnb "Anywhere | Anytime" style. */
 export function useCoursesCompactSegments(draft: CoursesSearchState): CompactSegment[] {
   const { t } = useTranslation();
   return [

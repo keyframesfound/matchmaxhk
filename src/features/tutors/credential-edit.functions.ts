@@ -20,16 +20,16 @@ import {
 } from "@/features/tutors/credential-edits";
 
 /**
- * Issue #284 (P4) — evidence-gated credential changes for verified tutors.
+ * Issue #284 (P4), evidence-gated credential changes for verified tutors.
  *
  * Owner path: a tier_2_verified tutor cannot write the locked credential
  * columns directly (tutors_owner_verified_guard raises), so this module gives
- * them a request flow instead — new value + a supporting document. The row
+ * them a request flow instead, new value + a supporting document. The row
  * lands pending in tutor_credential_edits; the old value stays on the public
  * card until staff approve (service-role swap) or reject (reason stored).
  *
  * Staff path: same shape as the grade queue (admin/grade-review.functions.ts)
- * — assertAdmin from the session, service-role reads, short-lived signed URL
+ *, assertAdmin from the session, service-role reads, short-lived signed URL
  * for the private credential-evidence bucket, in-app notice to the tutor.
  *
  * tutor_credential_edits is not in the generated Database types yet, so every
@@ -201,7 +201,7 @@ export const submitCredentialEdit = createServerFn({ method: "POST" })
       });
     if (uploadError) throw new Error(uploadError.message);
 
-    // One open edit per (tutor, field) — the partial unique index rejects a
+    // One open edit per (tutor, field), the partial unique index rejects a
     // second pending row. Roll the document back and say so friendly.
     const { data: inserted, error: insertError } = (await supabaseAdmin
       .from("tutor_credential_edits" as never)
@@ -348,7 +348,7 @@ const reviewInputSchema = z.object({
  * Approve/reject one credential edit. Approve swaps the new value into the
  * tutors row (service role bypasses the owner guard) and marks the row
  * approved; reject keeps the old value and stores the staff reason. Either
- * way the tutor gets one in-app notice — best-effort, never fails the action.
+ * way the tutor gets one in-app notice, best-effort, never fails the action.
  */
 export const reviewCredentialEdit = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -396,7 +396,7 @@ export const reviewCredentialEdit = createServerFn({ method: "POST" })
       // stays pending so staff can reject it with a reason instead.
       const contactError = credentialValueContactError(edit.field, edit.new_value);
       if (contactError) {
-        throw new Error(`Approve blocked — ${contactError}`);
+        throw new Error(`Approve blocked, ${contactError}`);
       }
       // Swap the approved value in. Service role (auth.uid() IS NULL) passes
       // tutors_owner_verified_guard, so no guard change is needed.

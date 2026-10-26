@@ -5,6 +5,7 @@ import { ArrowRight, Search, UserRoundCheck } from "lucide-react";
 import { ContentsRow, GuideHeading, GuidePage, GuideSteps } from "@/features/guide/guide-shell";
 import { Button } from "@/components/ui/button";
 
+import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/guide/parents")({
   head: () => ({
     meta: [
@@ -21,14 +22,14 @@ export const Route = createFileRoute("/guide/parents")({
         content:
           "How parents use MatchMax: browse tutor profiles or send a request, the concierge introduction, the 1.5-lesson admin fee, and what MatchMax does not do.",
       },
-      { property: "og:url", content: "https://matchmax.hk/guide/parents" },
+      { property: "og:url", content: canonicalUrl("/guide/parents") },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/guide/parents" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/guide/parents") }],
   }),
   component: GuideParentsPage,
 });
 
-/** Issue #210: the parent guide — steps, money, and what MatchMax does not do. */
+/** Issue #210: the parent guide, steps, money, and what MatchMax does not do. */
 function GuideParentsPage() {
   const { t } = useTranslation();
 
@@ -58,12 +59,9 @@ function GuideParentsPage() {
           { id: "not-do", label: t("guide.nav_not_do") },
         ]}
       />
-      <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
+      <section className="mx-auto max-w-[1600px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
         <div className="max-w-3xl">
-          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-            {t("guide.parents.eyebrow")}
-          </p>
-          <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">
+          <h1 className="text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl">
             {t("guide.tab_parents")}
           </h1>
           <p className="mt-4 text-lg leading-8 text-[color:var(--ink)]/65">
@@ -93,7 +91,7 @@ function GuideParentsPage() {
                   />
                   {label}
                 </h3>
-                <p className="mt-2 text-sm leading-6 text-[color:var(--ink)]/70">{body}</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
               </div>
             ))}
           </div>
@@ -108,7 +106,7 @@ function GuideParentsPage() {
                 className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--surface-subtle)] p-5 sm:p-6"
               >
                 <h3 className="text-base font-bold tracking-tight">{label}</h3>
-                <p className="mt-2 text-sm leading-6 text-[color:var(--ink)]/70">{body}</p>
+                <p className="mt-2 text-sm leading-6 text-muted-foreground">{body}</p>
               </div>
             ))}
           </div>

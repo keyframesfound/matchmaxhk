@@ -1,10 +1,10 @@
-// Issue #423 (sections 2+3) — ONE chip system for case cards.
+// Issue #423 (sections 2+3), ONE chip system for case cards.
 //
 // Merges the #149 requirement pills and the #311 stored tags into a single
 // descriptor list (the dual-render / grey-# row is gone). Chips are built
 // pure so both the list card and the detail page (and vitest) share them.
 //
-// Hard vs soft: gender "Female Only"/"Male Only" is a HARD preference — the
+// Hard vs soft: gender "Female Only"/"Male Only" is a HARD preference, the
 // detail page dims Apply + shows ⚠️ on a mismatching tutor. Everything else
 // (background, coursework components, tags) is soft and never dims anything.
 
@@ -13,7 +13,7 @@ import type { PublicCaseBoardItem } from "@/lib/cases.functions";
 
 export type CaseChip = {
   key: string;
-  /** Raw vocabulary label — the dedupe/filter identity (never localized). */
+  /** Raw vocabulary label, the dedupe/filter identity (never localized). */
   label: string;
   /**
    * Optional i18n key for the DISPLAY label (case_board.chip_*); when set the
@@ -39,8 +39,8 @@ export const CASE_CHIP_TKEYS: Record<string, string> = {
 
 /**
  * Exam-system pills reuse the site's existing curriculum vocabulary keys
- * (exact en/zh matches in other namespaces — same concept, no duplicate
- * rows). Values without a zh variant (IB, DSE, A-Level, IGCSE, AP — the
+ * (exact en/zh matches in other namespaces, same concept, no duplicate
+ * rows). Values without a zh variant (IB, DSE, A-Level, IGCSE, AP, the
  * labels are identical in both locales) stay verbatim. GLM round-2 NIT.
  */
 const CURRICULUM_CHIP_TKEYS: Record<string, string> = {
@@ -53,7 +53,7 @@ const CURRICULUM_CHIP_TKEYS: Record<string, string> = {
   Admissions: "case_board.chip_admissions",
 };
 
-/** CasePill tones are all soft (hard pills today are SEN/tests — still soft
+/** CasePill tones are all soft (hard pills today are SEN/tests, still soft
  * preferences for Apply gating; only gender is a hard gate per #423). */
 export function caseChips(item: PublicCaseBoardItem): CaseChip[] {
   const chips: CaseChip[] = [];
@@ -87,7 +87,7 @@ export function caseChips(item: PublicCaseBoardItem): CaseChip[] {
     push({ key: "sen", label: "SEN Friendly", tKey: "case_board.chip_sen", hard: false });
 
   // #149 requirement pills surface as query chips. Only the exam-system pill
-  // translates through the curriculum vocabulary — a school/uni/field value
+  // translates through the curriculum vocabulary, a school/uni/field value
   // that merely EQUALS a curriculum word stays verbatim data.
   for (const pill of casePillLabels(item)) {
     const curriculumTKey = pill === item.examSystem ? CURRICULUM_CHIP_TKEYS[pill] : undefined;

@@ -69,7 +69,7 @@ function toFormState(caseRow: CaseRow): EditFormState {
     subjectsText: (caseRow.subjects ?? []).join(", "),
     studentLevel: caseRow.student_level ?? "",
     examSystem: caseRow.exam_system ?? "",
-    // Legacy rows have no stored tier — derive it from the student level.
+    // Legacy rows have no stored tier, derive it from the student level.
     academicTier:
       normalizeAcademicTier(caseRow.academic_tier) ??
       caseAcademicTier(caseRow.academic_tier, caseRow.student_level) ??

@@ -36,7 +36,7 @@ import type { StatusAction } from "@/features/admin-users/account-status.shared"
 export const Route = createFileRoute("/_authenticated/admin/users")({
   head: () => ({
     meta: [
-      { title: "User Directory & Access Control — MatchMax Admin" },
+      { title: "User Directory & Access Control, MatchMax Admin" },
       {
         name: "description",
         content:
@@ -269,7 +269,7 @@ function AdminUsers() {
   return (
     <div>
       <main className="flex-1">
-        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6 sm:py-12 space-y-8">
+        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 space-y-8">
           {/* Top Page Header */}
           <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between pb-6 border-b border-border/60">
             <div>

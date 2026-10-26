@@ -15,7 +15,7 @@ import {
 } from "@/features/tutors/grades";
 
 /**
- * Issue #309 — tutor-facing tutor_grades server fns. Row reads go through the
+ * Issue #309, tutor-facing tutor_grades server fns. Row reads go through the
  * RLS "Tutors manage own grades" policy straight from the client; every
  * MUTATION goes through these fns so the state machine (label edit demotes an
  * approved grade to pending, uploads always re-enter review) is enforced
@@ -101,7 +101,7 @@ export const uploadTutorGradeSlip = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     const { file } = data;
-    // Identity cards are never valid grade slips — rejected server-side too
+    // Identity cards are never valid grade slips, rejected server-side too
     // (the UI shows the same rule client-side before upload).
     if (looksLikeHkid(file.filename)) {
       throw new Error("Do not upload an identity card.");

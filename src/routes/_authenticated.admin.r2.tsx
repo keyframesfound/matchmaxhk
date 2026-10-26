@@ -1,10 +1,20 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { Copy, ExternalLink, Loader2, RefreshCw, Trash2, Upload } from "lucide-react";
 import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/features/auth/useAuth";
@@ -19,7 +29,7 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/r2")({
   head: () => ({
     meta: [
-      { title: "R2 images — MatchMax admin" },
+      { title: "R2 images, MatchMax admin" },
       { name: "description", content: "Manage tutor profile images stored in Cloudflare R2." },
       { name: "robots", content: "noindex" },
     ],
@@ -89,6 +99,8 @@ function AdminR2Images() {
     onError: (error: Error) => toast.error(error.message),
   });
 
+  const [pendingDeleteKey, setPendingDeleteKey] = useState<string | null>(null);
+
   const remove = useMutation({
     mutationFn: async (key: string) => {
       return deleteFn({ data: { key } });
@@ -141,7 +153,7 @@ function AdminR2Images() {
   return (
     <div>
       <main className="flex-1">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+        <div className="mx-auto max-w-[1536px] px-4 py-12 sm:px-6">
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
@@ -207,10 +219,7 @@ function AdminR2Images() {
                   >
                     <img src={item.url} alt={item.key} className="h-44 w-full object-cover" />
                     <div className="space-y-2 p-3">
-                      <p
-                        className="truncate text-xs font-semibold text-foreground"
-                        title={item.key}
-                      >
+                      <p className="truncate text-xs font-medium text-foreground" title={item.key}>
                         {item.key}
                       </p>
                       <p className="text-[11px] text-muted-foreground">
@@ -262,10 +271,7 @@ function AdminR2Images() {
                           variant="destructive"
                           className="h-8"
                           disabled={remove.isPending}
-                          onClick={() => {
-                            if (!confirm("Delete this image from R2?")) return;
-                            remove.mutate(item.key);
-                          }}
+                          onClick={() => setPendingDeleteKey(item.key)}
                         >
                           <Trash2 className="mr-1.5 h-3.5 w-3.5" />
                           Delete
@@ -279,6 +285,32 @@ function AdminR2Images() {
           </div>
         </div>
       </main>
+
+      {pendingDeleteKey ? (
+        <AlertDialog open onOpenChange={(open) => (!open ? setPendingDeleteKey(null) : null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Delete this image from R2?</AlertDialogTitle>
+              <AlertDialogDescription>
+                The file {pendingDeleteKey} is removed permanently. Tutors using it as their profile
+                image fall back to the default avatar.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                onClick={() => {
+                  remove.mutate(pendingDeleteKey);
+                  setPendingDeleteKey(null);
+                }}
+              >
+                Delete image
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ) : null}
     </div>
   );
 }

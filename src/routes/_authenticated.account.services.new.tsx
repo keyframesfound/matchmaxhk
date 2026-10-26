@@ -7,7 +7,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import { GigEditorForm } from "@/features/gigs/gig-editor-form";
 
 /**
- * #326: new freestyle service gig — everything is optional until submit;
+ * #326: new freestyle service gig, everything is optional until submit;
  * a draft with only a title survives (mirrors /account/notes/new).
  */
 

@@ -15,7 +15,7 @@ import {
 import { motion, useMotionValueEvent, useTransform } from "motion/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { setLocale } from "@/features/i18n/config";
+import { useSwitchLocale } from "@/features/i18n/switch-locale";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
 import { CurrencyMenuSub, CurrencyToggle } from "@/components/brand/CurrencyToggle";
@@ -76,9 +76,9 @@ function MenuDivider() {
 
 /** Round icon trigger for the header popovers (avatar / burger). */
 const headerCircleClassName =
-  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40";
+  "flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring";
 
-/** Centered category tab for the lg+ nav row — Airbnb-style icon + label with an active underline. */
+/** Centered category tab for the lg+ nav row, Airbnb-style icon + label with an active underline. */
 function DesktopTab({
   to,
   active,
@@ -144,6 +144,7 @@ export function SiteHeader({
   const { t, i18n } = useTranslation();
   const { user, signOut, hasAnyRole, hasRole } = useAuth();
   const navigate = useNavigate();
+  const switchLocale = useSwitchLocale();
   const { membership } = useMyOrganization();
   const hasOrg = !!membership;
   const { theme, setTheme } = useTheme();
@@ -169,7 +170,8 @@ export function SiteHeader({
   const useDarkTheme = theme !== "dark";
   const currentLang = i18n.language?.startsWith("zh") ? "zh-HK" : "en";
   const nextLang = currentLang === "en" ? "zh-HK" : "en";
-  const brandLabelClassName = "text-lg font-bold tracking-tight text-brand-gradient sm:text-xl";
+  const brandLabelClassName =
+    "font-wordmark-nav text-lg font-bold tracking-tight text-brand-gradient sm:text-xl";
 
   // Mobile keeps a slim top bar (logo + staggered menu); the fixed bottom
   // tab bar handles account navigation and must render outside the header.
@@ -205,7 +207,7 @@ export function SiteHeader({
           className,
         )}
       >
-        <div className="relative mx-auto flex h-[72px] max-w-[1440px] items-center gap-2 px-4 sm:px-8 lg:gap-0 xl:px-10">
+        <div className="relative mx-auto flex h-[72px] max-w-[1600px] items-center gap-2 px-4 sm:px-8 lg:gap-0 xl:px-10">
           {merged && centerSlot ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
               <motion.div
@@ -343,7 +345,7 @@ export function SiteHeader({
                       </Link>
                     </DropdownMenuItem>
                     {/* Launch/replay the tutor dashboard tour from any page. */}
-                    {hasRole("tutor") && (
+                    {(hasRole("tutor") || isAdmin) && (
                       <DropdownMenuItem
                         onSelect={() => {
                           requestTour(TOUR_STORAGE_KEYS.tutor);
@@ -378,7 +380,7 @@ export function SiteHeader({
                 <MenuDivider />
                 <div className="px-1.5 py-1.5">
                   <DropdownMenuItem
-                    onSelect={() => setLocale(nextLang)}
+                    onSelect={() => switchLocale(nextLang)}
                     className={menuLinkClassName}
                   >
                     <MenuIcon>
@@ -413,9 +415,7 @@ export function SiteHeader({
                   <DropdownMenuItem asChild className={menuCardClassName}>
                     <Link to="/join">
                       <span className="min-w-0 flex-1">
-                        <span className="block font-semibold leading-5">
-                          {t("nav.become_tutor")}
-                        </span>
+                        <span className="block font-medium leading-5">{t("nav.become_tutor")}</span>
                         <span className="mt-1 block text-[13px] font-normal leading-4 text-[color:var(--ink)]/60">
                           {t("nav.become_tutor_subtitle")}
                         </span>

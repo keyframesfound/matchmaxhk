@@ -26,8 +26,8 @@ import { getTutorInquiryAction } from "@/features/tutors/tutor-display";
 /**
  * Issue #104: guided "Preview as parent" sandbox (+ the #294 remainder: the
  * owner sees the visitor's report affordances, guarded). Renders the signed-in
- * tutor's OWN public presence exactly as parents see it — the /tutors grid's
- * PublicTutorCard and the public profile sections — built ONLY from the same
+ * tutor's OWN public presence exactly as parents see it, the /tutors grid's
+ * PublicTutorCard and the public profile sections, built ONLY from the same
  * public query fns the public surfaces use (fetchTutorByCode), so nothing a
  * parent cannot see can leak. noindex; guests never reach it (the
  * _authenticated layout redirects to /auth).
@@ -68,7 +68,7 @@ function PreviewPage() {
   const showGoLiveCta = !ownerQuery.isLoading && shouldShowGoLiveCta(cardState);
 
   // The preview itself fetches through the SAME public fn the /tutors grid and
-  // the public profile use, keyed on the owner row's tutor code — so the
+  // the public profile use, keyed on the owner row's tutor code, so the
   // render below can only ever show what parents see.
   const publicTutorQuery = useQuery({
     queryKey: ["tutor", "byCode", plan.stage === "public_data" ? plan.tutorCode : ""],
@@ -76,7 +76,7 @@ function PreviewPage() {
     enabled: plan.stage === "public_data",
   });
 
-  // Shared with PublicProfileView's identical key — one fetch total.
+  // Shared with PublicProfileView's identical key, one fetch total.
   const { data: whatsappNumber } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
     queryFn: async () => {
@@ -117,13 +117,13 @@ function PreviewPage() {
       {/* Dismissible instructional banner (issue #104). */}
       {bannerVisible ? (
         <div className="border-b border-border bg-[color:var(--accent)]/10">
-          <div className="mx-auto flex w-full max-w-5xl items-start justify-between gap-3 px-4 py-3 sm:px-6">
+          <div className="mx-auto flex w-full max-w-7xl items-start justify-between gap-3 px-4 py-3 sm:px-6">
             <p className="text-sm leading-relaxed text-[color:var(--ink)]">{t("preview.banner")}</p>
             <button
               type="button"
               aria-label={t("preview.banner_dismiss")}
               onClick={() => setBannerVisible(false)}
-              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+              className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
             >
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -133,19 +133,16 @@ function PreviewPage() {
 
       <main className="flex-1">
         {isLoading ? (
-          <div className="mx-auto w-full max-w-5xl space-y-4 px-4 py-10 sm:px-6" aria-busy="true">
+          <div className="mx-auto w-full max-w-7xl space-y-4 px-4 py-10 sm:px-6" aria-busy="true">
             <Skeleton className="h-5 w-64" />
             <Skeleton className="h-80 w-full max-w-md rounded-[var(--radius-panel)]" />
             <Skeleton className="h-40 w-full rounded-[var(--radius-panel)]" />
           </div>
         ) : isLive && liveTutor ? (
           <>
-            {/* The /tutors grid card — same component, same props shape. */}
-            <section className="mx-auto w-full max-w-5xl px-4 pt-6 sm:px-6">
-              <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-                {t("preview.card_eyebrow")}
-              </p>
-              <div className="mt-3 max-w-md">
+            {/* The /tutors grid card, same component, same props shape. */}
+            <section className="mx-auto w-full max-w-7xl px-4 pt-6 sm:px-6">
+              <div className="max-w-md">
                 <PublicTutorCard
                   tutor={liveTutor}
                   priceSuffix={t("featured.per_hour")}
@@ -178,21 +175,16 @@ function PreviewPage() {
 
             {/* The full public profile view, owner-guarded report affordances. */}
             <section className="mt-8">
-              <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
-                <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-                  {t("preview.profile_eyebrow")}
-                </p>
-              </div>
-              <div className="mt-3">
+              <div>
                 <PublicProfileView tutor={liveTutor} isOwn={isOwn} />
               </div>
             </section>
           </>
         ) : (
           /* No live card yet (#356: it goes live when /join is submitted). */
-          <section className="mx-auto w-full max-w-5xl px-4 pt-8 sm:px-6">
+          <section className="mx-auto w-full max-w-7xl px-4 pt-8 sm:px-6">
             <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
-              <p className="text-sm font-semibold text-[color:var(--ink)]">
+              <p className="text-sm font-bold text-[color:var(--ink)]">
                 {t("preview.empty_title")}
               </p>
               <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
@@ -212,7 +204,7 @@ function PreviewPage() {
 
       {/* Sticky bottom action toolbar: border-top, no shadow. */}
       <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 border-t border-border bg-[color:var(--surface)] lg:bottom-0">
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Button variant="outline" className="font-semibold" asChild>
             <a href="/dashboard#my-tutor">
               <Pencil className="mr-2 h-4 w-4" aria-hidden />
@@ -220,7 +212,7 @@ function PreviewPage() {
             </a>
           </Button>
           {/* #356: the submit/go-live CTA exists only while the card is not
-              live — a live card shows no submit button. /join owns the
+              live, a live card shows no submit button. /join owns the
               existing confirmation flow (ack + verification + publish). */}
           {showGoLiveCta ? (
             <Button variant="solid" color="blue" className="font-bold" asChild>

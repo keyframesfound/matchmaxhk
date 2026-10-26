@@ -135,7 +135,7 @@ function ListingCard({
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
           />
         ) : (
-          <span className="flex h-full w-full items-center justify-center text-muted-foreground/40">
+          <span className="flex h-full w-full items-center justify-center text-muted-foreground">
             <BookOpen className="h-10 w-10" />
           </span>
         )}
@@ -318,7 +318,7 @@ function BusinessPublicProfile() {
       <SiteHeader />
       <main className="flex-1">
         {orgLoading && (
-          <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6">
             <div className="overflow-hidden rounded-xl border border-border bg-card">
               <Skeleton className="h-40 w-full rounded-none sm:h-56" />
               <div className="px-6 pb-6">
@@ -346,7 +346,7 @@ function BusinessPublicProfile() {
         )}
 
         {org && (
-          <div className="mx-auto max-w-5xl px-4 py-6 sm:px-6 sm:py-8">
+          <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
             <div className="flex items-center justify-between gap-3">
               <Link
                 to="/courses"
@@ -378,7 +378,7 @@ function BusinessPublicProfile() {
             {isOwner && (
               <div className="mt-4 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-[color:var(--foreground)]/10 bg-[color:var(--muted)] p-3 text-sm">
                 <p className="font-medium text-[color:var(--ink)]">
-                  You're viewing your public profile — edit it inline or in the console.
+                  You're viewing your public profile, edit it inline or in the console.
                 </p>
                 <Button asChild variant="outline" size="sm">
                   <a href="/business">Open console</a>
@@ -605,7 +605,7 @@ function BusinessPublicProfile() {
                   </div>
 
                   <div className="rounded-lg border border-border bg-muted/40 p-4">
-                    <h3 className="text-sm font-bold text-[color:var(--ink)]">Details</h3>
+                    <h3 className="text-base font-bold text-[color:var(--ink)]">Details</h3>
                     <ul className="mt-3 flex flex-col gap-2.5 text-sm text-muted-foreground">
                       <li className="flex items-center gap-2.5">
                         <MapPin className="h-4 w-4 shrink-0" />
@@ -647,7 +647,7 @@ function BusinessPublicProfile() {
 
                 {faqItems.length > 0 && (
                   <div className="mt-6 border-t border-border pt-5">
-                    <h3 className="text-sm font-bold text-[color:var(--ink)]">
+                    <h3 className="text-base font-bold text-[color:var(--ink)]">
                       Frequently asked questions
                     </h3>
                     <Accordion type="single" collapsible className="mt-2">
@@ -729,7 +729,7 @@ function BusinessPublicProfile() {
                         title="No courses found"
                         description={
                           (courses ?? []).length === 0
-                            ? "This business hasn't published any courses — check back soon."
+                            ? "This business hasn't published any courses, check back soon."
                             : "No courses match the selected filters."
                         }
                         secondaryAction={

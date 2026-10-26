@@ -13,7 +13,7 @@ import {
 
 /**
  * Issue #397 parent/student tour. Fires exactly once on the tutor directory
- * — the issue's trigger is "first interaction with the main search bar OR
+ *, the issue's trigger is "first interaction with the main search bar OR
  * first view of a tutor card", so `ready` (results on screen) starts it after
  * a beat. Missing targets (e.g. no results, no shop tab) skip their step.
  *
@@ -33,7 +33,7 @@ export function ParentCoachTour({ ready }: { ready: boolean }) {
     const timer = window.setTimeout(() => {
       // The concierge entry lives inside the filters dialog (hidden by
       // default), so the closing step is a centered popover rather than a
-      // spotlight — consistent with the tutor tour's final card.
+      // spotlight, consistent with the tutor tour's final card.
       const steps = [
         tourStep("parent-search", t("tour.parent.search_title"), t("tour.parent.search_body")),
         tourStep("parent-card", t("tour.parent.card_title"), t("tour.parent.card_body")),

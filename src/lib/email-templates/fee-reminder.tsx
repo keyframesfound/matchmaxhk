@@ -9,7 +9,7 @@ interface FeeReminderEmailProps {
 }
 
 /**
- * Issue #205 — parent reminder for an unpaid 1.5-lesson admin fee (day 3 and
+ * Issue #205, parent reminder for an unpaid 1.5-lesson admin fee (day 3 and
  * day 7 after invoice). Sent by the lazy bus drain via the fee-reminder
  * template; the payment itself stays concierge-run FPS.
  */
@@ -28,7 +28,7 @@ export const FeeReminderEmail = ({ caseCode, amountHkd, dueDate }: FeeReminderEm
           reference. Your case becomes active once the fee is marked paid.
         </Text>
         <Hr style={hr} />
-        <Text style={footer}>Questions? Contact the MatchMax team — we're happy to help.</Text>
+        <Text style={footer}>Questions? Contact the MatchMax team, we're happy to help.</Text>
       </Container>
     </Body>
   </Html>

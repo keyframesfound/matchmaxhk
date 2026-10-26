@@ -7,9 +7,9 @@ type PageContainerProps = ComponentPropsWithoutRef<"div"> & {
 };
 
 const widthClasses = {
-  narrow: "max-w-3xl",
-  default: "max-w-4xl",
-  wide: "max-w-5xl",
+  narrow: "max-w-4xl",
+  default: "max-w-6xl",
+  wide: "max-w-7xl",
 };
 
 export function PageContainer({ className, width = "default", ...props }: PageContainerProps) {

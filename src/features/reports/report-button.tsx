@@ -34,7 +34,7 @@ import { cn } from "@/lib/utils";
  * finding): when a logged-out user clicks Report and the auth gate opens, we
  * stash the target in sessionStorage; once `user` appears, the dialog reopens
  * automatically so they don't have to find the report button again. Google
- * OAuth landing in a fresh tab loses sessionStorage — the intent degrades to
+ * OAuth landing in a fresh tab loses sessionStorage, the intent degrades to
  * "click Report again", same as before; the email path (same tab) resumes.
  */
 const PENDING_REPORT_KEY = "mm_pending_report";
@@ -48,7 +48,7 @@ function stashPendingReport(intent: PendingReport) {
   try {
     sessionStorage.setItem(PENDING_REPORT_KEY, JSON.stringify(intent));
   } catch {
-    // sessionStorage unavailable — the user just clicks Report again
+    // sessionStorage unavailable, the user just clicks Report again
   }
 }
 
@@ -121,7 +121,7 @@ export function ReportButton({
   label: string;
   className?: string;
   /**
-   * Issue #294 remainder: set by the owner-only preview surface — the owner
+   * Issue #294 remainder: set by the owner-only preview surface, the owner
    * sees the same button but clicking explains instead of opening the dialog.
    * No data fetch happens here; the caller decides ownership.
    */
@@ -143,7 +143,7 @@ export function ReportButton({
     }
   }, [user, isOwn, targetType, targetId]);
 
-  // Success keeps the dialog open — the dialog shows the "sent" screen while
+  // Success keeps the dialog open, the dialog shows the "sent" screen while
   // `submitted` is true; closing clears it.
   const reset = () => {
     setReason(null);
@@ -209,7 +209,7 @@ export function InlineReportLink({
   targetType: ReportTargetType;
   targetId: string;
   label: string;
-  /** Issue #294 remainder: owner-preview guard — see ReportButton. */
+  /** Issue #294 remainder: owner-preview guard, see ReportButton. */
   isOwn?: boolean;
 }) {
   const { t } = useTranslation();
@@ -305,7 +305,7 @@ export function ReportMenuButton({
   /** Screen-reader/tooltip label for the flag button itself. */
   menuLabel: string;
   className?: string;
-  /** Issue #294 remainder: owner-preview guard — see ReportButton. */
+  /** Issue #294 remainder: owner-preview guard, see ReportButton. */
   isOwn?: boolean;
 }) {
   const { t } = useTranslation();
@@ -365,7 +365,7 @@ export function ReportMenuButton({
           title={menuLabel}
           onClick={() => toast.info(t("report.self_own_profile"))}
           className={cn(
-            "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8",
+            "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8",
             className,
           )}
         >
@@ -379,7 +379,7 @@ export function ReportMenuButton({
               aria-label={menuLabel}
               title={menuLabel}
               className={cn(
-                "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8",
+                "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8",
                 className,
               )}
             >
@@ -445,13 +445,13 @@ function ReportDialog({
   note: string;
   setNote: (note: string) => void;
   pending: boolean;
-  /** A report was just submitted successfully — show the confirmation screen. */
+  /** A report was just submitted successfully, show the confirmation screen. */
   submitted: boolean;
   onSubmit: () => void;
 }) {
   const { t } = useTranslation();
   // Discord-style flow: pick a reason, then optional details, then a
-  // confirmation screen — one step per view instead of one long form.
+  // confirmation screen, one step per view instead of one long form.
   const [step, setStep] = useState<ReportStep>("reason");
   const showSent = submitted;
 
@@ -623,7 +623,7 @@ function TooltipWrappedReportTrigger({
       onClick={onOpen}
       onKeyDown={(event) => event.stopPropagation()}
       className={cn(
-        "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 @max-sm:h-8 @max-sm:w-8",
+        "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8",
         className,
       )}
     >

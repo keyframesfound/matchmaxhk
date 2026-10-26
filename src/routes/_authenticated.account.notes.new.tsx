@@ -7,7 +7,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import { NoteEditorForm } from "@/features/materials/note-editor-form";
 
 /**
- * P8 (#288): new note — everything is optional until submit; a draft with
+ * P8 (#288): new note, everything is optional until submit; a draft with
  * only a title survives the day (acceptance: "A draft with only a title is
  * still there the next day").
  */

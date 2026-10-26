@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 /**
  * Issues #83 + #105 (+ reviews half of #116): admin-only review curation in
  * the Tutor Editor. Reviews are collected off-platform (Google Form via the
- * concierge) and entered/published here — the client-facing site renders the
+ * concierge) and entered/published here, the client-facing site renders the
  * published ones read-only. RLS lets only admins write; tutors see nothing.
  */
 
@@ -183,9 +183,7 @@ export function TutorReviewsAdmin({ tutorId }: { tutorId: string }) {
 
       {/* Add-review form */}
       <div className="space-y-3 rounded-xl border border-[color:var(--ink)]/10 p-4">
-        <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
-          Add a review
-        </p>
+        <p className="text-xs font-medium text-muted-foreground">Add a review</p>
         <div className="grid gap-3 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="review-name">Reviewer display name *</Label>

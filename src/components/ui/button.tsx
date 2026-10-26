@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap font-semibold outline-none transition-[transform,background-color,border-color,color] duration-150 ease-out focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 focus-visible:ring-offset-2 active:scale-[0.97] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:scale-100 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "relative inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] font-semibold outline-none transition-[transform,background-color,border-color,color] duration-150 ease-out focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] focus-visible:ring-offset-2 active:scale-[0.97] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:scale-100 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       color: {
@@ -27,13 +27,13 @@ const buttonVariants = cva(
         square: "rounded-none!",
       },
       size: {
-        xs: "h-7 gap-1.5 rounded-sm px-2.5 text-xs [&_svg]:size-3.5",
-        sm: "h-8 gap-1.5 rounded-md px-3 text-xs [&_svg]:size-4",
-        default: "h-9 gap-2 rounded-md px-4 py-2 text-sm [&_svg]:size-4",
-        lg: "h-10 gap-2 rounded-md px-8 text-[0.95rem] [&_svg]:size-5",
-        icon: "h-9 w-9 rounded-md [&_svg]:size-4",
-        "icon-sm": "h-8 w-8 rounded-md [&_svg]:size-4",
-        "icon-lg": "h-10 w-10 rounded-md [&_svg]:size-5",
+        xs: "h-7 gap-1.5 px-2.5 text-xs [&_svg]:size-3.5",
+        sm: "h-8 gap-1.5 px-3 text-xs [&_svg]:size-4",
+        default: "h-9 gap-2 px-4 py-2 text-sm [&_svg]:size-4",
+        lg: "h-10 gap-2 px-8 text-[0.95rem] [&_svg]:size-5",
+        icon: "h-9 w-9 [&_svg]:size-4",
+        "icon-sm": "h-8 w-8 [&_svg]:size-4",
+        "icon-lg": "h-10 w-10 [&_svg]:size-5",
       },
       variant: {
         candy:
@@ -121,7 +121,7 @@ function Button({
   const localRef = useRef<HTMLButtonElement>(null);
   const classes = cn(
     buttonVariants({ className, color, shape, size, variant }),
-    // Opt-in tactile hover — NEVER used inside tutor cards (Ryan freeze): a
+    // Opt-in tactile hover, NEVER used inside tutor cards (Ryan freeze): a
     // 1px lift on hover plus 200ms icon transitions so trailing arrows can
     // nudge. The v4 lift animates the `translate` property, so the refined
     // transition list extends the base one with translate (tailwind-merge

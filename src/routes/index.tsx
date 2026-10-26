@@ -6,9 +6,8 @@ import { ArrowRight, ChevronLeft, ChevronRight, Flame } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
-import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
+import { canonicalUrl, currentSeoLocale, hreflangLinks, localizedMeta } from "@/features/i18n/seo";
 import { Button } from "@/components/ui/button";
-import { Reveal } from "@/components/ui/reveal";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   CompactSearchPill,
@@ -65,14 +64,14 @@ const CURRICULUM_CATEGORIES = [
   { label: "Examiner/pro teachers", value: "International" },
 ];
 
-const TUTORS_PER_PAGE = 3;
+const TUTORS_PER_PAGE = 4;
 const MAX_HOME_TUTORS = 6;
 
 // Issue #151 Option A: the home trending showcase. Candidates come from the
 // get_trending_tutors RPC, get re-ranked here with the quality multipliers
 // and are capped at 8 rendered cards. Cold-start guardrail: below three
 // tutors with ANY real engagement we keep the previous page (no near-empty
-// trending row — the empty-restaurant problem).
+// trending row, the empty-restaurant problem).
 const TRENDING_CANDIDATE_LIMIT = 24;
 const TRENDING_TUTOR_LIMIT = 8;
 const TRENDING_MIN_ELIGIBLE = 3;
@@ -97,7 +96,7 @@ export const Route = createFileRoute("/")({
           },
         }),
         { name: "robots", content: "index, follow" },
-        { property: "og:url", content: "https://matchmax.hk/" },
+        { property: "og:url", content: canonicalUrl("/") },
         { property: "og:type", content: "website" },
         { property: "og:site_name", content: "MatchMax" },
         { property: "og:image", content: OG_IMAGE },
@@ -121,7 +120,8 @@ export const Route = createFileRoute("/")({
         { name: "twitter:image", content: OG_IMAGE },
       ],
       links: [
-        { rel: "canonical", href: "https://matchmax.hk/" },
+        { rel: "canonical", href: canonicalUrl("/") },
+        ...hreflangLinks("/"),
         { rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
         { rel: "shortcut icon", href: "/favicon.ico" },
         { rel: "icon", type: "image/png", sizes: "32x32", href: "/favicon-32x32.png" },
@@ -218,20 +218,19 @@ function CurriculumTutorSection({
         className,
       )}
     >
-      <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card transition-colors group-hover:bg-[color:var(--surface-subtle)]">
-        <ArrowRight
-          className="h-5 w-5 text-[color:var(--brand-link)] transition-transform duration-200 ease-out group-hover:translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0"
-          aria-hidden="true"
-        />
-      </span>
+      <ArrowRight
+        className="h-6 w-6 text-[color:var(--brand-link)] transition-transform duration-200 ease-out group-hover:translate-x-0.5 motion-reduce:transition-none motion-reduce:group-hover:translate-x-0"
+        strokeWidth={1.75}
+        aria-hidden="true"
+      />
       <span className="text-sm font-bold text-[color:var(--ink)]">{t("featured.see_all")}</span>
     </Link>
   );
 
   return (
-    <section className="mx-auto max-w-7xl">
+    <section className="mx-auto max-w-[1536px]">
       <div className="mb-4 flex items-center gap-2 sm:gap-3">
-        <h2 className="min-w-0 truncate text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
+        <h2 className="min-w-0 truncate text-xl font-bold tracking-tight text-[color:var(--ink)] md:text-2xl">
           {label} tutors
         </h2>
         <Button
@@ -271,7 +270,7 @@ function CurriculumTutorSection({
       </div>
 
       {loading ? (
-        <div className="-mx-4 flex gap-3 overflow-hidden px-4 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:px-0 lg:grid-cols-3">
+        <div className="-mx-4 flex gap-3 overflow-hidden px-4 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:px-0 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: TUTORS_PER_PAGE }).map((_, index) => (
             <Skeleton
               key={index}
@@ -281,7 +280,7 @@ function CurriculumTutorSection({
         </div>
       ) : tutors.length > 0 ? (
         <>
-          {/* Mobile: one swipeable row — first page of tutors, then the see-all tile */}
+          {/* Mobile: one swipeable row, first page of tutors, then the see-all tile */}
           <div className="-mx-4 rail-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pt-1 pb-2 scroll-px-4 md:hidden">
             {tutors
               .slice(0, TUTORS_PER_PAGE)
@@ -305,7 +304,7 @@ function CurriculumTutorSection({
                     key={pageIndex}
                     inert={!isCurrentPage}
                     aria-hidden={!isCurrentPage}
-                    className="grid w-full shrink-0 grid-cols-2 gap-6 lg:grid-cols-3"
+                    className="grid w-full shrink-0 grid-cols-2 gap-6 lg:grid-cols-3 xl:grid-cols-4"
                   >
                     {pageTutors.map((tutor) => renderTutorCard(tutor))}
                     {withSeeAllTile ? seeAllTile("min-h-[23rem]") : null}
@@ -376,15 +375,14 @@ function TrendingTutorsSection({
   };
 
   return (
-    <section className="mx-auto max-w-7xl">
+    <section className="mx-auto max-w-[1536px]">
       <div className="mb-4 flex items-center gap-2 sm:gap-3">
-        <span
+        <Flame
+          className="h-5 w-5 shrink-0 text-[color:var(--brand-link)] sm:h-6 sm:w-6"
+          strokeWidth={1.75}
           aria-hidden="true"
-          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[color:var(--surface-subtle)] sm:h-9 sm:w-9"
-        >
-          <Flame className="h-5 w-5 text-[color:var(--brand-link)]" />
-        </span>
-        <h2 className="min-w-0 truncate text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
+        />
+        <h2 className="min-w-0 truncate text-xl font-bold tracking-tight text-[color:var(--ink)] md:text-2xl">
           {t("home.trending_title")}
         </h2>
         <div className="ml-auto hidden shrink-0 items-center gap-1.5 md:flex">
@@ -524,7 +522,7 @@ function Landing() {
   // (#142; tier_2_verified = transcripts + HKID passed manual review) and
   // top-scorer detection runs over APPROVED grade labels only. Cold-start
   // guardrail: fewer than three candidates with popularity_score > 0 means
-  // the page renders exactly as before — no near-empty trending row.
+  // the page renders exactly as before, no near-empty trending row.
   const trendingEntries = useMemo<TrendingEntry[]>(() => {
     if (publishedTutors.length === 0 || trendingCandidates.length === 0) return [];
     const tutorById = new Map(publishedTutors.map((tutor) => [tutor.id, tutor]));
@@ -671,7 +669,7 @@ function Landing() {
         />
 
         <StickySearchBar>
-          <div className="mx-auto max-w-4xl px-4 sm:px-6 py-3">
+          <div className="mx-auto max-w-5xl px-4 sm:px-6 py-3">
             <TutorsSearchBar
               draft={homeSearch}
               onDraftChange={setHomeSearchParam}
@@ -685,7 +683,7 @@ function Landing() {
         {/* #307: grey band behind the mobile search pill, mirroring the
             desktop StickySearchBar band -- full-bleed, hairline bottom. */}
         <div className="relative z-20 border-b border-border bg-[color:var(--surface-header)] lg:hidden">
-          <div className="mx-auto max-w-[1440px] px-4 md:px-6">
+          <div className="mx-auto max-w-[1600px] px-4 md:px-6">
             <div className="py-2.5 sm:p-5">
               <TutorsSearchMobile
                 draft={homeSearch}
@@ -699,14 +697,14 @@ function Landing() {
         </div>
 
         <section className="relative pb-10 md:pt-6 md:pb-16">
-          <div className="mx-auto max-w-[1440px] px-4 md:px-6">
+          <div className="mx-auto max-w-[1600px] px-4 md:px-6">
             <div className="mt-4 space-y-10 md:mt-10 md:space-y-12">
               {/* Issue #312: approved notes under the search bar, above the
-                  IB rail; renders nothing below three public notes. Reveal
-                  lives INSIDE the row (after its null guards) so a hidden
-                  row leaves no empty wrapper in the space-y stack. */}
+                  IB rail; renders nothing below three public notes. The
+                  null guards live INSIDE the row so a hidden row leaves no
+                  empty wrapper in the space-y stack. */}
               <HomeNotesRow />
-              {/* Issue #329: Tutor services row — ORDER IS SEMANTIC: the
+              {/* Issue #329: Tutor services row, ORDER IS SEMANTIC: the
                   notes row (#312) stays first, gigs sit immediately below it.
                   Same ≥3-listings guardrail; renders nothing when the gigs
                   RPC is missing or fewer than three services are published. */}
@@ -714,31 +712,27 @@ function Landing() {
               {/* Issue #151 Option A: trending showcase; hidden entirely
                   (existing page) until 3+ tutors clear the guardrail. */}
               {trendingEntries.length > 0 ? (
-                <Reveal>
-                  <TrendingTutorsSection
-                    entries={trendingEntries}
-                    priceSuffix={t("featured.per_hour")}
-                    whatsappNumber={whatsappNumber}
-                    onOpen={openTutorDetail}
-                    compareSelectedIds={compareIds}
-                    onCompareToggle={toggleCompare}
-                  />
-                </Reveal>
+                <TrendingTutorsSection
+                  entries={trendingEntries}
+                  priceSuffix={t("featured.per_hour")}
+                  whatsappNumber={whatsappNumber}
+                  onOpen={openTutorDetail}
+                  compareSelectedIds={compareIds}
+                  onCompareToggle={toggleCompare}
+                />
               ) : null}
               {CURRICULUM_CATEGORIES.map(({ label, value }) => (
-                <Reveal key={value}>
-                  <CurriculumTutorSection
-                    label={label}
-                    category={value}
-                    tutors={tutorsForCategory(value)}
-                    loading={publishedTutorsLoading}
-                    priceSuffix={t("featured.per_hour")}
-                    whatsappNumber={whatsappNumber}
-                    onOpen={openTutorDetail}
-                    compareSelectedIds={compareIds}
-                    onCompareToggle={toggleCompare}
-                  />
-                </Reveal>
+                <CurriculumTutorSection
+                  label={label}
+                  category={value}
+                  tutors={tutorsForCategory(value)}
+                  loading={publishedTutorsLoading}
+                  priceSuffix={t("featured.per_hour")}
+                  whatsappNumber={whatsappNumber}
+                  onOpen={openTutorDetail}
+                  compareSelectedIds={compareIds}
+                  onCompareToggle={toggleCompare}
+                />
               ))}
             </div>
           </div>

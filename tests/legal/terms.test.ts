@@ -71,7 +71,7 @@ describe("buildTermsAcceptanceRow", () => {
     expect(row).toEqual({
       user_id: "u1",
       surface: "case_request",
-      terms_version: "fee-2026-10",
+      terms_version: "fee-2026-10-v2",
       subject_id: "case-1",
       ip_address: null,
       legal_entity_name: null,

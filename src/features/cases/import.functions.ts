@@ -1,11 +1,11 @@
 /**
- * Issue #201 — one-time CSV import (server wrapper).
+ * Issue #201, one-time CSV import (server wrapper).
  *
  * Per CSV row: resolve tutor (tutor_code, case-insensitive, exact
  * display_name fallback), optionally resolve the parent account by phone,
  * create the case via admin_create_sor_case (atomic org + member + case;
- * rerun-safe), insert the lesson rows (status done at 10:00 HKT), and — when
- * the fee was paid — insert a paid case_fees row. Planning logic lives in
+ * rerun-safe), insert the lesson rows (status done at 10:00 HKT), and, when
+ * the fee was paid, insert a paid case_fees row. Planning logic lives in
  * import-plan.ts (vitest-covered).
  */
 

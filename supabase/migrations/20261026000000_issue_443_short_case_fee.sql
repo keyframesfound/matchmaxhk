@@ -94,13 +94,14 @@ CREATE INDEX IF NOT EXISTS idx_cases_short_case
 
 -- ---------------------------------------------------------------------------
 -- Authenticated column-SELECT extension (20261017170000 rule: every new column
--- must extend the grant or the staff desk hits permission denied). This
--- re-issues the live grant plus the display-safe short-case inputs
--- (is_short_case, scheduled_lesson_count) and the #423/#412/#437 display
--- columns the shipped admin cases desk already selects but that no migration
--- ever granted (who_for, student_gender, compliance_triage, compliance_note,
--- package_type, student_count, rate_unit, class_format_preference) — repairing
--- the desk's permission-denied select as a side effect. short_case_fee /
+-- must extend the grant or the staff desk hits permission denied). This file
+-- is DATED AFTER 20261024200000_case_desk_81_55 and
+-- 20261025230000_desk_language_451 on purpose: 81_55 REVOKEs and re-issues the
+-- tutoring_cases grant (which would otherwise wipe the short-case columns
+-- added here), and desk_language_451 added its column WITHOUT extending the
+-- grant at all — so this re-issues the union of the 81_55 list + desk_language
+-- + class_format_preference (#391) + the display-safe short-case inputs
+-- (is_short_case, scheduled_lesson_count). short_case_fee /
 -- short_case_confirmed_by / short_case_confirmed_at stay INTERNAL (service
 -- role only, like hourly_rate_hkd). Hours per lesson are derived in code from
 -- the already-granted session_length_minutes — nothing new to grant there.
@@ -123,5 +124,6 @@ GRANT SELECT (
   kindergarten_focus,
   who_for, student_gender, compliance_triage, compliance_note,
   package_type, student_count, rate_unit, class_format_preference,
+  desk_language,
   is_short_case, scheduled_lesson_count
 ) ON public.tutoring_cases TO authenticated;

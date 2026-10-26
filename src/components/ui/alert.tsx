@@ -53,7 +53,7 @@ const AlertAction = React.forwardRef<
   <button
     ref={ref}
     className={cn(
-      "-top-2 -right-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[color:var(--ring)]/40",
+      "-top-2 -right-2 rounded-md px-3 py-1.5 text-sm font-medium transition-colors focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:ring-[color:var(--ring)]",
       className,
     )}
     {...props}

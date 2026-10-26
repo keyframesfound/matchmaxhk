@@ -88,12 +88,12 @@ describe("toggleKindergartenTopic (K topics live inside subjects)", () => {
 describe("kindergartenTopicsInSubjects", () => {
   it("returns canonical topics in option order", () => {
     const topics = kindergartenTopicsInSubjects([
-      "P1 Interview — General Knowledge",
+      "P1 Interview, General Knowledge",
       "Kindergarten Phonics",
       "IB Biology",
     ]);
     expect(topics[0]).toBe("Kindergarten Phonics");
-    expect(topics[1]).toBe("P1 Interview — General Knowledge");
+    expect(topics[1]).toBe("P1 Interview, General Knowledge");
     expect(topics).toHaveLength(2);
   });
 
@@ -112,8 +112,8 @@ describe("course grade pairs", () => {
     expect(courseGradeRowsToRecord(rows)).toEqual(grades);
   });
 
-  it("formats the public profile line as 'CODE — GRADE'", () => {
-    expect(formatCourseGradeLine({ course: "ECON1210", grade: "A+" })).toBe("ECON1210 — A+");
+  it("formats the public profile line as 'CODE, GRADE'", () => {
+    expect(formatCourseGradeLine({ course: "ECON1210", grade: "A+" })).toBe("ECON1210, A+");
   });
 
   it("drops blank or half-filled rows when converting back", () => {

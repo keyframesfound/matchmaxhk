@@ -17,13 +17,17 @@ import {
 } from "@/features/materials/notes.functions";
 import { startCheckout } from "@/features/materials/checkout.functions";
 import { TermsGateCheckbox } from "@/features/legal/TermsGateCheckbox";
+import { ShopTermsCheckbox } from "@/features/legal/shop-terms-checkbox";
 import { NotePreviewViewer } from "@/features/materials/note-preview-viewer";
 import { formatMaterialTypeLabel } from "@/features/materials/queries";
 import { GigDetailPage } from "@/features/gigs/gig-detail";
+import { FolderDetailPage } from "@/features/folders/folder-detail";
+import { CourseDetailPage } from "@/features/courses/course-detail";
 import { ReportMenuButton } from "@/features/reports/report-button";
+import { canonicalUrl } from "@/features/i18n/seo";
 
 /**
- * #203 + P8/P14: the public note page — the marketplace's Clastify-style
+ * #203 + P8/P14: the public note page, the marketplace's Clastify-style
  * listing. Left: watermarked preview, first 3 pages crisp, the rest blurred
  * under a lock panel. Right: sticky buy card (price, tutor badge, Add to
  * cart, request-this-tutor WhatsApp, owner stats, report). Below: contents
@@ -31,26 +35,33 @@ import { ReportMenuButton } from "@/features/reports/report-button";
  */
 
 export const Route = createFileRoute("/notes/$slug")({
-  head: ({ params, loaderData }) => ({
-    meta: [
-      {
-        // #326: gigs ride the /notes/$slug rails but are services, not notes.
-        title:
-          (loaderData as { note?: { materialType?: string } | null } | undefined)?.note
-            ?.materialType === "gig"
-            ? "Service | MatchMax"
-            : "Notes | MatchMax",
-      },
-      { property: "og:type", content: "product" },
-      { property: "og:url", content: `https://matchmax.hk/notes/${params.slug}` },
-      { name: "description", content: "Preview and buy study notes on MatchMax." },
-    ],
-    links: [{ rel: "canonical", href: `https://matchmax.hk/notes/${params.slug}` }],
-  }),
+  head: ({ params, loaderData }) => {
+    // #326/#392: gigs/folders/courses ride the /notes/$slug rails but are
+    // not notes, give each family its own document title.
+    const materialType = (loaderData as { note?: { materialType?: string } | null } | undefined)
+      ?.note?.materialType;
+    const title =
+      materialType === "gig"
+        ? "Service | MatchMax"
+        : materialType === "topic_folder"
+          ? "Topic Folder | MatchMax"
+          : materialType === "video_course" || materialType === "general_course"
+            ? "Course | MatchMax"
+            : "Notes | MatchMax";
+    return {
+      meta: [
+        { title },
+        { property: "og:type", content: "product" },
+        { property: "og:url", content: canonicalUrl(`/notes/${params.slug}`) },
+        { name: "description", content: "Preview and buy study notes on MatchMax." },
+      ],
+      links: [{ rel: "canonical", href: canonicalUrl(`/notes/${params.slug}`) }],
+    };
+  },
   loader: async ({ params }) => {
     const note = await getPublicNote({ data: { slug: params.slug } });
     // Render the 404 page (matches tutors.$tutorCode / tutor-requests.$caseCode)
-    // — a bare Error would surface as HTTP 500 on prod for any bogus slug.
+    //, a bare Error would surface as HTTP 500 on prod for any bogus slug.
     if (!note) throw notFound();
     return { note };
   },
@@ -58,14 +69,18 @@ export const Route = createFileRoute("/notes/$slug")({
 });
 
 /**
- * #326: one route, two products. Gigs ride the same slug/loader/404 rails as
- * notes but render the service page (no watermark viewer, no preview, no
- * view counter). Branching lives in sibling components so each keeps its own
- * stable hook order.
+ * #326 + #392: one route, many products. Gigs ride the same slug/loader/404
+ * rails as notes but render the service page; folders and courses render
+ * their own shop pages (children / lessons + buyer gating). Branching lives
+ * in sibling components so each keeps its own stable hook order.
  */
 function GigOrNotePage() {
   const { note } = Route.useLoaderData() as { note: PublicNote };
   if (note.materialType === "gig") return <GigDetailPage note={note} />;
+  if (note.materialType === "topic_folder") return <FolderDetailPage note={note} />;
+  if (note.materialType === "video_course" || note.materialType === "general_course") {
+    return <CourseDetailPage note={note} />;
+  }
   return <NotePage />;
 }
 
@@ -76,14 +91,19 @@ function NotePage() {
   const router = useRouter();
   const navigate = router.navigate.bind(router);
   const [gateOpen, setGateOpen] = useState(false);
-  // Issue #214: the checkout terms gate — the buy click doubles as the
+  // Issue #214: the checkout terms gate, the buy click doubles as the
   // notes-terms acceptance click. Client gate here (button refuses to place
   // the order unchecked); startCheckout re-validates server-side and records
   // the terms_acceptances row (surface checkout, subject_id = order id).
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [termsGateInvalid, setTermsGateInvalid] = useState(false);
+  // #429: the SHOP acknowledgment (digital goods / escrow hold / dispute
+  // window) — a second, separate checkbox; the server persists the version
+  // + timestamp on the order row.
+  const [shopTermsAgreed, setShopTermsAgreed] = useState(false);
+  const [shopTermsInvalid, setShopTermsInvalid] = useState(false);
   // Owner check uses the tutor's AUTH id (tutors.user_id), not the tutors
-  // row id — review fix: note.tutorId is the FK, user.id is an auth uid.
+  // row id, review fix: note.tutorId is the FK, user.id is an auth uid.
   const isOwner = Boolean(user && note.tutorUserId && user.id === note.tutorUserId);
 
   // #203: signed-in, non-owner views count once per account per day.
@@ -108,7 +128,8 @@ function NotePage() {
   });
 
   const checkoutMutation = useMutation({
-    mutationFn: () => startCheckout({ data: { materialId: note.id, legalAgreed: true } }),
+    mutationFn: () =>
+      startCheckout({ data: { materialId: note.id, legalAgreed: true, shopTermsAgreed: true } }),
     onSuccess: ({ orderId }) => {
       void navigate({ to: `/orders/${orderId}` });
     },
@@ -123,14 +144,14 @@ function NotePage() {
 
   const iaLabel = ["ia", "ee", "tok_essay"].includes(note.documentType);
   const isExemplar = note.materialType === "exemplar" || iaLabel;
-  // #314: an .apkg deck has no watermarked preview — the page shows a
+  // #314: an .apkg deck has no watermarked preview, the page shows a
   // download panel instead of the in-browser viewer (no Anki player).
   const isApkgDeck = note.materialType === "flashcards" && !note.previewUrl;
 
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
       <SiteHeader />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-8 sm:px-6 lg:py-12">
         <div className="grid gap-8 lg:grid-cols-[1fr_340px] lg:gap-10">
           {/* Preview column */}
           <section className="min-w-0 space-y-6">
@@ -304,6 +325,16 @@ function NotePage() {
                   }}
                 />
               )}
+              {!isOwner && (
+                <ShopTermsCheckbox
+                  checked={shopTermsAgreed}
+                  invalid={shopTermsInvalid}
+                  onCheckedChange={(checked) => {
+                    setShopTermsAgreed(checked);
+                    if (checked) setShopTermsInvalid(false);
+                  }}
+                />
+              )}
               <Button
                 variant="solid"
                 color="accent"
@@ -320,6 +351,11 @@ function NotePage() {
                     setTermsGateInvalid(true);
                     return;
                   }
+                  // #429: the shop acknowledgment is required too.
+                  if (!shopTermsAgreed) {
+                    setShopTermsInvalid(true);
+                    return;
+                  }
                   checkoutMutation.mutate();
                 }}
               >
@@ -331,7 +367,7 @@ function NotePage() {
                   href={whatsappQuery.data.requestUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="flex h-9 w-full items-center justify-center rounded-md border border-[#25D366]/40 text-sm font-semibold text-[#1EA457] transition-colors hover:bg-[#25D366]/10"
+                  className="flex h-9 w-full items-center justify-center rounded-md border border-[#25D366]/40 text-sm font-semibold text-success transition-colors hover:bg-[#25D366]/10"
                 >
                   <MessageCircle className="mr-2 h-4 w-4" aria-hidden />
                   {t("notes.request_tutor")}

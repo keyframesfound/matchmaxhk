@@ -6,7 +6,15 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ConsolePanel } from "@/components/ui/console-panel";
 import { cn } from "@/lib/utils";
 import {
@@ -38,7 +46,7 @@ const LOG_DURATION_CHOICES_MIN = [30, 60, 90, 120, 150, 180, 210, 240];
 
 function feePillHkd(amount: number | null): string {
   if (amount === null) return "";
-  // case_fees amounts are HKD numeric (not cents) — render directly.
+  // case_fees amounts are HKD numeric (not cents), render directly.
   return `HK$${Number(amount).toFixed(0)}`;
 }
 
@@ -89,7 +97,7 @@ function TutorReviewParentForm({
             <Star
               className={cn(
                 "h-5 w-5",
-                s <= rating ? "fill-current text-amber-500" : "text-muted-foreground/40",
+                s <= rating ? "fill-current text-amber-500" : "text-muted-foreground",
               )}
             />
           </button>
@@ -232,7 +240,7 @@ function LessonRow({
               onClick={() => {
                 if (!showNote) {
                   // First click reveals the private-note field; the note is
-                  // optional — the second click submits with whatever is there.
+                  // optional, the second click submits with whatever is there.
                   setShowNote(true);
                   return;
                 }
@@ -255,7 +263,7 @@ function LessonRow({
 }
 
 /**
- * #387 — log a completed ongoing session (Date / Start / Duration in 0.5h
+ * #387, log a completed ongoing session (Date / Start / Duration in 0.5h
  * steps). Guardrails validated inline client-side AND server-side; pending
  * rows auto-verify 72h after logging unless the parent disputes.
  */
@@ -298,7 +306,7 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
   return (
     <div className="mt-3 border-t border-[color:var(--ink)]/10 pt-3">
       {item.session_logs.length > 0 && (
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+        <p className="text-xs font-medium text-muted-foreground">
           {t("experience.log_sessions_title")}
         </p>
       )}
@@ -325,14 +333,16 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
             <div className="grid gap-2 sm:grid-cols-3">
               <label className="grid gap-1 text-xs text-muted-foreground">
                 {t("experience.log_date")}
-                <Input
-                  type="date"
-                  max={today}
-                  min={`${new Date(Date.parse(`${today}T00:00:00Z`) - 7 * 86400000)
-                    .toISOString()
-                    .slice(0, 10)}`}
-                  value={logDate}
-                  onChange={(e) => setLogDate(e.target.value)}
+                <DatePicker
+                  label={t("experience.log_date")}
+                  value={isoToDate(logDate)}
+                  max={isoToDate(today)}
+                  min={isoToDate(
+                    new Date(Date.parse(`${today}T00:00:00Z`) - 7 * 86400000)
+                      .toISOString()
+                      .slice(0, 10),
+                  )}
+                  onChange={(date) => setLogDate(dateToIso(date))}
                 />
               </label>
               <label className="grid gap-1 text-xs text-muted-foreground">
@@ -341,17 +351,21 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
               </label>
               <label className="grid gap-1 text-xs text-muted-foreground">
                 {t("experience.log_duration")}
-                <select
-                  className="h-9 rounded-md border border-input bg-transparent px-2 text-sm"
-                  value={durationMin}
-                  onChange={(e) => setDurationMin(Number(e.target.value))}
+                <Select
+                  value={String(durationMin)}
+                  onValueChange={(v) => setDurationMin(Number(v))}
                 >
-                  {LOG_DURATION_CHOICES_MIN.map((min) => (
-                    <option key={min} value={min}>
-                      {minutesLabel(min)}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger className="h-9 min-h-9 w-auto px-2.5">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {LOG_DURATION_CHOICES_MIN.map((min) => (
+                      <SelectItem key={min} value={String(min)}>
+                        {minutesLabel(min)}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </label>
             </div>
             {guard ? (
@@ -475,7 +489,7 @@ export function TutorCasesSection() {
                   c.sor_status !== "replaced" && <TutorReviewParentForm caseId={c.id} t={t} />}
                 {/* #387: logged sessions + logging form (fee-paid cases). */}
                 <SessionLogForm item={c} />
-                {/* Issue #412 F: engagement summary — the tutor confirms the
+                {/* Issue #412 F: engagement summary, the tutor confirms the
                     agreed arrangements before contact/lessons finalise. */}
                 <EngagementSummaryCard caseId={c.id} party="tutor" />
               </li>

@@ -53,7 +53,7 @@ function writeGuestCompareIds(ids: string[]) {
   try {
     window.localStorage.setItem(COMPARE_STORAGE_KEY, JSON.stringify(ids));
   } catch {
-    // Storage unavailable (private mode etc.) — compare still works in-session.
+    // Storage unavailable (private mode etc.), compare still works in-session.
   }
 }
 
@@ -174,7 +174,7 @@ function CaseCompareBar({
           />
           <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
             {count} of {MAX_CASE_COMPARE} selected
-            {count === 1 ? " — pick at least 2" : ""}
+            {count === 1 ? ", pick at least 2" : ""}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">

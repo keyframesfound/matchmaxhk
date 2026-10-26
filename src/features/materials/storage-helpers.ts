@@ -5,8 +5,12 @@
  * gate. Server-side only (uses Buffer/atob via base64 utilities).
  */
 
-/** Supabase error shape we care about across the server functions. */
-export type DbError = { message: string } | null;
+/**
+ * Supabase error shape we care about across the server functions. `code`
+ * (PostgREST SQLSTATE, e.g. "23505" unique_violation) is present on real
+ * responses; typed optional so test doubles may omit it.
+ */
+export type DbError = { message: string; code?: string } | null;
 
 /**
  * Fluent builder subset actually used by the marketplace server functions.
@@ -25,12 +29,16 @@ export type Rows<T> = {
 
 /**
  * supabase-js update builder subset: chained filters return the builder
- * (which is also thenable AND has .catch — bus.functions relies on it);
+ * (which is also thenable AND has .catch, bus.functions relies on it);
  * awaiting resolves {error, count} (count populated only when requested —
  * #387 review: the predicate+rowCount race guard).
  */
 export type AdminUpdateChain = {
   eq: (col: string, value: unknown) => AdminUpdateChain;
+  /** #429 hold sweep: hold_until <= now flips expired holds to released. */
+  lte: (col: string, value: unknown) => AdminUpdateChain;
+  /** #429: PostgREST or-filter, e.g. "dispute_status.is.null,dispute_status.neq.open". */
+  or: (filter: string) => AdminUpdateChain;
 } & PromiseLike<{ error: DbError; count: number | null }> & {
     catch: (
       onrejected?: ((reason: unknown) => unknown) | null | undefined,
@@ -43,6 +51,16 @@ export type AdminTable<T> = {
     select: (cols: string) => { single: () => Promise<{ data: T; error: DbError }> };
   } & PromiseLike<{ data: T | null; error: DbError }>;
   update: (row: unknown, opts?: { count?: "exact" | "planned" | "estimated" }) => AdminUpdateChain;
+  /** #392: folder/course child rows are delete+reinserted while drafts. */
+  delete: () => AdminUpdateChain;
+  /**
+   * #392 course lessons: upsert on (material_id, position) so a re-save
+   * never clobbers an uploaded pdf_path on an untouched lesson.
+   */
+  upsert: (
+    row: unknown,
+    opts?: { onConflict?: string; ignoreDuplicates?: boolean },
+  ) => PromiseLike<{ data: T | null; error: DbError }>;
 };
 
 /** The service-role client, typed just enough for the marketplace fns. */
@@ -100,7 +118,7 @@ function cleanNamePart(value: string): string {
     .slice(0, 60);
 }
 
-/** Private-original path: materials/<stamp>-<Tutor> - <Title>.pdf (or .apkg — #314). */
+/** Private-original path: materials/<stamp>-<Tutor> - <Title>.pdf (or .apkg, #314). */
 export function buildMaterialStorageName(fileName: string, tutorLabel: string): string {
   const apkg = /\.apkg$/i.test(fileName);
   const base = fileName.replace(/\.(pdf|apkg)$/i, "");
@@ -115,7 +133,7 @@ export function previewPathFor(originalPath: string): string {
 }
 
 /**
- * Parse a PDF with pdf-lib WITHOUT ignoreEncryption — password-protected
+ * Parse a PDF with pdf-lib WITHOUT ignoreEncryption, password-protected
  * files throw, which the callers surface as P8's "upload an unlocked file".
  */
 export async function assertPdfNotEncrypted(bytes: Uint8Array): Promise<number> {

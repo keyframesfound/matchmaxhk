@@ -77,7 +77,7 @@ describe("buildVerticalInsert", () => {
         "Kindergarten Phonics",
         "not a real topic",
         "Kindergarten Phonics",
-        "P1 Interview — General Knowledge",
+        "P1 Interview, General Knowledge",
       ],
     });
     expect(row.academic_tier).toBe("kindergarten");
@@ -87,7 +87,7 @@ describe("buildVerticalInsert", () => {
     expect(row.uni_course_codes).toBeNull();
     expect(row.kindergarten_focus).toEqual([
       "Kindergarten Phonics",
-      "P1 Interview — General Knowledge",
+      "P1 Interview, General Knowledge",
     ]);
   });
 

@@ -289,7 +289,7 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
       },
       {
         kind: "p",
-        text: "The commercial terms for notes — licences, refunds, and takedowns — are set out in the Notes Terms (/legal/notes-terms).",
+        text: "The commercial terms for notes, licences, refunds, and takedowns, are set out in the Notes Terms (/legal/notes-terms).",
       },
     ],
   },
@@ -329,7 +329,6 @@ function PrivacyPolicyPage() {
     <PublicPage>
       <PageIntro
         description="Your privacy matters to us. This policy explains how MatchMax collects and handles your personal data."
-        eyebrow="Legal"
         meta="Current as of 15 September 2026"
         title="Privacy Policy"
       />

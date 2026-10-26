@@ -4,7 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { formatDistanceToNow } from "date-fns";
-import { Clock, Download, Flame, Inbox, MessageCircle, Search, Trash2, X } from "lucide-react";
+import { Ban, Clock, Download, Flame, Inbox, MessageCircle, Search, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -46,7 +46,9 @@ import { useAuth } from "@/features/auth/useAuth";
 import { CaseDetailView } from "@/features/cases/admin/CaseDetailView";
 import { SorDeskTools } from "@/features/cases/admin/sor-desk";
 import {
+  ADMIN_CASE_SELECT_COLUMNS,
   CASE_STATUSES,
+  DESK_LANGUAGE_LABEL,
   MODE_LABEL,
   START_LABEL,
   STATUS_LABEL,
@@ -56,6 +58,13 @@ import {
   type CaseRow,
   type CaseStatus,
 } from "@/features/cases/admin/shared";
+import {
+  findCasesByTutorCode,
+  type TutorCodeCaseHit,
+} from "@/features/cases/desk-search.functions";
+import { RiskFlagBadge } from "@/features/admin/risk-flag-badge";
+import { listRiskFlags, type RiskFlagRow } from "@/features/admin/risk-flags.functions";
+import { normalizeRiskFlag } from "@/features/admin/risk-flags";
 import {
   applyCaseFilters,
   caseFilterOptions,
@@ -73,13 +82,13 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/cases")({
   head: () => ({
     meta: [
-      { title: "Case Requests — MatchMax Admin" },
+      { title: "Case Requests, MatchMax Admin" },
       { name: "description", content: "Handle incoming case requests on MatchMax." },
       { name: "robots", content: "noindex" },
     ],
   }),
   // Issue #71: filter state lives in the URL. validateSearch stores the
-  // serialized (URL-shaped) form — parse into defaults-filled filters in
+  // serialized (URL-shaped) form, parse into defaults-filled filters in
   // the component. The parse layer tolerates JSON-decoded params
   // (?status=1 → number, ?status=true → boolean) and drops junk.
   validateSearch: (search: Record<string, unknown>): CaseFiltersSearch =>
@@ -98,8 +107,9 @@ function AdminCases() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirmBatchDelete, setConfirmBatchDelete] = useState(false);
+  const [confirmBatchClose, setConfirmBatchClose] = useState(false);
 
-  /** One writer for every filter control — lands in the URL, clean defaults. */
+  /** One writer for every filter control, lands in the URL, clean defaults. */
   const setFilters = (patch: Partial<CaseFilters>) => {
     navigate({
       search: caseFiltersToSearch({ ...filters, ...patch }),
@@ -121,13 +131,13 @@ function AdminCases() {
     queryKey: ["admin", "cases"],
     queryFn: async () => {
       // Explicit columns: the table grants authenticated a column-level SELECT
-      // (admin-only fields — internal_note, whatsapp_group_url, hourly_rate_hkd
-      // — are excluded DB-side), so select(*) would fail with permission denied.
+      // (admin-only fields, internal_note, whatsapp_group_url, hourly_rate_hkd
+      //, are excluded DB-side), so select(*) would fail with permission denied.
+      // The list lives in ADMIN_CASE_SELECT_COLUMNS (shared.ts) so the
+      // tutor-code search (#55) selects the identical shape.
       const { data, error } = await supabase
         .from("tutoring_cases")
-        .select(
-          "id, case_code, title, description, subjects, exam_system, student_level, student_grade_current, student_school, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, district, mode, sessions_per_week, session_length_minutes, schedule_note, start_timing, preferred_gender, who_for, student_gender, language_of_instruction, urgency, budget_min, budget_max, budget_currency, budget_min_hkd, budget_max_hkd, contact_name, contact_phone, status, matched_tutor_id, matched_at, fee_collected_at, fee_amount_cents, tags, source, last_contacted_at, board_published_at, compliance_triage, compliance_note, is_short_case, scheduled_lesson_count, hours_per_lesson, created_at, updated_at",
-        )
+        .select(ADMIN_CASE_SELECT_COLUMNS)
         .order("created_at", { ascending: false })
         .limit(500);
       if (error) throw error;
@@ -142,7 +152,61 @@ function AdminCases() {
   const filterOptions = useMemo(() => caseFilterOptions(cases), [cases]);
 
   const filtered = useMemo(() => applyCaseFilters(cases, filters), [cases, filters]);
+
+  // Issue #441: staff risk flags for the desk rows. Same query key the
+  // detail editor writes through, so a save in CaseDetailView refreshes
+  // these badges (and vice versa).
+  const riskFlagsQuery = useQuery({
+    queryKey: ["admin", "risk-flags", "case"],
+    queryFn: () => listRiskFlags({ data: { entity: "case" } }),
+  });
+  const riskFlagByCaseId = useMemo(() => {
+    const map = new Map<string, RiskFlagRow>();
+    for (const row of riskFlagsQuery.data ?? []) {
+      if (row.case_id) map.set(row.case_id, row);
+    }
+    return map;
+  }, [riskFlagsQuery.data]);
+  // Optional V1 chip (issue #441): hide BLOCKED cases from the skim, OFF by
+  // default. Session-only — BLOCKED rows still exist and stay listed.
+  const [hideBlocked, setHideBlocked] = useState(false);
   const hasActiveFilters = !isDefaultFilters(filters);
+
+  // Issue #55: staff search by tutor code. The desk's q filter only sees
+  // case columns, so a tutor code runs a separate server fn whose hits are
+  // UNIONed ahead of the filtered list (dedupe by id). Kept as local state
+  //, one ad-hoc lookup input; URL persistence buys nothing here.
+  const [tutorCodeQuery, setTutorCodeQuery] = useState("");
+  const [tutorCodeDebounced, setTutorCodeDebounced] = useState("");
+  useEffect(() => {
+    const timer = window.setTimeout(() => setTutorCodeDebounced(tutorCodeQuery.trim()), 300);
+    return () => window.clearTimeout(timer);
+  }, [tutorCodeQuery]);
+  const tutorCodeSearch = useQuery({
+    queryKey: ["admin", "cases", "tutor-code", tutorCodeDebounced],
+    queryFn: () => findCasesByTutorCode({ data: { query: tutorCodeDebounced } }),
+    enabled: tutorCodeDebounced.length > 0,
+  });
+  type AdminDeskRow = CaseRow & {
+    matchedTutor?: TutorCodeCaseHit["matchedTutor"];
+  };
+  const tutorCodeHits = useMemo<AdminDeskRow[]>(() => {
+    if (!tutorCodeDebounced) return [];
+    return (tutorCodeSearch.data?.items ?? []) as TutorCodeCaseHit[] as AdminDeskRow[];
+  }, [tutorCodeDebounced, tutorCodeSearch.data]);
+  const displayed = useMemo<AdminDeskRow[]>(() => {
+    // Issue #441: the optional Hide-BLOCKED chip (off by default) drops
+    // blocked rows from the skim only — the flag is never a data filter.
+    const blocked = (rows: AdminDeskRow[]) =>
+      hideBlocked
+        ? rows.filter(
+            (row) => normalizeRiskFlag(riskFlagByCaseId.get(row.id)?.risk_flag) !== "BLOCKED",
+          )
+        : rows;
+    if (tutorCodeHits.length === 0) return blocked(filtered);
+    const hitIds = new Set(tutorCodeHits.map((row) => row.id));
+    return blocked([...tutorCodeHits, ...filtered.filter((row) => !hitIds.has(row.id))]);
+  }, [filtered, hideBlocked, riskFlagByCaseId, tutorCodeHits]);
 
   const rateBandLabels: Record<CaseFilters["rateBand"], string> = {
     all: t("caseFilters.rate_any", { defaultValue: "Any rate" }),
@@ -162,7 +226,7 @@ function AdminCases() {
 
   const batchStatusMutation = useMutation({
     mutationFn: async ({ ids, status }: { ids: string[]; status: CaseStatus }) => {
-      // Issue #412: held cases are locked — batch escalations skip them and
+      // Issue #412: held cases are locked, batch escalations skip them and
       // report the count instead of silently moving a locked request.
       const held = new Set(
         cases.filter((row) => row.status === "compliance_hold").map((row) => row.id),
@@ -221,15 +285,15 @@ function AdminCases() {
   });
 
   const allFilteredSelected =
-    filtered.length > 0 && filtered.every((row) => selectedIds.has(row.id));
+    displayed.length > 0 && displayed.every((row) => selectedIds.has(row.id));
 
   const toggleAll = () => {
     setSelectedIds((prev) => {
       const next = new Set(prev);
       if (allFilteredSelected) {
-        filtered.forEach((row) => next.delete(row.id));
+        displayed.forEach((row) => next.delete(row.id));
       } else {
-        filtered.forEach((row) => next.add(row.id));
+        displayed.forEach((row) => next.add(row.id));
       }
       return next;
     });
@@ -249,12 +313,13 @@ function AdminCases() {
 
   const downloadCsv = () => {
     const rows =
-      selectedIds.size > 0 ? filtered.filter((row) => selectedIds.has(row.id)) : filtered;
+      selectedIds.size > 0 ? displayed.filter((row) => selectedIds.has(row.id)) : displayed;
     if (rows.length === 0) return;
     const columns: { label: string; value: (row: (typeof cases)[number]) => string }[] = [
       { label: "Case code", value: (row) => row.case_code },
       { label: "Title", value: (row) => row.title },
       { label: "Status", value: (row) => STATUS_LABEL[row.status] },
+      { label: "Desk language", value: (row) => row.desk_language },
       { label: "Contact name", value: (row) => row.contact_name },
       { label: "Contact phone", value: (row) => row.contact_phone },
       { label: "Subjects", value: (row) => (row.subjects ?? []).join("; ") },
@@ -290,7 +355,7 @@ function AdminCases() {
   return (
     <div>
       <main className="flex-1 bg-[color:var(--surface)]">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1536px] px-4 py-8 sm:px-6 lg:px-8">
           {openCase ? (
             <CaseDetailView
               caseRow={openCase}
@@ -309,8 +374,10 @@ function AdminCases() {
                     <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
                       Case Requests
                     </h1>
-                    <span className="rounded-full bg-[color:var(--ink)]/5 px-2.5 py-0.5 text-xs font-bold text-[color:var(--ink)]">
-                      {cases.length}
+                    <span className="rounded-full bg-[color:var(--ink)]/5 px-2.5 py-0.5 text-xs font-medium tabular-nums text-[color:var(--ink)]">
+                      {filtered.length === cases.length
+                        ? cases.length
+                        : `${filtered.length} of ${cases.length}`}
                     </span>
                   </div>
                   <p className="mt-1 text-sm text-muted-foreground">
@@ -320,7 +387,7 @@ function AdminCases() {
                 </div>
               </div>
 
-              {/* Filters & Search — issue #71: URL-persisted structured filters */}
+              {/* Filters & Search, issue #71: URL-persisted structured filters */}
               <div className="space-y-3">
                 <div className="flex flex-col gap-3 lg:flex-row lg:items-center">
                   <div className="relative w-full lg:max-w-md">
@@ -329,6 +396,20 @@ function AdminCases() {
                       placeholder="Search by code, contact, subject, tag..."
                       value={filters.q}
                       onChange={(e) => setFilters({ q: e.target.value })}
+                      className="h-10 border-[color:var(--ink)]/15 bg-[color:var(--surface)] pl-9"
+                    />
+                  </div>
+                  {/* Issue #55: find cases by the MATCHED TUTOR's code, the
+                      q filter only sees case columns. */}
+                  <div className="relative w-full lg:max-w-[220px]">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                    <Input
+                      placeholder={t("caseDesk.tutor_code_placeholder", {
+                        defaultValue: "Search by tutor code…",
+                      })}
+                      aria-label={t("caseDesk.tutor_code_label", { defaultValue: "Tutor code" })}
+                      value={tutorCodeQuery}
+                      onChange={(e) => setTutorCodeQuery(e.target.value)}
                       className="h-10 border-[color:var(--ink)]/15 bg-[color:var(--surface)] pl-9"
                     />
                   </div>
@@ -364,6 +445,18 @@ function AdminCases() {
                         </SelectContent>
                       </Select>
                     ) : null}
+                    {/* Issue #441: optional skim filter, OFF by default — a
+                        BLOCKED case only leaves the list when CS asks. */}
+                    <Button
+                      size="sm"
+                      variant={hideBlocked ? "secondary" : "ghost"}
+                      aria-pressed={hideBlocked}
+                      onClick={() => setHideBlocked((v) => !v)}
+                      className="h-10 text-muted-foreground hover:text-[color:var(--ink)]"
+                    >
+                      <Ban className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                      {t("risk.hide_blocked", { defaultValue: "Hide BLOCKED" })}
+                    </Button>
                     {hasActiveFilters ? (
                       <Button
                         size="sm"
@@ -551,9 +644,7 @@ function AdminCases() {
                       size="sm"
                       variant="outline"
                       disabled={batchStatusMutation.isPending}
-                      onClick={() =>
-                        batchStatusMutation.mutate({ ids: [...selectedIds], status: "closed" })
-                      }
+                      onClick={() => setConfirmBatchClose(true)}
                     >
                       Close
                     </Button>
@@ -602,7 +693,7 @@ function AdminCases() {
                 <ConsoleTableBody>
                   {isLoading && <ConsoleTableSkeletonRows columns={9} />}
 
-                  {!isLoading && filtered.length === 0 && (
+                  {!isLoading && displayed.length === 0 && (
                     <ConsoleTableEmpty
                       colSpan={9}
                       icon={Inbox}
@@ -624,8 +715,10 @@ function AdminCases() {
                     />
                   )}
 
-                  {filtered.map((row) => {
+                  {displayed.map((row) => {
                     const budgetBounds = caseBudgetHkdBounds(row);
+                    // Issue #441: staff risk flag for this case (absent = NONE).
+                    const flagRow = riskFlagByCaseId.get(row.id);
                     return (
                       <tr
                         key={row.id}
@@ -648,24 +741,48 @@ function AdminCases() {
                               {row.case_code}
                             </span>
                             {row.start_timing === "asap" && (
-                              <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
+                              <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-bold text-amber-700 dark:text-amber-400">
                                 <Flame className="mr-0.5 h-3 w-3" aria-hidden="true" />
                                 ASAP
                               </span>
                             )}
                             {row.board_published_at && (
                               <span
-                                className="inline-flex items-center rounded bg-emerald-500/15 px-1.5 py-0.5 text-[10px] font-bold text-emerald-700 dark:text-emerald-400"
+                                className="inline-flex items-center rounded bg-emerald-500/15 px-1.5 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-400"
                                 title="Live on the public tutor request board"
                               >
                                 On board
                               </span>
                             )}
+                            {flagRow ? (
+                              <RiskFlagBadge flag={flagRow.risk_flag} note={flagRow.risk_note} />
+                            ) : null}
                           </div>
                           <p className="mt-0.5 max-w-xs truncate text-xs text-muted-foreground">
                             {row.title}
                           </p>
-                          <p className="mt-0.5 text-[11px] text-muted-foreground/80">
+                          {flagRow?.risk_note ? (
+                            <p className="mt-0.5 max-w-xs truncate text-[11px] text-muted-foreground">
+                              {t("risk.note_line", {
+                                defaultValue: "Risk: {{note}}",
+                                note: flagRow.risk_note,
+                              })}
+                            </p>
+                          ) : null}
+                          {/* Issue #55: how this row matched the tutor-code search. */}
+                          {row.matchedTutor ? (
+                            <p className="mt-0.5 truncate text-[11px] font-medium text-muted-foreground">
+                              {t("caseDesk.matched_tutor_label", { defaultValue: "Matched tutor" })}
+                              :{" "}
+                              <span className="font-mono font-bold">
+                                {row.matchedTutor.tutor_code ?? "—"}
+                              </span>
+                              {row.matchedTutor.display_name
+                                ? ` · ${row.matchedTutor.display_name}`
+                                : ""}
+                            </p>
+                          ) : null}
+                          <p className="mt-0.5 text-[11px] text-muted-foreground">
                             {formatDistanceToNow(new Date(row.created_at), { addSuffix: true })}
                           </p>
                         </ConsoleTd>
@@ -732,23 +849,30 @@ function AdminCases() {
                           >
                             {STATUS_LABEL[row.status]}
                           </span>
+                          {/* #451: desk language flag beside the status pill */}
+                          <span
+                            className="ml-1.5 inline-flex items-center rounded-full border border-[color:var(--foreground)]/15 px-2 py-0.5 text-[11px] font-bold text-muted-foreground"
+                            title="Desk language"
+                          >
+                            {DESK_LANGUAGE_LABEL[row.desk_language] ?? row.desk_language}
+                          </span>
                         </ConsoleTd>
                         <ConsoleTd>
                           <div className="flex flex-wrap gap-1 max-w-[10rem]">
                             {(row.tags ?? []).length === 0 ? (
-                              <span className="text-[11px] text-muted-foreground/70">None</span>
+                              <span className="text-[11px] text-muted-foreground">None</span>
                             ) : (
                               <>
                                 {(row.tags ?? []).slice(0, 2).map((t) => (
                                   <span
                                     key={t}
-                                    className="inline-flex items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2 py-0.5 text-[10px] font-bold text-[color:var(--foreground)]"
+                                    className="inline-flex items-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-2 py-0.5 text-[11px] font-bold text-[color:var(--foreground)]"
                                   >
                                     {t}
                                   </span>
                                 ))}
                                 {(row.tags ?? []).length > 2 && (
-                                  <span className="self-center text-[10px] text-muted-foreground">
+                                  <span className="self-center text-[11px] text-muted-foreground">
                                     +{(row.tags ?? []).length - 2}
                                   </span>
                                 )}
@@ -805,6 +929,31 @@ function AdminCases() {
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete {selectedIds.size}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Batch Close Confirmation Dialog */}
+      <AlertDialog open={confirmBatchClose} onOpenChange={setConfirmBatchClose}>
+        <AlertDialogContent className="border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)]">
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              Close {selectedIds.size} Case Request{selectedIds.size === 1 ? "" : "s"}?
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Closed cases drop off the tutor request board and stop accepting applications. The
+              records stay in this desk with a Closed status.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() =>
+                batchStatusMutation.mutate({ ids: [...selectedIds], status: "closed" })
+              }
+            >
+              Close {selectedIds.size}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,5 +1,5 @@
 /**
- * Issue #215 — contact-details filter for tutor-authored public text.
+ * Issue #215, contact-details filter for tutor-authored public text.
  *
  * Public surfaces must not carry direct-contact channels: the concierge
  * flow (and, later, the notes marketplace) depends on MatchMax staying
@@ -38,7 +38,7 @@ export const CONTACT_EMAIL_PATTERN = /[\w.+-]+@[\w-]+\.[\w.-]+/;
  * Hong Kong mobile / landline numbers: 8 digits, tolerating the +852
  * prefix and the common 4-4 spacing (9xxx xxxx), plus generic 6-12 digit
  * runs with separators so overseas numbers are caught too. Deliberately
- * loose — a false positive just asks the tutor to rephrase.
+ * loose, a false positive just asks the tutor to rephrase.
  */
 const PHONE_PATTERN =
   /(?:\+?852[\s-]?)?[2-9]\d{3}[\s-]?\d{4}\b|\b\d{2,4}[\s-]\d{3,4}[\s-]\d{3,4}\b/;
@@ -97,7 +97,7 @@ export function contactFilterError(text: string): string | null {
   if (violations.length === 0) return null;
   const listed = violations.slice(0, 3).map(describeViolation).join("; ");
   const rest = violations.length > 3 ? ` (+${violations.length - 3} more)` : "";
-  return `No contact details in public text — remove ${listed}${rest}. Parents reach you through MatchMax.`;
+  return `No contact details in public text, remove ${listed}${rest}. Parents reach you through MatchMax.`;
 }
 
 // Global variants of the single-match patterns above, for stripping.
@@ -109,15 +109,15 @@ const PHONE_PATTERN_GLOBAL = new RegExp(PHONE_PATTERN.source, "g");
  * Strip-mode false-positive guards (GLM review round 1, finding 2). A
  * phone match is left untouched when it reads as ordinary course/paper
  * text rather than a number:
- *  - it is glued to letters (MATH2010-2011) — the digits are part of a
+ *  - it is glued to letters (MATH2010-2011), the digits are part of a
  *    word-shaped token, not a standalone number;
  *  - it is a hyphenated or space-separated 4-4 pair whose halves share
- *    two or more digit positions — the shape of year/course-level ranges
+ *    two or more digit positions, the shape of year/course-level ranges
  *    (2010-2011, 2010 2011, 2015-2019, 3000-4000) rather than a dialling
  *    number (9123-4567 and 9123 4567 share none).
  * These guards apply ONLY to the strip variant; findContactViolations
  * keeps the loose detection vocabulary, so strip and detect can disagree
- * on range-like strings — intentional (detect stays conservative and
+ * on range-like strings, intentional (detect stays conservative and
  * tutor-side rejection is visible/rephrasable). Implemented with
  * matchAll + manual slicing, NOT a lookbehind regex literal: lookbehind
  * literals throw at parse time on Safari < 16.4 and would take down the
@@ -146,12 +146,12 @@ function stripPhonesGuarded(text: string): string {
 }
 
 /**
- * Issue #396 — case-side free text that reaches the public board
+ * Issue #396, case-side free text that reaches the public board
  * (uni_course_codes and the other uni fields whitelisted in
  * PUBLIC_CASE_COLUMNS) is written by paths that must never reject the
  * submitter, so matches are STRIPPED instead of reported. Same rule set as
- * findContactViolations above — no separate regex vocabulary. Emails are
- * removed first (a bare address is the more specific match — the URL rule
+ * findContactViolations above, no separate regex vocabulary. Emails are
+ * removed first (a bare address is the more specific match, the URL rule
  * would otherwise eat just the domain and strand the local part), then
  * URLs, phones and channel words; the pass repeats until stable so
  * removing one match cannot stitch the surrounding text into a new one.
@@ -159,7 +159,7 @@ function stripPhonesGuarded(text: string): string {
 export function stripContactDetails(text: string): string {
   let out = text;
   // Bounded fixpoint, cap 5 (GLM round-2 nit: 3 passes could in theory
-  // strand a residual fragment on a deliberately layered input — 5 costs
+  // strand a residual fragment on a deliberately layered input, 5 costs
   // nothing on converging inputs and only tightens the strip).
   for (let pass = 0; pass < 5; pass++) {
     const next = stripPhonesGuarded(
@@ -172,14 +172,14 @@ export function stripContactDetails(text: string): string {
 }
 
 /**
- * Issue #410 — shared strip-never-reject sanitizer for parent-authored
+ * Issue #410, shared strip-never-reject sanitizer for parent-authored
  * free-text case fields that reach the public board (description from
- * data.notes, target_school from the admissions path — both whitelisted
+ * data.notes, target_school from the admissions path, both whitelisted
  * in PUBLIC_CASE_COLUMNS and stored verbatim until now). The #396 uni
  * fields run the same pipeline through sanitizeCaseUniText.
  * stripContactDetails -> whitespace collapse -> trim, run to a FIXPOINT
  * (bounded): a single pass can reconstitute a number the first pass
- * split — e.g. "9123 foo@bar.com 4567" strips to "9123   4567" and
+ * split, e.g. "9123 foo@bar.com 4567" strips to "9123   4567" and
  * collapsing the whitespace stitches it back into the canonical
  * "9123 4567", so the collapsed output is re-filtered. Then cap, and a
  * blank result stores null. NEVER rejects: the parent submit path must

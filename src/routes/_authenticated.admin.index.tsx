@@ -13,7 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
     meta: [
-      { title: "Admin overview — MatchMax" },
+      { title: "Admin overview, MatchMax" },
       {
         name: "description",
         content: "Platform-wide stats for tutors, cases, profiles and organizations.",
@@ -87,7 +87,7 @@ function AdminOverview() {
   const navigate = useNavigate();
 
   return (
-    <div className="mx-auto w-full max-w-6xl">
+    <div className="mx-auto w-full max-w-7xl">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold tracking-tight">Admin overview</h2>

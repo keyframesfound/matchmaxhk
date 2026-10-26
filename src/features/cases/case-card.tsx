@@ -1,4 +1,4 @@
-// Issue #423 (sections 2+3) — shared unified case-card building blocks.
+// Issue #423 (sections 2+3), shared unified case-card building blocks.
 //
 // One implementation for both surfaces so the list card and the detail page
 // can never drift: the fee-rule pill (package_type), the 1-line logistics
@@ -35,7 +35,7 @@ export function useCaseTitles(item: PublicCaseBoardItem): {
   const { i18n } = useTranslation();
   const primaryLocale: CaseTitleLocale = i18n.language?.startsWith("zh") ? "zh-HK" : "en";
   const secondaryLocale: CaseTitleLocale = primaryLocale === "en" ? "zh-HK" : "en";
-  // Map the board item at the boundary — the raw item has examSystem/
+  // Map the board item at the boundary, the raw item has examSystem/
   // studentLevel, and an unmapped pass titles subject-only while shadowing
   // the stored title (GLM blocker, 2026-10-23).
   const titleFields = caseTitleFieldsFromBoard(item);
@@ -88,20 +88,20 @@ export function caseRateText(item: PublicCaseBoardItem): string {
  *
  * The RATE is deliberately NOT part of the line: the card renders it as its
  * own dedicated line below (converted bold + original for non-HKD tutors,
- * #113 — GLM round-2 blocker). Keeping it here printed the HKD string twice
+ * #113, GLM round-2 blocker). Keeping it here printed the HKD string twice
  * on every card and hid the converted figure entirely. */
 export function caseLogisticsParts(item: PublicCaseBoardItem): string[] {
   const modeLabel = CASE_MODE_LABEL[item.mode] ?? item.mode;
   // District-less cases (online) must not repeat the mode: the pin part IS
   // the mode there, so drop the bare label instead of Set-dedupe (which can't
-  // dedupe `📍 Online` vs `Online`) — GLM review, 2026-10-23.
+  // dedupe `📍 Online` vs `Online`), GLM review, 2026-10-23.
   const parts = item.district ? [`📍 ${item.district}`, modeLabel] : [`📍 ${modeLabel}`];
   parts.push(formatCaseSchedule(item.sessionsPerWeek, item.sessionLengthMinutes));
   // Dedupe mode when it already leads the line for online-only cases.
   return [...new Set(parts.filter(Boolean))];
 }
 
-/** One clickable chip — shared by the card row and the detail grouping. */
+/** One clickable chip, shared by the card row and the detail grouping. */
 export function CaseChipLink({ chip }: { chip: CaseChip }) {
   const { t } = useTranslation();
   const inner = (
@@ -150,7 +150,7 @@ export function CaseChipRow({ item }: { item: PublicCaseBoardItem }) {
   );
 }
 
-/** `👥 N students` — only rendered when student_count > 1 (caller + here). */
+/** `👥 N students`, only rendered when student_count > 1 (caller + here). */
 export function CaseStudentsRow({ item }: { item: PublicCaseBoardItem }) {
   const { t } = useTranslation();
   if ((item.studentCount ?? 1) <= 1) return null;
@@ -233,7 +233,7 @@ export function CaseIdentityRow({ item }: { item: PublicCaseBoardItem }) {
   );
 }
 
-/** Permanent Cap.57 chip on centre cards — never reads as a job vacancy. */
+/** Permanent Cap.57 chip on centre cards, never reads as a job vacancy. */
 export function CaseCap57Chip() {
   const { t } = useTranslation();
   return (

@@ -8,7 +8,7 @@ export { TOUR_STORAGE_KEYS };
  * Issue #397: post-signup coach-mark tours (tutors & parents).
  *
  * driver.js owns the overlay/spotlight/popover mechanics (the issue forbids a
- * custom overlay engine). Persistence is localStorage — per-browser,
+ * custom overlay engine). Persistence is localStorage, per-browser,
  * no migration (the issue explicitly allows either).
  */
 
@@ -25,7 +25,7 @@ export function markTourSeen(key: string): void {
   try {
     window.localStorage.setItem(key, "1");
   } catch {
-    // Storage unavailable: the tour re-fires next visit — acceptable.
+    // Storage unavailable: the tour re-fires next visit, acceptable.
   }
 }
 

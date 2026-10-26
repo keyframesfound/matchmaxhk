@@ -53,13 +53,13 @@ function TutorAvatar({ hit }: { hit: TutorHit }) {
     <InitialAvatar
       stableId={hit.tutor_code}
       name={hit.display_name}
-      className="h-9 w-9 text-[10px]"
+      className="h-9 w-9 text-[11px]"
     />
   );
 }
 
 /**
- * Match & fee capture — the two real-world events the referral bounty hangs
+ * Match & fee capture, the two real-world events the referral bounty hangs
  * off: which tutor won the case, and when the Administrative Matching Fee
  * arrived. Recording the fee on a referred tutor's case auto-logs their
  * referrer's 15% bounty via the trg_cases_fee_referral_bounty trigger.
@@ -129,7 +129,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
           toast.success(`Case ${caseRow.case_code} matched to ${tutor.display_name}`);
           // Issue #412 F: auto-create the engagement summary at match time
           // (board-matched path; the SoR `introduced` transition has its own
-          // hook). Fail-open — it re-ensures idempotently later.
+          // hook). Fail-open, it re-ensures idempotently later.
           void ensureFn({ data: { caseId: caseRow.id } }).catch((e: unknown) => {
             console.error("[engagement] failed to ensure summary on match:", e);
           });
@@ -161,7 +161,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
       {
         onSuccess: () => {
           setFeeInput("");
-          toast.success("Fee recorded — a referred tutor's bounty auto-logs at 15%");
+          toast.success("Fee recorded, a referred tutor's bounty auto-logs at 15%");
         },
       },
     );
@@ -181,7 +181,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
     <ConsolePanel>
       <div className="flex items-center justify-between">
         <h2 className="text-xs font-semibold text-muted-foreground">Match &amp; fee</h2>
-        <UserRoundCheck className="h-4 w-4 text-muted-foreground/60" aria-hidden="true" />
+        <UserRoundCheck className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
       </div>
 
       {/* Matched tutor */}

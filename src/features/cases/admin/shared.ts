@@ -1,5 +1,11 @@
 export type CaseStatus =
-  "new" | "contacted" | "compliance_hold" | "matched" | "closed" | "rejected";
+  | "new"
+  | "contacted"
+  | "compliance_hold"
+  | "matched"
+  | "failed_trial_pivot"
+  | "closed"
+  | "rejected";
 
 export type CaseRow = {
   id: string;
@@ -31,6 +37,8 @@ export type CaseRow = {
   contact_name: string;
   contact_phone: string;
   status: CaseStatus;
+  /** #451 desk language for macro insertion (EN / 繁中 / 简体). */
+  desk_language: "en" | "zh-HK" | "zh-CN";
   matched_tutor_id: string | null;
   matched_at: string | null;
   fee_collected_at: string | null;
@@ -74,6 +82,7 @@ export const CASE_STATUSES: CaseStatus[] = [
   "contacted",
   "compliance_hold",
   "matched",
+  "failed_trial_pivot",
   "closed",
   "rejected",
 ];
@@ -83,6 +92,7 @@ export const STATUS_LABEL: Record<CaseStatus, string> = {
   contacted: "Contacted",
   compliance_hold: "Compliance hold",
   matched: "Matched",
+  failed_trial_pivot: "Failed-trial pivot",
   closed: "Closed",
   rejected: "Rejected",
 };
@@ -92,6 +102,7 @@ export const STATUS_PILL_CLASS: Record<CaseStatus, string> = {
   contacted: "bg-blue-500/15 text-blue-700 dark:text-blue-400",
   compliance_hold: "bg-purple-500/15 text-purple-700 dark:text-purple-400",
   matched: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+  failed_trial_pivot: "bg-orange-500/15 text-orange-700 dark:text-orange-400",
   closed: "bg-muted text-muted-foreground",
   rejected: "bg-red-500/15 text-red-700 dark:text-red-400",
 };
@@ -100,6 +111,16 @@ export const MODE_LABEL: Record<string, string> = {
   online: "Online",
   in_person: "In-person",
   either: "Hybrid",
+};
+
+/**
+ * Issue #451: desk language flag on a case (EN / 繁中 / 简体). Desk macros
+ * insert the flagged language block first; the flag never auto-sends.
+ */
+export const DESK_LANGUAGE_LABEL: Record<string, string> = {
+  en: "EN",
+  "zh-HK": "繁中",
+  "zh-CN": "简体",
 };
 
 export const START_LABEL: Record<string, string> = {
@@ -151,3 +172,13 @@ export function caseBudgetHkdBounds(
     max: row.budget_max_hkd ?? row.budget_max,
   };
 }
+
+/**
+ * The explicit column list the desk's client list query selects (admin
+ * cases route). The table grants authenticated a column-level SELECT
+ * (admin-only fields, internal_note, whatsapp_group_url, hourly_rate_hkd —
+ * are excluded DB-side), so select(*) would fail with permission denied.
+ * Shared with findCasesByTutorCode (#55) so both surfaces stay in lockstep.
+ */
+export const ADMIN_CASE_SELECT_COLUMNS =
+  "id, case_code, title, description, subjects, exam_system, student_level, student_grade_current, student_school, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, district, mode, sessions_per_week, session_length_minutes, schedule_note, start_timing, preferred_gender, who_for, student_gender, language_of_instruction, urgency, budget_min, budget_max, budget_currency, budget_min_hkd, budget_max_hkd, contact_name, contact_phone, status, desk_language, matched_tutor_id, matched_at, fee_collected_at, fee_amount_cents, tags, source, last_contacted_at, board_published_at, compliance_triage, compliance_note, is_short_case, scheduled_lesson_count, created_at, updated_at";

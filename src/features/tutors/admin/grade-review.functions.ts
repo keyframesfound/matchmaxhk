@@ -5,7 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { GRADE_REJECTION_REASONS, type TutorGradeStatus } from "@/features/tutors/grades";
 
 /**
- * Issue #309 — staff grade-review queue server fns. All reads and the signed
+ * Issue #309, staff grade-review queue server fns. All reads and the signed
  * slip URL go through the service role; there are NO client staff policies on
  * tutor_grades (issue #308 account_blocklist pattern). The file is never
  * public: staff view a short-lived signed URL minted here, admin-gated.
@@ -98,7 +98,7 @@ const reviewInputSchema = z.object({
 });
 
 /** Approve/reject one grade; one in-app notice to that tutor. Never touches
- * other rows — rejecting one grade leaves every other approved grade alone. */
+ * other rows, rejecting one grade leaves every other approved grade alone. */
 export const reviewTutorGrade = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => reviewInputSchema.parse(input))
@@ -126,7 +126,7 @@ export const reviewTutorGrade = createServerFn({ method: "POST" })
     const nextStatus: TutorGradeStatus = data.decision === "approve" ? "approved" : "rejected";
     const staffReason =
       data.decision === "reject"
-        ? [data.reason, data.note].filter(Boolean).join(" — ") || null
+        ? [data.reason, data.note].filter(Boolean).join(", ") || null
         : null;
 
     const { error: updateError } = await supabaseAdmin

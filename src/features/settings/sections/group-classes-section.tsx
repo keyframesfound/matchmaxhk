@@ -27,7 +27,7 @@ import { RATE_MAX, RATE_MIN } from "@/features/tutors/rates";
 import { cn } from "@/lib/utils";
 
 /**
- * Issue #391 — the tutor's "Group classes" manager: create open cohorts
+ * Issue #391, the tutor's "Group classes" manager: create open cohorts
  * (2–6 seats, Cap. 279 hard cap at launch), watch seats fill from live
  * bookings, confirm an early start, close the cohort. Writes go through the
  * group-cohort server fns (ownership + contact filter re-checked

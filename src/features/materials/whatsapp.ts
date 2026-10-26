@@ -5,7 +5,7 @@
  * tutor and invoices the tutor its 20% commission separately.
  */
 
-/** "Purchase via WhatsApp" — the issue's verbatim buy message. */
+/** "Purchase via WhatsApp", the issue's verbatim buy message. */
 export function buildBuyWhatsAppUrl(
   whatsappNumber: string | undefined,
   material: { title: string; price_hkd: number },
@@ -17,7 +17,7 @@ export function buildBuyWhatsAppUrl(
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
 
-/** "Book lessons & get notes free" — concierge WhatsApp, lessons flavour. */
+/** "Book lessons & get notes free", concierge WhatsApp, lessons flavour. */
 export function buildBookLessonsWhatsAppUrl(
   whatsappNumber: string | undefined,
   tutorName: string,
@@ -25,6 +25,6 @@ export function buildBookLessonsWhatsAppUrl(
 ): string {
   const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
   if (!digits) return "";
-  const message = `Hi MatchMax, I'd like to book 1-on-1 lessons with Tutor ${tutorName} (${tutorCode}) — and get their study materials for free.`;
+  const message = `Hi MatchMax, I'd like to book 1-on-1 lessons with Tutor ${tutorName} (${tutorCode}), and get their study materials for free.`;
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }

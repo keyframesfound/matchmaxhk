@@ -17,6 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
+import { canonicalUrl, hreflangLinks } from "@/features/i18n/seo";
 export const Route = createFileRoute("/pricing")({
   beforeLoad: () => {
     if (!CENTRE_MARKET_ENABLED) throw notFound();
@@ -31,9 +32,9 @@ export const Route = createFileRoute("/pricing")({
       },
       { name: "robots", content: "index, follow" },
       { property: "og:title", content: "Plans for Tutoring Businesses | MatchMax" },
-      { property: "og:url", content: "https://matchmax.hk/pricing" },
+      { property: "og:url", content: canonicalUrl("/pricing") },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/pricing" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/pricing") }, ...hreflangLinks("/pricing")],
   }),
   component: PricingPage,
 });
@@ -149,7 +150,7 @@ function PricingPage() {
       <SiteHeader />
       <main className="flex-1">
         <section className="border-b border-border py-16">
-          <div className="mx-auto max-w-7xl px-4 text-center sm:px-6">
+          <div className="mx-auto max-w-[1536px] px-4 text-center sm:px-6">
             <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
               For tutoring businesses
             </h1>
@@ -161,7 +162,7 @@ function PricingPage() {
         </section>
 
         <section className="py-12 sm:py-16">
-          <div className="mx-auto w-full max-w-5xl px-4 sm:px-6">
+          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6">
             <div className="mb-10 max-w-2xl">
               <Badge variant="outline" className="mb-4 gap-1.5">
                 <Sparkles
@@ -203,7 +204,7 @@ function PricingPage() {
                           )}
                         >
                           <div className="flex flex-col items-center gap-1 py-3">
-                            <span className="text-sm font-semibold text-[color:var(--ink)]">
+                            <span className="text-sm font-bold text-[color:var(--ink)]">
                               {plan.name}
                             </span>
                             <span className="text-lg font-bold text-[color:var(--ink)]">
@@ -288,7 +289,7 @@ function PricingPage() {
             </div>
 
             <p className="mt-8 text-center text-sm text-muted-foreground">
-              Business and Enterprise plans are billed offline — create your account and our team
+              Business and Enterprise plans are billed offline, create your account and our team
               will contact you to activate it. Questions? Check the FAQ on the Guide page.
             </p>
           </div>

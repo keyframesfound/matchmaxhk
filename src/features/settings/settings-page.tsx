@@ -86,7 +86,7 @@ function AvailabilityTab(_props: SettingsSectionProps) {
 }
 
 /**
- * Issue #202: the Tutor home tab — today's next lesson, pending confirms,
+ * Issue #202: the Tutor home tab, today's next lesson, pending confirms,
  * admin-fee status and the notes summary. Tutor-only, default landing tab.
  */
 function HomeTab(_props: SettingsSectionProps) {
@@ -94,7 +94,7 @@ function HomeTab(_props: SettingsSectionProps) {
 }
 
 /**
- * #201/#204: the Lessons tab — SoR cases with lesson actions, the 14-day week
+ * #201/#204: the Lessons tab, SoR cases with lesson actions, the 14-day week
  * view and the Tutor Plus banner. Tutor-only (same gate as availability).
  */
 function LessonsTab(_props: SettingsSectionProps) {
@@ -161,7 +161,7 @@ export function SettingsPage() {
 
   // Issue #131: the Study Materials upload tab is Verified-only
   // (verification_tier = 'tier_2_verified' on the linked tutor card).
-  // is_published drives the once-only coach-mark tour (issue #397) — it must
+  // is_published drives the once-only coach-mark tour (issue #397), it must
   // fire after approval + publication, not on a merely submitted application.
   const tutorVerifiedQuery = useQuery({
     queryKey: ["settings", "tutor-verified", userId],
@@ -188,7 +188,7 @@ export function SettingsPage() {
     return all.filter((category) => {
       if (category === "account" && isInternal) return false;
       // #202: the Tutor home tab is tutor-only (same gate as the other
-      // tutor tabs — the account must be linked to a tutor card).
+      // tutor tabs, the account must be linked to a tutor card).
       if (category === "home") return hasLinkedTutor;
       // Availability, referrals and my-tutor are tutor-only: all need the
       // signed-in account to be linked to a tutor card (tutors.user_id,
@@ -265,7 +265,7 @@ export function SettingsPage() {
       "flex items-center gap-2 rounded-lg px-3 py-2 text-sm transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
       active
         ? "bg-[color:var(--ink)]/5 font-semibold text-[color:var(--ink)]"
-        : "font-medium text-[color:var(--ink)]/70 hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]",
+        : "font-medium text-muted-foreground hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]",
     );
 
   function selectCategory(category: SettingsCategory) {
@@ -279,15 +279,12 @@ export function SettingsPage() {
       <TutorCoachTour enabled={hasLinkedTutor && tutorVerifiedQuery.data?.is_published === true} />
       <SiteHeader />
       <main className="flex-1">
-        <div className="mx-auto w-full max-w-6xl px-4 py-10 sm:px-6 sm:py-14">
+        <div className="mx-auto w-full max-w-7xl px-4 py-10 sm:px-6 sm:py-14">
           <header className="border-b border-[color:var(--ink)]/10 pb-8">
-            <p className="text-xs font-medium text-[color:var(--ink)]/65">
-              {t("settings.eyebrow")}
-            </p>
-            <h1 className="mt-2 text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
+            <h1 className="text-3xl font-bold tracking-tight text-[color:var(--ink)] sm:text-4xl">
               {t("settings.title")}
             </h1>
-            <p className="mt-3 max-w-2xl text-sm leading-6 text-[color:var(--ink)]/70">
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-muted-foreground">
               {t("settings.subtitle")}
             </p>
           </header>
@@ -336,7 +333,7 @@ export function SettingsPage() {
               <nav className="hidden space-y-1 lg:block" aria-label={t("settings.title")}>
                 <Link
                   to="/saved-posts"
-                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-[color:var(--ink)]/70 transition-colors hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
+                  className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-[color:var(--ink)]/5 hover:text-[color:var(--ink)]"
                 >
                   <Bookmark className="h-4 w-4" aria-hidden="true" />
                   {t("settings.nav.saved_posts")}

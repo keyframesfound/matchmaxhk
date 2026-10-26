@@ -1,5 +1,7 @@
-@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700;800&display=swap");
-@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Poppins:wght@800&display=swap");
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
@@ -18,16 +20,22 @@
  */
 
 @theme inline {
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-  --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-accordion-down: accordion-down 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-accordion-up: accordion-up 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-collapsible-down: collapsible-down 0.25s cubic-bezier(0.22, 1, 0.36, 1);
+  --animate-collapsible-up: collapsible-up 0.2s cubic-bezier(0.22, 1, 0.36, 1);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
-  --radius-2xl: calc(var(--radius) + 8px);
-  --radius-3xl: calc(var(--radius) + 12px);
-  --radius-4xl: calc(var(--radius) + 16px);
+  /* Arc concentric radii: control 18 / panel 26 / surface 34. The Tailwind
+   * ladder maps onto the tokens so existing usage lands right: rounded-sm and
+   * rounded-md are controls (18), rounded-lg is the panel tier for menus and
+   * dialogs (26), rounded-xl is the card surface (34). */
+  --radius-sm: var(--radius-control);
+  --radius-md: var(--radius-control);
+  --radius-lg: var(--radius-panel);
+  --radius-xl: var(--radius-surface);
+  --radius-2xl: calc(var(--radius-surface) + 4px);
+  --radius-3xl: calc(var(--radius-surface) + 8px);
+  --radius-4xl: calc(var(--radius-surface) + 12px);
 
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -71,23 +79,53 @@
   --color-brand-teal: var(--brand-teal);
   --color-brand-cyan: var(--brand-cyan);
   --color-brand-aqua: var(--brand-aqua);
+  /* Single-brand utility token: footer `hover:text-brand` / `after:bg-brand`
+   * had no backing color and silently did nothing. Rides --brand-link so
+   * link-blue and brand-hover can never drift apart. */
+  --color-brand: var(--brand-link);
 }
 
 @keyframes accordion-down {
   from {
     height: 0;
+    opacity: 0;
   }
   to {
     height: var(--radix-accordion-content-height);
+    opacity: 1;
   }
 }
 
 @keyframes accordion-up {
   from {
     height: var(--radix-accordion-content-height);
+    opacity: 1;
   }
   to {
     height: 0;
+    opacity: 0;
+  }
+}
+
+@keyframes collapsible-down {
+  from {
+    height: 0;
+    opacity: 0;
+  }
+  to {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+}
+
+@keyframes collapsible-up {
+  from {
+    height: var(--radix-collapsible-content-height);
+    opacity: 1;
+  }
+  to {
+    height: 0;
+    opacity: 0;
   }
 }
 
@@ -103,15 +141,22 @@ html {
 }
 
 :root {
-  --radius: 1.3rem;
-  --radius-control: 0.5rem;
-  --radius-panel: 1rem;
-  /* Open Sans is the Twitter Azure typeface; system sans is the fallback. */
-  --font-sans: "Open Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-heading: "Open Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-body: "Open Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  /* Closest free alternative to Modica Pro Bold (footer wordmark). */
-  --font-wordmark: "Poppins", "Open Sans", ui-sans-serif, system-ui, sans-serif;
+  --radius: 26px;
+  --radius-control: 18px;
+  --radius-panel: 26px;
+  --radius-surface: 34px;
+  /* Arc type: Geist display, Inter body. Weight ladder (owner decision,
+   * 2026-10-25): 400 body, 500 labels, 600 controls/card titles, 700 headings.
+   * System CJK covers zh-HK in both faces (per-glyph fallback), unchanged. */
+  --font-sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-heading: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Geist", "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  /* Closest free alternative to Modica Pro Bold (footer wordmark). Wordmarks
+   * are the sanctioned exception to the 400/500 weight rule (owner decision):
+   * footer = Poppins 800, header label = legacy Open Sans 700. */
+  --font-wordmark: "Poppins", "Geist", ui-sans-serif, system-ui, sans-serif;
+  --font-wordmark-nav: "Open Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
 
   /* Brand raw */
   --brand-navy: #0f1419;
@@ -127,23 +172,23 @@ html {
   --card-foreground: #0f1419;
   --popover: #ffffff;
   --popover-foreground: #0f1419;
-  --primary: #1e9df1;
+  --primary: #0f7db8; /* accessible azure: white labels hit 4.5:1 */
   --primary-foreground: #ffffff;
   --secondary: #0f1419;
   --secondary-foreground: #ffffff;
   --muted: #e5e5e6;
-  --muted-foreground: #536471;
+  --muted-foreground: #46535e;
   --accent: #e3ecf6; /* Azure hover wash */
-  --accent-foreground: #1e9df1;
-  --destructive: #f4212e;
+  --accent-foreground: #0f1419; /* ink on the wash — azure text fails 4.5:1 there */
+  --destructive: #d61f2e;
   --destructive-foreground: #ffffff;
-  --success: #17bf63;
+  --success: #157f47;
   --success-foreground: #ffffff;
   --warning: #f7b928;
   --warning-foreground: #0f1419;
   --border: #e1eaef;
   --input: #f7f9fa;
-  --ring: #1da1f2;
+  --ring: #0b72b5;
 
   --chart-1: #1e9df1;
   --chart-2: #00b87a;
@@ -153,17 +198,17 @@ html {
 
   --sidebar: #f7f8f8;
   --sidebar-foreground: #0f1419;
-  --sidebar-primary: #1e9df1;
+  --sidebar-primary: #0f7db8;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #e3ecf6;
-  --sidebar-accent-foreground: #1e9df1;
+  --sidebar-accent-foreground: #0f1419;
   --sidebar-border: #e1e8ed;
-  --sidebar-ring: #1da1f2;
+  --sidebar-ring: #0b72b5;
 
   /* Accent button (money CTAs) — Azure in both themes */
-  --btn-accent: #1d9bf0;
+  --btn-accent: #0f7db8;
   --btn-accent-fg: #ffffff;
-  --btn-accent-hover: #1a8cd8;
+  --btn-accent-hover: #0a6296;
 
   /* Neutral solid button — ink in light; goes translucent slate in dark */
   --btn-neutral: #0f1419;
@@ -183,7 +228,7 @@ html {
   --surface-invert: #0f1419;
   --surface-invert-hover: #272c30;
   --surface-invert-fg: #ffffff;
-  --brand-link: #1d9bf0;
+  --brand-link: #0b72b5; /* link/signature blue — #1d9bf0 is only 3:1 on white */
 
   /* Stepper */
   --stepper-row-bg: linear-gradient(
@@ -192,24 +237,35 @@ html {
     var(--color-card)
   );
   --stepper-inactive-bg: #eff3f4;
-  --stepper-inactive-fg: #536471;
-  --stepper-active-bg: #1d9bf0;
+  --stepper-inactive-fg: #46535e;
+  --stepper-active-bg: #0f7db8;
   --stepper-active-fg: #ffffff;
-  --stepper-complete-bg: #17bf63;
+  --stepper-complete-bg: #157f47;
   --stepper-complete-fg: #ffffff;
   --stepper-dot: #ffffff;
-  --stepper-connector: #1d9bf0;
+  --stepper-connector: #0f7db8;
 
   /* Gradients */
   --gradient-brand: linear-gradient(135deg, #0f1419 0%, #1d9bf0 55%, #8ecdf8 100%);
   --gradient-brand-x: linear-gradient(90deg, #0f1419 0%, #1d9bf0 55%, #8ecdf8 100%);
   --gradient-brand-soft: linear-gradient(135deg, #f7fafc 0%, #e8f1f9 100%);
+
+  /* Floating-layer elevation (Arc: shadows only on layers that float over
+   * the page — dialogs, menus, popovers, sheets, toasts). Neutral near-black
+   * at low opacity; never coloured. Resting surfaces stay border-delineated. */
+  --lift-overlay:
+    0 2px 6px -2px rgb(15 20 25 / 0.08),
+    0 18px 45px -20px rgb(15 20 25 / 0.24);
 }
 
 /*
  * Dark theme — "Twitter Azure" dim mode (dark-mode-guide compliant).
- * Elevation ladder instead of pure black: canvas #121212 · cards #1E1E1E ·
- * popovers #232327 · hovers #26282C · borders #2E3033 · secondary text #9BA1A6.
+ * Elevation ladder instead of pure black: canvas #121212 · header band #17181B ·
+ * cards #1E1E1E · popovers #232327 · hovers #26282C · borders #41454B ·
+ * secondary text #A3AAB1. Border and input strokes sit ~2:1 over the canvas so
+ * hairlines stay visible on dark surrounds (light-mode hairlines only need
+ * ~1.2:1 — dark needs the wider step to read at all). The header/search band
+ * lifts one step off the canvas the same way the grey band does on light.
  * Statuses are lightened/desaturated for dark (success #4ADE80, warning #FCD34D,
  * destructive #F87171) with dark-ink text on fills.
  * The azure accent (#1D9BF0) stays the action colour in both themes.
@@ -217,7 +273,7 @@ html {
 .dark {
   --ink: #e7e9ea;
   --surface: #121212;
-  --surface-header: #121212;
+  --surface-header: #17181b;
   --surface-subtle: #1a1c1e;
   --surface-raised: #232327;
   --surface-hover: #26282c;
@@ -225,7 +281,7 @@ html {
   --surface-invert-hover: #d9dde0;
   --surface-invert-fg: #0f1419;
   --brand-link: #1d9bf0;
-  --subtle-foreground: #9ba1a6;
+  --subtle-foreground: #a3aab1;
   --disabled-foreground: #8a8e93;
   --success: #4ade80;
   --success-foreground: #052e16;
@@ -238,14 +294,14 @@ html {
     color-mix(in oklab, var(--brand-teal) 8%, var(--color-card)),
     var(--color-card)
   );
-  --stepper-inactive-bg: #26282c;
-  --stepper-inactive-fg: #9ba1a6;
-  --stepper-active-bg: #1d9bf0;
+  --stepper-inactive-bg: #2a2d33;
+  --stepper-inactive-fg: #a3aab1;
+  --stepper-active-bg: #1273b4;
   --stepper-active-fg: #ffffff;
   --stepper-complete-bg: #4ade80;
   --stepper-complete-fg: #052e16;
   --stepper-dot: #121212;
-  --stepper-connector: #1d9bf0;
+  --stepper-connector: #1273b4;
   --gradient-brand: linear-gradient(135deg, #121212 0%, #0a1e30 55%, #123a5e 100%);
   --gradient-brand-x: linear-gradient(90deg, #121212 0%, #0a1e30 55%, #123a5e 100%);
   --gradient-brand-soft: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
@@ -256,37 +312,37 @@ html {
   --card-foreground: #e7e9ea;
   --popover: #232327;
   --popover-foreground: #e7e9ea;
-  --primary: #1c9cf0;
+  --primary: #1273b4; /* dark-mode primary keeps white labels at 4.5:1 */
   --primary-foreground: #ffffff;
   --secondary: #f0f3f4;
   --secondary-foreground: #0f1419;
   --muted: #1e1e1e;
-  --muted-foreground: #9ba1a6;
-  --accent: #1e2d37;
+  --muted-foreground: #a3aab1;
+  --accent: #20303e;
   --accent-foreground: #1c9cf0;
   --destructive: #f87171;
   --destructive-foreground: #2b0a0c;
-  --border: #2e3033;
-  --input: #22303c;
+  --border: #41454b;
+  --input: #3e4b58;
   --ring: #1da1f2;
   --chart-1: #1e9df1;
   --chart-2: #00b87a;
-  --chart-3: #f7b928;
+  --chart-3: #fcd34d;
   --chart-4: #17bf63;
   --chart-5: #e0245e;
   --sidebar: #1a1c1e;
   --sidebar-foreground: #e7e9ea;
   --sidebar-primary: #1da1f2;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #1e2d37;
+  --sidebar-accent: #20303e;
   --sidebar-accent-foreground: #1c9cf0;
-  --sidebar-border: #3a3d42;
+  --sidebar-border: #41454b;
   --sidebar-ring: #1da1f2;
 
   /* Accent button in dark — Azure stays the signal (Inverted Signal Rule) */
-  --btn-accent: #1d9bf0;
+  --btn-accent: #1273b4;
   --btn-accent-fg: #ffffff;
-  --btn-accent-hover: #1a8cd8;
+  --btn-accent-hover: #0e66a1;
 
   /* Neutral button in dark — X's translucent slate, never white; label stays crisp white */
   --btn-neutral: rgba(91, 112, 131, 0.4);
@@ -296,6 +352,11 @@ html {
   /* WhatsApp brand exception */
   --brand-whatsapp: #25d366;
   --brand-whatsapp-hover: #1ebe57;
+
+  /* Floating-layer elevation, night variant (per the luminosity ladder) */
+  --lift-overlay:
+    0 2px 8px -4px rgb(0 0 0 / 0.5),
+    0 16px 40px -24px rgb(0 0 0 / 0.78);
 }
 
 @layer base {
@@ -386,10 +447,18 @@ html {
   h5,
   h6 {
     font-family: var(--font-heading);
-    font-weight: 700;
+    font-weight: 700; /* Titles carry real weight: 700 headings, 600 controls
+     * and card titles, 500 labels, 400 body (owner decision, 2026-10-25). */
     line-height: 1.15;
-    letter-spacing: normal; /* Twitter Azure: 0em tracking */
+    letter-spacing: normal;
     color: var(--color-foreground);
+  }
+
+  /* Geist carries the large headings (Arc: display face for 30px+). Small
+   * headings and card titles stay on Inter via --font-heading. */
+  h1,
+  h2 {
+    font-family: var(--font-display);
   }
 
   h1 {
@@ -406,7 +475,18 @@ html {
 
   h4 {
     font-size: 1rem;
-    font-weight: 600;
+  }
+
+  /* Arc tracking, Latin only: CJK glyphs are never letter-spaced, so the
+   * negative tracking rides on the lang attribute I18nProvider maintains. */
+  html[lang="en"] body {
+    letter-spacing: -0.01em;
+  }
+
+  html[lang="en"] h1,
+  html[lang="en"] h2,
+  html[lang="en"] .font-display {
+    letter-spacing: -0.03em;
   }
 
   p,
@@ -439,6 +519,22 @@ html {
   summary,
   [data-slot="button"] {
     cursor: pointer;
+  }
+
+  /*
+   * One consistent keyboard-focus indicator site-wide: a 2px azure outline.
+   * Solid, not alpha-mixed — the old 55% wash was 1.8:1 on white, under the
+   * 3:1 non-text minimum. Primitives that paint their own focus ring carry
+   * `outline-none` utilities, which live in the utilities layer and win over
+   * this element-level base rule, so nothing double-indicates.
+   */
+  button:focus-visible,
+  a[href]:focus-visible,
+  [role="button"]:focus-visible,
+  [role="tab"]:focus-visible,
+  summary:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
   }
 
   .font-medium {
@@ -483,6 +579,17 @@ html {
   color: transparent;
 }
 
+/* Display face for display-scale text that is not an h1/h2 (e.g. big stat
+ * numbers); pairs with the html[lang="en"] tracking rule above. */
+@utility font-display {
+  font-family: var(--font-display);
+}
+
+/* Legacy Open Sans face for the header wordmark label. */
+@utility font-wordmark-nav {
+  font-family: var(--font-wordmark-nav);
+}
+
 @layer utilities {
   .dark .text-brand-gradient {
     background-image: linear-gradient(135deg, #8ecdf8 0%, #1d9bf0 100%);
@@ -490,159 +597,6 @@ html {
 }
 
 @layer utilities {
-  .how-it-works-hero__image {
-    position: absolute;
-    inset: 0;
-    background:
-      linear-gradient(
-        100deg,
-        rgba(15, 20, 25, 0.98) 8%,
-        rgba(15, 20, 25, 0.82) 52%,
-        rgba(15, 20, 25, 0.55)
-      ),
-      url("/tutor-matching-network.jpeg") center / cover no-repeat;
-    filter: saturate(0.78) contrast(1.1);
-  }
-
-  .how-it-works-hero__image::after {
-    position: absolute;
-    inset: 0;
-    content: "";
-    background: radial-gradient(circle at 76% 30%, rgba(29, 161, 242, 0.32), transparent 33%);
-  }
-
-  .how-it-works-paper {
-    --hiw-compare-card: #ffffff;
-    --hiw-compare-card-border: color-mix(in oklab, var(--ink) 12%, transparent);
-    --hiw-compare-line: color-mix(in oklab, var(--ink) 10%, transparent);
-    --hiw-compare-max: color-mix(in oklab, var(--brand-link) 10%, transparent);
-    background-color: #f7fafc;
-    background-image:
-      radial-gradient(circle at 88% 28%, rgba(29, 161, 242, 0.16), transparent 22rem),
-      repeating-linear-gradient(
-        90deg,
-        transparent 0,
-        transparent calc(8.333% - 1px),
-        rgba(15, 20, 25, 0.05) calc(8.333% - 1px),
-        rgba(15, 20, 25, 0.05) 8.333%
-      ),
-      url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.72' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.12'/%3E%3C/svg%3E");
-    background-attachment: fixed;
-  }
-
-  .dark .how-it-works-paper {
-    --hiw-compare-card: rgb(255 255 255 / 4%);
-    --hiw-compare-card-border: rgb(255 255 255 / 10%);
-    --hiw-compare-line: rgb(255 255 255 / 14%);
-    --hiw-compare-max: color-mix(in oklab, var(--brand-link) 16%, transparent);
-    background-color: var(--surface);
-    background-image: none;
-  }
-
-  .saved-posts-reserve-card {
-    background: color-mix(in oklab, var(--foreground) 4%, var(--surface));
-  }
-
-  .saved-posts-hero-visual {
-    background-color: var(--surface-subtle);
-    background-position: center;
-    background-size: cover;
-    background-repeat: no-repeat;
-  }
-
-  .saved-posts-reserve-visual {
-    position: relative;
-    overflow: hidden;
-    background: linear-gradient(
-      145deg,
-      rgba(255, 255, 255, 0.98) 18%,
-      rgba(247, 250, 252, 0.94) 100%
-    );
-    border: 1px solid rgba(15, 20, 25, 0.08);
-  }
-}
-
-@layer utilities {
-  .blur-highlight-text {
-    opacity: var(--blur-highlight-opacity, 0.42);
-    filter: blur(var(--blur-highlight-amount, 7px));
-    transform: translateY(0.12em);
-    transition:
-      opacity 560ms ease-out,
-      filter 560ms ease-out,
-      transform 560ms ease-out;
-  }
-
-  .blur-highlight-text.is-active {
-    opacity: 1;
-    filter: blur(0);
-    transform: translateY(0);
-  }
-
-  .blur-highlight-mark {
-    margin: 0 -0.06em;
-    padding: 0 0.06em;
-    color: inherit;
-    background-color: transparent;
-    background-image: linear-gradient(
-      90deg,
-      var(--blur-highlight-color, color-mix(in oklab, var(--brand-aqua) 70%, transparent)),
-      var(--blur-highlight-color, color-mix(in oklab, var(--brand-aqua) 70%, transparent))
-    );
-    background-repeat: no-repeat;
-    background-position: left center;
-    background-size: 0% 100%;
-    box-decoration-break: clone;
-    -webkit-box-decoration-break: clone;
-  }
-
-  .blur-highlight-text.is-active .blur-highlight-mark {
-    animation: blur-highlight-sweep 720ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
-    animation-delay: calc(180ms + var(--blur-highlight-index, 0) * 130ms);
-  }
-
-  @keyframes blur-highlight-sweep {
-    to {
-      background-size: 100% 100%;
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .blur-highlight-text {
-      opacity: 1;
-      filter: none;
-      transform: none;
-      transition: none;
-    }
-
-    .blur-highlight-mark {
-      background-size: 100% 100%;
-      animation: none;
-    }
-  }
-}
-
-@layer utilities {
-  .landing-tutor-marquee {
-    animation: landing-tutor-marquee 42s linear infinite;
-    will-change: transform;
-  }
-  @keyframes landing-tutor-marquee {
-    from {
-      transform: translateX(0);
-    }
-    to {
-      transform: translateX(calc(-50% - 0.75rem));
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .landing-tutor-marquee {
-      animation-play-state: paused;
-      transform: translateX(0);
-    }
-  }
-
   /*
    * Horizontal rail scrollers (home tutor/notes/gigs rows, directory rows):
    * hide the native scrollbar — the grey bar under the rails read as
@@ -659,27 +613,46 @@ html {
   }
 
   /*
-   * One-time entrance for the announcement banner: a quiet 6px drop-in.
-   * Transform/opacity only, so the sticky header's layout height (and the
-   * search group's ResizeObserver measurements) never see it move.
+   * Small-control state pop (radio dot, selected chips): a one-shot
+   * scale+fade on mount so selection reads as a committed state change.
    */
-  @keyframes banner-in {
+  @keyframes control-pop {
     from {
+      transform: scale(0.4);
       opacity: 0;
-      transform: translateY(-6px);
+    }
+    60% {
+      opacity: 1;
     }
     to {
+      transform: scale(1);
       opacity: 1;
-      transform: translateY(0);
     }
   }
-  .animate-banner-in {
-    animation: banner-in 360ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  .mm-control-pop {
+    animation: control-pop 180ms cubic-bezier(0.22, 1, 0.36, 1);
   }
   @media (prefers-reduced-motion: reduce) {
-    .animate-banner-in {
+    .mm-control-pop {
       animation: none;
     }
+  }
+
+  /*
+   * Sonner toasts float above the page, so they carry the floating-layer
+   * elevation token (Arc: shadows belong to layers that float). The class is
+   * applied from styles.css because the banned `shadow-*` utilities can't be
+   * written in TSX.
+   */
+  [data-sonner-toast] {
+    box-shadow: var(--lift-overlay) !important;
+  }
+
+  /* Floating-layer elevation for overlays (dialogs, menus, popovers, sheets).
+   * Same reason as above: applied as a named class, never a TSX shadow
+   * utility. Resting cards and buttons stay border-delineated. */
+  .mm-overlay-lift {
+    box-shadow: var(--lift-overlay);
   }
 }
 
@@ -729,12 +702,12 @@ html {
 }
 
 /*
- * Airbnb-style elevation — the ONLY sanctioned shadow usage in this flat,
- * border-delineated design system (explicit user exception). Scope: the
- * mobile "Start your search" trigger and quick-nav pills rendered by
- * src/components/search/mobile-search-trigger.tsx, plus the desktop search
- * bar family (SearchPillBar band + panel, CompactSearchPill) which shares
- * the same elevation language per user request. Do not add new shadow rules.
+ * Airbnb-style elevation for the mobile "Start your search" trigger, quick-nav
+ * pills (src/components/search/mobile-search-trigger.tsx), and the desktop
+ * search bar family (SearchPillBar band + panel, CompactSearchPill). These
+ * pills float over scrolling content, so they qualify under the floating-layer
+ * shadow rule (DESIGN.md: shadows float or they do not exist), alongside
+ * .mm-overlay-lift above. Do not add further shadow rules.
  */
 .pill-elevate,
 .pill-elevate-lg,
@@ -803,19 +776,18 @@ html {
   }
 }
 
-/* Issue #397 coach-mark tours: flat MatchMax skin for driver.js. The library
-   ships a box-shadow on its popover; the design system is border-delineated,
-   so the shadow is neutralized and replaced with a hairline border.
-   Every selector is html-prefixed: driver.js's own driver.css is imported
-   inside the tour components, so it loads as route-chunk CSS AFTER styles.css
-   and would win every same-specificity tie (it ships .driver-popover with
-   background #fff + box-shadow at (0,1,0)). The html prefix puts each rule at
-   (0,1,1)+ so load order can never matter. */
+/* Issue #397 coach-mark tours: MatchMax skin for driver.js. The popover is a
+   floating layer, so it carries the floating elevation token. Every selector
+   is html-prefixed: driver.js's own driver.css is imported inside the tour
+   components, so it loads as route-chunk CSS AFTER styles.css and would win
+   every same-specificity tie (it ships .driver-popover with background #fff +
+   a shadow at (0,1,0)). The html prefix puts each rule at (0,1,1)+ so load
+   order can never matter. */
 html .driver-popover {
   font-family: inherit;
   border: 1px solid var(--border);
-  box-shadow: none;
-  border-radius: 1rem;
+  box-shadow: var(--lift-overlay);
+  border-radius: var(--radius-panel);
   background-color: var(--surface);
   color: var(--ink);
   padding: 20px;
@@ -823,7 +795,7 @@ html .driver-popover {
 }
 html .driver-popover-title {
   font-size: 1rem;
-  font-weight: 700;
+  font-weight: 500;
   letter-spacing: -0.01em;
 }
 html .driver-popover-description {
@@ -873,7 +845,7 @@ html .driver-popover-footer-btn {
   color: var(--ink);
   padding: 6px 14px;
   font-size: 0.8125rem;
-  font-weight: 700;
+  font-weight: 500;
   transition: background-color 0.2s;
 }
 html .driver-popover-footer-btn:hover,

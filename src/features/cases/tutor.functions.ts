@@ -1,5 +1,5 @@
 /**
- * Issues #201 + #204 — tutor-side server fns: my cases + lesson actions,
+ * Issues #201 + #204, tutor-side server fns: my cases + lesson actions,
  * weekly windows / blackouts (calendar), week view, Tutor Plus banner state.
  *
  * All tables in this slice are RLS-deny; everything runs on the service-role
@@ -218,7 +218,7 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
     for (const f of fees) {
       const existing = openFeeByCase.get(f.case_id);
       // #202: waived joins the visible set (invoiced, paid, waived) so the
-      // Tutor home fee card can show it; refunded stays hidden — it is always
+      // Tutor home fee card can show it; refunded stays hidden, it is always
       // followed by a fresh invoice which ranks higher.
       const open =
         f.status === "not_due" ||
@@ -257,7 +257,7 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
           location_or_link: l.location_or_link,
         })),
       // #387 experience log: list rows for every case; the FORM only opens
-      // when the 1.5-lesson admin fee is settled (paid OR waived — #425
+      // when the 1.5-lesson admin fee is settled (paid OR waived, #425
       // precedent, matching canLogOnCase) and the dispute lock is not hit.
       session_logs: sessionLogs.filter((l) => l.case_id === c.id),
       can_log_session:
@@ -272,7 +272,7 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
 /**
  * #202: which fee row wins when several exist for a case. At most one OPEN
  * fee (not_due/invoiced/paid) sits on a case (partial unique index), but a
- * waived row may precede a later invoice — the live one must win. Waived now
+ * waived row may precede a later invoice, the live one must win. Waived now
  * ranks last but is kept visible so the Tutor home can show it (#202 lists
  * invoiced, paid AND waived).
  */
@@ -311,7 +311,7 @@ export const confirmLessonTutor = createServerFn({ method: "POST" })
     const tutorId = await myTutorId(db, context.userId);
     const lesson = await myLesson(db, data.lessonId, tutorId);
     if (lesson.status !== "planned") throw new Error("NOT_PLANNED");
-    // #204: a slot request unconfirmed for 12h has expired — no late confirms.
+    // #204: a slot request unconfirmed for 12h has expired, no late confirms.
     if (isRequestExpired(new Date(lesson.created_at), new Date())) {
       throw new Error("REQUEST_EXPIRED");
     }
@@ -401,7 +401,7 @@ export const cancelLessonTutor = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
-// Weekly windows + blackouts (#204 — editing these never touches lessons)
+// Weekly windows + blackouts (#204, editing these never touches lessons)
 // ---------------------------------------------------------------------------
 
 export type WindowRow = {
@@ -453,7 +453,7 @@ export const setMyWeeklyWindows = createServerFn({ method: "POST" })
     const db = asAdminDb(supabaseAdmin);
     const tutorId = await myTutorId(db, context.userId);
 
-    // Replace-all. Windows live in their own table — confirmed/planned lessons
+    // Replace-all. Windows live in their own table, confirmed/planned lessons
     // are separate rows on case_lessons and are never touched here (#204:
     // "changing weekly hours must not delete a confirmed lesson").
     for (const existing of await selectRows<{ id: string }>(db, "tutor_weekly_windows", "id", [
@@ -509,7 +509,7 @@ export const addMyBlackout = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const tutorId = await myTutorId(db, context.userId);
-    // UNIQUE(tutor_id, blackout_date) — upsert semantics: replace any reason.
+    // UNIQUE(tutor_id, blackout_date), upsert semantics: replace any reason.
     for (const existing of await selectRows<{ id: string }>(db, "tutor_blackout_dates", "id", [
       { col: "tutor_id", op: "eq", value: tutorId },
       { col: "blackout_date", op: "eq", value: data.date },

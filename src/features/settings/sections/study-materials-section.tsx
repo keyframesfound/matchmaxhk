@@ -8,7 +8,7 @@ import { SettingsCard } from "@/features/settings/option-card";
 /**
  * Issues #131/#133: the tutor-facing "Study Materials" settings tab.
  * Since the P8 (#288) notes rollout, the canonical tutor flow is
- * /account/notes/new — this tab points there instead of running a second
+ * /account/notes/new, this tab points there instead of running a second
  * upload path with different rules (#313 review fix: no upload path may
  * skip the note-kind validation).
  */

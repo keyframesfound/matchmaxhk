@@ -33,7 +33,7 @@ import { GRADE_REJECTION_REASONS, type GradeRejectionReason } from "@/features/t
 export const Route = createFileRoute("/_authenticated/admin/grades")({
   head: () => ({
     meta: [
-      { title: "Grade review queue — MatchMax Admin" },
+      { title: "Grade review queue, MatchMax Admin" },
       {
         name: "description",
         content:
@@ -118,8 +118,8 @@ function AdminGrades() {
     onSuccess: async (_result, variables) => {
       toast.success(
         variables.decision === "approve"
-          ? "Grade approved — the Verified badge updates on the tutor's card."
-          : "Grade rejected — the tutor has been notified in app.",
+          ? "Grade approved, the Verified badge updates on the tutor's card."
+          : "Grade rejected, the tutor has been notified in app.",
       );
       setRejections((previous) => {
         const next = { ...previous };
@@ -159,8 +159,8 @@ function AdminGrades() {
     onSuccess: async (_result, variables) => {
       toast.success(
         variables.decision === "approve"
-          ? "Credential approved — the card now shows the new value."
-          : "Credential rejected — the old value stays public and the tutor has been notified in app.",
+          ? "Credential approved, the card now shows the new value."
+          : "Credential rejected, the old value stays public and the tutor has been notified in app.",
       );
       setCredReasons((previous) => {
         const next = { ...previous };
@@ -190,7 +190,7 @@ function AdminGrades() {
   const rows = queueQuery.data ?? [];
 
   return (
-    <div className="mx-auto w-full max-w-5xl space-y-4 p-4 md:p-6">
+    <div className="mx-auto w-full max-w-7xl space-y-4 p-4 md:p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-lg font-bold text-[color:var(--ink)]">
@@ -227,7 +227,7 @@ function AdminGrades() {
       ) : (
         <div className="overflow-hidden rounded-xl border border-border">
           <table className="w-full text-sm">
-            <thead className="bg-[color:var(--surface-subtle)] text-left text-xs font-bold uppercase tracking-wide text-muted-foreground">
+            <thead className="bg-[color:var(--surface-subtle)] text-left text-xs font-medium text-muted-foreground">
               <tr>
                 <th className="px-3 py-2.5">Tutor code</th>
                 <th className="px-3 py-2.5">Grade text</th>
@@ -370,7 +370,7 @@ function AdminGrades() {
         ) : (
           <div className="overflow-hidden rounded-xl border border-border">
             <table className="w-full text-sm">
-              <thead className="bg-[color:var(--surface-subtle)] text-left text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              <thead className="bg-[color:var(--surface-subtle)] text-left text-xs font-medium text-muted-foreground">
                 <tr>
                   <th className="px-3 py-2.5">Tutor</th>
                   <th className="px-3 py-2.5">Field</th>
@@ -476,7 +476,7 @@ function AdminGrades() {
 
       <p className="text-[11px] leading-5 text-muted-foreground">
         Queue sorts by submitted time, oldest first. Reject requires a reason from the fixed list;
-        the tutor gets one in-app notice either way — no WhatsApp, no email. Approving or rejecting
+        the tutor gets one in-app notice either way, no WhatsApp, no email. Approving or rejecting
         one grade never changes any other approved grade. Credential edits are free-text rejected
         with a required reason; approving one swaps that field only.
       </p>

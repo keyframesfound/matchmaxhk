@@ -204,7 +204,7 @@ function BusinessOverview() {
             <EmptyState
               icon={BookOpen}
               title="No business account yet"
-              description="Create a business account to post courses on MatchMax — up to 10 courses on the Business plan, unlimited on Enterprise."
+              description="Create a business account to post courses on MatchMax, up to 10 courses on the Business plan, unlimited on Enterprise."
               action={
                 <Button
                   onClick={() => navigate({ to: "/business/join" })}
@@ -296,7 +296,7 @@ function BusinessOverview() {
             <div className="mt-6 grid gap-4 lg:grid-cols-2">
               <section className="rounded-lg border border-border bg-card p-5">
                 <div>
-                  <h2 className="text-base font-bold text-[color:var(--ink)]">Reach</h2>
+                  <h2 className="text-lg font-bold text-[color:var(--ink)]">Reach</h2>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     Directory impressions and public profile views over the last 30 days
                   </p>
@@ -376,7 +376,7 @@ function BusinessOverview() {
 
               <section className="rounded-lg border border-border bg-card p-5">
                 <div>
-                  <h2 className="text-base font-bold text-[color:var(--ink)]">Engagement</h2>
+                  <h2 className="text-lg font-bold text-[color:var(--ink)]">Engagement</h2>
                   <p className="mt-0.5 text-xs text-muted-foreground">
                     Course views and contact clicks over the last 30 days
                   </p>
@@ -446,9 +446,7 @@ function BusinessOverview() {
                 <section className="overflow-hidden rounded-lg border border-border bg-card">
                   <div className="flex items-start justify-between gap-3 border-b border-border p-6 pb-4">
                     <div className="flex flex-col gap-2">
-                      <h2 className="text-base font-bold text-[color:var(--ink)]">
-                        Getting started
-                      </h2>
+                      <h2 className="text-lg font-bold text-[color:var(--ink)]">Getting started</h2>
                       <span className="text-xs tabular-nums text-muted-foreground">
                         {completedSteps} of {onboardingSteps.length} complete
                       </span>
@@ -509,7 +507,7 @@ function BusinessOverview() {
               )}
 
               <section className="rounded-lg border border-border bg-card p-6">
-                <h2 className="text-base font-bold text-[color:var(--ink)]">Plan & usage</h2>
+                <h2 className="text-lg font-bold text-[color:var(--ink)]">Plan & usage</h2>
                 {usage ? (
                   <div className="mt-4 space-y-4">
                     <UsageMeter
@@ -532,7 +530,7 @@ function BusinessOverview() {
 
             <section className="mt-8">
               <div className="flex items-center justify-between gap-3">
-                <h2 className="text-base font-bold text-[color:var(--ink)]">Recent posts</h2>
+                <h2 className="text-lg font-bold text-[color:var(--ink)]">Recent posts</h2>
                 <Button variant="outline" size="sm" onClick={() => switchTab("courses")}>
                   Manage courses
                 </Button>
@@ -540,7 +538,7 @@ function BusinessOverview() {
               <div className="mt-4 space-y-3">
                 {(recentCourses ?? []).length === 0 ? (
                   <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                    No published courses yet — post your first course to appear in the directory.
+                    No published courses yet, post your first course to appear in the directory.
                   </div>
                 ) : (
                   (recentCourses ?? []).map((course) => {
@@ -684,7 +682,7 @@ function PlanBadgeInline({ plan, status }: { plan: string; status: string }) {
   );
 }
 
-// Issue #412: the org's case requests — triage status at a glance, with the
+// Issue #412: the org's case requests, triage status at a glance, with the
 // compliance-hold state surfaced so centres understand the review step.
 function RequestsPanel({
   organizationId,
@@ -715,7 +713,7 @@ function RequestsPanel({
 
       {organizationStatus !== "active" ? (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-800 dark:border-amber-500/20 dark:bg-amber-500/10 dark:text-amber-400">
-          Your account is still under Business Registration review — case requests open once your
+          Your account is still under Business Registration review, case requests open once your
           account is activated.
         </div>
       ) : null}
@@ -750,7 +748,7 @@ function RequestsPanel({
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       {new Date(row.created_at).toLocaleDateString()} ·{" "}
                       {held
-                        ? "On compliance hold — under review before it can reach educators"
+                        ? "On compliance hold, under review before it can reach educators"
                         : row.status === "matched"
                           ? "Matched with an educator"
                           : row.status === "closed"

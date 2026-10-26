@@ -1,11 +1,11 @@
 /**
- * Issue #190 — Kindergarten & University tutoring verticals: vocabulary and
+ * Issue #190, Kindergarten & University tutoring verticals: vocabulary and
  * matching helpers shared by the tutor application form, the tutor profile
  * editors, the admin TutorEditor, the case request form, tutor search and
  * the public tutor card.
  *
  * Stored vocabularies are DATA (tutors.target_students, tutors.subjects,
- * tutoring_cases.academic_tier / kindergarten_focus) — renaming an entry
+ * tutoring_cases.academic_tier / kindergarten_focus), renaming an entry
  * here without a data migration would orphan stored rows. Display labels
  * localize through verticals-labels.ts.
  */
@@ -42,10 +42,10 @@ export const KINDERGARTEN_FOUNDATION_TOPICS = [
 ] as const;
 
 export const KINDERGARTEN_P1_INTERVIEW_TOPICS = [
-  "P1 Interview — Communication & Etiquette",
-  "P1 Interview — Group Play Observation",
-  "P1 Interview — Storytelling & Role-play",
-  "P1 Interview — General Knowledge",
+  "P1 Interview, Communication & Etiquette",
+  "P1 Interview, Group Play Observation",
+  "P1 Interview, Storytelling & Role-play",
+  "P1 Interview, General Knowledge",
 ] as const;
 
 export const KINDERGARTEN_TOPICS = [
@@ -161,7 +161,7 @@ export function normalizeUniversityGpa(raw: unknown): number | null {
 }
 
 /**
- * Issue #395: editor-save guard shared with normalizeUniversityGpa — blank is
+ * Issue #395: editor-save guard shared with normalizeUniversityGpa, blank is
  * allowed, but non-blank text outside 0–4.3 must BLOCK the save with
  * `verticals.editor_gpa_invalid` (admin TutorEditor / owner profile / join),
  * never silently normalize to null on the way to the DB.

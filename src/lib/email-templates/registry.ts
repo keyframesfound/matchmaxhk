@@ -11,12 +11,12 @@ export interface TemplateEntry {
   subject: string | ((data: Record<string, unknown>) => string);
   displayName?: string;
   previewData?: Record<string, unknown>;
-  /** Fixed recipient — overrides caller-provided recipientEmail when set. */
+  /** Fixed recipient, overrides caller-provided recipientEmail when set. */
   to?: string;
 }
 
 /**
- * Template registry — maps template names to their React Email components.
+ * Template registry, maps template names to their React Email components.
  * Import and register new templates here after creating them in this directory.
  *
  * Example:
@@ -45,7 +45,7 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   "fee-reminder": {
     component: FeeReminderEmail as unknown as ComponentType<Record<string, unknown>>,
     subject: (data: Record<string, unknown>) =>
-      `Admin fee reminder${data?.case_code ? ` — case ${String(data.case_code)}` : ""}`,
+      `Admin fee reminder${data?.case_code ? `, case ${String(data.case_code)}` : ""}`,
   },
   "order-delivered": {
     component: OrderDeliveredEmail as unknown as ComponentType<Record<string, unknown>>,

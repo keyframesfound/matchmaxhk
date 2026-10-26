@@ -27,7 +27,7 @@ import { buildAnswerRows, type TutorApplication } from "@/lib/tutor-application.
 import { getRuntimeEnv } from "@/lib/runtime-env";
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-// Alibaba Qwen3 via OpenRouter — accessible from Hong Kong (OpenAI, Anthropic
+// Alibaba Qwen3 via OpenRouter, accessible from Hong Kong (OpenAI, Anthropic
 // and Google Gemini APIs are not licensed for HK, so they must not be used).
 const AUTOFILL_MODEL = "qwen/qwen3-235b-a22b-instruct-2507";
 
@@ -260,13 +260,13 @@ STRICT RULES:
 EXAM SYSTEM VOCABULARY (system id: allowed subject names):
 ${buildExamSystemVocab()}
 
-CURRICULUM SUBJECT VOCABULARY (teachable subjects outside exam systems — use these exact names for primary, junior secondary, and admissions/test-prep support):
+CURRICULUM SUBJECT VOCABULARY (teachable subjects outside exam systems, use these exact names for primary, junior secondary, and admissions/test-prep support):
 ${buildCurriculumSubjectVocab()}
 
 MTR STATION NAMES (use exact names):
 ${MTR_STATION_OPTIONS.join(", ")}
 
-HOUSE STYLE EXAMPLES (real published tutor profiles — copy this voice, structure, and formatting):
+HOUSE STYLE EXAMPLES (real published tutor profiles, copy this voice, structure, and formatting):
 ${JSON.stringify(styleExamples, null, 1)}
 
 Now generate the profile JSON for the new tutor from the user's source information.`;

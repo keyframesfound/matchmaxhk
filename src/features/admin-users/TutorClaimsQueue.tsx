@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Epic #280 P2: tutor card claims that need staff review — card already linked
+ * Epic #280 P2: tutor card claims that need staff review, card already linked
  * to another account, or the Google email doesn't match the application email.
  * Approve links the card to the requester (resolve_tutor_claim RPC).
  */
@@ -54,7 +54,7 @@ export function TutorClaimsQueue() {
       return data as string;
     },
     onSuccess: (result) => {
-      toast.success(result === "approved" ? "Claim approved — card linked." : "Claim rejected.");
+      toast.success(result === "approved" ? "Claim approved, card linked." : "Claim rejected.");
       void queryClient.invalidateQueries({ queryKey: ["admin", "tutor-claim-requests"] });
     },
     onError: (error) =>
@@ -81,7 +81,7 @@ export function TutorClaimsQueue() {
           >
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
-                {claim.tutor?.tutor_code ?? claim.tutor_id} — {claim.tutor?.display_name ?? "—"}
+                {claim.tutor?.tutor_code ?? claim.tutor_id}, {claim.tutor?.display_name ?? "—"}
               </p>
               <p className="truncate text-xs text-muted-foreground">
                 {claim.email ?? "no email"} · {claim.note ?? "unmatched claim"} ·{" "}

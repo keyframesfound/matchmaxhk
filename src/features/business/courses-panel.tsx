@@ -22,8 +22,6 @@ import {
   ArrowDown,
   ArrowUp,
   BookOpen,
-  ChevronLeft,
-  ChevronRight,
   ChevronsUpDown,
   Copy,
   ExternalLink,
@@ -37,6 +35,7 @@ import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Pagination } from "@/components/ui/pagination";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -113,7 +112,7 @@ function formatDate(value: string) {
 function SortIcon({ sorted }: { sorted: false | "asc" | "desc" }) {
   if (sorted === "asc") return <ArrowUp className="h-3.5 w-3.5" aria-hidden="true" />;
   if (sorted === "desc") return <ArrowDown className="h-3.5 w-3.5" aria-hidden="true" />;
-  return <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground/60" aria-hidden="true" />;
+  return <ChevronsUpDown className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />;
 }
 
 export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }) {
@@ -274,9 +273,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
           const course = row.original;
           return (
             <div className="min-w-0">
-              <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
-                {course.title}
-              </p>
+              <p className="truncate text-sm font-medium text-[color:var(--ink)]">{course.title}</p>
               <p className="mt-0.5 truncate text-xs text-muted-foreground">
                 {[course.level, courseModeLabel(course.mode), course.district]
                   .filter(Boolean)
@@ -311,7 +308,7 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
             className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold ring-1 ring-inset ${
               row.original.is_published
                 ? "bg-emerald-50 text-emerald-700 ring-emerald-700/10 dark:bg-emerald-500/10 dark:text-emerald-400 dark:ring-emerald-400/20"
-                : "bg-gray-100 text-gray-600 ring-gray-500/10 dark:bg-gray-500/10 dark:text-[color:var(--muted-foreground)] dark:ring-gray-400/20"
+                : "bg-gray-100 text-muted-foreground ring-gray-500/10 dark:bg-gray-500/10 dark:text-[color:var(--muted-foreground)] dark:ring-gray-400/20"
             }`}
           >
             {row.original.is_published ? "Published" : "Unpublished"}
@@ -637,32 +634,12 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
               </TableBody>
             </Table>
 
-            <div className="flex items-center justify-between gap-4 border-t border-border bg-muted/20 px-4 py-2.5">
-              <p className="text-xs text-muted-foreground">
-                Page {table.state.pagination.pageIndex + 1} of {Math.max(pageCount, 1)}
-              </p>
-              <div className="flex items-center gap-1.5">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="size-7"
-                  onClick={() => table.previousPage()}
-                  disabled={!table.getCanPreviousPage()}
-                  aria-label="Previous page"
-                >
-                  <ChevronLeft className="h-3.5 w-3.5" aria-hidden="true" />
-                </Button>
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="size-7"
-                  onClick={() => table.nextPage()}
-                  disabled={!table.getCanNextPage()}
-                  aria-label="Next page"
-                >
-                  <ChevronRight className="h-3.5 w-3.5" aria-hidden="true" />
-                </Button>
-              </div>
+            <div className="border-t border-border bg-muted/20 px-4 py-2">
+              <Pagination
+                page={table.state.pagination.pageIndex + 1}
+                pageCount={Math.max(pageCount, 1)}
+                onPageChange={(p) => table.setPageIndex(p - 1)}
+              />
             </div>
           </div>
 

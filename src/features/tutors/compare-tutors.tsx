@@ -55,7 +55,7 @@ function CompareBar({
           />
           <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
             {count} of {MAX_COMPARE} selected
-            {count === 1 ? " — pick at least 2" : ""}
+            {count === 1 ? ", pick at least 2" : ""}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -98,7 +98,7 @@ function CompareDialog({
       label: "Rate",
       render: (t) => {
         const price = getTutorPriceDisplay(t);
-        // Issue #125: flagged pricing strips the rate — show a dash.
+        // Issue #125: flagged pricing strips the rate, show a dash.
         if (price.baseRate <= 0) {
           return <p className="text-lg font-bold text-muted-foreground">—</p>;
         }
@@ -161,7 +161,7 @@ function CompareDialog({
     {
       label: "Lesson mode",
       render: (t) => (
-        <p className="text-[13px] font-semibold text-[color:var(--ink)]">
+        <p className="text-[13px] font-bold text-[color:var(--ink)]">
           {(getTutorLessonModeLabel(t.lesson_mode) ?? "—").replace(/ tutoring$/, "")}
         </p>
       ),
@@ -169,7 +169,7 @@ function CompareDialog({
     {
       label: "Location",
       render: (t) => (
-        <p className="text-[13px] font-semibold text-[color:var(--ink)]">
+        <p className="text-[13px] font-bold text-[color:var(--ink)]">
           {t.stations.length > 0 ? t.stations.slice(0, 3).join(", ") : (t.district ?? "—")}
         </p>
       ),
@@ -184,7 +184,7 @@ function CompareDialog({
     {
       label: "Languages",
       render: (t) => (
-        <p className="text-[13px] font-semibold text-[color:var(--ink)]">
+        <p className="text-[13px] font-bold text-[color:var(--ink)]">
           {t.languages.length > 0 ? t.languages.join(", ") : "—"}
         </p>
       ),
@@ -192,7 +192,7 @@ function CompareDialog({
     {
       label: "Experience",
       render: (t) => (
-        <p className="text-[13px] font-semibold text-[color:var(--ink)]">
+        <p className="text-[13px] font-bold text-[color:var(--ink)]">
           {t.experience_years != null ? `${t.experience_years} yrs` : "—"}
         </p>
       ),

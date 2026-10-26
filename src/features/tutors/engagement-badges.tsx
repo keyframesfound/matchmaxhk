@@ -4,7 +4,7 @@ import type { DemandBadgeKind } from "@/features/tutors/engagement";
 import { cn } from "@/lib/utils";
 
 // Issues #102/#151: dynamic demand + Parent Favorite badges. Presentational
-// only — the caller passes engagement data through the card's `engagement`
+// only, the caller passes engagement data through the card's `engagement`
 // prop (or renders these directly on the profile page). No shadows (repo
 // rule): elevation comes from borders + tinted backgrounds. Azure stays
 // reserved for money CTAs, so these use the issue's amber/red/neutral and a
@@ -66,7 +66,7 @@ export function ParentFavoriteBadge({ className }: { className?: string }) {
 }
 
 /**
- * Issue #391: small-group availability pill — "👥 Group from $Y/hr". Y is the
+ * Issue #391: small-group availability pill, "👥 Group from $Y/hr". Y is the
  * cheapest per-student figure across the tutor's small-group rate rows and
  * open cohorts (badge is hidden when neither exists). Neutral pill like the
  * SEN badge: group rates must never be mistaken for the 1-on-1 card floor.

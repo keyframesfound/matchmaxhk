@@ -1,10 +1,10 @@
 /**
- * Issue #71 — structured filters for the staff case queue (/admin/cases).
+ * Issue #71, structured filters for the staff case queue (/admin/cases).
  *
  * Pure parse/serialize/match helpers only; the route owns the URL wiring
  * (validateSearch + navigate) and the select UI. All matching is
  * CLIENT-SIDE over the already-fetched rows (the route loads every case
- * today) — there is deliberately no server-side filter fn.
+ * today), there is deliberately no server-side filter fn.
  *
  * TanStack gotcha this parse layer is built around: URL search params are
  * JSON-decoded, so a hand-typed ?status=1 arrives as NUMBER 1 and
@@ -36,7 +36,7 @@ export type CaseModeValue = CaseRow["mode"];
  */
 export type CaseRateBandId = "lt100" | "100-200" | "200-300" | "gte300";
 
-/** Created-date presets — no date pickers, this is a staff tool. */
+/** Created-date presets, no date pickers, this is a staff tool. */
 export type CaseCreatedPreset = "7d" | "30d";
 
 /** Full in-memory filter model; every field is always populated. */
@@ -75,7 +75,7 @@ export const DEFAULT_CASE_FILTERS: CaseFilters = {
 /** The Clear-all target: a filter model with every filter reset. */
 export const CLEAR_ALL: CaseFilters = { ...DEFAULT_CASE_FILTERS, subjects: [] };
 
-/** URL-shaped search state — what validateSearch stores and navigate accepts. */
+/** URL-shaped search state, what validateSearch stores and navigate accepts. */
 export type CaseFiltersSearch = {
   q?: string;
   status?: string;
@@ -120,7 +120,7 @@ const CREATED_ALIASES: Record<string, CaseCreatedPreset> = {
 
 const RATE_BAND_IDS: CaseRateBandId[] = ["lt100", "100-200", "200-300", "gte300"];
 
-/** Cap on selected subjects kept in one URL — junk guard, not a UX limit. */
+/** Cap on selected subjects kept in one URL, junk guard, not a UX limit. */
 const MAX_SELECTED_SUBJECTS = 8;
 
 /**
@@ -140,13 +140,13 @@ function oneOf<T extends string>(value: string, allowed: readonly T[]): T | null
 
 /**
  * Subjects accept the comma-joined form (?subjects=Math,Physics), the
- * repeated-param form (?subjects=Math&subjects=Physics — JSON-decoded to
+ * repeated-param form (?subjects=Math&subjects=Physics, JSON-decoded to
  * an array), or a single value. A bare number/boolean scalar (?subjects=1
- * / ?subjects=true) is a flag, not a subject list — dropped.
+ * / ?subjects=true) is a flag, not a subject list, dropped.
  */
 function parseSubjects(raw: unknown): string[] {
   // A bare number/boolean scalar (?subjects=1 / ?subjects=true) is a
-  // flag, not a subject list — only a string or an array carries values.
+  // flag, not a subject list, only a string or an array carries values.
   const list: unknown[] = Array.isArray(raw) ? raw : typeof raw === "string" ? [raw] : [];
   const rawList = list.map((item) => asString(item));
   const picked: string[] = [];
@@ -235,12 +235,12 @@ export function caseFiltersToSearch(filters: CaseFilters): CaseFiltersSearch {
 
 /**
  * Which rate band a case's HKD budget falls in, or null when no budget
- * is set (a budgetless case matches no band — only "any" shows it).
+ * is set (a budgetless case matches no band, only "any" shows it).
  * The representative rate is the most the parent will pay
- * (max ?? min — the same value the admin table's Budget column leads
+ * (max ?? min, the same value the admin table's Budget column leads
  * with, HKD-normalized like the rest of the admin surface). Edges follow
  * the plain labels: under 100, 100 up to and including 200, over 200 up
- * to and including 300, over 300 — so a parent paying 150–200 shows
+ * to and including 300, over 300, so a parent paying 150–200 shows
  * under "HK$100–200", not "HK$200–300".
  */
 export function caseRateBandId(bounds: {
@@ -266,7 +266,7 @@ export type CaseFilterOptions = {
 /**
  * Dropdown vocabularies: the form's known constants first (stable
  * declared order), then any legacy/free-text values found in the queue.
- * Subjects/districts/tags are row-derived — the full form subject pool
+ * Subjects/districts/tags are row-derived, the full form subject pool
  * is huge and staff only filter what is actually in the queue.
  */
 export function caseFilterOptions(rows: CaseRow[]): CaseFilterOptions {
@@ -305,7 +305,7 @@ function createdCutoffMs(preset: CaseFilters["created"], now: Date): number | nu
 }
 
 /**
- * Filter rows client-side — the same predicate shape the route's useMemo
+ * Filter rows client-side, the same predicate shape the route's useMemo
  * used before #71 (status / tag / free-text search), extended with the
  * structured filters. `now` is injectable so the date presets are
  * testable deterministically; the cutoff is inclusive (a case received
@@ -359,7 +359,7 @@ export function applyCaseFilters(
   });
 }
 
-/** True when nothing is filtered — drives the Clear-all visibility. */
+/** True when nothing is filtered, drives the Clear-all visibility. */
 export function isDefaultFilters(filters: CaseFilters): boolean {
   return (
     filters.q.trim() === "" &&

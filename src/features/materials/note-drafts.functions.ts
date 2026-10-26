@@ -35,7 +35,7 @@ import { watermarkPdfPreview } from "@/features/materials/watermark";
  * staff review, and publishes only on approval. Live edits of title /
  * price / description go out after the contact filter; a replaced PDF is
  * staged (pending_original_file_path + edit_status) until staff approve the
- * swap — the old file stays on sale in the meantime.
+ * swap, the old file stays on sale in the meantime.
  */
 
 const PRIVATE_BUCKET = "materials-originals";
@@ -61,7 +61,7 @@ type MaterialRow = {
 const DraftMetaInput = z.object({
   title: z.string().trim().max(160).optional(),
   description: z.string().trim().max(4000).optional(),
-  // #314: HK$0 is a valid price (free pack) — only negatives are rejected.
+  // #314: HK$0 is a valid price (free pack), only negatives are rejected.
   priceHkd: z.number().min(0).max(100_000).optional(),
   // #313 note kinds: curriculum is the site's canonical list, type is the
   // notes/mock/exemplar/flashcards split, topic is a free 40-char filter.
@@ -72,7 +72,7 @@ const DraftMetaInput = z.object({
   topic: z.string().trim().max(40).nullish(),
   gradeAchieved: z.string().trim().max(20).nullish(),
   exemplarPermission: z.boolean().optional(),
-  // #136: approximate word count — optional, positive integer when present.
+  // #136: approximate word count, optional, positive integer when present.
   // null clears a stored value; absent keeps it (same semantics as topic).
   wordCount: z.number().int().min(1).max(WORD_COUNT_MAX).nullish(),
   yearTag: z.string().trim().max(20).optional(),
@@ -197,7 +197,7 @@ const UNLOCKED_FILE_ERROR = "This PDF is password-protected. Please upload an un
  * attached directly (draft).
  *
  * #314: PDFs ride the watermark pipeline; an .apkg deck (flashcards only)
- * skips it entirely — no encryption probe, no stamping, no preview URL and
+ * skips it entirely, no encryption probe, no stamping, no preview URL and
  * no page count (watermarked_preview_url stays "", page_count null). The
  * buyer downloads the deck; there is no in-browser reviewer or player.
  */
@@ -219,7 +219,7 @@ async function stageFileForMaterial(
   const isApkg = kind === "apkg";
   const bytes = base64ToBytes(base64Data);
   const isLiveDoc = material.status === "published" || material.status === "hidden";
-  // Live docs skip preview generation until approval — the staged file is
+  // Live docs skip preview generation until approval, the staged file is
   // not public, and stamping the wrong version onto the live preview URL
   // would leak the replacement before staff sign it off.
   const preview = isLiveDoc || isApkg ? null : await buildExtendedPreview(bytes);
@@ -405,7 +405,7 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
     );
     if (kindErrors.length > 0) throw new Error(kindErrors.join(" "));
 
-    // #313 review fix: merge with explicit-clear semantics — switching the
+    // #313 review fix: merge with explicit-clear semantics, switching the
     // type away from exemplar (or clearing topic/grade) must actually write
     // the cleared values, not silently keep the stored ones.
     const kinds = mergeDraftNoteKinds(data, existing);
@@ -458,7 +458,7 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
 
 /**
  * P8: attach/replace the draft's PDF, or stage a replacement on a live note
- * (P9 — the live file stays on sale until staff approve the swap).
+ * (P9, the live file stays on sale until staff approve the swap).
  */
 export const uploadNotePdf = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth, requireAccountActive])
@@ -488,7 +488,7 @@ export const uploadNotePdf = createServerFn({ method: "POST" })
   });
 
 const SubmitForReviewInput = SubmitInput.extend({
-  // Issue #214: the submit doubles as the notes-terms acceptance click — the
+  // Issue #214: the submit doubles as the notes-terms acceptance click, the
   // checkbox must arrive true (mirrors /legal/notes-terms), and the handler
   // records the terms_acceptances row (surface note_upload) on success.
   legalAgreed: z.literal(true),
@@ -512,7 +512,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
     const existing = data.materialId
       ? await loadOwnedMaterial(db, data.materialId, tutor.id)
       : null;
-    // #313 review fix: explicit-clear semantics — a null/empty grade or
+    // #313 review fix: explicit-clear semantics, a null/empty grade or
     // topic clears the stored value, and a non-exemplar type drops the
     // stale grade/permission instead of letting them fail validation.
     // #340: curriculum/subject are remapped inside mergeDraftNoteKinds.
@@ -530,11 +530,11 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
     if (kindErrors.length > 0) {
       throw new Error(kindErrors.join(" "));
     }
-    // #314: HK$0 is valid — the old MIN_PRICE_HKD floor is gone; the zod
+    // #314: HK$0 is valid, the old MIN_PRICE_HKD floor is gone; the zod
     // input already rejects negative prices, and checkSubmitReadiness above
     // blocks null/negative merges.
 
-    // #314: file type must match the listing type — an .apkg deck only
+    // #314: file type must match the listing type, an .apkg deck only
     // rides a flashcards listing; everything else stays PDF-only.
     if (data.base64Data && !isAllowedMaterialFile(kinds.materialType, data.fileName ?? "")) {
       throw new Error(
@@ -552,7 +552,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       // for PDFs), upload, then insert straight into pending_review.
       if (!data.base64Data) throw new Error("Missing: pdf");
       const bytes = base64ToBytes(data.base64Data);
-      // #314: an .apkg deck skips the PDF-only pipeline entirely — no
+      // #314: an .apkg deck skips the PDF-only pipeline entirely, no
       // encryption probe, no pdf-lib watermark, no page count and no
       // preview URL. The buyer downloads the deck from their account.
       const preview = isApkgUpload ? null : await buildExtendedPreview(bytes);
@@ -661,7 +661,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       }
     }
 
-    // Issue #214: the note-upload terms gate — record WHICH terms version the
+    // Issue #214: the note-upload terms gate, record WHICH terms version the
     // tutor accepted, tied to this material (subject_id), after the submit
     // went through. Fail-closed: an insert failure fails the whole submit.
     const { recordTermsAcceptance } = await import("@/features/legal/terms-acceptance.server");
@@ -674,7 +674,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
     return { materialId };
   });
 
-/** P9: edit a live note's text/price — live after the contact filter. */
+/** P9: edit a live note's text/price, live after the contact filter. */
 export const editLiveNote = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => EditLiveInput.parse(data))

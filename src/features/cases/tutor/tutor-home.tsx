@@ -23,11 +23,11 @@ import { getMyNotesSummary } from "@/features/materials/orders.functions";
 import { ShortCaseChip } from "@/features/cases/tutor/short-case-chip";
 
 /**
- * Issue #202 — Tutor home. One page that tells the assigned tutor what to do
+ * Issue #202, Tutor home. One page that tells the assigned tutor what to do
  * today, built from the SAME `getMyTutorCases` payload the Lessons tab uses
  * (shared React Query key) plus a small notes summary. It is a read-only
  * synthesis: no parent or buyer contact is ever selected, and the admin fee
- * card is always labelled as the PARENT'S fee to MatchMax — never tutor
+ * card is always labelled as the PARENT'S fee to MatchMax, never tutor
  * earnings, never added to the notes net.
  */
 
@@ -55,7 +55,7 @@ function toHomeLessons(cases: TutorCaseItem[]): HomeLesson[] {
   );
 }
 
-/** case_fees/material_orders are HKD numeric (not cents) — render directly. */
+/** case_fees/material_orders are HKD numeric (not cents), render directly. */
 function fmtHkd(amount: number): string {
   const n = Number(amount);
   return Number.isInteger(n) ? n.toFixed(0) : n.toFixed(2);
@@ -161,7 +161,7 @@ function NotesBlock({ t }: { t: ReturnType<typeof useTranslation>["t"] }) {
 
 export function TutorHomeSection() {
   const { t } = useTranslation();
-  // Shared key with the Lessons tab (TutorCasesSection) — warm cache, one fetch.
+  // Shared key with the Lessons tab (TutorCasesSection), warm cache, one fetch.
   const { data, isLoading } = useQuery({
     queryKey: ["sor", "tutor-cases"],
     queryFn: getMyTutorCases,

@@ -70,9 +70,9 @@ import { supabase } from "@/integrations/supabase/client";
  * Issue #104: the public profile view rendered inside the Preview-as-Parent
  * sandbox. This mirrors tutors.$tutorCode.tsx section-for-section against the
  * SAME public data sources (fetchTutorByCode / fetchTutorReviews /
- * fetchMaterialsForTutor / fetchPublishedTutors — public shapes only, no
+ * fetchMaterialsForTutor / fetchPublishedTutors, public shapes only, no
  * contact fields). Two deliberate differences from the public page: the report
- * affordances receive `isOwn` (#294 remainder — the owner cannot report
+ * affordances receive `isOwn` (#294 remainder, the owner cannot report
  * themselves), and page chrome (header/footer/SEO/claim banner/back button)
  * belongs to the preview route, not to a parent's profile.
  *
@@ -108,7 +108,7 @@ function ProfileSection({
         <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
           <Icon className={`h-4 w-4 ${iconClassName}`} strokeWidth={2.1} />
         </span>
-        <h2 className="text-base font-bold tracking-tight text-[color:var(--ink)] sm:text-lg">
+        <h2 className="text-lg font-bold tracking-tight text-[color:var(--ink)] sm:text-xl">
           {title}
         </h2>
       </div>
@@ -325,7 +325,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
   const selfIntroduction = tutor.self_introduction?.trim() ?? "";
   const lessonLocation = (() => {
     const area = getTutorStationsText(tutor);
-    return area ? `Hong Kong — ${area}` : "Hong Kong";
+    return area ? `Hong Kong, ${area}` : "Hong Kong";
   })();
   const tutorLanguages = (tutor.languages ?? []).filter(Boolean);
   const lessonLanguages =
@@ -350,7 +350,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
         title: tutor.display_name,
         text:
           price.baseRate > 0
-            ? `Check out tutor ${tutor.tutor_code} on MatchMax — $${price.baseRate} up/hr.`
+            ? `Check out tutor ${tutor.tutor_code} on MatchMax, $${price.baseRate} up/hr.`
             : `Check out tutor ${tutor.tutor_code} on MatchMax.`,
         url: `${window.location.origin}/tutors/${tutor.tutor_code}`,
       },
@@ -361,9 +361,9 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
 
   return (
     <>
-      {/* Profile hero — identical to the public page's header block. */}
+      {/* Profile hero, identical to the public page's header block. */}
       <section className="border-b border-border bg-muted/30 py-8 sm:py-10">
-        <div className="mx-auto max-w-7xl px-5 sm:px-8">
+        <div className="mx-auto max-w-[1536px] px-5 sm:px-8">
           <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:gap-5">
             <div className="relative shrink-0 self-start">
               {tutor.photo_url ? (
@@ -458,7 +458,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                   </p>
                 ) : null}
                 <TutorSaveButton tutorId={tutor.id} compact />
-                {/* #294 remainder: the visitor's flag control — owner-guarded here. */}
+                {/* #294 remainder: the visitor's flag control, owner-guarded here. */}
                 <ReportMenuButton
                   isOwn={isOwn}
                   menuLabel={translate("report.menu_label_profile")}
@@ -556,7 +556,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
       </section>
 
       <section className="py-8 sm:py-10">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+        <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
           <div>
             {examResults.length > 0 ? (
               <ProfileSection icon={LineChart} title={translate("profile.section_academic")}>
@@ -643,7 +643,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                     <p className="mt-1 text-muted-foreground">
                       <span className="font-bold text-[color:var(--ink)]">IA / EE / TOK:</span>{" "}
                       {tutor.ia_ee_tok_support.join(", ")}
-                      {tutor.ia_ee_tok_notes ? ` — ${tutor.ia_ee_tok_notes}` : ""}
+                      {tutor.ia_ee_tok_notes ? `, ${tutor.ia_ee_tok_notes}` : ""}
                     </p>
                   ) : null}
                 </div>
@@ -655,7 +655,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                 <ul className="divide-y divide-border overflow-hidden rounded-sm border border-border">
                   {tutor.online_rate !== null ? (
                     <li className="flex items-center justify-between gap-4 px-4 py-2.5">
-                      <span className="text-sm font-semibold text-[color:var(--ink)]">
+                      <span className="text-sm font-bold text-[color:var(--ink)]">
                         {translate("profile.rates_online")}
                       </span>
                       <RateValue rate={tutor.online_rate} nativeCurrency={tutor.currency} />
@@ -664,7 +664,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                   {tutor.inperson_rate !== null ? (
                     <li className="px-4 py-2.5">
                       <div className="flex items-center justify-between gap-4">
-                        <span className="text-sm font-semibold text-[color:var(--ink)]">
+                        <span className="text-sm font-bold text-[color:var(--ink)]">
                           {translate("profile.rates_inperson")}
                         </span>
                         <RateValue rate={tutor.inperson_rate} nativeCurrency={tutor.currency} />
@@ -679,9 +679,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                       key={`${row.label}-${index}`}
                       className="flex items-center justify-between gap-4 px-4 py-2.5"
                     >
-                      <span className="text-sm font-semibold text-[color:var(--ink)]">
-                        {row.label}
-                      </span>
+                      <span className="text-sm font-bold text-[color:var(--ink)]">{row.label}</span>
                       <RateValue rate={row.rate} nativeCurrency={tutor.currency} />
                     </li>
                   ))}
@@ -753,13 +751,10 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
 
       {suggestedTutors.length > 0 ? (
         <section className="border-t border-border bg-muted/30 py-10 sm:py-12">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
             <div className="flex flex-wrap items-end justify-between gap-3">
               <div>
-                <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-                  {translate("profile.suggested_eyebrow")}
-                </p>
-                <h2 className="mt-1 text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
                   {translate("profile.suggested_title")}
                 </h2>
               </div>

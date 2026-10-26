@@ -16,6 +16,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { MtrStationSelect } from "@/components/ui/mtr-station-select";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { submitCaseRequest } from "@/lib/cases.functions";
 import {
@@ -42,6 +49,7 @@ import {
   getSubjectOptionsForCurriculum,
 } from "@/features/cases/case-options";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
+import { MatchStatusCard } from "@/features/cases/parent/match-status-card";
 import { MAX_PROFILE_TAGS, PRESET_PROFILE_TAGS } from "@/features/tutors/profile-tags";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
@@ -95,7 +103,7 @@ function parseValidationIssues(message: string): ValidationIssue[] | null {
 type FormState = {
   // Page 1: Contact
   requesterType: string;
-  // Issue #437: "Who is this for?" — demographics live on the case, never
+  // Issue #437: "Who is this for?", demographics live on the case, never
   // the account (no account-level gender/role/photo for clients).
   whoFor: string;
   parentName: string;
@@ -109,7 +117,7 @@ type FormState = {
   uniProgram: string;
   uniCourseCodes: string;
   kindergartenTopics: string[];
-  // Page 2 — Path A: Subject tutoring
+  // Page 2, Path A: Subject tutoring
   curriculum: string;
   subject1: string;
   subject2: string;
@@ -122,7 +130,7 @@ type FormState = {
   schoolType: string;
   // Issue #437: case-level student demographics (never on the account).
   studentGender: string;
-  // Page 2 — Path B: Admissions
+  // Page 2, Path B: Admissions
   admissionsCategory: string;
   targetPathway: string;
   targetSchool: string;
@@ -142,19 +150,20 @@ type FormState = {
   budgetCurrency: string;
   tutorBackground: string;
   // Issue #437: tutor gender preference is a case-level hard preference
-  // (No preference / Male / Female) — the board dims Apply on hard mismatch.
+  // (No preference / Male / Female), the board dims Apply on hard mismatch.
   tutorGenderPreference: string;
   notes: string;
   // Issue #199: SEN support requirements (step 3).
   senRequired: boolean;
   senCategories: string[];
   senDetails: string;
-  // Issue #311: parent-picked preset tags (max MAX_PROFILE_TAGS) — merged
+  // Issue #311: parent-picked preset tags (max MAX_PROFILE_TAGS), merged
   // with the derived requirement tags server-side by mergeCaseTags, which
   // always keeps the derived tags regardless of how many presets are picked.
   tags: string[];
   termsAgreed: boolean;
-  // Issue #253 (F2): matching-fee agreement, version fee-2026-10.
+  // Issue #253 (F2) + #444: matching-fee agreement, version fee-2026-10-v2
+  // (v2 = payer is the self-employed tutor).
   feeAgreed: boolean;
   // Issue #412 E: parent B2C triage (compliance screening).
   engager: string;
@@ -225,7 +234,7 @@ const PARENT_DUTIES_OPTIONS = [
   { value: "no", label: "No" },
   { value: "yes", label: "Yes" },
 ];
-// Issue #437: case-level demographics — these live on the Case Intake Form
+// Issue #437: case-level demographics, these live on the Case Intake Form
 // only (never on account signup / Account settings).
 const WHO_FOR_OPTIONS = [
   { value: "my_child", label: "My child" },
@@ -256,7 +265,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [result, setResult] = useState<{ caseCode: string } | null>(null);
   // Issue #114: pre-fill the budget currency from the visitor's active
-  // display currency — but ONLY until the visitor (or a restored draft)
+  // display currency, but ONLY until the visitor (or a restored draft)
   // has made their own choice. #380 review: re-syncing on every
   // displayCurrency change clobbered an intentional HKD pick, so a
   // touched flag freezes the field once the select is edited or a draft
@@ -341,7 +350,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         )
       : [];
     // Issue #423 bug 3: a stale draft can carry a curriculum outside the
-    // restored level's lock — drop it so step 2 re-asks coherently.
+    // restored level's lock, drop it so step 2 re-asks coherently.
     const allowedCurricula = getCurriculumOptionsForLevel(academicLevel).map((o) => o.value);
     const curriculum = allowedCurricula.includes(restored.curriculum) ? restored.curriculum : "";
     // Issue #423: sanitize the package dropdowns against tampered drafts.
@@ -358,10 +367,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       ? restored.classFormat
       : "either";
     // #380 review: a restored draft's budget currency (even an explicit
-    // HKD) is the visitor's own choice — never re-sync it afterwards.
+    // HKD) is the visitor's own choice, never re-sync it afterwards.
     budgetCurrencyTouched.current = true;
     // GLM review 2026-10-23: drafts saved under the old 2000-char cap restore
-    // over-length notes — maxLength only blocks NEW typing, and the server
+    // over-length notes, maxLength only blocks NEW typing, and the server
     // zod .max(500) would reject submit. Truncate to the live cap here.
     const notes = typeof restored.notes === "string" ? restored.notes.slice(0, 500) : "";
     // Issue #412 E: sanitize the triage answers against tampered drafts.
@@ -441,7 +450,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   };
 
   const isAdmissions = form.supportType === "admissions";
-  // Issue #423 (sections 2+3): the title is no longer typed — it is this
+  // Issue #423 (sections 2+3): the title is no longer typed, it is this
   // live preview, generated from the structured fields in the #411
   // dual-language pattern. Parents never type a title for new cases.
   const titlePreview = useMemo(() => {
@@ -464,7 +473,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     form.academicLevel,
   ]);
   const subjectOptions = getSubjectOptionsForCurriculum(form.curriculum);
-  // Issue #423 bug 3: curricula locked to the chosen academic tier — a
+  // Issue #423 bug 3: curricula locked to the chosen academic tier, a
   // Primary case can only pick "Primary School", never IBDP.
   const curriculumOptions = getCurriculumOptionsForLevel(form.academicLevel);
   // Admissions sub-category ("Standardized Testing & Language" vs
@@ -489,7 +498,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   };
 
   // Admissions auto-locks the curriculum to "University Admissions & Test
-  // Prep" — its subjects (IELTS, SAT, ACT, TOEFL, UCAT, ISAT, Personal
+  // Prep", its subjects (IELTS, SAT, ACT, TOEFL, UCAT, ISAT, Personal
   // Statement…) come from that pool; the tutoring curriculum resets when
   // switching back.
   const handleSupportTypeChange = (value: string) => {
@@ -524,7 +533,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     update({ admissionsCategory: value, subject1: "", subject2: "", subject3: "", subject4: "" });
   };
 
-  // MTR is hidden for online-only requests — clear any stale selection.
+  // MTR is hidden for online-only requests, clear any stale selection.
   const handleDeliveryModeChange = (value: string) => {
     update(value === "online" ? { deliveryMode: value, district: "" } : { deliveryMode: value });
   };
@@ -532,7 +541,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   // Issue #190: the level-first funnel. Picking a level reveals its
   // slide-down region and resets the other verticals' fields; the stored
   // student level (form.year) follows the funnel answer directly.
-  // Issue #423 bug 3: the level also locks the curriculum — a Primary case
+  // Issue #423 bug 3: the level also locks the curriculum, a Primary case
   // can never carry the IB curriculum, so the step-2 selection (and its
   // subjects) resets whenever the level changes; a level with exactly one
   // coherent curriculum (Kindergarten/Primary/University) pre-selects it.
@@ -779,11 +788,12 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         <p className="mt-4 font-mono text-2xl font-bold tracking-tight text-[color:var(--ink)]">
           {result.caseCode}
         </p>
-        <p className="mx-auto mt-4 max-w-md text-sm font-bold text-[color:var(--ink)]">
-          The MatchMax team will contact you shortly on WhatsApp.
-        </p>
+        {/* #466: match-status card at the RECEIVED stage */}
+        <div className="mx-auto mt-6 max-w-md">
+          <MatchStatusCard status="new" matchedTutorId={null} sorStatus={null} />
+        </div>
         <p className="mx-auto mt-3 max-w-md text-xs leading-relaxed text-muted-foreground">
-          Our team reviews every request — once approved, your case appears on this board so
+          Our team reviews every request, once approved, your case appears on this board so
           qualified tutors can apply.
         </p>
         {whatsappHref ? (
@@ -872,11 +882,11 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         })}
       </ol>
 
-      {/* Issue #423: live auto-title preview — replaces manual title typing.
+      {/* Issue #423: live auto-title preview, replaces manual title typing.
           Shown from step 2 on, once the structured fields exist. */}
       {step >= 2 ? (
         <div className="mb-8 rounded-sm border border-border bg-muted/40 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+          <p className="text-xs font-medium text-muted-foreground">
             {t("case_board.title_preview")}
           </p>
           <p className="mt-1.5 text-lg font-bold tracking-tight text-[color:var(--ink)]">
@@ -891,7 +901,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       <div className="grid gap-4 sm:grid-cols-2">
         {step === 1 ? (
           <>
-            {/* Issue #190: the funnel is level-first — the academic level
+            {/* Issue #190: the funnel is level-first, the academic level
                 question leads step 1 and its slide-down cascade sits
                 directly beneath the chosen option. */}
             <div className="sm:col-span-2">
@@ -914,7 +924,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                       aria-checked={active}
                       onClick={() => handleAcademicLevelChange(level)}
                       className={cn(
-                        "inline-flex h-10 items-center rounded-full border px-5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40",
+                        "inline-flex h-10 items-center rounded-full border px-5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]",
                         active
                           ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 text-[color:var(--ink)]"
                           : "border-border text-muted-foreground hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)]",
@@ -934,9 +944,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 })}
               </div>
               {errors.academicLevel && errors.academicLevel !== "Required" ? (
-                <p className="mt-1 text-xs font-semibold text-destructive">
-                  {errors.academicLevel}
-                </p>
+                <p className="mt-1 text-xs font-medium text-destructive">{errors.academicLevel}</p>
               ) : null}
             </div>
 
@@ -1074,12 +1082,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 invalid={Boolean(errors.requesterType)}
               />
               {errors.requesterType && errors.requesterType !== "Required" ? (
-                <p className="mt-1 text-xs font-semibold text-destructive">
-                  {errors.requesterType}
-                </p>
+                <p className="mt-1 text-xs font-medium text-destructive">{errors.requesterType}</p>
               ) : null}
             </div>
-            {/* Issue #437: required case-level "Who is this for?" — when
+            {/* Issue #437: required case-level "Who is this for?", when
                 Myself is selected, the case-level student fields below ARE
                 the student (there are no account demographics). */}
             <div>
@@ -1203,7 +1209,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 disabled={!form.curriculum}
                 placeholder={form.curriculum ? "e.g. Math AA HL" : "Select a curriculum first"}
                 searchPlaceholder="Search subject..."
-                emptyText="No matches — type to enter a custom subject."
+                emptyText="No matches, type to enter a custom subject."
                 className={controlClassName}
                 invalid={Boolean(errors.subject1)}
               />
@@ -1223,7 +1229,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 disabled={!form.curriculum}
                 placeholder={form.curriculum ? "e.g. Chemistry" : "Select a curriculum first"}
                 searchPlaceholder="Search subject..."
-                emptyText="No matches — type to enter a custom subject."
+                emptyText="No matches, type to enter a custom subject."
                 className={controlClassName}
               />
             </div>
@@ -1242,7 +1248,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                   disabled={!form.curriculum}
                   placeholder={form.curriculum ? "e.g. Physics" : "Select a curriculum first"}
                   searchPlaceholder="Search subject..."
-                  emptyText="No matches — type to enter a custom subject."
+                  emptyText="No matches, type to enter a custom subject."
                   className={controlClassName}
                 />
               </div>
@@ -1260,7 +1266,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                   disabled={!form.curriculum}
                   placeholder={form.curriculum ? "e.g. Economics" : "Select a curriculum first"}
                   searchPlaceholder="Search subject..."
-                  emptyText="No matches — type to enter a custom subject."
+                  emptyText="No matches, type to enter a custom subject."
                   className={controlClassName}
                 />
               </div>
@@ -1298,11 +1304,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 </p>
               ) : null}
             </div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:col-span-2">
-              Student info
-            </p>
+            <p className="text-xs font-medium text-muted-foreground sm:col-span-2">Student info</p>
             {/* Issue #437: case-level student gender (both tutoring and
-                admissions paths) — never an account field. */}
+                admissions paths), never an account field. */}
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-student-gender`}>
                 Student gender
@@ -1318,9 +1322,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 invalid={Boolean(errors.studentGender)}
               />
               {errors.studentGender && errors.studentGender !== "Required" ? (
-                <p className="mt-1 text-xs font-semibold text-destructive">
-                  {errors.studentGender}
-                </p>
+                <p className="mt-1 text-xs font-medium text-destructive">{errors.studentGender}</p>
               ) : null}
             </div>
             <div>
@@ -1417,7 +1419,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 allowCustom
                 placeholder="e.g. IELTS, SAT, Personal Statement"
                 searchPlaceholder="Search subject..."
-                emptyText="No matches — type to enter a custom subject."
+                emptyText="No matches, type to enter a custom subject."
                 className={controlClassName}
                 invalid={Boolean(errors.subject1)}
               />
@@ -1436,7 +1438,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 allowCustom
                 placeholder="e.g. UCAT"
                 searchPlaceholder="Search subject..."
-                emptyText="No matches — type to enter a custom subject."
+                emptyText="No matches, type to enter a custom subject."
                 className={controlClassName}
               />
             </div>
@@ -1453,7 +1455,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                   allowCustom
                   placeholder="e.g. SAT"
                   searchPlaceholder="Search subject..."
-                  emptyText="No matches — type to enter a custom subject."
+                  emptyText="No matches, type to enter a custom subject."
                   className={controlClassName}
                 />
               </div>
@@ -1470,7 +1472,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                   allowCustom
                   placeholder="e.g. IELTS"
                   searchPlaceholder="Search subject..."
-                  emptyText="No matches — type to enter a custom subject."
+                  emptyText="No matches, type to enter a custom subject."
                   className={controlClassName}
                 />
               </div>
@@ -1490,9 +1492,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 invalid={Boolean(errors.targetPathway)}
               />
               {errors.targetPathway && errors.targetPathway !== "Required" ? (
-                <p className="mt-1 text-xs font-semibold text-destructive">
-                  {errors.targetPathway}
-                </p>
+                <p className="mt-1 text-xs font-medium text-destructive">{errors.targetPathway}</p>
               ) : null}
             </div>
             <div>
@@ -1510,9 +1510,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 invalid={Boolean(errors.interviewTest)}
               />
               {errors.interviewTest && errors.interviewTest !== "Required" ? (
-                <p className="mt-1 text-xs font-semibold text-destructive">
-                  {errors.interviewTest}
-                </p>
+                <p className="mt-1 text-xs font-medium text-destructive">{errors.interviewTest}</p>
               ) : null}
             </div>
             <div className="sm:col-span-2">
@@ -1526,15 +1524,13 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 allowCustom
                 placeholder="Search target university or school"
                 searchPlaceholder="Search school..."
-                emptyText="No matches — type to enter a custom school."
+                emptyText="No matches, type to enter a custom school."
                 className={controlClassName}
               />
             </div>
-            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground sm:col-span-2">
-              Student info
-            </p>
+            <p className="text-xs font-medium text-muted-foreground sm:col-span-2">Student info</p>
             {/* Issue #437: case-level student gender (both tutoring and
-                admissions paths) — never an account field. */}
+                admissions paths), never an account field. */}
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-student-gender`}>
                 Student gender
@@ -1550,9 +1546,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 invalid={Boolean(errors.studentGender)}
               />
               {errors.studentGender && errors.studentGender !== "Required" ? (
-                <p className="mt-1 text-xs font-semibold text-destructive">
-                  {errors.studentGender}
-                </p>
+                <p className="mt-1 text-xs font-medium text-destructive">{errors.studentGender}</p>
               ) : null}
             </div>
             <div>
@@ -1627,23 +1621,26 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 {errors.budgetMax === "Required" ? <RequiredFlag /> : null}
               </label>
               <div className="flex items-center gap-2">
-                <select
-                  aria-label="Budget currency"
-                  className="h-10 shrink-0 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-2 text-sm font-semibold text-[color:var(--ink)] outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                <Select
                   value={form.budgetCurrency}
-                  onChange={(e) => {
+                  onValueChange={(v) => {
                     // #380 review: freeze the seed sync once the visitor
                     // picks a currency themselves.
                     budgetCurrencyTouched.current = true;
-                    update({ budgetCurrency: e.target.value });
+                    update({ budgetCurrency: v });
                   }}
                 >
-                  {SUPPORTED_CURRENCIES.map((code) => (
-                    <option key={code} value={code}>
-                      {code}
-                    </option>
-                  ))}
-                </select>
+                  <SelectTrigger aria-label="Budget currency" className="w-24 shrink-0 px-3">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {SUPPORTED_CURRENCIES.map((code) => (
+                      <SelectItem key={code} value={code}>
+                        {code}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Input
                   id={`${idPrefix}-budget-min`}
                   aria-label={`Minimum hourly budget in ${form.budgetCurrency}`}
@@ -1665,7 +1662,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 />
               </div>
               {/* Issue #114: live HK$ baseline so parents see the equivalent
-                  concierge works from — hidden for HKD (no conversion). */}
+                  concierge works from, hidden for HKD (no conversion). */}
               {budgetApproxNote ? (
                 <p className="mt-1 text-xs text-muted-foreground">
                   &asymp; {budgetApproxNote} / hr
@@ -1717,7 +1714,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 className={controlClassName}
               />
             </div>
-            {/* Issue #391: class format preference — lets staff match the
+            {/* Issue #391: class format preference, lets staff match the
                 family into open small-group cohorts when they're open to it. */}
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-class-format`}>
@@ -1750,7 +1747,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               </p>
             </div>
             {/* Issue #437: case-level tutor gender preference. Hard
-                preference — the case board dims Apply on a mismatch. */}
+                preference, the case board dims Apply on a mismatch. */}
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-tutor-gender`}>
                 Tutor gender preference
@@ -1801,7 +1798,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 {t("case_request.triage_duties_hint")}
               </p>
             </div>
-            {/* Issue #199: SEN support section — Yes/No toggle reveals the
+            {/* Issue #199: SEN support section, Yes/No toggle reveals the
                 category multi-select and optional details. */}
             <div className="sm:col-span-2">
               <span className={labelClassName}>{t("sen.case_toggle")}</span>
@@ -1823,7 +1820,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                         })
                       }
                       className={cn(
-                        "inline-flex h-9 items-center rounded-full border px-5 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40",
+                        "inline-flex h-9 items-center rounded-full border px-5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]",
                         active
                           ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 text-[color:var(--ink)]"
                           : "border-border text-muted-foreground hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)]",
@@ -1898,7 +1895,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 {t("case_board.notes_counter", { count: form.notes.length })}
               </p>
             </div>
-            {/* Issue #311: preset tags as chips — one tap adds it, one tap on
+            {/* Issue #311: preset tags as chips, one tap adds it, one tap on
                 a saved chip removes it. Optional; typing stays on the notes
                 field. Parent picks never displace the auto-derived subject
                 tags (mergeCaseTags keeps those in full). Tutors search this
@@ -1923,7 +1920,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                         })
                       }
                       className={cn(
-                        "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40",
+                        "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]",
                         active
                           ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 text-[color:var(--ink)]"
                           : "border-border text-muted-foreground hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)]",
@@ -2050,7 +2047,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           </Button>
         </div>
         <p className="text-center text-xs text-muted-foreground sm:text-sm">
-          Free for parents — our team will contact you on WhatsApp within one business day.
+          Free for parents, our team will contact you on WhatsApp within one business day.
         </p>
       </div>
     </form>

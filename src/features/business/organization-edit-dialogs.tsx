@@ -297,9 +297,7 @@ export function OrgAboutDialog({
             {faqItems.map((item, index) => (
               <div key={index} className="space-y-2 rounded-lg border border-border p-3">
                 <div className="flex items-center justify-between">
-                  <p className="text-xs font-semibold text-muted-foreground">
-                    Question {index + 1}
-                  </p>
+                  <p className="text-xs font-medium text-muted-foreground">Question {index + 1}</p>
                   <Button
                     type="button"
                     variant="ghost"

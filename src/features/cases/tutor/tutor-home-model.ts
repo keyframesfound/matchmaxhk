@@ -1,5 +1,5 @@
 /**
- * Issue #202 — Tutor home pure helpers.
+ * Issue #202, Tutor home pure helpers.
  *
  * The Tutor home section reads the same `getMyTutorCases` payload as the
  * Lessons tab and derives "what to do today": the next lesson, the slot

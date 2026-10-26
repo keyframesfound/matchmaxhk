@@ -12,15 +12,15 @@ import { enforceCaseTierConsistency } from "../../src/features/cases/case-option
 import type { PublicCaseBoardItem } from "../../src/lib/cases.functions";
 
 describe("buildCaseTitle EN (#423)", () => {
-  it("renders [Curriculum] [Subject] — [Grade]", () => {
+  it("renders [Curriculum] [Subject], [Grade]", () => {
     expect(
       buildCaseTitle({ curriculum: "IB", subjects: ["Chemistry HL"], grade: "Y12" }, "en"),
-    ).toBe("IBDP Chemistry HL — Y12");
+    ).toBe("IBDP Chemistry HL, Y12");
   });
 
   it("keeps free-text grades verbatim", () => {
     expect(buildCaseTitle({ curriculum: "DSE", subjects: ["Physics"], grade: "S5" }, "en")).toBe(
-      "DSE Physics — S5",
+      "DSE Physics, S5",
     );
   });
 
@@ -42,11 +42,11 @@ describe("buildCaseTitle EN (#423)", () => {
     // "Primary", so nothing may be dropped here.
     expect(
       buildCaseTitle({ curriculum: "AP", subjects: ["Mathematics"], grade: "Primary" }, "en"),
-    ).toBe("AP Mathematics — Primary");
+    ).toBe("AP Mathematics, Primary");
     // No curriculum → the grade is the only band info; keep it.
     expect(
       buildCaseTitle({ curriculum: null, subjects: ["Mathematics"], grade: "Primary" }, "en"),
-    ).toBe("Mathematics — Primary");
+    ).toBe("Mathematics, Primary");
   });
 
   it("collapses extra subjects to +N", () => {
@@ -73,7 +73,7 @@ describe("buildCaseTitle zh-HK (#423)", () => {
         { curriculum: "IB", subjects: ["Chemistry HL"], grade: "Senior secondary" },
         "zh-HK",
       ),
-    ).toBe("IBDP 化學 HL — 高中");
+    ).toBe("IBDP 化學 HL, 高中");
   });
 
   it("translates known subjects and keeps unknown tokens", () => {
@@ -82,13 +82,13 @@ describe("buildCaseTitle zh-HK (#423)", () => {
         { curriculum: "DSE", subjects: ["Physics"], grade: "Junior secondary" },
         "zh-HK",
       ),
-    ).toBe("DSE 物理 — 初中");
+    ).toBe("DSE 物理, 初中");
     expect(
       buildCaseTitle({ curriculum: "A-Level", subjects: ["Further Math"], grade: null }, "zh-HK"),
     ).toBe("A-Level 延伸數學");
   });
 
-  it("drops the redundant zh band segment too (小學 英文 — 小學 → 小學 英文)", () => {
+  it("drops the redundant zh band segment too (小學 英文, 小學 → 小學 英文)", () => {
     expect(
       buildCaseTitle(
         { curriculum: "Primary School", subjects: ["English"], grade: "Primary" },
@@ -137,7 +137,7 @@ describe("tier/curriculum-lock interaction (#423 bug 3)", () => {
         },
         "en",
       ),
-    ).toBe("IBDP Chemistry HL — Senior secondary");
+    ).toBe("IBDP Chemistry HL, Senior secondary");
   });
 });
 
@@ -255,9 +255,9 @@ describe("caseTitleFieldsFromBoard — the item→fields boundary (#423)", () =>
     // the full "IBDP Chemistry HL — Senior secondary" from a REAL board item.
     const item = baseItem({ title: "IBDP Chemistry HL — Y12" });
     expect(buildCaseTitle(caseTitleFieldsFromBoard(item), "en")).toBe(
-      "IBDP Chemistry HL — Senior secondary",
+      "IBDP Chemistry HL, Senior secondary",
     );
-    expect(buildCaseTitle(caseTitleFieldsFromBoard(item), "zh-HK")).toBe("IBDP 化學 HL — 高中");
+    expect(buildCaseTitle(caseTitleFieldsFromBoard(item), "zh-HK")).toBe("IBDP 化學 HL, 高中");
     // The mapped value is non-empty, so useCaseTitles' `|| item.title`
     // fallback only triggers for rows the helper can't express.
   });

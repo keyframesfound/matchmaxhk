@@ -16,7 +16,7 @@ const ROOT_DOMAIN = "matchmax.hk";
 const FROM_DOMAIN = "matchmax.hk";
 const SITE_URL = `https://${ROOT_DOMAIN}`;
 
-// Lazy singleton — see send-email.ts for why this can't be constructed eagerly
+// Lazy singleton, see send-email.ts for why this can't be constructed eagerly
 // at module scope (it would crash every page, not just this webhook, if
 // RESEND_API_KEY is ever unset).
 let _resend: Resend | undefined;
@@ -32,7 +32,7 @@ function getResend(): Resend {
 }
 
 // Set in Supabase Dashboard -> Authentication -> Hooks -> Send Email Hook.
-// The dashboard gives you a secret formatted "v1,whsec_<base64>" — strip the prefix,
+// The dashboard gives you a secret formatted "v1,whsec_<base64>", strip the prefix,
 // standardwebhooks wants the base64 part only.
 const hookSecret = (process.env.SEND_EMAIL_HOOK_SECRET ?? "").replace("v1,whsec_", "");
 
@@ -48,7 +48,7 @@ interface SendEmailHookPayload {
     email_action_type: EmailActionType;
     site_url: string;
     // Present for email_change events. Field names per Supabase's Send Email Hook
-    // payload — double-check these against a real payload (log it once, gated
+    // payload, double-check these against a real payload (log it once, gated
     // behind a dev flag) before relying on this branch in production.
     email_new?: string;
   };

@@ -31,7 +31,7 @@ import { formatMoneyFromCents } from "@/lib/money";
 export const Route = createFileRoute("/_authenticated/admin/referrals")({
   head: () => ({
     meta: [
-      { title: "Referrals — MatchMax Admin" },
+      { title: "Referrals, MatchMax Admin" },
       { name: "description", content: "Track tutor referral bounties." },
       { name: "robots", content: "noindex" },
     ],
@@ -75,7 +75,7 @@ type ReferredApplicationRow = {
 
 const BOUNTY_STATUS_PILL: Record<BountyStatus, { label: string; className: string }> = {
   pending: {
-    label: "Pending — match in progress",
+    label: "Pending, match in progress",
     className: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
   },
   ready_for_payout: {
@@ -183,7 +183,7 @@ function AdminReferrals() {
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Bounty recorded — the referrer now sees it as pending");
+      toast.success("Bounty recorded, the referrer now sees it as pending");
       setAmountDialog(null);
       invalidateReferrals();
     },
@@ -284,7 +284,7 @@ function AdminReferrals() {
         <p className="mt-1 text-sm text-muted-foreground">
           Track the 15% referral program. When a case's fee is recorded in Cases, the referrer's
           bounty is logged here automatically at 15%. Clear it once the referred tutor finishes
-          their first two lessons, and mark it paid after the FPS transfer — payouts stay manual.
+          their first two lessons, and mark it paid after the FPS transfer, payouts stay manual.
         </p>
       </div>
 
@@ -397,7 +397,7 @@ function AdminReferrals() {
                   </div>
                 </ConsoleTd>
                 <ConsoleTd>
-                  <div className="text-sm font-semibold text-[color:var(--ink)]">
+                  <div className="text-sm font-bold text-[color:var(--ink)]">
                     {row.referrer?.display_name ?? "—"}
                   </div>
                   <div className="mt-0.5 font-mono text-xs text-muted-foreground">

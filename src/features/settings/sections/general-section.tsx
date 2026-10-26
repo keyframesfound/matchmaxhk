@@ -2,7 +2,7 @@ import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { SettingsCard, OptionCard, OptionCardGroup } from "@/features/settings/option-card";
-import { setLocale } from "@/features/i18n/config";
+import { useSwitchLocale } from "@/features/i18n/switch-locale";
 import { ThemeModeCards } from "@/features/settings/theme-mode-cards";
 import type { SettingsSectionProps } from "@/features/settings/types";
 import { useTheme, type ThemePreference } from "@/features/theme/ThemeProvider";
@@ -23,11 +23,12 @@ const LOCALE_OPTIONS = [
 export function GeneralSection({ profile, updateProfile }: SettingsSectionProps) {
   const { t, i18n } = useTranslation();
   const { theme, setTheme } = useTheme();
+  const switchLocale = useSwitchLocale();
   const currentLocale = i18n.language?.startsWith("zh") ? "zh-HK" : "en";
 
   function pickLocale(locale: string) {
     if (locale === currentLocale) return;
-    setLocale(locale);
+    switchLocale(locale);
     void updateProfile({ locale }).then((ok) => {
       if (ok) toast.success(t("settings.general.language_saved"));
     });

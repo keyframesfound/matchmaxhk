@@ -17,7 +17,7 @@ export const Route = createFileRoute("/_authenticated/account/claim")({
       : {}),
   }),
   head: () => ({
-    meta: [{ title: "Claim your tutor card — MatchMax" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Claim your tutor card | MatchMax" }, { name: "robots", content: "noindex" }],
   }),
   component: ClaimCardPage,
 });
@@ -25,7 +25,7 @@ export const Route = createFileRoute("/_authenticated/account/claim")({
 type ClaimDecision = "already_owned" | "confirm" | "staff_review";
 
 // Epic #280 P2: a tutor claims their existing card. The RPC decides what the
-// caller may do — application-email match → confirm screen; anything else →
+// caller may do, application-email match → confirm screen; anything else →
 // staff review. The client never grants the claim itself.
 function ClaimCardPage() {
   const { t } = useTranslation();

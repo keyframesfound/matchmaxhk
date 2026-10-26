@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 
+import { canonicalUrl } from "@/features/i18n/seo";
 // Forward the pending-save value from the auth page URL onto the post-auth
 // redirect target so the save can resume after sign-in.
 function withSave(path: string, save: string | undefined): string {
@@ -38,20 +39,20 @@ export const Route = createFileRoute("/auth")({
 
   head: () => ({
     meta: [
-      { title: "Log in or sign up — MatchMax" },
+      { title: "Log in or sign up | MatchMax" },
       {
         name: "description",
         content: "Sign in with Google to manage your MatchMax profile, cases, and saved tutors.",
       },
-      { property: "og:title", content: "Log in or sign up — MatchMax" },
+      { property: "og:title", content: "Log in or sign up | MatchMax" },
       {
         property: "og:description",
         content: "Access your MatchMax settings and saved tutor profiles.",
       },
-      { property: "og:url", content: "https://matchmax.hk/auth" },
+      { property: "og:url", content: canonicalUrl("/auth") },
       { name: "robots", content: "noindex" },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/auth" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/auth") }],
   }),
   component: AuthPage,
 });

@@ -9,7 +9,7 @@ import {
 } from "@/features/tutors/subjects";
 
 export type TutorPriceDisplay = {
-  /** Lowest hourly rate — the "$X" shown on cards, filters and sorts. */
+  /** Lowest hourly rate, the "$X" shown on cards, filters and sorts. */
   baseRate: number;
   /** True when other curricula cost more than the base rate ("$X up"). */
   isRange: boolean;
@@ -43,7 +43,7 @@ export function getTutorPriceDisplay(
   return { baseRate, isRange: rates.some((rate) => rate > baseRate) };
 }
 
-/** Lowest base hourly rate — shared by price filters, sorting and the histogram. */
+/** Lowest base hourly rate, shared by price filters, sorting and the histogram. */
 export function getTutorBaseRate(
   tutor: Pick<
     Tutor,
@@ -103,7 +103,7 @@ export function buildTutorWhatsAppUrl(whatsappNumber: string | undefined, tutorC
 
 export type TutorAvailabilityReadiness = "immediate" | "pre_booking" | "future_scheduled";
 
-/** Whole UTC calendar days since the epoch — date-only math without timezones. */
+/** Whole UTC calendar days since the epoch, date-only math without timezones. */
 function utcDay(date: Date): number {
   return Math.floor(
     Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate()) / 86_400_000,
@@ -186,7 +186,7 @@ export function getTutorAvailabilityState(
 }
 
 /**
- * Issue #103: waitlist CTA for fully booked tutors — same WhatsApp deep link,
+ * Issue #103: waitlist CTA for fully booked tutors, same WhatsApp deep link,
  * different label/message so parents know lessons are full.
  */
 export function buildTutorWaitlistWhatsAppUrl(
@@ -195,7 +195,7 @@ export function buildTutorWaitlistWhatsAppUrl(
 ) {
   const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
   if (!digits) return "";
-  const message = `Hi MatchMax! Tutor ${formatTutorCode(tutorCode)} is fully booked — I'd like to join the waitlist for their next available slot.`;
+  const message = `Hi MatchMax! Tutor ${formatTutorCode(tutorCode)} is fully booked, I'd like to join the waitlist for their next available slot.`;
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
 
@@ -264,7 +264,7 @@ function normalizeSubjectKey(value: string) {
 }
 
 export function formatTutorGradeLabel(grade?: string | null): string | null {
-  // Issue #206: older rows stored IGCSE letter grades as "A* (legacy)" — the
+  // Issue #206: older rows stored IGCSE letter grades as "A* (legacy)", the
   // "(legacy)" suffix was an intake artifact, never something to show. Strip it
   // wherever a grade renders (also covers compare + profile pages).
   const trimmed =

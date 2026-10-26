@@ -1,5 +1,5 @@
 /**
- * Issue #201 — one-time case import: pure planning half.
+ * Issue #201, one-time case import: pure planning half.
  *
  * parseCaseImportCsv (import-csv.ts) turns the CSV into rows; this module
  * turns rows into concrete creation ops given lookups into the live DB. The
@@ -58,7 +58,7 @@ export function normalizePhone(raw: string): string {
 /**
  * Resolve each CSV row to a creation op. A row with an unresolvable tutor
  * becomes an error (never a guess); parents are optional (phone-only rows
- * have no account — #201 import).
+ * have no account, #201 import).
  */
 export function buildImportOps(rows: ParsedImportRow[], lookup: ImportLookup): PlanResult {
   const ops: ImportOp[] = [];

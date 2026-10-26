@@ -17,11 +17,11 @@ import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 export const Route = createFileRoute("/_authenticated/admin/settings")({
   head: () => ({
     meta: [
-      { title: "Settings — MatchMax admin" },
+      { title: "Settings, MatchMax admin" },
       {
         name: "description",
         content:
-          "Manage MatchMax site-wide settings — brand info, WhatsApp contact, featured tutor, subject options, and landing stats.",
+          "Manage MatchMax site-wide settings, brand info, WhatsApp contact, featured tutor, subject options, and landing stats.",
       },
       { property: "og:url", content: "https://matchmax.hk/admin/settings" },
       { name: "robots", content: "noindex" },
@@ -127,7 +127,7 @@ function AdminSettings() {
     () =>
       tutors.map((tut) => ({
         value: tut.tutor_code,
-        label: `${tut.display_name} — ${tut.tutor_code}`,
+        label: `${tut.display_name}, ${tut.tutor_code}`,
       })),
     [tutors],
   );
@@ -168,7 +168,7 @@ function AdminSettings() {
   return (
     <div>
       <main className="flex-1">
-        <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 sm:py-16">
+        <div className="mx-auto max-w-4xl px-4 py-12 sm:px-6 sm:py-16">
           <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
             {t("admin.settings_title")}
           </h1>

@@ -1,5 +1,5 @@
 /**
- * #385 — admin fee breakdown: 100% Lesson 1 + 50% Lesson 2 = 1.5 lessons.
+ * #385, admin fee breakdown: 100% Lesson 1 + 50% Lesson 2 = 1.5 lessons.
  *
  * Pure helpers so the desk UI (and vitest) can compute the three preset
  * invoice amounts and the paid-progress state from existing case_fees rows.
@@ -28,12 +28,12 @@ function normalizeStudentCount(studentCount: number | null | undefined): number 
     : 1;
 }
 
-/** 100% of Lesson 1 per student — accrued the moment Lesson 1 is marked done. */
+/** 100% of Lesson 1 per student, accrued the moment Lesson 1 is marked done. */
 export function lesson1Amount(rateHkd: number, studentCount?: number): number {
   return Math.round(rateHkd * normalizeStudentCount(studentCount) * LESSON1_MULTIPLIER);
 }
 
-/** Remaining 50% of Lesson 2 — invoiced after Lesson 2 when 1.0× L1 was paid. */
+/** Remaining 50% of Lesson 2, invoiced after Lesson 2 when 1.0× L1 was paid. */
 export function lesson2BalanceAmount(rateHkd: number, studentCount?: number): number {
   return Math.round(rateHkd * normalizeStudentCount(studentCount) * LESSON2_BALANCE_MULTIPLIER);
 }
@@ -47,9 +47,9 @@ export type FeePaidState = "none" | "partial_l1" | "full";
 
 /**
  * Paid progress against the 1.5× target, from existing fee rows:
- * - "full"       — paid sums cover the full 1.5× target
- * - "partial_l1" — paid sums cover at least the 1.0× Lesson 1 portion
- * - "none"       — nothing paid (or only odd sub-L1 custom invoices)
+ * - "full"      , paid sums cover the full 1.5× target
+ * - "partial_l1", paid sums cover at least the 1.0× Lesson 1 portion
+ * - "none"      , nothing paid (or only odd sub-L1 custom invoices)
  * Waived / refunded rows never count toward the paid sum.
  */
 export function derivePaidState(

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Check, Download, Eye, Loader2, Undo2, X } from "lucide-react";
+import { AlertTriangle, Check, Download, Eye, Loader2, Undo2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -30,8 +30,11 @@ import {
   releaseOrder,
   rejectOrder,
   getOrderScreenshotUrl,
+  getDisputeEvidenceUrl,
+  decideOrderDispute,
   type AdminOrderRow,
 } from "@/features/materials/orders-desk.functions";
+import { validateDisputeRefundAmount, disputeReasonLabelKey } from "@/features/materials/lifecycle";
 import {
   getGigOrderSourceUrl,
   listGigDeskOrders,
@@ -49,7 +52,7 @@ import {
 /**
  * #203 manual cashier queue on /admin/materials, split #328 into Notes and
  * Services. One row per order: reference, item, gross, status, screenshot
- * viewer, and the action ladder — notes keep mark-paid → release (or
+ * viewer, and the action ladder, notes keep mark-paid → release (or
  * reject); gig orders confirm FPS (→ in_fulfillment, the fail-safe clock
  * starts), show their fulfillment state (due date, past-due highlight,
  * parent refund request), and offer the staff refund (which ghost-strikes
@@ -88,7 +91,24 @@ function gigStatusChipClass(status: string): string {
   if (status === "past_due") {
     return "rounded-md bg-rose-500/10 px-2 py-0.5 text-xs font-bold text-rose-700";
   }
-  return "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-bold text-slate-600";
+  return "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-medium text-muted-foreground";
+}
+
+/** #429: escrow-state chip for the notes rows. */
+function notesStatusChipClass(status: string): string {
+  if (status === "delivered" || status === "released") {
+    return "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-700";
+  }
+  if (status === "held") {
+    return "rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-700";
+  }
+  if (status === "refunded_from_hold") {
+    return "rounded-md bg-rose-500/10 px-2 py-0.5 text-xs font-bold text-rose-700";
+  }
+  if (status === "awaiting_payment") {
+    return "rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-700";
+  }
+  return "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-medium text-muted-foreground";
 }
 
 export function MaterialsOrdersDesk() {
@@ -99,6 +119,9 @@ export function MaterialsOrdersDesk() {
   const [refundTarget, setRefundTarget] = useState<GigDeskOrder | null>(null);
   const [refundReason, setRefundReason] = useState("");
   const [strikeFilter, setStrikeFilter] = useState("");
+  // #429 dispute decision dialog (notes orders).
+  const [disputeTarget, setDisputeTarget] = useState<AdminOrderRow | null>(null);
+  const [disputeAmount, setDisputeAmount] = useState("");
 
   const ordersQuery = useQuery({
     queryKey: ["admin", "material-orders"],
@@ -147,7 +170,7 @@ export function MaterialsOrdersDesk() {
   const releaseMutation = useMutation({
     mutationFn: (orderId: string) => releaseOrder({ data: { orderId } }),
     onSuccess: () => {
-      toast.success("Released — the buyer can download now.");
+      toast.success("Released, the buyer can download now.");
       void invalidate();
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Release failed."),
@@ -156,7 +179,7 @@ export function MaterialsOrdersDesk() {
   const rejectMutation = useMutation({
     mutationFn: (input: { orderId: string; reason: string }) => rejectOrder({ data: input }),
     onSuccess: () => {
-      toast.success("Order rejected — the buyer can re-pay.");
+      toast.success("Order rejected, the buyer can re-pay.");
       void invalidate();
     },
     onError: (error) => toast.error(error instanceof Error ? error.message : "Failed."),
@@ -169,6 +192,34 @@ export function MaterialsOrdersDesk() {
       toast.error(error instanceof Error ? error.message : "No screenshot attached."),
   });
 
+  // #429: staff opens the buyer's dispute evidence (private bucket, signed).
+  const disputeEvidenceMutation = useMutation({
+    mutationFn: (orderId: string) => getDisputeEvidenceUrl({ data: { orderId } }),
+    onSuccess: (result) => window.open(result.signedUrl, "_blank", "noopener"),
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : "No evidence attached."),
+  });
+
+  // #429: staff decision on an open dispute — refund (full or partial, FROM
+  // THE HOLD only) or reject (releases the hold normally).
+  const decideDisputeMutation = useMutation({
+    mutationFn: (input: {
+      orderId: string;
+      decision: "refund" | "reject";
+      refundAmountHkd?: number;
+    }) => decideOrderDispute({ data: input }),
+    onSuccess: (_data, variables) => {
+      toast.success(
+        variables.decision === "refund"
+          ? t("orders.desk_dispute_decided_refund")
+          : t("orders.desk_dispute_decided_reject"),
+      );
+      setDisputeTarget(null);
+      void invalidate();
+    },
+    onError: (error) => toast.error(error instanceof Error ? error.message : "Decision failed."),
+  });
+
   // #328 file_back (grok re-review 2026-10-17): staff can open the buyer's
   // uploaded source document, not just see that one exists.
   const sourceMutation = useMutation({
@@ -178,7 +229,7 @@ export function MaterialsOrdersDesk() {
       toast.error(error instanceof Error ? error.message : "No source file attached."),
   });
 
-  // #328: staff confirm FPS on a gig order — awaiting_payment jumps to
+  // #328: staff confirm FPS on a gig order, awaiting_payment jumps to
   // in_fulfillment and the tutor's turnaround clock starts.
   const markGigPaidMutation = useMutation({
     mutationFn: (input: { orderId: string; fpsReference: string }) =>
@@ -244,7 +295,7 @@ export function MaterialsOrdersDesk() {
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <h3 className="text-base font-bold">Orders</h3>
+        <h3 className="text-lg font-bold">Orders</h3>
         <p className="text-sm text-[color:var(--ink)]/65">
           {pending + gigPending > 0
             ? t("gigs.admin_desk_awaiting", { count: pending + gigPending })
@@ -299,17 +350,42 @@ export function MaterialsOrdersDesk() {
                     <ConsoleTd className="max-w-[16rem] truncate">{order.material_title}</ConsoleTd>
                     <ConsoleTd>HK${Number(order.gross_hkd).toFixed(0)}</ConsoleTd>
                     <ConsoleTd>
-                      <span
-                        className={
-                          order.status === "delivered"
-                            ? "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-700"
-                            : order.status === "awaiting_payment"
-                              ? "rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-700"
-                              : "rounded-md bg-slate-500/10 px-2 py-0.5 text-xs font-bold text-slate-600"
-                        }
-                      >
+                      <span className={notesStatusChipClass(order.status)}>
                         {order.status.replace(/_/g, " ")}
                       </span>
+                      {order.status === "held" && order.hold_until && (
+                        <>
+                          <span className="mt-1 block text-xs text-[color:var(--ink)]/65">
+                            {t("orders.desk_hold_until", { date: formatHkt(order.hold_until) })}
+                          </span>
+                          <span className="mt-0.5 block text-xs font-bold text-amber-700">
+                            {t("orders.desk_not_payable")}
+                          </span>
+                        </>
+                      )}
+                      {order.status === "released" && (
+                        <span className="mt-1 block text-xs font-bold text-emerald-700">
+                          {t("orders.desk_payable")}
+                        </span>
+                      )}
+                      {order.status === "refunded_from_hold" && order.refund_amount != null && (
+                        <span className="mt-1 block text-xs font-bold text-rose-700">
+                          {t("orders.desk_refunded_amount", {
+                            amount: Number(order.refund_amount).toFixed(0),
+                          })}
+                        </span>
+                      )}
+                      {order.dispute_status === "open" && (
+                        <span className="mt-1 flex items-center gap-1 text-xs font-bold text-rose-700">
+                          <AlertTriangle className="h-3 w-3" aria-hidden />
+                          {t("orders.desk_dispute_badge")}
+                        </span>
+                      )}
+                      {order.dispute_status === "rejected" && (
+                        <span className="mt-1 block text-xs text-[color:var(--ink)]/55">
+                          {t("orders.desk_dispute_rejected_note")}
+                        </span>
+                      )}
                     </ConsoleTd>
                     <ConsoleTd>
                       <div className="flex flex-wrap items-center gap-2">
@@ -322,6 +398,19 @@ export function MaterialsOrdersDesk() {
                         >
                           <Eye className="h-4 w-4" aria-hidden />
                         </Button>
+                        {order.dispute_status === "open" && (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setDisputeAmount(Number(order.gross_hkd).toFixed(2));
+                              setDisputeTarget(order);
+                            }}
+                          >
+                            <AlertTriangle className="mr-1 h-4 w-4" aria-hidden />
+                            {t("orders.desk_dispute_review")}
+                          </Button>
+                        )}
                         {order.status === "awaiting_payment" && (
                           <div className="flex items-center gap-1">
                             <Label htmlFor={`fps-${order.id}`} className="sr-only">
@@ -611,6 +700,121 @@ export function MaterialsOrdersDesk() {
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
               ) : null}
               {t("gigs.admin_desk_refund_confirm")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* ---------------------------------------------------------------
+          #429 dispute decision dialog: approve a refund FROM THE HOLD (full
+          or partial — amount validated 0 < partial < gross) or reject,
+          which releases the hold normally. The seller gets the remainder on
+          the normal monthly payout run; MatchMax never pays from corporate
+          cash.
+      ---------------------------------------------------------------- */}
+      <Dialog
+        open={Boolean(disputeTarget)}
+        onOpenChange={(open) => {
+          if (!open) setDisputeTarget(null);
+        }}
+      >
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>{t("orders.desk_dispute_title")}</DialogTitle>
+            <DialogDescription>
+              {disputeTarget?.reference || ""} · {disputeTarget?.material_title || ""}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 text-sm">
+            <div>
+              <p className="text-xs font-medium text-muted-foreground">
+                {t("orders.desk_dispute_reason_label")}
+              </p>
+              <p className="font-semibold">
+                {disputeTarget?.dispute_reason
+                  ? t(disputeReasonLabelKey(disputeTarget.dispute_reason))
+                  : "—"}
+              </p>
+            </div>
+            {disputeTarget?.dispute_detail ? (
+              <div>
+                <p className="text-xs font-medium text-muted-foreground">
+                  {t("orders.desk_dispute_detail_label")}
+                </p>
+                <p className="whitespace-pre-line text-[color:var(--ink)]/80">
+                  {disputeTarget.dispute_detail}
+                </p>
+              </div>
+            ) : null}
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={!disputeTarget?.has_dispute_evidence || disputeEvidenceMutation.isPending}
+              onClick={() => disputeTarget && disputeEvidenceMutation.mutate(disputeTarget.id)}
+            >
+              <Eye className="mr-2 h-4 w-4" aria-hidden />
+              {t("orders.desk_dispute_evidence")}
+            </Button>
+            <div className="space-y-1.5">
+              <Label htmlFor="dispute-amount">{t("orders.desk_dispute_amount_label")}</Label>
+              <Input
+                id="dispute-amount"
+                type="number"
+                min={0}
+                step="0.01"
+                value={disputeAmount}
+                onChange={(event) => setDisputeAmount(event.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                {t("orders.desk_dispute_amount_hint", {
+                  gross: disputeTarget ? Number(disputeTarget.gross_hkd).toFixed(2) : "",
+                })}
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDisputeTarget(null)}>
+              {t("gigs.admin_desk_cancel")}
+            </Button>
+            <Button
+              variant="outline"
+              disabled={decideDisputeMutation.isPending}
+              onClick={() =>
+                disputeTarget &&
+                decideDisputeMutation.mutate({
+                  orderId: disputeTarget.id,
+                  decision: "reject",
+                })
+              }
+            >
+              {t("orders.desk_dispute_reject")}
+            </Button>
+            <Button
+              className="font-bold"
+              disabled={
+                decideDisputeMutation.isPending ||
+                (() => {
+                  if (!disputeTarget) return true;
+                  const amount = Number(disputeAmount);
+                  if (!Number.isFinite(amount)) return true;
+                  return (
+                    validateDisputeRefundAmount(amount, Number(disputeTarget.gross_hkd)) !== null
+                  );
+                })()
+              }
+              onClick={() =>
+                disputeTarget &&
+                decideDisputeMutation.mutate({
+                  orderId: disputeTarget.id,
+                  decision: "refund",
+                  refundAmountHkd: Number(Number(disputeAmount).toFixed(2)),
+                })
+              }
+            >
+              {decideDisputeMutation.isPending ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+              ) : null}
+              {t("orders.desk_dispute_approve")}
             </Button>
           </DialogFooter>
         </DialogContent>

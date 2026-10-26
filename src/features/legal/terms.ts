@@ -1,5 +1,5 @@
 /**
- * Issue #214 — Terms of Service gates.
+ * Issue #214, Terms of Service gates.
  *
  * Single source of truth for the terms version the gated surfaces
  * (signup, note upload, checkout, referral signup, case request, centre
@@ -12,14 +12,16 @@
  * these helpers are the shared vocabulary that fn and its UI agree on.
  */
 
-export const TERMS_VERSION = "2026-10-24";
+export const TERMS_VERSION = "2026-10-25";
 
 /**
  * Issue #253 (F2): the matching-fee agreement on the case-request form has
  * its own version string, independent of the general ToS. Bump it when the
- * fee rule changes; the checkbox label quotes it verbatim.
+ * fee rule changes; the checkbox label quotes it verbatim. v2 (issue #444):
+ * the admin fee is owed by the self-employed tutor (B2C and B2B/centre) —
+ * re-gates case requests recorded at the old fee-2026-10 version.
  */
-export const FEE_TERMS_VERSION = "fee-2026-10";
+export const FEE_TERMS_VERSION = "fee-2026-10-v2";
 
 /**
  * Issue #412: the centre-partnership acceptance on the Partner Org join form
@@ -28,6 +30,14 @@ export const FEE_TERMS_VERSION = "fee-2026-10";
  */
 export const CENTRE_PARTNERSHIP_TERMS_VERSION = "centre-2026-10";
 
+/**
+ * Issue #429: the checkout SHOP acknowledgment (digital goods / escrow hold /
+ * dispute window) has its own version string, recorded ON THE ORDER ROW
+ * (shop_terms_version + shop_terms_accepted_at), not in terms_acceptances.
+ * Bump it when the shop rules change materially.
+ */
+export const SHOP_TERMS_VERSION = "shop-2026-10";
+
 export const TERMS_SURFACES = [
   "signup",
   "note_upload",
@@ -35,7 +45,7 @@ export const TERMS_SURFACES = [
   "referral_signup",
   // Issue #253 (F2): the parent case-request form's matching-fee checkbox.
   "case_request",
-  // Issue #412: Partner Org join — authority checkbox + partnership terms.
+  // Issue #412: Partner Org join, authority checkbox + partnership terms.
   "centre_partnership",
 ] as const;
 
@@ -53,7 +63,7 @@ export type TermsAcceptanceInput = {
   subjectId?: string | null;
   /** #412 D: request IP at acceptance time (server-captured, best-effort). */
   ipAddress?: string | null;
-  /** #412 D: centre-partnership rows — the legal entity the rep bound. */
+  /** #412 D: centre-partnership rows, the legal entity the rep bound. */
   legalEntityName?: string | null;
   /** #412 D: exact checkbox label strings shown (audit trail outlives copy). */
   acceptanceDetails?: string[] | null;

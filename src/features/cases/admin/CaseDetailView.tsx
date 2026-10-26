@@ -21,11 +21,15 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import { SorCasePanel } from "@/features/cases/admin/sor-desk";
 import { Button } from "@/components/ui/button";
+import { RiskFlagBadge } from "@/features/admin/risk-flag-badge";
+import { RiskFlagEditor } from "@/features/admin/risk-flag-editor";
+import { listRiskFlags } from "@/features/admin/risk-flags.functions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { TagInput } from "@/components/ui/tag-input";
 import { CaseEditDialog } from "@/features/cases/admin/CaseEditDialog";
+import { CaseApplicationsCard } from "@/features/cases/admin/CaseApplicationsCard";
 import { MatchFeePanel } from "@/features/cases/admin/MatchFeePanel";
 import { ShortCasePanel } from "@/features/cases/admin/ShortCasePanel";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
@@ -52,6 +56,7 @@ import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { cn } from "@/lib/utils";
 import {
   CASE_STATUSES,
+  DESK_LANGUAGE_LABEL,
   GENDER_LABEL,
   MODE_LABEL,
   START_LABEL,
@@ -148,6 +153,14 @@ export function CaseDetailView({
     queryClient.invalidateQueries({ queryKey: ["admin", "cases"] });
   };
 
+  // Issue #441: this case's staff risk flag (badge + editor below). Same
+  // query key the editor saves through.
+  const { data: riskFlagRows } = useQuery({
+    queryKey: ["admin", "risk-flags", "case"],
+    queryFn: () => listRiskFlags({ data: { entity: "case" } }),
+  });
+  const riskFlagRow = riskFlagRows?.find((row) => row.case_id === caseRow.id) ?? null;
+
   const { data: profile } = useQuery({
     queryKey: ["admin", "profile", user?.id],
     enabled: Boolean(user?.id),
@@ -234,7 +247,7 @@ export function CaseDetailView({
     onError: (e: Error) => toast.error(e.message),
   });
 
-  // Issue #412: a compliance-hold request is locked — no tutor recommend,
+  // Issue #412: a compliance-hold request is locked, no tutor recommend,
   // no circulate (board publish), no contact flow until staff re-screen.
   const complianceLocked = caseRow.status === "compliance_hold";
   // The only allowed exits from a hold are clearing it (new), closing, or
@@ -248,15 +261,25 @@ export function CaseDetailView({
     if (next === "contacted" && !caseRow.last_contacted_at) {
       patch.last_contacted_at = new Date().toISOString();
     }
+    // Issue #449: entering the failed-trial pivot pulls the failed case off
+    // the public board; the rematch is a new case that circulates instead.
+    if (next === "failed_trial_pivot") {
+      patch.board_published_at = null;
+    }
     updateMutation.mutate(patch);
   };
 
   const boardPublishMutation = useMutation({
     mutationFn: async (publish: boolean) => {
-      // Issue #412: held requests never circulate — even a stale Public
+      // Issue #412: held requests never circulate, even a stale Public
       // selection cannot publish a compliance_hold case to the board.
       if (publish && caseRow.status === "compliance_hold") {
         throw new Error("Compliance hold: this request cannot be published until re-screened.");
+      }
+      // Issue #449: a failed-trial pivot is desk-driven (next ≤2 from the
+      // original criteria); the public board only sees the rematch case.
+      if (publish && caseRow.status === "failed_trial_pivot") {
+        throw new Error("Failed-trial pivot: the rematch case is published instead.");
       }
       const { error } = await supabase
         .from("tutoring_cases")
@@ -324,6 +347,18 @@ export function CaseDetailView({
         <div className="space-y-6 lg:col-span-3">
           <SorCasePanel caseId={caseRow.id} />
         </div>
+        {/* Issue #441: manual staff risk flag (REVIEW/BLOCKED + note). */}
+        <div className="space-y-6 lg:col-span-3">
+          <ConsolePanel>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-semibold text-muted-foreground">Risk flag</h2>
+              <RiskFlagBadge flag={riskFlagRow?.risk_flag} note={riskFlagRow?.risk_note} />
+            </div>
+            <div className="mt-4">
+              <RiskFlagEditor entity="case" entityId={caseRow.id} />
+            </div>
+          </ConsolePanel>
+        </div>
         {/* Left column: requirements + contact + notes */}
         <div className="space-y-6 lg:col-span-2">
           <ConsolePanel>
@@ -369,7 +404,7 @@ export function CaseDetailView({
                 value={GENDER_LABEL[caseRow.preferred_gender] ?? caseRow.preferred_gender}
               />
               {/* Issue #437: case-level demographics (legacy rows pre-date
-                  the columns — show a quiet placeholder, never a crash). */}
+                  the columns, show a quiet placeholder, never a crash). */}
               <DetailRow
                 label="Who is this for"
                 value={caseRow.who_for ? (WHO_FOR_LABEL[caseRow.who_for] ?? caseRow.who_for) : "—"}
@@ -403,7 +438,9 @@ export function CaseDetailView({
             <h2 className="text-xs font-semibold text-muted-foreground">Parent contact</h2>
             <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-sm font-bold text-[color:var(--ink)]">{caseRow.contact_name}</p>
+                <p className="text-sm font-medium text-[color:var(--ink)]">
+                  {caseRow.contact_name}
+                </p>
                 <p className="text-sm text-muted-foreground">{caseRow.contact_phone}</p>
               </div>
               <div className="flex gap-2">
@@ -424,7 +461,7 @@ export function CaseDetailView({
           <ConsolePanel>
             <div className="flex items-center justify-between">
               <h2 className="text-xs font-semibold text-muted-foreground">Internal notes</h2>
-              <NotebookPen className="h-4 w-4 text-muted-foreground/60" aria-hidden="true" />
+              <NotebookPen className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
             </div>
             <div className="mt-3 space-y-2">
               <Textarea
@@ -481,13 +518,13 @@ export function CaseDetailView({
 
         {/* Right column: handling */}
         <div className="space-y-6">
-          {/* Issue #412: compliance hold banner — the case is locked out of
+          {/* Issue #412: compliance hold banner, the case is locked out of
               matching/circulation until staff re-screen the triage answers. */}
           {caseRow.status === "compliance_hold" ? (
             <div className="rounded-xl border border-purple-500/30 bg-purple-500/[0.06] px-4 py-3.5">
               <p className="flex items-center gap-2 text-sm font-bold text-purple-700 dark:text-purple-300">
                 <ShieldAlert className="h-4 w-4 shrink-0" aria-hidden="true" />
-                Compliance hold — matching, circulation, and contact release are locked
+                Compliance hold, matching, circulation, and contact release are locked
               </p>
               <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                 Triage flagged this request. Review the answers below, contact the requester if
@@ -538,6 +575,34 @@ export function CaseDetailView({
                 <Clock className="mr-1.5 h-3.5 w-3.5" />
                 {caseRow.last_contacted_at ? "Mark contacted again" : "Mark as contacted"}
               </Button>
+              {/* #451: desk language flag — macros insert this language first */}
+              <div className="space-y-1.5">
+                <p className="text-xs font-semibold text-muted-foreground">Desk language</p>
+                <Select
+                  value={caseRow.desk_language}
+                  onValueChange={(v) =>
+                    updateMutation.mutate({
+                      desk_language: v as CaseRow["desk_language"],
+                    })
+                  }
+                >
+                  <SelectTrigger className="h-9 w-full text-sm font-bold">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(DESK_LANGUAGE_LABEL) as Array<CaseRow["desk_language"]>).map(
+                      (lang) => (
+                        <SelectItem key={lang} value={lang}>
+                          {DESK_LANGUAGE_LABEL[lang]}
+                        </SelectItem>
+                      ),
+                    )}
+                  </SelectContent>
+                </Select>
+                <p className="text-[11px] leading-snug text-muted-foreground">
+                  WhatsApp macros insert this language block first.
+                </p>
+              </div>
             </div>
             <div className="mt-4 space-y-2 border-t border-[color:var(--ink)]/[0.07] pt-4 text-xs">
               <div className="flex items-center gap-1.5 text-muted-foreground">
@@ -555,6 +620,9 @@ export function CaseDetailView({
           <ShortCasePanel caseId={caseRow.id} />
 
           <MatchFeePanel caseRow={caseRow} onPatched={invalidateCase} />
+
+          {/* Issue #81: 1-click applications from the tutor board, triaged here. */}
+          <CaseApplicationsCard caseId={caseRow.id} />
 
           {/* Issue #412 F: engagement summary + open change reports with
               staff resolve actions. */}
@@ -661,7 +729,7 @@ export function CaseDetailView({
                       <InitialAvatar
                         stableId={t.tutor_code || t.id}
                         name={t.display_name}
-                        className="h-9 w-9 text-[10px]"
+                        className="h-9 w-9 text-[11px]"
                       />
                     )}
                     <div className="min-w-0 flex-1">
@@ -673,7 +741,7 @@ export function CaseDetailView({
                         {t.district ? ` · ${t.district}` : ""}
                       </p>
                     </div>
-                    <span className="rounded-md bg-[color:var(--foreground)]/[0.06] px-1.5 py-0.5 text-[10px] font-bold text-[color:var(--foreground)]">
+                    <span className="rounded-md bg-[color:var(--foreground)]/[0.06] px-1.5 py-0.5 text-[11px] font-bold text-[color:var(--foreground)]">
                       {Number(t.score).toFixed(0)}
                     </span>
                   </div>

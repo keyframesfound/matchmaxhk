@@ -1,5 +1,5 @@
 /**
- * Issue #308: account suspend / ban / restore — pure helpers shared by the
+ * Issue #308: account suspend / ban / restore, pure helpers shared by the
  * admin server functions, the admin UI and tests (no server-only imports).
  *
  * Statuses live on the profile row (`profiles.account_status`):
@@ -28,7 +28,7 @@ export type StatusChangeReason = (typeof STATUS_CHANGE_REASONS)[number];
 /** Roles allowed to SUSPEND an account (concierge/staff and above). */
 const SUSPEND_ROLES = ["staff", "admin", "super_admin"] as const;
 
-/** Only admins (and super admins) may ban or restore — never staff. */
+/** Only admins (and super admins) may ban or restore, never staff. */
 const ADMIN_ONLY_ROLES = ["admin", "super_admin"] as const;
 
 /**
@@ -63,7 +63,7 @@ export function accountStatusLabel(status: string | null | undefined): string {
   }
 }
 
-/** Badge styling for the admin users table — borders/bg only, no shadows. */
+/** Badge styling for the admin users table, borders/bg only, no shadows. */
 export function accountStatusBadgeClass(status: string | null | undefined): string {
   switch (status) {
     case "suspended":
@@ -77,7 +77,7 @@ export function accountStatusBadgeClass(status: string | null | undefined): stri
 
 /**
  * The one-line email copy for a status change. The reporter is NEVER named
- * and the note is NOT included — only the status and the community-commitment
+ * and the note is NOT included, only the status and the community-commitment
  * pointer, per the issue decision.
  */
 export function statusChangeEmailLine(action: StatusAction): string {
