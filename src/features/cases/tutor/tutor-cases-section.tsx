@@ -22,6 +22,7 @@ import {
 } from "@/features/cases/tutor.functions";
 import { logTutorSession } from "@/features/cases/experience.functions";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
+import { ShortCaseChip } from "@/features/cases/tutor/short-case-chip";
 import { lessonActionsFor } from "@/features/cases/tutor/week-model";
 import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
 import { canMarkDone, hktDateKey } from "@/features/cases/sor";
@@ -444,9 +445,15 @@ export function TutorCasesSection() {
                       {c.subject ? ` · ${c.subject}` : ""}
                       {c.exam_system ? ` (${c.exam_system})` : ""}
                     </p>
-                    <p className="text-xs text-muted-foreground">
-                      {c.station ? `${t("sor.tutor_station")}: ${c.station} · ` : ""}
-                      {t("sor.tutor_status_label")}: {t(`sor.status_${c.sor_status}`)}
+                    <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                      <ShortCaseChip
+                        isShortCase={c.is_short_case}
+                        scheduledLessonCount={c.scheduled_lesson_count}
+                      />
+                      <span>
+                        {c.station ? `${t("sor.tutor_station")}: ${c.station} · ` : ""}
+                        {t("sor.tutor_status_label")}: {t(`sor.status_${c.sor_status}`)}
+                      </span>
                     </p>
                   </div>
                   {c.fee_status && (

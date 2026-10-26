@@ -266,14 +266,40 @@ function CaseDetailPage() {
           t("case_board.payout_probono_net"),
         ]
       : item.packageType === "short_20"
-        ? [
-            t("case_board.payout_short_tuition", {
-              rate: agreedRate !== null ? `HK$${agreedRate}` : t("case_request.rate_tba"),
-              unit: unitLabel,
-            }),
-            t("case_board.payout_short_admin"),
-            t("case_board.payout_short_net"),
-          ]
+        ? (() => {
+            // #443: package-total math once the scheduled package inputs are
+            // known (rate × hours × count → 20% fee → 80% net). Legacy rows
+            // without the inputs keep the per-lesson prose below unchanged.
+            const canPackage =
+              item.rateUnit === "hr" &&
+              agreedRate !== null &&
+              item.scheduledLessonCount !== null &&
+              item.hoursPerLesson !== null;
+            if (!canPackage) {
+              return [
+                t("case_board.payout_short_tuition", {
+                  rate: agreedRate !== null ? `HK$${agreedRate}` : t("case_request.rate_tba"),
+                  unit: unitLabel,
+                }),
+                t("case_board.payout_short_admin"),
+                t("case_board.payout_short_net"),
+              ];
+            }
+            const hours = item.hoursPerLesson as number;
+            const count = item.scheduledLessonCount as number;
+            const packageValue = Math.round(agreedRate * hours * count);
+            const fee = Math.round(packageValue * 0.2);
+            return [
+              t("case_board.payout_short2_package", {
+                package: `HK$${packageValue}`,
+                rate: `HK$${agreedRate}`,
+                hours,
+                count,
+              }),
+              t("case_board.payout_short2_admin", { fee: `HK$${fee}` }),
+              t("case_board.payout_short2_net", { net: `HK$${packageValue - fee}` }),
+            ];
+          })()
         : agreedRate !== null
           ? [
               t("case_board.payout_ongoing_tuition", {
@@ -506,6 +532,13 @@ function CaseDetailPage() {
               )}
             </div>
           </div>
+
+          {/* #443 fee disclosure on apply: short package rule, before the CTA. */}
+          {item.packageType === "short_20" ? (
+            <p className="mt-4 rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm leading-relaxed text-foreground/80">
+              {t("case_board.apply_short_disclosure")}
+            </p>
+          ) : null}
 
           <Separator className="my-8" />
 

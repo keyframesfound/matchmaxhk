@@ -1112,6 +1112,12 @@ export type Database = {
           compliance_triage?: Json | null;
           organisation_id?: string | null;
           kindergarten_focus: Json;
+          is_short_case: boolean;
+          scheduled_lesson_count: number | null;
+          hours_per_lesson: number | null;
+          short_case_fee: number | null;
+          short_case_confirmed_by: string | null;
+          short_case_confirmed_at: string | null;
         };
         Insert: {
           assigned_to?: string | null;
@@ -1179,6 +1185,12 @@ export type Database = {
           organisation_id?: string | null;
           kindergarten_focus?: Json;
           who_for?: string | null;
+          is_short_case?: boolean;
+          scheduled_lesson_count?: number | null;
+          hours_per_lesson?: number | null;
+          short_case_fee?: number | null;
+          short_case_confirmed_by?: string | null;
+          short_case_confirmed_at?: string | null;
         };
         Update: {
           assigned_to?: string | null;
@@ -1246,6 +1258,12 @@ export type Database = {
           compliance_triage?: Json | null;
           organisation_id?: string | null;
           kindergarten_focus?: Json | null;
+          is_short_case?: boolean;
+          scheduled_lesson_count?: number | null;
+          hours_per_lesson?: number | null;
+          short_case_fee?: number | null;
+          short_case_confirmed_by?: string | null;
+          short_case_confirmed_at?: string | null;
         };
         Relationships: [
           {

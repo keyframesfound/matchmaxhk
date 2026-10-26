@@ -20,6 +20,7 @@ import {
   type HomeLesson,
 } from "@/features/cases/tutor/tutor-home-model";
 import { getMyNotesSummary } from "@/features/materials/orders.functions";
+import { ShortCaseChip } from "@/features/cases/tutor/short-case-chip";
 
 /**
  * Issue #202 — Tutor home. One page that tells the assigned tutor what to do
@@ -48,6 +49,8 @@ function toHomeLessons(cases: TutorCaseItem[]): HomeLesson[] {
       examSystem: c.exam_system,
       station: c.station,
       lessonMode: c.lesson_mode,
+      isShortCase: c.is_short_case,
+      scheduledLessonCount: c.scheduled_lesson_count,
     })),
   );
 }
@@ -220,6 +223,14 @@ export function TutorHomeSection() {
               {next.subject ? ` · ${next.subject}` : ""}
               {next.examSystem ? ` (${next.examSystem})` : ""}
             </p>
+            {next.isShortCase && next.scheduledLessonCount ? (
+              <p className="mt-1">
+                <ShortCaseChip
+                  isShortCase={next.isShortCase}
+                  scheduledLessonCount={next.scheduledLessonCount}
+                />
+              </p>
+            ) : null}
             <p className="mt-1 flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <span>{placeLabel(next, t)}</span>
               <span>·</span>
@@ -257,8 +268,12 @@ export function TutorHomeSection() {
           <ul className="space-y-2 p-4">
             {feeCases.map((c) => (
               <li key={c.id} className="flex flex-wrap items-center justify-between gap-2">
-                <span className="text-sm text-[color:var(--ink)]">
+                <span className="flex flex-wrap items-center gap-1.5 text-sm text-[color:var(--ink)]">
                   {c.case_code} · {c.student_first_name}
+                  <ShortCaseChip
+                    isShortCase={c.is_short_case}
+                    scheduledLessonCount={c.scheduled_lesson_count}
+                  />
                 </span>
                 <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--foreground)]/[0.06] px-3 py-1 text-xs text-muted-foreground">
                   <Wallet className="h-3 w-3" aria-hidden="true" />

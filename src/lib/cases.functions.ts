@@ -209,6 +209,12 @@ export type PublicCaseBoardItem = {
   packageType: "ongoing_1_5" | "short_20" | "pro_bono";
   studentCount: number;
   rateUnit: "hr" | "lesson" | "month";
+  // Issue #443: display-safe short-package inputs — power the package-total
+  // payout block. short_case_fee / short_case_confirmed_by are INTERNAL and
+  // deliberately NOT whitelisted here.
+  isShortCase: boolean;
+  scheduledLessonCount: number | null;
+  hoursPerLesson: number | null;
   budgetCurrency: string;
   budgetMin: number | null;
   budgetMax: number | null;
@@ -242,7 +248,7 @@ export type PublicCaseBoardItem = {
 };
 
 const PUBLIC_CASE_COLUMNS =
-  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, start_timing, package_type, student_count, rate_unit, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, compliance_triage, organizations(name, slug, status, org_type)";
+  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, start_timing, package_type, student_count, rate_unit, is_short_case, scheduled_lesson_count, hours_per_lesson, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, compliance_triage, organizations(name, slug, status, org_type)";
 
 // Never contact_name / contact_phone / student_school / student_grade_current.
 // sen_details is also withheld: the board is public and the free-text needs
@@ -298,6 +304,21 @@ function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
         ? row.student_count
         : 1,
     rateUnit: row.rate_unit === "lesson" || row.rate_unit === "month" ? row.rate_unit : "hr",
+    // Issue #443: tolerant reads — legacy rows predate the columns. The
+    // display inputs are the ONLY short-case fields on the public whitelist;
+    // the fee snapshot + confirmation source stay internal.
+    isShortCase: row.is_short_case === true,
+    scheduledLessonCount:
+      typeof row.scheduled_lesson_count === "number" &&
+      Number.isInteger(row.scheduled_lesson_count) &&
+      row.scheduled_lesson_count >= 1 &&
+      row.scheduled_lesson_count <= 5
+        ? row.scheduled_lesson_count
+        : null,
+    hoursPerLesson:
+      typeof row.hours_per_lesson === "number" && [1, 1.5, 2].includes(Number(row.hours_per_lesson))
+        ? Number(row.hours_per_lesson)
+        : null,
     budgetCurrency: (row.budget_currency as string) ?? "HKD",
     budgetMin: (row.budget_min as number | null) ?? null,
     budgetMax: (row.budget_max as number | null) ?? null,
