@@ -2003,6 +2003,24 @@
     "step_current": "current step",
     "step_upcoming": "not started"
   },
+  "application_status": {
+    "title": "Application status",
+    "stage_submitted": "Application submitted",
+    "stage_review": "Under review",
+    "stage_needs_info": "Action needed",
+    "stage_approved": "Approved",
+    "stage_rejected": "Not approved",
+    "desc_submitted": "We received your application.",
+    "desc_review": "The MatchMax team is reviewing your application. Updates come through your WhatsApp thread with us.",
+    "desc_needs_info": "Before we can continue reviewing, please send us the following:",
+    "desc_approved": "Your application is approved.",
+    "desc_rejected": "This application was not approved. If you think this is a mistake, reply in your WhatsApp thread with the MatchMax team.",
+    "view_card": "View your live card",
+    "card_not_live": "Your card is not currently live. The team will update you in your WhatsApp thread.",
+    "step_done": "completed",
+    "step_current": "current step",
+    "step_upcoming": "not started"
+  },
   "case_request": {
     "fee_notice_title": "The matching fee",
     "fee_notice": "The admin fee is 1.5 lessons in total: 100% of Lesson 1 plus 50% of Lesson 2, owed by the self-employed tutor and paid to MatchMax by FPS. Parents do not pay MatchMax a matching fee; you pay the tutor directly for tuition. A HK$400 hour means the standard fee is HK$400 for Lesson 1 plus HK$200 for Lesson 2. A request for 5 lessons or fewer is instead 20% of the scheduled package: hourly rate × hours per lesson × lesson count × 0.20.",

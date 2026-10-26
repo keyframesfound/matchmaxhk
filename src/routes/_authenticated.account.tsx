@@ -27,6 +27,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/features/auth/useAuth";
 import { SignupChecklistCard } from "@/features/account/signup-checklist";
+import { getMyApplicationStatus } from "@/features/tutor-application/application-status.functions";
+import { ApplicationStatusPanel } from "@/features/tutor-application/application-status-card";
 import {
   formatAvailabilityDate,
   getTutorAvailabilityReadiness,
@@ -146,6 +148,14 @@ function AccountPage() {
   const gigOrdersQuery = useQuery({
     queryKey: ["account", "my-gig-orders", user?.id],
     queryFn: () => getMyGigOrders(),
+    enabled: Boolean(user),
+  });
+
+  // Issue #477: the applicant status panel replaces the become-tutor CTA
+  // while this account's /join application is still the live state.
+  const applicationStatusQuery = useQuery({
+    queryKey: ["account", "application-status"],
+    queryFn: getMyApplicationStatus,
     enabled: Boolean(user),
   });
 
@@ -311,19 +321,30 @@ function AccountPage() {
           </div>
         </section>
 
-        {/* P6: parent CTA, no card linked yet */}
-        {!tutor && !myTutorQuery.isLoading ? (
-          <section className="mt-6 rounded-2xl border border-dashed border-border bg-card p-6">
-            <p className="text-sm font-semibold text-[color:var(--ink)]">
-              {t("account.tutor_cta_title")}
-            </p>
-            <p className="mt-1 text-sm text-muted-foreground">{t("account.tutor_cta_body")}</p>
-            <div className="mt-4 flex flex-wrap gap-2">
-              <Button variant="solid" color="blue" className="font-bold" asChild>
-                <a href="/join">{t("account.become_tutor")}</a>
-              </Button>
-            </div>
-          </section>
+        {/* P6: parent CTA, no card linked yet — but when this account has a
+            /join application in flight (#477), the read-only applicant status
+            panel takes its place. Settled only (no CTA flash while the
+            application check is in flight). */}
+        {!tutor &&
+        !myTutorQuery.isLoading &&
+        (applicationStatusQuery.isSuccess || applicationStatusQuery.isError) ? (
+          applicationStatusQuery.data ? (
+            <section className="mt-6">
+              <ApplicationStatusPanel />
+            </section>
+          ) : (
+            <section className="mt-6 rounded-2xl border border-dashed border-border bg-card p-6">
+              <p className="text-sm font-semibold text-[color:var(--ink)]">
+                {t("account.tutor_cta_title")}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">{t("account.tutor_cta_body")}</p>
+              <div className="mt-4 flex flex-wrap gap-2">
+                <Button variant="solid" color="blue" className="font-bold" asChild>
+                  <a href="/join">{t("account.become_tutor")}</a>
+                </Button>
+              </div>
+            </section>
+          )
         ) : null}
 
         {/* P6 tutor block: the public profile summary */}
