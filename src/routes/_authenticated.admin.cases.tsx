@@ -417,9 +417,7 @@ function AdminCases() {
                     aria-pressed={filters.desk === bucket}
                     onClick={() => setFilters({ desk: bucket })}
                   >
-                    {bucket === "active"
-                      ? t("desk.active")
-                      : t("desk.hold")}
+                    {bucket === "active" ? t("desk.active") : t("desk.hold")}
                     <span
                       className={cn(
                         "ml-2 rounded-full px-2 py-0.5 text-[11px] font-bold",
@@ -819,9 +817,7 @@ function AdminCases() {
                                     PRIORITY_PILL_CLASS[tier],
                                   )}
                                 >
-                                  {tier === "UNASSIGNED"
-                                    ? t("desk.priority.UNASSIGNED")
-                                    : tier}
+                                  {tier === "UNASSIGNED" ? t("desk.priority.UNASSIGNED") : tier}
                                 </span>
                               );
                             })()}
@@ -947,9 +943,7 @@ function AdminCases() {
                             <SelectContent>
                               {PRIORITY_TIERS.map((tier) => (
                                 <SelectItem key={tier} value={tier}>
-                                  {tier === "UNASSIGNED"
-                                    ? t("desk.priority.UNASSIGNED")
-                                    : tier}
+                                  {tier === "UNASSIGNED" ? t("desk.priority.UNASSIGNED") : tier}
                                 </SelectItem>
                               ))}
                             </SelectContent>

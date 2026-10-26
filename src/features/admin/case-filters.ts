@@ -20,10 +20,7 @@ import {
   type CaseRow,
   type CaseStatus,
 } from "@/features/cases/admin/shared";
-import {
-  deskBucketForTier,
-  type DeskBucket,
-} from "@/features/cases/priority-tier";
+import { deskBucketForTier, type DeskBucket } from "@/features/cases/priority-tier";
 import {
   ADMISSIONS_CURRICULUM,
   EXAM_SYSTEM_OPTIONS,

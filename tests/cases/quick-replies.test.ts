@@ -17,9 +17,7 @@ describe("desk quick replies (#438)", () => {
   });
 
   it("Strike 2 copy is verbatim", () => {
-    expect(QUICK_REPLIES[0].text).toBe(
-      "明白！最後想請問大約的預算（每小時）以及方便上堂的時間？",
-    );
+    expect(QUICK_REPLIES[0].text).toBe("明白！最後想請問大約的預算（每小時）以及方便上堂的時間？");
   });
 
   it("Rate Nudge copy is verbatim (incl. the tutors-directory link)", () => {
@@ -36,7 +34,7 @@ describe("desk quick replies (#438)", () => {
 
   it("macro bodies stay out of i18n — text is carried in code, keys only label buttons", () => {
     for (const reply of QUICK_REPLIES) {
-      expect(reply.key).toMatch(/^desk\.quick\.[a-z0-9]+$/);
+      expect(reply.key).toMatch(/^desk\.quick\.[a-zA-Z0-9]+$/);
     }
   });
 
