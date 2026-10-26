@@ -56,6 +56,7 @@ import {
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { cn } from "@/lib/utils";
+import { ApplicationStatusPanel } from "@/features/tutor-application/application-status-card";
 import {
   generateSelfIntroduction,
   submitTutorApplication,
@@ -2038,6 +2039,10 @@ export function ApplicationForm() {
             {t("join.manage_hint")}
           </p>
         </div>
+        {/* Issue #477: read-only applicant status panel, live from the
+            application row (SUBMITTED → UNDER_REVIEW → APPROVED | REJECTED;
+            NEEDS_INFO lists exact items only when the live data has them). */}
+        <ApplicationStatusPanel />
         <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-8 text-center sm:p-12">
           <WhatsAppIcon
             className="mx-auto h-12 w-12 text-[color:var(--brand-whatsapp)]"
