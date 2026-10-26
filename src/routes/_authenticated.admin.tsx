@@ -112,7 +112,7 @@ function AdminLayout() {
   if (loading) return null;
 
   return (
-    <div className="flex h-screen flex-col overflow-hidden bg-background">
+    <div className="admin-scope flex h-screen flex-col overflow-hidden bg-background">
       <SiteHeader />
       <ConsoleShell
         className="min-h-0 flex-1"
