@@ -24,7 +24,7 @@ import {
 } from "@/features/cases/short-case.functions";
 import {
   SHORT_CASE_CONFIRMED_BY_OPTIONS,
-  SHORT_CASE_HOURS_OPTIONS,
+  hoursPerLessonFromMinutes,
   shortCaseFeeAmount,
   type ShortCaseConfirmedBy,
 } from "@/features/cases/short-case";
@@ -132,7 +132,7 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
   const queryClient = useQueryClient();
   const ensureFn = useServerFn(getShortCaseState);
   const [count, setCount] = useState("");
-  const [hours, setHours] = useState("");
+  const [minutes, setMinutes] = useState("");
   const [confirmedBy, setConfirmedBy] = useState<ShortCaseConfirmedBy | "">("");
   const [confirmedNote, setConfirmedNote] = useState("");
   const [confirmConvert, setConfirmConvert] = useState(false);
@@ -156,7 +156,9 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
           caseId,
           isShortCase: input.isShortCase,
           scheduledLessonCount: input.isShortCase ? Number(count) : null,
-          hoursPerLesson: input.isShortCase ? Number(hours) : null,
+          // #443 duration lock: the input IS the existing session_length_minutes
+          // column — hours are derived server-side (minutes / 60).
+          sessionLengthMinutes: input.isShortCase ? Number(minutes) : null,
           confirmedBy: input.isShortCase ? confirmedBy : null,
           confirmedNote: input.isShortCase ? confirmedNote.trim() : null,
         },
@@ -198,24 +200,28 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
   });
 
   // Live preview of the 20% fee from the inputs the admin is about to lock.
+  // Hours derive from the session-length input (90 min → 1.5 h) — never stored.
   const previewFee = useMemo(() => {
     if (!state?.hourlyRateHkd) return null;
     const n = Number(count);
-    const h = Number(hours);
-    if (!Number.isInteger(n) || n < 1 || n > 5 || ![1, 1.5, 2].includes(h)) return null;
+    const hours = hoursPerLessonFromMinutes(minutes === "" ? null : Number(minutes));
+    if (!Number.isInteger(n) || n < 1 || n > 5 || hours === null) return null;
     return shortCaseFeeAmount({
       rateHkd: state.hourlyRateHkd,
-      hoursPerLesson: h,
+      hoursPerLesson: hours,
       scheduledLessonCount: n,
       packageType: state.packageType,
     });
-  }, [state?.hourlyRateHkd, state?.packageType, count, hours]);
+  }, [state?.hourlyRateHkd, state?.packageType, count, minutes]);
+
+  const previewHours = hoursPerLessonFromMinutes(minutes === "" ? null : Number(minutes));
 
   const canEnable =
     !state?.isShortCase &&
     !setMutation.isPending &&
     count !== "" &&
-    hours !== "" &&
+    minutes !== "" &&
+    previewHours !== null &&
     confirmedBy !== "" &&
     confirmedNote.trim().length >= 10 &&
     !state?.cohortBlocked &&
@@ -270,21 +276,25 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
             </div>
             <div>
               <Label className="text-[11px] font-medium text-muted-foreground">
-                Hours / lesson
+                Session length (minutes)
               </Label>
-              <select
-                value={hours}
-                onChange={(e) => setHours(e.target.value)}
+              <input
+                type="number"
+                min={15}
+                step={5}
+                value={minutes}
+                onChange={(e) => setMinutes(e.target.value)}
                 className="mt-1 h-9 w-full rounded-xl border border-input bg-transparent px-2 text-sm"
-                aria-label="Hours per lesson"
-              >
-                <option value="">Select…</option>
-                {SHORT_CASE_HOURS_OPTIONS.map((h) => (
-                  <option key={h} value={h}>
-                    {h}h
-                  </option>
-                ))}
-              </select>
+                aria-label="Session length in minutes"
+                placeholder={
+                  state.sessionLengthMinutes != null ? String(state.sessionLengthMinutes) : "60"
+                }
+              />
+              <p className="mt-1 text-[11px] text-muted-foreground">
+                {previewHours !== null
+                  ? `= ${previewHours} h per lesson`
+                  : "Uses the case's session length (90 min → 1.5 h)."}
+              </p>
             </div>
           </div>
 
@@ -357,8 +367,9 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
             <p className="mt-0.5 text-[11px] text-muted-foreground">
               {state.hourlyRateHkd != null &&
               state.hoursPerLesson !== null &&
+              state.sessionLengthMinutes !== null &&
               state.scheduledLessonCount !== null
-                ? `${hkd(state.hourlyRateHkd)}/hr × ${state.hoursPerLesson}h × ${state.scheduledLessonCount} lessons`
+                ? `${hkd(state.hourlyRateHkd)}/hr × ${state.hoursPerLesson}h (${state.sessionLengthMinutes} min) × ${state.scheduledLessonCount} lessons`
                 : "Inputs incomplete"}
               {" · package "}
               {state.hourlyRateHkd != null &&

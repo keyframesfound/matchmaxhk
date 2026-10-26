@@ -56,11 +56,13 @@ export type CaseRow = {
   last_contacted_at: string | null;
   board_published_at: string | null;
   // Issue #443: short-case fee flag + package inputs (absent on rows selected
-  // before the migration, hence optional). short_case_fee/_confirmed_by/_at
-  // stay INTERNAL — the desk reads them via getShortCaseState (service role).
+  // before the migration, hence optional). Duration rides on the EXISTING
+  // session_length_minutes column (already in ADMIN_CASE_SELECT_COLUMNS) —
+  // hours per lesson are derived in code, never stored. short_case_fee /
+  // short_case_confirmed_by/_at stay INTERNAL — the desk reads them via
+  // getShortCaseState (service role).
   is_short_case?: boolean;
   scheduled_lesson_count?: number | null;
-  hours_per_lesson?: number | null;
   // Issue #412: triage answers + hold note (absent on pre-migration rows).
   compliance_triage?: Record<string, unknown> | null;
   compliance_note?: string | null;

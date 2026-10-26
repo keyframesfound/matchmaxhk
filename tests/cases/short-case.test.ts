@@ -5,7 +5,7 @@ import {
   SHORT_CASE_FEE_RATE,
   buildShortCaseConfirmNote,
   convertBalanceAmountHkd,
-  isShortCaseHours,
+  hoursPerLessonFromMinutes,
   shortCaseFeeAmount,
   shortCaseFeeMultiplier,
   shortCasePackageValueHkd,
@@ -15,6 +15,23 @@ import {
   validateShortCaseInputs,
 } from "../../src/features/cases/short-case";
 
+describe("hoursPerLessonFromMinutes (#443 duration lock)", () => {
+  it("derives hours from the EXISTING session_length_minutes", () => {
+    expect(hoursPerLessonFromMinutes(60)).toBe(1);
+    expect(hoursPerLessonFromMinutes(90)).toBe(1.5);
+    expect(hoursPerLessonFromMinutes(120)).toBe(2);
+    expect(hoursPerLessonFromMinutes(45)).toBe(0.75);
+  });
+
+  it("returns null for missing / non-positive durations (never a lying fee)", () => {
+    expect(hoursPerLessonFromMinutes(null)).toBeNull();
+    expect(hoursPerLessonFromMinutes(undefined)).toBeNull();
+    expect(hoursPerLessonFromMinutes(0)).toBeNull();
+    expect(hoursPerLessonFromMinutes(-30)).toBeNull();
+    expect(hoursPerLessonFromMinutes(Number.NaN)).toBeNull();
+  });
+});
+
 describe("shortCasePackageValueHkd (#443 formula)", () => {
   it("multiplies rate × hours × lessons", () => {
     expect(shortCasePackageValueHkd(400, 1, 4)).toBe(1600);
@@ -22,12 +39,18 @@ describe("shortCasePackageValueHkd (#443 formula)", () => {
     expect(shortCasePackageValueHkd(333, 2, 3)).toBe(1998);
   });
 
-  it("returns 0 for out-of-domain inputs (DB CHECK shapes)", () => {
-    expect(shortCasePackageValueHkd(400, 1.3, 3)).toBe(0);
+  it("returns 0 for out-of-domain inputs (guard shapes)", () => {
+    expect(shortCasePackageValueHkd(400, 0, 3)).toBe(0);
+    expect(shortCasePackageValueHkd(400, -1, 3)).toBe(0);
     expect(shortCasePackageValueHkd(400, 1, 0)).toBe(0);
     expect(shortCasePackageValueHkd(400, 1, 6)).toBe(0);
     expect(shortCasePackageValueHkd(-5, 1, 3)).toBe(0);
     expect(shortCasePackageValueHkd(Number.NaN, 1, 3)).toBe(0);
+  });
+
+  it("accepts non-enum hours derived from arbitrary session lengths (78 min = 1.3 h)", () => {
+    // Duration lock: no hours enum — any positive derived hour is legal.
+    expect(shortCasePackageValueHkd(400, 78 / 60, 2)).toBe(1040);
   });
 });
 
@@ -75,7 +98,15 @@ describe("shortCaseFeeAmount", () => {
     expect(
       shortCaseFeeAmount({
         rateHkd: 400,
-        hoursPerLesson: 9,
+        hoursPerLesson: 0,
+        scheduledLessonCount: 4,
+        packageType: "short_20",
+      }),
+    ).toBe(0);
+    expect(
+      shortCaseFeeAmount({
+        rateHkd: 400,
+        hoursPerLesson: Number.NaN,
         scheduledLessonCount: 4,
         packageType: "short_20",
       }),
@@ -93,7 +124,7 @@ describe("shortCaseFeeMultiplier", () => {
     expect(shortCaseFeeMultiplier(1.5, 5)).toBe(1.5);
     expect(shortCaseFeeMultiplier(2, 5)).toBe(2);
     // amount = rate × multiplier equals the snapshot fee for every combo
-    for (const hours of [1, 1.5, 2] as const) {
+    for (const hours of [1, 1.5, 2, 0.75] as const) {
       for (let count = 1; count <= 5; count += 1) {
         const rate = 250;
         expect(Math.round(rate * shortCaseFeeMultiplier(hours, count))).toBe(
@@ -106,6 +137,10 @@ describe("shortCaseFeeMultiplier", () => {
         );
       }
     }
+  });
+
+  it("keeps odd derived hours (55 min → 0.9167 h) lossless at 4 dp", () => {
+    expect(shortCaseFeeMultiplier(55 / 60, 3)).toBe(0.55);
   });
 });
 
@@ -167,35 +202,47 @@ describe("sumBilledFeeHkd + convertBalanceAmountHkd (convert math)", () => {
     expect(convertBalanceAmountHkd(600, 600.4)).toBe(0);
     expect(convertBalanceAmountHkd(600.4, 0)).toBe(600);
   });
+
+  it("convert target is the #385 fullAdminFeeAmount basis, never hours-mixed", () => {
+    // The documented drift bug: rate × (minutes/60) × 1.5 would give 400 × 1.5
+    // × 1.5 = 900 on a 90-min case. The convert target must stay 600.
+    const rate = 400;
+    const sessionMinutes = 90;
+    const wrongBasis = rate * (sessionMinutes / 60) * 1.5;
+    expect(fullAdminFeeAmount(rate)).not.toBe(wrongBasis);
+    expect(fullAdminFeeAmount(rate)).toBe(600);
+  });
 });
 
 describe("validateShortCaseInputs (desk gate)", () => {
-  it("accepts the legal 1–5 × enum-ish shape", () => {
-    expect(validateShortCaseInputs({ scheduledLessonCount: 5, hoursPerLesson: 1.5 })).toBeNull();
-    expect(validateShortCaseInputs({ scheduledLessonCount: "3", hoursPerLesson: 2 })).toBeNull();
+  it("accepts the legal 1–5 count × positive session length", () => {
+    expect(
+      validateShortCaseInputs({ scheduledLessonCount: 5, sessionLengthMinutes: 90 }),
+    ).toBeNull();
+    expect(
+      validateShortCaseInputs({ scheduledLessonCount: "3", sessionLengthMinutes: 60 }),
+    ).toBeNull();
+    expect(
+      validateShortCaseInputs({ scheduledLessonCount: 2, sessionLengthMinutes: 45 }),
+    ).toBeNull();
   });
 
   it("rejects missing / out-of-range values in order", () => {
-    expect(validateShortCaseInputs({ scheduledLessonCount: null, hoursPerLesson: 1 })).toBe(
+    expect(validateShortCaseInputs({ scheduledLessonCount: null, sessionLengthMinutes: 60 })).toBe(
       "COUNT_REQUIRED",
     );
-    expect(validateShortCaseInputs({ scheduledLessonCount: 6, hoursPerLesson: 1 })).toBe(
+    expect(validateShortCaseInputs({ scheduledLessonCount: 6, sessionLengthMinutes: 60 })).toBe(
       "COUNT_RANGE",
     );
-    expect(validateShortCaseInputs({ scheduledLessonCount: 3, hoursPerLesson: null })).toBe(
-      "HOURS_REQUIRED",
+    expect(validateShortCaseInputs({ scheduledLessonCount: 3, sessionLengthMinutes: null })).toBe(
+      "MINUTES_REQUIRED",
     );
-    expect(validateShortCaseInputs({ scheduledLessonCount: 3, hoursPerLesson: 1.3 })).toBe(
-      "HOURS_INVALID",
+    expect(validateShortCaseInputs({ scheduledLessonCount: 3, sessionLengthMinutes: 0 })).toBe(
+      "MINUTES_INVALID",
     );
-  });
-
-  it("hours predicate matches the DB CHECK values", () => {
-    expect(isShortCaseHours(1)).toBe(true);
-    expect(isShortCaseHours(1.5)).toBe(true);
-    expect(isShortCaseHours(2)).toBe(true);
-    expect(isShortCaseHours("1.5")).toBe(true);
-    expect(isShortCaseHours(0.5)).toBe(false);
+    expect(validateShortCaseInputs({ scheduledLessonCount: 3, sessionLengthMinutes: -45 })).toBe(
+      "MINUTES_INVALID",
+    );
   });
 });
 

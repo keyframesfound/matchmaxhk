@@ -1115,7 +1115,6 @@ export type Database = {
           kindergarten_focus: Json;
           is_short_case: boolean;
           scheduled_lesson_count: number | null;
-          hours_per_lesson: number | null;
           short_case_fee: number | null;
           short_case_confirmed_by: string | null;
           short_case_confirmed_at: string | null;
@@ -1189,7 +1188,6 @@ export type Database = {
           who_for?: string | null;
           is_short_case?: boolean;
           scheduled_lesson_count?: number | null;
-          hours_per_lesson?: number | null;
           short_case_fee?: number | null;
           short_case_confirmed_by?: string | null;
           short_case_confirmed_at?: string | null;
@@ -1263,7 +1261,6 @@ export type Database = {
           kindergarten_focus?: Json | null;
           is_short_case?: boolean;
           scheduled_lesson_count?: number | null;
-          hours_per_lesson?: number | null;
           short_case_fee?: number | null;
           short_case_confirmed_by?: string | null;
           short_case_confirmed_at?: string | null;

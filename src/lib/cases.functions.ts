@@ -248,7 +248,7 @@ export type PublicCaseBoardItem = {
 };
 
 const PUBLIC_CASE_COLUMNS =
-  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, start_timing, package_type, student_count, rate_unit, is_short_case, scheduled_lesson_count, hours_per_lesson, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, compliance_triage, organizations(name, slug, status, org_type)";
+  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, start_timing, package_type, student_count, rate_unit, is_short_case, scheduled_lesson_count, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, compliance_triage, organizations(name, slug, status, org_type)";
 
 // Never contact_name / contact_phone / student_school / student_grade_current.
 // sen_details is also withheld: the board is public and the free-text needs
@@ -315,9 +315,14 @@ function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
       row.scheduled_lesson_count <= 5
         ? row.scheduled_lesson_count
         : null,
+    // #443 duration lock: hours derive from the EXISTING session_length_minutes
+    // (selected above) — never a stored hours column. Only meaningful while the
+    // row is a flagged short package with a legal count.
     hoursPerLesson:
-      typeof row.hours_per_lesson === "number" && [1, 1.5, 2].includes(Number(row.hours_per_lesson))
-        ? Number(row.hours_per_lesson)
+      row.is_short_case === true &&
+      typeof row.session_length_minutes === "number" &&
+      Number(row.session_length_minutes) > 0
+        ? Number(row.session_length_minutes) / 60
         : null,
     budgetCurrency: (row.budget_currency as string) ?? "HKD",
     budgetMin: (row.budget_min as number | null) ?? null,

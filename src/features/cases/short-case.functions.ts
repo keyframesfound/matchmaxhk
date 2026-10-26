@@ -12,7 +12,10 @@
  *  - setShortCase           — toggle + package inputs + REQUIRED confirm gate;
  *                             keeps package_type in sync with is_short_case
  *                             (#430 reconciliation: is_short_case is the
- *                             fee-math source of truth)
+ *                             fee-math source of truth). Duration rides on the
+ *                             EXISTING session_length_minutes column (shared
+ *                             duration lock — no hours_per_lesson column);
+ *                             hours are derived as minutes / 60.
  *  - invoiceShortCaseFee    — the 20% fee as a real case_fees row (manual op:
  *                             after Lesson 1 confirmed, or on booking when
  *                             count = 1 — the UI gates it, no automation)
@@ -33,6 +36,7 @@ import { fullAdminFeeAmount } from "@/features/cases/fee-breakdown";
 import {
   buildShortCaseConfirmNote,
   convertBalanceAmountHkd,
+  hoursPerLessonFromMinutes,
   shortCaseConfirmationError,
   shortCaseFeeAmount,
   shortCaseFeeMultiplier,
@@ -93,19 +97,36 @@ async function insertAudit(
   if (error) throw new Error(error.message);
 }
 
+/**
+ * Squad-shaped backstops (no squad marker column exists — documented gap in
+ * the migration): group-cohort cases (#391) and any row carrying a squad-ish
+ * tag must never take the short flag (CEO 2026-10-13 — squads stay 1.5-lesson).
+ */
+function squadBlocked(row: { group_cohort_id: string | null; tags: unknown }): boolean {
+  if (row.group_cohort_id != null) return true;
+  if (!Array.isArray(row.tags)) return false;
+  return row.tags.some((tg) => typeof tg === "string" && /squad/i.test(tg));
+}
+
+/** "1.5h" for fractional hours, "1h" for whole — audit + UI label helper. */
+function hoursLabel(hours: number): string {
+  return Number.isInteger(hours) ? `${hours}h` : `${Math.round(hours * 100) / 100}h`;
+}
+
 type ShortCaseRow = {
   id: string;
   case_code: string;
   package_type: string;
   student_count: number;
   hourly_rate_hkd: number | null;
+  session_length_minutes: number | null;
   is_short_case: boolean;
   scheduled_lesson_count: number | null;
-  hours_per_lesson: number | null;
   short_case_fee: number | null;
   short_case_confirmed_by: string | null;
   short_case_confirmed_at: string | null;
   group_cohort_id: string | null;
+  tags: string[] | null;
 };
 
 export type ShortCaseState = {
@@ -115,6 +136,9 @@ export type ShortCaseState = {
   studentCount: number;
   isShortCase: boolean;
   scheduledLessonCount: number | null;
+  /** Existing case column — the ONLY duration store (no hours_per_lesson DB column). */
+  sessionLengthMinutes: number | null;
+  /** Derived for display/math: session_length_minutes / 60. */
   hoursPerLesson: number | null;
   shortCaseFee: number | null;
   confirmedBy: string | null;
@@ -132,7 +156,7 @@ async function loadShortCase(db: Db, caseId: string): Promise<ShortCaseRow> {
   const rows = await selectRows<ShortCaseRow>(
     db,
     "tutoring_cases",
-    "id, case_code, package_type, student_count, hourly_rate_hkd, is_short_case, scheduled_lesson_count, hours_per_lesson, short_case_fee, short_case_confirmed_by, short_case_confirmed_at, group_cohort_id",
+    "id, case_code, package_type, student_count, hourly_rate_hkd, session_length_minutes, is_short_case, scheduled_lesson_count, short_case_fee, short_case_confirmed_by, short_case_confirmed_at, group_cohort_id, tags",
     [{ col: "id", op: "eq", value: caseId }],
   );
   if (!rows[0]) throw new Error("CASE_NOT_FOUND");
@@ -186,7 +210,9 @@ export const getShortCaseState = createServerFn({ method: "POST" })
       studentCount: c.student_count,
       isShortCase: c.is_short_case,
       scheduledLessonCount: c.scheduled_lesson_count,
-      hoursPerLesson: c.hours_per_lesson == null ? null : Number(c.hours_per_lesson),
+      sessionLengthMinutes:
+        c.session_length_minutes == null ? null : Number(c.session_length_minutes),
+      hoursPerLesson: hoursPerLessonFromMinutes(c.session_length_minutes),
       shortCaseFee: c.short_case_fee == null ? null : Number(c.short_case_fee),
       confirmedBy: c.short_case_confirmed_by,
       confirmedAt: c.short_case_confirmed_at,
@@ -207,7 +233,7 @@ export const getShortCaseState = createServerFn({ method: "POST" })
         c.is_short_case && standardFeeHkd != null
           ? convertBalanceAmountHkd(standardFeeHkd, billed)
           : null,
-      cohortBlocked: c.group_cohort_id != null,
+      cohortBlocked: squadBlocked(c),
     };
   });
 
@@ -215,7 +241,9 @@ const setShortCaseInput = z.object({
   caseId: z.string().uuid(),
   isShortCase: z.boolean(),
   scheduledLessonCount: z.number().int().min(1).max(5).optional().nullable(),
-  hoursPerLesson: z.number().optional().nullable(),
+  // Duration input = the EXISTING session_length_minutes column (minutes).
+  // Admin-editable while short, per the issue — we write it back to the case.
+  sessionLengthMinutes: z.number().positive().optional().nullable(),
   confirmedBy: z.enum(["parent_wa", "org_wa", "cs_note"]).optional().nullable(),
   confirmedNote: z.string().max(2000).optional().nullable(),
 });
@@ -232,13 +260,14 @@ export const setShortCase = createServerFn({ method: "POST" })
     if (!data.isShortCase) {
       // Toggle off (or convert will handle the invoice side) — clear the
       // package inputs per the DB shape CHECK and reconcile package_type
-      // back to the ongoing rule (never clobber pro_bono).
+      // back to the ongoing rule (never clobber pro_bono). Duration stays on
+      // session_length_minutes — it is a standard-case column, not package
+      // state, so converting back must not blank it.
       const { error } = await db
         .from<Row>("tutoring_cases")
         .update({
           is_short_case: false,
           scheduled_lesson_count: null,
-          hours_per_lesson: null,
           short_case_fee: null,
           short_case_confirmed_by: null,
           short_case_confirmed_at: null,
@@ -251,17 +280,18 @@ export const setShortCase = createServerFn({ method: "POST" })
     }
 
     // Guard 1 — squad-shaped cases: no squad marker column exists on
-    // tutoring_cases (documented gap), so the closest safe backstop is the
-    // group-cohort case shape (#391 group classes bill 1.5 × per-student).
-    if (c.group_cohort_id != null) throw new Error("SQUAD_CASE_NOT_ALLOWED");
+    // tutoring_cases (documented gap), so the closest safe backstops are the
+    // group-cohort case shape (#391 group classes bill 1.5 × per-student) and
+    // squad-ish tags.
+    if (squadBlocked(c)) throw new Error("SQUAD_CASE_NOT_ALLOWED");
 
     // Guard 2 — $0 Pro-Bono wins over the short 20%.
     if (c.package_type === "pro_bono") throw new Error("PRO_BONO_NOT_ALLOWED");
 
-    // Guard 3 — package shape (count 1–5, hours 1.0/1.5/2.0).
+    // Guard 3 — package shape (count 1–5, positive session length).
     const shapeError = validateShortCaseInputs({
       scheduledLessonCount: data.scheduledLessonCount,
-      hoursPerLesson: data.hoursPerLesson,
+      sessionLengthMinutes: data.sessionLengthMinutes,
     });
     if (shapeError) throw new Error(shapeError);
 
@@ -275,7 +305,8 @@ export const setShortCase = createServerFn({ method: "POST" })
     const rateHkd = c.hourly_rate_hkd;
     if (rateHkd == null) throw new Error("NO_RATE_ON_CASE");
     const count = data.scheduledLessonCount as number;
-    const hours = data.hoursPerLesson as number;
+    const minutes = Number(data.sessionLengthMinutes);
+    const hours = hoursPerLessonFromMinutes(minutes) as number;
     const fee = shortCaseFeeAmount({
       rateHkd: Number(rateHkd),
       hoursPerLesson: hours,
@@ -288,7 +319,7 @@ export const setShortCase = createServerFn({ method: "POST" })
       .update({
         is_short_case: true,
         scheduled_lesson_count: count,
-        hours_per_lesson: hours,
+        session_length_minutes: minutes,
         short_case_fee: fee,
         short_case_confirmed_by: data.confirmedBy,
         short_case_confirmed_at: new Date().toISOString(),
@@ -320,7 +351,7 @@ export const setShortCase = createServerFn({ method: "POST" })
       context.userId,
       "short_case",
       "short_case_on",
-      `${count} × ${hours}h @ HK$${Number(rateHkd)} → 20% = HK$${fee} (${data.confirmedBy})`,
+      `${count} × ${minutes}min (${hoursLabel(hours)}) @ HK$${Number(rateHkd)} → 20% = HK$${fee} (${data.confirmedBy})`,
     );
     return { ok: true, shortCaseFee: fee };
   });
@@ -339,9 +370,10 @@ export const invoiceShortCaseFee = createServerFn({ method: "POST" })
     if (c.hourly_rate_hkd == null) throw new Error("NO_RATE_ON_CASE");
     const shapeError = validateShortCaseInputs({
       scheduledLessonCount: c.scheduled_lesson_count,
-      hoursPerLesson: c.hours_per_lesson,
+      sessionLengthMinutes: c.session_length_minutes,
     });
     if (shapeError) throw new Error(shapeError);
+    const hours = hoursPerLessonFromMinutes(c.session_length_minutes) as number;
 
     const fees = await loadFees(db, data.caseId);
     if (fees.some((f) => f.status === "invoiced" || f.status === "paid")) {
@@ -350,14 +382,11 @@ export const invoiceShortCaseFee = createServerFn({ method: "POST" })
 
     const amount = shortCaseFeeAmount({
       rateHkd: Number(c.hourly_rate_hkd),
-      hoursPerLesson: Number(c.hours_per_lesson),
+      hoursPerLesson: hours,
       scheduledLessonCount: Number(c.scheduled_lesson_count),
       packageType: c.package_type,
     });
-    const multiplier = shortCaseFeeMultiplier(
-      Number(c.hours_per_lesson),
-      Number(c.scheduled_lesson_count),
-    );
+    const multiplier = shortCaseFeeMultiplier(hours, Number(c.scheduled_lesson_count));
 
     const { error } = await db
       .from<Row>("case_fees")
@@ -380,7 +409,7 @@ export const invoiceShortCaseFee = createServerFn({ method: "POST" })
       context.userId,
       null,
       "fee_invoiced",
-      `short case 20% — ${c.scheduled_lesson_count} × ${Number(c.hours_per_lesson)}h @ HK$${Number(c.hourly_rate_hkd)} = HK$${amount}`,
+      `short case 20% — ${c.scheduled_lesson_count} × ${c.session_length_minutes}min (${hoursLabel(hours)}) @ HK$${Number(c.hourly_rate_hkd)} = HK$${amount}`,
     );
     return { ok: true, amountHkd: amount };
   });
@@ -402,6 +431,9 @@ export const convertShortCaseToStandard = createServerFn({ method: "POST" })
 
       // Standard 1.5-lesson admin fee on the SAME rate×basis the codebase
       // uses for ongoing cases (#385 pure helper: rate × 1.5 × students).
+      // NEVER rate × (minutes/60) × 1.5 — mixing the package-hour basis into
+      // the standard target is the documented drift bug (issue #443 convert
+      // lock). Duration is NOT re-multiplied here.
       const standardFee = fullAdminFeeAmount(Number(c.hourly_rate_hkd), c.student_count);
 
       const fees = await loadFees(db, data.caseId);
@@ -410,12 +442,12 @@ export const convertShortCaseToStandard = createServerFn({ method: "POST" })
 
       // Flip the case off short FIRST; package_type reconciles back to the
       // ongoing rule unless the case is pro-bono ($0 wins — leave that).
+      // session_length_minutes is untouched: standard cases carry it too.
       const { error } = await db
         .from<Row>("tutoring_cases")
         .update({
           is_short_case: false,
           scheduled_lesson_count: null,
-          hours_per_lesson: null,
           short_case_fee: null,
           short_case_confirmed_by: null,
           short_case_confirmed_at: null,
