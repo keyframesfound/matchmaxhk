@@ -124,6 +124,9 @@ export type TutorCaseItem = {
   session_logs: SessionLogRowT[];
   /** #387: fee paid + dispute lock not hit → the log form may render. */
   can_log_session: boolean;
+  /** #443: short-case chip inputs (false/null on legacy rows). */
+  is_short_case: boolean;
+  scheduled_lesson_count: number | null;
 };
 
 export const getMyTutorCases = createServerFn({ method: "POST" })
@@ -146,10 +149,12 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
       lesson_mode: string | null;
       sor_status: SorStatus | null;
       created_at: string;
+      is_short_case: boolean | null;
+      scheduled_lesson_count: number | null;
     }>(
       db,
       "tutoring_cases",
-      "id, case_code, title, subjects, exam_system, district, lesson_mode, sor_status, created_at",
+      "id, case_code, title, subjects, exam_system, district, lesson_mode, sor_status, is_short_case, scheduled_lesson_count, created_at",
       [{ col: "matched_tutor_id", op: "eq", value: tutorId }],
       { col: "created_at", asc: false, limit: 100 },
     );
@@ -234,6 +239,8 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
       station: c.district,
       lesson_mode: c.lesson_mode,
       sor_status: c.sor_status,
+      is_short_case: c.is_short_case === true,
+      scheduled_lesson_count: c.scheduled_lesson_count ?? null,
       fee_status: openFeeByCase.get(c.id)?.status ?? null,
       fee_amount_hkd: openFeeByCase.get(c.id)?.amount_hkd ?? null,
       lessons: lessons

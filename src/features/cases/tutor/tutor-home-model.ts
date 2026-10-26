@@ -29,6 +29,9 @@ export type HomeLesson = {
   examSystem: string | null;
   station: string | null;
   lessonMode: string | null;
+  /** #443 short-case chip inputs (false/null on legacy rows). */
+  isShortCase?: boolean;
+  scheduledLessonCount?: number | null;
 };
 
 const LIVE_STATUSES = new Set(["planned", "confirmed"]);

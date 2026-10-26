@@ -44,6 +44,7 @@ import { TagInput } from "@/components/ui/tag-input";
 import { CaseEditDialog } from "@/features/cases/admin/CaseEditDialog";
 import { CaseApplicationsCard } from "@/features/cases/admin/CaseApplicationsCard";
 import { MatchFeePanel } from "@/features/cases/admin/MatchFeePanel";
+import { ShortCasePanel } from "@/features/cases/admin/ShortCasePanel";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { formatStudentLevel } from "@/features/cases/display";
 import {
@@ -739,6 +740,9 @@ export function CaseDetailView({
               </div>
             </div>
           </ConsolePanel>
+
+          {/* #443 short-case fee toggle — 20% package rule + confirm gate. */}
+          <ShortCasePanel caseId={caseRow.id} />
 
           <MatchFeePanel caseRow={caseRow} onPatched={invalidateCase} />
 

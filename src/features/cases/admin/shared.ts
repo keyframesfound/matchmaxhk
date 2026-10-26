@@ -57,6 +57,14 @@ export type CaseRow = {
   kindergarten_focus?: string[] | null;
   last_contacted_at: string | null;
   board_published_at: string | null;
+  // Issue #443: short-case fee flag + package inputs (absent on rows selected
+  // before the migration, hence optional). Duration rides on the EXISTING
+  // session_length_minutes column (already in ADMIN_CASE_SELECT_COLUMNS) —
+  // hours per lesson are derived in code, never stored. short_case_fee /
+  // short_case_confirmed_by/_at stay INTERNAL — the desk reads them via
+  // getShortCaseState (service role).
+  is_short_case?: boolean;
+  scheduled_lesson_count?: number | null;
   // Issue #412: triage answers + hold note (absent on pre-migration rows).
   compliance_triage?: Record<string, unknown> | null;
   compliance_note?: string | null;
@@ -189,4 +197,4 @@ export function caseBudgetHkdBounds(
  * Shared with findCasesByTutorCode (#55) so both surfaces stay in lockstep.
  */
 export const ADMIN_CASE_SELECT_COLUMNS =
-  "id, case_code, title, description, subjects, exam_system, student_level, student_grade_current, student_school, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, district, mode, sessions_per_week, session_length_minutes, schedule_note, start_timing, preferred_gender, who_for, student_gender, language_of_instruction, urgency, budget_min, budget_max, budget_currency, budget_min_hkd, budget_max_hkd, contact_name, contact_phone, status, priority_tier, desk_language, matched_tutor_id, matched_at, fee_collected_at, fee_amount_cents, tags, source, last_contacted_at, board_published_at, compliance_triage, compliance_note, created_at, updated_at";
+  "id, case_code, title, description, subjects, exam_system, student_level, student_grade_current, student_school, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, district, mode, sessions_per_week, session_length_minutes, schedule_note, start_timing, preferred_gender, who_for, student_gender, language_of_instruction, urgency, budget_min, budget_max, budget_currency, budget_min_hkd, budget_max_hkd, contact_name, contact_phone, status, priority_tier, desk_language, matched_tutor_id, matched_at, fee_collected_at, fee_amount_cents, tags, source, last_contacted_at, board_published_at, compliance_triage, compliance_note, is_short_case, scheduled_lesson_count, created_at, updated_at";
