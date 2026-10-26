@@ -50,6 +50,7 @@ import {
   CASE_STATUSES,
   DESK_LANGUAGE_LABEL,
   MODE_LABEL,
+  PRIORITY_PILL_CLASS,
   START_LABEL,
   STATUS_LABEL,
   STATUS_PILL_CLASS,
@@ -58,6 +59,12 @@ import {
   type CaseRow,
   type CaseStatus,
 } from "@/features/cases/admin/shared";
+import {
+  deskBucketForTier,
+  normalizePriorityTier,
+  PRIORITY_TIERS,
+  type PriorityTier,
+} from "@/features/cases/priority-tier";
 import {
   findCasesByTutorCode,
   type TutorCodeCaseHit,
@@ -148,6 +155,34 @@ function AdminCases() {
   const invalidateCases = () => {
     queryClient.invalidateQueries({ queryKey: ["admin", "cases"] });
   };
+
+  // Issue #438: manual priority dropdown — the ONLY writer of priority_tier.
+  // No LLM, no automation; a human agent picks the tier per case.
+  const priorityMutation = useMutation({
+    mutationFn: async ({ id, tier }: { id: string; tier: PriorityTier }) => {
+      const { error } = await supabase
+        .from("tutoring_cases")
+        .update({ priority_tier: tier } as never)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("desk.priority_updated"));
+      queryClient.invalidateQueries({ queryKey: ["admin", "cases"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // Issue #438 desk counts: the Active tab shows UNASSIGNED+P1+P2, Hold the
+  // P3+P4 tail — agents see how much is waiting in each bucket before
+  // switching views.
+  const deskCounts = useMemo(() => {
+    const counts = { active: 0, hold: 0 };
+    for (const row of cases) {
+      counts[deskBucketForTier(row.priority_tier)] += 1;
+    }
+    return counts;
+  }, [cases]);
 
   const filterOptions = useMemo(() => caseFilterOptions(cases), [cases]);
 
@@ -366,6 +401,36 @@ function AdminCases() {
             <div className="space-y-8">
               {/* SoR tools (#201): new case, CSV import, unpaid queue */}
               <SorDeskTools />
+
+              {/* Issue #438 desk split (CEO lock): Active Desk = UNASSIGNED +
+                  P1 + P2 by default; Hold/Review shows only P3 + P4. The
+                  desk filter rides the URL (?desk=hold) like every #71
+                  filter. */}
+              <div className="flex items-center gap-1 rounded-xl border border-[color:var(--ink)]/10 p-1">
+                {(["active", "hold"] as const).map((bucket) => (
+                  <Button
+                    key={bucket}
+                    type="button"
+                    size="sm"
+                    variant={filters.desk === bucket ? "default" : "ghost"}
+                    className="h-9 px-4 text-sm font-bold"
+                    aria-pressed={filters.desk === bucket}
+                    onClick={() => setFilters({ desk: bucket })}
+                  >
+                    {bucket === "active" ? t("desk.active") : t("desk.hold")}
+                    <span
+                      className={cn(
+                        "ml-2 rounded-full px-2 py-0.5 text-[11px] font-bold",
+                        filters.desk === bucket
+                          ? "bg-white/25 text-white"
+                          : "bg-[color:var(--ink)]/[0.06] text-muted-foreground",
+                      )}
+                    >
+                      {deskCounts[bucket]}
+                    </span>
+                  </Button>
+                ))}
+              </div>
 
               {/* Header Bar */}
               <div className="flex flex-col gap-4 border-b border-[color:var(--ink)]/10 pb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -685,17 +750,18 @@ function AdminCases() {
                     <ConsoleTh>Subjects & Level</ConsoleTh>
                     <ConsoleTh>Format & District</ConsoleTh>
                     <ConsoleTh>Budget</ConsoleTh>
+                    <ConsoleTh>Priority</ConsoleTh>
                     <ConsoleTh>Status</ConsoleTh>
                     <ConsoleTh>Tags</ConsoleTh>
                     <ConsoleTh align="right">Actions</ConsoleTh>
                   </tr>
                 </ConsoleTableHead>
                 <ConsoleTableBody>
-                  {isLoading && <ConsoleTableSkeletonRows columns={9} />}
+                  {isLoading && <ConsoleTableSkeletonRows columns={10} />}
 
                   {!isLoading && displayed.length === 0 && (
                     <ConsoleTableEmpty
-                      colSpan={9}
+                      colSpan={10}
                       icon={Inbox}
                       title="No case requests found"
                       description={
@@ -703,7 +769,9 @@ function AdminCases() {
                           ? t("caseFilters.empty_filtered", {
                               defaultValue: "Try adjusting your filters",
                             })
-                          : "New submissions from the case request form will appear here."
+                          : filters.desk === "active"
+                            ? t("desk.empty.active")
+                            : "New submissions from the case request form will appear here."
                       }
                       action={
                         hasActiveFilters ? (
@@ -740,6 +808,19 @@ function AdminCases() {
                             <span className="font-mono text-sm font-bold text-[color:var(--ink)]">
                               {row.case_code}
                             </span>
+                            {(() => {
+                              const tier = normalizePriorityTier(row.priority_tier);
+                              return (
+                                <span
+                                  className={cn(
+                                    "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold",
+                                    PRIORITY_PILL_CLASS[tier],
+                                  )}
+                                >
+                                  {tier === "UNASSIGNED" ? t("desk.priority.UNASSIGNED") : tier}
+                                </span>
+                              );
+                            })()}
                             {row.start_timing === "asap" && (
                               <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-bold text-amber-700 dark:text-amber-400">
                                 <Flame className="mr-0.5 h-3 w-3" aria-hidden="true" />
@@ -839,6 +920,34 @@ function AdminCases() {
                               </span>
                             </>
                           )}
+                        </ConsoleTd>
+                        <ConsoleTd>
+                          {/* Issue #438: MANUAL tier dropdown — the CEO lock
+                              keeps priority a human decision. Setting P3/P4
+                              moves the case to Hold; UNASSIGNED/P1/P2 back to
+                              Active. */}
+                          <Select
+                            value={normalizePriorityTier(row.priority_tier)}
+                            disabled={priorityMutation.isPending}
+                            onValueChange={(v) => {
+                              if (!v || v === normalizePriorityTier(row.priority_tier)) return;
+                              priorityMutation.mutate({ id: row.id, tier: v as PriorityTier });
+                            }}
+                          >
+                            <SelectTrigger
+                              className="h-8 w-[8.5rem] border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-xs font-bold"
+                              aria-label={`${t("desk.priority_label")} — ${row.case_code}`}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {PRIORITY_TIERS.map((tier) => (
+                                <SelectItem key={tier} value={tier}>
+                                  {tier === "UNASSIGNED" ? t("desk.priority.UNASSIGNED") : tier}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </ConsoleTd>
                         <ConsoleTd>
                           <span

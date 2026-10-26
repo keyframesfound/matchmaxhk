@@ -659,6 +659,32 @@
       "parent_guide_primary": "Read the Parent Guide"
     }
   },
+  "desk": {
+    "active": "Active Desk",
+    "hold": "Hold",
+    "priority_label": "Priority",
+    "priority": {
+      "P1": "P1",
+      "P2": "P2",
+      "P3": "P3",
+      "P4": "P4",
+      "UNASSIGNED": "Unassigned"
+    },
+    "priority_updated": "Priority updated",
+    "empty": {
+      "active": "No P1/P2/Unassigned cases — check Hold, or create one from WhatsApp."
+    },
+    "quick": {
+      "title": "Quick replies (insert only)",
+      "hint": "Copy the line, then paste it into the WhatsApp chat and send it yourself — nothing here auto-sends.",
+      "copy": "Copy",
+      "copied": "Copied!",
+      "copy_failed": "Copy failed — select the text manually.",
+      "strike2": "Strike 2",
+      "rateNudge": "Rate Nudge",
+      "priceRange": "Price Range"
+    }
+  },
   "admin": {
     "users_title": "Users & roles",
     "users_subtitle": "Grant or revoke roles for MatchMax users",
@@ -2460,6 +2486,12 @@
     "switcher_label": "Currency",
     "base_price_tooltip": "Base price set by tutor: {{amount}}",
     "profile_disclaimer": "Prices shown in {{currency}} are approximations based on current market exchange rates. Final billing and lesson settlements follow the tutor's agreed baseline."
+  },
+  "tutor": {
+    "fastResponder": {
+      "label": "Fast responder (⚡)",
+      "hint": "Shows the ⚡ badge next to this tutor in staff shortlists. Manual staff decision — tutors cannot set this themselves."
+    }
   },
   "tutors": {
     "tier_aria": "Academic tier",

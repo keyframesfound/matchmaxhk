@@ -1,3 +1,5 @@
+import type { PriorityTier } from "@/features/cases/priority-tier";
+
 export type CaseStatus =
   | "new"
   | "contacted"
@@ -58,6 +60,9 @@ export type CaseRow = {
   // Issue #412: triage answers + hold note (absent on pre-migration rows).
   compliance_triage?: Record<string, unknown> | null;
   compliance_note?: string | null;
+  // Issue #438: manual P1–P4 triage tier (optional pre-migration; junk
+  // normalizes to UNASSIGNED via normalizePriorityTier at render time).
+  priority_tier?: PriorityTier | null;
   created_at: string;
   updated_at: string;
 };
@@ -99,6 +104,15 @@ export const STATUS_PILL_CLASS: Record<CaseStatus, string> = {
   failed_trial_pivot: "bg-orange-500/15 text-orange-700 dark:text-orange-400",
   closed: "bg-muted text-muted-foreground",
   rejected: "bg-red-500/15 text-red-700 dark:text-red-400",
+};
+
+/** Issue #438: priority chip colors — P1 hottest, UNASSIGNED quiet. */
+export const PRIORITY_PILL_CLASS: Record<PriorityTier, string> = {
+  UNASSIGNED: "border border-[color:var(--ink)]/15 text-muted-foreground",
+  P1: "bg-red-500/15 text-red-700 dark:text-red-400",
+  P2: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  P3: "bg-purple-500/15 text-purple-700 dark:text-purple-400",
+  P4: "bg-[color:var(--ink)]/[0.06] text-muted-foreground",
 };
 
 export const MODE_LABEL: Record<string, string> = {
@@ -175,4 +189,4 @@ export function caseBudgetHkdBounds(
  * Shared with findCasesByTutorCode (#55) so both surfaces stay in lockstep.
  */
 export const ADMIN_CASE_SELECT_COLUMNS =
-  "id, case_code, title, description, subjects, exam_system, student_level, student_grade_current, student_school, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, district, mode, sessions_per_week, session_length_minutes, schedule_note, start_timing, preferred_gender, who_for, student_gender, language_of_instruction, urgency, budget_min, budget_max, budget_currency, budget_min_hkd, budget_max_hkd, contact_name, contact_phone, status, desk_language, matched_tutor_id, matched_at, fee_collected_at, fee_amount_cents, tags, source, last_contacted_at, board_published_at, compliance_triage, compliance_note, created_at, updated_at";
+  "id, case_code, title, description, subjects, exam_system, student_level, student_grade_current, student_school, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, district, mode, sessions_per_week, session_length_minutes, schedule_note, start_timing, preferred_gender, who_for, student_gender, language_of_instruction, urgency, budget_min, budget_max, budget_currency, budget_min_hkd, budget_max_hkd, contact_name, contact_phone, status, priority_tier, desk_language, matched_tutor_id, matched_at, fee_collected_at, fee_amount_cents, tags, source, last_contacted_at, board_published_at, compliance_triage, compliance_note, created_at, updated_at";

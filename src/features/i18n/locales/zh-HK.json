@@ -681,6 +681,32 @@
       "parent_guide_primary": "閱讀家長指南"
     }
   },
+  "desk": {
+    "active": "跟進中",
+    "hold": "擱置",
+    "priority_label": "優先次序",
+    "priority": {
+      "P1": "P1",
+      "P2": "P2",
+      "P3": "P3",
+      "P4": "P4",
+      "UNASSIGNED": "未分配"
+    },
+    "priority_updated": "已更新優先次序",
+    "empty": {
+      "active": "沒有 P1/P2/未分配個案——請查看「擱置」，或從 WhatsApp 建立新個案。"
+    },
+    "quick": {
+      "title": "快捷回覆（只插入文字）",
+      "hint": "複製字句後，自行貼到 WhatsApp 對話並按發送——系統不會自動發送任何訊息。",
+      "copy": "複製",
+      "copied": "已複製！",
+      "copy_failed": "複製失敗——請手動選取文字。",
+      "strike2": "Strike 2",
+      "rateNudge": "Rate Nudge",
+      "priceRange": "Price Range"
+    }
+  },
   "admin": {
     "users_title": "用戶與權限",
     "users_subtitle": "管理 MatchMax 用戶身份",
@@ -2460,6 +2486,12 @@
     "switcher_label": "貨幣",
     "base_price_tooltip": "導師定價：{{amount}}",
     "profile_disclaimer": "以{{currency}}顯示的價格按現行市場匯率折算，僅供參考。實際收費及課堂結算以導師協定的基準價為準。"
+  },
+  "tutor": {
+    "fastResponder": {
+      "label": "快速回應導師（⚡）",
+      "hint": "在員工短名單中為此導師顯示 ⚡ 標記。此設定由員工手動決定，導師無法自行開啟。"
+    }
   },
   "tutors": {
     "tier_aria": "學術程度",
