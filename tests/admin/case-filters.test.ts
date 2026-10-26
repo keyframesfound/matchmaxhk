@@ -113,10 +113,17 @@ describe("parseCaseFilters — TanStack JSON-decode tolerance", () => {
     expect(parseCaseFilters({ created: "yesterday" }).created).toBe("all");
   });
 
-  it("q coerces numbers and trims", () => {
-    expect(parseCaseFilters({ q: "  Maths " }).q).toBe("Maths");
+  it("q coerces numbers and keeps the raw string (spaces survive the URL round-trip)", () => {
+    expect(parseCaseFilters({ q: "  Maths " }).q).toBe("  Maths ");
     expect(parseCaseFilters({ q: 9021 }).q).toBe("9021");
     expect(parseCaseFilters({ q: "" }).q).toBe("");
+    // Matching still trims: a trailing space mid-typing finds the case.
+    expect(
+      applyCaseFilters(
+        [{ case_code: "C1", title: "Maths tutoring" }],
+        parseCaseFilters({ q: "Maths " }),
+      ),
+    ).toHaveLength(1);
   });
 
   it("subjects: comma-joined string, repeated-param array, junk scalars", () => {

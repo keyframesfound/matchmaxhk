@@ -56,6 +56,7 @@ import { caseChips } from "@/features/cases/case-chips";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { getPublicCaseByCode, type PublicCaseBoardItem } from "@/lib/cases.functions";
+import { shortCaseFeeAmount, shortCasePackageValueHkd } from "@/features/cases/short-case";
 import { shareOrCopy } from "@/lib/share";
 import {
   applyToCase,
@@ -455,8 +456,15 @@ function CaseDetailPage() {
             }
             const hours = item.hoursPerLesson as number;
             const count = item.scheduledLessonCount as number;
-            const packageValue = Math.round(agreedRate * hours * count);
-            const fee = Math.round(packageValue * 0.2);
+            // Same pure helpers the desk invoices with (#443 ONE formula) —
+            // budget-based estimate until a rate is locked.
+            const packageValue = shortCasePackageValueHkd(agreedRate, hours, count);
+            const fee = shortCaseFeeAmount({
+              rateHkd: agreedRate,
+              hoursPerLesson: hours,
+              scheduledLessonCount: count,
+              packageType: item.packageType,
+            });
             return [
               t("case_board.payout_short2_package", {
                 package: `HK$${packageValue}`,
@@ -714,7 +722,7 @@ function CaseDetailPage() {
 
           {/* #443 fee disclosure on apply: short package rule, before the CTA. */}
           {item.packageType === "short_20" ? (
-            <p className="mt-4 rounded-xl border border-border bg-muted/30 px-4 py-3 text-sm leading-relaxed text-foreground/80">
+            <p className="mt-4 rounded-[var(--radius-control)] border border-border bg-muted/30 px-4 py-3 text-sm leading-relaxed text-foreground/80">
               {t("case_board.apply_short_disclosure")}
             </p>
           ) : null}
@@ -755,7 +763,7 @@ function CaseDetailPage() {
             {item.centre ? (
               <div className="flex flex-col gap-3">
                 <SectionHeading>{t("case_board.centre_summary_title")}</SectionHeading>
-                <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/30 p-4 text-sm">
+                <div className="flex flex-col gap-3 rounded-[var(--radius-control)] border border-border bg-muted/30 p-4 text-sm">
                   <div className="flex flex-wrap items-center gap-2">
                     <Building2
                       className="h-4 w-4 text-[color:var(--brand-link)]"
@@ -913,7 +921,7 @@ function CaseDetailPage() {
             {payout ? (
               <div className="flex flex-col gap-3">
                 <SectionHeading>{t("case_board.payout_title")}</SectionHeading>
-                <div className="flex flex-col gap-2 rounded-xl border border-border bg-muted/30 p-4 text-sm">
+                <div className="flex flex-col gap-2 rounded-[var(--radius-control)] border border-border bg-muted/30 p-4 text-sm">
                   <CaseFeePill packageType={item.packageType} className="w-fit" />
                   <ul className="flex flex-col gap-1.5">
                     {payout.map((line) => (
@@ -927,7 +935,7 @@ function CaseDetailPage() {
 
           <Separator className="my-8" />
 
-          <div className="flex flex-col gap-4 rounded-xl border border-border bg-muted/30 p-6 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-4 rounded-[var(--radius-control)] border border-border bg-muted/30 p-6 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex flex-col gap-1">
               <p className="text-sm font-bold text-[color:var(--ink)]">
                 {t("case_board.ready_title")}

@@ -12,6 +12,7 @@ import {
   shortCaseConfirmationError,
   shouldInvoiceShortFee,
   sumBilledFeeHkd,
+  sumPaidFeeHkd,
   validateShortCaseInputs,
 } from "../../src/features/cases/short-case";
 
@@ -167,6 +168,20 @@ describe("shouldInvoiceShortFee (fee trigger)", () => {
     expect(shouldInvoiceShortFee({ scheduledLessonCount: 9, lesson1Status: "confirmed" })).toBe(
       false,
     );
+  });
+});
+
+describe("sumPaidFeeHkd (convert credits PAID amounts only)", () => {
+  it("ignores open (unpaid) invoiced rows that the convert flow waives", () => {
+    expect(
+      sumPaidFeeHkd([
+        { status: "invoiced", amount_hkd: 320 },
+        { status: "paid", amount_hkd: 280 },
+        { status: "not_due", amount_hkd: 100 },
+        { status: "waived", amount_hkd: 999 },
+      ]),
+    ).toBe(280);
+    expect(sumPaidFeeHkd([{ status: "invoiced", amount_hkd: 320 }])).toBe(0);
   });
 });
 

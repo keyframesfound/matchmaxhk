@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { dateFnsLocale } from "@/lib/relative-time";
 import { Loader2, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import i18n from "@/features/i18n/config";
 
 import { Button } from "@/components/ui/button";
 import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
@@ -209,7 +211,11 @@ export function CalendarWindowsEditor() {
           <ul className="mt-2 space-y-1">
             {blackoutsQuery.data?.map((b) => (
               <li key={b.id} className="flex items-center gap-2 text-sm">
-                <span>{format(new Date(`${b.blackout_date}T00:00:00Z`), "d MMM yyyy")}</span>
+                <span>
+                  {format(new Date(`${b.blackout_date}T00:00:00Z`), "d MMM yyyy", {
+                    locale: dateFnsLocale(i18n.language),
+                  })}
+                </span>
                 {b.reason && <span className="text-muted-foreground">· {b.reason}</span>}
                 <Button
                   size="icon"

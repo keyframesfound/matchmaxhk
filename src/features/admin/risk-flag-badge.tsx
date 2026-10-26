@@ -40,7 +40,7 @@ export function RiskFlagBadge({
       title={
         note?.trim() ||
         (isBlocked
-          ? t("risk.blocked_stop", { defaultValue: "Blocked — do not contact" })
+          ? t("risk.blocked_stop", { defaultValue: "Blocked: do not contact" })
           : undefined)
       }
     >

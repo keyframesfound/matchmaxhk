@@ -3,6 +3,7 @@ import { useEffect, useRef } from "react";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import i18n from "@/features/i18n/config";
+import { readPreferredLocale } from "@/features/i18n/seo";
 import { useSwitchLocale } from "@/features/i18n/switch-locale";
 
 const SUPPORTED_LOCALES = ["en", "zh-HK"] as const;
@@ -10,7 +11,9 @@ const SUPPORTED_LOCALES = ["en", "zh-HK"] as const;
 /**
  * Adopts the account-level language once per signed-in user, mirroring how
  * ThemeProvider adopts profiles.theme_preference. Device choice wins until
- * the profile says otherwise on a fresh browser.
+ * the profile says otherwise on a fresh browser: an explicit toggle (cookie/
+ * localStorage via useSwitchLocale, or ?hl=) must never be reverted here, or
+ * the header language toggle would bounce back on the next page load.
  */
 export function ProfileLocaleSync() {
   const { user } = useAuth();
@@ -36,7 +39,10 @@ export function ProfileLocaleSync() {
         if (
           typeof locale === "string" &&
           (SUPPORTED_LOCALES as readonly string[]).includes(locale) &&
-          i18n.language !== locale
+          i18n.language !== locale &&
+          // No explicit device choice (?hl=, localStorage, cookie) — a
+          // visitor who toggled the language deliberately keeps it.
+          !readPreferredLocale()
         ) {
           switchLocale(locale);
         }

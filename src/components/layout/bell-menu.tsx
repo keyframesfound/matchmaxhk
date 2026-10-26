@@ -1,8 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
-import { formatDistanceToNow } from "date-fns";
+import { formatPostedAgo } from "@/lib/relative-time";
 import { Bell, CalendarClock, GraduationCap, Package, Star, Wallet } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import i18n from "@/features/i18n/config";
 
 import {
   DropdownMenu,
@@ -127,7 +128,7 @@ export function BellMenu() {
                     <span className="flex-1">
                       <span className="block text-sm">{t(bellLabelKey(item))}</span>
                       <span className="block text-xs text-muted-foreground">
-                        {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
+                        {formatPostedAgo(item.created_at, i18n.language)}
                       </span>
                     </span>
                     {!item.read && (

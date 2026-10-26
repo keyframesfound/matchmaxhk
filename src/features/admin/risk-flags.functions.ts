@@ -98,7 +98,10 @@ export const listRiskFlags = createServerFn({ method: "POST" })
     const { data: rows, error } = await db
       .from<Row>("risk_flags")
       .select(RISK_FLAG_COLUMNS)
-      .order("risk_flagged_at", { ascending: false })
+      // nullsLast: rows whose stamp was cleared (risk_flag NONE) would
+      // otherwise float to the top of the window ahead of real flags
+      // (Postgres DESC defaults to NULLS FIRST).
+      .order("risk_flagged_at", { ascending: false, nullsLast: true })
       .limit(2000);
     if (error) throw new Error(error.message ?? "risk flag list failed");
     const wantCase = data.entity === "case";

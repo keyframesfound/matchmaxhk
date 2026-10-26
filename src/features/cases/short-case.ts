@@ -9,7 +9,9 @@
  *   package_value    = hourly_rate_hkd × hours_per_lesson × scheduled_lesson_count
  *   short_case_fee   = package_value × 0.20            (whole HKD)
  *   Pro-Bono         → 0  ($0 wins over the short 20%)
- *   convert balance  = max(0, standard_1_5_fee − amount_already_invoiced)
+ *   convert balance  = max(0, standard_1_5_fee − amount_already_PAID);
+ *                      open short invoices are waived on convert, never
+ *                      credited toward the standard fee
  *
  * Duration REUSES the existing tutoring_cases.session_length_minutes (shared
  * duration lock, CEO check 2026-10-24) — hours per lesson are derived here,
@@ -147,8 +149,24 @@ export function sumBilledFeeHkd(fees: BilledFeeRow[]): number {
 }
 
 /**
+ * Sum of what the tutor has actually PAID. The convert path must credit only
+ * this: an open (unpaid) short invoice is WAIVED on convert, so counting it
+ * in the balance would forgive the debt AND credit it against the standard
+ * fee — a double write-off. Mirror of sumBilledFeeHkd's paid rule.
+ */
+export function sumPaidFeeHkd(fees: BilledFeeRow[]): number {
+  return fees.reduce((sum, f) => {
+    if (f.status !== "paid") return sum;
+    const n = Number(f.amount_hkd);
+    return Number.isFinite(n) && n > 0 ? sum + n : sum;
+  }, 0);
+}
+
+/**
  * Convert balance: the standard 1.5-lesson fee minus everything already
- * billed, floored at 0 — the desk must NEVER over-invoice. 0 renders as
+ * PAID, floored at 0 — the desk must NEVER over-invoice. Open (unpaid)
+ * invoices are waived by the convert flow, so they must not reduce the
+ * balance (crediting them would forgive the debt twice). 0 renders as
  * "No balance due" and creates no case_fees row.
  */
 export function convertBalanceAmountHkd(standardFeeHkd: number, billedTotalHkd: number): number {

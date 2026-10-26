@@ -71,6 +71,8 @@ export type SorCaseRow = {
   whatsapp_group_url: string | null;
   replacement_of_case_id: string | null;
   internal_note: string | null;
+  /** #443: desk-set short-case flag; the fee-math source of truth while true. */
+  is_short_case: boolean;
   sor_status: SorStatus | null;
   sor_status_at: string | null;
   created_at: string;

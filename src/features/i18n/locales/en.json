@@ -672,14 +672,15 @@
     },
     "priority_updated": "Priority updated",
     "empty": {
-      "active": "No P1/P2/Unassigned cases — check Hold, or create one from WhatsApp."
+      "active": "No P1/P2/Unassigned cases. Check Hold, or create one from WhatsApp.",
+      "hold": "No P3/P4 cases on Hold. Lower a priority tier to park a case here."
     },
     "quick": {
       "title": "Quick replies (insert only)",
-      "hint": "Copy the line, then paste it into the WhatsApp chat and send it yourself — nothing here auto-sends.",
+      "hint": "Copy the line, then paste it into the WhatsApp chat and send it yourself. Nothing here auto-sends.",
       "copy": "Copy",
       "copied": "Copied!",
-      "copy_failed": "Copy failed — select the text manually.",
+      "copy_failed": "Copy failed: select the text manually.",
       "strike2": "Strike 2",
       "rateNudge": "Rate Nudge",
       "priceRange": "Price Range"
@@ -1847,7 +1848,7 @@
     "licence_note": "Licensed to one student. Downloads stay in your Account, the link refreshes each time.",
     "sign_in_required": "Sign in to see your orders.",
     "open_course_button": "Open product",
-    "step_held": "Payment on hold (48–72h protection window)",
+    "step_held": "Payment on hold (protection window of 48 to 72 hours)",
     "step_released": "Hold released, tutor payout scheduled",
     "escrow_banner_title": "Your payment is protected",
     "escrow_banner_held": "MatchMax is holding this payment until {{date}}. The tutor is only paid after the hold ends, so any valid dispute you open during the window can be refunded in full from the held funds.",
@@ -1856,6 +1857,7 @@
     "received_done": "Thanks, the hold is released early and the payout is scheduled.",
     "dispute_title": "Problem with this file?",
     "dispute_note": "Disputes are only for a defective file or one materially different from its description, and can only be opened during the escrow hold window. Valid disputes are refunded from the held funds.",
+    "dispute_note_delivered": "Disputes are only for a defective file or one materially different from its description. This order was paid before escrow existed, so our team reviews it directly and will follow up with you by email.",
     "dispute_open_button": "Open a dispute",
     "dispute_dialog_title": "Open a dispute",
     "dispute_reason_label": "What's wrong?",
@@ -1869,6 +1871,7 @@
     "dispute_submit": "Submit dispute",
     "dispute_submitted": "Dispute received. Staff will review it during the hold window.",
     "dispute_failed": "Could not open the dispute.",
+    "update_failed": "Something went wrong. Please try again.",
     "dispute_open_badge": "Dispute under review",
     "dispute_open_note": "Your dispute was opened on {{date}}. Staff review it during the hold window; valid disputes are refunded from the held funds.",
     "refunded_from_hold_badge": "Refunded from hold",
@@ -2440,7 +2443,7 @@
     "admin_invoice_custom": "Invoice",
     "admin_fee_breakdown": "Fee = 100% Lesson 1 + 50% Lesson 2 = 1.5 lessons",
     "admin_paid_partial_chip": "Lesson 1 only paid",
-    "short_case_chip": "Short Case: {{n}} Lessons",
+    "short_case_chip": "Short case: {{n}} lesson(s)",
     "admin_preset_l1": "Invoice 1.0 × Lesson 1 (HK${{amount}})",
     "admin_preset_l2_balance": "Invoice 0.5 × Lesson 2 balance (HK${{amount}})",
     "admin_preset_full": "Invoice full 1.5 lessons (HK${{amount}})",
@@ -2509,7 +2512,7 @@
   "tutor": {
     "fastResponder": {
       "label": "Fast responder (⚡)",
-      "hint": "Shows the ⚡ badge next to this tutor in staff shortlists. Manual staff decision — tutors cannot set this themselves."
+      "hint": "Shows the ⚡ badge next to this tutor in staff shortlists. Manual staff decision: tutors cannot set this themselves."
     }
   },
   "tutors": {
@@ -2620,7 +2623,7 @@
     "chip_admissions": "University Admissions",
     "all_open_requests": "All open requests",
     "apply_now": "Apply now",
-    "apply_short_disclosure": "Short package (≤5 lessons): the MatchMax platform fee is 20% of the package, invoiced after Lesson 1 — not the usual 1.5-lesson fee after Lesson 2.",
+    "apply_short_disclosure": "Short package (≤5 lessons): the MatchMax platform fee is 20% of the package, invoiced after Lesson 1 instead of the usual 1.5-lesson fee after Lesson 2.",
     "ready_title": "Ready to apply?",
     "ready_body": "Apply via WhatsApp and the MatchMax team will connect you with the parent, free for tutors, and we reply within one business day.",
     "location_flexible": "Location flexible",
@@ -2961,5 +2964,17 @@
     "admin_review_no_embed": "No valid YouTube/Vimeo link on this lesson.",
     "admin_preset_contact": "Contact details visible in listing or videos",
     "admin_preset_offplatform": "Off-platform advertising in listing or videos"
+  },
+  "page_not_found": {
+    "title": "Page not found",
+    "body": "The page you're looking for doesn't exist or has been moved.",
+    "go_home": "Go home"
+  },
+  "page_error": {
+    "title": "This page didn't load",
+    "body": "Something went wrong on our end, it's not anything you did. Try again, or head back home.",
+    "try_again": "Try again",
+    "go_home": "Go home",
+    "help": "Still stuck? Message our team on WhatsApp, we're happy to help."
   }
 }

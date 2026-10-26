@@ -694,7 +694,8 @@
     },
     "priority_updated": "已更新優先次序",
     "empty": {
-      "active": "沒有 P1/P2/未分配個案——請查看「擱置」，或從 WhatsApp 建立新個案。"
+      "active": "沒有 P1/P2/未分配個案——請查看「擱置」，或從 WhatsApp 建立新個案。",
+      "hold": "擱置區目前冇 P3/P4 個案。將優先級調低至 P3/P4，個案就會排喺呢度。"
     },
     "quick": {
       "title": "快捷回覆（只插入文字）",
@@ -1856,6 +1857,7 @@
     "received_done": "多謝 — 保管已提前結束，收款已排期。",
     "dispute_title": "檔案有問題？",
     "dispute_note": "爭議只適用於損壞的檔案，或與描述有重大差異的檔案，並只可在託管保管期內提出。有效的爭議會從仍被保管的款項退款。",
+    "dispute_note_delivered": "爭議只適用於損壞的檔案，或與描述有重大差異嘅檔案。呢張訂單喺託管機制推出前付款，我哋團隊會直接跟進，並以電郵回覆你。",
     "dispute_open_button": "提出爭議",
     "dispute_dialog_title": "提出爭議",
     "dispute_reason_label": "哪裡有問題？",
@@ -1869,6 +1871,7 @@
     "dispute_submit": "提交爭議",
     "dispute_submitted": "已收到爭議。職員會在保管期內處理。",
     "dispute_failed": "無法提出爭議。",
+    "update_failed": "出了少少問題，請再試一次。",
     "dispute_open_badge": "爭議處理中",
     "dispute_open_note": "你的爭議已於 {{date}} 提出。職員會在保管期內審核；有效爭議會從仍被保管的款項退款。",
     "refunded_from_hold_badge": "已從保管款項退款",
@@ -2620,7 +2623,7 @@
     "chip_admissions": "大學入學",
     "all_open_requests": "所有公開個案",
     "apply_now": "立即申請",
-    "apply_short_disclosure": "短個案（≤5 堂）：MatchMax 平台費為包堂總額嘅 20%，第一堂後收取 — 唔係一般第二堂後嘅一堂半。",
+    "apply_short_disclosure": "短個案（≤5 堂）：MatchMax 平台費為包堂總額嘅 20%，第一堂後收取，唔係一般第二堂後嘅一堂半。",
     "ready_title": "準備好申請？",
     "ready_body": "透過 WhatsApp 申請，MatchMax 團隊會為你配對家長——導師完全免費，我們會於一個工作天內回覆。",
     "location_flexible": "地點靈活",
@@ -2961,5 +2964,17 @@
     "admin_review_no_embed": "這一課沒有有效的 YouTube／Vimeo 連結。",
     "admin_preset_contact": "列表或影片中可見聯絡資料",
     "admin_preset_offplatform": "列表或影片中有平台外宣傳"
+  },
+  "page_not_found": {
+    "title": "搵唔到頁面",
+    "body": "你搵緊嘅頁面唔存在，或者已經搬咗。",
+    "go_home": "返主頁"
+  },
+  "page_error": {
+    "title": "呢一頁載入唔到",
+    "body": "我哋嗰邊出咗少少問題，唔關你事。再試一次，或者返主頁。",
+    "try_again": "再試一次",
+    "go_home": "返主頁",
+    "help": "仲係搞唔掂？喺 WhatsApp 搵我哋團隊，好樂意幫你。"
   }
 }

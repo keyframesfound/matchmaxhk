@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import i18n from "@/features/i18n/config";
 import { FileText, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
 
@@ -138,7 +139,7 @@ export function EngagementSummaryCard({
             <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
             {t("engagement.summary.confirmed_customer")}
             {summary.customerConfirmedAt
-              ? ` · ${new Date(summary.customerConfirmedAt).toLocaleDateString()}`
+              ? ` · ${new Date(summary.customerConfirmedAt).toLocaleDateString(i18n.language === "zh-HK" ? "zh-HK" : "en-HK")}`
               : ` · ${t("engagement.summary.not_yet")}`}
           </span>
           <span
@@ -151,7 +152,7 @@ export function EngagementSummaryCard({
             <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
             {t("engagement.summary.confirmed_tutor")}
             {summary.tutorConfirmedAt
-              ? ` · ${new Date(summary.tutorConfirmedAt).toLocaleDateString()}`
+              ? ` · ${new Date(summary.tutorConfirmedAt).toLocaleDateString(i18n.language === "zh-HK" ? "zh-HK" : "en-HK")}`
               : ` · ${t("engagement.summary.not_yet")}`}
           </span>
         </div>

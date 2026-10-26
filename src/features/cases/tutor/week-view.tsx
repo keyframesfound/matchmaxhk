@@ -1,7 +1,9 @@
 import { useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { dateFnsLocale } from "@/lib/relative-time";
 import { CalendarClock } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import i18n from "@/features/i18n/config";
 
 import { ConsolePanel } from "@/components/ui/console-panel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,7 +39,9 @@ export function TutorWeekView() {
             .map((day) => (
               <li key={day.dateKey} className="px-4 py-3">
                 <p className="text-xs font-medium text-muted-foreground">
-                  {format(new Date(`${day.dateKey}T00:00:00Z`), "EEE d MMM")}
+                  {format(new Date(`${day.dateKey}T00:00:00Z`), "EEE d MMM", {
+                    locale: dateFnsLocale(i18n.language),
+                  })}
                 </p>
                 <ul className="mt-2 space-y-1">
                   {day.lessons.map((l) => (

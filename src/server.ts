@@ -133,20 +133,43 @@ function getLocaleRedirect(request: Request): Response | null {
   // Legacy full-tag prefix: /zh-HK/... → /zh/...
   if (pathname === "/zh-HK" || pathname.startsWith("/zh-HK/")) {
     url.pathname = `/zh${pathname.slice("/zh-HK".length) || ""}`;
-    return new Response(null, {
-      status: 307,
-      headers: { Location: url.pathname + url.search, "Cache-Control": "no-store" },
-    });
+    return localeRedirectResponse(url);
   }
 
-  if (parseLocalePath(pathname)) return null;
+  const parsed = parseLocalePath(pathname);
+  if (parsed) {
+    // Doubled prefix (/en/en/tutors, /zh/EN/x from a bad share or a
+    // case-normalized prepend): the router strips one segment, so the rest
+    // would 404. Collapse to the single lowercased head.
+    const dup = /^\/(en|zh)(?=\/|$)/i.exec(parsed.rest);
+    if (dup) {
+      url.pathname = `/${parsed.segment}${parsed.rest.slice(dup[0].length) || "/"}`;
+      return localeRedirectResponse(url);
+    }
+    return null;
+  }
+
+  // Case-variant head (/EN/tutors, /Zh): the case-sensitive parse misses it,
+  // so without this the gate would prepend its own segment and 404
+  // (/en/EN/tutors). Normalize to the lowercase segment.
+  const upper = /^\/(en|zh)(?=\/|$)/i.exec(pathname);
+  if (upper) {
+    url.pathname = `/${upper[1].toLowerCase()}${pathname.slice(upper[0].length) || ""}`;
+    return localeRedirectResponse(url);
+  }
 
   if (LOCALE_GATE_BYPASS_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return null;
   if (looksLikeFilePath(pathname)) return null;
 
   const segment = segmentOfLocale(resolvePreferredLocaleForRequest(request));
   url.pathname = buildLocalePath(segment, pathname);
-  // Relative Location: immune to host/port reconstruction behind proxies.
+  return localeRedirectResponse(url);
+}
+
+// 307 + no-store, never 308: the target varies per visitor, so it must not
+// be permanently cached. Relative Location: immune to host/port
+// reconstruction behind proxies.
+function localeRedirectResponse(url: URL): Response {
   return new Response(null, {
     status: 307,
     headers: { Location: url.pathname + url.search, "Cache-Control": "no-store" },

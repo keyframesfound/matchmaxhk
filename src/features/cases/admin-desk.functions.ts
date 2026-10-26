@@ -269,8 +269,8 @@ export const transitionCase = createServerFn({ method: "POST" })
     await requireAdmin(db, context.userId);
 
     const rows = await selectRows<
-      Pick<SorCaseRow, "id" | "sor_status" | "hourly_rate_hkd" | "student_count">
-    >(db, "tutoring_cases", "id, sor_status, hourly_rate_hkd, student_count", [
+      Pick<SorCaseRow, "id" | "sor_status" | "hourly_rate_hkd" | "student_count" | "is_short_case">
+    >(db, "tutoring_cases", "id, sor_status, hourly_rate_hkd, student_count, is_short_case", [
       { col: "id", op: "eq", value: data.caseId },
     ]);
     const c = rows[0];
@@ -278,6 +278,13 @@ export const transitionCase = createServerFn({ method: "POST" })
     if (!c.sor_status) throw new Error("NOT_A_SOR_CASE");
     const to = data.to as SorStatus;
     assertTransition(c.sor_status, to); // throws IllegalTransitionError on illegal jumps
+
+    // #443: while short, the ONLY legal platform fee is the 20% package fee
+    // from the Short case panel. Letting the standard Lesson-2 trigger fire
+    // here billed 1.5× × students on a case that owes 20% of its package.
+    if (to === "fee_invoiced" && c.is_short_case) {
+      throw new Error("SHORT_CASE_USE_SHORT_FEE");
+    }
 
     const nowIso = new Date().toISOString();
     const { error } = await db
@@ -371,14 +378,17 @@ export const feeInvoiceCustom = createServerFn({ method: "POST" })
     const db = asAdminDb(supabaseAdmin);
     await requireAdmin(db, context.userId);
 
-    const rows = await selectRows<Pick<SorCaseRow, "id" | "hourly_rate_hkd" | "student_count">>(
-      db,
-      "tutoring_cases",
-      "id, hourly_rate_hkd, student_count",
-      [{ col: "id", op: "eq", value: data.caseId }],
-    );
+    const rows = await selectRows<
+      Pick<SorCaseRow, "id" | "hourly_rate_hkd" | "student_count" | "is_short_case">
+    >(db, "tutoring_cases", "id, hourly_rate_hkd, student_count, is_short_case", [
+      { col: "id", op: "eq", value: data.caseId },
+    ]);
     if (!rows[0]) throw new Error("CASE_NOT_FOUND");
     if (rows[0].hourly_rate_hkd == null) throw new Error("NO_RATE_ON_CASE");
+    // #443: a short case's only legal fee is the 20% package fee from the
+    // Short case panel — a custom multiplier here would stack a second rule
+    // on top of it.
+    if (rows[0].is_short_case) throw new Error("SHORT_CASE_USE_SHORT_FEE");
 
     // #391: custom multipliers scale per student on group cases too.
     const amount = computeFeeAmountHkd(

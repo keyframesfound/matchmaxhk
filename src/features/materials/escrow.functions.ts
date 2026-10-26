@@ -83,7 +83,7 @@ export async function getTutorHoldWindowHours(db: AdminDb, tutorId: string): Pro
 
 /** Buyer taps "Received / No issue": the held funds release early. */
 export const confirmOrderReceived = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
+  .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => z.object({ orderId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -110,15 +110,27 @@ export const confirmOrderReceived = createServerFn({ method: "POST" })
       throw new Error("A dispute is open on this order. Our team will review it.");
     }
 
-    const { error } = await db
+    // Predicate + rowCount race guard (#387 pattern): the release must land
+    // on the exact row state we read, or a concurrent confirm/dispute/sweep
+    // interleaves into released + open-dispute (a state staff cannot resolve
+    // and the payout export would pay in full).
+    const { count, error } = await db
       .from<never>("material_orders")
-      .update({
-        status: "released",
-        released_at: new Date().toISOString(),
-        released_reason: "buyer_confirmed",
-      })
-      .eq("id", order.id);
+      .update(
+        {
+          status: "released",
+          released_at: new Date().toISOString(),
+          released_reason: "buyer_confirmed",
+        },
+        { count: "exact" },
+      )
+      .eq("id", order.id)
+      .eq("status", "held")
+      .eq("dispute_status", null);
     if (error) throw new Error(error.message);
+    if ((count ?? 0) === 0) {
+      throw new Error("This order is not on hold.");
+    }
     return { ok: true };
   });
 
@@ -192,17 +204,28 @@ export const openOrderDispute = createServerFn({ method: "POST" })
       if (uploadError) throw new Error(uploadError.message);
     }
 
-    const { error } = await db
+    // Same predicate+rowCount race guard: only flip a row still in the state
+    // we validated (a concurrent buyer-confirm releasing the hold must win
+    // over the dispute, not interleave into released + open dispute).
+    const { count, error } = await db
       .from<never>("material_orders")
-      .update({
-        dispute_status: "open",
-        dispute_reason: data.reason,
-        dispute_detail: data.detail,
-        dispute_evidence_path: evidencePath,
-        dispute_opened_at: new Date().toISOString(),
-      })
-      .eq("id", order.id);
+      .update(
+        {
+          dispute_status: "open",
+          dispute_reason: data.reason,
+          dispute_detail: data.detail,
+          dispute_evidence_path: evidencePath,
+          dispute_opened_at: new Date().toISOString(),
+        },
+        { count: "exact" },
+      )
+      .eq("id", order.id)
+      .eq("status", order.status)
+      .eq("dispute_status", null);
     if (error) throw new Error(error.message);
+    if ((count ?? 0) === 0) {
+      throw new Error("The dispute window for this order has closed.");
+    }
     return { ok: true };
   });
 
@@ -277,19 +300,28 @@ export const decideOrderDispute = createServerFn({ method: "POST" })
       const invalid = validateDisputeRefundAmount(amount, gross);
       if (invalid) throw new Error(invalid);
       const split = splitRefundMoney(gross, amount);
-      const { error } = await db
+      const { count, error } = await db
         .from<never>("material_orders")
-        .update({
-          status: "refunded_from_hold",
-          refund_amount: split.refundedHkd,
-          platform_fee_hkd: split.platformFeeHkd,
-          tutor_net_hkd: split.tutorNetHkd,
-          dispute_status: "refunded",
-          decided_at: now,
-          decided_by: context.userId,
-        })
-        .eq("id", order.id);
+        .update(
+          {
+            status: "refunded_from_hold",
+            refund_amount: split.refundedHkd,
+            platform_fee_hkd: split.platformFeeHkd,
+            tutor_net_hkd: split.tutorNetHkd,
+            dispute_status: "refunded",
+            decided_at: now,
+            decided_by: context.userId,
+            decided_by_text: context.userId,
+          },
+          { count: "exact" },
+        )
+        .eq("id", order.id)
+        .eq("status", order.status)
+        .eq("dispute_status", "open");
       if (error) throw new Error(error.message);
+      if ((count ?? 0) === 0) {
+        throw new Error("A dispute was already decided on this order.");
+      }
       return { ok: true, status: "refunded_from_hold" as const };
     }
 
@@ -311,8 +343,17 @@ export const decideOrderDispute = createServerFn({ method: "POST" })
             dispute_status: "rejected",
             decided_at: now,
             decided_by: context.userId,
+            decided_by_text: context.userId,
           };
-    const { error } = await db.from<never>("material_orders").update(update).eq("id", order.id);
+    const { count, error } = await db
+      .from<never>("material_orders")
+      .update(update, { count: "exact" })
+      .eq("id", order.id)
+      .eq("status", order.status)
+      .eq("dispute_status", "open");
     if (error) throw new Error(error.message);
+    if ((count ?? 0) === 0) {
+      throw new Error("A dispute was already decided on this order.");
+    }
     return { ok: true, status: target };
   });
