@@ -855,3 +855,55 @@ html .driver-popover-footer-btn:focus {
 html .driver-popover-progress-text {
   color: var(--muted-foreground, #6b7280);
 }
+
+/*
+ * Admin console scope — shadcn/ui default neutral palette ("new-york", zinc),
+ * applied only inside the admin console so the public site keeps its
+ * Twitter Azure theme. @theme inline resolves tokens at the utility site,
+ * so overriding the raw vars on this class re-skins everything beneath it.
+ * Intentionally wins over `.dark` (same specificity, later in the file):
+ * the console is light-only for now.
+ */
+.admin-scope {
+  --radius: 12px;
+  --radius-control: 10px;
+  --radius-panel: 12px;
+  --radius-surface: 14px;
+
+  --background: #fafafa;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+  --primary: #18181b;
+  --primary-foreground: #fafafa;
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+  --accent: #f4f4f5;
+  --accent-foreground: #18181b;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --success: #16a34a;
+  --warning: #d97706;
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #a1a1aa;
+
+  --chart-1: #18181b;
+  --chart-2: #a1a1aa;
+  --chart-3: #71717a;
+  --chart-4: #d4d4d8;
+  --chart-5: #52525b;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #09090b;
+  --sidebar-primary: #18181b;
+  --sidebar-primary-foreground: #fafafa;
+  --sidebar-accent: #f4f4f5;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #a1a1aa;
+}
