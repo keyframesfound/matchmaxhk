@@ -48,6 +48,7 @@ import { SorDeskTools } from "@/features/cases/admin/sor-desk";
 import {
   CASE_STATUSES,
   MODE_LABEL,
+  PRIORITY_PILL_CLASS,
   START_LABEL,
   STATUS_LABEL,
   STATUS_PILL_CLASS,
@@ -56,6 +57,12 @@ import {
   type CaseRow,
   type CaseStatus,
 } from "@/features/cases/admin/shared";
+import {
+  deskBucketForTier,
+  normalizePriorityTier,
+  PRIORITY_TIERS,
+  type PriorityTier,
+} from "@/features/cases/priority-tier";
 import {
   applyCaseFilters,
   caseFilterOptions,
@@ -126,7 +133,7 @@ function AdminCases() {
       const { data, error } = await supabase
         .from("tutoring_cases")
         .select(
-          "id, case_code, title, description, subjects, exam_system, student_level, student_grade_current, student_school, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, district, mode, sessions_per_week, session_length_minutes, schedule_note, start_timing, preferred_gender, who_for, student_gender, language_of_instruction, urgency, budget_min, budget_max, budget_currency, budget_min_hkd, budget_max_hkd, contact_name, contact_phone, status, matched_tutor_id, matched_at, fee_collected_at, fee_amount_cents, tags, source, last_contacted_at, board_published_at, compliance_triage, compliance_note, created_at, updated_at",
+          "id, case_code, title, description, subjects, exam_system, student_level, student_grade_current, student_school, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, district, mode, sessions_per_week, session_length_minutes, schedule_note, start_timing, preferred_gender, who_for, student_gender, language_of_instruction, urgency, budget_min, budget_max, budget_currency, budget_min_hkd, budget_max_hkd, contact_name, contact_phone, status, priority_tier, matched_tutor_id, matched_at, fee_collected_at, fee_amount_cents, tags, source, last_contacted_at, board_published_at, compliance_triage, compliance_note, created_at, updated_at",
         )
         .order("created_at", { ascending: false })
         .limit(500);
@@ -138,6 +145,34 @@ function AdminCases() {
   const invalidateCases = () => {
     queryClient.invalidateQueries({ queryKey: ["admin", "cases"] });
   };
+
+  // Issue #438: manual priority dropdown — the ONLY writer of priority_tier.
+  // No LLM, no automation; a human agent picks the tier per case.
+  const priorityMutation = useMutation({
+    mutationFn: async ({ id, tier }: { id: string; tier: PriorityTier }) => {
+      const { error } = await supabase
+        .from("tutoring_cases")
+        .update({ priority_tier: tier } as never)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success(t("triage.priority_updated"));
+      queryClient.invalidateQueries({ queryKey: ["admin", "cases"] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  // Issue #438 desk counts: the Active tab shows UNASSIGNED+P1+P2, Hold the
+  // P3+P4 tail — agents see how much is waiting in each bucket before
+  // switching views.
+  const deskCounts = useMemo(() => {
+    const counts = { active: 0, hold: 0 };
+    for (const row of cases) {
+      counts[deskBucketForTier(row.priority_tier)] += 1;
+    }
+    return counts;
+  }, [cases]);
 
   const filterOptions = useMemo(() => caseFilterOptions(cases), [cases]);
 
@@ -301,6 +336,38 @@ function AdminCases() {
             <div className="space-y-8">
               {/* SoR tools (#201): new case, CSV import, unpaid queue */}
               <SorDeskTools />
+
+              {/* Issue #438 desk split (CEO lock): Active Desk = UNASSIGNED +
+                  P1 + P2 by default; Hold/Review shows only P3 + P4. The
+                  desk filter rides the URL (?desk=hold) like every #71
+                  filter. */}
+              <div className="flex items-center gap-1 rounded-xl border border-[color:var(--ink)]/10 p-1">
+                {(["active", "hold"] as const).map((bucket) => (
+                  <Button
+                    key={bucket}
+                    type="button"
+                    size="sm"
+                    variant={filters.desk === bucket ? "default" : "ghost"}
+                    className="h-9 px-4 text-sm font-bold"
+                    aria-pressed={filters.desk === bucket}
+                    onClick={() => setFilters({ desk: bucket })}
+                  >
+                    {bucket === "active"
+                      ? t("triage.desk_active")
+                      : t("triage.desk_hold")}
+                    <span
+                      className={cn(
+                        "ml-2 rounded-full px-2 py-0.5 text-[11px] font-bold",
+                        filters.desk === bucket
+                          ? "bg-white/25 text-white"
+                          : "bg-[color:var(--ink)]/[0.06] text-muted-foreground",
+                      )}
+                    >
+                      {deskCounts[bucket]}
+                    </span>
+                  </Button>
+                ))}
+              </div>
 
               {/* Header Bar */}
               <div className="flex flex-col gap-4 border-b border-[color:var(--ink)]/10 pb-6 sm:flex-row sm:items-center sm:justify-between">
@@ -594,17 +661,18 @@ function AdminCases() {
                     <ConsoleTh>Subjects & Level</ConsoleTh>
                     <ConsoleTh>Format & District</ConsoleTh>
                     <ConsoleTh>Budget</ConsoleTh>
+                    <ConsoleTh>Priority</ConsoleTh>
                     <ConsoleTh>Status</ConsoleTh>
                     <ConsoleTh>Tags</ConsoleTh>
                     <ConsoleTh align="right">Actions</ConsoleTh>
                   </tr>
                 </ConsoleTableHead>
                 <ConsoleTableBody>
-                  {isLoading && <ConsoleTableSkeletonRows columns={9} />}
+                  {isLoading && <ConsoleTableSkeletonRows columns={10} />}
 
                   {!isLoading && filtered.length === 0 && (
                     <ConsoleTableEmpty
-                      colSpan={9}
+                      colSpan={10}
                       icon={Inbox}
                       title="No case requests found"
                       description={
@@ -647,6 +715,21 @@ function AdminCases() {
                             <span className="font-mono text-sm font-bold text-[color:var(--ink)]">
                               {row.case_code}
                             </span>
+                            {(() => {
+                              const tier = normalizePriorityTier(row.priority_tier);
+                              return (
+                                <span
+                                  className={cn(
+                                    "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold",
+                                    PRIORITY_PILL_CLASS[tier],
+                                  )}
+                                >
+                                  {tier === "UNASSIGNED"
+                                    ? t("triage.priority_unassigned")
+                                    : tier}
+                                </span>
+                              );
+                            })()}
                             {row.start_timing === "asap" && (
                               <span className="inline-flex items-center rounded px-1.5 py-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-400">
                                 <Flame className="mr-0.5 h-3 w-3" aria-hidden="true" />
@@ -722,6 +805,36 @@ function AdminCases() {
                               </span>
                             </>
                           )}
+                        </ConsoleTd>
+                        <ConsoleTd>
+                          {/* Issue #438: MANUAL tier dropdown — the CEO lock
+                              keeps priority a human decision. Setting P3/P4
+                              moves the case to Hold; UNASSIGNED/P1/P2 back to
+                              Active. */}
+                          <Select
+                            value={normalizePriorityTier(row.priority_tier)}
+                            disabled={priorityMutation.isPending}
+                            onValueChange={(v) => {
+                              if (!v || v === normalizePriorityTier(row.priority_tier)) return;
+                              priorityMutation.mutate({ id: row.id, tier: v as PriorityTier });
+                            }}
+                          >
+                            <SelectTrigger
+                              className="h-8 w-[8.5rem] border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-xs font-bold"
+                              aria-label={`${t("triage.priority_label")} — ${row.case_code}`}
+                            >
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {PRIORITY_TIERS.map((tier) => (
+                                <SelectItem key={tier} value={tier}>
+                                  {tier === "UNASSIGNED"
+                                    ? t("triage.priority_unassigned")
+                                    : tier}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </ConsoleTd>
                         <ConsoleTd>
                           <span

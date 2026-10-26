@@ -4,7 +4,9 @@ import { format, formatDistanceToNow } from "date-fns";
 import {
   ArrowLeft,
   CalendarClock,
+  Check,
   Clock,
+  Copy,
   ShieldAlert,
   ExternalLink,
   Loader2,
@@ -17,9 +19,20 @@ import {
   Wallet,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import { SorCasePanel } from "@/features/cases/admin/sor-desk";
+import {
+  normalizePriorityTier,
+  PRIORITY_TIERS,
+  type PriorityTier,
+} from "@/features/cases/priority-tier";
+import {
+  copyTextToClipboard,
+  QUICK_REPLIES,
+  type QuickReply,
+} from "@/features/cases/quick-replies";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
@@ -53,6 +66,7 @@ import {
   CASE_STATUSES,
   GENDER_LABEL,
   MODE_LABEL,
+  PRIORITY_PILL_CLASS,
   START_LABEL,
   STATUS_LABEL,
   STATUS_PILL_CLASS,
@@ -128,6 +142,59 @@ function DetailRow({ label, value }: { label: string; value: React.ReactNode }) 
   );
 }
 
+/**
+ * Issue #438: one insert-only quick reply. Copies the EXACT CS-005 string
+ * to the clipboard (navigator.clipboard with a textarea fallback) and
+ * flips to a "Copied!" state — the agent then pastes it into the WhatsApp
+ * chat and sends it themselves. Never auto-sends.
+ */
+function QuickReplyRow({ reply }: { reply: QuickReply }) {
+  const { t } = useTranslation();
+  const [copied, setCopied] = useState(false);
+  const [failed, setFailed] = useState(false);
+
+  const copy = async () => {
+    const ok = await copyTextToClipboard(reply.text);
+    if (!ok) {
+      setFailed(true);
+      toast.error(t("triage.copy_failed"));
+      window.setTimeout(() => setFailed(false), 1600);
+      return;
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  };
+
+  return (
+    <div className="rounded-xl border border-[color:var(--ink)]/[0.07] bg-[color:var(--surface-subtle)]/40 px-3 py-2.5">
+      <div className="flex items-center justify-between gap-3">
+        <span className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
+          {reply.label}
+        </span>
+        <Button
+          size="sm"
+          variant="outline"
+          className="h-7 shrink-0 px-2 text-xs font-bold"
+          onClick={copy}
+        >
+          {copied ? (
+            <Check className="mr-1 h-3 w-3" aria-hidden="true" />
+          ) : (
+            <Copy className="mr-1 h-3 w-3" aria-hidden="true" />
+          )}
+          {copied ? t("triage.copied") : t("triage.copy")}
+        </Button>
+      </div>
+      <p className="mt-1.5 whitespace-pre-wrap break-words text-xs leading-relaxed text-[color:var(--ink)]">
+        {reply.text}
+      </p>
+      {failed ? (
+        <p className="mt-1 text-[11px] text-destructive">{t("triage.copy_failed")}</p>
+      ) : null}
+    </div>
+  );
+}
+
 export function CaseDetailView({
   caseRow,
   allTags,
@@ -137,6 +204,7 @@ export function CaseDetailView({
   allTags: string[];
   onBack: () => void;
 }) {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [noteBody, setNoteBody] = useState("");
@@ -418,6 +486,22 @@ export function CaseDetailView({
                 </Button>
               </div>
             </div>
+            {/* Issue #438: CS-005 insert-only quick replies. COPY ONLY — the
+                agent pastes into the WhatsApp chat and hits Send themselves;
+                nothing here auto-sends (CEO lock). */}
+            <div className="mt-4 border-t border-[color:var(--ink)]/[0.07] pt-4">
+              <p className="text-[11px] font-medium text-muted-foreground">
+                {t("triage.quick_replies_title")}
+              </p>
+              <div className="mt-2 space-y-2">
+                {QUICK_REPLIES.map((reply) => (
+                  <QuickReplyRow key={reply.key} reply={reply} />
+                ))}
+              </div>
+              <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+                {t("triage.quick_replies_hint")}
+              </p>
+            </div>
           </ConsolePanel>
 
           <ConsolePanel>
@@ -520,6 +604,47 @@ export function CaseDetailView({
                   ))}
                 </SelectContent>
               </Select>
+              {/* Issue #438: manual priority dropdown — humans decide the
+                  tier; P3/P4 land the case on Hold/Review. */}
+              <div>
+                <Label className="mb-1.5 block text-[11px] font-medium text-muted-foreground">
+                  {t("triage.priority_label")}
+                </Label>
+                <Select
+                  value={normalizePriorityTier(caseRow.priority_tier)}
+                  disabled={updateMutation.isPending}
+                  onValueChange={(v) => {
+                    const tier = v as PriorityTier;
+                    if (!tier || tier === normalizePriorityTier(caseRow.priority_tier)) return;
+                    updateMutation.mutate(
+                      { priority_tier: tier },
+                      {
+                        onSuccess: () => toast.success(t("triage.priority_updated")),
+                      },
+                    );
+                  }}
+                >
+                  <SelectTrigger className="h-9 w-full text-sm font-bold">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PRIORITY_TIERS.map((tier) => (
+                      <SelectItem key={tier} value={tier}>
+                        <span className="flex items-center gap-2">
+                          <span
+                            className={cn(
+                              "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold",
+                              PRIORITY_PILL_CLASS[tier],
+                            )}
+                          >
+                            {tier === "UNASSIGNED" ? t("triage.priority_unassigned") : tier}
+                          </span>
+                        </span>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
               <Button
                 size="sm"
                 variant="outline"

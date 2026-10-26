@@ -21,6 +21,10 @@ import {
   type CaseStatus,
 } from "@/features/cases/admin/shared";
 import {
+  deskBucketForTier,
+  type DeskBucket,
+} from "@/features/cases/priority-tier";
+import {
   ADMISSIONS_CURRICULUM,
   EXAM_SYSTEM_OPTIONS,
   LEVEL_OPTIONS,
@@ -44,6 +48,11 @@ export type CaseFilters = {
   /** Free-text search over code/title/contact/subjects/tags. */
   q: string;
   status: CaseStatus | "all";
+  /**
+   * Issue #438 desk view: Active Desk = UNASSIGNED + P1 + P2 (the default),
+   * Hold/Review = P3 + P4. Orthogonal to the compliance_hold STATUS above.
+   */
+  desk: DeskBucket;
   /** Row tag; "all" = unfiltered. */
   tag: string;
   /** tutoring_cases.exam_system (curriculum); "all" = unfiltered. */
@@ -62,6 +71,7 @@ export type CaseFilters = {
 export const DEFAULT_CASE_FILTERS: CaseFilters = {
   q: "",
   status: "all",
+  desk: "active",
   tag: "all",
   curriculum: "all",
   subjects: [],
@@ -79,6 +89,8 @@ export const CLEAR_ALL: CaseFilters = { ...DEFAULT_CASE_FILTERS, subjects: [] };
 export type CaseFiltersSearch = {
   q?: string;
   status?: string;
+  /** Issue #438 desk view; "active" is the default and never serialized. */
+  desk?: string;
   tag?: string;
   curriculum?: string;
   /** Comma-joined multi-select (?subjects=Math,Physics). */
@@ -117,6 +129,9 @@ const CREATED_ALIASES: Record<string, CaseCreatedPreset> = {
   "30d": "30d",
   "30": "30d",
 };
+
+/** Issue #438 desk view values (?desk=hold). */
+const DESK_BUCKETS: DeskBucket[] = ["active", "hold"];
 
 const RATE_BAND_IDS: CaseRateBandId[] = ["lt100", "100-200", "200-300", "gte300"];
 
@@ -177,6 +192,12 @@ export function parseCaseFilters(raw: Record<string, unknown>): CaseFilters {
   const statusHit = status ? oneOf(status, CASE_STATUSES) : null;
   if (statusHit) filters.status = statusHit;
 
+  // Issue #438 desk view: unknown/junk values drop to the Active default so
+  // a hand-typed ?desk=yesterday behaves like the in-app default.
+  const desk = asString(raw.desk);
+  const deskHit = desk ? oneOf(desk, DESK_BUCKETS) : null;
+  if (deskHit) filters.desk = deskHit;
+
   const tag = asString(raw.tag);
   if (tag !== null && tag.trim()) filters.tag = tag.trim();
 
@@ -222,6 +243,7 @@ export function caseFiltersToSearch(filters: CaseFilters): CaseFiltersSearch {
   const out: CaseFiltersSearch = {};
   if (filters.q.trim()) out.q = filters.q.trim();
   if (filters.status !== "all") out.status = filters.status;
+  if (filters.desk !== "active") out.desk = filters.desk;
   if (filters.tag !== "all") out.tag = filters.tag;
   if (filters.curriculum !== "all") out.curriculum = filters.curriculum;
   if (filters.subjects.length > 0) out.subjects = filters.subjects.join(",");
@@ -320,6 +342,10 @@ export function applyCaseFilters(
   const cutoffMs = createdCutoffMs(filters.created, now);
 
   return rows.filter((row) => {
+    // Issue #438 desk split runs FIRST: Active Desk (default) hides P3/P4,
+    // Hold/Review shows only P3/P4. Pre-migration rows carry no tier and
+    // bucket as UNASSIGNED → Active, so nothing disappears post-migration.
+    if (deskBucketForTier(row.priority_tier) !== filters.desk) return false;
     if (filters.status !== "all" && row.status !== filters.status) return false;
     if (filters.tag !== "all" && !(row.tags ?? []).includes(filters.tag)) return false;
     if (filters.curriculum !== "all" && (row.exam_system ?? "").trim() !== filters.curriculum) {
@@ -364,6 +390,7 @@ export function isDefaultFilters(filters: CaseFilters): boolean {
   return (
     filters.q.trim() === "" &&
     filters.status === "all" &&
+    filters.desk === "active" &&
     filters.tag === "all" &&
     filters.curriculum === "all" &&
     filters.subjects.length === 0 &&

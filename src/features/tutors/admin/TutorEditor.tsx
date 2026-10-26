@@ -343,6 +343,9 @@ export const tutorFormSchema = z.object({
   sen_enabled: z.boolean(),
   sen_categories: z.array(z.enum(SEN_CATEGORY_OPTIONS)),
   sen_experience: z.string().trim().max(2000).optional().or(z.literal("")),
+  // Issue #438: manual fast-responder toggle — staff-only desk flag (the
+  // owner write path is DB-frozen); drives the ⚡ shortlist badge (#428).
+  is_fast_responder: z.boolean(),
   // Issue #190 verticals (owner-writable, self-reported — never part of the
   // credential-freeze/verification surfaces). GPA and course grades are
   // draft strings here; formDataToPayload normalizes via verticals.ts.
@@ -427,6 +430,7 @@ export const emptyTutorForm: TutorFormData = {
   sen_enabled: false,
   sen_categories: [],
   sen_experience: "",
+  is_fast_responder: false,
   university_year_of_study: "",
   university_gpa: "",
   university_courses: [],
@@ -507,6 +511,7 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     sen_enabled: t.sen_enabled === true,
     sen_categories: normalizeSenCategories(t.sen_categories),
     sen_experience: t.sen_experience ?? "",
+    is_fast_responder: t.is_fast_responder === true,
     university_year_of_study: normalizeUniversityYear(t.university_year_of_study) ?? "",
     university_gpa:
       t.university_gpa === null || t.university_gpa === undefined ? "" : String(t.university_gpa),
@@ -621,6 +626,9 @@ export function formDataToPayload(v: TutorFormData) {
     sen_enabled: v.sen_enabled,
     sen_categories: v.sen_enabled ? v.sen_categories : [],
     sen_experience: v.sen_enabled ? v.sen_experience?.trim() || null : null,
+    // Issue #438: staff-only desk flag — written with the admin JWT; the DB
+    // owner guard freezes it on tutor self-writes.
+    is_fast_responder: v.is_fast_responder,
     // Issue #190 verticals: self-reported, owner-writable plain fields (NOT
     // credential-locked). Normalizers live in verticals.ts; invalid GPA or
     // half-filled grade rows are dropped, never blocked.
@@ -1504,6 +1512,7 @@ export function TutorEditor({
       profile_tags: form.profile_tags,
       tutor_code: form.tutor_code.trim() || "MM-PREVIEW",
       is_published: form.is_published,
+      is_fast_responder: form.is_fast_responder,
       start_immediately: form.start_immediately,
       earliest_start_date: form.start_immediately ? null : form.earliest_start_date || null,
       experience_years: form.experience_years === "" ? null : Number(form.experience_years),
@@ -3566,6 +3575,27 @@ export function TutorEditor({
                     <SelectItem value="private">Private</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+              {/* Issue #438: MANUAL fast-responder toggle (V1 — no reply-time
+                  automation). ON = ⚡ badge in tutor shortlists (#428). */}
+              <div className="mt-4 border-t border-[color:var(--ink)]/[0.08] pt-4">
+                <label className="flex cursor-pointer items-start gap-3">
+                  <Checkbox
+                    className="mt-0.5"
+                    checked={form.is_fast_responder}
+                    onCheckedChange={(checked) =>
+                      setForm({ ...form, is_fast_responder: checked === true })
+                    }
+                  />
+                  <span className="min-w-0">
+                    <span className="block text-sm font-bold text-[color:var(--ink)]">
+                      {t("triage.fast_responder_toggle")}
+                    </span>
+                    <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
+                      {t("triage.fast_responder_hint")}
+                    </span>
+                  </span>
+                </label>
               </div>
             </ConsolePanel>
           </div>

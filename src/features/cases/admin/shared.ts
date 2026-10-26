@@ -1,3 +1,5 @@
+import type { PriorityTier } from "@/features/cases/priority-tier";
+
 export type CaseStatus =
   "new" | "contacted" | "compliance_hold" | "matched" | "closed" | "rejected";
 
@@ -50,6 +52,9 @@ export type CaseRow = {
   // Issue #412: triage answers + hold note (absent on pre-migration rows).
   compliance_triage?: Record<string, unknown> | null;
   compliance_note?: string | null;
+  // Issue #438: manual P1–P4 triage tier (optional pre-migration; junk
+  // normalizes to UNASSIGNED via normalizePriorityTier at render time).
+  priority_tier?: PriorityTier | null;
   created_at: string;
   updated_at: string;
 };
@@ -88,6 +93,15 @@ export const STATUS_PILL_CLASS: Record<CaseStatus, string> = {
   matched: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
   closed: "bg-muted text-muted-foreground",
   rejected: "bg-red-500/15 text-red-700 dark:text-red-400",
+};
+
+/** Issue #438: priority chip colors — P1 hottest, UNASSIGNED quiet. */
+export const PRIORITY_PILL_CLASS: Record<PriorityTier, string> = {
+  UNASSIGNED: "border border-[color:var(--ink)]/15 text-muted-foreground",
+  P1: "bg-red-500/15 text-red-700 dark:text-red-400",
+  P2: "bg-amber-500/15 text-amber-700 dark:text-amber-400",
+  P3: "bg-purple-500/15 text-purple-700 dark:text-purple-400",
+  P4: "bg-[color:var(--ink)]/[0.06] text-muted-foreground",
 };
 
 export const MODE_LABEL: Record<string, string> = {
