@@ -101,7 +101,10 @@ CREATE INDEX IF NOT EXISTS idx_cases_short_case
 -- added here), and desk_language_451 added its column WITHOUT extending the
 -- grant at all — so this re-issues the union of the 81_55 list + desk_language
 -- + class_format_preference (#391) + the display-safe short-case inputs
--- (is_short_case, scheduled_lesson_count). short_case_fee /
+-- (is_short_case, scheduled_lesson_count) + priority_tier (#438: this file's
+-- REVOKE lands AFTER 20261024130404 in the chain and would otherwise strip
+-- that column's grant — found live 2026-10-26, re-granted).
+-- short_case_fee /
 -- short_case_confirmed_by / short_case_confirmed_at stay INTERNAL (service
 -- role only, like hourly_rate_hkd). Hours per lesson are derived in code from
 -- the already-granted session_length_minutes — nothing new to grant there.
@@ -124,6 +127,6 @@ GRANT SELECT (
   kindergarten_focus,
   who_for, student_gender, compliance_triage, compliance_note,
   package_type, student_count, rate_unit, class_format_preference,
-  desk_language,
+  desk_language, priority_tier,
   is_short_case, scheduled_lesson_count
 ) ON public.tutoring_cases TO authenticated;
