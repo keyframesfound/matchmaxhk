@@ -681,6 +681,32 @@
       "parent_guide_primary": "閱讀家長指南"
     }
   },
+  "desk": {
+    "active": "跟進中",
+    "hold": "擱置",
+    "priority_label": "優先次序",
+    "priority": {
+      "P1": "P1",
+      "P2": "P2",
+      "P3": "P3",
+      "P4": "P4",
+      "UNASSIGNED": "未分配"
+    },
+    "priority_updated": "已更新優先次序",
+    "empty": {
+      "active": "沒有 P1/P2/未分配個案——請查看「擱置」，或從 WhatsApp 建立新個案。"
+    },
+    "quick": {
+      "title": "快捷回覆（只插入文字）",
+      "hint": "複製字句後，自行貼到 WhatsApp 對話並按發送——系統不會自動發送任何訊息。",
+      "copy": "複製",
+      "copied": "已複製！",
+      "copy_failed": "複製失敗——請手動選取文字。",
+      "strike2": "Strike 2",
+      "rateNudge": "Rate Nudge",
+      "priceRange": "Price Range"
+    }
+  },
   "admin": {
     "users_title": "用戶與權限",
     "users_subtitle": "管理 MatchMax 用戶身份",
@@ -1977,6 +2003,24 @@
     "step_current": "進行中",
     "step_upcoming": "未開始"
   },
+  "application_status": {
+    "title": "申請進度",
+    "stage_submitted": "已提交申請",
+    "stage_review": "審核中",
+    "stage_needs_info": "需要補充資料",
+    "stage_approved": "已批准",
+    "stage_rejected": "未獲批准",
+    "desc_submitted": "我們已收到你的申請。",
+    "desc_review": "MatchMax 團隊正在審核你的申請，進度會透過我們的 WhatsApp 對話通知你。",
+    "desc_needs_info": "請先向我們提供以下資料，我們才能繼續審核：",
+    "desc_approved": "你的申請已獲批准。",
+    "desc_rejected": "此次申請未獲批准。如果你認為有誤，請在與 MatchMax 團隊的 WhatsApp 對話中回覆我們。",
+    "view_card": "查看你的上架導師卡",
+    "card_not_live": "你的導師卡現時未上架，團隊會透過 WhatsApp 對話通知你最新情況。",
+    "step_done": "已完成",
+    "step_current": "進行中",
+    "step_upcoming": "未開始"
+  },
   "case_request": {
     "fee_notice_title": "配對費用",
     "fee_notice": "行政費合共 1.5 課：第一堂學費的 100% 加第二堂學費的 50%，由自僱導師承擔，以轉數快（FPS）支付給 MatchMax。家長毋須向 MatchMax 繳付配對費用，學費直接支付給導師。每小時 HK$400 即標準行政費為第一堂 HK$400 加第二堂 HK$200。若要求為 5 節或以內的短期個案，費用則改為已編排課程組合的 20%：每小時費率 × 每堂時數 × 堂數 × 0.20。",
@@ -2461,6 +2505,12 @@
     "switcher_label": "貨幣",
     "base_price_tooltip": "導師定價：{{amount}}",
     "profile_disclaimer": "以{{currency}}顯示的價格按現行市場匯率折算，僅供參考。實際收費及課堂結算以導師協定的基準價為準。"
+  },
+  "tutor": {
+    "fastResponder": {
+      "label": "快速回應導師（⚡）",
+      "hint": "在員工短名單中為此導師顯示 ⚡ 標記。此設定由員工手動決定，導師無法自行開啟。"
+    }
   },
   "tutors": {
     "tier_aria": "學術程度",

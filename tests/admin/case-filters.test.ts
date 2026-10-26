@@ -93,6 +93,16 @@ describe("parseCaseFilters — TanStack JSON-decode tolerance", () => {
     expect(parseCaseFilters({ created: "7d" }).created).toBe("7d");
   });
 
+  it("desk (#438) parses hold; junk/number/boolean drop to the active default", () => {
+    expect(DEFAULT_CASE_FILTERS.desk).toBe("active");
+    expect(parseCaseFilters({ desk: "hold" }).desk).toBe("hold");
+    expect(parseCaseFilters({ desk: "active" }).desk).toBe("active");
+    expect(parseCaseFilters({ desk: "bogus" }).desk).toBe("active");
+    expect(parseCaseFilters({ desk: 1 }).desk).toBe("active");
+    expect(parseCaseFilters({ desk: true }).desk).toBe("active");
+    expect(parseCaseFilters({}).desk).toBe("active");
+  });
+
   it("mode accepts the hyphenated spelling a hand-typed URL would use", () => {
     expect(parseCaseFilters({ mode: "in-person" }).mode).toBe("in_person");
   });
@@ -147,6 +157,7 @@ describe("caseFiltersToSearch — default dropping + stable key order", () => {
     const filters: CaseFilters = {
       q: "ib maths",
       status: "contacted",
+      desk: "active",
       tag: "ia-review",
       curriculum: "IB",
       subjects: ["Physics", "Chemistry"],
@@ -189,6 +200,7 @@ describe("round-trip caseFiltersToSearch ∘ parseCaseFilters", () => {
     DEFAULT_CASE_FILTERS,
     { ...DEFAULT_CASE_FILTERS, q: "maths" },
     { ...DEFAULT_CASE_FILTERS, status: "matched" },
+    { ...DEFAULT_CASE_FILTERS, desk: "hold" },
     { ...DEFAULT_CASE_FILTERS, tag: "sen" },
     { ...DEFAULT_CASE_FILTERS, curriculum: "A-Level" },
     { ...DEFAULT_CASE_FILTERS, subjects: ["Physics", "Chemistry"] },
@@ -361,6 +373,22 @@ describe("applyCaseFilters — fixture queue", () => {
     expect(apply({ status: "contacted", curriculum: "IB", subjects: ["Physics"] })).toEqual(["r2"]);
     expect(apply({ status: "new", mode: "online" })).toEqual([]);
   });
+
+  it("desk split (#438): Active = UNASSIGNED/P1/P2 (default), Hold = P3/P4", () => {
+    const tiered = [
+      mkRow({ id: "d-unassigned" }),
+      mkRow({ id: "d-p1", priority_tier: "P1" as const }),
+      mkRow({ id: "d-p2", priority_tier: "P2" as const }),
+      mkRow({ id: "d-p3", priority_tier: "P3" as const }),
+      mkRow({ id: "d-p4", priority_tier: "P4" as const }),
+      // Pre-migration row fetched before the column existed: junk → Active.
+      mkRow({ id: "d-legacy", priority_tier: null }),
+    ];
+    const byDesk = (desk: "active" | "hold") =>
+      applyCaseFilters(tiered, { ...DEFAULT_CASE_FILTERS, desk }, NOW).map((row) => row.id);
+    expect(byDesk("active")).toEqual(["d-unassigned", "d-p1", "d-p2", "d-legacy"]);
+    expect(byDesk("hold")).toEqual(["d-p3", "d-p4"]);
+  });
 });
 
 describe("caseFilterOptions — constants first, row extras merged in", () => {
@@ -414,6 +442,7 @@ describe("isDefaultFilters + CLEAR_ALL", () => {
 
   it("any active filter makes it false", () => {
     expect(isDefaultFilters({ ...DEFAULT_CASE_FILTERS, q: "x" })).toBe(false);
+    expect(isDefaultFilters({ ...DEFAULT_CASE_FILTERS, desk: "hold" })).toBe(false);
     expect(isDefaultFilters({ ...DEFAULT_CASE_FILTERS, subjects: ["Math"] })).toBe(false);
     expect(isDefaultFilters({ ...DEFAULT_CASE_FILTERS, rateBand: "gte300" })).toBe(false);
     expect(isDefaultFilters({ ...DEFAULT_CASE_FILTERS, created: "7d" })).toBe(false);
