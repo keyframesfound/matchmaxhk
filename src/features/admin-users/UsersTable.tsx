@@ -98,7 +98,7 @@ export function UsersTable({
                 key={user.user_id}
                 className="group align-middle transition-colors hover:bg-[color:var(--surface-subtle)]/40"
               >
-                {/* User Identity Column — Issue #437: staff desk client faces
+                {/* User Identity Column, Issue #437: staff desk client faces
                     use the shared branded initial avatar (Azure/Sky palette,
                     deterministic per user_id). */}
                 <ConsoleTd>
@@ -166,7 +166,7 @@ export function UsersTable({
                       size="sm"
                       variant="ghost"
                       onClick={() => onManageRoles(user)}
-                      className="h-6 px-1.5 text-[10px] font-semibold text-muted-foreground hover:text-[color:var(--ink)]"
+                      className="h-6 px-1.5 text-[11px] font-semibold text-muted-foreground hover:text-[color:var(--ink)]"
                     >
                       Edit
                     </Button>

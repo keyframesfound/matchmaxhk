@@ -65,18 +65,18 @@ export const Route = createFileRoute("/_authenticated/account")({
 });
 
 const STATUS_BADGE: Record<string, string> = {
-  draft: "bg-slate-500/10 text-slate-600",
+  draft: "bg-slate-500/10 text-muted-foreground",
   pending_review: "bg-amber-500/10 text-amber-700",
   published: "bg-emerald-500/10 text-emerald-700",
-  hidden: "bg-slate-500/10 text-slate-600",
-  rejected: "bg-[#F4212E]/10 text-[#B42318]",
+  hidden: "bg-slate-500/10 text-muted-foreground",
+  rejected: "bg-[#F4212E]/10 text-destructive",
 };
 
 const CASE_STATUS_BADGE: Record<string, string> = {
   pending: "bg-amber-500/10 text-amber-700",
   matched: "bg-emerald-500/10 text-emerald-700",
-  closed: "bg-slate-500/10 text-slate-600",
-  rejected: "bg-[#F4212E]/10 text-[#B42318]",
+  closed: "bg-slate-500/10 text-muted-foreground",
+  rejected: "bg-[#F4212E]/10 text-destructive",
 };
 
 const CASE_STATUS_KEY: Record<string, string> = {
@@ -89,7 +89,7 @@ const CASE_STATUS_KEY: Record<string, string> = {
 const MY_TUTOR_BLOCK_COLS =
   "id, display_name, tutor_code, photo_url, rating, review_count, hourly_rate, pricing_tiers, currency, subjects, self_introduction, lesson_mode, verification_tier, remaining_student_slots, is_accepting_students, start_immediately, earliest_start_date, is_published";
 
-/** P6 identity/profile block row — a slice of the tutors table (owner read). */
+/** P6 identity/profile block row, a slice of the tutors table (owner read). */
 type MyTutorCard = {
   id: string;
   display_name: string;
@@ -149,7 +149,7 @@ function AccountPage() {
     enabled: Boolean(user),
   });
 
-  // P6: the signed-in account's own card (RLS tutors_owner_select — includes
+  // P6: the signed-in account's own card (RLS tutors_owner_select, includes
   // an unpublished card, so the owner still sees it here).
   const myTutorQuery = useQuery({
     queryKey: ["account", "my-tutor-card", user?.id],
@@ -166,7 +166,7 @@ function AccountPage() {
   });
 
   // P6 parent block: cases this account created (guest legacy rows have no
-  // parent_id — they stay on the concierge path).
+  // parent_id, they stay on the concierge path).
   const myCasesQuery = useQuery({
     queryKey: ["account", "my-cases", user?.id],
     queryFn: async () => {
@@ -231,13 +231,13 @@ function AccountPage() {
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
       <SiteHeader />
-      <main className="mx-auto w-full max-w-5xl flex-1 px-4 py-10 sm:px-6">
+      <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6">
         <h1 className="text-2xl font-bold tracking-normal">{t("account.title")}</h1>
 
-        {/* #141: post-signup checklist — first block, dismissible, hidden once done */}
+        {/* #141: post-signup checklist, first block, dismissible, hidden once done */}
         <SignupChecklistCard />
 
-        {/* P6: identity + rating — the store header */}
+        {/* P6: identity + rating, the store header */}
         <section className="mt-6 flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card p-5">
           {tutor?.photo_url ? (
             <img
@@ -311,7 +311,7 @@ function AccountPage() {
           </div>
         </section>
 
-        {/* P6: parent CTA — no card linked yet */}
+        {/* P6: parent CTA, no card linked yet */}
         {!tutor && !myTutorQuery.isLoading ? (
           <section className="mt-6 rounded-2xl border border-dashed border-border bg-card p-6">
             <p className="text-sm font-semibold text-[color:var(--ink)]">
@@ -418,7 +418,7 @@ function AccountPage() {
           </section>
         ) : null}
 
-        {/* My notes (tutor side, P8) — drafts included */}
+        {/* My notes (tutor side, P8), drafts included */}
         <section className="mt-8 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-lg font-bold">
@@ -459,7 +459,7 @@ function AccountPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="truncate font-semibold">{material.title}</p>
                       <span
-                        className={`rounded-md px-2 py-0.5 text-xs font-bold ${STATUS_BADGE[material.status] ?? "bg-slate-500/10 text-slate-600"}`}
+                        className={`rounded-md px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[material.status] ?? "bg-slate-500/10 text-muted-foreground"}`}
                       >
                         {t(`account.status_${material.status}`)}
                       </span>
@@ -470,7 +470,7 @@ function AccountPage() {
                       )}
                     </div>
                     {material.status === "rejected" && material.rejectionReason && (
-                      <p className="mt-1 text-xs text-[#B42318]">
+                      <p className="mt-1 text-xs text-destructive">
                         {t("account.rejection_reason", { reason: material.rejectionReason })}
                       </p>
                     )}
@@ -518,7 +518,7 @@ function AccountPage() {
           )}
         </section>
 
-        {/* Freestyle gigs (tutor side, #326/#328) — my services + fulfillment */}
+        {/* Freestyle gigs (tutor side, #326/#328), my services + fulfillment */}
         <section className="mt-8 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <h2 className="flex items-center gap-2 text-lg font-bold">
@@ -559,13 +559,13 @@ function AccountPage() {
                     <div className="flex flex-wrap items-center gap-2">
                       <p className="truncate font-semibold">{gig.title}</p>
                       <span
-                        className={`rounded-md px-2 py-0.5 text-xs font-bold ${STATUS_BADGE[gig.status] ?? "bg-slate-500/10 text-slate-600"}`}
+                        className={`rounded-md px-2 py-0.5 text-xs font-medium ${STATUS_BADGE[gig.status] ?? "bg-slate-500/10 text-muted-foreground"}`}
                       >
                         {t(`account.status_${gig.status}`)}
                       </span>
                     </div>
                     {gig.status === "rejected" && gig.rejectionReason && (
-                      <p className="mt-1 text-xs text-[#B42318]">
+                      <p className="mt-1 text-xs text-destructive">
                         {t("account.rejection_reason", { reason: gig.rejectionReason })}
                       </p>
                     )}
@@ -651,7 +651,7 @@ function AccountPage() {
                     </p>
                   </div>
                   <span
-                    className={`rounded-md px-2 py-0.5 text-xs font-bold ${CASE_STATUS_BADGE[row.status] ?? "bg-slate-500/10 text-slate-600"}`}
+                    className={`rounded-md px-2 py-0.5 text-xs font-medium ${CASE_STATUS_BADGE[row.status] ?? "bg-slate-500/10 text-muted-foreground"}`}
                   >
                     {t(CASE_STATUS_KEY[row.status] ?? "account.case_status_other")}
                   </span>
@@ -718,6 +718,22 @@ function AccountPage() {
                       {t("orders.refunded_badge")}
                     </span>
                   )}
+                  {/* #429 escrow badges on the Bought rows. */}
+                  {row.status === "held" && (
+                    <span className="rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-700">
+                      {t("account.order_held")}
+                    </span>
+                  )}
+                  {row.status === "released" && (
+                    <span className="rounded-md bg-emerald-500/10 px-2.5 py-1 text-xs font-bold text-emerald-700">
+                      {t("account.order_released")}
+                    </span>
+                  )}
+                  {row.status === "refunded_from_hold" && (
+                    <span className="rounded-md bg-amber-500/10 px-2.5 py-1 text-xs font-bold text-amber-700">
+                      {t("orders.refunded_from_hold_badge")}
+                    </span>
+                  )}
                   {row.action === "preparing" && (
                     <span className="rounded-md bg-accent px-2.5 py-1 text-xs font-bold text-accent-foreground">
                       {t("orders.preparing_badge")}
@@ -758,7 +774,7 @@ function AccountPage() {
 }
 
 /**
- * #328: one open gig order with its delivery action — file_back uploads a
+ * #328: one open gig order with its delivery action, file_back uploads a
  * return file (PDF/DOCX); session/package mark complete with an optional
  * note. Buyer identity never appears here (the server fn never returns it).
  */
@@ -807,7 +823,7 @@ function GigFulfillRow({ order }: { order: MyGigOrderRow }) {
           <div className="flex flex-wrap items-center gap-2">
             <p className="truncate font-semibold">{order.title}</p>
             {order.status === "past_due" ? (
-              <span className="rounded-md bg-[#F4212E]/10 px-2 py-0.5 text-xs font-bold text-[#B42318]">
+              <span className="rounded-md bg-[#F4212E]/10 px-2 py-0.5 text-xs font-bold text-destructive">
                 {t("account.order_past_due")}
               </span>
             ) : (
@@ -860,7 +876,7 @@ function GigFulfillRow({ order }: { order: MyGigOrderRow }) {
               onChange={(e) => setFile(e.target.files?.[0] ?? null)}
             />
             {fileTooLarge ? (
-              <p className="text-xs text-[#B42318]">{t("gigs.form.return_too_large")}</p>
+              <p className="text-xs text-destructive">{t("gigs.form.return_too_large")}</p>
             ) : null}
           </div>
         ) : (

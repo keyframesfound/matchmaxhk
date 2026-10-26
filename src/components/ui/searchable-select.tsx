@@ -7,7 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 /**
  * Set to true by modal containers (e.g. the FiltersDialog) hosting this
  * select. A modal Radix Dialog scroll-locks the document, and the lock
- * preventDefaults every wheel/touchmove aimed at the portaled list — so the
+ * preventDefaults every wheel/touchmove aimed at the portaled list, so the
  * list itself must run its own scroll lock (Popover `modal`) to stay
  * scrollable while open.
  */
@@ -170,7 +170,7 @@ export function SearchableSelect({
           aria-expanded={open}
           aria-invalid={invalid || undefined}
           className={cn(
-            "group flex h-11 w-full items-center justify-between gap-2 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3.5 py-2 text-left text-sm font-medium text-[color:var(--ink)] transition-[border-color,background-color] duration-150 hover:border-[color:var(--ink)]/30 hover:bg-[color:var(--surface)] focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 disabled:cursor-not-allowed disabled:opacity-50",
+            "group flex h-11 w-full items-center justify-between gap-2 rounded-md border border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3.5 py-2 text-left text-sm font-medium text-[color:var(--ink)] transition-[border-color,background-color] duration-150 hover:border-[color:var(--ink)]/30 hover:bg-[color:var(--surface)] focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50",
             invalid &&
               "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30",
             !value && "text-[color:var(--ink)]/50",
@@ -206,7 +206,7 @@ export function SearchableSelect({
               value={query}
               onChange={(e) => updateQuery(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="h-9 w-full rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] pl-8 pr-8 text-base font-medium text-[color:var(--ink)] placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring/40 sm:text-sm"
+              className="h-9 w-full rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] pl-8 pr-8 text-base font-medium text-[color:var(--ink)] placeholder:text-muted-foreground transition-[border-color,background-color] focus:border-ring focus:bg-[color:var(--surface)] focus:outline-none focus:ring-2 focus:ring-ring sm:text-sm"
             />
             {query && (
               <button

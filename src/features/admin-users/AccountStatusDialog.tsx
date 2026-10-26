@@ -146,7 +146,7 @@ export function AccountStatusDialog({
             {copy.title}
           </AlertDialogTitle>
           <AlertDialogDescription className="text-xs text-muted-foreground">
-            {user.display_name ?? user.email ?? user.user_id} — {copy.description}
+            {user.display_name ?? user.email ?? user.user_id}, {copy.description}
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -193,7 +193,7 @@ export function AccountStatusDialog({
                   onChange={(e) => setNote(e.target.value)}
                   maxLength={500}
                   rows={2}
-                  placeholder="Context for the record — shown to the user with the reason."
+                  placeholder="Context for the record, shown to the user with the reason."
                   className="text-xs"
                 />
               </div>

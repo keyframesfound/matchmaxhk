@@ -1,6 +1,6 @@
 import { contactFilterError } from "@/lib/contact-filter";
 
-// Issue #323 — Tutor Academic Profile smart headline.
+// Issue #323, Tutor Academic Profile smart headline.
 // One headline per tutor, max 40 chars, auto-generated from the tutor's
 // qualifications (curriculum + optional overall score) but never overwriting
 // a tutor's manual edit (the form tracks an `isDirty` flag; see

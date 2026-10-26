@@ -1,5 +1,5 @@
 /**
- * Issues #205 + #292 — pure planning helpers for the lazy notification drain.
+ * Issues #205 + #292, pure planning helpers for the lazy notification drain.
  *
  * The drain (bus.functions.ts) runs on bell reads / event-producing writes —
  * this repo has no cron. Everything decidable without a DB round-trip lives

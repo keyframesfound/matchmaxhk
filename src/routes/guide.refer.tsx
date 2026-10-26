@@ -5,6 +5,7 @@ import { ArrowRight, Copy, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HelpArticleLink } from "@/features/help/components";
 import { getHelpArticle } from "@/features/help/content";
+import { canonicalUrl } from "@/features/i18n/seo";
 import {
   ContentsRow,
   GuideHeading,
@@ -29,14 +30,14 @@ export const Route = createFileRoute("/guide/refer")({
         content:
           "Share your link, your friend applies as a tutor, and after their first case completes two lessons and the fee you earn 15% of the MatchMax admin fee.",
       },
-      { property: "og:url", content: "https://matchmax.hk/guide/refer" },
+      { property: "og:url", content: canonicalUrl("/guide/refer") },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/guide/refer" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/guide/refer") }],
   }),
   component: GuideReferPage,
 });
 
-/** Issue #213: the refer page — five steps, the rule, the exclusions. */
+/** Issue #213: the refer page, five steps, the rule, the exclusions. */
 function GuideReferPage() {
   const { t } = useTranslation();
 
@@ -64,12 +65,9 @@ function GuideReferPage() {
           { id: "exclusions", label: t("guide.refer.exclusions_title") },
         ]}
       />
-      <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
+      <section className="mx-auto max-w-[1600px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
         <div className="max-w-3xl">
-          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-            {t("guide.refer.eyebrow")}
-          </p>
-          <h1 className="mt-3 flex flex-wrap items-center gap-3 text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">
+          <h1 className="flex flex-wrap items-center gap-3 text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
             <Gift className="h-9 w-9 text-[color:var(--brand-link)]" aria-hidden="true" />
             {t("guide.tab_refer")}
           </h1>

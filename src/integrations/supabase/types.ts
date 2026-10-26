@@ -1063,6 +1063,7 @@ export type Database = {
           contact_name: string;
           contact_phone: string;
           created_at: string;
+          desk_language: string;
           description: string | null;
           district: string | null;
           exam_system: string | null;
@@ -1130,6 +1131,7 @@ export type Database = {
           contact_name: string;
           contact_phone: string;
           created_at?: string;
+          desk_language?: string;
           description?: string | null;
           district?: string | null;
           exam_system?: string | null;
@@ -1199,6 +1201,7 @@ export type Database = {
           contact_name?: string;
           contact_phone?: string;
           created_at?: string;
+          desk_language?: string;
           description?: string | null;
           district?: string | null;
           exam_system?: string | null;
@@ -1667,7 +1670,13 @@ export type Database = {
       case_gender_pref: "any" | "male" | "female";
       case_mode: "online" | "in_person" | "either";
       case_request_status:
-        "new" | "contacted" | "compliance_hold" | "matched" | "closed" | "rejected";
+        | "new"
+        | "contacted"
+        | "compliance_hold"
+        | "matched"
+        | "failed_trial_pivot"
+        | "closed"
+        | "rejected";
       case_urgency: "low" | "normal" | "high";
       org_member_role: "owner" | "admin";
       org_member_status: "pending" | "active" | "revoked";
@@ -1801,7 +1810,15 @@ export const Constants = {
       app_role: ["super_admin", "admin", "staff", "tutor", "parent"],
       case_gender_pref: ["any", "male", "female"],
       case_mode: ["online", "in_person", "either"],
-      case_request_status: ["new", "contacted", "compliance_hold", "matched", "closed", "rejected"],
+      case_request_status: [
+        "new",
+        "contacted",
+        "compliance_hold",
+        "matched",
+        "failed_trial_pivot",
+        "closed",
+        "rejected",
+      ],
       case_urgency: ["low", "normal", "high"],
       org_member_role: ["owner", "admin"],
       org_member_status: ["pending", "active", "revoked"],

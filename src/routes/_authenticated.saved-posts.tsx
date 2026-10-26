@@ -78,10 +78,10 @@ function SavedPostsPage() {
     <div className="flex min-h-screen flex-col bg-[color:var(--surface-subtle)] text-[color:var(--ink)]">
       <SiteHeader />
       <main className="flex-1">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16">
+        <div className="mx-auto max-w-[1536px] px-4 py-12 sm:px-6 sm:py-16">
           <div className="flex items-end justify-between gap-4">
             <div>
-              <p className="text-sm font-medium text-[color:var(--muted-foreground)]">
+              <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
                 Your collection
               </p>
               <h1 className="mt-2 text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
@@ -122,7 +122,7 @@ function SavedPostsPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                 {savedTutors.map((tutor) => {
                   const inquiry = getTutorInquiryAction(tutor, whatsappNumber, "en");
                   return (

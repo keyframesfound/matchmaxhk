@@ -1,5 +1,5 @@
 /**
- * Issue #190 slice — academic-tier search helpers for the public tutor
+ * Issue #190 slice, academic-tier search helpers for the public tutor
  * directory (/tutors). Pure functions only: URL-param parsing (TanStack
  * search params arrive JSON-decoded), tier gating, keyword-haystack building
  * and kindergarten-toggle mapping. The route file and TutorsSearch components
@@ -19,16 +19,14 @@ import {
 /**
  * The `tier` search param: only the exact canonical strings are accepted
  * (?tier=university arrives as the string "university"; anything else —
- * junk, numbers, casing variants — falls back to null and the route default).
+ * junk, numbers, casing variants, falls back to null and the route default).
  */
 export function parseTierParam(raw: unknown): AcademicTier | undefined {
-  // undefined (NOT null) — the schema wraps this in z.enum(...).optional(),
+  // undefined (NOT null), the schema wraps this in z.enum(...).optional(),
   // and a cold-load URL without ?tier arrives as null, which optional()
   // rejects (cold-load 500 on /tutors).
   if (typeof raw !== "string") return undefined;
-  return (ACADEMIC_TIERS as readonly string[]).includes(raw)
-    ? (raw as AcademicTier)
-    : undefined;
+  return (ACADEMIC_TIERS as readonly string[]).includes(raw) ? (raw as AcademicTier) : undefined;
 }
 
 /**

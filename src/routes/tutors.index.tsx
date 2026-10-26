@@ -33,7 +33,7 @@ import {
 } from "@/features/tutors/tutor-display";
 import { DirectoryToggle, MaterialsDirectory } from "@/features/materials/materials-directory";
 import { ParentCoachTour } from "@/features/tours/ParentCoachTour";
-import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
+import { canonicalUrl, currentSeoLocale, hreflangLinks, localizedMeta } from "@/features/i18n/seo";
 import {
   fetchPublishedTutors,
   getTutorCardHighlights,
@@ -69,7 +69,7 @@ import { supabase } from "@/integrations/supabase/client";
 
 const searchSchema = z.object({
   // Issue #190: academic-tier tab (Kindergarten | Primary & Secondary |
-  // University). Only the exact canonical strings are accepted — TanStack
+  // University). Only the exact canonical strings are accepted, TanStack
   // delivers search params JSON-decoded (?tier=university is "university").
   tier: z.preprocess(
     parseTierParam,
@@ -78,7 +78,7 @@ const searchSchema = z.object({
   category: z.string().optional(),
   subject: z.string().optional(),
   // Issue #187: extra subjects beyond the primary (comma-free, "||"-joined).
-  // AND-ed with `subject` — a tutor must teach every selected subject.
+  // AND-ed with `subject`, a tutor must teach every selected subject.
   subjects_extra: z.string().optional(),
   station: z.string().optional(), // nearest MTR station to the student
   mode: z.string().optional(), // online | in_person | either
@@ -95,7 +95,7 @@ const searchSchema = z.object({
   major: z.string().optional(), // issue #23 exact major over the free-text degree fields
   // Issue #190: university-tab field of study (text-contains over degrees).
   field: z.string().optional(),
-  // Issue #190: kindergarten-tab toggles — persist as "true" strings; accept
+  // Issue #190: kindergarten-tab toggles, persist as "true" strings; accept
   // boolean true too (the JSON-decode gotcha).
   k_phonics: z.preprocess(parseToggleParam, z.boolean().optional()),
   k_mandarin: z.preprocess(parseToggleParam, z.boolean().optional()),
@@ -139,9 +139,9 @@ export const Route = createFileRoute("/tutors/")({
           },
         }),
         { name: "robots", content: "index, follow" },
-        { property: "og:url", content: "https://matchmax.hk/tutors" },
+        { property: "og:url", content: canonicalUrl("/tutors") },
       ],
-      links: [{ rel: "canonical", href: "https://matchmax.hk/tutors" }],
+      links: [{ rel: "canonical", href: canonicalUrl("/tutors") }, ...hreflangLinks("/tutors")],
     };
   },
   component: TutorsDirectory,
@@ -211,7 +211,7 @@ function TutorsDirectory() {
   const effectiveStationFilter = modeFilter === "in_person" ? stationFilter : "";
   // Issue #217: profile-tag filter (the tag chips on the cards link here).
   const tagFilter = normalizeProfileTag(draft.tag ?? "");
-  // Issue #199: SEN capability filter — sen_enabled AND every picked category.
+  // Issue #199: SEN capability filter, sen_enabled AND every picked category.
   const senOnly = draft.sen === true;
   const senCategoryFilters = (draft.sen_categories ?? "")
     .split("||")
@@ -251,7 +251,7 @@ function TutorsDirectory() {
         !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter))
       )
         return false;
-      // Issue #187: AND semantics — a tutor must teach every extra subject too.
+      // Issue #187: AND semantics, a tutor must teach every extra subject too.
       if (
         isPrimarySecondaryTier &&
         extraSubjectFilters.length > 0 &&
@@ -271,9 +271,9 @@ function TutorsDirectory() {
       if (statusFilter && (tut.tutor_status ?? "") !== statusFilter) return false;
       // Issue #217: exact match on one of the tutor's profile tags.
       if (tagFilter && !(tut.profile_tags ?? []).includes(tagFilter)) return false;
-      // Issue #142: Verified Tutors Only — hide everything below tier_2_verified.
+      // Issue #142: Verified Tutors Only, hide everything below tier_2_verified.
       if (verifiedOnly && tut.verification_tier !== "tier_2_verified") return false;
-      // Issue #199: SEN support — enabled tutors only, and every picked
+      // Issue #199: SEN support, enabled tutors only, and every picked
       // category must be on the tutor's profile (match-all).
       if (senOnly && !matchesSenFilter(senCategoryFilters, tut)) return false;
       // Issue #130: institutional-pedigree filters over free-text education
@@ -301,11 +301,11 @@ function TutorsDirectory() {
         })
       )
         return false;
-      // Issue #190: kindergarten tab — the three topic toggles (AND via
+      // Issue #190: kindergarten tab, the three topic toggles (AND via
       // matchesKindergartenFilter).
       if (isKindergartenTier && !matchesKindergartenFilter(tut.subjects, kindergartenToggles))
         return false;
-      // Issue #190: university tab — field of study, text-contains over the
+      // Issue #190: university tab, field of study, text-contains over the
       // degree fields.
       if (
         isUniversityTier &&
@@ -401,7 +401,7 @@ function TutorsDirectory() {
   }, [educationFiltered, filtered.length, tutors]);
 
   // Issue #102: batched engagement summaries for every rendered card (main
-  // grid + pedigree fallback) — one RPC call; the card renders demand /
+  // grid + pedigree fallback), one RPC call; the card renders demand /
   // parent-favorite badges only above the #102/#151 thresholds.
   const engagementTutorIds = useMemo(
     () => [...filtered.map((tut) => tut.id), ...fallbackTutors.map((tut) => tut.id)],
@@ -480,7 +480,7 @@ function TutorsDirectory() {
         />
         <main className="flex-1">
           <section className="border-b border-border bg-[color:var(--surface-header)] pt-10 pb-6 sm:pt-12 sm:pb-8 lg:border-b-0">
-            <div className="mx-auto max-w-7xl px-4 sm:px-6">
+            <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
                   <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
@@ -519,7 +519,7 @@ function TutorsDirectory() {
           </section>
           {directoryView === "tutors" ? (
             <StickySearchBar>
-              <div data-tour="parent-search" className="mx-auto max-w-4xl px-4 sm:px-6 py-3">
+              <div data-tour="parent-search" className="mx-auto max-w-5xl px-4 sm:px-6 py-3">
                 <TutorsSearchBar
                   draft={draft}
                   onDraftChange={setDraftParam}
@@ -536,10 +536,10 @@ function TutorsDirectory() {
             </StickySearchBar>
           ) : null}
           {directoryView === "materials" ? (
-            <MaterialsDirectory whatsappNumber={whatsappNumber || undefined} />
+            <MaterialsDirectory />
           ) : (
             <section className="pt-6 pb-12 sm:pt-8">
-              <div className="mx-auto max-w-7xl px-4 sm:px-6">
+              <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
                 <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
                   {isLoading ? (
                     <Skeleton className="h-4 w-28" />
@@ -555,7 +555,7 @@ function TutorsDirectory() {
                     <button
                       type="button"
                       onClick={() => setDraftParam({ tag: "" })}
-                      className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                      className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
                     >
                       <Hash className="h-3 w-3" aria-hidden="true" />
                       {tagFilter}
@@ -577,7 +577,7 @@ function TutorsDirectory() {
                             setDraftParam({ tag: item.tag });
                             applySearch({ tag: item.tag });
                           }}
-                          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+                          className="inline-flex items-center gap-1 rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
                         >
                           <Hash className="h-3 w-3" aria-hidden="true" />
                           {item.tag}
@@ -590,7 +590,7 @@ function TutorsDirectory() {
                 </div>
 
                 {isLoading && (
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {Array.from({ length: 6 }).map((_, i) => (
                       <Skeleton key={i} className="h-[23rem] rounded-[10px] border border-border" />
                     ))}
@@ -599,12 +599,11 @@ function TutorsDirectory() {
 
                 {!isLoading && filtered.length === 0 && educationFiltered && (
                   <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
-                      <GraduationCap
-                        className="h-5 w-5 text-[color:var(--muted-foreground)]"
-                        aria-hidden="true"
-                      />
-                    </div>
+                    <GraduationCap
+                      className="mx-auto mb-4 h-6 w-6 text-[color:var(--muted-foreground)]"
+                      strokeWidth={1.75}
+                      aria-hidden="true"
+                    />
                     <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
                       {t("directory.empty_edu_title")}
                     </h2>
@@ -618,7 +617,7 @@ function TutorsDirectory() {
                     </div>
                     {fallbackTutors.length > 0 && (
                       <div className="mt-8 text-left">
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                           {fallbackTutors.map((tut: Tutor) => {
                             const inquiry = getTutorInquiryAction(
                               tut,
@@ -672,12 +671,11 @@ function TutorsDirectory() {
 
                 {!isLoading && filtered.length === 0 && !educationFiltered && (
                   <div className="rounded-sm border border-border bg-card p-8 text-center sm:p-12">
-                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
-                      <SearchX
-                        className="h-5 w-5 text-[color:var(--muted-foreground)]"
-                        aria-hidden="true"
-                      />
-                    </div>
+                    <SearchX
+                      className="mx-auto mb-4 h-6 w-6 text-[color:var(--muted-foreground)]"
+                      strokeWidth={1.75}
+                      aria-hidden="true"
+                    />
                     <h2 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
                       {t(tierEmptyTitleKey)}
                     </h2>
@@ -709,7 +707,7 @@ function TutorsDirectory() {
                 )}
 
                 {!isLoading && filtered.length > 0 && (
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                     {filtered.map((tut: Tutor, index: number) => {
                       const inquiry = getTutorInquiryAction(tut, whatsappNumber, i18n.language);
                       return (

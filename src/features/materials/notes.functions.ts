@@ -7,7 +7,7 @@ import { buildBuyWhatsAppUrl, buildBookLessonsWhatsAppUrl } from "@/features/mat
 
 /**
  * #203 + P8/P9/P13/P14: PUBLIC note-page reads. Server-side (service role)
- * with explicit whitelists — the public surface must never leak staff
+ * with explicit whitelists, the public surface must never leak staff
  * columns (reviewed_by, rejection reasons) or private paths, so this mirrors
  * the PUBLIC_CASE_COLUMNS pattern from the case board instead of relying on
  * RLS column visibility.
@@ -22,7 +22,7 @@ export const PUBLIC_NOTE_COLUMNS =
  * (material status='published' AND tutors.is_published=true) is repeated
  * here explicitly on every public query.
  */
-const PUBLIC_NOTE_TUTOR_JOIN =
+export const PUBLIC_NOTE_TUTOR_JOIN =
   "tutors!inner(display_name, tutor_code, user_id, is_published, verification_tier)";
 
 export type PublicNote = {
@@ -52,7 +52,7 @@ export type PublicNote = {
   soldCount: number;
   createdAt: string;
   tutorId: string;
-  /** The tutor's AUTH account id (tutors.user_id) — lets the page hide
+  /** The tutor's AUTH account id (tutors.user_id), lets the page hide
    * owner affordances (view counting, buy, report) correctly. */
   tutorUserId: string;
   tutorName: string;
@@ -77,7 +77,7 @@ type NoteRow = Record<string, unknown> & {
   } | null;
 };
 
-function mapPublicNote(row: NoteRow): PublicNote | null {
+export function mapPublicNote(row: NoteRow): PublicNote | null {
   const id = typeof row.id === "string" ? row.id : "";
   const tutor = row.tutors ?? null;
   const tutorCode = typeof tutor?.tutor_code === "string" ? tutor.tutor_code : "";

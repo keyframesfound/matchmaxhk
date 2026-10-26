@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowRight, BookOpen, Briefcase, ChevronRight, UserRoundCheck } from "lucide-react";
 
-import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
+import { canonicalUrl, currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
 import { PageBackButton } from "@/components/layout/page-back-button";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
@@ -19,13 +19,13 @@ export const Route = createFileRoute("/tutor-playbook")({
             "zh-HK": "導師攻略：家長關係同禮儀 | MatchMax",
           },
           description: {
-            en: "The MatchMax Tutor Playbook — real-world scripts and protocols for tutors on parent relations, etiquette, logistics, and admin, from onboarding to locking in a weekly slot.",
+            en: "The MatchMax Tutor Playbook, real-world scripts and protocols for tutors on parent relations, etiquette, logistics, and admin, from onboarding to locking in a weekly slot.",
             "zh-HK":
               "MatchMax 導師攻略——由上手到鎖定每週固定時段，實戰話術同流程指南：家長關係、禮儀、物流同行政。",
           },
         }),
         { name: "robots", content: "index, follow" },
-        { property: "og:url", content: "https://matchmax.hk/tutor-playbook" },
+        { property: "og:url", content: canonicalUrl("/tutor-playbook") },
       ],
     };
   },
@@ -170,7 +170,7 @@ const SECTIONS: Section[] = [
             lines: [
               "Hi [Parent] and [Student]! Here's a quick recap of today's lesson. ☺️",
               "**Covered:** We worked on [topic], focusing on [key skill].",
-              "**Progress:** [Student], you were able to [specific task] independently—well done! [Skill] still needed some guidance, so we'll keep practising.",
+              "**Progress:** [Student], you were able to [specific task] independently, well done! [Skill] still needed some guidance, so we'll keep practising.",
               "**Additional practice:** Please complete [homework] by [deadline].",
               "**Next steps:** Next lesson, we'll focus on [priority]. If anything new comes up at school, please share it here beforehand so I can prepare! 🙏🏻",
             ],
@@ -197,7 +197,7 @@ const SECTIONS: Section[] = [
         items: [
           {
             label: "The script",
-            text: "Hi [Parent], I just had a great 15-minute chat with [Student] to build out their Study Plan! I've attached it here. To keep this momentum going and ensure we hit these targets, establishing a consistent weekly routine works best. I currently have Thursdays at 17:00 available—would you like to lock this in as our regular slot? No pressure at all, just let me know what works best for your schedule! ☺️",
+            text: "Hi [Parent], I just had a great 15-minute chat with [Student] to build out their Study Plan! I've attached it here. To keep this momentum going and ensure we hit these targets, establishing a consistent weekly routine works best. I currently have Thursdays at 17:00 available. Would you like to lock this in as our regular slot? No pressure at all, just let me know what works best for your schedule! ☺️",
           },
         ],
       },
@@ -265,7 +265,7 @@ const SECTIONS: Section[] = [
                 text: "Hi [Parent], a gentle reminder regarding this month's lesson fees. Please let me know once settled so I can update my records! 🙏🏻",
               },
               {
-                label: "Script — 48 hrs later",
+                label: "Script: 48 hrs later",
                 text: "Hi [Parent], following up on the pending payment. If you're having technical issues, let me know. 🫡",
               },
             ],
@@ -308,7 +308,7 @@ const SECTIONS: Section[] = [
             action: "Do not reply immediately if it is past 21:30. Train them on your boundaries.",
             scripts: [
               {
-                label: "Script — sent the next morning",
+                label: "Script, sent the next morning",
                 text: "Good morning [Parent]! Just seeing your message from last night. Regarding your question…",
               },
             ],
@@ -388,7 +388,7 @@ function ScriptCard({ label, text }: ScriptCardData) {
   return (
     <figure className="rounded-xl border border-border bg-muted/50 p-4 sm:p-5">
       {label ? (
-        <figcaption className="text-[11px] font-bold uppercase tracking-widest text-[color:var(--brand-link)]">
+        <figcaption className="text-[11px] font-medium text-[color:var(--brand-link)]">
           {label}
         </figcaption>
       ) : null}
@@ -403,15 +403,11 @@ function SayBlock({ dont, do: doText }: { dont: string; do: string }) {
   return (
     <div className="space-y-3">
       <div className="rounded-xl border border-border p-4 sm:p-5">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-          Don't say
-        </p>
+        <p className="text-[11px] font-medium text-muted-foreground">Don't say</p>
         <p className="mt-2 text-sm italic leading-7 text-muted-foreground">“{dont}”</p>
       </div>
       <div className="rounded-xl border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/5 p-4 sm:p-5">
-        <p className="text-[11px] font-bold uppercase tracking-widest text-[color:var(--brand-link)]">
-          Do say
-        </p>
+        <p className="text-[11px] font-medium text-[color:var(--brand-link)]">Do say</p>
         <p className="mt-2 text-sm italic leading-7 text-foreground/85">{renderInline(doText)}</p>
       </div>
     </div>
@@ -595,18 +591,17 @@ function TutorPlaybookPage() {
 
   return (
     <PublicPage>
-      <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-6 lg:hidden">
+      <div className="mx-auto w-full max-w-7xl px-4 pt-5 sm:px-6 lg:hidden">
         <PageBackButton fallbackTo="/guide" />
       </div>
 
       <PageIntro
-        eyebrow="Help Centre · For Tutors"
         title="The MatchMax Tutor Playbook"
         description="Real-world scripts and protocols for managing parent expectations, handling logistics, communicating value, and coordinating with MatchMax Admin."
         meta="Parent relations & etiquette · For MatchMax tutors"
       />
 
-      {/* Mobile section tabs — Airbnb persona-tab style, sticky under the mobile top bar */}
+      {/* Mobile section tabs, Airbnb persona-tab style, sticky under the mobile top bar */}
       <nav
         aria-label="Playbook sections"
         className="sticky top-14 z-30 border-b border-border bg-background/95 backdrop-blur-sm lg:hidden"
@@ -638,12 +633,10 @@ function TutorPlaybookPage() {
       </nav>
 
       <section className="py-14 sm:py-20">
-        <div className="mx-auto grid w-full max-w-6xl gap-12 px-4 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-16">
+        <div className="mx-auto grid w-full max-w-7xl gap-12 px-4 sm:px-6 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-16">
           <nav aria-label="Playbook sections" className="hidden lg:block">
             <div className="sticky top-24">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                In this playbook
-              </p>
+              <p className="text-[11px] font-medium text-muted-foreground">In this playbook</p>
               <ul className="mt-4 space-y-1">
                 {SECTIONS.map((section, index) => (
                   <li key={section.id}>
@@ -678,7 +671,7 @@ function TutorPlaybookPage() {
                 Parents booking through MatchMax aren't just looking for someone who knows the
                 syllabus; they are paying for peace of mind, reliability, and an elite service
                 experience. Every tutor represents MatchMax and shapes our reputation, so your
-                success is our success—and our success is yours. This handbook gives you the exact
+                success is our success, and our success is yours. This handbook gives you the exact
                 scripts, psychology, and boundaries you need to look like a seasoned professional
                 from day one.
               </p>
@@ -700,7 +693,7 @@ function TutorPlaybookPage() {
                   <span className="text-sm font-bold text-[color:var(--brand-link)]">
                     {SECTION_NUMBERS[index]}
                   </span>
-                  <h2 className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+                  <h2 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
                     {section.title}
                   </h2>
                 </div>
@@ -714,10 +707,8 @@ function TutorPlaybookPage() {
       </section>
 
       <section className="bg-[#0f1419] text-white">
-        <div className="mx-auto w-full max-w-6xl px-4 py-16 sm:px-6 sm:py-20">
-          <h2 className="text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-            Explore more
-          </h2>
+        <div className="mx-auto w-full max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
+          <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">Explore more</h2>
           <div className="mt-8 grid gap-4 md:grid-cols-3">
             {EXPLORE_CARDS.map((card) => (
               <Link
@@ -725,7 +716,9 @@ function TutorPlaybookPage() {
                 to={card.to}
                 className="group flex overflow-hidden rounded-2xl border border-white/10 bg-white/[0.06] transition-colors hover:bg-white/10"
               >
-                <div className="flex w-20 shrink-0 items-center justify-center self-stretch bg-white sm:w-24">
+                {/* bg-white would trigger the global `.dark .bg-white` remap and
+                 * strand the ink icon on a dark fill; keep the tray explicitly white. */}
+                <div className="flex w-20 shrink-0 items-center justify-center self-stretch bg-[#ffffff] dark:bg-[color:var(--surface-invert)] sm:w-24">
                   <card.icon className="h-8 w-8 text-[#0f1419]" aria-hidden="true" />
                 </div>
                 <div className="flex flex-1 flex-col justify-center p-5">

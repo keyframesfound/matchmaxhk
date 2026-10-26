@@ -24,7 +24,7 @@ import { lesson1Amount, lesson2BalanceAmount } from "@/features/cases/fee-breakd
 import { cn } from "@/lib/utils";
 
 /**
- * Issue #391 — public /group-classes board: open small-group cohorts with
+ * Issue #391, public /group-classes board: open small-group cohorts with
  * live seat counts, plus the sibling booking dialog (one case per parent,
  * student_count = seats; unrelated parents never see each other).
  */
@@ -52,7 +52,7 @@ function StatePill({ state }: { state: string }) {
 function CohortCard({ cohort, onBook }: { cohort: GroupCohortView; onBook: () => void }) {
   const { t } = useTranslation();
   return (
-    <li className="flex flex-col rounded-sm border border-border bg-card p-5">
+    <li className="flex flex-col rounded-sm border border-border bg-card p-5 transition-[transform,border-color] duration-200 ease-out hover:-translate-y-1 hover:border-[color:var(--ink)]/25 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
       <div className="flex flex-wrap items-center gap-2">
         <StatePill state={cohort.state} />
         <span className="rounded-full border border-border bg-muted px-2.5 py-0.5 text-xs font-semibold text-[color:var(--ink)]">
@@ -309,7 +309,7 @@ function BookingDialog({ cohort, onClose }: { cohort: GroupCohortView; onClose: 
                 />
               </div>
 
-              {/* #391 fee preview — same math the desk invoices with. */}
+              {/* #391 fee preview, same math the desk invoices with. */}
               <div className="rounded-sm border border-border p-3 text-xs text-muted-foreground">
                 <p className="font-semibold text-[color:var(--ink)]">
                   {t("group_classes.fee_preview_title")}
@@ -373,12 +373,9 @@ export function GroupClassesBoard() {
   const cohorts = cohortsQuery.data ?? [];
 
   return (
-    <div className="mx-auto w-full max-w-[1440px] px-5 py-10 sm:px-8 lg:px-12">
+    <div className="mx-auto w-full max-w-[1600px] px-5 py-10 sm:px-8 lg:px-12">
       <header className="max-w-2xl">
-        <p className="text-xs font-bold uppercase tracking-widest text-[color:var(--brand-link)]">
-          {t("group_classes.board_eyebrow")}
-        </p>
-        <h1 className="mt-2 text-3xl font-bold text-[color:var(--ink)] sm:text-4xl">
+        <h1 className="text-3xl font-bold text-[color:var(--ink)] sm:text-4xl">
           {t("group_classes.board_title")}
         </h1>
         <p className="mt-3 text-sm leading-relaxed text-muted-foreground sm:text-base">

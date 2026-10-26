@@ -22,7 +22,7 @@ export function getViewerKey(): string {
     window.localStorage.setItem(VIEWER_KEY_STORAGE, generated);
     return generated;
   } catch {
-    // Storage unavailable (private mode etc.) — the RPC dedupes this shared
+    // Storage unavailable (private mode etc.), the RPC dedupes this shared
     // key per day, so worst case we undercount, never break.
     return "anonymous";
   }
@@ -40,7 +40,7 @@ export async function trackTutorEvent(
       p_viewer_key: getViewerKey(),
     });
   } catch {
-    // Swallow — analytics must not surface errors to parents.
+    // Swallow, analytics must not surface errors to parents.
   }
 }
 
@@ -55,7 +55,7 @@ export type TutorEngagementMap = Map<string, EngagementSummary>;
 
 /**
  * Batched engagement summaries for a page's tutor ids (#102 badge data).
- * One RPC call per surface, 60s fresh — badge counters do not need to be
+ * One RPC call per surface, 60s fresh, badge counters do not need to be
  * realtime.
  */
 export function useTutorEngagementSummaries(tutorIds: string[]) {

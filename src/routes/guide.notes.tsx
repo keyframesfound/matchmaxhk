@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowRight, CircleCheck, CircleX } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { canonicalUrl } from "@/features/i18n/seo";
 import {
   ContentsRow,
   GuideHeading,
@@ -27,9 +28,9 @@ export const Route = createFileRoute("/guide/notes")({
         content:
           "How the MatchMax notes marketplace works, what tutors may sell, and the ban list: no school papers, no HKEAA or IB past papers, no contact details in files.",
       },
-      { property: "og:url", content: "https://matchmax.hk/guide/notes" },
+      { property: "og:url", content: canonicalUrl("/guide/notes") },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/guide/notes" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/guide/notes") }],
   }),
   component: GuideNotesPage,
 });
@@ -68,12 +69,9 @@ function GuideNotesPage() {
           { id: "enforcement", label: t("guide.notes.enforcement_title") },
         ]}
       />
-      <section className="mx-auto max-w-[1440px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
+      <section className="mx-auto max-w-[1600px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
         <div className="max-w-3xl">
-          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-            {t("guide.notes.eyebrow")}
-          </p>
-          <h1 className="mt-3 text-4xl font-extrabold leading-[1.05] tracking-tight sm:text-5xl">
+          <h1 className="text-4xl font-medium leading-[1.05] tracking-tight sm:text-5xl">
             {t("guide.tab_notes")}
           </h1>
           <p className="mt-4 text-lg leading-8 text-[color:var(--ink)]/65">
@@ -143,7 +141,10 @@ function GuideNotesPage() {
               {t("guide.notes.cta_browse")} <ArrowRight />
             </Link>
           </Button>
-          <Link to="/legal/notes-terms" className="text-sm font-bold underline underline-offset-4">
+          <Link
+            to="/legal/notes-terms"
+            className="text-sm font-medium underline underline-offset-4"
+          >
             {t("guide.notes.terms_link")}
           </Link>
         </div>

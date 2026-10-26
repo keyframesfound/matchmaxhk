@@ -4,7 +4,16 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { formatPostedAgo } from "@/lib/relative-time";
 import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
-import { ArrowRight, BadgeCheck, CalendarClock, Hash, Inbox, SearchX, Share2 } from "lucide-react";
+import {
+  ArrowRight,
+  BadgeCheck,
+  CalendarClock,
+  Check,
+  Hash,
+  Inbox,
+  SearchX,
+  Share2,
+} from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
@@ -16,7 +25,6 @@ import {
   CasesSearchBar,
   CasesSearchMobile,
   useCasesCompactSegments,
-  type CasesSearchState,
 } from "@/components/search/cases-search";
 import {
   CompactSearchPill,
@@ -47,27 +55,54 @@ import { useDisplayCurrency } from "@/features/currency/display-currency-context
 import { useTutorDisplayCurrency } from "@/features/currency/tutor-currency";
 import { shareOrCopy } from "@/lib/share";
 import { normalizeProfileTag } from "@/features/tutors/profile-tags";
+import {
+  matchesCaseFilters,
+  getSelectedCaseTags,
+  parseCaseBackgroundParam,
+  parseCaseFeeParam,
+  parseCaseGenderParam,
+  parseCaseLanguageParam,
+  parseCaseModeParam,
+  parseCaseRateParam,
+  parseCaseTagsParam,
+} from "@/features/cases/case-filters";
+import { parseTierParam } from "@/features/tutors/search-tiers";
+import type { AcademicTier } from "@/features/tutors/verticals";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
+import { useAuth } from "@/features/auth/useAuth";
+import {
+  listMyAppliedCaseCodes,
+  myAppliedCasesQueryKey,
+} from "@/features/cases/applications.functions";
+
+/** Issue #423 ship-order 5: every board filter lives on the URL so chip
+ * links (?tag=/q=) and the advanced-filters dialog share one state. */
+type CaseBoardSearch = {
+  post?: true;
+  q?: string;
+  category?: string;
+  district?: string;
+  tag?: string;
+  open?: true;
+} & CaseBoardFiltersState;
+
+type CaseBoardFiltersState = {
+  tier?: AcademicTier;
+  subject?: string;
+  mode?: string;
+  fee?: string;
+  rate_min?: number;
+  rate_max?: number;
+  background?: string;
+  gender?: string;
+  language?: string;
+  sen?: boolean;
+  tags?: string;
+};
 
 export const Route = createFileRoute("/_authenticated/tutor-requests/")({
-  validateSearch: (
-    search: Record<string, unknown>,
-  ): {
-    post?: true;
-    q?: string;
-    category?: string;
-    district?: string;
-    tag?: string;
-    open?: true;
-  } => {
-    const result: {
-      post?: true;
-      q?: string;
-      category?: string;
-      district?: string;
-      tag?: string;
-      open?: true;
-    } = {};
+  validateSearch: (search: Record<string, unknown>): CaseBoardSearch => {
+    const result: CaseBoardSearch = {};
     if (search.post === "1" || search.post === true || search.post === "true") result.post = true;
     if (typeof search.q === "string" && search.q.trim()) result.q = search.q;
     if (typeof search.category === "string" && search.category.trim())
@@ -79,6 +114,29 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
     if (typeof search.tag === "string" && search.tag.trim())
       result.tag = normalizeProfileTag(search.tag);
     if (search.open === "1" || search.open === "true" || search.open === true) result.open = true;
+    // Issue #423 ship-order 5: advanced filters. Absent params stay
+    // undefined (never null/false) so cold URLs are never rewritten.
+    const tier = parseTierParam(search.tier);
+    if (tier) result.tier = tier;
+    if (typeof search.subject === "string" && search.subject.trim())
+      result.subject = search.subject;
+    const mode = parseCaseModeParam(search.mode);
+    if (mode) result.mode = mode;
+    const fee = parseCaseFeeParam(search.fee);
+    if (fee) result.fee = fee;
+    const rateMin = parseCaseRateParam(search.rate_min);
+    if (rateMin !== undefined) result.rate_min = rateMin;
+    const rateMax = parseCaseRateParam(search.rate_max);
+    if (rateMax !== undefined) result.rate_max = rateMax;
+    const background = parseCaseBackgroundParam(search.background);
+    if (background) result.background = background;
+    const gender = parseCaseGenderParam(search.gender);
+    if (gender) result.gender = gender;
+    const language = parseCaseLanguageParam(search.language);
+    if (language) result.language = language;
+    if (search.sen === true || search.sen === "true") result.sen = true;
+    const tags = parseCaseTagsParam(search.tags);
+    if (tags) result.tags = tags;
     return result;
   },
   head: () => {
@@ -87,8 +145,8 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
       meta: [
         ...localizedMeta(locale, {
           title: {
-            en: "Tutor Request Board — Post a Request or Apply for Cases | MatchMax",
-            "zh-HK": "補習個案板 — 家長免費出需求，導師申請個案 | MatchMax",
+            en: "Tutor Request Board, Post a Request or Apply for Cases | MatchMax",
+            "zh-HK": "補習個案板, 家長免費出需求，導師申請個案 | MatchMax",
           },
           description: {
             en: "Browse open tutoring cases posted by parents and students, or submit your requirements free and let qualified tutors apply for your case.",
@@ -102,7 +160,7 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
           content:
             locale === "zh-HK"
               ? "真實香港家長補習需求。申請適合你嘅個案，或者自己出需求——家長完全免費。"
-              : "Real tutoring requests from Hong Kong parents. Apply for a case that fits you, or post your own — free for parents.",
+              : "Real tutoring requests from Hong Kong parents. Apply for a case that fits you, or post your own, free for parents.",
         },
         { property: "og:url", content: "https://matchmax.hk/tutor-requests" },
       ],
@@ -145,7 +203,7 @@ function CaseShareButton({ item }: { item: PublicCaseBoardItem }) {
         event.stopPropagation();
         setIsSharing(true);
         void shareOrCopy({
-          title: `${primary} — Case ${item.caseCode} | MatchMax`,
+          title: `${primary}, Case ${item.caseCode} | MatchMax`,
           text: `Check out this tutoring request (Case ${item.caseCode}) on MatchMax.`,
           url: `${window.location.origin}/tutor-requests/${item.caseCode}`,
         }).finally(() => setIsSharing(false));
@@ -157,12 +215,24 @@ function CaseShareButton({ item }: { item: PublicCaseBoardItem }) {
   );
 }
 
-function CaseCard({ item }: { item: PublicCaseBoardItem }) {
+/** #81: small "Applied" pill for board cards of cases the tutor already hit
+ * 1-click Apply on. Only rendered with a true prop, additive, default off. */
+function CaseAppliedPill() {
+  const { t } = useTranslation();
+  return (
+    <span className="inline-flex shrink-0 items-center gap-1 rounded-full border border-emerald-500/40 bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
+      <Check className="h-3 w-3" aria-hidden="true" />
+      {t("caseApplications.applied", { defaultValue: "Applied" })}
+    </span>
+  );
+}
+
+function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applied?: boolean }) {
   const { t, i18n } = useTranslation();
   const { primary, secondary } = useCaseTitles(item);
   // Issue #113/#423: tutors quoting in another currency see the converted
   // rate first; an empty string (both bounds blank) omits the rate entirely
-  // — never "HK$?".
+  //, never "HK$?".
   const tutorCurrency = useTutorDisplayCurrency();
   const { rates: fxRates } = useDisplayCurrency();
   const budget = caseBudgetForTutor(item, tutorCurrency, fxRates, item.rateUnit);
@@ -171,7 +241,7 @@ function CaseCard({ item }: { item: PublicCaseBoardItem }) {
   const postedAgo = formatPostedAgo(item.boardPublishedAt ?? item.createdAt, i18n.language);
   return (
     <li className="relative flex flex-col rounded-xl border border-border bg-[color:var(--surface)] p-4 transition-colors hover:border-[color:var(--foreground)]/25">
-      {/* Identity row — trust pills ONLY with real data; there is NO parent
+      {/* Identity row, trust pills ONLY with real data; there is NO parent
           rating today, so nothing fabricated renders (precedent #151).
           Centre cases swap in the verified-org identity (#412/#423). */}
       <div className="flex items-center justify-between gap-2">
@@ -199,7 +269,7 @@ function CaseCard({ item }: { item: PublicCaseBoardItem }) {
       <CaseLogisticsLine parts={logisticsParts} className="mt-2 [&>span]:w-full [&>span]:min-w-0" />
       {/* Dedicated rate line (#113): converted figure bold + original HKD in
           parens for non-HKD tutors; plain HKD rate otherwise. GLM round-2
-          blocker — the logistics line no longer carries the rate. */}
+          blocker, the logistics line no longer carries the rate. */}
       {budget.primary ? (
         <p className="mt-0.5 truncate text-xs text-muted-foreground">
           <span className="font-semibold text-[color:var(--ink)]">{budget.primary}</span> (
@@ -244,7 +314,11 @@ function CaseCard({ item }: { item: PublicCaseBoardItem }) {
         </div>
       </div>
       <div className="mt-2 flex items-center justify-between gap-2">
-        <CaseFeePill packageType={item.packageType} />
+        <div className="flex min-w-0 items-center gap-1.5">
+          <CaseFeePill packageType={item.packageType} />
+          {/* Issue #81: 1-click Apply receipt on the card itself. */}
+          {applied ? <CaseAppliedPill /> : null}
+        </div>
         <span className="shrink-0 text-xs text-muted-foreground">
           {t("case_board.posted_ago", { ago: postedAgo })}
         </span>
@@ -279,30 +353,32 @@ function TutorRequestsPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/tutor-requests/" });
   const initialPost = search.post;
-  const [draft, setDraft] = useState<CasesSearchState>({
-    q: search.q,
-    category: search.category,
-    district: search.district,
-    tag: search.tag,
-  });
+  const [draft, setDraft] = useState<CaseBoardSearch>({ ...search });
   const [formOpen, setFormOpen] = useState(Boolean(initialPost));
   const [noticeOpen, setNoticeOpen] = useState(false);
   const formSectionRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    setDraft({
-      q: search.q,
-      category: search.category,
-      district: search.district,
-      tag: search.tag,
-    });
+    setDraft({ ...search });
   }, [search]);
 
-  const setDraftParam = (patch: Partial<CasesSearchState>) => {
-    setDraft((prev) => ({ ...prev, ...patch }));
+  const setDraftParam = (patch: Partial<CaseBoardSearch>) => {
+    setDraft((prev) => {
+      const next: CaseBoardSearch = { ...prev, ...patch };
+      (Object.keys(next) as (keyof CaseBoardSearch)[]).forEach((key) => {
+        const value = next[key];
+        if (
+          value === "" ||
+          value === undefined ||
+          (typeof value === "number" && Number.isNaN(value))
+        )
+          delete next[key];
+      });
+      return next;
+    });
   };
 
-  const applySearch = (override?: Partial<CasesSearchState>) => {
+  const applySearch = (override?: Partial<CaseBoardSearch>) => {
     const next = { ...draft, ...override };
     navigate({
       search: {
@@ -311,8 +387,21 @@ function TutorRequestsPage() {
         category: next.category,
         district: next.district,
         // Issue #311: keep the active tag filter when the search bar is
-        // applied — tag ANDs with q/category/district.
+        // applied, tag ANDs with the rest; multi-tag picks come from the
+        // advanced draft.
         tag: search.tag,
+        // Issue #423 ship-order 5: advanced filters ride the same draft.
+        tier: next.tier,
+        subject: next.subject,
+        mode: next.mode,
+        fee: next.fee,
+        rate_min: next.rate_min,
+        rate_max: next.rate_max,
+        background: next.background,
+        gender: next.gender,
+        language: next.language,
+        sen: next.sen,
+        tags: next.tags,
       },
     });
   };
@@ -329,6 +418,16 @@ function TutorRequestsPage() {
   const cases = useMemo(() => data?.items ?? [], [data]);
   const isLoading = !data;
 
+  // Issue #81: one fetch of the signed-in tutor's applied case codes, so the
+  // board cards can show the small Applied pill. Guests / non-tutors: [].
+  const { user } = useAuth();
+  const { data: myAppliedCaseCodes } = useQuery({
+    queryKey: myAppliedCasesQueryKey,
+    queryFn: () => listMyAppliedCaseCodes(),
+    enabled: Boolean(user),
+  });
+  const appliedCodes = useMemo(() => new Set(myAppliedCaseCodes ?? []), [myAppliedCaseCodes]);
+
   const filteredCases = useMemo(() => {
     const query = (search.q ?? "").trim().toLowerCase();
     // Issue #311: ?tag= is an exact-match filter on the case's stored tags,
@@ -338,6 +437,9 @@ function TutorRequestsPage() {
       if (search.category && caseSectionKey(item.examSystem) !== search.category) return false;
       if (search.district && item.district !== search.district) return false;
       if (tagFilter && !(item.tags ?? []).includes(tagFilter)) return false;
+      // Issue #423 ship-order 5: the advanced filters (tier/subject/mode/
+      // fee/rate/background/gender/language/SEN) plus the multi-tag AND.
+      if (!matchesCaseFilters(item, search)) return false;
       if (query) {
         const haystack = [
           item.title,
@@ -396,9 +498,42 @@ function TutorRequestsPage() {
     setNoticeOpen(false);
   };
 
-  // Issue #423: the board is one flat card grid (wireframe) — the exam-system
+  // Issue #423: the board is one flat card grid (wireframe), the exam-system
   // sections are gone; `?category=` still filters by curriculum.
-  const hasActiveFilters = Boolean(search.q || search.category || search.district || search.tag);
+  const hasActiveFilters = Boolean(
+    search.q ||
+    search.category ||
+    search.district ||
+    search.tag ||
+    search.tags ||
+    search.tier ||
+    search.subject ||
+    search.mode ||
+    search.fee ||
+    search.rate_min !== undefined ||
+    search.rate_max !== undefined ||
+    search.background ||
+    search.gender ||
+    search.language ||
+    search.sen,
+  );
+
+  // Issue #311/#423: every active requirement tag (single ?tag= + the
+  // multi-tag advanced picks), one click to remove each.
+  const activeTags = [
+    ...(search.tag ? [search.tag] : []),
+    ...getSelectedCaseTags({ tags: search.tags }).filter((tag) => tag !== search.tag),
+  ];
+  const removeTag = (tag: string) => {
+    const remaining = getSelectedCaseTags({ tags: search.tags }).filter((value) => value !== tag);
+    navigate({
+      search: (prev) => ({
+        ...prev,
+        tag: prev.tag === tag ? undefined : prev.tag,
+        tags: remaining.length > 0 ? remaining.join("||") : undefined,
+      }),
+    });
+  };
 
   const compactSegments = useCasesCompactSegments(draft);
 
@@ -454,7 +589,7 @@ function TutorRequestsPage() {
                     Post your request
                   </h2>
                   <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                    Tell us what you need and our team will review it — approved requests appear on
+                    Tell us what you need and our team will review it, approved requests appear on
                     this board so qualified tutors can apply directly.
                   </p>
                 </div>
@@ -534,29 +669,23 @@ function TutorRequestsPage() {
                   Real tutoring requests from Hong Kong parents. Open a case for the full details
                   and apply for the ones that fit your schedule.
                 </p>
-                {/* Issue #311: the active tag filter, one click to clear. */}
-                {search.tag ? (
-                  <div className="mt-4">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        navigate({
-                          search: {
-                            post: initialPost,
-                            q: search.q,
-                            category: search.category,
-                            district: search.district,
-                          },
-                        })
-                      }
-                      className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
-                    >
-                      <Hash className="h-3 w-3" aria-hidden="true" />
-                      {search.tag}
-                      <span aria-hidden="true" className="text-[color:var(--ink)]/50">
-                        ×
-                      </span>
-                    </button>
+                {/* Issue #311: the active tag filters, one click each to clear. */}
+                {activeTags.length > 0 ? (
+                  <div className="mt-4 flex flex-wrap gap-1.5">
+                    {activeTags.map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => removeTag(tag)}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 px-3 py-1 text-xs font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--brand-link)]/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
+                      >
+                        <Hash className="h-3 w-3" aria-hidden="true" />
+                        {tag}
+                        <span aria-hidden="true" className="text-[color:var(--ink)]/50">
+                          ×
+                        </span>
+                      </button>
+                    ))}
                   </div>
                 ) : null}
               </div>
@@ -576,7 +705,7 @@ function TutorRequestsPage() {
                       No open requests right now
                     </h3>
                     <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                      Approved parent requests appear here for tutors to apply. Be the first — post
+                      Approved parent requests appear here for tutors to apply. Be the first, post
                       your requirements and let tutors come to you.
                     </p>
                     <div className="mt-6 flex justify-center">
@@ -614,7 +743,11 @@ function TutorRequestsPage() {
                 ) : (
                   <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                     {filteredCases.map((item) => (
-                      <CaseCard key={item.id} item={item} />
+                      <CaseCard
+                        key={item.id}
+                        item={item}
+                        applied={appliedCodes.has(item.caseCode)}
+                      />
                     ))}
                   </ul>
                 )}

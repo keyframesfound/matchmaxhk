@@ -43,7 +43,7 @@ export function DangerZoneSection(_props: SettingsSectionProps) {
       className="border-[color:var(--destructive)]/40"
     >
       <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:justify-between">
-        <p className="max-w-xl text-sm leading-6 text-[color:var(--ink)]/70">
+        <p className="max-w-xl text-sm leading-6 text-muted-foreground">
           {t("settings.danger.body")}
         </p>
         <AlertDialog>
@@ -61,7 +61,7 @@ export function DangerZoneSection(_props: SettingsSectionProps) {
               <AlertDialogTitle className="text-[color:var(--ink)]">
                 {t("settings.danger.confirm_title")}
               </AlertDialogTitle>
-              <AlertDialogDescription className="text-[color:var(--ink)]/70">
+              <AlertDialogDescription className="text-muted-foreground">
                 {t("settings.danger.confirm_desc")}
               </AlertDialogDescription>
             </AlertDialogHeader>

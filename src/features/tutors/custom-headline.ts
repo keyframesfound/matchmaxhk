@@ -1,11 +1,11 @@
 /**
- * Issue #411 — display precedence for the dual-language custom headline.
+ * Issue #411, display precedence for the dual-language custom headline.
  * Pure so the card, the detail page and vitest share one rule set:
  * - en (default): custom_headline_en ?? academic_headline
  * - zh-* (only zh-HK ships in this app): custom_headline_zh ??
  *   custom_headline_en ?? academic_headline
  * Empty/whitespace-only values fall back strictly. Whatever renders is
- * exactly what the tutor saved — never a machine translation (CEO lock).
+ * exactly what the tutor saved, never a machine translation (CEO lock).
  */
 
 export type CustomHeadlineSource = {

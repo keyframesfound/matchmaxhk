@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { LifeBuoy, Search, X } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { motion, useReducedMotion } from "motion/react";
 import { z } from "zod";
 
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
@@ -18,6 +19,7 @@ import {
 } from "@/features/help/content";
 import { cn } from "@/lib/utils";
 
+import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/help/")({
   validateSearch: z.object({ audience: z.enum(["tutors", "parents"]).optional() }),
   head: () => ({
@@ -26,16 +28,16 @@ export const Route = createFileRoute("/help/")({
       {
         name: "description",
         content:
-          "Guides and answers for MatchMax tutors and parents — parent communication, scheduling, pedagogy, payments, policies, and getting started with lessons.",
+          "Guides and answers for MatchMax tutors and parents, parent communication, scheduling, pedagogy, payments, policies, and getting started with lessons.",
       },
       { name: "robots", content: "index, follow" },
       { property: "og:title", content: "Help Centre | MatchMax" },
       {
         property: "og:description",
         content:
-          "Guides and answers for MatchMax tutors and parents — communication, scheduling, pedagogy, payments, and policies.",
+          "Guides and answers for MatchMax tutors and parents, communication, scheduling, pedagogy, payments, and policies.",
       },
-      { property: "og:url", content: "https://matchmax.hk/help" },
+      { property: "og:url", content: canonicalUrl("/help") },
     ],
   }),
   component: HelpCentrePage,
@@ -59,7 +61,7 @@ function FeaturedGuideCard({ article }: { article: HelpArticle }) {
           aria-hidden="true"
         />
         {isHandbook ? (
-          <span className="absolute left-4 top-4 rounded-full bg-[color:var(--foreground)] px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-[color:var(--background)]">
+          <span className="absolute left-4 top-4 rounded-full bg-[color:var(--foreground)] px-3 py-1 text-[11px] font-medium text-[color:var(--background)]">
             {t("help.must_read")}
           </span>
         ) : null}
@@ -72,7 +74,7 @@ function FeaturedGuideCard({ article }: { article: HelpArticle }) {
           {article.summary}
         </p>
         {article.status === "draft" ? (
-          <span className="mt-3 inline-flex w-fit items-center rounded-full border border-border px-2.5 py-0.5 text-[11px] font-semibold uppercase tracking-widest text-muted-foreground">
+          <span className="mt-3 inline-flex w-fit items-center rounded-full border border-border px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
             {t("help.coming_soon_badge")}
           </span>
         ) : null}
@@ -115,7 +117,7 @@ function TopicCategoryCard({
               </span>
             </HelpArticleLink>
             {article.status === "draft" ? (
-              <span className="mt-1.5 inline-block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/80">
+              <span className="mt-1.5 inline-block text-[11px] font-medium text-muted-foreground/80">
                 {t("help.coming_soon_badge")}
               </span>
             ) : null}
@@ -130,8 +132,8 @@ function SearchResults({ query, results }: { query: string; results: HelpArticle
   const { t } = useTranslation();
 
   return (
-    <section className="mx-auto w-full max-w-[1440px] px-5 py-12 sm:px-8 lg:px-12">
-      <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+    <section className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 lg:px-12">
+      <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
         {results.length > 0 ? t("help.results_title") : t("help.no_results_title", { query })}
       </h2>
       {results.length > 0 ? (
@@ -155,7 +157,7 @@ function SearchResults({ query, results }: { query: string; results: HelpArticle
                     {article.summary}
                   </span>
                   {categoryName ? (
-                    <span className="mt-3 inline-block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/80">
+                    <span className="mt-3 inline-block text-[11px] font-medium text-muted-foreground/80">
                       {categoryName}
                     </span>
                   ) : null}
@@ -177,6 +179,7 @@ function HelpCentrePage() {
   const { t } = useTranslation();
   const { hasRole } = useAuth();
   const navigate = useNavigate();
+  const shouldReduceMotion = useReducedMotion();
   const { audience } = Route.useSearch();
   const [query, setQuery] = useState("");
   const supportHref = useSupportWhatsAppHref();
@@ -206,7 +209,7 @@ function HelpCentrePage() {
     <PublicPage>
       <section className="border-b border-border">
         <div className="mx-auto w-full max-w-3xl px-5 pt-14 pb-10 text-center sm:pt-20 sm:pb-12">
-          <h1 className="text-balance text-4xl font-extrabold tracking-tight text-foreground sm:text-5xl">
+          <h1 className="text-balance text-4xl font-bold tracking-tight text-foreground sm:text-5xl">
             {t("help.title")}
           </h1>
 
@@ -260,12 +263,25 @@ function HelpCentrePage() {
                 aria-selected={activeTab === tab}
                 onClick={() => setTab(tab)}
                 className={cn(
-                  "h-9 shrink-0 whitespace-nowrap rounded-full px-5 text-sm font-semibold transition-colors",
+                  "relative isolate h-9 shrink-0 whitespace-nowrap rounded-full px-5 text-sm font-semibold transition-colors",
                   activeTab === tab
-                    ? "bg-[color:var(--foreground)] text-[color:var(--background)]"
+                    ? "text-[color:var(--background)]"
                     : "text-muted-foreground hover:text-foreground",
                 )}
               >
+                {activeTab === tab ? (
+                  <motion.span
+                    aria-hidden="true"
+                    className="absolute inset-0 -z-10 rounded-full bg-[color:var(--foreground)]"
+                    initial={false}
+                    layoutId="help-audience-pill"
+                    transition={
+                      shouldReduceMotion
+                        ? { duration: 0 }
+                        : { type: "spring", stiffness: 420, damping: 32 }
+                    }
+                  />
+                ) : null}
                 {label}
               </button>
             ))}
@@ -277,8 +293,8 @@ function HelpCentrePage() {
         <SearchResults query={query.trim()} results={results} />
       ) : (
         <>
-          <section className="mx-auto w-full max-w-[1440px] px-5 py-12 sm:px-8 lg:px-12">
-            <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+          <section className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 lg:px-12">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               {t("help.featured_title")}
             </h2>
             <div className="mt-6 grid gap-4 md:grid-cols-2">
@@ -288,8 +304,8 @@ function HelpCentrePage() {
             </div>
           </section>
 
-          <section className="mx-auto w-full max-w-[1440px] px-5 pb-14 sm:px-8 lg:px-12">
-            <h2 className="text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+          <section className="mx-auto w-full max-w-[1600px] px-5 pb-14 sm:px-8 lg:px-12">
+            <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
               {t("help.topics_title")}
             </h2>
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -310,7 +326,7 @@ function HelpCentrePage() {
           <span className="mx-auto flex h-12 w-12 items-center justify-center rounded-full border border-border bg-card">
             <LifeBuoy className="h-6 w-6 text-[color:var(--brand-link)]" aria-hidden="true" />
           </span>
-          <h2 className="mt-5 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl">
+          <h2 className="mt-5 text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
             {t("help.contact_title")}
           </h2>
           <p className="mt-3 text-base leading-7 text-muted-foreground">{t("help.contact_body")}</p>

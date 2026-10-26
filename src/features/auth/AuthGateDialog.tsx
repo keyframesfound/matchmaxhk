@@ -17,7 +17,7 @@ export function stashPendingSave(save: PendingSave) {
   try {
     sessionStorage.setItem(PENDING_SAVE_KEY, JSON.stringify(save));
   } catch {
-    // sessionStorage unavailable (private mode etc.) — user just won't get auto-save
+    // sessionStorage unavailable (private mode etc.), user just won't get auto-save
   }
 }
 
@@ -90,7 +90,7 @@ export function consumePendingSave(type: PendingSave["type"], id: string): boole
 }
 
 // Portal'd dialog content bubbles synthetic events through the React tree
-// (not the DOM tree), so clicks inside the sheet — the X, the overlay — would
+// (not the DOM tree), so clicks inside the sheet, the X, the overlay, would
 // reach the clickable card this dialog is rendered in (e.g. opening the tutor
 // profile). This barrier stops them at the JSX boundary.
 function DialogEventBarrier({ children }: { children: ReactNode }) {
@@ -104,7 +104,7 @@ function DialogEventBarrier({ children }: { children: ReactNode }) {
   );
 }
 
-// After a pending save resumes, scroll the post's card back into view — the
+// After a pending save resumes, scroll the post's card back into view, the
 // auth round-trip reloads the page and lands at the top. Retried a few times
 // because list content renders asynchronously; cancelled if the user scrolls
 // manually first.

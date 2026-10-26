@@ -11,7 +11,7 @@ const SITE_NAME = "matchmaxhk";
 // verified in your Resend account (Resend -> Domains).
 const FROM_DOMAIN = "matchmax.hk";
 
-// Lazy singleton — mirrors the supabaseAdmin Proxy pattern in client.server.ts.
+// Lazy singleton, mirrors the supabaseAdmin Proxy pattern in client.server.ts.
 // Constructing Resend eagerly at module scope means a missing RESEND_API_KEY
 // throws the moment this file is imported, which crashes every page (not just
 // email sends) since route modules are loaded eagerly at server startup.
@@ -31,7 +31,7 @@ export type SendTemplateEmailResult =
   { sent: true } | { sent: false; reason: "recipient_suppressed" };
 
 export interface SendTemplateEmailOptions {
-  templateData?: Record<string, any>;
+  templateData?: Record<string, unknown>;
   /** Dedupes retries of the same logical send; defaults to a random UUID (no dedupe). */
   idempotencyKey?: string;
   replyTo?: string;
@@ -46,7 +46,7 @@ export interface SendTemplateEmailOptions {
  * product (Resend -> Suppressions) but surfaces it differently (via a `x-resend-*`
  * error code, not a stable `.reason` field on success). Until you've confirmed the
  * exact shape Resend returns for your account, this version treats every send error
- * as a thrown exception — adjust the catch block below if you need the same
+ * as a thrown exception, adjust the catch block below if you need the same
  * "suppressed recipient" branch as before.
  */
 export async function sendTemplateEmail(
@@ -61,7 +61,7 @@ export async function sendTemplateEmail(
     );
   }
 
-  // Template-level `to` takes precedence — notification templates always
+  // Template-level `to` takes precedence, notification templates always
   // send to their fixed address.
   const recipient = template.to || to;
   if (!recipient) {

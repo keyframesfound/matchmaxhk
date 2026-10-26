@@ -5,17 +5,17 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAccountActive } from "@/lib/account-status-enforcement";
 
 /**
- * Issue #216: Report button — one report form for a tutor card, a photo, an
+ * Issue #216: Report button, one report form for a tutor card, a photo, an
  * introduction, and a note (digital_materials listing). The reporter picks a
  * reason; staff work an admin queue; the reported tutor is never told who
- * reported them (reporter identity has NO tutor-facing read path — the RLS
+ * reported them (reporter identity has NO tutor-facing read path, the RLS
  * policies in 20261011000000_create_reports.sql scope reads to the reporter
  * and to staff via the admin-gated server fns below).
  *
  * Design notes:
  *  - Writes go through the CALLER's RLS-scoped client (auth context set from
  *    the Bearer token), so the `reporter_id` in the payload is verified
- *    against `auth.uid()` by the INSERT policy — a client cannot file a
+ *    against `auth.uid()` by the INSERT policy, a client cannot file a
  *    report as someone else, and cannot forge `status`/`resolved_at` (the
  *    WITH CHECK in 20261011200000 locks inserts to status = 'open').
  *  - The tutor owner is resolved server-side from tutors/digital_materials
@@ -163,7 +163,7 @@ export const submitReport = createServerFn({ method: "POST" })
       targetLabel = material.title;
       // Same self-report rule as cards/photos/introductions: the note's owner
       // reporting their own listing is a support request, not a signal
-      // (issue #294 — the owner cannot report themselves).
+      // (issue #294, the owner cannot report themselves).
       if (material.tutor_id) {
         const { data: materialOwner } = await admin
           .from("tutors")
@@ -181,7 +181,7 @@ export const submitReport = createServerFn({ method: "POST" })
         .eq("id", data.targetId)
         .maybeSingle();
       if (error || !tutor) throw new Error("Reported tutor not found.");
-      // A tutor cannot report their own card/photo/introduction — that is a
+      // A tutor cannot report their own card/photo/introduction, that is a
       // support request, not a moderation signal (queue noise otherwise).
       if (tutor.user_id && tutor.user_id === context.userId) {
         throw new Error("SELF_REPORT");
@@ -226,7 +226,7 @@ export const submitReport = createServerFn({ method: "POST" })
 
 /**
  * Admin queue (staff only). Lists every report newest-first with the target
- * label resolved AND the reporter identity + email — anonymity is
+ * label resolved AND the reporter identity + email, anonymity is
  * tutor-facing only; staff need the reporter to catch serial false reporters
  * and spam. The admin acts (uphold / reject) via resolveReport.
  */
@@ -273,7 +273,7 @@ export const listReportsAdmin = createServerFn({ method: "POST" })
         };
       };
       // Batch-fetch the page(s) covering our reporter ids; per-user fetchByIds
-      // would be N calls — one paginated sweep is fine at queue volume.
+      // would be N calls, one paginated sweep is fine at queue volume.
       let page = 1;
       let missing = reporterIds.length;
       while (missing > 0 && page <= 10) {
@@ -424,7 +424,7 @@ export const resolveReport = createServerFn({ method: "POST" })
       // Hide the reported item until the tutor edits it (cards/photos/
       // introductions = the tutors row; notes/gigs = the material listing).
       // digital_materials has NO is_published column (that was dropped with
-      // the #203 status machine) — the real unpublish transition is
+      // the #203 status machine), the real unpublish transition is
       // status -> "hidden" (lifecycle "hide": published|hidden -> hidden,
       // staff can unhide back to published).
       if (report.target_type === "material") {
@@ -440,7 +440,7 @@ export const resolveReport = createServerFn({ method: "POST" })
           .eq("id", report.tutor_id)) as { error?: { message?: string } | null };
         if (error) throw new Error(error.message || "Failed to hide the tutor card");
 
-        // "A second upheld report on the same tutor pauses the card" — the
+        // "A second upheld report on the same tutor pauses the card", the
         // unpublish above IS the pause (tutors have no separate paused state;
         // is_published = false removes the card from /tutors and the profile
         // from public view until the tutor edits and re-publishes). The count

@@ -1,7 +1,7 @@
 import { MAX_CUSTOM_HEADLINE } from "@/features/tutors/custom-headline";
 
 /**
- * Issue #411 — Auto-Translate DRAFT helper (RULE-BASED ONLY — no AI/LLM
+ * Issue #411, Auto-Translate DRAFT helper (RULE-BASED ONLY, no AI/LLM
  * service; AI features are parked in this repo). Parses the English custom
  * headline and drafts a zh-HK version for the tutor to edit:
  * - score/title tokens stay as-is ("IBDP 41/45", "SAT 1520");
@@ -9,7 +9,7 @@ import { MAX_CUSTOM_HEADLINE } from "@/features/tutors/custom-headline";
  *   common title words);
  * - unresolved segments stay English.
  * It only fills the ZH input; whatever the tutor saves is what renders
- * (CEO lock — never machine-translate at render time).
+ * (CEO lock, never machine-translate at render time).
  */
 
 /** Lowercase EN token -> zh-HK. Longest phrases first at the call site. */
@@ -120,7 +120,7 @@ function translateSegment(segment: string): string {
     } else if (single && DICTIONARY[single]) {
       out.push(DICTIONARY[single]);
     } else {
-      // Unknown — stays English, exactly as typed.
+      // Unknown, stays English, exactly as typed.
       out.push(tokens[i]);
     }
     i += 1;

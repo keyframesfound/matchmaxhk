@@ -123,7 +123,7 @@ function SettingsCard({
   return (
     <section id={id} className="scroll-mt-24 rounded-lg border border-border bg-card">
       <div className="border-b border-border px-6 py-4">
-        <h3 className="text-base font-bold tracking-tight text-[color:var(--ink)]">{title}</h3>
+        <h3 className="text-lg font-bold tracking-tight text-[color:var(--ink)]">{title}</h3>
         <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
       </div>
       <div className="flex flex-col gap-4 px-6 py-5">{children}</div>
@@ -835,7 +835,7 @@ export function ProfilePanel() {
           )}
         >
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <p className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+            <p className="flex items-center gap-2 text-sm font-semibold text-muted-foreground">
               {isDirty ? (
                 <>
                   <span className="h-2 w-2 rounded-full bg-amber-500 dark:bg-amber-400" />

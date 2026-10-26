@@ -1,11 +1,11 @@
 /**
- * Issue #254 (F3) — staff case flags.
+ * Issue #254 (F3), staff case flags.
  *
  * A flag is a staff observation on a case: the introduction may have been
  * used without the fee, the fee is unpaid, the parties continued past the
  * managed window, the payer asked to move off-site, or a tutor sent contact
  * details through a profile, note, or post. A flag never auto-charges and
- * never reads private messages — invoice / waive / ban stay manual staff
+ * never reads private messages, invoice / waive / ban stay manual staff
  * actions (fee desk #259, org policy #376).
  *
  * Pure vocabulary shared by the desk server fns (admin-desk.functions.ts)

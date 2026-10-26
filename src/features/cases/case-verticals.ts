@@ -1,5 +1,5 @@
 /**
- * Issue #190 (case slice) — pure helpers that map the level-first case
+ * Issue #190 (case slice), pure helpers that map the level-first case
  * request funnel onto the tutoring_cases vertical columns
  * (academic_tier, uni_field, uni_name, uni_program, uni_course_codes,
  * kindergarten_focus). Server fns and forms both import these so the
@@ -65,18 +65,18 @@ export function tierForFunnelLevel(level: FunnelLevel | null | undefined): Acade
 
 /**
  * Issue #396: the public-board uni free text (uni_field, uni_name,
- * uni_program, uni_course_codes — all whitelisted in PUBLIC_CASE_COLUMNS)
+ * uni_program, uni_course_codes, all whitelisted in PUBLIC_CASE_COLUMNS)
  * runs through the shared contact filter before storage. Matches are
  * STRIPPED, not rejected: the parent submit path is effectively
  * untrusted-input handling and must never 500 on a pasted phone number
  * (precedent #334), and the admin case editor stays consistent with it.
  * Strip → whitespace-collapse → strip runs to a FIXPOINT (bounded): a
- * single pass can reconstitute a number the first pass split — e.g.
+ * single pass can reconstitute a number the first pass split, e.g.
  * "9123 foo@bar.com 4567" strips to "9123   4567" and collapsing the
  * whitespace stitches it into the canonical "9123 4567", so the collapse
  * output must be re-filtered before storage. Trim, cap, blank → null.
  * (Since #410 the implementation is the shared sanitizeCaseFreeText in
- * contact-filter.ts — one pipeline for every public case free-text field.)
+ * contact-filter.ts, one pipeline for every public case free-text field.)
  */
 export function sanitizeCaseUniText(raw: unknown, max: number): string | null {
   return sanitizeCaseFreeText(raw, max);

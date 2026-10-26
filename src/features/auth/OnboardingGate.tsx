@@ -149,7 +149,7 @@ function OnboardingRoleDialog({
                 aria-checked={selected}
                 disabled={submitting}
                 onClick={() => setChoice(option.value)}
-                className={`relative flex flex-col items-start gap-3 rounded-2xl border-2 bg-[color:var(--surface)] p-4 pr-9 text-left transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40 focus-visible:outline-none disabled:cursor-not-allowed ${
+                className={`relative flex flex-col items-start gap-3 rounded-2xl border-2 bg-[color:var(--surface)] p-4 pr-9 text-left transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] focus-visible:outline-none disabled:cursor-not-allowed ${
                   selected
                     ? "border-[color:var(--ink)]"
                     : "border-border hover:border-[color:var(--ink)]/50"

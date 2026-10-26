@@ -31,13 +31,13 @@ export const TutorJoinNotificationEmail = ({
 }: TutorJoinNotificationEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>New tutor card is live — {applicantName}</Preview>
+    <Preview>New tutor card is live, {applicantName}</Preview>
     <Body style={main}>
       <Container style={container}>
         <Heading style={h1}>New tutor card is live</Heading>
         <Text style={intro}>
           A new tutor submitted the MatchMax tutor application (/join) and their card is already
-          published. The join archive in the admin console is the read-only record — nothing needs
+          published. The join archive in the admin console is the read-only record, nothing needs
           review unless the team follows up.
         </Text>
         <Hr style={hr} />

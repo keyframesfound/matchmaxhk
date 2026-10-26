@@ -12,7 +12,7 @@ interface AccountStatusEmailProps {
 }
 
 /**
- * Issue #308 — the single notification email sent when an account's status
+ * Issue #308, the single notification email sent when an account's status
  * changes (suspended / banned / restored). One email per change, no
  * reporter identity, no staff note.
  */
@@ -26,7 +26,7 @@ export const AccountStatusEmail = ({ statusLine }: AccountStatusEmailProps) => (
         <Text style={text}>{statusLine}</Text>
         <Text style={text}>See the community commitment.</Text>
         <Hr style={hr} />
-        <Text style={footer}>Questions? Contact the MatchMax team — we're happy to help.</Text>
+        <Text style={footer}>Questions? Contact the MatchMax team, we're happy to help.</Text>
       </Container>
     </Body>
   </Html>

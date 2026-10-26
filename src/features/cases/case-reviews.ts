@@ -1,9 +1,9 @@
 /**
- * Issues #205 + #287 — case review rules (pure half).
+ * Issues #205 + #287, case review rules (pure half).
  *
  * One score, one comment, per direction, per case. A comment containing a
  * phone, email, or WhatsApp reference is HELD, not published. The card shows
- * "Parent of G11 IB Physics" — a snapshot built from the case at write time.
+ * "Parent of G11 IB Physics", a snapshot built from the case at write time.
  *
  * Comment bounds differ by direction: parent→tutor 20–600 (#205), tutor→parent
  * 20–400 (#287 P7). Both bounds are enforced server-side; the client mirrors
@@ -62,7 +62,7 @@ export type CaseFeeStatusRow = { status: string };
 /**
  * #386 settled rule, full form: settled when the sor_status proves it
  * (see FEE_SETTLED_SOR_STATUSES) OR a case_fees row exists with status
- * 'paid' or 'waived' — a settled fee row is direct proof the applicable
+ * 'paid' or 'waived', a settled fee row is direct proof the applicable
  * admin fee was collected or waived, which covers 'closed' cases: a case
  * closed after settlement keeps its paid/waived fee row, while a pre-fee
  * closure has none and correctly stays unsettled.
@@ -77,7 +77,7 @@ export function isCaseFeeSettled(
 
 /** UI-copy classifier for a held review's reason (#386): is the fee-settlement
  * hold the only reason, combined with contact reasons, or absent? The lazy
- * publish still uses canPublishHeldReview — only a PURE fee hold flips. */
+ * publish still uses canPublishHeldReview, only a PURE fee hold flips. */
 export function feeHoldKind(heldReason: string | null | undefined): "pure" | "combined" | "none" {
   if (heldReason === FEE_SETTLEMENT_HOLD_REASON) return "pure";
   if (heldReason?.startsWith(`${FEE_SETTLEMENT_HOLD_REASON} + `)) return "combined";
@@ -133,7 +133,7 @@ export function validateReviewInput(
   return { ok: true, heldReasons: findReviewHolds(trimmed) };
 }
 
-/** #205/#287: "Parent of G11 IB Physics" — built from the case snapshot fields. */
+/** #205/#287: "Parent of G11 IB Physics", built from the case snapshot fields. */
 export function buildParentDisplayLine(parts: {
   studentLevel?: string | null;
   studentGradeCurrent?: string | null;

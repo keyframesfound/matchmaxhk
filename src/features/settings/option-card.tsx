@@ -4,7 +4,7 @@ import { ConsolePanel } from "@/components/ui/console-panel";
 import { cn } from "@/lib/utils";
 
 /**
- * Card with a fixed header band — the shared chrome for every settings
+ * Card with a fixed header band, the shared chrome for every settings
  * section card (title + description header, content below the divider).
  */
 export function SettingsCard({
@@ -34,7 +34,7 @@ export function SettingsCard({
 /**
  * Claude-style selectable option card: a bordered tile with a preview area
  * (icon, mockup, anything) plus label and description. Selection is a ring
- * border and ink wash — flat, no shadow.
+ * border and ink wash, flat, no shadow.
  */
 export function OptionCard({
   selected,
@@ -76,7 +76,7 @@ export function OptionCard({
         {badge}
       </span>
       {description ? (
-        <span className="text-xs leading-5 text-[color:var(--ink)]/60">{description}</span>
+        <span className="text-xs leading-5 text-muted-foreground">{description}</span>
       ) : null}
     </button>
   );

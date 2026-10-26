@@ -4,6 +4,16 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Flag } from "lucide-react";
 import { toast } from "sonner";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import {
   ConsoleTable,
@@ -15,6 +25,7 @@ import {
   ConsoleTh,
 } from "@/components/ui/console-table";
 import { useAuth } from "@/features/auth/useAuth";
+import { formatPostedAgo } from "@/lib/relative-time";
 import {
   listReportsAdmin,
   resolveReport,
@@ -24,7 +35,7 @@ import {
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({
     meta: [
-      { title: "Reports — MatchMax Admin" },
+      { title: "Reports, MatchMax Admin" },
       {
         name: "description",
         content: "Staff queue for user reports on cards, photos, introductions and notes.",
@@ -60,13 +71,17 @@ const TARGET_LABELS: Record<string, string> = {
  * the second uphold on one tutor pauses the card (resolveReport handles both
  * server-side and flags the threshold in its result); reject closes the
  * report without touching the item. Reporter identity + email are shown here
- * — anonymity is tutor-facing only; staff need it to catch serial false
+ *, anonymity is tutor-facing only; staff need it to catch serial false
  * reporters.
  */
 function AdminReports() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [pending, setPending] = useState<{
+    row: AdminReportRow;
+    action: "uphold" | "reject";
+  } | null>(null);
 
   const reportsQuery = useQuery({
     queryKey: ["admin", "reports"],
@@ -79,7 +94,7 @@ function AdminReports() {
       resolveReport({ data: input }),
     onSuccess: (_data, variables) => {
       toast.success(
-        variables.action === "uphold" ? "Report upheld — the item is hidden." : "Report rejected.",
+        variables.action === "uphold" ? "Report upheld, the item is hidden." : "Report rejected.",
       );
       void queryClient.invalidateQueries({ queryKey: ["admin", "reports"] });
       setResolvingId(null);
@@ -95,7 +110,7 @@ function AdminReports() {
   const resolved = rows.filter((row) => row.status !== "open");
 
   return (
-    <div className="mx-auto w-full max-w-6xl">
+    <div className="mx-auto w-full max-w-7xl">
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-bold tracking-tight">Reports</h2>
@@ -135,10 +150,7 @@ function AdminReports() {
                   key={row.id}
                   row={row}
                   busy={resolvingId === row.id}
-                  onAct={(action) => {
-                    setResolvingId(row.id);
-                    resolveMutation.mutate({ reportId: row.id, action });
-                  }}
+                  onAct={(action) => setPending({ row, action })}
                 />
               ))
             )}
@@ -148,9 +160,7 @@ function AdminReports() {
 
       {resolved.length > 0 ? (
         <section className="mt-8">
-          <h3 className="pb-3 text-sm font-semibold tracking-tight">
-            Resolved ({resolved.length})
-          </h3>
+          <h3 className="pb-3 text-sm font-medium tracking-tight">Resolved ({resolved.length})</h3>
           <ConsoleTable minTableWidth="900px">
             <ConsoleTableHead>
               <tr>
@@ -169,7 +179,7 @@ function AdminReports() {
                   </ConsoleTd>
                   <ConsoleTd className="text-xs">
                     {TARGET_LABELS[row.target_type] ?? row.target_type}
-                    {row.target_label ? ` — ${row.target_label}` : ""}
+                    {row.target_label ? `, ${row.target_label}` : ""}
                   </ConsoleTd>
                   <ConsoleTd className="text-xs">
                     {REASON_LABELS[row.reason] ?? row.reason}
@@ -186,6 +196,39 @@ function AdminReports() {
           </ConsoleTable>
         </section>
       ) : null}
+
+      {pending ? (
+        <AlertDialog open onOpenChange={(open) => (!open ? setPending(null) : null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>
+                {pending.action === "uphold" ? "Uphold this report?" : "Reject this report?"}
+              </AlertDialogTitle>
+              <AlertDialogDescription>
+                {pending.action === "uphold"
+                  ? `The ${TARGET_LABELS[pending.row.target_type] ?? pending.row.target_type}${
+                      pending.row.target_label ? ` "${pending.row.target_label}"` : ""
+                    } is hidden for everyone, and a second uphold on this tutor pauses the card. This cannot be undone from this desk.`
+                  : `The ${
+                      TARGET_LABELS[pending.row.target_type] ?? pending.row.target_type
+                    } stays visible and the report closes. The reporter is not notified.`}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => {
+                  setResolvingId(pending.row.id);
+                  resolveMutation.mutate({ reportId: pending.row.id, action: pending.action });
+                  setPending(null);
+                }}
+              >
+                {pending.action === "uphold" ? "Uphold report" : "Reject report"}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ) : null}
     </div>
   );
 }
@@ -201,8 +244,11 @@ function ReportRowView({
 }) {
   return (
     <tr>
-      <ConsoleTd className="whitespace-nowrap text-xs text-muted-foreground">
-        {new Date(row.created_at).toLocaleString()}
+      <ConsoleTd
+        className="whitespace-nowrap text-xs text-muted-foreground"
+        title={new Date(row.created_at).toLocaleString()}
+      >
+        {formatPostedAgo(row.created_at)}
       </ConsoleTd>
       <ConsoleTd className="text-xs">
         <span className="font-semibold">{TARGET_LABELS[row.target_type] ?? row.target_type}</span>

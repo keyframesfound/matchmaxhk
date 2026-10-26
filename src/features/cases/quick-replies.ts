@@ -6,17 +6,15 @@
  * line into WhatsApp and hits Send themselves — NOTHING here auto-sends
  * (CEO lock: humans approve every outbound line).
  *
- * The strings are the single source of truth for V1 and double as the
- * i18n defaultValue: both locales render the same 繁中 text in V1 (EN
- * variants are V1.1 — locale keys triage.quick_reply_* carry the same
- * values until then). Keeping the canonical text in code guarantees the
- * clipboard content is byte-exact even before the locale keys land.
+ * The `text` strings are the single source of truth for V1 and stay OUT of
+ * the i18n JSON (issue §15.7: macro bodies live in paste-pack / CS-005,
+ * 繁中-first — never duplicated divergent copies). The `key` is the desk
+ * UI's button label (desk jargon, same value in both locales for V1 — EN
+ * label variants are V1.1 if needed).
  */
 
 export type QuickReply = {
-  /** Desk jargon label (same in both languages for V1). */
-  label: string;
-  /** Locale key carrying the same 繁中 string in en + zh-HK for V1. */
+  /** i18n key carrying the desk jargon button label (desk.quick.*). */
   key: string;
   /** EXACT insert text — copied verbatim to the clipboard. */
   text: string;
@@ -24,18 +22,15 @@ export type QuickReply = {
 
 export const QUICK_REPLIES: readonly QuickReply[] = [
   {
-    label: "Strike 2",
-    key: "triage.quick_reply_strike_2",
+    key: "desk.quick.strike2",
     text: "明白！最後想請問大約的預算（每小時）以及方便上堂的時間？",
   },
   {
-    label: "Rate Nudge",
-    key: "triage.quick_reply_rate_nudge",
+    key: "desk.quick.rateNudge",
     text: "明白您的要求。不過目前您填寫的預算/時間較難配對我們 Top 8 的獲認證導師。您可以考慮稍微調整預算，或者轉為網上課堂，配對成功率會大幅提升！或者您也可以在這裡直接瀏覽導師：https://matchmax.hk/tutors",
   },
   {
-    label: "Price Range",
-    key: "triage.quick_reply_price_range",
+    key: "desk.quick.priceRange",
     text: "DSE Maths 大約 $250–$350/hr，IB HL 大約 $350–$500/hr。您可以先瀏覽我們的獲認證導師：https://matchmax.hk/tutors。如想我幫您查特定時間，請告訴我學制、科目和大致預算即可！",
   },
 ];

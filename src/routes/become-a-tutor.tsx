@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
+import { canonicalUrl, hreflangLinks } from "@/features/i18n/seo";
 export const Route = createFileRoute("/become-a-tutor")({
   head: () => ({
     meta: [
@@ -9,9 +10,12 @@ export const Route = createFileRoute("/become-a-tutor")({
       { name: "robots", content: "noindex, follow" },
       { property: "og:title", content: "Become a Tutor in Hong Kong | MatchMax" },
       { property: "og:description", content: "Apply to join MatchMax as a tutor in Hong Kong." },
-      { property: "og:url", content: "https://matchmax.hk/become-a-tutor" },
+      { property: "og:url", content: canonicalUrl("/become-a-tutor") },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/become-a-tutor" }],
+    links: [
+      { rel: "canonical", href: canonicalUrl("/become-a-tutor") },
+      ...hreflangLinks("/become-a-tutor"),
+    ],
   }),
   component: BecomeATutorRedirect,
 });

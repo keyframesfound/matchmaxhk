@@ -9,6 +9,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getMyParentCases, type ParentCaseListItem } from "@/features/cases/parent.functions";
+import { MatchStageChip } from "@/features/cases/parent/match-status-card";
 
 export const Route = createFileRoute("/_authenticated/account/cases")({
   ssr: false,
@@ -79,9 +80,11 @@ function ParentCasesPage() {
                     </span>
                   )}
                   {feePill(c, t)}
-                  <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-2 py-0.5 text-xs text-muted-foreground">
-                    {c.sor_status ? t(`sor.status_${c.sor_status}`) : ""}
-                  </span>
+                  <MatchStageChip
+                    status={c.status}
+                    matchedTutorId={c.matched_tutor_id}
+                    sorStatus={c.sor_status}
+                  />
                 </div>
               </div>
             </Link>

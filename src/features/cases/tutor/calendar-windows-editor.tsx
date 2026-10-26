@@ -6,7 +6,15 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { ConsolePanel } from "@/components/ui/console-panel";
 import {
   addMyBlackout,
@@ -113,22 +121,23 @@ export function CalendarWindowsEditor() {
       <div className="space-y-3 p-4">
         {rows.map((row, i) => (
           <div key={i} className="flex flex-wrap items-center gap-2">
-            <select
-              aria-label={t("sor.tutor_window_day")}
-              className="rounded-md border border-[color:var(--ink)]/15 bg-transparent px-2 py-2 text-sm"
-              value={row.weekday}
-              onChange={(e) =>
-                setRows(
-                  rows.map((r, j) => (j === i ? { ...r, weekday: Number(e.target.value) } : r)),
-                )
+            <Select
+              value={String(row.weekday)}
+              onValueChange={(v) =>
+                setRows(rows.map((r, j) => (j === i ? { ...r, weekday: Number(v) } : r)))
               }
             >
-              {DAY_KEYS.map((d, idx) => (
-                <option key={d} value={idx}>
-                  {t(`sor.day_${d}`)}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger aria-label={t("sor.tutor_window_day")} className="w-auto px-3">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {DAY_KEYS.map((d, idx) => (
+                  <SelectItem key={d} value={String(idx)}>
+                    {t(`sor.day_${d}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
             <Input
               type="time"
               aria-label={t("sor.tutor_window_start")}
@@ -217,12 +226,11 @@ export function CalendarWindowsEditor() {
             )}
           </ul>
           <div className="mt-2 flex items-center gap-2">
-            <Input
-              type="date"
+            <DatePicker
               className="w-40"
-              value={newBlackout}
-              onChange={(e) => setNewBlackout(e.target.value)}
-              aria-label={t("sor.tutor_blackout_add")}
+              label={t("sor.tutor_blackout_add")}
+              value={isoToDate(newBlackout)}
+              onChange={(d) => setNewBlackout(dateToIso(d))}
             />
             <Button
               size="sm"

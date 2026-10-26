@@ -9,12 +9,12 @@ import {
 } from "@/features/tutors/rates";
 
 /**
- * Issue #319 — Suggest a rate. Walks published cards from most recently
+ * Issue #319, Suggest a rate. Walks published cards from most recently
  * updated, collecting up to 100 that are SIMILAR to the caller (shared
- * subject or curriculum) — the sample is similar-first, so niche subjects
+ * subject or curriculum), the sample is similar-first, so niche subjects
  * are not crowded out by 100 unrelated recently-edited cards. Fewer than ten
  * similar cards means "not enough data yet" and fills nothing. Rounds each
- * median to the nearest $10. Never suggests extra rows — a custom label has
+ * median to the nearest $10. Never suggests extra rows, a custom label has
  * no market rate to query.
  */
 

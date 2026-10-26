@@ -70,8 +70,8 @@ type SearchPillBarProps = {
  * Desktop Airbnb-style segmented search pill. Clicking a segment greys the
  * bar, slides a full-height white pill under it and opens its panel below;
  * the panel persists across segment switches (click-driven, content swaps in
- * place). Hovering a segment shows a grey pill — whether or not a panel is
- * already open — but never moves the white pill or panel. Elevated with the
+ * place). Hovering a segment shows a grey pill, whether or not a panel is
+ * already open, but never moves the white pill or panel. Elevated with the
  * sanctioned `.pill-elevate-lg` shadow to match the mobile search bar.
  */
 export function SearchPillBar({
@@ -134,7 +134,7 @@ export function SearchPillBar({
     if (!form || !button) return null;
     // First segment starts flush at the left cap; the last segment's pill runs
     // through the submit button to the right cap (the button renders above it)
-    // — rounded caps would otherwise leave a grey rim of the wash visible.
+    //, rounded caps would otherwise leave a grey rim of the wash visible.
     const x = firstSegmentIdRef.current === segmentId ? 0 : button.offsetLeft;
     let width = button.offsetWidth;
     if (lastSegmentIdRef.current === segmentId) {
@@ -332,7 +332,7 @@ export function SearchPillBar({
                 onFocus={() => setHoveredId(segment.id)}
                 onClick={() => setOpenId(openIdRef.current === segment.id ? null : segment.id)}
                 className={cn(
-                  "relative flex min-w-0 flex-col justify-center gap-0.5 rounded-full px-4 py-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 sm:px-5",
+                  "relative flex min-w-0 flex-col justify-center gap-0.5 rounded-full px-4 py-1.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:px-5",
                   index > 0 &&
                     (dividerHidden ? "border-l border-transparent" : "border-l border-border"),
                   segment.grow ?? "flex-1",

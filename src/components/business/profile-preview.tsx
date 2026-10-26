@@ -97,7 +97,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
 
         <div className="mt-3">
           <h1 className="flex flex-wrap items-center gap-2 text-xl font-bold tracking-tight text-[color:var(--ink)]">
-            {data.name || <span className="text-muted-foreground/60">Your business name</span>}
+            {data.name || <span className="text-muted-foreground">Your business name</span>}
             <BadgeCheck
               className="h-5 w-5 shrink-0 text-[color:var(--muted-foreground)]"
               aria-label="Verified business"
@@ -106,7 +106,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
           {data.tagline ? (
             <p className="mt-1.5 text-sm font-medium text-muted-foreground">{data.tagline}</p>
           ) : (
-            <p className="mt-1.5 text-sm italic text-muted-foreground/60">
+            <p className="mt-1.5 text-sm italic text-muted-foreground">
               Add a tagline to introduce your business
             </p>
           )}
@@ -146,7 +146,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
             </PreviewButton>
           ) : null}
           {!hasContactButtons && (
-            <p className="text-xs italic text-muted-foreground/60">
+            <p className="text-xs italic text-muted-foreground">
               WhatsApp, Email and Website buttons will appear here once you add contact details.
             </p>
           )}
@@ -155,7 +155,7 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
 
       {/* About */}
       <div className="border-t border-border px-5 py-5">
-        <h2 className="text-base font-bold tracking-tight text-[color:var(--ink)]">About</h2>
+        <h2 className="text-lg font-bold tracking-tight text-[color:var(--ink)]">About</h2>
         {data.introVideoUrl ? (
           <div className="relative mt-3 aspect-video w-full overflow-hidden rounded-lg border border-border bg-black">
             <img
@@ -181,8 +181,8 @@ function PreviewBody({ data }: { data: ProfilePreviewData }) {
               ))}
           </div>
         ) : (
-          <p className="mt-2 text-sm italic text-muted-foreground/60">
-            Tell customers about your business — this shows on your public page.
+          <p className="mt-2 text-sm italic text-muted-foreground">
+            Tell customers about your business, this shows on your public page.
           </p>
         )}
       </div>

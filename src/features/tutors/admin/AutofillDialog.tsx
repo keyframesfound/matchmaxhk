@@ -98,7 +98,7 @@ export function AutofillDialog({
           </DialogTitle>
           <DialogDescription>
             Paste the tutor&apos;s raw information (or load the join application), then generate a
-            draft profile in MatchMax house style. Review every field before saving — the AI never
+            draft profile in MatchMax house style. Review every field before saving, the AI never
             invents credentials, and nothing is applied without your confirmation.
           </DialogDescription>
         </DialogHeader>
@@ -139,7 +139,7 @@ export function AutofillDialog({
           {result ? (
             <div className="rounded-xl border border-emerald-500/25 bg-emerald-500/[0.06] p-3.5 space-y-2">
               <p className="text-xs font-bold text-emerald-800 dark:text-emerald-300">
-                Draft generated — will fill: {filledSummary.join(", ") || "no fields"}
+                Draft generated, will fill: {filledSummary.join(", ") || "no fields"}
               </p>
               {result.notes.length > 0 ? (
                 <ul className="list-inside list-disc space-y-0.5 text-[11px] text-amber-700 dark:text-amber-300">

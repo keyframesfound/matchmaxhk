@@ -23,6 +23,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Logo } from "@/components/brand/Logo";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/useAuth";
+import { AdminCommandPalette } from "@/features/admin/admin-command-palette";
 import { fetchPendingApplicationCount } from "@/features/tutor-application/admin/queries";
 
 export const Route = createFileRoute("/_authenticated/admin")({
@@ -120,12 +121,15 @@ function AdminLayout() {
         groups={adminGroups}
         title={title}
         headerExtra={
-          <Button asChild variant="outline" size="sm">
-            <a href="/" target="_blank" rel="noreferrer">
-              <ExternalLink className="mr-1.5 h-4 w-4" />
-              View site
-            </a>
-          </Button>
+          <>
+            <AdminCommandPalette />
+            <Button asChild variant="outline" size="sm">
+              <a href="/" target="_blank" rel="noreferrer">
+                <ExternalLink className="mr-1.5 h-4 w-4" />
+                View site
+              </a>
+            </Button>
+          </>
         }
         account={{
           name: accountName,

@@ -8,7 +8,7 @@ import { useAuth } from "@/features/auth/useAuth";
  * Issue #308: global banners for restricted accounts.
  *  - Banned: the session was just ended server-side; a persistent notice
  *    explains why sign-in is refused ("This account is suspended. Contact
- *    support." per the issue copy — ban is a suspension of access).
+ *    support." per the issue copy, ban is a suspension of access).
  *  - Suspended: the user keeps their session and sees the reason plus what
  *    is blocked. Dismissible per page view.
  */
@@ -46,7 +46,7 @@ export function AccountStatusBanners() {
   if (accountStatus === "suspended" && !dismissed) {
     return (
       <div className="sticky top-0 z-40 border-b border-amber-500/30 bg-amber-500/10">
-        <div className="mx-auto flex max-w-6xl items-start gap-3 px-4 py-2.5 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-start gap-3 px-4 py-2.5 sm:px-6">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
           <div className="min-w-0 flex-1">
             <p className="text-sm font-bold text-[color:var(--ink)]">

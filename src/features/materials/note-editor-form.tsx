@@ -5,8 +5,16 @@ import { Loader2, Lock } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { findContactViolations } from "@/lib/contact-filter";
 import {
   GRADE_ACHIEVED_MAX_LEN,
@@ -34,7 +42,7 @@ import {
  * sees which sentence failed before the server rejects it, gates exemplars
  * on the written-permission checkbox, allows HK$0 (free pack), and takes an
  * OPTIONAL approximate word count (positive integer when present). A
- * flashcards file may be a PDF or an .apkg deck (max 20MB — the repo upload
+ * flashcards file may be a PDF or an .apkg deck (max 20MB, the repo upload
  * cap wins over the issue's 40MB); decks get no in-browser preview.
  */
 
@@ -76,7 +84,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   );
   const [file, setFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
-  // Issue #214: the notes-terms gate — required for SUBMIT (drafts save
+  // Issue #214: the notes-terms gate, required for SUBMIT (drafts save
   // without it); the server fn re-validates and records the acceptance row.
   const [termsAccepted, setTermsAccepted] = useState(false);
 
@@ -164,8 +172,8 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   // Issue #214: submit (not draft) is also the notes-terms acceptance click.
   if (!termsAccepted) missing.push(t("terms.gate.missing"));
 
-  // #136: the approximate word count is OPTIONAL — empty never blocks
-  // publish — but a present value must be a positive whole number.
+  // #136: the approximate word count is OPTIONAL, empty never blocks
+  // publish, but a present value must be a positive whole number.
   const wordCountError = validateWordCount(wordCount.trim() === "" ? null : Number(wordCount));
   // A present-but-invalid file is also a hard block (#314): only PDFs and,
   // for flashcards, .apkg decks are accepted, and the repo upload cap is
@@ -187,7 +195,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
 
   const violationNote = (violations: { match: string }[]) =>
     violations.length > 0 ? (
-      <p className="text-xs text-[#B42318]">
+      <p className="text-xs text-destructive">
         {t("notes.form.contact_block", {
           match: violations
             .map((v) => v.match)
@@ -227,7 +235,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           onChange={(e) => setDescription(e.target.value)}
           rows={5}
           placeholder={t("notes.form.contents_placeholder")}
-          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]/40"
+          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
         />
         {violationNote(copyViolations.descV)}
       </div>
@@ -235,79 +243,79 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
       <div className="grid gap-4 sm:grid-cols-2">
         <div className="space-y-1.5">
           <Label htmlFor="note-curriculum">{t("notes.form.field_curriculum")}</Label>
-          <select
-            id="note-curriculum"
+          <Select
             value={curriculum}
-            onChange={(e) => {
-              setCurriculum(e.target.value);
+            onValueChange={(v) => {
+              setCurriculum(v);
               setSubject("");
             }}
-            className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-[0.95rem]"
           >
-            <option value="" disabled>
-              {t("notes.form.curriculum_placeholder")}
-            </option>
-            {NOTE_CURRICULA.map((entry) => (
-              <option key={entry} value={entry}>
-                {entry === "Other" ? t("notes.form.curriculum_other") : entry}
-              </option>
-            ))}
-            {/* #313 review fix: legacy free-text values stay visible so the
-                owner can migrate them onto the canonical list. */}
-            {curriculum && !isNoteCurriculum(curriculum) ? (
-              <option value={curriculum}>
-                {curriculum} ({t("notes.form.legacy_value")})
-              </option>
-            ) : null}
-          </select>
+            <SelectTrigger id="note-curriculum" className="w-full">
+              <SelectValue placeholder={t("notes.form.curriculum_placeholder")} />
+            </SelectTrigger>
+            <SelectContent>
+              {NOTE_CURRICULA.map((entry) => (
+                <SelectItem key={entry} value={entry}>
+                  {entry === "Other" ? t("notes.form.curriculum_other") : entry}
+                </SelectItem>
+              ))}
+              {/* #313 review fix: legacy free-text values stay visible so the
+                  owner can migrate them onto the canonical list. */}
+              {curriculum && !isNoteCurriculum(curriculum) ? (
+                <SelectItem value={curriculum}>
+                  {curriculum} ({t("notes.form.legacy_value")})
+                </SelectItem>
+              ) : null}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="note-subject">{t("notes.form.field_subject")}</Label>
-          <select
-            id="note-subject"
-            value={subject}
-            onChange={(e) => setSubject(e.target.value)}
-            className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-[0.95rem]"
-          >
-            <option value="" disabled>
-              {t("notes.form.subject_placeholder")}
-            </option>
-            {subjectOptions.map((entry) => (
-              <option key={entry} value={entry}>
-                {entry}
-              </option>
-            ))}
-            {/* #313 review fix: a stored subject outside the current
-                curriculum's list still renders instead of a blank select. */}
-            {subject && !subjectOptions.includes(subject) ? (
-              <option value={subject}>
-                {subject} ({t("notes.form.legacy_value")})
-              </option>
-            ) : null}
-          </select>
+          <Select value={subject} onValueChange={setSubject}>
+            <SelectTrigger id="note-subject" className="w-full">
+              <SelectValue placeholder={t("notes.form.subject_placeholder")} />
+            </SelectTrigger>
+            <SelectContent>
+              {subjectOptions.map((entry) => (
+                <SelectItem key={entry} value={entry}>
+                  {entry}
+                </SelectItem>
+              ))}
+              {/* #313 review fix: a stored subject outside the current
+                  curriculum's list still renders instead of a blank select. */}
+              {subject && !subjectOptions.includes(subject) ? (
+                <SelectItem value={subject}>
+                  {subject} ({t("notes.form.legacy_value")})
+                </SelectItem>
+              ) : null}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="note-type">{t("notes.form.field_type")}</Label>
-          <select
-            id="note-type"
+          <Select
             value={materialType}
-            onChange={(e) => {
-              if (isMaterialType(e.target.value)) {
-                setMaterialType(e.target.value);
-                if (e.target.value !== "exemplar") {
+            onValueChange={(v) => {
+              if (isMaterialType(v)) {
+                setMaterialType(v);
+                if (v !== "exemplar") {
                   setGradeAchieved("");
                   setExemplarPermission(false);
                 }
               }
             }}
-            className="h-11 w-full rounded-md border border-input bg-transparent px-3 text-[0.95rem]"
           >
-            {MATERIAL_TYPES.map((type) => (
-              <option key={type} value={type}>
-                {t(`notes.form.type_${type}`)}
-              </option>
-            ))}
-          </select>
+            <SelectTrigger id="note-type" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {MATERIAL_TYPES.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {t(`notes.form.type_${type}`)}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="space-y-1.5">
           <Label htmlFor="note-topic">{t("notes.form.field_topic")}</Label>
@@ -349,7 +357,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           />
           <p className="text-xs text-muted-foreground">{t("notes.form.word_count_hint")}</p>
           {wordCountError ? (
-            <p className="text-xs text-[#B42318]">{t("notes.form.word_count_invalid")}</p>
+            <p className="text-xs text-destructive">{t("notes.form.word_count_invalid")}</p>
           ) : null}
         </div>
         <div className="space-y-1.5">
@@ -381,11 +389,10 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             {violationNote(copyViolations.gradeV)}
           </div>
           <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
-            <input
-              type="checkbox"
+            <Checkbox
               checked={exemplarPermission}
-              onChange={(e) => setExemplarPermission(e.target.checked)}
-              className="mt-1 h-4 w-4 shrink-0"
+              onCheckedChange={(c) => setExemplarPermission(c === true)}
+              className="mt-1"
             />
             <span>{t("notes.form.exemplar_permission")}</span>
           </label>
@@ -408,7 +415,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           onChange={(e) => setFile(e.target.files?.[0] ?? null)}
         />
         {fileTooLarge ? (
-          <p className="text-xs text-[#B42318]">{t("notes.form.file_too_large")}</p>
+          <p className="text-xs text-destructive">{t("notes.form.file_too_large")}</p>
         ) : materialType === "flashcards" ? (
           <p className="flex items-center gap-1 text-xs text-muted-foreground">
             <Lock className="h-3 w-3" aria-hidden />
@@ -422,7 +429,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
         )}
       </div>
 
-      {/* Issue #214: the notes-terms gate — required to submit for review;
+      {/* Issue #214: the notes-terms gate, required to submit for review;
           drafts save without it. Links the notes section of the ToS. */}
       <TermsGateCheckbox
         section="notes"

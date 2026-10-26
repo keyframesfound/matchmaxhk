@@ -13,15 +13,15 @@ type TutorReviewSummary = {
 };
 
 /**
- * #205 + #287 — public case-review block on the tutor card: average + count +
+ * #205 + #287, public case-review block on the tutor card: average + count +
  * latest 5 parent reviews. Zero reviews shows "New tutor", never "0.0".
- * Reads the public SECURITY DEFINER summary RPC with the anon client — the
+ * Reads the public SECURITY DEFINER summary RPC with the anon client, the
  * RPC is granted to anon, so no service role is involved.
  */
 export function ReviewSummaryBlock({ tutorId }: { tutorId: string }) {
   const { t } = useTranslation();
   // Plain effect + state: React Query's queryFn left the rpc await unsettled
-  // in dev (standalone identical call resolves) — a simple read needs neither
+  // in dev (standalone identical call resolves), a simple read needs neither
   // cache coordination nor retries.
   const [summary, setSummary] = useState<TutorReviewSummary | null>(null);
   useEffect(() => {
@@ -78,7 +78,7 @@ export function ReviewSummaryBlock({ tutorId }: { tutorId: string }) {
                       key={s}
                       className={cn(
                         "h-3 w-3",
-                        s < r.rating ? "fill-current" : "text-muted-foreground/40",
+                        s < r.rating ? "fill-current" : "text-muted-foreground",
                       )}
                       aria-hidden="true"
                     />

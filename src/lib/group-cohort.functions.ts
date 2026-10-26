@@ -1,10 +1,10 @@
 /**
- * Issue #391 — Small Group Classes server fns.
+ * Issue #391, Small Group Classes server fns.
  *
  * Tutors own their cohorts (RLS: tutors.user_id owner policies); the server
  * fns re-check ownership server-side before any service-role write, the same
  * belt-and-braces the admin desk uses. Booking spawns ONE tutoring_case per
- * parent with student_count = seats and group_cohort_id set — siblings share
+ * parent with student_count = seats and group_cohort_id set, siblings share
  * the parent's case; unrelated parents never see each other (PDPO).
  */
 
@@ -301,7 +301,7 @@ export const getMyGroupCohorts = createServerFn({ method: "GET" })
 /**
  * Open cohorts for /group-classes. Public data only (no contact fields live
  * on cohort rows); only cohorts of published tutors surface. Runs without
- * auth — the service-role read is scoped to exactly the public columns.
+ * auth, the service-role read is scoped to exactly the public columns.
  */
 export const getPublicGroupCohorts = createServerFn({ method: "GET" }).handler(
   async (): Promise<GroupCohortView[]> => {
@@ -352,7 +352,7 @@ const bookingInputSchema = z.object({
 /**
  * Book 1+ seats on a cohort. Spawns one `new` case under the caller's
  * account (student_count = seats, group_cohort_id set) that staff then match
- * to the cohort tutor and run through the normal SoR lifecycle — the admin
+ * to the cohort tutor and run through the normal SoR lifecycle, the admin
  * fee invoices at 1.5 × per-student rate × student_count.
  */
 export const bookGroupCohort = createServerFn({ method: "POST" })
@@ -445,7 +445,7 @@ export const bookGroupCohort = createServerFn({ method: "POST" })
       .single();
     if (error) {
       // The seat-cap trigger (20261024120000) is the race backstop for the
-      // availability check above — a booking that slipped past the pre-flight
+      // availability check above, a booking that slipped past the pre-flight
       // surfaces as the same parent-facing error.
       if (error.message.includes("COHORT_SEAT_CAP_EXCEEDED")) {
         throw new Error("NOT_ENOUGH_SEATS");

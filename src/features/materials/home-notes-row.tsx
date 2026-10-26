@@ -5,7 +5,6 @@ import { useTranslation } from "react-i18next";
 import { ArrowRight, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { Reveal } from "@/components/ui/reveal";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import {
@@ -18,12 +17,12 @@ import { formatMaterialTypeLabel } from "@/features/materials/queries";
 /**
  * Issue #312: the 'Study notes' row on the home page (under the search bar,
  * above the IB rail) and the 'Authored notes' block on the public tutor
- * profile. Same carousel chrome as the tutor rails — heading, View all,
- * arrows, mobile swipe + md paged track — with flat border-defined cards
+ * profile. Same carousel chrome as the tutor rails, heading, View all,
+ * arrows, mobile swipe + md paged track, with flat border-defined cards
  * (no shadows). Data comes from the get_home_notes / get_tutor_public_notes
  * SECURITY DEFINER RPCs; when they are missing the queries degrade to [] and
  * both blocks render nothing (the home row also needs >= 3 public notes).
- * Azure is never spent here — it stays on money CTAs only.
+ * Azure is never spent here, it stays on money CTAs only.
  */
 
 const HOME_NOTES_LIMIT = 8;
@@ -98,7 +97,7 @@ function renderNoteCard(note: HomeNote, className?: string) {
 }
 
 // The Study Materials directory lives at /tutors?view=materials (Ryan's
-// directory-toggle decision, 2026-10-10) — plain Link-free anchors keep this
+// directory-toggle decision, 2026-10-10), plain Link-free anchors keep this
 // file free of route imports; swap to <Link> if a dedicated route ever lands.
 function SeeAllTile({ className }: { className?: string }) {
   const { t } = useTranslation();
@@ -110,9 +109,11 @@ function SeeAllTile({ className }: { className?: string }) {
         className,
       )}
     >
-      <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card">
-        <ArrowRight className="h-5 w-5 text-[color:var(--brand-link)]" aria-hidden="true" />
-      </span>
+      <ArrowRight
+        className="h-6 w-6 text-[color:var(--brand-link)]"
+        strokeWidth={1.75}
+        aria-hidden="true"
+      />
       <span className="text-sm font-bold text-[color:var(--ink)]">
         {t("materials.toggle_materials")}
       </span>
@@ -176,7 +177,7 @@ export function HomeNotesRow() {
 
   if (isLoading) {
     return (
-      <section className="mx-auto max-w-7xl">
+      <section className="mx-auto max-w-[1536px]">
         <Skeleton className="mb-4 h-8 w-40" />
         <div className="-mx-4 flex gap-3 overflow-hidden px-4 md:mx-0 md:grid md:grid-cols-4 md:gap-6 md:px-0">
           {Array.from({ length: NOTES_PER_PAGE }).map((_, index) => (
@@ -192,63 +193,59 @@ export function HomeNotesRow() {
 
   if (visible.length < MIN_HOME_NOTES) return null;
 
-  // Reveal sits after the null guards so a hidden row leaves no empty
-  // wrapper behind (empty divs still eat space-y margins — #398 review).
   return (
-    <Reveal>
-      <section className="mx-auto max-w-7xl">
-        <div className="mb-4 flex items-center gap-2 sm:gap-3">
-          <h2 className="min-w-0 truncate text-xl font-black tracking-tight text-[color:var(--ink)] md:text-2xl">
-            {t("notes.home.heading")}
-          </h2>
-          <Button
-            asChild
-            variant="ghost"
-            refined
-            hoverArrow
-            className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
-          >
-            <a href="/tutors?view=materials">
-              {t("notes.home.view_all")}
-              <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
-            </a>
-          </Button>
-          <NotesCarouselArrows pages={pages.length} currentPage={currentPage} goToPage={goToPage} />
-        </div>
+    <section className="mx-auto max-w-[1536px]">
+      <div className="mb-4 flex items-center gap-2 sm:gap-3">
+        <h2 className="min-w-0 truncate text-xl font-bold tracking-tight text-[color:var(--ink)] md:text-2xl">
+          {t("notes.home.heading")}
+        </h2>
+        <Button
+          asChild
+          variant="ghost"
+          refined
+          hoverArrow
+          className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
+        >
+          <a href="/tutors?view=materials">
+            {t("notes.home.view_all")}
+            <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
+          </a>
+        </Button>
+        <NotesCarouselArrows pages={pages.length} currentPage={currentPage} goToPage={goToPage} />
+      </div>
 
-        {/* Mobile: one swipeable row — first page of notes, then the see-all tile */}
-        <div className="-mx-4 rail-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pt-1 pb-2 scroll-px-4 md:hidden">
-          {visible
-            .slice(0, NOTES_PER_PAGE)
-            .map((note) => renderNoteCard(note, "w-[min(70vw,300px)] shrink-0 snap-start"))}
-          <SeeAllTile className="min-h-48 w-[min(70vw,300px)] shrink-0 snap-start" />
-        </div>
+      {/* Mobile: one swipeable row, first page of notes, then the see-all tile */}
+      <div className="-mx-4 rail-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pt-1 pb-2 scroll-px-4 md:hidden">
+        {visible
+          .slice(0, NOTES_PER_PAGE)
+          .map((note) => renderNoteCard(note, "w-[min(70vw,300px)] shrink-0 snap-start"))}
+        <SeeAllTile className="min-h-48 w-[min(70vw,300px)] shrink-0 snap-start" />
+      </div>
 
-        {/* md+: paged sliding track, 4 cards per page */}
-        <div className="hidden overflow-hidden pt-1 md:block">
-          <div
-            className="flex items-stretch transition-transform duration-300 ease-out motion-reduce:transition-none"
-            style={{ transform: `translateX(-${currentPage * 100}%)` }}
-          >
-            {pages.map((pageNotes, pageIndex) => {
-              const isCurrentPage = pageIndex === currentPage;
-              const withSeeAllTile = pages.length > 1 && pageIndex === pages.length - 1;
-              return (
-                <div
-                  key={pageIndex}
-                  inert={!isCurrentPage}
-                  aria-hidden={!isCurrentPage}
-                  className="grid w-full shrink-0 grid-cols-2 gap-6 lg:grid-cols-4"
-                >
-                  {pageNotes.map((note) => renderNoteCard(note))}
-                  {withSeeAllTile ? <SeeAllTile className="min-h-48" /> : null}
-                </div>
-              );
-            })}
-          </div>
+      {/* md+: paged sliding track, 4 cards per page */}
+      <div className="hidden overflow-hidden pt-1 md:block">
+        <div
+          className="flex items-stretch transition-transform duration-300 ease-out motion-reduce:transition-none"
+          style={{ transform: `translateX(-${currentPage * 100}%)` }}
+        >
+          {pages.map((pageNotes, pageIndex) => {
+            const isCurrentPage = pageIndex === currentPage;
+            const withSeeAllTile = pages.length > 1 && pageIndex === pages.length - 1;
+            return (
+              <div
+                key={pageIndex}
+                inert={!isCurrentPage}
+                aria-hidden={!isCurrentPage}
+                className="grid w-full shrink-0 grid-cols-2 gap-6 lg:grid-cols-4"
+              >
+                {pageNotes.map((note) => renderNoteCard(note))}
+                {withSeeAllTile ? <SeeAllTile className="min-h-48" /> : null}
+              </div>
+            );
+          })}
         </div>
-      </section>
-    </Reveal>
+      </div>
+    </section>
   );
 }
 
@@ -273,7 +270,7 @@ export function TutorAuthoredNotes({ tutorCode }: { tutorCode: string }) {
         <span className="flex h-7 w-7 items-center justify-center rounded-[3px] border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04]">
           <FileText className="h-4 w-4 text-[color:var(--muted-foreground)]" strokeWidth={2.1} />
         </span>
-        <h2 className="text-base font-bold tracking-tight text-[color:var(--ink)] sm:text-lg">
+        <h2 className="text-lg font-bold tracking-tight text-[color:var(--ink)] sm:text-xl">
           {t("notes.home.authored_heading")}
         </h2>
       </div>

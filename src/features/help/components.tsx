@@ -127,7 +127,7 @@ function HelpCopyBox({ label, text }: { label?: string; text: string }) {
   return (
     <div className="rounded-xl border border-[color:var(--brand-link)]/30 bg-[color:var(--brand-link)]/[0.04]">
       <div className="flex items-center justify-between gap-3 border-b border-[color:var(--brand-link)]/20 px-4 py-2">
-        <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-widest text-[color:var(--brand-link)]">
+        <span className="min-w-0 truncate text-[11px] font-medium text-[color:var(--brand-link)]">
           {label || t("help.copy_box_label")}
         </span>
         <button
@@ -138,12 +138,16 @@ function HelpCopyBox({ label, text }: { label?: string; text: string }) {
         >
           {copied ? (
             <>
-              <Check className="h-3.5 w-3.5 text-[color:var(--brand-link)]" aria-hidden="true" />
+              <span className="mm-control-pop inline-flex">
+                <Check className="h-3.5 w-3.5 text-[color:var(--brand-link)]" aria-hidden="true" />
+              </span>
               {t("help.copied")}
             </>
           ) : (
             <>
-              <ClipboardCopy className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="mm-control-pop inline-flex">
+                <ClipboardCopy className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
               {t("help.copy_button")}
             </>
           )}
@@ -185,7 +189,7 @@ function HelpDiagramPlaceholder({ title, body }: { title: string; body: string }
     <div className="rounded-xl border border-dashed border-border bg-muted/50">
       <div className="flex items-center gap-2 border-b border-dashed border-border px-4 py-2.5">
         <ImageIcon className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
-        <span className="min-w-0 truncate text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+        <span className="min-w-0 truncate text-[11px] font-medium text-muted-foreground">
           {title || t("help.diagram_label")}
         </span>
       </div>
@@ -213,7 +217,7 @@ export function HelpMarkdown({ children }: { children: string }) {
           <thead className="border-b border-border">{headChildren}</thead>
         ),
         th: ({ children: thChildren }) => (
-          <th className="whitespace-nowrap px-3 py-2.5 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+          <th className="whitespace-nowrap px-3 py-2.5 text-[11px] font-medium text-muted-foreground">
             {thChildren}
           </th>
         ),
@@ -254,7 +258,7 @@ export function HelpMarkdown({ children }: { children: string }) {
         h2: ({ children: headingChildren }) => (
           <h2
             id={slugifyHelpHeading(extractTextNode(headingChildren))}
-            className="scroll-mt-28 pt-8 text-2xl font-extrabold tracking-tight text-foreground sm:text-3xl"
+            className="scroll-mt-28 pt-8 text-2xl font-bold tracking-tight text-foreground sm:text-3xl"
           >
             {headingChildren}
           </h2>

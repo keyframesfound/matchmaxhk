@@ -16,7 +16,7 @@ import { formatTutorCode } from "@/features/tutors/tutor-display";
  *   1. The assigned MatchMax account (auth.users email + profiles.phone).
  *   2. The tutor join application (intake form: name / phone / email).
  *      Cards and applications have no hard link, so the admin picks the
- *      application once below — it is stamped on `tutor_applications
+ *      application once below, it is stamped on `tutor_applications
  *      .linked_tutor_id` and read back by `get_tutor_contact_details`.
  */
 
@@ -52,7 +52,7 @@ function CopyButton({ value, label }: { value: string; label: string }) {
           await navigator.clipboard.writeText(value);
           toast.success(`${label} copied`);
         } catch {
-          toast.error("Copy failed — select the text manually.");
+          toast.error("Copy failed, select the text manually.");
         }
       }}
     >
@@ -146,7 +146,7 @@ export function TutorContactDetails({
       if (error) throw error;
     },
     onSuccess: () => {
-      toast.success("Application linked — contact details shown below.");
+      toast.success("Application linked, contact details shown below.");
       invalidate();
     },
     onError: (e: Error) => toast.error(e.message),
@@ -178,7 +178,7 @@ export function TutorContactDetails({
   }
 
   if (query.isError) {
-    return <EmptyHint text="Couldn't load contact details — refresh and try again." />;
+    return <EmptyHint text="Couldn't load contact details, refresh and try again." />;
   }
 
   const contact = query.data;
@@ -282,14 +282,14 @@ export function TutorContactDetails({
         ) : (
           <div className="space-y-2">
             <EmptyHint
-              text={`No join application linked to ${formatTutorCode(tutorCode)} yet. Cards and applications aren't matched automatically — pick the tutor's original application once and its contact details appear here for every future visit.`}
+              text={`No join application linked to ${formatTutorCode(tutorCode)} yet. Cards and applications aren't matched automatically, pick the tutor's original application once and its contact details appear here for every future visit.`}
             />
             <div className="max-w-xl">
               <SearchableSelect
                 value=""
                 onChange={(id) => linkMutation.mutate(id)}
                 onQueryChange={() => {
-                  /* list is preloaded (latest 200) — search filters client-side */
+                  /* list is preloaded (latest 200), search filters client-side */
                 }}
                 options={pickableApplications.map((app) => ({
                   value: app.id,

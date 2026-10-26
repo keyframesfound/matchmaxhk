@@ -525,7 +525,7 @@ export function getTutorGenderLabel(gender: string | null | undefined): string {
 
 /**
  * #391: cheapest per-student rate per tutor across open (forming/running)
- * group cohorts, in one batched query. Best-effort enrichment — a missing
+ * group cohorts, in one batched query. Best-effort enrichment, a missing
  * table (pre-migration tab) or RLS hiccup degrades to no enrichment, never
  * an error, matching the availability-columns tolerance pattern.
  */
@@ -604,7 +604,7 @@ export async function fetchAllTutors(): Promise<Tutor[]> {
 
 /**
  * Free-text education values (published tutors' rows) used to populate the
- * editor dropdowns on the self-serve profile page — so tutors pick an
+ * editor dropdowns on the self-serve profile page, so tutors pick an
  * existing university/school/major spelling instead of typing a new variant.
  */
 export async function fetchEducationValues(): Promise<EducationValueRow[]> {
@@ -629,7 +629,7 @@ export async function fetchTutorByCode(code: string): Promise<Tutor | null> {
   );
   // Issue #405: withTutorSelectFallback coerces a missing row's null data to
   // [] (its list-query default). That array is truthy, so an unknown code used
-  // to surface as a Tutor-shaped object full of undefined fields — the route
+  // to surface as a Tutor-shaped object full of undefined fields, the route
   // loader's `if (!tutor) throw notFound()` never fired and SSR shipped a 200
   // soft-404. A row lookup must return null whenever there is no row.
   if (!data || Array.isArray(data) || Object.keys(data).length === 0) return null;

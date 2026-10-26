@@ -1,5 +1,5 @@
 /**
- * Issue #391 — Small Group Classes: cohort seat math + display state.
+ * Issue #391, Small Group Classes: cohort seat math + display state.
  *
  * Pure helpers shared by the tutor dashboard manager, the public
  * /group-classes board and the vitest suite. Seats taken are never stored —
@@ -14,7 +14,7 @@ import { fullAdminFeeAmount } from "@/features/cases/fee-breakdown";
 /** Cap. 279: hard 2-6 seat band for every tutor at launch (issue #391). */
 export const COHORT_MIN_SEATS = 2;
 export const COHORT_MAX_SEATS = 6;
-/** "Min Seats to Start" default — a cohort shows as Forming until this bar. */
+/** "Min Seats to Start" default, a cohort shows as Forming until this bar. */
 export const COHORT_MIN_TO_START_DEFAULT = 2;
 
 export const COHORT_TITLE_MAX = 120;

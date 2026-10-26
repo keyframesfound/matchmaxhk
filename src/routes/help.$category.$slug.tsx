@@ -18,6 +18,7 @@ import {
   type HelpArticle,
 } from "@/features/help/content";
 import { cn } from "@/lib/utils";
+import { canonicalUrl } from "@/features/i18n/seo";
 
 export const Route = createFileRoute("/help/$category/$slug")({
   beforeLoad: ({ params }) => {
@@ -38,7 +39,7 @@ export const Route = createFileRoute("/help/$category/$slug")({
         { property: "og:description", content: article.summary },
         {
           property: "og:url",
-          content: `https://matchmax.hk/help/${article.category}/${article.slug}`,
+          content: canonicalUrl(`/help/${article.category}/${article.slug}`),
         },
       ],
     };
@@ -74,11 +75,11 @@ function HelpArticlePage() {
 
   return (
     <PublicPage>
-      <div className="mx-auto w-full max-w-6xl px-4 pt-5 sm:px-6 lg:hidden">
+      <div className="mx-auto w-full max-w-7xl px-4 pt-5 sm:px-6 lg:hidden">
         <PageBackButton fallbackTo="/help" />
       </div>
 
-      <nav aria-label="Breadcrumb" className="mx-auto w-full max-w-6xl px-4 pt-4 sm:px-6">
+      <nav aria-label="Breadcrumb" className="mx-auto w-full max-w-7xl px-4 pt-4 sm:px-6">
         <ol className="flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-1 text-sm text-muted-foreground">
           <li>
             <Link
@@ -105,13 +106,11 @@ function HelpArticlePage() {
         </ol>
       </nav>
 
-      <div className="mx-auto grid w-full max-w-6xl gap-10 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-16">
+      <div className="mx-auto grid w-full max-w-7xl gap-10 px-4 py-8 sm:px-6 sm:py-12 lg:grid-cols-[240px_minmax(0,1fr)] lg:gap-16">
         <nav aria-label={t("help.toc_title")} className="hidden lg:block">
           {toc.length > 0 ? (
             <div className="sticky top-24">
-              <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
-                {t("help.toc_title")}
-              </p>
+              <p className="text-[11px] font-medium text-muted-foreground">{t("help.toc_title")}</p>
               <ul className="mt-4 space-y-1">
                 {toc.map((entry) => (
                   <li key={entry.id}>
@@ -137,15 +136,15 @@ function HelpArticlePage() {
           <header>
             <div className="flex flex-wrap items-center gap-2">
               {category ? (
-                <span className="rounded-full border border-border px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">
+                <span className="rounded-full border border-border px-3 py-1 text-[11px] font-medium text-muted-foreground">
                   {category.name}
                 </span>
               ) : null}
-              <span className="rounded-full border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/5 px-3 py-1 text-[11px] font-bold uppercase tracking-widest text-[color:var(--brand-link)]">
+              <span className="rounded-full border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/5 px-3 py-1 text-[11px] font-medium text-[color:var(--brand-link)]">
                 {t(audienceLabel(article.audience))}
               </span>
             </div>
-            <h1 className="mt-4 text-balance text-3xl font-extrabold leading-tight tracking-tight text-foreground sm:text-4xl">
+            <h1 className="mt-4 text-balance text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
               {article.title}
             </h1>
             <p className="mt-3 text-pretty text-base leading-7 text-muted-foreground sm:text-lg">
@@ -166,7 +165,7 @@ function HelpArticlePage() {
               <span className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card">
                 <LifeBuoy className="h-5 w-5 text-[color:var(--brand-link)]" aria-hidden="true" />
               </span>
-              <h2 className="mt-4 text-xl font-extrabold tracking-tight text-foreground">
+              <h2 className="mt-4 text-xl font-bold tracking-tight text-foreground">
                 {t("help.coming_soon_title")}
               </h2>
               <p className="mt-2 max-w-xl text-base leading-7 text-muted-foreground">
@@ -200,7 +199,7 @@ function HelpArticlePage() {
 
           {related.length > 0 ? (
             <section className="mt-12 border-t border-border pt-8">
-              <h2 className="text-lg font-extrabold tracking-tight text-foreground">
+              <h2 className="text-lg font-bold tracking-tight text-foreground">
                 {t("help.related_title")}
               </h2>
               <ul className="mt-4">
@@ -215,7 +214,7 @@ function HelpArticlePage() {
                       </span>
                     </HelpArticleLink>
                     {entry.status === "draft" ? (
-                      <span className="mt-1 inline-block text-[11px] font-semibold uppercase tracking-widest text-muted-foreground/80">
+                      <span className="mt-1 inline-block text-[11px] font-medium text-muted-foreground/80">
                         {t("help.coming_soon_badge")}
                       </span>
                     ) : null}
@@ -226,7 +225,7 @@ function HelpArticlePage() {
           ) : null}
 
           <section className="mt-12 rounded-2xl border border-border bg-muted/40 p-6 sm:p-8">
-            <h2 className="text-xl font-extrabold tracking-tight text-foreground">
+            <h2 className="text-xl font-bold tracking-tight text-foreground">
               {t("help.contact_title")}
             </h2>
             <p className="mt-2 max-w-xl text-base leading-7 text-muted-foreground">

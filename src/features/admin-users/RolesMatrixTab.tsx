@@ -75,7 +75,7 @@ export function RolesMatrixTab({ users }: RolesMatrixTabProps) {
                 <span>
                   Slug: <code className="text-xs">{def.role}</code>
                 </span>
-                <span className="text-[10px] font-semibold text-muted-foreground/80">
+                <span className="text-[11px] font-semibold text-muted-foreground/80">
                   {def.role === "super_admin" ? "System Core" : "Application Role"}
                 </span>
               </div>

@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { RadioCards } from "@/components/ui/radio-cards";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import {
   Select,
@@ -37,7 +38,7 @@ export const Route = createFileRoute("/_authenticated/business/cases/new")({
   component: CentreCaseRequestPage,
 });
 
-// Issue #412 E — the 4-part Cap.57-safe triage. MatchMax facilitates only
+// Issue #412 E, the 4-part Cap.57-safe triage. MatchMax facilitates only
 // Contracts for Services with independent educators; employment/staff
 // recruitment is hard-blocked, and third-party/unsure answers drop the
 // request into compliance_hold for manual staff review before matching.
@@ -66,19 +67,19 @@ function CentreCaseRequestPage() {
     studentCount: "1",
     rateUnit: "hr",
     notes: "",
-    // Part 1 — engagement category (hard gate)
+    // Part 1: engagement category (hard gate)
     engagementCategory: "",
-    // Part 2 — contracting, payment & financial arrangements
+    // Part 2: contracting, payment & financial arrangements
     contractingEntity: "organisation_self",
     feeStructure: "hourly",
     feeAmount: "",
     feeOpenToCounter: false,
     premisesProvider: "organisation",
-    // Part 3 — scope of services & non-integration
+    // Part 3: scope of services & non-integration
     scopeDescription: "",
     adminDutiesRequired: "",
     replacesVacancy: "",
-    // Part 4 — educator autonomy & genuine choice
+    // Part 4: educator autonomy & genuine choice
     methodologyOwner: "educator",
     otherClientsAllowed: "yes",
     substitutionAllowed: "open",
@@ -91,7 +92,7 @@ function CentreCaseRequestPage() {
   const subjectOptions = getSubjectOptionsForCurriculum(form.curriculum);
 
   const handleCategoryChange = (value: string) => {
-    // Part 1 hard gate: the employment option never submits — the modal
+    // Part 1 hard gate: the employment option never submits, the modal
     // explains the marketplace boundary instead.
     if (value === "employment") {
       setBlocked(true);
@@ -155,7 +156,7 @@ function CentreCaseRequestPage() {
       });
       toast.success(
         result.status === "compliance_hold"
-          ? "Request submitted — placed on compliance hold for a quick review before it can go to educators."
+          ? "Request submitted, placed on compliance hold for a quick review before it can go to educators."
           : `Request ${result.caseCode} submitted to the matching desk.`,
       );
       navigate({ to: "/business", search: { tab: "cases" } });
@@ -218,7 +219,7 @@ function CentreCaseRequestPage() {
             </h1>
             <p className="mt-3 text-sm text-muted-foreground sm:text-base">
               Engage an independent educator for a course module, exam clinic, or class series.
-              MatchMax does not provide staff or employment recruitment — every request is screened
+              MatchMax does not provide staff or employment recruitment, every request is screened
               before it can reach educators.
             </p>
           </div>
@@ -343,18 +344,21 @@ function CentreCaseRequestPage() {
                 <div className="space-y-1.5">
                   <Label>Service fee budget (per hour)</Label>
                   <div className="flex items-center gap-2">
-                    <select
-                      aria-label="Budget currency"
-                      className="h-10 shrink-0 rounded-md border border-[color:var(--ink)]/15 bg-transparent px-2 text-sm font-semibold text-[color:var(--ink)] outline-none"
+                    <Select
                       value={form.budgetCurrency}
-                      onChange={(e) => setField({ budgetCurrency: e.target.value })}
+                      onValueChange={(v) => setField({ budgetCurrency: v })}
                     >
-                      {SUPPORTED_CURRENCIES.map((code) => (
-                        <option key={code} value={code}>
-                          {code}
-                        </option>
-                      ))}
-                    </select>
+                      <SelectTrigger aria-label="Budget currency" className="w-24 shrink-0 px-3">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SUPPORTED_CURRENCIES.map((code) => (
+                          <SelectItem key={code} value={code}>
+                            {code}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <Input
                       aria-label="Minimum budget"
                       placeholder="Min"
@@ -398,47 +402,35 @@ function CentreCaseRequestPage() {
               </div>
             </div>
 
-            {/* Part 1 — engagement category (hard gate) */}
+            {/* Part 1: engagement category (hard gate) */}
             <div className="space-y-3 rounded-lg border border-border p-4">
               <p className="text-sm font-semibold text-[color:var(--ink)]">
-                Part 1 — Nature of this request *
+                Part 1: Nature of this request *
               </p>
               <div className="space-y-2">
-                {[
-                  {
-                    value: "independent_services",
-                    label:
-                      "Engaging an independent educator for a specific course module, exam clinic, or class series (Contract for Services)",
-                  },
-                  {
-                    value: "employment",
-                    label:
-                      "Recruiting a full-time or part-time staff member / employee (Contract of Employment)",
-                  },
-                  {
-                    value: "third_party",
-                    label: "Arranging services on behalf of an external third-party organisation",
-                  },
-                  { value: "unsure", label: "Other / Unsure" },
-                ].map((option) => (
-                  <label
-                    key={option.value}
-                    className="flex cursor-pointer items-start gap-3 text-sm text-muted-foreground"
-                  >
-                    <input
-                      type="radio"
-                      name="engagementCategory"
-                      className="mt-1 accent-[color:var(--brand-link)]"
-                      checked={
-                        option.value === "employment"
-                          ? false
-                          : form.engagementCategory === option.value
-                      }
-                      onChange={() => handleCategoryChange(option.value)}
-                    />
-                    <span>{option.label}</span>
-                  </label>
-                ))}
+                <RadioCards
+                  layout="list"
+                  aria-label="Nature of this request"
+                  value={form.engagementCategory}
+                  onValueChange={handleCategoryChange}
+                  options={[
+                    {
+                      value: "independent_services",
+                      label:
+                        "Engaging an independent educator for a specific course module, exam clinic, or class series (Contract for Services)",
+                    },
+                    {
+                      value: "employment",
+                      label:
+                        "Recruiting a full-time or part-time staff member / employee (Contract of Employment)",
+                    },
+                    {
+                      value: "third_party",
+                      label: "Arranging services on behalf of an external third-party organisation",
+                    },
+                    { value: "unsure", label: "Other / Unsure" },
+                  ]}
+                />
               </div>
               <p className="text-xs leading-relaxed text-muted-foreground">
                 MatchMax is an independent educator marketplace. Requests to recruit employees are
@@ -447,10 +439,10 @@ function CentreCaseRequestPage() {
               </p>
             </div>
 
-            {/* Part 2 — contracting, payment & financial arrangements */}
+            {/* Part 2: contracting, payment & financial arrangements */}
             <div className="space-y-4 rounded-lg border border-border p-4">
               <p className="text-sm font-semibold text-[color:var(--ink)]">
-                Part 2 — Contracting &amp; payment
+                Part 2: Contracting &amp; payment
               </p>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="space-y-1.5">
@@ -525,15 +517,15 @@ function CentreCaseRequestPage() {
               </label>
             </div>
 
-            {/* Part 3 — scope of services, deliverables & non-integration */}
+            {/* Part 3: scope of services, deliverables & non-integration */}
             <div className="space-y-4 rounded-lg border border-border p-4">
               <p className="text-sm font-semibold text-[color:var(--ink)]">
-                Part 3 — Scope of services
+                Part 3: Scope of services
               </p>
               <div className="space-y-1.5">
                 <Label>
                   Course module / subject / curriculum &amp; target duration * (e.g. “IBDP Physics
-                  HL — 4-week intensive clinic”)
+                  HL, 4-week intensive clinic”)
                 </Label>
                 <Textarea
                   rows={2}
@@ -587,10 +579,10 @@ function CentreCaseRequestPage() {
               </div>
             </div>
 
-            {/* Part 4 — educator autonomy & genuine choice */}
+            {/* Part 4: educator autonomy & genuine choice */}
             <div className="space-y-4 rounded-lg border border-border p-4">
               <p className="text-sm font-semibold text-[color:var(--ink)]">
-                Part 4 — Educator autonomy
+                Part 4: Educator autonomy
               </p>
               <div className="grid gap-4 sm:grid-cols-3">
                 <div className="space-y-1.5">
@@ -643,13 +635,13 @@ function CentreCaseRequestPage() {
               </div>
             </div>
 
-            {/* Fee notice — MatchMax's charge stays the 1.5-lesson admin fee,
+            {/* Fee notice, MatchMax's charge stays the 1.5-lesson admin fee,
                 paid by the self-employed tutor (CEO lock, #412). */}
             <div className="rounded-sm border border-border bg-muted/50 p-4 text-sm">
               <p className="font-semibold">MatchMax fee</p>
               <p className="mt-1 text-muted-foreground">
-                The MatchMax matching admin fee is the standard 1.5-lesson fee — 100% of Lesson 1
-                plus 50% of Lesson 2 — charged to the self-employed educator after the first two
+                The MatchMax matching admin fee is the standard 1.5-lesson fee, 100% of Lesson 1
+                plus 50% of Lesson 2, charged to the self-employed educator after the first two
                 introductions. Short packages of five lessons or fewer use 20% of the package, and
                 pro-bono engagements are free. Your organisation never pays MatchMax a matching fee.
                 Fee Agreement version {FEE_TERMS_VERSION}.

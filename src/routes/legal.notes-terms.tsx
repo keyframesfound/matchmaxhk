@@ -5,6 +5,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { PageBackButton } from "@/components/layout/page-back-button";
 
+import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/legal/notes-terms")({
   head: () => ({
     meta: [
@@ -16,7 +17,7 @@ export const Route = createFileRoute("/legal/notes-terms")({
       },
       { name: "robots", content: "index, follow" },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/legal/notes-terms" }],
+    links: [{ rel: "canonical", href: canonicalUrl("/legal/notes-terms") }],
   }),
   component: NotesTermsPage,
 });
@@ -24,7 +25,7 @@ export const Route = createFileRoute("/legal/notes-terms")({
 /**
  * Issue #212: a short terms page for notes. The tutor upload links here and
  * accepting them is required before submitting. Buyer checkout is still the
- * concierge WhatsApp flow — no in-app purchase UI links here yet; that
+ * concierge WhatsApp flow, no in-app purchase UI links here yet; that
  * surface arrives with the manual cashier (issue #250 family).
  */
 
@@ -44,18 +45,20 @@ function NotesTermsPage() {
     ["school_papers", "publisher", "hkeaa", "ib", "classmate", "contact"] as const
   ).map((key) => t(`guide.notes.banned_${key}`));
 
+  // #429 escrow clause bullet points (bilingual, same pattern as bannedSummary).
+  const escrowPoints: string[] = (["hold", "refund_source", "no_warranty", "remedy"] as const).map(
+    (key) => t(`legal.notes_terms.escrow_${key}`),
+  );
+
   return (
     <div className="flex min-h-screen flex-col bg-[color:var(--surface)] text-[color:var(--ink)]">
       <SiteHeader />
       <main className="flex-1">
-        <div className="mx-auto max-w-3xl px-5 py-10 sm:px-8 sm:py-14">
+        <div className="mx-auto max-w-4xl px-5 py-10 sm:px-8 sm:py-14">
           <div className="lg:hidden">
             <PageBackButton />
           </div>
-          <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-            {t("legal.notes_terms.eyebrow")}
-          </p>
-          <h1 className="mt-3 text-4xl font-extrabold tracking-tight sm:text-5xl">
+          <h1 className="text-4xl font-medium tracking-tight sm:text-5xl">
             {t("legal.notes_terms.title")}
           </h1>
           <p className="mt-3 text-sm text-[color:var(--ink)]/55">
@@ -79,6 +82,15 @@ function NotesTermsPage() {
             </Clause>
             <Clause title={t("legal.notes_terms.delivery_title")}>
               <p>{t("legal.notes_terms.delivery_body")}</p>
+            </Clause>
+            {/* #429: the escrow hold + seller-funded refund locks. */}
+            <Clause title={t("legal.notes_terms.escrow_title")}>
+              <p>{t("legal.notes_terms.escrow_body")}</p>
+              <ul className="list-inside list-disc space-y-1.5">
+                {escrowPoints.map((item) => (
+                  <li key={item}>{item}</li>
+                ))}
+              </ul>
             </Clause>
             <Clause title={t("legal.notes_terms.refund_title")}>
               <p>{t("legal.notes_terms.refund_body")}</p>

@@ -13,7 +13,7 @@ import { COMMUNITY_COMMITMENT_VERSION } from "@/features/auth/commitment-version
  * Issue #141: Airbnb-style "everyone belongs here" commitment, shown once per
  * account after signup. Sits inside the ToS gate so the flow is onboarding →
  * ToS → commitment; declining signs the user out like the ToS dialog does.
- * Fails closed — a missing profile row or a read error re-prompts.
+ * Fails closed, a missing profile row or a read error re-prompts.
  *
  * Issue #306: the agreement is versioned. The dialog re-prompts once when
  * COMMUNITY_COMMITMENT_VERSION changes (stored NULL counts as "1", so

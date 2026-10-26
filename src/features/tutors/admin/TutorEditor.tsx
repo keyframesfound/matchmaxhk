@@ -22,6 +22,7 @@ import {
   MessageSquareQuote,
   Phone,
   Plus,
+  ShieldAlert,
   Sparkles,
   Trash2,
   Upload,
@@ -35,6 +36,7 @@ import { Link } from "@tanstack/react-router";
 import { ConsolePanel } from "@/components/ui/console-panel";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -136,6 +138,7 @@ import {
 import { AutofillDialog } from "./AutofillDialog";
 import { TutorReviewsAdmin } from "./tutor-reviews-admin";
 import { TutorContactDetails } from "./tutor-contact-details";
+import { RiskFlagEditor } from "@/features/admin/risk-flag-editor";
 import {
   MAX_RATE_ROWS,
   RATE_MAX,
@@ -216,8 +219,8 @@ export const TUTOR_VERIFICATION_TIER_OPTIONS: {
   value: "tier_1_standard" | "tier_2_verified";
   label: string;
 }[] = [
-  { value: "tier_1_standard", label: "Tier 1 — Standard (self-reported)" },
-  { value: "tier_2_verified", label: "Tier 2 — Verified (transcripts + HKID checked)" },
+  { value: "tier_1_standard", label: "Tier 1: Standard (self-reported)" },
+  { value: "tier_2_verified", label: "Tier 2: Verified (transcripts + HKID checked)" },
 ];
 
 export const tutorFormSchema = z.object({
@@ -269,7 +272,7 @@ export const tutorFormSchema = z.object({
     .max(RATE_MAX, `Rate must be at most HK$${RATE_MAX}`)
     .optional()
     .or(z.literal("")),
-  // Issue #319: extra profile-only rate rows. Shape only here — the pairing,
+  // Issue #319: extra profile-only rate rows. Shape only here, the pairing,
   // contact-filter and cap rules live in normalizeTutorRateRows, checked at
   // submit so half-filled rows are rejected, not silently trimmed.
   rate_rows: z.array(
@@ -312,7 +315,7 @@ export const tutorFormSchema = z.object({
   remaining_student_slots: z.coerce.number().int().min(0).max(99),
   preferred_time_windows: z.array(z.enum(PREFERRED_TIME_WINDOWS)),
   // Always built by parseAvailabilityGrid/emptyAvailabilityGrid (full 7×6
-  // matrix), so a structural check is enough — zod records over enum keys
+  // matrix), so a structural check is enough, zod records over enum keys
   // infer Partial and fight the grid model's types.
   availability_grid: z.custom<Record<GridDay, GridCellState[]>>((value) => {
     if (!value || typeof value !== "object") return false;
@@ -346,7 +349,7 @@ export const tutorFormSchema = z.object({
   // Issue #438: manual fast-responder toggle — staff-only desk flag (the
   // owner write path is DB-frozen); drives the ⚡ shortlist badge (#428).
   is_fast_responder: z.boolean(),
-  // Issue #190 verticals (owner-writable, self-reported — never part of the
+  // Issue #190 verticals (owner-writable, self-reported, never part of the
   // credential-freeze/verification surfaces). GPA and course grades are
   // draft strings here; formDataToPayload normalizes via verticals.ts.
   university_year_of_study: z.string(),
@@ -945,7 +948,7 @@ function ModernPhotoUpload({
 }
 
 /**
- * Issue #97: Trophy Cabinet editor — up to 6 public award photos. Upload goes
+ * Issue #97: Trophy Cabinet editor, up to 6 public award photos. Upload goes
  * to the same R2 tutor-images bucket as the profile photo; tutors submit
  * candidates at intake and admins curate the final public list here.
  */
@@ -986,7 +989,7 @@ function PortfolioImagesEditor({
     },
     onSuccess: (result) => {
       if (images.length < 6) onChange([...images, result.url]);
-      toast.success("Photo uploaded — added to the Trophy Cabinet");
+      toast.success("Photo uploaded, added to the Trophy Cabinet");
     },
     onError: (error: Error) => {
       toast.error(error.message);
@@ -1035,7 +1038,7 @@ function PortfolioImagesEditor({
         </div>
       ) : (
         <p className="rounded-lg border border-dashed border-border px-3 py-4 text-center text-xs text-muted-foreground">
-          No award photos set — the public gallery stays hidden.
+          No award photos set, the public gallery stays hidden.
         </p>
       )}
 
@@ -1167,7 +1170,7 @@ function FormField({
   return (
     <div className={cn("space-y-1.5", className)}>
       <div className="flex items-center justify-between">
-        <Label className="text-xs font-semibold text-[color:var(--ink)]">
+        <Label className="text-xs font-bold text-[color:var(--ink)]">
           {label} {required && <span className="text-destructive">*</span>}
         </Label>
         {hint && <span className="text-[11px] text-muted-foreground">{hint}</span>}
@@ -1190,7 +1193,7 @@ interface TutorEditorProps {
   isSaving?: boolean;
   /** Join application to offer as AI autofill source (never prefills the form). */
   applicationId?: string | null;
-  /** Distinct education values already in use on tutor profiles — feeds the education dropdowns. */
+  /** Distinct education values already in use on tutor profiles, feeds the education dropdowns. */
   educationValues?: EducationValueSets;
 }
 
@@ -1261,7 +1264,7 @@ export function TutorEditor({
     const snapshot = form;
     setForm((prev) => mergeAutofillResult(prev, result));
     toast.success("AI draft applied to the form", {
-      description: "Review every field before saving — you can undo.",
+      description: "Review every field before saving, you can undo.",
       action: {
         label: "Undo",
         onClick: () => setForm(snapshot),
@@ -1271,7 +1274,7 @@ export function TutorEditor({
   };
 
   // Referral program (issue #127): identity link + shareable code are managed
-  // outside the form payload — they mutate the tutors row directly. Issue #160
+  // outside the form payload, they mutate the tutors row directly. Issue #160
   // renames the UI section to "Assigned account" since linking now also
   // unlocks the tutor's own profile editor in dashboard settings.
   const queryClient = useQueryClient();
@@ -1387,7 +1390,7 @@ export function TutorEditor({
     },
     onSuccess: () => {
       toast.success(
-        "Account assigned — the tutor can now edit their profile from dashboard settings",
+        "Account assigned, the tutor can now edit their profile from dashboard settings",
       );
       setLinkEmail("");
       setAccountSearch("");
@@ -1784,7 +1787,7 @@ export function TutorEditor({
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)]">
-                {isEditing ? `Edit Tutor — ${initialData?.tutor_code}` : "New Tutor Profile"}
+                {isEditing ? `Edit Tutor, ${initialData?.tutor_code}` : "New Tutor Profile"}
               </h1>
               <span
                 className={cn(
@@ -1932,7 +1935,7 @@ export function TutorEditor({
                 <FormField
                   label="Academic Headline"
                   error={errors.academic_headline}
-                  hint={`Max ${MAX_ACADEMIC_HEADLINE} chars — e.g. IBDP 44/45`}
+                  hint={`Max ${MAX_ACADEMIC_HEADLINE} chars, e.g. IBDP 44/45`}
                 >
                   <Input
                     value={form.academic_headline}
@@ -1945,7 +1948,7 @@ export function TutorEditor({
                 <FormField
                   label="Undergraduate University"
                   error={errors.undergrad_university}
-                  hint="Search or add — e.g. The University of Hong Kong"
+                  hint="Search or add, e.g. The University of Hong Kong"
                 >
                   <SearchableSelect
                     value={form.undergrad_university ?? ""}
@@ -1956,7 +1959,7 @@ export function TutorEditor({
                     )}
                     placeholder="e.g. The University of Hong Kong"
                     searchPlaceholder="Search universities…"
-                    emptyText="No university found — keep typing to add it"
+                    emptyText="No university found, keep typing to add it"
                     allowCustom
                   />
                 </FormField>
@@ -1964,7 +1967,7 @@ export function TutorEditor({
                 <FormField
                   label="Secondary School"
                   error={errors.secondary_school}
-                  hint="Search or add — e.g. Diocesan Boys' School"
+                  hint="Search or add, e.g. Diocesan Boys' School"
                 >
                   <SearchableSelect
                     value={form.secondary_school ?? ""}
@@ -1975,7 +1978,7 @@ export function TutorEditor({
                     )}
                     placeholder="e.g. Diocesan Boys' School"
                     searchPlaceholder="Search schools…"
-                    emptyText="No school found — keep typing to add it"
+                    emptyText="No school found, keep typing to add it"
                     allowCustom
                   />
                 </FormField>
@@ -1983,7 +1986,7 @@ export function TutorEditor({
                 <FormField
                   label="Undergraduate Degree"
                   error={errors.undergrad_degree}
-                  hint="Search or add — e.g. Bachelor of Engineering in Computer Engineering"
+                  hint="Search or add, e.g. Bachelor of Engineering in Computer Engineering"
                 >
                   <SearchableSelect
                     value={form.undergrad_degree ?? ""}
@@ -1991,7 +1994,7 @@ export function TutorEditor({
                     options={majorEditorOptions(form.undergrad_degree, educationValues?.majors)}
                     placeholder="e.g. BSc Theoretical Physics"
                     searchPlaceholder="Search majors…"
-                    emptyText="No major found — keep typing to add it"
+                    emptyText="No major found, keep typing to add it"
                     allowCustom
                   />
                 </FormField>
@@ -2022,7 +2025,7 @@ export function TutorEditor({
                     <FormField
                       label="Postgraduate University"
                       error={errors.postgrad_university}
-                      hint="Search or add — shown abbreviated on cards"
+                      hint="Search or add, shown abbreviated on cards"
                     >
                       <SearchableSelect
                         value={form.postgrad_university ?? ""}
@@ -2033,14 +2036,14 @@ export function TutorEditor({
                         )}
                         placeholder="e.g. University of Edinburgh"
                         searchPlaceholder="Search universities…"
-                        emptyText="No university found — keep typing to add it"
+                        emptyText="No university found, keep typing to add it"
                         allowCustom
                       />
                     </FormField>
                     <FormField
                       label="Postgraduate Degree"
                       error={errors.postgrad_degree}
-                      hint="Search or add — cards abbreviate to MSc / MA / PhD etc."
+                      hint="Search or add, cards abbreviate to MSc / MA / PhD etc."
                     >
                       <SearchableSelect
                         value={form.postgrad_degree ?? ""}
@@ -2048,7 +2051,7 @@ export function TutorEditor({
                         options={majorEditorOptions(form.postgrad_degree, educationValues?.majors)}
                         placeholder="e.g. MSc Theoretical Physics"
                         searchPlaceholder="Search majors…"
-                        emptyText="No major found — keep typing to add it"
+                        emptyText="No major found, keep typing to add it"
                         allowCustom
                       />
                     </FormField>
@@ -2063,7 +2066,7 @@ export function TutorEditor({
                 />
               </FormField>
 
-              {/* Issue #97: Trophy Cabinet — public award photos picked from
+              {/* Issue #97: Trophy Cabinet, public award photos picked from
                   the same R2 library; empty = gallery hidden on the profile. */}
               <FormField
                 label="Trophy Cabinet (public award photos)"
@@ -2108,17 +2111,17 @@ export function TutorEditor({
                   error={errors.earliest_start_date}
                   className="sm:max-w-xs"
                 >
-                  <Input
-                    type="date"
-                    value={form.earliest_start_date}
-                    min={new Date().toISOString().slice(0, 10)}
-                    onChange={(e) => setForm({ ...form, earliest_start_date: e.target.value })}
+                  <DatePicker
+                    label="Earliest Start Date"
+                    value={isoToDate(form.earliest_start_date)}
+                    min={new Date()}
+                    onChange={(date) => setForm({ ...form, earliest_start_date: dateToIso(date) })}
                   />
                 </FormField>
               ) : null}
             </EditorSection>
 
-            {/* Capacity + weekly grid — the same controls tutors get in their
+            {/* Capacity + weekly grid, the same controls tutors get in their
                 dashboard Availability section; admins edit them directly and
                 changes go live with the usual Save. */}
             <EditorSection
@@ -2174,9 +2177,7 @@ export function TutorEditor({
                 <div className="space-y-5">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4">
-                      <p className="text-xs font-medium text-[color:var(--ink)]/60">
-                        Referral code
-                      </p>
+                      <p className="text-xs font-bold text-[color:var(--ink)]/60">Referral code</p>
                       <p className="mt-1 font-mono text-lg font-bold text-[color:var(--ink)]">
                         {tutorReferralQuery.data?.referral_code ?? "—"}
                       </p>
@@ -2257,7 +2258,7 @@ export function TutorEditor({
             </EditorSection>
 
             {/* Assigned account (issue #160): GitHub-style assignee. Links a
-                MatchMax account to this card — unlocks the Referrals & Rewards
+                MatchMax account to this card, unlocks the Referrals & Rewards
                 tab AND the tutor's own profile editor in dashboard settings. */}
             <EditorSection
               icon={UserCheck}
@@ -2278,7 +2279,7 @@ export function TutorEditor({
                     <div className="mt-2 flex flex-wrap items-center gap-2">
                       <span className="flex items-center gap-1.5 text-sm font-semibold text-[color:var(--ink)]">
                         <UserCheck className="h-4 w-4" aria-hidden="true" />
-                        Assigned — this tutor can edit their profile in dashboard settings.
+                        Assigned, this tutor can edit their profile in dashboard settings.
                       </span>
                       <Button
                         type="button"
@@ -2337,7 +2338,7 @@ export function TutorEditor({
             </EditorSection>
 
             {/* Contact details (issue #295): admin-only read-only reveal of
-                everything the tutor gave us — assigned-account email/phone
+                everything the tutor gave us, assigned-account email/phone
                 plus the join application's intake contact fields. Data is
                 resolved by the admin-gated get_tutor_contact_details RPC;
                 nothing here is editable or public. */}
@@ -2352,6 +2353,20 @@ export function TutorEditor({
               </EditorSection>
             ) : null}
 
+            {/* Issue #441: manual CS risk flag (REVIEW/BLOCKED + note).
+                Staff-only visibility metadata — never public, never
+                auto-set, never blocks matching or phone unlock by itself. */}
+            {initialData ? (
+              <EditorSection
+                icon={ShieldAlert}
+                title="Risk Flag"
+                description="Manual CS flag for suspicious tutors. Review can be set by any staff member; Blocked is an Operator (admin) action. Badges show on the tutor list and case shortlists."
+                id="risk-flag"
+              >
+                <RiskFlagEditor entity="tutor" entityId={initialData.id} />
+              </EditorSection>
+            ) : null}
+
             {/* 2. Subjects & Target Levels */}
             <EditorSection
               icon={BookOpen}
@@ -2362,7 +2377,7 @@ export function TutorEditor({
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormField
                   label="Teaching Curriculum"
-                  hint="Narrows the subject suggestions — Primary School, Junior Secondary, and University Admissions & Test Prep included."
+                  hint="Narrows the subject suggestions, Primary School, Junior Secondary, and University Admissions & Test Prep included."
                 >
                   <SearchableSelect
                     value={subjectCurriculum}
@@ -2418,7 +2433,7 @@ export function TutorEditor({
 
               {selectedSubjectGroups.length > 0 ? (
                 <div className="space-y-1.5 rounded-sm border border-border bg-[color:var(--surface-subtle)]/60 p-3">
-                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     Taught subjects by curriculum
                   </p>
                   {selectedSubjectGroups.map((group) => (
@@ -2446,7 +2461,7 @@ export function TutorEditor({
               </FormField>
 
               {/* Issue #190: canonical teaching levels tick into the same
-                  target_students array — free-text curricula (IBDP, HKDSE…)
+                  target_students array, free-text curricula (IBDP, HKDSE…)
                   are preserved alongside. */}
               <FormField
                 label={t("verticals.editor_target_levels")}
@@ -2480,12 +2495,12 @@ export function TutorEditor({
                 </div>
               </FormField>
 
-              {/* Issue #190: University vertical — self-reported year, GPA,
+              {/* Issue #190: University vertical, self-reported year, GPA,
                   courses and course-specific grades. Owner-writable plain
                   fields; never part of credential verification. */}
               {hasUniversityLevel ? (
                 <div className="space-y-4 rounded-sm border border-border p-4">
-                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     {t("verticals.editor_university")}
                   </p>
                   <div className="grid gap-4 sm:grid-cols-2">
@@ -2536,7 +2551,7 @@ export function TutorEditor({
                   </FormField>
                   <div className="space-y-1.5">
                     <div className="flex items-center justify-between">
-                      <Label className="text-xs font-semibold text-[color:var(--ink)]">
+                      <Label className="text-xs font-bold text-[color:var(--ink)]">
                         {t("verticals.editor_course_grades")}
                       </Label>
                       <Button
@@ -2560,7 +2575,7 @@ export function TutorEditor({
                       </Button>
                     </div>
                     {errors.course_grade_rows ? (
-                      <p className="text-xs font-medium text-destructive">
+                      <p className="text-xs font-bold text-destructive">
                         {errors.course_grade_rows}
                       </p>
                     ) : null}
@@ -2616,11 +2631,11 @@ export function TutorEditor({
               ) : null}
 
               {/* Issue #190: Kindergarten topics are canonical tags that live
-                  inside subjects[] — ticking them edits the shared subjects
+                  inside subjects[], ticking them edits the shared subjects
                   list, not a separate column. */}
               {hasKindergartenLevel ? (
                 <div className="space-y-2 rounded-sm border border-border p-4">
-                  <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                  <p className="text-xs font-medium text-muted-foreground">
                     {t("verticals.editor_kindergarten")}
                   </p>
                   <p className="text-[11px] text-muted-foreground">
@@ -2694,10 +2709,8 @@ export function TutorEditor({
             >
               {form.exam_results.length === 0 ? (
                 <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-8 text-center bg-[color:var(--surface-subtle)]/30">
-                  <GraduationCap className="h-8 w-8 text-muted-foreground/50 mb-2" />
-                  <p className="text-xs font-semibold text-[color:var(--ink)]">
-                    No Exam Systems Added
-                  </p>
+                  <GraduationCap className="h-8 w-8 text-muted-foreground mb-2" />
+                  <p className="text-xs font-bold text-[color:var(--ink)]">No Exam Systems Added</p>
                   <p className="text-[11px] text-muted-foreground max-w-sm mt-0.5">
                     Highlight official exam results (e.g. IB 7s, DSE 5**, A*s) to build credibility.
                   </p>
@@ -3001,7 +3014,7 @@ export function TutorEditor({
                   <FormField
                     label="Travel note"
                     error={errors.travel_note}
-                    hint={`${(form.travel_note ?? "").length}/${TRAVEL_NOTE_MAX} — e.g. “No travel to Lantau”`}
+                    hint={`${(form.travel_note ?? "").length}/${TRAVEL_NOTE_MAX}, e.g. “No travel to Lantau”`}
                   >
                     <Input
                       value={form.travel_note ?? ""}
@@ -3014,7 +3027,7 @@ export function TutorEditor({
                   <FormField
                     label="Rate note"
                     error={errors.rate_note}
-                    hint={`${(form.rate_note ?? "").length}/${RATE_NOTE_MAX} — e.g. “+HK$100 for a second student”`}
+                    hint={`${(form.rate_note ?? "").length}/${RATE_NOTE_MAX}, e.g. “+HK$100 for a second student”`}
                   >
                     <Input
                       value={form.rate_note ?? ""}
@@ -3028,9 +3041,7 @@ export function TutorEditor({
                 <div className="space-y-2">
                   <div className="flex flex-wrap items-end justify-between gap-2">
                     <div>
-                      <Label className="text-xs font-semibold">
-                        Extra rate rows (profile only)
-                      </Label>
+                      <Label className="text-xs font-medium">Extra rate rows (profile only)</Label>
                       <p className="mt-1 max-w-md text-xs text-muted-foreground">
                         Optional label + rate pairs shown on the profile (max {MAX_RATE_ROWS}).
                         Half-filled rows are rejected on save.
@@ -3183,7 +3194,7 @@ export function TutorEditor({
                     label="Teaching Stations (MTR)"
                     required={form.is_published}
                     error={errors.stations}
-                    hint="Parents search by their nearest station — suggestions use estimated MTR travel time."
+                    hint="Parents search by their nearest station, suggestions use estimated MTR travel time."
                   >
                     <div className="space-y-3 rounded-lg border border-border bg-[color:var(--surface-subtle)]/40 p-3">
                       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
@@ -3212,7 +3223,7 @@ export function TutorEditor({
                         </Button>
                       </div>
                       {locationMessage ? (
-                        <p className="text-xs font-medium text-[color:var(--ink)]/70">
+                        <p className="text-xs font-bold text-[color:var(--ink)]/70">
                           {locationMessage}
                         </p>
                       ) : null}
@@ -3371,7 +3382,7 @@ export function TutorEditor({
                         />
                         <span
                           className={cn(
-                            "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-semibold text-muted-foreground",
+                            "pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[11px] font-semibold text-muted-foreground",
                             reachedLimit && "text-amber-600 dark:text-amber-400",
                           )}
                           aria-live="polite"
@@ -3437,7 +3448,7 @@ export function TutorEditor({
               {/* IA / EE / TOK Mentorship */}
               <div className="space-y-3 pt-2 border-t border-[color:var(--ink)]/10">
                 <div>
-                  <Label className="text-xs font-semibold text-[color:var(--ink)]">
+                  <Label className="text-xs font-bold text-[color:var(--ink)]">
                     IB Coursework Mentoring Support
                   </Label>
                   <p className="text-[11px] text-muted-foreground mt-0.5">
@@ -3488,7 +3499,7 @@ export function TutorEditor({
               <div className="space-y-3 pt-2 border-t border-[color:var(--ink)]/10">
                 <label className="flex cursor-pointer items-center justify-between gap-3">
                   <span>
-                    <Label className="text-xs font-semibold text-[color:var(--ink)]">
+                    <Label className="text-xs font-bold text-[color:var(--ink)]">
                       SEN Experience & Qualifications
                     </Label>
                     <span className="mt-0.5 block text-[11px] text-muted-foreground">
@@ -3589,10 +3600,10 @@ export function TutorEditor({
                   />
                   <span className="min-w-0">
                     <span className="block text-sm font-bold text-[color:var(--ink)]">
-                      {t("triage.fast_responder_toggle")}
+                      {t("tutor.fastResponder.label")}
                     </span>
                     <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">
-                      {t("triage.fast_responder_hint")}
+                      {t("tutor.fastResponder.hint")}
                     </span>
                   </span>
                 </label>

@@ -9,7 +9,7 @@ import { cohortAvailability, type CohortAvailabilityState } from "@/features/cas
 import { cn } from "@/lib/utils";
 
 /**
- * Issue #391 — "Group classes" section on the public tutor profile: the
+ * Issue #391, "Group classes" section on the public tutor profile: the
  * tutor's open cohorts with live seats, linking to /group-classes to book.
  * Self-fetching like the ExperiencePill; degrades to nothing when the tutor
  * runs no cohorts (or pre-migration).
@@ -65,7 +65,7 @@ export function TutorGroupClassesSection({ tutorId }: { tutorId: string }) {
     <section className="border-t border-border py-8 sm:py-10">
       <div className="mb-4 flex items-center gap-2">
         <Users className="h-4 w-4 text-[color:var(--brand-link)]" aria-hidden="true" />
-        <h2 className="text-base font-bold text-[color:var(--ink)]">
+        <h2 className="text-lg font-bold text-[color:var(--ink)]">
           {t("profile.section_group_classes")}
         </h2>
       </div>

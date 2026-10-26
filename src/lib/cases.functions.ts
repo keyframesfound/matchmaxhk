@@ -63,7 +63,7 @@ const CaseRequestInput = z
     subjects: z.array(z.string().trim().min(1).max(120)).max(4),
     // Issue #311: parent-picked preset tags, max five (the preset
     // allowlist + dedupe/contact gating runs in mergeCaseTags at save
-    // time — one tag table shared with tutor profile tags; non-preset
+    // time, one tag table shared with tutor profile tags; non-preset
     // input from a crafted payload is dropped, never published).
     tags: z.array(z.string().trim().min(1).max(30)).max(5).optional().nullable(),
     specificComponent: z.string().trim().max(80).optional().nullable(),
@@ -100,7 +100,7 @@ const CaseRequestInput = z
       .max(SEN_CATEGORY_OPTIONS.length)
       .default([]),
     senDetails: z.string().trim().max(2000).optional().nullable(),
-    // Issue #423 (sections 2+3): structured package fields — hard dropdowns
+    // Issue #423 (sections 2+3): structured package fields, hard dropdowns
     // on the form, rendered on the board card (fee pill / students / rate
     // unit suffix). Defaults match the DB column defaults.
     packageType: z.enum(["ongoing_1_5", "short_20", "pro_bono"]).default("ongoing_1_5"),
@@ -112,7 +112,7 @@ const CaseRequestInput = z
     // Issue #423: the public client note is capped at 500 chars and piped
     // through stripContactDetails (sanitizeCaseFreeText) at save time.
     notes: z.string().trim().max(500).optional().nullable(),
-    // Issue #412 E: parent B2C compliance triage — a third-party engager or
+    // Issue #412 E: parent B2C compliance triage, a third-party engager or
     // non-tutoring/staff duties drops the request into compliance_hold.
     triage: z.object({
       engager: z.enum(["myself_child", "organisation_third_party"]),
@@ -183,7 +183,7 @@ export type PublicCaseBoardItem = {
   description: string | null;
   subjects: string[];
   studentLevel: string;
-  // Issue #190: vertical columns (safe subset — no contact data).
+  // Issue #190: vertical columns (safe subset, no contact data).
   academicTier: string | null;
   uniField: string | null;
   uniName: string | null;
@@ -204,7 +204,7 @@ export type PublicCaseBoardItem = {
   senCategories: string[];
   preferredGender: "any" | "male" | "female";
   startTiming: string | null;
-  // Issue #423 (sections 2+3): structured package fields — display only,
+  // Issue #423 (sections 2+3): structured package fields, display only,
   // never contact data.
   packageType: "ongoing_1_5" | "short_20" | "pro_bono";
   studentCount: number;
@@ -246,7 +246,7 @@ const PUBLIC_CASE_COLUMNS =
 
 // Never contact_name / contact_phone / student_school / student_grade_current.
 // sen_details is also withheld: the board is public and the free-text needs
-// details can identify the student — matching reads it via admin surfaces.
+// details can identify the student, matching reads it via admin surfaces.
 function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
   return {
     id: row.id as string,
@@ -255,7 +255,7 @@ function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
     description: (row.description as string | null) ?? null,
     subjects: (row.subjects as string[] | null) ?? [],
     studentLevel: row.student_level as string,
-    // Issue #190: tolerant reads — legacy rows have nulls here and derive
+    // Issue #190: tolerant reads, legacy rows have nulls here and derive
     // the tier client-side via caseAcademicTier(studentLevel).
     academicTier: (row.academic_tier as string | null) ?? null,
     uniField: (row.uni_field as string | null) ?? null,
@@ -285,7 +285,7 @@ function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
       : [],
     preferredGender: (row.preferred_gender as "any" | "male" | "female") ?? "any",
     startTiming: (row.start_timing as string | null) ?? null,
-    // Issue #423: tolerant reads — every legacy row predating the migration
+    // Issue #423: tolerant reads, every legacy row predating the migration
     // carries the same defaults the DB columns were added with.
     packageType:
       row.package_type === "short_20" || row.package_type === "pro_bono"
@@ -318,7 +318,7 @@ function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
         orgType: org.org_type ?? null,
       };
     })(),
-    // #412 E: the tutor-facing screening summary — centre triage answers
+    // #412 E: the tutor-facing screening summary, centre triage answers
     // only, and only the fields the issue sanctions showing.
     screening: (() => {
       const triage = row.compliance_triage as Record<string, unknown> | null;
@@ -474,7 +474,7 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
-    // Every submission creates a new case — no duplicate collapsing by phone number.
+    // Every submission creates a new case, no duplicate collapsing by phone number.
     const { count: totalCount, error: countError } = await supabaseAdmin
       .from("tutoring_cases")
       .select("id", { count: "exact", head: true })
@@ -506,7 +506,7 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
     });
 
     // Issue #423 (sections 2+3): the stored title IS the structured EN
-    // auto-title now — the display rule renders the structured bilingual
+    // auto-title now, the display rule renders the structured bilingual
     // title from the fields and only falls back to this column for legacy
     // rows, so new rows store the coherent locked-fields title.
     const storedTitle = buildStructuredTitle(
@@ -535,7 +535,7 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
           subjects: tierConsistent.subjects,
         }),
       // Issue #410: parent free text that reaches the public board runs
-      // through the shared contact filter (strip, never reject — #396
+      // through the shared contact filter (strip, never reject, #396
       // precedent). Blank becomes null, so the old trim-then-null branch
       // collapses into the helper.
       description: sanitizeCaseFreeText(data.notes, 2000),
@@ -549,7 +549,7 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
         "Unspecified",
       // Issue #190: academic tier + Kindergarten/University vertical fields
       // (uni fields only survive on the university tier, K topics only on
-      // the kindergarten tier — see buildVerticalInsert).
+      // the kindergarten tier, see buildVerticalInsert).
       ...buildVerticalInsert({
         academicLevel: normalizeFunnelLevel(data.academicLevel),
         uniField: data.uniField,
@@ -560,7 +560,7 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       }),
       requester_type: data.requesterType,
       // Issue #437: case-level student demographics + tutor gender
-      // preference (replaces the hardcoded "any" — the form now asks).
+      // preference (replaces the hardcoded "any", the form now asks).
       who_for: data.whoFor,
       student_gender: data.studentGender,
       preferred_gender: data.tutorGenderPreference,
@@ -569,7 +569,7 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
         data.supportType === "subject_tutoring" ? (data.specificComponent ?? null) : null,
       target_pathway: data.supportType === "admissions" ? (data.targetPathway ?? null) : null,
       // Issue #410: target_school is parent free text on the public
-      // whitelist — contact-filter it like description. cleanTargetSchool
+      // whitelist, contact-filter it like description. cleanTargetSchool
       // is the same value the title was built from (GLM round-2 blocker).
       target_school: cleanTargetSchool,
       interview_test: data.supportType === "admissions" ? (data.interviewTest ?? null) : null,
@@ -615,7 +615,7 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
 
     // Issue #253 (F2): record the matching-fee acceptance (account, version,
-    // time) against the created case. Fail-closed — a submit without the
+    // time) against the created case. Fail-closed, a submit without the
     // checkbox never reaches this point (zod), and the acceptance write is
     // atomic with the case row via compensating delete: if the acceptance
     // insert throws, the just-created case is removed before rethrowing, so
@@ -641,6 +641,22 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
         );
       }
       throw acceptanceError;
+    }
+
+    // Issue #55: nudge ops over the webhook (app_settings key
+    // `ops_webhook_url`, see ops-webhook.server.ts). Fire-and-forget —
+    // notifyOps never throws and must never fail the submit. Dynamic import:
+    // this module is bundled isomorphically (client imports the types), and
+    // only the handler body should touch server-only code.
+    try {
+      const { notifyOps } = await import("@/lib/ops-webhook.server");
+      void notifyOps("case_request.created", {
+        case_code: row.case_code,
+        subjects: data.subjects,
+        district: data.district ?? null,
+      }).catch(() => {});
+    } catch {
+      // Webhook dispatch is best-effort by contract.
     }
 
     return { caseCode: row.case_code as string };

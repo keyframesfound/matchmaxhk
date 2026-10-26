@@ -1,7 +1,7 @@
 import { contactFilterError } from "@/lib/contact-filter";
 
 /**
- * Issue #319 — Lowest rate on the card, full rates on the profile.
+ * Issue #319, Lowest rate on the card, full rates on the profile.
  *
  * Pure helpers shared by the join form, the profile editor, the suggest-a-rate
  * server fn and the vitest suite. The DB trigger (migration
@@ -19,10 +19,10 @@ export const RATE_NOTE_MAX = 120;
 export const SUGGEST_MIN_SIMILAR = 10;
 
 /**
- * #391 — per-row class mode. The rate row answers "what does this rate buy":
+ * #391, per-row class mode. The rate row answers "what does this rate buy":
  * `one_on_one` rows are the classic hourly quote, `small_group_2` /
  * `small_group_3_6` are per-STUDENT group rates, `intensive_bootcamp` is a
- * cram-mode rate. Group rows are profile-only extras — like every extra row
+ * cram-mode rate. Group rows are profile-only extras, like every extra row
  * they never enter the card floor (#319 trigger), which is exactly the
  * floor-price protection the issue demands.
  */
@@ -54,7 +54,7 @@ export function isGroupRateRow(row: { mode?: string | null }): boolean {
 }
 
 /**
- * Cheapest small-group per-student rate across the profile's rows — the
+ * Cheapest small-group per-student rate across the profile's rows, the
  * `👥 Group from HK$Y/hr` card badge figure. Null when the tutor quotes no
  * group rate.
  */
@@ -63,7 +63,7 @@ export function groupRateFloor(rows: { mode?: string | null; rate: number }[]): 
   return groupRates.length > 0 ? Math.min(...groupRates) : null;
 }
 
-/** Whole dollars inside the 50-3000 band — $49 and $3001 are rejected. */
+/** Whole dollars inside the 50-3000 band, $49 and $3001 are rejected. */
 export function isValidTutorRate(value: unknown): value is number {
   return (
     typeof value === "number" && Number.isInteger(value) && value >= RATE_MIN && value <= RATE_MAX
@@ -210,7 +210,7 @@ export function tutorCardIsSimilar(
  * Suggest-a-rate core (issue #319): median online and in-person base rates of
  * similar live cards, each rounded to the nearest $10. Fewer than
  * SUGGEST_MIN_SIMILAR similar cards fills nothing. Suggests base fields
- * only — never extra rows.
+ * only, never extra rows.
  */
 export function computeSuggestedRates(
   cards: { online_rate: number | null; inperson_rate: number | null }[],

@@ -8,11 +8,11 @@ import { CRISP_PREVIEW_PAGES } from "@/features/materials/lifecycle";
  * Clastify-style preview viewer (Ryan, 2026-10-11): the public note page
  * renders the watermarked preview PDF in the browser; the first 3 pages are
  * crisp, everything after is blurred under a lock panel. The blur is CSS in
- * the DOM — the served file itself is already watermarked, so a scraped
+ * the DOM, the served file itself is already watermarked, so a scraped
  * "clean" copy does not exist anywhere public.
  *
  * pdfjs is loaded lazily on this route only (it is the heaviest dep in the
- * app) and renders at a fixed 900px-width scale — pages are laid out in a
+ * app) and renders at a fixed 900px-width scale, pages are laid out in a
  * single column like the reference site.
  */
 

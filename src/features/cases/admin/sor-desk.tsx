@@ -6,6 +6,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import {
@@ -115,7 +116,7 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
     onError: (e) => toast.error(e.message),
   });
 
-  if (isError) return null; // board case without SoR data — panel stays hidden
+  if (isError) return null; // board case without SoR data, panel stays hidden
   if (isLoading) {
     return (
       <ConsolePanel title={t("sor.admin_panel_title")}>
@@ -345,7 +346,7 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
           <ul className="mt-2 space-y-1">
             {data.audit.map((a) => (
               <li key={a.id} className="text-xs text-muted-foreground">
-                {format(new Date(a.created_at), "d MMM HH:mm")} — {a.to_status}
+                {format(new Date(a.created_at), "d MMM HH:mm")}, {a.to_status}
                 {a.reason ? ` · ${a.reason}` : ""}
               </li>
             ))}
@@ -366,7 +367,7 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
 }
 
 /**
- * #387 — every logged session on the case with its status and dispute
+ * #387, every logged session on the case with its status and dispute
  * reason; pending/verified rows can be revoked (public totals recalculate
  * instantly because get_tutor_experience counts verified rows only).
  */
@@ -491,7 +492,7 @@ function CaseFlagsSection({ caseId }: { caseId: string }) {
       <ul className="mt-2 space-y-1">
         {flags.map((f) => (
           <li key={f.id} className="text-xs text-muted-foreground">
-            {format(new Date(f.created_at), "d MMM HH:mm")} — {t(FLAG_REASON_LABEL_KEY[f.reason])}
+            {format(new Date(f.created_at), "d MMM HH:mm")}, {t(FLAG_REASON_LABEL_KEY[f.reason])}
             {f.note ? ` · ${f.note}` : ""}
           </li>
         ))}
@@ -621,12 +622,11 @@ function AdminLessonRow({
         <span className="text-sm text-muted-foreground">
           {t("sor.tutor_lesson_n", { n: sequence })}
         </span>
-        <Input
-          type="date"
+        <DatePicker
           className="w-40"
-          value={date}
-          onChange={(e) => setDate(e.target.value)}
-          aria-label={t("sor.admin_lesson_date")}
+          label={t("sor.admin_lesson_date")}
+          value={isoToDate(date)}
+          onChange={(d) => setDate(dateToIso(d))}
         />
         <Input
           className="w-52"
@@ -929,15 +929,15 @@ function CreateCaseDialog({
               value={form.rate}
               onChange={(e) => setForm({ ...form, rate: e.target.value.replace(/[^0-9.]/g, "") })}
             />
-            <select
-              aria-label={t("sor.admin_mode")}
-              className="rounded-md border border-[color:var(--ink)]/15 bg-transparent px-2 py-2 text-sm"
-              value={form.mode}
-              onChange={(e) => setForm({ ...form, mode: e.target.value })}
-            >
-              <option value="f2f">{t("sor.admin_mode_f2f")}</option>
-              <option value="online">{t("sor.admin_mode_online")}</option>
-            </select>
+            <Select value={form.mode} onValueChange={(v) => setForm({ ...form, mode: v })}>
+              <SelectTrigger aria-label={t("sor.admin_mode")} className="w-auto px-3">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="f2f">{t("sor.admin_mode_f2f")}</SelectItem>
+                <SelectItem value="online">{t("sor.admin_mode_online")}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
           <Input
             placeholder={t("sor.admin_whatsapp_url")}

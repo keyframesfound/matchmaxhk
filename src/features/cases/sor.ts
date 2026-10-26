@@ -1,5 +1,5 @@
 /**
- * Issues #201 + #204 + #287 — System-of-Record pure helpers.
+ * Issues #201 + #204 + #287, System-of-Record pure helpers.
  *
  * The canonical SoR status machine, admin-fee math, lesson timing rules and
  * HKT day helpers. Everything here is pure so the vitest suite can exercise
@@ -80,7 +80,7 @@ export function computeFeeAmountHkd(
   if (!Number.isFinite(multiplier) || multiplier <= 0) return 0;
   const count =
     Number.isInteger(studentCount) && (studentCount as number) >= 1 ? (studentCount as number) : 1;
-  // Scale by the integer count first — keeps the product free of the
+  // Scale by the integer count first, keeps the product free of the
   // 333 × 0.5 × 3 → 499.499… float trap before rounding.
   return Math.round(rateHkd * count * multiplier * 100) / 100;
 }
@@ -188,7 +188,7 @@ export function isActiveStudentCase(
 // HKT helpers (#204 edge case: store UTC, compute and display Asia/Hong_Kong)
 // ---------------------------------------------------------------------------
 
-/** HKT is UTC+8 with no DST — fixed offset is exact. */
+/** HKT is UTC+8 with no DST, fixed offset is exact. */
 export const HKT_OFFSET_MIN = 8 * 60;
 
 /** Minutes-from-midnight in HKT for a timestamp (0–1439). */

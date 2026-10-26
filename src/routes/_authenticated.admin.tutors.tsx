@@ -57,6 +57,9 @@ import {
   type Tutor,
 } from "@/features/tutors/queries";
 import { collectEducationValueSets } from "@/features/tutors/education-filters";
+import { RiskFlagBadge } from "@/features/admin/risk-flag-badge";
+import { listRiskFlags, type RiskFlagRow } from "@/features/admin/risk-flags.functions";
+import { normalizeRiskFlag } from "@/features/admin/risk-flags";
 import { TutorEditor } from "@/features/tutors/admin/TutorEditor";
 import { resolveAccountDeletion } from "@/lib/account.functions";
 
@@ -75,10 +78,19 @@ export const Route = createFileRoute("/_authenticated/admin/tutors")({
       typeof search.applicationId === "string" && search.applicationId.trim()
         ? search.applicationId.trim()
         : undefined,
+    // Filters live in the URL (same pattern as /admin/cases, issue #71) so a
+    // reload or shared link restores the exact desk view.
+    q: typeof search.q === "string" ? search.q : "",
+    visibility: typeof search.visibility === "string" ? search.visibility : "all",
+    format: typeof search.format === "string" ? search.format : "all",
+    subject: typeof search.subject === "string" ? search.subject : "all",
+    district: typeof search.district === "string" ? search.district : "all",
+    completeness: typeof search.completeness === "string" ? search.completeness : "all",
+    sort: typeof search.sort === "string" ? search.sort : "newest",
   }),
   head: () => ({
     meta: [
-      { title: "Tutors — MatchMax Admin" },
+      { title: "Tutors, MatchMax Admin" },
       { name: "description", content: "Manage tutors on MatchMax." },
       { name: "robots", content: "noindex" },
     ],
@@ -91,18 +103,27 @@ function AdminTutors() {
   const navigate = useNavigate();
   const routeSearch = Route.useSearch();
   const queryClient = useQueryClient();
-  const [search, setSearch] = useState("");
   const [editingTutor, setEditingTutor] = useState<Tutor | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [confirmBatchDelete, setConfirmBatchDelete] = useState(false);
-  const [visibilityFilter, setVisibilityFilter] = useState("all");
-  const [formatFilter, setFormatFilter] = useState("all");
-  const [subjectFilter, setSubjectFilter] = useState("all");
-  const [districtFilter, setDistrictFilter] = useState("all");
-  const [completenessFilter, setCompletenessFilter] = useState("all");
-  const [sortBy, setSortBy] = useState("newest");
+  const {
+    q: search,
+    visibility: visibilityFilter,
+    format: formatFilter,
+    subject: subjectFilter,
+    district: districtFilter,
+    completeness: completenessFilter,
+    sort: sortBy,
+  } = routeSearch;
+  const updateDeskSearch = (patch: Record<string, string>) => {
+    navigate({
+      to: "/admin/tutors",
+      search: { ...routeSearch, ...patch },
+      replace: true,
+    }).catch(() => {});
+  };
 
   useEffect(() => {
     if (!loading && !hasAnyRole(["admin", "super_admin"])) {
@@ -123,7 +144,7 @@ function AdminTutors() {
     if (routeSearch.create || routeSearch.applicationId) {
       navigate({
         to: "/admin/tutors",
-        search: { create: undefined, applicationId: undefined },
+        search: { ...routeSearch, create: undefined, applicationId: undefined },
         replace: true,
       }).catch(() => {});
     }
@@ -185,13 +206,29 @@ function AdminTutors() {
     completenessFilter !== "all";
 
   const clearFilters = () => {
-    setSearch("");
-    setVisibilityFilter("all");
-    setFormatFilter("all");
-    setSubjectFilter("all");
-    setDistrictFilter("all");
-    setCompletenessFilter("all");
+    updateDeskSearch({
+      q: "",
+      visibility: "all",
+      format: "all",
+      subject: "all",
+      district: "all",
+      completeness: "all",
+    });
   };
+
+  // Issue #441: staff risk flags for the tutor list rows (badge + note).
+  // Same query key the TutorEditor section saves through.
+  const riskFlagsQuery = useQuery({
+    queryKey: ["admin", "risk-flags", "tutor"],
+    queryFn: () => listRiskFlags({ data: { entity: "tutor" } }),
+  });
+  const riskFlagByTutorId = useMemo(() => {
+    const map = new Map<string, RiskFlagRow>();
+    for (const row of riskFlagsQuery.data ?? []) {
+      if (row.tutor_id) map.set(row.tutor_id, row);
+    }
+    return map;
+  }, [riskFlagsQuery.data]);
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -381,8 +418,8 @@ function AdminTutors() {
     onSuccess: (_data, variables) => {
       toast.success(
         variables.action === "approve"
-          ? "Account deleted — data wipe complete"
-          : "Deletion request denied — account on hold",
+          ? "Account deleted, data wipe complete"
+          : "Deletion request denied, account on hold",
       );
       invalidateTutorQueries();
     },
@@ -486,7 +523,7 @@ function AdminTutors() {
   return (
     <div>
       <main className="flex-1 bg-[color:var(--surface)]">
-        <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-[1536px] px-4 py-8 sm:px-6 lg:px-8">
           {isEditorActive ? (
             <TutorEditor
               initialData={editingTutor}
@@ -540,7 +577,7 @@ function AdminTutors() {
                   </div>
                   <p className="mt-1 text-xs text-[color:var(--ink)]/70">
                     Tutors asking to remove their accounts. Approve only after confirming no pending
-                    matching fees or active introductory cases — approval permanently wipes the
+                    matching fees or active introductory cases, approval permanently wipes the
                     account and cannot be undone.
                   </p>
                   <ul className="mt-3 space-y-2">
@@ -621,7 +658,7 @@ function AdminTutors() {
                             </>
                           ) : (
                             <span className="text-xs text-muted-foreground">
-                              No linked account — resolve manually
+                              No linked account, resolve manually
                             </span>
                           )}
                         </div>
@@ -638,11 +675,14 @@ function AdminTutors() {
                   <Input
                     placeholder="Search by code, subject, card highlight..."
                     value={search}
-                    onChange={(e) => setSearch(e.target.value)}
+                    onChange={(e) => updateDeskSearch({ q: e.target.value })}
                     className="pl-9 h-10 bg-[color:var(--surface)] border-[color:var(--ink)]/15"
                   />
                 </div>
-                <Select value={visibilityFilter} onValueChange={setVisibilityFilter}>
+                <Select
+                  value={visibilityFilter}
+                  onValueChange={(v) => updateDeskSearch({ visibility: v })}
+                >
                   <SelectTrigger className="h-10 w-36 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
                     <SelectValue />
                   </SelectTrigger>
@@ -652,7 +692,7 @@ function AdminTutors() {
                     <SelectItem value="hidden">Hidden</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={formatFilter} onValueChange={setFormatFilter}>
+                <Select value={formatFilter} onValueChange={(v) => updateDeskSearch({ format: v })}>
                   <SelectTrigger className="h-10 w-36 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
                     <SelectValue />
                   </SelectTrigger>
@@ -663,7 +703,10 @@ function AdminTutors() {
                     <SelectItem value="either">Hybrid</SelectItem>
                   </SelectContent>
                 </Select>
-                <Select value={completenessFilter} onValueChange={setCompletenessFilter}>
+                <Select
+                  value={completenessFilter}
+                  onValueChange={(v) => updateDeskSearch({ completeness: v })}
+                >
                   <SelectTrigger className="h-10 w-40 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
                     <SelectValue />
                   </SelectTrigger>
@@ -675,7 +718,7 @@ function AdminTutors() {
                 </Select>
                 <SearchableSelect
                   value={subjectFilter}
-                  onChange={setSubjectFilter}
+                  onChange={(v) => updateDeskSearch({ subject: v })}
                   options={[
                     { value: "all", label: "All subjects" },
                     ...subjectOptions.map((subject) => ({ value: subject, label: subject })),
@@ -686,7 +729,7 @@ function AdminTutors() {
                 />
                 <SearchableSelect
                   value={districtFilter}
-                  onChange={setDistrictFilter}
+                  onChange={(v) => updateDeskSearch({ district: v })}
                   options={[
                     { value: "all", label: "All districts" },
                     ...districtOptions.map((district) => ({ value: district, label: district })),
@@ -695,7 +738,7 @@ function AdminTutors() {
                   searchPlaceholder="Search district..."
                   className="h-10 w-44 rounded-md"
                 />
-                <Select value={sortBy} onValueChange={setSortBy}>
+                <Select value={sortBy} onValueChange={(v) => updateDeskSearch({ sort: v })}>
                   <SelectTrigger className="h-10 w-44 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm">
                     <SelectValue />
                   </SelectTrigger>
@@ -775,8 +818,9 @@ function AdminTutors() {
               ) : null}
 
               <p className="text-sm text-muted-foreground">
-                Showing <span className="font-bold text-[color:var(--ink)]">{filtered.length}</span>{" "}
-                of {tutors.length} tutor{tutors.length === 1 ? "" : "s"}
+                Showing{" "}
+                <span className="font-medium text-[color:var(--ink)]">{filtered.length}</span> of{" "}
+                {tutors.length} tutor{tutors.length === 1 ? "" : "s"}
               </p>
 
               <ConsoleTable tableClassName="text-left">
@@ -866,6 +910,11 @@ function AdminTutors() {
                                   · {getTutorGenderLabel(row.gender)}
                                 </span>
                               )}
+                              {/* Issue #441: renders nothing for an unflagged tutor. */}
+                              <RiskFlagBadge
+                                flag={riskFlagByTutorId.get(row.id)?.risk_flag}
+                                note={riskFlagByTutorId.get(row.id)?.risk_note}
+                              />
                             </div>
                             <div className="mt-0.5 max-w-sm space-y-0.5 text-xs text-muted-foreground">
                               {getTutorCardHighlights(row).length > 0 ? (
@@ -877,6 +926,11 @@ function AdminTutors() {
                               ) : (
                                 <p>No card highlights added</p>
                               )}
+                              {riskFlagByTutorId.get(row.id)?.risk_note ? (
+                                <p className="line-clamp-1 font-medium text-amber-700 dark:text-amber-400">
+                                  {riskFlagByTutorId.get(row.id)?.risk_note}
+                                </p>
+                              ) : null}
                             </div>
                           </div>
                         </div>

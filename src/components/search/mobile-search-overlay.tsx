@@ -122,7 +122,7 @@ export function MobileSearchOverlay({
             <span className="relative">
               {tab.icon}
               {tab.badge ? (
-                <span className="absolute -right-6 -top-2.5 rounded-full bg-[color:var(--foreground)] px-1.5 py-px text-[9px] font-bold uppercase leading-none text-[color:var(--background)]">
+                <span className="absolute -right-6 -top-2.5 rounded-full bg-[color:var(--foreground)] px-1.5 py-px text-[11px] font-bold uppercase leading-none text-[color:var(--background)]">
                   {tab.badge}
                 </span>
               ) : null}
@@ -137,7 +137,7 @@ export function MobileSearchOverlay({
           type="button"
           aria-label={t("search_ui.close_search")}
           onClick={requestClose}
-          className="absolute right-3 top-2.5 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40"
+          className="absolute right-3 top-2.5 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <X className="h-4 w-4" aria-hidden="true" />
         </button>

@@ -8,11 +8,11 @@ import { QUICK_REPLIES } from "../../src/features/cases/quick-replies";
  * the product), and nothing may auto-send.
  */
 describe("desk quick replies (#438)", () => {
-  it("ships exactly the three CS-005 buttons in desk order", () => {
-    expect(QUICK_REPLIES.map((reply) => reply.label)).toEqual([
-      "Strike 2",
-      "Rate Nudge",
-      "Price Range",
+  it("ships exactly the three CS-005 buttons in desk order under desk.quick.*", () => {
+    expect(QUICK_REPLIES.map((reply) => reply.key)).toEqual([
+      "desk.quick.strike2",
+      "desk.quick.rateNudge",
+      "desk.quick.priceRange",
     ]);
   });
 
@@ -34,15 +34,10 @@ describe("desk quick replies (#438)", () => {
     );
   });
 
-  it("every reply carries its locale key (en + zh-HK share the 繁中 value in V1)", () => {
+  it("macro bodies stay out of i18n — text is carried in code, keys only label buttons", () => {
     for (const reply of QUICK_REPLIES) {
-      expect(reply.key).toMatch(/^triage\.quick_reply_[a-z0-9_]+$/);
+      expect(reply.key).toMatch(/^desk\.quick\.[a-z0-9]+$/);
     }
-    expect(QUICK_REPLIES.map((reply) => reply.key)).toEqual([
-      "triage.quick_reply_strike_2",
-      "triage.quick_reply_rate_nudge",
-      "triage.quick_reply_price_range",
-    ]);
   });
 
   it("is insert-only: no wa.me / api.whatsapp send deep link rides along", () => {

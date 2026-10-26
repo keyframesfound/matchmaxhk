@@ -84,7 +84,7 @@ const SelectContent = React.forwardRef<
         side={side}
         avoidCollisions={avoidCollisions}
         className={cn(
-          "relative z-50 max-h-(--radix-select-content-available-height) min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface)] text-[color:var(--ink)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-1 data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1 data-[side=top]:slide-in-from-bottom-1 origin-(--radix-select-content-transform-origin)",
+          "relative z-50 mm-overlay-lift max-h-(--radix-select-content-available-height) min-w-[8rem] overflow-y-auto overflow-x-hidden rounded-lg border border-[color:var(--ink)]/10 bg-[color:var(--surface)] text-[color:var(--ink)] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-1 data-[side=left]:slide-in-from-right-1 data-[side=right]:slide-in-from-left-1 data-[side=top]:slide-in-from-bottom-1 origin-(--radix-select-content-transform-origin)",
           position === "popper" &&
             "data-[side=bottom]:translate-y-1 data-[side=left]:-translate-x-1 data-[side=right]:translate-x-1 data-[side=top]:-translate-y-1",
           className,
@@ -128,7 +128,7 @@ const SelectItem = React.forwardRef<
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
-      "relative flex min-h-10 w-full cursor-default select-none items-center rounded-md py-2 pl-3 pr-9 text-sm font-medium text-[color:var(--ink)] outline-none transition-colors focus:bg-[color:var(--accent)] focus:text-[color:var(--ink)] data-[state=checked]:bg-[color:var(--ink)]/[0.07] data-[state=checked]:font-semibold data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
+      "relative flex min-h-10 w-full cursor-default select-none items-center rounded-md py-2 pl-3 pr-9 text-sm font-semibold text-[color:var(--ink)] outline-none transition-colors focus:bg-[color:var(--accent)] focus:text-[color:var(--ink)] data-[state=checked]:bg-[color:var(--ink)]/[0.07] data-[state=checked]:font-medium data-[disabled]:pointer-events-none data-[disabled]:opacity-50",
       className,
     )}
     {...props}

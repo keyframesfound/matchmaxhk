@@ -4,7 +4,7 @@ import { buildTermsAcceptanceRow, type TermsSurface } from "./terms";
 
 /**
  * Issue #214: insert a terms_acceptances row through the SERVICE-ROLE client.
- * The table has no client INSERT policy on purpose — an acceptance row may
+ * The table has no client INSERT policy on purpose, an acceptance row may
  * only be written by the server fn that owns the gate, after that gate's
  * checkbox validation has passed. Fail-closed: any insert failure throws, so
  * the calling submit fails with a clear error and an acceptance that was
@@ -22,7 +22,7 @@ export async function recordTermsAcceptance(params: {
   termsVersion?: string;
   /** #412 D: request IP at acceptance time (server-captured, best-effort). */
   ipAddress?: string | null;
-  /** #412 D: centre-partnership rows — the legal entity the rep bound. */
+  /** #412 D: centre-partnership rows, the legal entity the rep bound. */
   legalEntityName?: string | null;
   /** #412 D: exact checkbox label strings shown (audit trail outlives copy). */
   acceptanceDetails?: string[] | null;

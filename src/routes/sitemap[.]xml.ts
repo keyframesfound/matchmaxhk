@@ -38,15 +38,34 @@ function escapeXml(value: string): string {
 }
 
 function renderUrl(entry: SitemapEntry): string {
-  const lines = [
-    "  <url>",
-    `    <loc>${escapeXml(`${BASE_URL}${entry.path}`)}</loc>`,
-    entry.lastmod ? `    <lastmod>${entry.lastmod}</lastmod>` : null,
-    entry.changefreq ? `    <changefreq>${entry.changefreq}</changefreq>` : null,
-    entry.priority ? `    <priority>${entry.priority}</priority>` : null,
-    "  </url>",
-  ];
-  return lines.filter(Boolean).join("\n");
+  // Locale-prefix structure (2026-10-25): every route exists at /en and /zh,
+  // each self-canonical <url> carries hreflang alternates for both plus
+  // x-default → English.
+  const locales = ["en", "zh"] as const;
+  return locales
+    .map((segment) => {
+      const alternates = [
+        { hreflang: "en", href: `${BASE_URL}/en${entry.path === "/" ? "" : entry.path}` },
+        { hreflang: "zh-HK", href: `${BASE_URL}/zh${entry.path === "/" ? "" : entry.path}` },
+        { hreflang: "x-default", href: `${BASE_URL}/en${entry.path === "/" ? "" : entry.path}` },
+      ]
+        .map(
+          (alt) =>
+            `    <xhtml:link rel="alternate" hreflang="${alt.hreflang}" href="${escapeXml(alt.href)}"/>`,
+        )
+        .join("\n");
+      const lines = [
+        "  <url>",
+        `    <loc>${escapeXml(`${BASE_URL}/${segment}${entry.path === "/" ? "" : entry.path}`)}</loc>`,
+        alternates,
+        entry.lastmod ? `    <lastmod>${entry.lastmod}</lastmod>` : null,
+        entry.changefreq ? `    <changefreq>${entry.changefreq}</changefreq>` : null,
+        entry.priority ? `    <priority>${entry.priority}</priority>` : null,
+        "  </url>",
+      ];
+      return lines.filter(Boolean).join("\n");
+    })
+    .join("\n");
 }
 
 async function fetchPublishedTutorEntries(): Promise<SitemapEntry[]> {
@@ -107,12 +126,12 @@ export const Route = createFileRoute("/sitemap.xml")({
           const tutorEntries = await fetchPublishedTutorEntries();
           entries.push(...tutorEntries);
         } catch {
-          // ignore — sitemap still serves core public routes
+          // ignore, sitemap still serves core public routes
         }
 
         const xml = [
           `<?xml version="1.0" encoding="UTF-8"?>`,
-          `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">`,
+          `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">`,
           ...entries.map(renderUrl),
           `</urlset>`,
           "",

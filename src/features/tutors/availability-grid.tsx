@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
  * style of the TutorCircle reference. 7 day columns × 6 fixed 3-hour slots;
  * each cell is available (可補), partial (部分時段可) or unavailable (不可補),
  * from the tutor's self-serve grid (tutors.availability_grid). Read-only here
- * — tutors edit it in Dashboard → Availability.
+ *, tutors edit it in Dashboard → Availability.
  */
 
 const STATE_CELL_CLASS: Record<GridCellState, string> = {
@@ -35,7 +35,7 @@ export function AvailabilityGrid({
   grid: rawGrid,
   className,
 }: {
-  /** Raw JSONB off the tutor row — parsed defensively. */
+  /** Raw JSONB off the tutor row, parsed defensively. */
   grid: unknown;
   className?: string;
 }) {

@@ -1,10 +1,10 @@
 /**
- * Issue #284 (P4) — Verified edits need evidence. Pure state machine + input
+ * Issue #284 (P4), Verified edits need evidence. Pure state machine + input
  * validation for pending credential changes from verified tutors.
  *
  * DB contract (migration 20261016151000): `tutor_credential_edits` rows carry
  * old_value/new_value as jsonb snapshots; one open edit per (tutor, field);
- * owner has SELECT-only RLS — submit/approve/reject run in service-role
+ * owner has SELECT-only RLS, submit/approve/reject run in service-role
  * server fns, which call these helpers before touching the database.
  *
  * Grade changes are NOT here: tutor_grades (#309) already has its own
@@ -110,7 +110,7 @@ export type ValidatedCredentialEdit = {
 /**
  * Validate a credential-edit submission. Returns every rejection found (the
  * UI can show them all); an empty array means the server fn may proceed.
- * Evidence is mandatory for every field — that is the point of the issue.
+ * Evidence is mandatory for every field, that is the point of the issue.
  */
 export function validateCredentialEditInput(input: CredentialEditInput): CredentialEditRejection[] {
   const rejections: CredentialEditRejection[] = [];
@@ -232,7 +232,7 @@ export function credentialValueContactError(
   if (isJsonbCredentialField(field)) return scanContactStrings(value);
   if (value == null) return null;
   // Text fields arrive as the stored jsonb snapshot ({ text: "..." }), not a
-  // bare string — String() on it yields "[object Object]" and the scan passes
+  // bare string, String() on it yields "[object Object]" and the scan passes
   // any contact detail. Unbox with the same helper the approve write uses.
   return contactFilterError(valueSnapshotToText(value));
 }

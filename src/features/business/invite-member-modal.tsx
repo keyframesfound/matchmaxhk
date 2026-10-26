@@ -43,7 +43,7 @@ export function InviteMemberModal({
       toast.success(
         result.emailSent
           ? `Invitation sent to ${email.trim()}`
-          : `Invite created for ${email.trim()} — they'll get admin access when they sign up with this email`,
+          : `Invite created for ${email.trim()}, they'll get admin access when they sign up with this email`,
       );
       setEmail("");
       onInvited();

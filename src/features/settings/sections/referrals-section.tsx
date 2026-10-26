@@ -24,7 +24,7 @@ function formatHkd(cents: number): string {
 }
 
 /**
- * "Refer & Earn 15%" — tutor-side view of the referral program. Aggregates
+ * "Refer & Earn 15%", tutor-side view of the referral program. Aggregates
  * come from the get_my_referral_dashboard RPC so the tutor never reads
  * referred applicants' personal data directly.
  */

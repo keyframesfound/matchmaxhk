@@ -31,6 +31,7 @@ import {
 } from "@/features/courses/queries";
 import type { CourseWithOrganization } from "@/features/courses/queries";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
+import { canonicalUrl } from "@/features/i18n/seo";
 
 export const Route = createFileRoute("/courses/$courseId")({
   beforeLoad: () => {
@@ -43,7 +44,7 @@ export const Route = createFileRoute("/courses/$courseId")({
   },
   head: ({ match }) => {
     const course = match.loaderData as CourseWithOrganization | undefined;
-    const url = `https://matchmax.hk/courses/${match.params.courseId}`;
+    const url = canonicalUrl(`/courses/${match.params.courseId}`);
     if (!course) {
       return {
         meta: [{ title: "Course | MatchMax" }, { name: "robots", content: "noindex" }],
@@ -55,7 +56,7 @@ export const Route = createFileRoute("/courses/$courseId")({
     const orgName = course.organization?.name ?? "a Hong Kong learning centre";
     const description = (
       course.summary?.trim() ||
-      `${course.title} — ${price ?? "enquire for pricing"} · ${mode} course at ${orgName} in Hong Kong. Enquire via MatchMax.`
+      `${course.title}, ${price ?? "enquire for pricing"} · ${mode} course at ${orgName} in Hong Kong. Enquire via MatchMax.`
     ).slice(0, 200);
     const title = `${course.title} | MatchMax`;
     return {
@@ -215,7 +216,7 @@ function MoreFromCentre({ orgId, currentCourseId }: { orgId: string; currentCour
                     className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
                   />
                 ) : (
-                  <span className="flex h-full w-full items-center justify-center text-muted-foreground/40">
+                  <span className="flex h-full w-full items-center justify-center text-muted-foreground">
                     <BookOpen className="h-8 w-8" />
                   </span>
                 )}
@@ -270,7 +271,7 @@ function CourseDetail() {
       <SiteHeader />
       <main className="flex-1">
         <section className="border-b border-border py-10">
-          <div className="mx-auto max-w-5xl px-4 sm:px-6">
+          <div className="mx-auto max-w-7xl px-4 sm:px-6">
             <Link
               to="/courses"
               className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--brand-link)]"
@@ -328,7 +329,7 @@ function CourseDetail() {
 
         {course && (
           <section className="py-10">
-            <div className="mx-auto grid max-w-5xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
+            <div className="mx-auto grid max-w-7xl gap-8 px-4 sm:px-6 lg:grid-cols-[minmax(0,1.6fr)_minmax(280px,1fr)]">
               <div>
                 {course.image_url ? (
                   <img

@@ -2,7 +2,8 @@ import { useEffect, useRef } from "react";
 
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import i18n, { setLocale } from "@/features/i18n/config";
+import i18n from "@/features/i18n/config";
+import { useSwitchLocale } from "@/features/i18n/switch-locale";
 
 const SUPPORTED_LOCALES = ["en", "zh-HK"] as const;
 
@@ -13,6 +14,7 @@ const SUPPORTED_LOCALES = ["en", "zh-HK"] as const;
  */
 export function ProfileLocaleSync() {
   const { user } = useAuth();
+  const switchLocale = useSwitchLocale();
   const syncedFor = useRef<string | null>(null);
 
   useEffect(() => {
@@ -36,13 +38,13 @@ export function ProfileLocaleSync() {
           (SUPPORTED_LOCALES as readonly string[]).includes(locale) &&
           i18n.language !== locale
         ) {
-          setLocale(locale);
+          switchLocale(locale);
         }
       });
     return () => {
       active = false;
     };
-  }, [user]);
+  }, [user, switchLocale]);
 
   return null;
 }

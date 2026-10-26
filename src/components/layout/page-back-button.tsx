@@ -31,7 +31,7 @@ export function PageBackButton({
         }
       }}
       className={cn(
-        "flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/40 lg:hidden",
+        "flex h-10 w-10 items-center justify-center rounded-full border border-border bg-card text-[color:var(--ink)] transition-colors hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:hidden",
         className,
       )}
     >

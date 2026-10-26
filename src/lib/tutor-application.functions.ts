@@ -29,8 +29,8 @@ const publishResultSchema = z.object({
 });
 
 /**
- * Issue #310 — go live on submit.
- * Issue #357 / #359 — one card per normalized email, and no contact text on it.
+ * Issue #310, go live on submit.
+ * Issue #357 / #359, one card per normalized email, and no contact text on it.
  *
  * Reads the just-stored application row with the service-role client,
  * deterministically maps its jsonb `data` to a tutors payload, then asks
@@ -104,7 +104,7 @@ async function publishTutorCardFromApplication(applicationId: string): Promise<{
   };
 }
 
-/** Best-effort "your card is live" email — never fails the submission. */
+/** Best-effort "your card is live" email, never fails the submission. */
 async function sendCardLiveEmail(params: {
   email: string;
   name: string;
@@ -147,7 +147,7 @@ export const generateSelfIntroduction = createServerFn({ method: "POST" })
     if (!apiKey) throw new Error("AI writing is not configured.");
 
     // Issue #120: one premium first-person bio from the academic data the
-    // applicant already entered. The form shows the draft for review — the
+    // applicant already entered. The form shows the draft for review, the
     // model writes, it never submits.
     const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
       method: "POST",
@@ -325,7 +325,7 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
     const { id } = await storeTutorApplication(storedApplication);
 
     // Issue #214: record WHICH terms version the applicant accepted, tagged
-    // by how they arrived — through a referrer link (?ref=) the surface is
+    // by how they arrived, through a referrer link (?ref=) the surface is
     // referral_signup, otherwise plain signup. Recorded AFTER the application
     // insert succeeds (subject_id = application id) and BEFORE the card is
     // published; the insert is fail-closed, so an acceptance that was never
@@ -345,7 +345,7 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
     // mapped text again and publishes inside one transaction.
     const published = await publishTutorCardFromApplication(id);
     // Issue #358: a reused card that staff have since unpublished is NOT
-    // live — skip the "your card is live" email and say so in the result.
+    // live, skip the "your card is live" email and say so in the result.
     if (published.published) {
       await sendCardLiveEmail({
         email: published.email,

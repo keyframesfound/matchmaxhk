@@ -8,11 +8,14 @@ import { PDFDocument, rgb, StandardFonts, degrees } from "pdf-lib";
  * semi-transparent watermark on every page. The result is uploaded to the
  * PUBLIC previews bucket; the original never leaves the private bucket.
  *
- * Plain PDF processing via pdf-lib — no AI services involved.
+ * Plain PDF processing via pdf-lib, no AI services involved.
  */
 
 export const WATERMARK_TEXT = "PREVIEW COPY - MATCHMAX.HK";
 export const PREVIEW_PAGE_LIMIT = 5;
+
+/** #392: lesson-PDF stamp, short, tiled over the FULL document. */
+export const FULL_WATERMARK_TEXT = "matchmax.hk";
 
 /** Result of watermarking: preview bytes plus the page count stamped. */
 export type WatermarkResult = {
@@ -65,6 +68,42 @@ export async function watermarkPdfPreview(
 
   const bytes = await preview.save();
   return { bytes, pageCount: copiedPages.length };
+}
+
+/**
+ * #392 course lesson PDFs: stamp the FULL document (every page, unlike the
+ * preview pipeline which copies only the first pages) with the tiled
+ * diagonal "matchmax.hk" mark. The watermarked copy is what buyers get;
+ * the clean original stays private next to it under the same stamp.
+ */
+export async function watermarkFullPdf(pdfBytes: Uint8Array | ArrayBuffer): Promise<Uint8Array> {
+  const doc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
+  const font = await doc.embedFont(StandardFonts.HelveticaBold);
+
+  for (const page of doc.getPages()) {
+    const { width, height } = page.getSize();
+    const fontSize = Math.max(18, Math.min(36, width / 18));
+
+    const stepX = width / 2;
+    const stepY = height / 4;
+    for (let row = 0; row < 4; row += 1) {
+      for (let col = 0; col < 3; col += 1) {
+        const x = col * stepX + stepX / 2 - fontSize * 2;
+        const y = row * stepY + stepY / 2;
+        page.drawText(FULL_WATERMARK_TEXT, {
+          x,
+          y,
+          size: fontSize,
+          font,
+          color: rgb(0.35, 0.45, 0.6),
+          opacity: 0.22,
+          rotate: degrees(30),
+        });
+      }
+    }
+  }
+
+  return doc.save();
 }
 
 /**

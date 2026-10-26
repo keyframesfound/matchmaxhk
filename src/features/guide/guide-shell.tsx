@@ -21,7 +21,7 @@ export const GUIDE_TABS = [
   { to: "/guide/refer", key: "guide.tab_refer" },
   { to: "/guide/verification", key: "guide.tab_verification" },
   // Issue #412 G: the B2B tab ships with the partners page but stays hidden
-  // until the centre market flag flips — the join CTA would 404 otherwise.
+  // until the centre market flag flips, the join CTA would 404 otherwise.
   { to: "/guide/partners", key: "guide.tab_partners", enabled: CENTRE_MARKET_ENABLED },
 ] as const;
 
@@ -35,7 +35,7 @@ export function GuideBar({ current, topOffset }: { current: GuideTab; topOffset:
       className="sticky z-40 border-b border-[color:var(--ink)]/10 bg-[color:var(--surface)]/95 backdrop-blur-sm"
       style={{ top: topOffset }}
     >
-      <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+      <div className="mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12">
         <ul className="flex items-center gap-1 overflow-x-auto whitespace-nowrap py-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {GUIDE_TABS.map((tab) => {
             if ("enabled" in tab && !tab.enabled) return null;
@@ -49,7 +49,7 @@ export function GuideBar({ current, topOffset }: { current: GuideTab; topOffset:
                     "inline-flex rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors",
                     active
                       ? "bg-[color:var(--foreground)] text-[color:var(--background)]"
-                      : "text-[color:var(--ink)]/60 hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]",
+                      : "text-muted-foreground hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]",
                   )}
                 >
                   {t(tab.key)}
@@ -67,16 +67,16 @@ export function GuideBar({ current, topOffset }: { current: GuideTab; topOffset:
 export function ContentsRow({ items }: { items: { id: string; label: string }[] }) {
   const { t } = useTranslation();
   return (
-    <div className="mx-auto max-w-[1440px] px-5 sm:px-8 lg:px-12">
+    <div className="mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12">
       <div className="flex flex-wrap items-center gap-x-6 gap-y-2 border-b border-[color:var(--ink)]/10 py-4 text-sm">
-        <span className="text-xs font-bold uppercase tracking-widest text-[color:var(--muted-foreground)]">
+        <span className="text-xs font-medium text-[color:var(--muted-foreground)]">
           {t("guide.on_this_page")}
         </span>
         {items.map((item) => (
           <a
             key={item.id}
             href={`#${item.id}`}
-            className="font-semibold text-[color:var(--ink)]/70 underline-offset-4 transition-colors hover:text-[color:var(--ink)] hover:underline"
+            className="font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-[color:var(--ink)] hover:underline"
           >
             {item.label}
           </a>
@@ -100,7 +100,7 @@ export function GuideSteps({ steps }: { steps: [string, string, string][] }) {
           </span>
           <div>
             <h3 className="text-lg font-bold tracking-tight sm:text-xl">{title}</h3>
-            <p className="mt-2 max-w-2xl text-sm leading-7 text-[color:var(--ink)]/70">{text}</p>
+            <p className="mt-2 max-w-2xl text-sm leading-7 text-muted-foreground">{text}</p>
           </div>
         </li>
       ))}
@@ -127,9 +127,7 @@ export function GuideRules({ items }: { items: [string, string][] }) {
 /** Section heading used by every guide block. */
 export function GuideHeading({ children }: { children: ReactNode }) {
   return (
-    <h2 className="text-3xl font-extrabold leading-[1.05] tracking-tight sm:text-4xl">
-      {children}
-    </h2>
+    <h2 className="text-3xl font-bold leading-[1.05] tracking-tight sm:text-4xl">{children}</h2>
   );
 }
 
@@ -138,7 +136,7 @@ export function GuidePage({ current, children }: { current: GuideTab; children: 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   // Blocker 1 of the AI review: the bar must offset below the full sticky
-  // chrome, not a hardcoded header height — the desktop header is 72px PLUS
+  // chrome, not a hardcoded header height, the desktop header is 72px PLUS
   // the announcement banner while it is undismissed, and the mobile header
   // is 56px. Measure the header's live height so the bar never hides under
   // it (or under a banner that appears later in the session).
@@ -147,7 +145,7 @@ export function GuidePage({ current, children }: { current: GuideTab; children: 
     function measure() {
       const header = document.querySelector<HTMLElement>("[data-site-header]");
       // Mobile header renders as a sticky div (SiteHeader renders one header
-      // per breakpoint — desktop <header> with data-site-header, mobile <div>).
+      // per breakpoint, desktop <header> with data-site-header, mobile <div>).
       const mobileHeader = header ?? document.querySelector<HTMLElement>("div.sticky.top-0.z-50");
       setTopOffset((mobileHeader ?? header)?.offsetHeight ?? 0);
     }
