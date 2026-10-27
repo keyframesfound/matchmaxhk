@@ -43,10 +43,20 @@ export function readLocaleCookie(): string | null {
 export function navigatorLocale(): SeoLocale {
   if (typeof navigator === "undefined") return "en";
   const candidates = [...(navigator.languages ?? []), navigator.language].filter(Boolean);
+  // A bare "zh" fallback tag after a mainland tag (mainland Chrome sends
+  // "zh-CN,zh;q=0.9,en") must not flip the result to zh-HK.
+  let mainlandSeen = false;
   for (const raw of candidates) {
-    const tag = raw.toLowerCase();
+    // Strip the ;q= quality parameter before matching ("zh;q=0.9" is a
+    // bare zh tag). navigator.languages entries carry no q values, but
+    // defensively normalize anyway.
+    const tag = raw.toLowerCase().split(";")[0].trim();
     if (tag.startsWith("zh")) {
-      if (tag.startsWith("zh-cn") || tag.startsWith("zh-sg")) continue;
+      if (tag.startsWith("zh-cn") || tag.startsWith("zh-sg")) {
+        mainlandSeen = true;
+        continue;
+      }
+      if (tag === "zh" && mainlandSeen) continue;
       return "zh-HK";
     }
     if (tag.startsWith("en")) return "en";

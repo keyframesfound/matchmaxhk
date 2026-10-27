@@ -10,8 +10,8 @@
  *   1. claimed card — tutors.user_id = auth uid → application by
  *      linked_tutor_id (the /account/claim flow links the account);
  *   2. application email — the /join submit stores the applicant's email in
- *      the jsonb blob (data->>'email', indexed by
- *      idx_tutor_applications_linked_email); matched case-insensitively.
+ *      the jsonb blob; matched in SQL via the email_lower generated column
+ *      (idx_tutor_applications_email_lower, 20261026132000).
  * NEEDS_INFO: no live field exists on the row (read-only archive since
  * #310), so needsInfoItems is [] today; the checklist renders only from
  * live items, never generic copy. Open question for Ryan in the PR body.
@@ -59,40 +59,40 @@ export const getMyApplicationStatus = createServerFn({ method: "POST" })
       id: string;
       status: string;
       linked_tutor_id: string | null;
-      "data->>email": string | null;
       created_at: string;
       updated_at: string;
     };
 
     let rows: AppRow[] = [];
 
-    if (email) {
+    const { data: tutors } = await db
+      .from<{ id: string }>("tutors")
+      .select("id")
+      .eq("user_id", userId)
+      .limit(1);
+    const tutor = (tutors ?? [])[0];
+    if (tutor) {
       const { data } = await db
         .from<AppRow>("tutor_applications")
-        .select("id, status, linked_tutor_id, data->>email, created_at, updated_at")
+        .select("id, status, linked_tutor_id, created_at, updated_at")
+        .eq("linked_tutor_id", tutor.id)
         .order("created_at", { ascending: false })
-        .limit(500);
-      const all = data ?? [];
-      rows = all.filter((row) => (row["data->>email"] ?? "").trim().toLowerCase() === email);
-      if (rows.length > 0) rows = rows.slice(0, 1);
+        .limit(1);
+      rows = data ?? [];
     }
 
-    if (rows.length === 0) {
-      const { data: tutors } = await db
-        .from<{ id: string }>("tutors")
-        .select("id")
-        .eq("user_id", userId)
+    if (rows.length === 0 && email) {
+      // SQL-side filter on the indexed email_lower generated column
+      // (20261026132000). The old read pulled the 500 newest rows and
+      // filtered in Node, so an applicant silently vanished from the panel
+      // once 500 newer applications existed.
+      const { data } = await db
+        .from<AppRow>("tutor_applications")
+        .select("id, status, linked_tutor_id, created_at, updated_at")
+        .eq("email_lower", email)
+        .order("created_at", { ascending: false })
         .limit(1);
-      const tutor = (tutors ?? [])[0];
-      if (tutor) {
-        const { data } = await db
-          .from<AppRow>("tutor_applications")
-          .select("id, status, linked_tutor_id, data->>email, created_at, updated_at")
-          .eq("linked_tutor_id", tutor.id)
-          .order("created_at", { ascending: false })
-          .limit(1);
-        rows = data ?? [];
-      }
+      rows = data ?? [];
     }
 
     const row = rows[0];

@@ -328,7 +328,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
               {caseRow.is_short_case
                 ? // #443: while short, the fee is 20% of the package — captured
                   // in the Short case panel above, not the 1.5-lesson input.
-                  "Short case active — the platform fee is 20% of the package (rate × hours × lessons), invoiced from the Short case panel above. "
+                  "Short case active: the platform fee is 20% of the package (rate × hours × lessons), invoiced from the Short case panel above. "
                 : "Standard fee = 1.5 × hourly rate · short-term case = 20% of the package. "}
               Recording it logs a referred tutor's 15% bounty automatically.
             </p>

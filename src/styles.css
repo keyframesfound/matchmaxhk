@@ -870,6 +870,21 @@ html .driver-popover-progress-text {
   --radius-panel: 12px;
   --radius-surface: 14px;
 
+  /* Pin the legacy surface tokens too, not just the shadcn set: admin desk
+   * markup reads var(--ink)/var(--surface)/var(--surface-subtle) directly,
+   * and .dark flips those to near-white/near-black — under user dark mode
+   * the light-only console rendered white cards with invisible #e7e9ea
+   * text. Same light values as :root, immune to the .dark override. */
+  --ink: #0f1419;
+  --surface: #ffffff;
+  --surface-header: #f2f3f5;
+  --surface-subtle: #f7f9fa;
+  --surface-hover: #eff3f5;
+  --surface-invert: #0f1419;
+  --surface-invert-hover: #272c30;
+  --surface-invert-fg: #ffffff;
+  --brand-link: #0b72b5;
+
   --background: #fafafa;
   --foreground: #09090b;
   --card: #ffffff;

@@ -154,7 +154,7 @@ function AccountPage() {
   // Issue #477: the applicant status panel replaces the become-tutor CTA
   // while this account's /join application is still the live state.
   const applicationStatusQuery = useQuery({
-    queryKey: ["account", "application-status"],
+    queryKey: ["account", "application-status", user?.id],
     queryFn: getMyApplicationStatus,
     enabled: Boolean(user),
   });

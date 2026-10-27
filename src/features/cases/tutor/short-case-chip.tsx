@@ -15,7 +15,7 @@ export function ShortCaseChip({
   const { t } = useTranslation();
   if (!isShortCase || !scheduledLessonCount) return null;
   return (
-    <span className="shrink-0 rounded-full border border-[color:var(--brand-link)]/30 bg-[color:var(--brand-link)]/[0.08] px-2 py-0.5 text-[11px] font-bold text-[color:var(--brand-link)]">
+    <span className="shrink-0 rounded-full border border-[color:var(--brand-link)]/30 bg-[color:var(--brand-link)]/[0.08] px-2 py-0.5 text-[11px] font-semibold text-[color:var(--brand-link)]">
       {t("sor.short_case_chip", { n: scheduledLessonCount })}
     </span>
   );

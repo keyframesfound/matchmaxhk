@@ -64,7 +64,8 @@ export function MatchStatusCard({ status, matchedTutorId, sorStatus }: MatchStag
                 <span
                   className={cn(
                     "flex h-6 w-6 items-center justify-center rounded-full border text-xs font-semibold",
-                    done && "border-transparent bg-[color:var(--ink)] text-white",
+                    done &&
+                      "border-transparent bg-[color:var(--ink)] text-[color:var(--background)]",
                     current && "border-[color:var(--ink)] bg-card text-[color:var(--ink)]",
                     !done && !current && "border-border bg-card text-muted-foreground",
                   )}

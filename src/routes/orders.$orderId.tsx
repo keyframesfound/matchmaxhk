@@ -140,7 +140,7 @@ function OrderPage() {
       void queryClient.invalidateQueries({ queryKey: ["order", orderId] });
     },
     onError: (error) =>
-      toast.error(error instanceof Error ? error.message : t("orders.dispute_failed")),
+      toast.error(error instanceof Error ? error.message : t("orders.update_failed")),
   });
 
   // #429: dispute form state + open mutation (evidence rides the same call,
@@ -432,7 +432,13 @@ function OrderPage() {
                   <AlertTriangle className="h-4 w-4" aria-hidden />
                   {t("orders.dispute_title")}
                 </h2>
-                <p className="mt-2 text-sm text-muted-foreground">{t("orders.dispute_note")}</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {t(
+                    order.status === "delivered"
+                      ? "orders.dispute_note_delivered"
+                      : "orders.dispute_note",
+                  )}
+                </p>
                 <div className="mt-3">
                   <Button variant="outline" onClick={() => setDisputeDialogOpen(true)}>
                     {t("orders.dispute_open_button")}

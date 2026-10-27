@@ -114,7 +114,7 @@ export function RiskFlagEditor({ entity, entityId }: { entity: RiskFlagEntity; e
             maxLength={RISK_FLAG_NOTE_MAX}
             onChange={(e) => setNote(e.target.value)}
             placeholder={t("risk.note_placeholder", {
-              defaultValue: "Short reason — e.g. caller mismatch, suspected fake request",
+              defaultValue: "Short reason: e.g. caller mismatch, suspected fake request",
             })}
             className="h-10 border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-sm"
           />

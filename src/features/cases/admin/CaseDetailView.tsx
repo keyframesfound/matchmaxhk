@@ -174,13 +174,11 @@ function QuickReplyRow({ reply }: { reply: QuickReply }) {
   return (
     <div className="rounded-xl border border-[color:var(--ink)]/[0.07] bg-[color:var(--surface-subtle)]/40 px-3 py-2.5">
       <div className="flex items-center justify-between gap-3">
-        <span className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-          {t(reply.key)}
-        </span>
+        <span className="text-[11px] font-medium text-muted-foreground">{t(reply.key)}</span>
         <Button
           size="sm"
           variant="outline"
-          className="h-7 shrink-0 px-2 text-xs font-bold"
+          className="h-7 shrink-0 px-2 text-xs font-medium"
           onClick={copy}
         >
           {copied ? (
@@ -215,6 +213,11 @@ export function CaseDetailView({
   const queryClient = useQueryClient();
   const [noteBody, setNoteBody] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // Closed/Rejected (and board unpublish) are one-click irreversible from a
+  // Select, unlike the batch flows which confirm. Stage them here.
+  const [pendingDestructive, setPendingDestructive] = useState<
+    { kind: "status"; value: CaseStatus } | { kind: "unpublish" } | null
+  >(null);
   const [editOpen, setEditOpen] = useState(false);
 
   const invalidateCase = () => {
@@ -325,6 +328,15 @@ export function CaseDetailView({
       toast.error("Compliance hold: re-screen this request before contacting or matching.");
       return;
     }
+    // Irreversible exits confirm first, matching the batch close/reject flows.
+    if (next === "closed" || next === "rejected") {
+      setPendingDestructive({ kind: "status", value: next });
+      return;
+    }
+    commitStatusChange(next);
+  };
+
+  const commitStatusChange = (next: CaseStatus) => {
     const patch: Partial<CaseRow> = { status: next };
     if (next === "contacted" && !caseRow.last_contacted_at) {
       patch.last_contacted_at = new Date().toISOString();
@@ -671,7 +683,7 @@ export function CaseDetailView({
                         <span className="flex items-center gap-2">
                           <span
                             className={cn(
-                              "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold",
+                              "inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold",
                               PRIORITY_PILL_CLASS[tier],
                             )}
                           >
@@ -777,7 +789,19 @@ export function CaseDetailView({
                 </div>
                 <Select
                   value={caseRow.board_published_at !== null ? "public" : "private"}
-                  onValueChange={(v) => boardPublishMutation.mutate(v === "public")}
+                  onValueChange={(v) => {
+                    if (v === "public") {
+                      boardPublishMutation.mutate(true);
+                      return;
+                    }
+                    // Unpublishing pulls a live listing off the public board
+                    // instantly; confirm like the batch flows do.
+                    if (caseRow.board_published_at !== null) {
+                      setPendingDestructive({ kind: "unpublish" });
+                    } else {
+                      boardPublishMutation.mutate(false);
+                    }
+                  }}
                   disabled={
                     boardPublishMutation.isPending ||
                     (complianceLocked && caseRow.board_published_at === null)
@@ -907,6 +931,48 @@ export function CaseDetailView({
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
               Delete case
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog
+        open={pendingDestructive !== null}
+        onOpenChange={(open) => {
+          if (!open) setPendingDestructive(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {pendingDestructive?.kind === "unpublish"
+                ? `Remove case ${caseRow.case_code} from the board?`
+                : pendingDestructive?.kind === "status"
+                  ? `Set case ${caseRow.case_code} to ${STATUS_LABEL[pendingDestructive.value]}?`
+                  : ""}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {pendingDestructive?.kind === "unpublish"
+                ? "Tutors will no longer see this case on the request board. You can publish it again later."
+                : pendingDestructive?.kind === "status" && pendingDestructive.value === "rejected"
+                  ? "A rejected request is final for the parent and cannot be reopened."
+                  : "This ends the case pipeline. The desk keeps the record but no further matching happens."}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                if (pendingDestructive?.kind === "unpublish") {
+                  boardPublishMutation.mutate(false);
+                } else if (pendingDestructive?.kind === "status") {
+                  commitStatusChange(pendingDestructive.value);
+                }
+                setPendingDestructive(null);
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {pendingDestructive?.kind === "unpublish" ? "Remove from board" : "Confirm"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

@@ -1,6 +1,7 @@
 import { useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import i18n from "@/features/i18n/config";
 import { AlertTriangle, Check, Loader2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
@@ -29,7 +30,7 @@ import type { MyOrder } from "@/features/materials/checkout.functions";
  */
 
 function formatDue(datetime: string): string {
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(i18n.language === "zh-HK" ? "zh-HK" : "en-HK", {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(datetime));

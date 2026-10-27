@@ -81,6 +81,7 @@ import {
   CASE_RATE_BANDS,
   CLEAR_ALL,
   isDefaultFilters,
+  MAX_SELECTED_SUBJECTS,
   parseCaseFilters,
   type CaseFilters,
   type CaseFiltersSearch,
@@ -179,6 +180,9 @@ function AdminCases() {
   const deskCounts = useMemo(() => {
     const counts = { active: 0, hold: 0 };
     for (const row of cases) {
+      // Terminal rows are not waiting work: counting them made the tab
+      // badges show queue sizes that never drain.
+      if (row.status === "closed" || row.status === "rejected") continue;
       counts[deskBucketForTier(row.priority_tier)] += 1;
     }
     return counts;
@@ -413,14 +417,14 @@ function AdminCases() {
                     type="button"
                     size="sm"
                     variant={filters.desk === bucket ? "default" : "ghost"}
-                    className="h-9 px-4 text-sm font-bold"
+                    className="h-9 px-4 text-sm font-semibold"
                     aria-pressed={filters.desk === bucket}
                     onClick={() => setFilters({ desk: bucket })}
                   >
                     {bucket === "active" ? t("desk.active") : t("desk.hold")}
                     <span
                       className={cn(
-                        "ml-2 rounded-full px-2 py-0.5 text-[11px] font-bold",
+                        "ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold",
                         filters.desk === bucket
                           ? "bg-white/25 text-white"
                           : "bg-[color:var(--ink)]/[0.06] text-muted-foreground",
@@ -570,22 +574,30 @@ function AdminCases() {
                         </Button>
                       </DropdownMenuTrigger>
                       <DropdownMenuContent className="max-h-72 w-56 overflow-y-auto">
-                        {filterOptions.subjects.map((subject) => (
-                          <DropdownMenuCheckboxItem
-                            key={subject}
-                            checked={filters.subjects.includes(subject)}
-                            onCheckedChange={() =>
-                              setFilters({
-                                subjects: filters.subjects.includes(subject)
-                                  ? filters.subjects.filter((s) => s !== subject)
-                                  : [...filters.subjects, subject],
-                              })
-                            }
-                            onSelect={(e) => e.preventDefault()}
-                          >
-                            {subject}
-                          </DropdownMenuCheckboxItem>
-                        ))}
+                        {filterOptions.subjects.map((subject) => {
+                          const checked = filters.subjects.includes(subject);
+                          // Mirror the URL layer cap: silently dropping a 9th
+                          // check read as the filter "not working".
+                          const atCap =
+                            !checked && filters.subjects.length >= MAX_SELECTED_SUBJECTS;
+                          return (
+                            <DropdownMenuCheckboxItem
+                              key={subject}
+                              checked={checked}
+                              disabled={atCap}
+                              onCheckedChange={() =>
+                                setFilters({
+                                  subjects: checked
+                                    ? filters.subjects.filter((s) => s !== subject)
+                                    : [...filters.subjects, subject],
+                                })
+                              }
+                              onSelect={(e) => e.preventDefault()}
+                            >
+                              {subject}
+                            </DropdownMenuCheckboxItem>
+                          );
+                        })}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   ) : null}
@@ -676,7 +688,7 @@ function AdminCases() {
               {/* Batch actions */}
               {selectedIds.size > 0 ? (
                 <div className="flex flex-wrap items-center gap-2 rounded-xl border border-[color:var(--foreground)]/15 bg-[color:var(--foreground)]/[0.04] px-4 py-3">
-                  <span className="text-sm font-bold text-[color:var(--ink)]">
+                  <span className="text-sm font-semibold text-[color:var(--ink)]">
                     {selectedIds.size} selected
                   </span>
                   <div className="ml-auto flex flex-wrap items-center gap-2">
@@ -771,7 +783,7 @@ function AdminCases() {
                             })
                           : filters.desk === "active"
                             ? t("desk.empty.active")
-                            : "New submissions from the case request form will appear here."
+                            : t("desk.empty.hold")
                       }
                       action={
                         hasActiveFilters ? (
@@ -805,7 +817,7 @@ function AdminCases() {
                         </ConsoleTd>
                         <ConsoleTd>
                           <div className="flex items-center gap-1.5">
-                            <span className="font-mono text-sm font-bold text-[color:var(--ink)]">
+                            <span className="font-mono text-sm font-semibold text-[color:var(--ink)]">
                               {row.case_code}
                             </span>
                             {(() => {
@@ -868,7 +880,7 @@ function AdminCases() {
                           </p>
                         </ConsoleTd>
                         <ConsoleTd>
-                          <div className="text-sm font-bold text-[color:var(--ink)]">
+                          <div className="text-sm font-semibold text-[color:var(--ink)]">
                             {row.contact_name}
                           </div>
                           <a

@@ -133,7 +133,8 @@ const DESK_BUCKETS: DeskBucket[] = ["active", "hold"];
 const RATE_BAND_IDS: CaseRateBandId[] = ["lt100", "100-200", "200-300", "gte300"];
 
 /** Cap on selected subjects kept in one URL, junk guard, not a UX limit. */
-const MAX_SELECTED_SUBJECTS = 8;
+/** URL layer cap, mirrored by the subjects dropdown (9th+ checks disable). */
+export const MAX_SELECTED_SUBJECTS = 8;
 
 /**
  * TanStack JSON-decodes search params (?x=1 → number, ?x=true → boolean).
@@ -183,7 +184,11 @@ export function parseCaseFilters(raw: Record<string, unknown>): CaseFilters {
   const filters: CaseFilters = { ...DEFAULT_CASE_FILTERS, subjects: [] };
 
   const q = asString(raw.q);
-  if (q !== null && q.trim()) filters.q = q.trim();
+  // Raw (untrimmed): the desk search input is a controlled component fed
+  // from this parse, so trimming here would eat the space between words
+  // mid-typing (React restores the DOM value from the trimmed round-trip).
+  // Matching trims in the predicate instead.
+  if (q !== null && q.trim()) filters.q = q;
 
   const status = asString(raw.status);
   const statusHit = status ? oneOf(status, CASE_STATUSES) : null;
@@ -238,7 +243,9 @@ export function parseCaseFilters(raw: Record<string, unknown>): CaseFilters {
  */
 export function caseFiltersToSearch(filters: CaseFilters): CaseFiltersSearch {
   const out: CaseFiltersSearch = {};
-  if (filters.q.trim()) out.q = filters.q.trim();
+  // Guard trims, but store the raw string so a trailing space survives the
+  // URL round-trip while the admin is still typing (see parseCaseFilters).
+  if (filters.q.trim()) out.q = filters.q;
   if (filters.status !== "all") out.status = filters.status;
   if (filters.desk !== "active") out.desk = filters.desk;
   if (filters.tag !== "all") out.tag = filters.tag;

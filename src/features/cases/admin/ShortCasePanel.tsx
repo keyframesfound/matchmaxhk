@@ -70,6 +70,29 @@ const DESK_MACROS: Array<{ id: string; label: string; text: string }> = [
   },
 ];
 
+/** Server fns throw short error codes; the desk shows them as human copy. */
+const ERROR_COPY: Record<string, string> = {
+  CASE_NOT_FOUND: "Case not found.",
+  NOT_SHORT_CASE: "This case is not marked as a short case.",
+  SQUAD_CASE_NOT_ALLOWED: "Study-group or cohort cases cannot be marked short.",
+  PRO_BONO_NOT_ALLOWED: "Pro-bono cases keep the $0 fee; the short 20% does not apply.",
+  NO_RATE_ON_CASE: "Lock an agreed rate on the case first.",
+  OPEN_FEE_EXISTS:
+    "An open fee row exists on this case. Pay or waive it first, or use Convert for the short-case handover.",
+  SHORT_CASE_USE_SHORT_FEE:
+    "This case is short: invoice the 20% package fee from the Short case panel.",
+  COUNT_REQUIRED: "Pick a lesson count first.",
+  COUNT_RANGE: "Lessons must be a whole number from 1 to 5.",
+  MINUTES_REQUIRED: "Enter a session length in minutes.",
+  MINUTES_INVALID: "Session length must be a positive number of minutes (15 to 480).",
+  CONFIRM_SOURCE_REQUIRED: "Pick who confirmed the fee (parent WA, org WA or CS note).",
+  CONFIRM_NOTE_REQUIRED: "Paste the confirmation text (at least 10 characters).",
+};
+
+function errorMessage(e: Error): string {
+  return ERROR_COPY[e.message] ?? e.message;
+}
+
 async function copyText(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text);
@@ -97,11 +120,11 @@ function MacroRow({ label, text }: { label: string; text: string }) {
   return (
     <div className="rounded-xl border border-[color:var(--ink)]/[0.07] bg-[color:var(--surface-subtle)]/40 px-3 py-2.5">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-[11px] font-bold text-muted-foreground">{label}</p>
+        <p className="text-[11px] font-medium text-muted-foreground">{label}</p>
         <Button
           size="sm"
           variant="ghost"
-          className="h-7 px-2 text-[11px] font-bold text-muted-foreground hover:text-[color:var(--ink)]"
+          className="h-7 px-2 text-[11px] font-medium text-muted-foreground hover:text-[color:var(--ink)]"
           onClick={async () => {
             const ok = await copyText(text);
             if (ok) {
@@ -109,7 +132,7 @@ function MacroRow({ label, text }: { label: string; text: string }) {
               toast.success(`${label} copied`);
               setTimeout(() => setCopied(false), 2000);
             } else {
-              toast.error("Copy failed — select the text manually");
+              toast.error("Copy failed: select the text manually");
             }
           }}
         >
@@ -117,7 +140,7 @@ function MacroRow({ label, text }: { label: string; text: string }) {
           {copied ? "Copied" : "Copy"}
         </Button>
       </div>
-      <p className="mt-1 whitespace-pre-wrap text-[11px] leading-relaxed text-[color:var(--ink)]/80">
+      <p className="mt-1 whitespace-pre-wrap text-[11px] leading-relaxed text-muted-foreground">
         {text}
       </p>
     </div>
@@ -126,6 +149,11 @@ function MacroRow({ label, text }: { label: string; text: string }) {
 
 function hkd(n: number): string {
   return `HK$${Number(n).toFixed(0)}`;
+}
+
+/** "1.5h" for fractional hours, "1h" for whole — never 1.1666667h. */
+function hoursLabel(hours: number): string {
+  return Number.isInteger(hours) ? `${hours}h` : `${Math.round(hours * 100) / 100}h`;
 }
 
 export function ShortCasePanel({ caseId }: { caseId: string }) {
@@ -145,9 +173,13 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["admin", "short-case", caseId] });
     queryClient.invalidateQueries({ queryKey: ["admin", "cases"] });
+    // The SoR desk panel + list share this page and read the fee/audit rows
+    // the short-case mutations write.
+    queryClient.invalidateQueries({ queryKey: ["sor", "desk-case", caseId] });
+    queryClient.invalidateQueries({ queryKey: ["sor", "desk-list"] });
   };
 
-  const setError = (e: Error) => toast.error(e.message);
+  const setError = (e: Error) => toast.error(errorMessage(e));
 
   const setMutation = useMutation({
     mutationFn: (input: { isShortCase: boolean }) =>
@@ -166,7 +198,7 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
     onSuccess: (res) => {
       toast.success(
         res.shortCaseFee !== null
-          ? `Short case saved — fee snapshot ${hkd(res.shortCaseFee)}`
+          ? `Short case saved. Fee snapshot ${hkd(res.shortCaseFee)}`
           : "Short case turned off",
       );
       setConfirmedNote("");
@@ -179,7 +211,7 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
   const invoiceMutation = useMutation({
     mutationFn: () => invoiceShortCaseFee({ data: { caseId } }),
     onSuccess: (res) => {
-      toast.success(`Short-case fee invoiced — ${hkd(res.amountHkd ?? 0)}`);
+      toast.success(`Short-case fee invoiced: ${hkd(res.amountHkd ?? 0)}`);
       invalidate();
     },
     onError: setError,
@@ -190,8 +222,8 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
     onSuccess: (res) => {
       toast.success(
         res.invoicedBalance
-          ? `Converted to standard — balance invoice ${hkd(res.balanceHkd)} created`
-          : "Converted to standard — no balance due",
+          ? `Converted to standard: balance invoice ${hkd(res.balanceHkd)} created`
+          : "Converted to standard. No balance due",
       );
       setConfirmConvert(false);
       invalidate();
@@ -233,10 +265,10 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
       <div className="flex items-center justify-between">
         <h2 className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
           <BadgePercent className="h-3.5 w-3.5" aria-hidden="true" />
-          Short case — 20% package fee
+          Short case: 20% package fee
         </h2>
         {state?.isShortCase ? (
-          <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-[11px] font-bold text-emerald-700 dark:text-emerald-400">
+          <span className="rounded-full bg-[color:var(--success)]/15 px-2 py-0.5 text-[11px] font-semibold text-[color:var(--success)]">
             Active
           </span>
         ) : null}
@@ -247,13 +279,13 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
           <Loader2 className="h-3.5 w-3.5 animate-spin" /> Loading…
         </p>
       ) : state.cohortBlocked ? (
-        <p className="mt-3 rounded-xl border border-amber-500/30 bg-amber-500/[0.06] px-3 py-2.5 text-[11px] leading-relaxed text-[#a16207] dark:text-amber-400">
-          Study-group / cohort case — the short-case flag must NOT apply. Group cases stay on the
+        <p className="mt-3 rounded-xl border border-[color:var(--warning)]/30 bg-[color:var(--warning)]/[0.06] px-3 py-2.5 text-[11px] leading-relaxed text-[color:var(--warning)]">
+          Study-group or cohort case: the short-case flag must not apply. Group cases stay on the
           1.5-lesson admin fee.
         </p>
       ) : state.packageType === "pro_bono" ? (
         <p className="mt-3 rounded-xl border border-[color:var(--ink)]/[0.07] bg-[color:var(--surface-subtle)]/40 px-3 py-2.5 text-[11px] leading-relaxed text-muted-foreground">
-          Pro-bono case — the $0 fee wins over the short 20%. Nothing to configure.
+          Pro-bono case: the $0 fee wins over the short 20%. Nothing to configure.
         </p>
       ) : !state.isShortCase ? (
         <div className="mt-3 space-y-3">
@@ -281,6 +313,7 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
               <input
                 type="number"
                 min={15}
+                max={480}
                 step={5}
                 value={minutes}
                 onChange={(e) => setMinutes(e.target.value)}
@@ -337,19 +370,19 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
           <div className="rounded-xl border border-[color:var(--ink)]/[0.07] bg-[color:var(--surface-subtle)]/40 px-3 py-2.5">
             <p className="text-[11px] font-semibold text-[color:var(--ink)]">
               {previewFee !== null
-                ? `Fee snapshot: ${hkd(previewFee)} — 20% of package`
+                ? `Fee snapshot: ${hkd(previewFee)} (20% of package)`
                 : "Fee snapshot: pick lessons + hours to preview"}
             </p>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
               {state.hourlyRateHkd != null
                 ? `${hkd(state.hourlyRateHkd)}/hr × hours × lessons`
-                : "No agreed rate on the case yet — lock a rate first."}
+                : "No agreed rate on the case yet. Lock a rate first."}
             </p>
           </div>
 
           <Button
             size="sm"
-            className="h-9 w-full font-bold"
+            className="h-9 w-full font-semibold"
             disabled={!canEnable}
             onClick={() => setMutation.mutate({ isShortCase: true })}
           >
@@ -360,8 +393,8 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
       ) : (
         <div className="mt-3 space-y-3">
           <div className="rounded-xl border border-[color:var(--ink)]/[0.07] bg-[color:var(--surface-subtle)]/40 px-3.5 py-3">
-            <p className="text-sm font-bold text-[color:var(--ink)]">
-              Short case – 20% package fee ·{" "}
+            <p className="text-sm font-semibold text-[color:var(--ink)]">
+              Short case: 20% package fee ·{" "}
               {state.shortCaseFee !== null ? hkd(state.shortCaseFee) : "—"}
             </p>
             <p className="mt-0.5 text-[11px] text-muted-foreground">
@@ -369,7 +402,7 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
               state.hoursPerLesson !== null &&
               state.sessionLengthMinutes !== null &&
               state.scheduledLessonCount !== null
-                ? `${hkd(state.hourlyRateHkd)}/hr × ${state.hoursPerLesson}h (${state.sessionLengthMinutes} min) × ${state.scheduledLessonCount} lessons`
+                ? `${hkd(state.hourlyRateHkd)}/hr × ${hoursLabel(state.hoursPerLesson)} (${state.sessionLengthMinutes} min) × ${state.scheduledLessonCount} lessons`
                 : "Inputs incomplete"}
               {" · package "}
               {state.hourlyRateHkd != null &&
@@ -386,24 +419,24 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
           </div>
 
           <div className="rounded-xl border border-[color:var(--ink)]/[0.07] px-3 py-2.5">
-            <p className="flex items-center gap-1.5 text-[11px] font-bold text-[color:var(--ink)]">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-[color:var(--ink)]">
               <Wallet className="h-3.5 w-3.5" aria-hidden="true" /> Invoice the 20% fee
             </p>
             <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
               {state.invoiceReady
-                ? "Lesson 1 confirmed — ready to invoice (immediate for single-lesson packages)."
-                : "Fires after Lesson 1 is confirmed by both sides — or straight away when the package is 1 lesson. The 1.5-lesson / Lesson-2 trigger does NOT apply while short."}
+                ? "Lesson 1 confirmed. Ready to invoice (immediate for single-lesson packages)."
+                : "Fires after Lesson 1 is confirmed by both sides, or straight away when the package is 1 lesson. The 1.5-lesson / Lesson-2 trigger does not apply while short."}
             </p>
             {state.openFee ? (
-              <p className="mt-1.5 text-[11px] font-semibold text-[#a16207] dark:text-amber-400">
-                Open fee row exists ({state.openFee.status} · {hkd(state.openFee.amountHkd)}) —
-                resolve it first.
+              <p className="mt-1.5 text-[11px] font-semibold text-[color:var(--warning)]">
+                Open fee row exists ({state.openFee.status} · {hkd(state.openFee.amountHkd)}).
+                Resolve it first.
               </p>
             ) : null}
             <Button
               size="sm"
               variant="outline"
-              className="mt-2 h-8 w-full text-xs font-bold"
+              className="mt-2 h-8 w-full text-xs font-semibold"
               disabled={!state.invoiceReady || state.openFee !== null || invoiceMutation.isPending}
               onClick={() => invoiceMutation.mutate()}
             >
@@ -415,7 +448,7 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
           </div>
 
           <div className="rounded-xl border border-[color:var(--ink)]/[0.07] px-3 py-2.5">
-            <p className="flex items-center gap-1.5 text-[11px] font-bold text-[color:var(--ink)]">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-[color:var(--ink)]">
               <Repeat1 className="h-3.5 w-3.5" aria-hidden="true" /> Convert to Standard Case
             </p>
             <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
@@ -423,13 +456,11 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
               {state.standardFeeHkd !== null ? hkd(state.standardFeeHkd) : "—"} · already billed{" "}
               {hkd(state.invoicedTotalHkd)} ·{" "}
               {state.convertBalanceHkd === 0 ? (
-                <span className="font-bold text-emerald-700 dark:text-emerald-400">
-                  No balance due
-                </span>
+                <span className="font-semibold text-[color:var(--success)]">No balance due</span>
               ) : (
                 <>
                   balance{" "}
-                  <span className="font-bold text-[color:var(--ink)]">
+                  <span className="font-semibold text-[color:var(--ink)]">
                     {state.convertBalanceHkd !== null ? hkd(state.convertBalanceHkd) : "—"}
                   </span>
                   {state.convertBalanceHkd !== null && state.convertBalanceHkd > 0
@@ -443,7 +474,7 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
                 <Button
                   size="sm"
                   variant="destructive"
-                  className="h-8 flex-1 text-xs font-bold"
+                  className="h-8 flex-1 text-xs font-semibold"
                   disabled={convertMutation.isPending}
                   onClick={() => convertMutation.mutate()}
                 >
@@ -465,7 +496,7 @@ export function ShortCasePanel({ caseId }: { caseId: string }) {
               <Button
                 size="sm"
                 variant="outline"
-                className="mt-2 h-8 w-full text-xs font-bold"
+                className="mt-2 h-8 w-full text-xs font-semibold"
                 disabled={convertMutation.isPending}
                 onClick={() => setConfirmConvert(true)}
               >

@@ -1,9 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { dateFnsLocale } from "@/lib/relative-time";
 import { CalendarClock, Check, Loader2, Wallet, X } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import i18n from "@/features/i18n/config";
 
 import { Button } from "@/components/ui/button";
 import { ConsolePanel } from "@/components/ui/console-panel";
@@ -107,7 +109,10 @@ function PendingConfirmRow({
     <li className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[color:var(--ink)]/10 p-3">
       <div>
         <p className="text-sm font-medium text-[color:var(--ink)]">
-          {format(new Date(lesson.startsAt), "EEE d MMM, HH:mm")} · {lesson.studentFirstName}
+          {format(new Date(lesson.startsAt), "EEE d MMM, HH:mm", {
+            locale: dateFnsLocale(i18n.language),
+          })}{" "}
+          · {lesson.studentFirstName}
           {lesson.subject ? ` · ${lesson.subject}` : ""}
         </p>
         <p className="text-xs text-muted-foreground">
@@ -216,7 +221,9 @@ export function TutorHomeSection() {
           <div className="p-4">
             <p className="flex items-center gap-2 text-base font-semibold text-[color:var(--ink)]">
               <CalendarClock className="h-4 w-4" aria-hidden="true" />
-              {format(new Date(next.startsAt), "EEE d MMM, HH:mm")}
+              {format(new Date(next.startsAt), "EEE d MMM, HH:mm", {
+                locale: dateFnsLocale(i18n.language),
+              })}
             </p>
             <p className="mt-1 text-sm text-[color:var(--ink)]">
               {next.studentFirstName}

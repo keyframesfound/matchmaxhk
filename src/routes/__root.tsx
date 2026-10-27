@@ -26,22 +26,22 @@ import { Toaster } from "@/components/ui/sonner";
 import { currentSeoLocale, localizedMeta, ogLocaleMeta, canonicalUrl } from "@/features/i18n/seo";
 import { getActiveUrlLocale } from "@/features/i18n/routing";
 import { applyUrlLocale, persistUrlLocaleChoice } from "@/features/i18n/config";
+import { useTranslation } from "react-i18next";
 
 export function NotFoundComponent() {
+  const { t } = useTranslation();
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-7xl font-bold text-brand-gradient">404</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">Page not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">{t("page_not_found.title")}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{t("page_not_found.body")}</p>
         <div className="mt-6">
           <Link
             to="/"
             className="inline-flex items-center justify-center rounded-md border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-4 py-2 text-sm font-medium text-[color:var(--foreground)] transition-colors hover:bg-[color:var(--muted)]"
           >
-            Go home
+            {t("page_not_found.go_home")}
           </Link>
         </div>
       </div>
@@ -54,15 +54,14 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     console.error(error);
   }, [error]);
   const router = useRouter();
+  const { t } = useTranslation();
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
       <div className="max-w-lg text-center">
         <h1 className="text-7xl font-bold text-brand-gradient">Oops</h1>
-        <h2 className="mt-4 text-xl font-semibold text-foreground">This page didn't load</h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end, it's not anything you did. Try again, or head back home.
-        </p>
+        <h2 className="mt-4 text-xl font-semibold text-foreground">{t("page_error.title")}</h2>
+        <p className="mt-2 text-sm text-muted-foreground">{t("page_error.body")}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -71,18 +70,16 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             }}
             className="inline-flex items-center justify-center rounded-md border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-4 py-2 text-sm font-medium text-[color:var(--foreground)] transition-colors hover:bg-[color:var(--muted)]"
           >
-            Try again
+            {t("page_error.try_again")}
           </button>
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            Go home
+            {t("page_error.go_home")}
           </a>
         </div>
-        <p className="mt-6 text-xs text-muted-foreground">
-          Still stuck? Message our team on WhatsApp, we're happy to help.
-        </p>
+        <p className="mt-6 text-xs text-muted-foreground">{t("page_error.help")}</p>
       </div>
     </div>
   );

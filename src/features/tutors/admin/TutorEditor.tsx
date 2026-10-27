@@ -3599,7 +3599,7 @@ export function TutorEditor({
                     }
                   />
                   <span className="min-w-0">
-                    <span className="block text-sm font-bold text-[color:var(--ink)]">
+                    <span className="block text-sm font-semibold text-[color:var(--ink)]">
                       {t("tutor.fastResponder.label")}
                     </span>
                     <span className="mt-0.5 block text-xs leading-relaxed text-muted-foreground">

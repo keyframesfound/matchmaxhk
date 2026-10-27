@@ -1,4 +1,4 @@
-import { formatDistanceToNow } from "date-fns";
+import { formatDistanceToNow, type Locale } from "date-fns";
 import { zhHK } from "date-fns/locale";
 
 /**
@@ -13,6 +13,15 @@ import { zhHK } from "date-fns/locale";
 export function formatPostedAgo(date: string | number | Date, locale?: string): string {
   return formatDistanceToNow(new Date(date), {
     addSuffix: true,
-    locale: locale === "zh-HK" ? zhHK : undefined,
+    locale: dateFnsLocale(locale),
   });
+}
+
+/**
+ * The date-fns Locale for an i18n language code — undefined falls back to
+ * date-fns' English default. Pass this into format()/formatDistanceToNow
+ * options so day/month names follow the app locale (tutor-facing surfaces).
+ */
+export function dateFnsLocale(language: string | null | undefined): Locale | undefined {
+  return language === "zh-HK" ? zhHK : undefined;
 }

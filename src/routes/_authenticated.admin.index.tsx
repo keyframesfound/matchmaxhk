@@ -29,12 +29,13 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth/useAuth";
+import { fetchAdminOverviewProtected } from "@/features/admin/overview.functions";
 import { formatPostedAgo } from "@/lib/relative-time";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
   head: () => ({
     meta: [
-      { title: "Admin overview — MatchMax" },
+      { title: "Admin overview, MatchMax" },
       {
         name: "description",
         content: "Queues, demand and platform stats for the MatchMax admin console.",
@@ -83,20 +84,7 @@ async function headCount(table: string, filters: HeadFilter[] = []): Promise<num
 }
 
 type JoinRequestRow = { id: string; data: unknown; created_at: string };
-type ReportRow = {
-  id: string;
-  target_type: string;
-  reason: string;
-  created_at: string;
-};
 type CaseRow = { id: string; case_code: string; title: string; created_at: string };
-type FeeRow = {
-  id: string;
-  amount_hkd: number;
-  due_at: string | null;
-  created_at: string;
-  tutoring_cases: { case_code: string } | { case_code: string }[] | null;
-};
 type RecentTutorRow = { id: string; display_name: string | null; created_at: string };
 
 export type ActivityKind = "join" | "case" | "report" | "tutor";
@@ -136,22 +124,10 @@ async function selectAs<T>(query: LooseQuery, columns: string): Promise<T[]> {
 async function fetchOverview(): Promise<Overview> {
   const weekAgo = new Date(Date.now() - WEEK_MS).toISOString();
 
-  const [
-    tutors,
-    cases,
-    users,
-    newTutors,
-    newCases,
-    newUsers,
-    joinRequestCount,
-    reportCount,
-    reviewCaseCount,
-    joinRequestRows,
-    reportRows,
-    caseRows,
-    feeRows,
-    tutorRows,
-  ] = await Promise.all([
+  // reports + case_fees are RLS-deny for every browser client; their queue
+  // data comes from the admin-gated server fn (see overview.functions.ts).
+  const [protected_, ...rest] = await Promise.all([
+    fetchAdminOverviewProtected(),
     headCount("tutors"),
     headCount("tutoring_cases"),
     headCount("profiles"),
@@ -159,7 +135,6 @@ async function fetchOverview(): Promise<Overview> {
     headCount("tutoring_cases", [{ column: "created_at", op: "gte", value: weekAgo }]),
     headCount("profiles", [{ column: "created_at", op: "gte", value: weekAgo }]),
     headCount("tutor_applications", [{ column: "status", op: "eq", value: "pending" }]),
-    headCount("reports", [{ column: "status", op: "eq", value: "open" }]),
     headCount("tutoring_cases", [{ column: "status", op: "eq", value: "new" }]),
     selectAs<JoinRequestRow>(
       fromAny("tutor_applications")
@@ -168,10 +143,6 @@ async function fetchOverview(): Promise<Overview> {
         .limit(3),
       "id, data, created_at",
     ),
-    selectAs<ReportRow>(
-      fromAny("reports").eq("status", "open").order("created_at", { ascending: false }).limit(3),
-      "id, target_type, reason, created_at",
-    ),
     selectAs<CaseRow>(
       fromAny("tutoring_cases")
         .eq("status", "new")
@@ -179,15 +150,33 @@ async function fetchOverview(): Promise<Overview> {
         .limit(3),
       "id, case_code, title, created_at",
     ),
-    selectAs<FeeRow>(
-      fromAny("case_fees").eq("status", "invoiced").order("created_at", { ascending: false }),
-      "id, amount_hkd, due_at, created_at, tutoring_cases(case_code)",
-    ),
     selectAs<RecentTutorRow>(
       fromAny("tutors").eq("is_published", true).order("created_at", { ascending: false }).limit(3),
       "id, display_name, created_at",
     ),
   ]);
+
+  const [
+    tutors,
+    cases,
+    users,
+    newTutors,
+    newCases,
+    newUsers,
+    joinRequestCount,
+    reviewCaseCount,
+    joinRequestRows,
+    caseRows,
+    tutorRows,
+  ] = rest;
+
+  const reportCount = protected_.reportCount;
+  const fees = protected_.fees.map((row) => ({
+    id: row.id,
+    caseCode: row.case_code ?? "—",
+    amountHkd: row.amount_hkd,
+    createdAt: row.created_at,
+  }));
 
   const joinRequests: ActivityItem[] = joinRequestRows.map((row) => ({
     id: row.id,
@@ -197,11 +186,11 @@ async function fetchOverview(): Promise<Overview> {
     createdAt: row.created_at,
   }));
 
-  const reports: ActivityItem[] = reportRows.map((row) => ({
+  const reports: ActivityItem[] = protected_.reports.map((row) => ({
     id: row.id,
     kind: "report",
     actor: row.target_type.replace(/_/g, " "),
-    detail: `reported — reason: ${row.reason}`,
+    detail: `reported: ${row.reason}`,
     createdAt: row.created_at,
   }));
 
@@ -213,16 +202,6 @@ async function fetchOverview(): Promise<Overview> {
     createdAt: row.created_at,
     breach: Date.now() - new Date(row.created_at).getTime() > CASE_REVIEW_SLA_MS,
   }));
-
-  const fees = feeRows.map((row) => {
-    const embedded = Array.isArray(row.tutoring_cases) ? row.tutoring_cases[0] : row.tutoring_cases;
-    return {
-      id: row.id,
-      caseCode: embedded?.case_code ?? "—",
-      amountHkd: Number(row.amount_hkd),
-      createdAt: row.created_at,
-    };
-  });
 
   const recentTutors: ActivityItem[] = tutorRows.map((row) => ({
     id: row.id,
@@ -362,7 +341,7 @@ function AdminOverview() {
         <Alert>
           <Wallet className="size-4" />
           <AlertTitle>
-            {data.fees.length} admin fee invoice{data.fees.length > 1 ? "s" : ""} awaiting payment —
+            {data.fees.length} admin fee invoice{data.fees.length > 1 ? "s" : ""} awaiting payment,
             HK${data.feeTotalHkd.toLocaleString()} outstanding
           </AlertTitle>
           <AlertDescription>
@@ -520,7 +499,7 @@ function StatCard({
     >
       <CardContent className="flex flex-col gap-1 px-5 py-5">
         <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
-          <Icon className="size-4 text-muted-foreground/70" />
+          <Icon className="size-4 text-muted-foreground" />
           {label}
         </div>
         <div className="text-2xl font-bold tracking-tight">
@@ -567,7 +546,7 @@ function DemandCard({
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">Demand — tutor engagement</CardTitle>
+        <CardTitle className="text-base">Demand: tutor engagement</CardTitle>
         <CardDescription>Profile views per day, last 7 days</CardDescription>
       </CardHeader>
       <CardContent>
@@ -704,11 +683,11 @@ function Metric({ label, value }: { label: string; value: number }) {
 function EmptyAnalytics() {
   return (
     <div className="flex h-40 flex-col items-center justify-center gap-1 rounded-md border border-dashed text-center">
-      <Inbox className="size-5 text-muted-foreground/60" />
+      <Inbox className="size-5 text-muted-foreground" />
       <p className="text-sm font-medium">Engagement analytics unavailable</p>
       <p className="max-w-xs text-xs text-muted-foreground">
-        The admin_engagement_overview RPC is not applied yet. Apply the 20261026120000 migration to
-        enable this panel.
+        Engagement data could not be loaded. Check that the admin_engagement_overview RPC is applied
+        and your account has admin access.
       </p>
     </div>
   );

@@ -1,9 +1,11 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { dateFnsLocale } from "@/lib/relative-time";
 import { Bell, CalendarClock, Check, Loader2, Sparkles, Star, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
+import i18n from "@/features/i18n/config";
 
 import { Button } from "@/components/ui/button";
 import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
@@ -182,7 +184,9 @@ function LessonRow({
 
   const actions = lessonActionsFor(lesson, new Date(), canMarkDone);
   const busy = confirm.isPending || decline.isPending || done.isPending || cancel.isPending;
-  const startLabel = format(new Date(lesson.starts_at), "EEE d MMM, HH:mm");
+  const startLabel = format(new Date(lesson.starts_at), "EEE d MMM, HH:mm", {
+    locale: dateFnsLocale(i18n.language),
+  });
 
   return (
     <li className="rounded-lg border border-[color:var(--ink)]/10 p-3">
@@ -317,7 +321,10 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
             className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground"
           >
             <span className="font-medium text-[color:var(--ink)]">
-              {format(new Date(`${l.log_date}T00:00:00Z`), "d MMM")} · {timeLabel(l.start_minute)}
+              {format(new Date(`${l.log_date}T00:00:00Z`), "d MMM", {
+                locale: dateFnsLocale(i18n.language),
+              })}{" "}
+              · {timeLabel(l.start_minute)}
             </span>
             <span>{minutesLabel(l.duration_min)}</span>
             <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-2 py-0.5">

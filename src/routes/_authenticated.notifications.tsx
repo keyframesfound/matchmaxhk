@@ -1,10 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
+import { formatPostedAgo } from "@/lib/relative-time";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { Bell, CalendarClock, Package, Star, Wallet } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import i18n from "@/features/i18n/config";
 import { cn } from "@/lib/utils";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -123,7 +124,7 @@ function NotificationsPage() {
                     {t(bellLabelKey(item))}
                   </span>
                   <span className="block text-xs text-muted-foreground">
-                    {formatDistanceToNow(new Date(item.created_at), { addSuffix: true })}
+                    {formatPostedAgo(item.created_at, i18n.language)}
                   </span>
                 </span>
                 <AnimatePresence initial={false}>

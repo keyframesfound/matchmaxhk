@@ -42,9 +42,11 @@ import {
   shortCaseFeeMultiplier,
   shouldInvoiceShortFee,
   sumBilledFeeHkd,
+  sumPaidFeeHkd,
   validateShortCaseInputs,
   type BilledFeeRow,
 } from "@/features/cases/short-case";
+import { isLegalTransition, type SorStatus } from "@/features/cases/sor";
 
 type Row = Record<string, unknown>;
 type Db = ReturnType<typeof asAdminDb>;
@@ -127,6 +129,7 @@ type ShortCaseRow = {
   short_case_confirmed_at: string | null;
   group_cohort_id: string | null;
   tags: string[] | null;
+  sor_status: string | null;
 };
 
 export type ShortCaseState = {
@@ -156,7 +159,7 @@ async function loadShortCase(db: Db, caseId: string): Promise<ShortCaseRow> {
   const rows = await selectRows<ShortCaseRow>(
     db,
     "tutoring_cases",
-    "id, case_code, package_type, student_count, hourly_rate_hkd, session_length_minutes, is_short_case, scheduled_lesson_count, short_case_fee, short_case_confirmed_by, short_case_confirmed_at, group_cohort_id, tags",
+    "id, case_code, package_type, student_count, hourly_rate_hkd, session_length_minutes, is_short_case, scheduled_lesson_count, short_case_fee, short_case_confirmed_by, short_case_confirmed_at, group_cohort_id, tags, sor_status",
     [{ col: "id", op: "eq", value: caseId }],
   );
   if (!rows[0]) throw new Error("CASE_NOT_FOUND");
@@ -197,6 +200,10 @@ export const getShortCaseState = createServerFn({ method: "POST" })
     const lesson1Status = lessons[0]?.status ?? null;
     const openFeeRow = fees.find((f) => f.status === "not_due" || f.status === "invoiced") ?? null;
     const billed = sumBilledFeeHkd(fees as BilledFeeRow[]);
+    // The convert balance credits only PAID amounts: an open short invoice is
+    // waived by the convert flow, so counting it here would show a balance
+    // that forgives the debt and credits it too (double write-off).
+    const paid = sumPaidFeeHkd(fees as BilledFeeRow[]);
     // The standard 1.5-lesson admin fee on the SAME rate basis the desk uses
     // (#385 pure helper: rate × 1.5 × students) — null when no rate is locked.
     const standardFeeHkd =
@@ -231,7 +238,7 @@ export const getShortCaseState = createServerFn({ method: "POST" })
       standardFeeHkd,
       convertBalanceHkd:
         c.is_short_case && standardFeeHkd != null
-          ? convertBalanceAmountHkd(standardFeeHkd, billed)
+          ? convertBalanceAmountHkd(standardFeeHkd, paid)
           : null,
       cohortBlocked: squadBlocked(c),
     };
@@ -243,7 +250,9 @@ const setShortCaseInput = z.object({
   scheduledLessonCount: z.number().int().min(1).max(5).optional().nullable(),
   // Duration input = the EXISTING session_length_minutes column (minutes).
   // Admin-editable while short, per the issue — we write it back to the case.
-  sessionLengthMinutes: z.number().positive().optional().nullable(),
+  // Bounded to the case_lessons duration CHECK range (15–480): an extra zero
+  // (90 → 900) silently multiplied the fee ×10.
+  sessionLengthMinutes: z.number().min(15).max(480).optional().nullable(),
   confirmedBy: z.enum(["parent_wa", "org_wa", "cs_note"]).optional().nullable(),
   confirmedNote: z.string().max(2000).optional().nullable(),
 });
@@ -263,6 +272,15 @@ export const setShortCase = createServerFn({ method: "POST" })
       // back to the ongoing rule (never clobber pro_bono). Duration stays on
       // session_length_minutes — it is a standard-case column, not package
       // state, so converting back must not blank it.
+      // An OPEN short fee must be resolved first (pay, waive, or use the
+      // convert flow which waives it as part of the standard-rule handover):
+      // toggling off while one is open reconciles the case to the ongoing
+      // rule while it still owes a 20% package fee.
+      const openFees = await selectRows<{ id: string }>(db, "case_fees", "id", [
+        { col: "case_id", op: "eq", value: c.id },
+        { col: "status", op: "in", value: ["not_due", "invoiced"] },
+      ]);
+      if (openFees.length > 0) throw new Error("OPEN_FEE_EXISTS");
       const { error } = await db
         .from<Row>("tutoring_cases")
         .update({
@@ -376,7 +394,9 @@ export const invoiceShortCaseFee = createServerFn({ method: "POST" })
     const hours = hoursPerLessonFromMinutes(c.session_length_minutes) as number;
 
     const fees = await loadFees(db, data.caseId);
-    if (fees.some((f) => f.status === "invoiced" || f.status === "paid")) {
+    if (
+      fees.some((f) => f.status === "not_due" || f.status === "invoiced" || f.status === "paid")
+    ) {
       throw new Error("OPEN_FEE_EXISTS");
     }
 
@@ -403,6 +423,30 @@ export const invoiceShortCaseFee = createServerFn({ method: "POST" })
     if (error) {
       throw new Error(/duplicate|unique/i.test(error.message) ? "OPEN_FEE_EXISTS" : error.message);
     }
+
+    // Keep the SoR machine in lockstep with the fee row: the short invoice
+    // bypasses transitionCase, so without this the case sat on e.g.
+    // lesson_1_done while a fee was open, and a later feeMarkPaid silently
+    // no-opped its status advance (lesson_1_done → fee_paid is not a legal
+    // edge). Advance only across a legal edge; legacy rows stay untouched.
+    const fromStatus = c.sor_status as SorStatus | null;
+    if (fromStatus && isLegalTransition(fromStatus, "fee_invoiced")) {
+      const nowIso = new Date().toISOString();
+      const { error: advanceError } = await db
+        .from<Row>("tutoring_cases")
+        .update({ sor_status: "fee_invoiced", sor_status_at: nowIso })
+        .eq("id", c.id);
+      if (advanceError) throw new Error(advanceError.message);
+      await insertAudit(
+        db,
+        c.id,
+        context.userId,
+        fromStatus,
+        "fee_invoiced",
+        "short case 20% invoiced",
+      );
+    }
+
     await insertAudit(
       db,
       c.id,
@@ -437,7 +481,12 @@ export const convertShortCaseToStandard = createServerFn({ method: "POST" })
       const standardFee = fullAdminFeeAmount(Number(c.hourly_rate_hkd), c.student_count);
 
       const fees = await loadFees(db, data.caseId);
-      const billed = sumBilledFeeHkd(fees as BilledFeeRow[]);
+      // Credit only PAID amounts toward the standard fee: the open short
+      // invoices below are WAIVED (obligation erased), so counting them in
+      // `billed` as well would forgive the debt and credit it too — an open
+      // HK$320 invoice converted to a HK$600 standard case billed HK$280
+      // total instead of HK$600. Mirrors the panel's balance display.
+      const billed = sumPaidFeeHkd(fees as BilledFeeRow[]);
       const balance = convertBalanceAmountHkd(standardFee, billed);
 
       // Flip the case off short FIRST; package_type reconciles back to the
