@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { formatPostedAgo } from "@/lib/relative-time";
 import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
@@ -100,7 +100,17 @@ type CaseBoardFiltersState = {
   tags?: string;
 };
 
+// Hover-intent prefetch target for the case board: cached data renders the
+// board instantly instead of flashing the loading skeleton.
+const caseBoardLoader = async ({ context }: { context: { queryClient: QueryClient } }) => {
+  await context.queryClient.ensureQueryData({
+    queryKey: ["cases", "board"],
+    queryFn: () => getPublicCaseBoard(),
+  });
+};
+
 export const Route = createFileRoute("/_authenticated/tutor-requests/")({
+  loader: caseBoardLoader,
   validateSearch: (search: Record<string, unknown>): CaseBoardSearch => {
     const result: CaseBoardSearch = {};
     if (search.post === "1" || search.post === true || search.post === "true") result.post = true;

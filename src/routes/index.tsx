@@ -1,7 +1,7 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useQuery } from "@tanstack/react-query";
+import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { ArrowRight, ChevronLeft, ChevronRight, Flame } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -78,7 +78,41 @@ const TRENDING_MIN_ELIGIBLE = 3;
 
 type TrendingEntry = { tutor: Tutor; engagement: RankedTrending };
 
+async function fetchWhatsappNumber(): Promise<string> {
+  const { data, error } = await supabase
+    .from("app_settings")
+    .select("value")
+    .eq("key", "whatsapp_number")
+    .maybeSingle();
+  if (error) throw error;
+  return typeof data?.value === "string" ? data.value : "";
+}
+
+// Pre-warm the landing data so hover-intent prefetch (and cold loads)
+// resolve before the page paints instead of flashing section skeletons.
+const landingLoader = async ({ context }: { context: { queryClient: QueryClient } }) => {
+  await Promise.all([
+    context.queryClient.ensureQueryData({
+      queryKey: ["tutors", "published"],
+      queryFn: fetchPublishedTutors,
+    }),
+    context.queryClient.ensureQueryData({
+      queryKey: ["landing", "featured_tutors"],
+      queryFn: () => fetchTopWeeklyTutors(3),
+    }),
+    context.queryClient.ensureQueryData({
+      queryKey: ["landing", "trending_candidates"],
+      queryFn: () => fetchTrendingTutorSummaries(TRENDING_CANDIDATE_LIMIT),
+    }),
+    context.queryClient.ensureQueryData({
+      queryKey: ["settings", "whatsapp_number"],
+      queryFn: fetchWhatsappNumber,
+    }),
+  ]);
+};
+
 export const Route = createFileRoute("/")({
+  loader: landingLoader,
   // Issue #401: locale-aware SEO copy (exact CEO-approved strings).
   head: () => {
     const locale = currentSeoLocale();
@@ -510,8 +544,11 @@ function Landing() {
     queryFn: () => fetchTrendingTutorSummaries(TRENDING_CANDIDATE_LIMIT),
   });
 
+  // Shared cache key with /tutors: both surfaces fetch the same rows, so
+  // navigating between them renders from cache, and profile-edit
+  // invalidations of ["tutors", "published"] cover both pages.
   const { data: publishedTutors = [], isLoading: publishedTutorsLoading } = useQuery({
-    queryKey: ["landing", "published_tutors"],
+    queryKey: ["tutors", "published"],
     queryFn: fetchPublishedTutors,
   });
 
@@ -553,15 +590,7 @@ function Landing() {
 
   const { data: whatsappNumber = "" } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("app_settings")
-        .select("value")
-        .eq("key", "whatsapp_number")
-        .maybeSingle();
-      if (error) throw error;
-      return typeof data?.value === "string" ? data.value : "";
-    },
+    queryFn: fetchWhatsappNumber,
   });
 
   const { compareIds, compareTutors, toggleCompare, compareOpen, setCompareOpen, clearCompare } =

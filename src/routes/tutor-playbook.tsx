@@ -723,7 +723,7 @@ function TutorPlaybookPage() {
                 </div>
                 <div className="flex flex-1 flex-col justify-center p-5">
                   <p className="text-lg font-bold text-white">{card.title}</p>
-                  <p className="mt-1 text-sm leading-6 text-white/70">{card.subtitle}</p>
+                  <p className="mt-1 text-sm leading-6 text-white/85">{card.subtitle}</p>
                 </div>
               </Link>
             ))}

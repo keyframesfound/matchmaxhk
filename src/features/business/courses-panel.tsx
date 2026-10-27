@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "@tanstack/react-router";
 import { useServerFn } from "@tanstack/react-start";
 import {
   sortFn_datetime,
@@ -395,10 +396,15 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-44">
                   <DropdownMenuItem asChild>
-                    <a href={`/courses/${course.id}`} target="_blank" rel="noreferrer">
+                    <Link
+                      to="/courses/$courseId"
+                      params={{ courseId: course.id }}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
                       <ExternalLink className="h-4 w-4" />
                       View public page
-                    </a>
+                    </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem
                     onClick={() => {

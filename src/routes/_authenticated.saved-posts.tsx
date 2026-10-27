@@ -182,7 +182,7 @@ function SavedPostsPage() {
                     Bookmark tutoring requests from the board to revisit them later.
                   </p>
                   <Button variant="outline" className="mt-5" asChild>
-                    <a href="/tutor-requests">Browse requests</a>
+                    <Link to="/tutor-requests">Browse requests</Link>
                   </Button>
                 </div>
               ) : (
@@ -258,7 +258,7 @@ function SavedPostsPage() {
                       Bookmark courses from the directory to build your shortlist.
                     </p>
                     <Button variant="outline" className="mt-5" asChild>
-                      <a href="/courses">Browse courses</a>
+                      <Link to="/courses">Browse courses</Link>
                     </Button>
                   </div>
                 ) : (

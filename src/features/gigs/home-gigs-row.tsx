@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -224,10 +224,10 @@ export function HomeGigsRow() {
           hoverArrow
           className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
         >
-          <a href="/tutors?view=materials#services">
+          <Link to="/tutors" search={{ view: "materials" }} hash="services">
             {t("gigs.view_all")}
             <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
-          </a>
+          </Link>
         </Button>
         <GigsCarouselArrows pages={pages.length} currentPage={currentPage} goToPage={goToPage} />
       </div>

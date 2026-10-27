@@ -297,7 +297,7 @@ function GuideIndexPage() {
               <h2 className="max-w-3xl text-4xl font-bold leading-[1.02] tracking-tight text-white sm:text-5xl">
                 {t("hiw.flow_title")}
               </h2>
-              <p className="mt-5 max-w-xl text-base leading-7 text-white/70">
+              <p className="mt-5 max-w-xl text-base leading-7 text-white/85">
                 {t("hiw.flow_body")}
               </p>
               <p className="mt-3 max-w-xl text-base font-bold leading-7 text-white">
