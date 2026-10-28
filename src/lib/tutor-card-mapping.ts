@@ -169,7 +169,9 @@ export function buildTutorCardInsert(
     // Empty string when the tutor left it blank — the publish RPC falls
     // back to the allocated tutor code, and the legal full name stays
     // internal to the application desk (never the public card title).
-    display_name: application.preferredName.trim(),
+    // Legacy stored applications predate the field entirely (undefined),
+    // so the optional chain keeps the publish path from 500-ing.
+    display_name: application.preferredName?.trim() ?? "",
     is_published: true,
     // Issue #113: honor the application's quoting currency, the publish RPC
     // COALESCEs to HKD and casts to supported_currency, and the
