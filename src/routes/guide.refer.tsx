@@ -6,7 +6,13 @@ import { Button } from "@/components/ui/button";
 import { HelpArticleLink } from "@/features/help/components";
 import { getHelpArticle } from "@/features/help/content";
 import { canonicalUrl } from "@/features/i18n/seo";
-import { GuideCtaRow, GuideHeading, GuidePage, GuideSteps } from "@/features/guide/guide-shell";
+import {
+  GuideCtaRow,
+  GuideHeading,
+  GuideHeroImage,
+  GuidePage,
+  GuideSteps,
+} from "@/features/guide/guide-shell";
 
 export const Route = createFileRoute("/guide/refer")({
   head: () => ({
@@ -56,8 +62,9 @@ function GuideReferPage() {
 
   return (
     <GuidePage current="/guide/refer">
+      {/* Issue #498: narrow rails centred (mx-auto) + hero illustration slot. */}
       <section className="mx-auto max-w-[1600px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
-        <div className="max-w-3xl">
+        <div className="mx-auto max-w-3xl">
           <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
             {t("guide.refer.h1")}
           </h1>
@@ -66,14 +73,18 @@ function GuideReferPage() {
           </p>
         </div>
 
-        <div className="mt-12 max-w-4xl">
+        <div className="mt-10">
+          <GuideHeroImage slot="refer" />
+        </div>
+
+        <div className="mx-auto mt-12 max-w-4xl">
           <GuideHeading>{t("guide.refer.steps_title")}</GuideHeading>
           <div className="mt-6">
             <GuideSteps steps={steps} />
           </div>
         </div>
 
-        <div className="mt-14 max-w-4xl">
+        <div className="mx-auto mt-14 max-w-4xl">
           <GuideHeading>{t("guide.refer.rule_title")}</GuideHeading>
           <div className="mt-6 rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6">
             <ul className="space-y-4 text-sm leading-relaxed text-[color:var(--ink)]/80">
@@ -100,7 +111,7 @@ function GuideReferPage() {
           </div>
         </div>
 
-        <div className="mt-14 max-w-4xl">
+        <div className="mx-auto mt-14 max-w-4xl">
           <GuideHeading>{t("guide.refer.exclusions_title")}</GuideHeading>
           <div className="mt-6 rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6">
             <ul className="space-y-3">
