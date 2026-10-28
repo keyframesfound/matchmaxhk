@@ -71,6 +71,7 @@ import {
 import { DEFAULT_CURRENCY, formatMoney, toCurrencyCode } from "@/lib/money";
 import {
   formatAvailabilityDate,
+  formatTutorCode,
   getTutorAvailabilityReadiness,
   getTutorInquiryAction,
   getTutorPriceDisplay,
@@ -120,8 +121,12 @@ function buildTutorSeoMeta(tutor: Tutor, url: string) {
       : tutor.lesson_mode === "either"
         ? "online or in-person"
         : "in-person";
-  const title = `${tutor.tutor_code} | ${subjectText || "Tutor"} ${lessonModeText} ${locationText} | MatchMax`;
-  const description = `Tutor ${tutor.tutor_code} offers ${subjectText || "subject"} support${locationText}. Browse profile details, lesson mode, rates and availability on MatchMax.`;
+  // Issue #502: prefer the display name in the SEO/og title when set, keeping
+  // the tutor code in brackets so parents can still quote it.
+  const displayName = tutor.display_name.trim();
+  const identity = displayName ? `${displayName} (${tutor.tutor_code})` : tutor.tutor_code;
+  const title = `${identity} | ${subjectText || "Tutor"} ${lessonModeText} ${locationText} | MatchMax`;
+  const description = `Tutor ${identity} offers ${subjectText || "subject"} support${locationText}. Browse profile details, lesson mode, rates and availability on MatchMax.`;
 
   return { title, description, url };
 }
@@ -524,6 +529,13 @@ function TutorDetail() {
   // Issue #116: self-serve weekly grid has at least one non-unavailable cell.
   const hasAvailabilityGrid = countAvailableCells(parseAvailabilityGrid(t.availability_grid)) > 0;
   const genderLabel = getTutorGenderLabel(t.gender);
+  // Issue #502: the display name (preferred name) is the primary identity in
+  // the header — named: "DisplayName • Gender (TutorCode)"; unnamed keeps
+  // today's "TutorCode • Gender". The code stays visible for parent requests.
+  const profileName = t.display_name.trim();
+  const formattedProfileCode = formatTutorCode(t.tutor_code);
+  const isNamedProfile =
+    Boolean(profileName) && profileName !== formattedProfileCode && profileName !== t.tutor_code;
   // Issue #411: the active dual-language custom headline is the prominent
   // main line (custom_headline_en/zh with strict fallback to academic_headline).
   const activeHeadline = useMemo(
@@ -670,7 +682,14 @@ function TutorDetail() {
                 {t.photo_url ? (
                   <img
                     src={t.photo_url}
-                    alt={t.tutor_code}
+                    alt={
+                      isNamedProfile
+                        ? translate("tutor_card.tutor_alt_named", {
+                            name: profileName,
+                            code: formattedProfileCode,
+                          })
+                        : t.tutor_code
+                    }
                     className="h-16 w-16 rounded-full object-cover sm:h-20 sm:w-20"
                   />
                 ) : (
@@ -683,18 +702,36 @@ function TutorDetail() {
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                {/* Issue #411 header restructure, (1) code • gender + BLUE
-                    TICK as the small secondary line, (2) active custom
-                    headline as the prominent main bold line, (3) university,
+                {/* Issue #411 header restructure + Issue #502 identity line:
+                    (1) name-or-code • gender + BLUE TICK as the small
+                    secondary line — named profiles lead with the display
+                    name and keep "(TutorCode)" for parent requests, unnamed
+                    keep today's code lead — (2) active custom headline as
+                    the prominent main bold line, (3) university,
                     (4) secondary school. */}
                 <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                  <span className="font-semibold">{t.tutor_code}</span>
-                  {genderLabel ? (
+                  {isNamedProfile ? (
                     <>
-                      <span aria-hidden="true">•</span>
-                      <span>{genderLabel}</span>
+                      <span className="font-semibold text-[color:var(--ink)]">{profileName}</span>
+                      {genderLabel ? (
+                        <>
+                          <span aria-hidden="true">•</span>
+                          <span>{genderLabel}</span>
+                        </>
+                      ) : null}
+                      <span>({formattedProfileCode})</span>
                     </>
-                  ) : null}
+                  ) : (
+                    <>
+                      <span className="font-semibold">{t.tutor_code}</span>
+                      {genderLabel ? (
+                        <>
+                          <span aria-hidden="true">•</span>
+                          <span>{genderLabel}</span>
+                        </>
+                      ) : null}
+                    </>
+                  )}
                   {/* Issue #411: minimalist BLUE TICK (MatchMax azure),
                       same #309 approved-grade gate as the card. */}
                   {(t.approved_grade_labels?.length ?? 0) > 0 ? (

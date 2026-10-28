@@ -139,11 +139,14 @@ export const portfolioImageSchema = attachmentSchema.superRefine((image, context
 export const tutorApplicationSchema = z
   .object({
     turnstileToken: z.string().trim().min(1, "Complete the security check").max(2048),
-    // Issue #359: name is the public display_name.
+    // Issue #359: name is the legal full name — internal to the
+    // application desk (issue #502: it is no longer the public title).
     name: withContactFilter(z.string().trim().min(1, "Required").max(120)),
-    // Issue #189: optional preferred name so the WhatsApp activation message
-    // and later concierge chats can use what the tutor actually goes by.
-    preferredName: z.string().trim().max(80).optional().default(""),
+    // Issue #502: optional preferred name = the public display name on the
+    // tutor card and profile (falls back to the tutor code when blank).
+    // The WhatsApp activation greeting (#189) keeps using it as a
+    // secondary use. Public text, so it carries the same contact filter.
+    preferredName: withContactFilter(z.string().trim().max(80).optional().default("")),
     phone: z.string().trim().min(5, "Required").max(60),
     email: z.string().trim().email("Enter a valid email"),
     country: z.string().trim().min(1, "Required").max(100),
