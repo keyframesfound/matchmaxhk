@@ -1923,6 +1923,7 @@
     "status_block": "Availability",
     "slots_left": "{{count}} open slots",
     "cases_block": "My cases",
+    "completed_cases_count": "{{count}} completed",
     "no_cases": "No cases yet.",
     "create_case": "Request a tutor",
     "case_status_pending": "Pending",
@@ -2480,7 +2481,27 @@
     "tutor_home_notes_link": "View your listings",
     "tutor_home_open_lessons": "Open Lessons",
     "bell_session_logged": "New session logged by your tutor",
-    "admin_students_suffix": "students"
+    "admin_students_suffix": "students",
+    "bell_case_end_by_parent": "The parent marked this case finished.",
+    "bell_case_end_by_tutor": "The tutor marked this case finished.",
+    "end_case_title": "End this case",
+    "end_case_button": "End Case",
+    "end_case_confirm": "Confirm end",
+    "end_case_confirm_copy": "End this case. You will keep the record on both profiles; ratings can no longer change.",
+    "end_case_waiting": "You marked this case finished. It closes once the other side confirms; the record stays on both profiles.",
+    "end_case_other_marked": "The other side marked this case finished. Confirm to end it, or keep the lessons going.",
+    "end_case_marked_toast": "Marked. The case closes once the other side confirms.",
+    "end_case_done_toast": "Case ended. The record stays on both profiles.",
+    "review_step_rating": "Rating",
+    "review_step_comment": "Comment",
+    "review_steps_aria": "Review steps",
+    "review_step_next": "Next",
+    "review_step_back": "Back",
+    "review_final_note": "The case has ended, so this rating is final.",
+    "err_CASE_ENDED": "This case has ended, so ratings can no longer change.",
+    "err_NO_VERIFIED_LESSON": "Ratings open once a lesson is confirmed by both you and the other side.",
+    "err_NOT_ONGOING": "This case is not active, so it cannot be ended here.",
+    "err_CASE_NOT_FOUND": "Case not found."
   },
   "currency": {
     "switcher_label": "Currency",
@@ -2702,7 +2723,8 @@
     "desk_title": "Experience logs",
     "desk_empty": "No logged sessions.",
     "desk_revoke": "Revoke",
-    "desk_revoked_ok": "Session revoked, public totals recalculated."
+    "desk_revoked_ok": "Session revoked, public totals recalculated.",
+    "completed_cases": "{{count}} completed case(s)"
   },
   "tour": {
     "back": "Back",

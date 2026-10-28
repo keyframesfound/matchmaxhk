@@ -27,9 +27,12 @@ import { disputeSession } from "@/features/cases/experience.functions";
 import { disputeHoursLeft } from "@/features/tutors/experience";
 import {
   feeHoldKind,
+  parentCanReviewCase,
   REVIEW_COMMENT_MAX_PARENT,
   REVIEW_COMMENT_MIN,
 } from "@/features/cases/case-reviews";
+import { EndCaseControl } from "@/features/cases/end-case-control";
+import { ReviewStepHeader } from "@/features/cases/review-step-header";
 
 export const Route = createFileRoute("/_authenticated/account/cases/$caseId")({
   ssr: false,
@@ -214,6 +217,17 @@ function ParentCaseDetailPage() {
                 before contact details / lesson start are finalised. */}
             <EngagementSummaryCard caseId={caseId} party="customer" />
 
+            {/* #503: bilateral End Case — the parent marks the case finished;
+                it ends when both sides (or staff) have confirmed. */}
+            <EndCaseControl
+              caseId={caseId}
+              sorStatus={data.sor_status}
+              endedByParentAt={data.ended_by_parent_at}
+              endedByTutorAt={data.ended_by_tutor_at}
+              actorRole="parent"
+              onDone={invalidate}
+            />
+
             <ReviewSection caseId={caseId} detail={data} onChanged={invalidate} />
 
             {/* #387: tutor-logged sessions, one-click dispute + 72h hint */}
@@ -342,7 +356,11 @@ function ReviewSection({
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
   const [editing, setEditing] = useState(false);
-  const hasDoneLesson = detail.lessons.some((l) => l.status === "done");
+  const [step, setStep] = useState(1);
+  // #503: ratings unlock after at least one BILATERALLY confirmed lesson —
+  // not "tutor logged alone". Same gate the server fn enforces.
+  const reviewUnlocked = parentCanReviewCase(detail.lessons);
+  const caseEnded = detail.sor_status === "closed";
   const myReview = detail.myReview;
   const hasVisibleOrHeld =
     myReview !== null && (myReview.status === "visible" || myReview.status === "held");
@@ -368,29 +386,45 @@ function ReviewSection({
       setRating(0);
       setComment("");
       setEditing(false);
+      setStep(1);
       onChanged();
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e) => toast.error(t(`sor.err_${e.message}`, { defaultValue: e.message })),
   });
 
   const canSubmit =
-    hasDoneLesson &&
-    (!hasVisibleOrHeld || editing) &&
     rating >= 1 &&
     comment.trim().length >= REVIEW_COMMENT_MIN &&
     comment.trim().length <= REVIEW_COMMENT_MAX_PARENT;
 
-  if (!hasDoneLesson) {
-    // #205/#287 acceptance: no done lesson, no review.
+  // #503 acceptance: no rating UI until the bilateral-lesson gate opens — and
+  // once the case ENDED the rating is final (a written review stays readable
+  // as a frozen snapshot; no new or edited review gets in).
+  if (!reviewUnlocked || (caseEnded && !hasVisibleOrHeld)) {
     return null;
   }
 
-  return (
-    <section id="review" className="space-y-2">
-      <h2 className="text-sm font-semibold text-muted-foreground">
-        {t("sor.parent_review_title")}
-      </h2>
-      {myReview && hasVisibleOrHeld && !editing ? (
+  // Ended with a written review: frozen final rating, no edit path.
+  if (caseEnded) {
+    return (
+      <section id="review" className="space-y-2">
+        <h2 className="text-sm font-semibold text-muted-foreground">
+          {t("sor.parent_review_title")}
+        </h2>
+        <p className="text-sm text-muted-foreground">
+          {t("sor.parent_review_submitted_state", { rating: myReview?.rating ?? 0 })}{" "}
+          {t("sor.review_final_note")}
+        </p>
+      </section>
+    );
+  }
+
+  if (myReview && hasVisibleOrHeld && !editing) {
+    return (
+      <section id="review" className="space-y-2">
+        <h2 className="text-sm font-semibold text-muted-foreground">
+          {t("sor.parent_review_title")}
+        </h2>
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">
             {myReview.status === "held"
@@ -401,7 +435,8 @@ function ReviewSection({
                   : t("sor.parent_review_pending_state")
               : t("sor.parent_review_submitted_state", { rating: myReview.rating })}
           </p>
-          {/* #386: edits update the single case review (never a second one). */}
+          {/* #386: edits update the single case review (never a second one).
+              #503: editable any time while the case is still active. */}
           <Button
             size="sm"
             variant="outline"
@@ -409,68 +444,83 @@ function ReviewSection({
               setRating(myReview.rating);
               setComment(myReview.comment);
               setEditing(true);
+              setStep(1);
             }}
           >
             {t("sor.parent_review_edit")}
           </Button>
         </div>
-      ) : (
-        <div className="rounded-xl border border-[color:var(--ink)]/10 p-4">
-          <div className="flex items-center gap-1">
-            {[1, 2, 3, 4, 5].map((s) => (
-              <button key={s} type="button" aria-label={`${s}/5`} onClick={() => setRating(s)}>
-                <Star
-                  className={cn(
-                    "h-6 w-6",
-                    s <= rating ? "fill-current text-amber-500" : "text-muted-foreground",
-                  )}
-                />
-              </button>
-            ))}
-          </div>
-          <textarea
-            className="mt-2 w-full rounded-md border border-[color:var(--ink)]/15 bg-transparent p-2 text-sm"
-            rows={4}
-            maxLength={REVIEW_COMMENT_MAX_PARENT}
-            placeholder={t("sor.parent_review_placeholder", {
-              min: REVIEW_COMMENT_MIN,
-              max: REVIEW_COMMENT_MAX_PARENT,
-            })}
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-          />
-          <div className="mt-2 flex items-center justify-between">
-            <span className="text-xs text-muted-foreground">
-              {comment.trim().length}/{REVIEW_COMMENT_MAX_PARENT} ·{" "}
-              {t("sor.parent_review_hold_note")}
-            </span>
-            <div className="flex items-center gap-2">
-              {editing && (
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  disabled={submit.isPending}
-                  onClick={() => {
-                    setRating(myReview?.rating ?? 0);
-                    setComment(myReview?.comment ?? "");
-                    setEditing(false);
-                  }}
-                >
-                  {t("sor.parent_review_cancel")}
-                </Button>
-              )}
-              <Button
-                size="sm"
-                disabled={!canSubmit || submit.isPending}
-                onClick={() => submit.mutate()}
-              >
-                {submit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                {t("sor.parent_review_submit")}
+      </section>
+    );
+  }
+
+  // Carousel-like step flow (same anatomy as the live case-request stepper):
+  // one step per card, Rating first, then the comment.
+  const stepLabels = [t("sor.review_step_rating"), t("sor.review_step_comment")];
+
+  return (
+    <section id="review" className="space-y-2">
+      <h2 className="text-sm font-semibold text-muted-foreground">
+        {t("sor.parent_review_title")}
+      </h2>
+      <div className="rounded-[var(--radius-panel)] border border-border bg-card p-5">
+        <ReviewStepHeader labels={stepLabels} step={step} onStepClick={(s) => setStep(s)} />
+
+        {step === 1 ? (
+          <div>
+            <div className="flex items-center gap-1">
+              {[1, 2, 3, 4, 5].map((s) => (
+                <button key={s} type="button" aria-label={`${s}/5`} onClick={() => setRating(s)}>
+                  <Star
+                    className={cn(
+                      "h-7 w-7",
+                      s <= rating ? "fill-current text-amber-500" : "text-muted-foreground",
+                    )}
+                  />
+                </button>
+              ))}
+            </div>
+            <div className="mt-4 flex justify-end">
+              <Button size="sm" disabled={rating < 1} onClick={() => setStep(2)}>
+                {t("sor.review_step_next")}
               </Button>
             </div>
           </div>
-        </div>
-      )}
+        ) : (
+          <div>
+            <textarea
+              className="w-full rounded-md border border-[color:var(--ink)]/15 bg-transparent p-2 text-sm"
+              rows={4}
+              maxLength={REVIEW_COMMENT_MAX_PARENT}
+              placeholder={t("sor.parent_review_placeholder", {
+                min: REVIEW_COMMENT_MIN,
+                max: REVIEW_COMMENT_MAX_PARENT,
+              })}
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+            />
+            <div className="mt-2 flex items-center justify-between">
+              <span className="text-xs text-muted-foreground">
+                {comment.trim().length}/{REVIEW_COMMENT_MAX_PARENT} ·{" "}
+                {t("sor.parent_review_hold_note")}
+              </span>
+              <div className="flex items-center gap-2">
+                <Button size="sm" variant="ghost" onClick={() => setStep(1)}>
+                  {t("sor.review_step_back")}
+                </Button>
+                <Button
+                  size="sm"
+                  disabled={!canSubmit || submit.isPending}
+                  onClick={() => submit.mutate()}
+                >
+                  {submit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                  {t("sor.parent_review_submit")}
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </section>
   );
 }
