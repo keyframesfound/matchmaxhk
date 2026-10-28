@@ -122,7 +122,7 @@ function SavedPostsPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                 {savedTutors.map((tutor) => {
                   const inquiry = getTutorInquiryAction(tutor, whatsappNumber, "en");
                   return (
