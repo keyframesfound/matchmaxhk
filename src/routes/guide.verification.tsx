@@ -1,9 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, FileText, ShieldCheck } from "lucide-react";
+import { ArrowRight, Briefcase, CircleCheck, CircleX, FileText, ShieldCheck } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { ContentsRow, GuideHeading, GuidePage } from "@/features/guide/guide-shell";
+import { GuideCtaRow, GuideHeading, GuidePage, GuideSteps } from "@/features/guide/guide-shell";
 
 import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/guide/verification")({
@@ -29,29 +29,50 @@ export const Route = createFileRoute("/guide/verification")({
   component: GuideVerificationPage,
 });
 
-/** Issue #208: the verification detail page behind the hub's summary block. */
+/**
+ * Issue #208: the verification detail page behind the hub's summary block.
+ * Issue #492: tier card order locked Gold → Professionals → Stated with
+ * amber / azure-wash / white contrast, connected 3-step process, and one
+ * merged disclaimer card (replaces the duplicated "does not mean" +
+ * "badge covers" blocks).
+ */
 function GuideVerificationPage() {
   const { t } = useTranslation();
 
-  const tiers: [string, string][] = (["tier2", "tier1", "professionals"] as const).map((key) => [
+  const tiers: {
+    key: "tier2" | "professionals" | "tier1";
+    icon: typeof ShieldCheck;
+    className: string;
+    iconClass: string;
+  }[] = [
+    {
+      key: "tier2",
+      icon: ShieldCheck,
+      className: "border-amber-300 bg-amber-50/40 dark:border-amber-500/40 dark:bg-amber-400/10",
+      iconClass: "text-amber-600 dark:text-amber-400",
+    },
+    {
+      key: "professionals",
+      icon: Briefcase,
+      className: "border-[#8ecdf8] bg-[#E3ECF6]/50 dark:border-[#8ecdf8]/40 dark:bg-[#1d9bf0]/10",
+      iconClass: "text-[color:var(--brand-link)]",
+    },
+    {
+      key: "tier1",
+      icon: FileText,
+      className: "border-[color:var(--border)] bg-[color:var(--surface)]",
+      iconClass: "text-muted-foreground",
+    },
+  ];
+
+  const process: [string, string, string][] = (["p1", "p2", "p3"] as const).map((key, index) => [
+    String(index + 1),
     t(`guide.verification.${key}_title`),
     t(`guide.verification.${key}_body`),
   ]);
 
-  const notMean: [string, string][] = (["grade", "offer", "marking", "endorsement"] as const).map(
-    (key) => ["✗", t(`guide.verification.not_${key}`)],
-  );
-
   return (
     <GuidePage current="/guide/verification">
-      <ContentsRow
-        items={[
-          { id: "tiers", label: t("guide.verification.tiers_title") },
-          { id: "process", label: t("guide.verification.process_title") },
-          { id: "not-mean", label: t("guide.verification.not_mean_title") },
-          { id: "badge-scope", label: t("guide.verification.badge_title") },
-        ]}
-      />
       <section className="mx-auto max-w-[1600px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
         <div className="max-w-3xl">
           <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
@@ -62,97 +83,70 @@ function GuideVerificationPage() {
           </p>
         </div>
 
-        <div id="tiers" className="mt-12 max-w-4xl scroll-mt-40">
+        <div className="mt-12 max-w-4xl">
           <GuideHeading>{t("guide.verification.tiers_title")}</GuideHeading>
           <div className="mt-6 space-y-4">
-            {tiers.map(([title, body], index) => (
-              <div
-                key={title}
-                className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--card)] p-6 transition-colors hover:border-[color:var(--ink)]/25 md:p-8"
-              >
-                <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight sm:text-xl">
-                  {index === 0 ? (
-                    <ShieldCheck
-                      className="h-5 w-5 text-[color:var(--brand-link)]"
-                      aria-hidden="true"
-                    />
-                  ) : (
-                    <FileText
-                      className="h-5 w-5 text-[color:var(--muted-foreground)]"
-                      aria-hidden="true"
-                    />
-                  )}
-                  {title}
+            {tiers.map(({ key, icon: Icon, className, iconClass }) => (
+              <div key={key} className={`rounded-2xl border p-6 md:p-8 ${className}`}>
+                <h3 className="flex items-center gap-2.5 text-lg font-bold tracking-tight sm:text-xl">
+                  <Icon className={`h-5 w-5 shrink-0 ${iconClass}`} aria-hidden="true" />
+                  {t(`guide.verification.${key}_title`)}
                 </h3>
-                <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/65">{body}</p>
+                <p className="mt-3 text-sm leading-relaxed text-[color:var(--ink)]/70">
+                  {t(`guide.verification.${key}_body`)}
+                </p>
               </div>
             ))}
           </div>
         </div>
 
-        <div id="process" className="mt-14 max-w-4xl scroll-mt-40">
+        <div className="mt-14 max-w-4xl">
           <GuideHeading>{t("guide.verification.process_title")}</GuideHeading>
-          <ol className="mt-6 border-t border-[color:var(--ink)]/15">
-            {(["p1", "p2", "p3"] as const).map((key, index) => (
-              <li
-                key={key}
-                className="grid grid-cols-[3rem_minmax(0,1fr)] gap-5 border-b border-[color:var(--ink)]/15 py-6 sm:gap-8 sm:py-7"
-              >
-                <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[color:var(--foreground)]/[0.06] text-sm font-bold">
-                  {index + 1}
-                </span>
-                <div>
-                  <h3 className="text-lg font-bold tracking-tight sm:text-xl">
-                    {t(`guide.verification.${key}_title`)}
-                  </h3>
-                  <p className="mt-2 max-w-2xl text-sm leading-7 text-[color:var(--ink)]/70">
-                    {t(`guide.verification.${key}_body`)}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ol>
-        </div>
-
-        <div id="not-mean" className="mt-14 max-w-4xl scroll-mt-40">
-          <GuideHeading>{t("guide.verification.not_mean_title")}</GuideHeading>
-          <div className="mt-6 rounded-2xl border-2 border-amber-500/30 bg-amber-500/[0.04] p-5 sm:p-6">
-            <ul className="space-y-3">
-              {notMean.map(([marker, text]) => (
-                <li key={text} className="flex gap-3 text-sm leading-7 text-[color:var(--ink)]/80">
-                  <span aria-hidden="true" className="font-bold text-amber-600">
-                    {marker}
-                  </span>
-                  <span>{text}</span>
-                </li>
-              ))}
-            </ul>
-            <p className="mt-5 border-t border-amber-500/20 pt-4 text-sm leading-7 text-[color:var(--ink)]/75">
-              {t("hiw.verification_disclaimer")}
-            </p>
+          <div className="mt-6">
+            <GuideSteps steps={process} />
           </div>
         </div>
 
-        {/* Issue #309: verification scope of the grade badge, the exact four
-            consent lines tutors accept at /join, in both locales. */}
-        <div id="badge-scope" className="mt-14 max-w-4xl scroll-mt-40">
-          <GuideHeading>{t("guide.verification.badge_title")}</GuideHeading>
-          <ul className="mt-6 list-disc space-y-3 border-t border-[color:var(--ink)]/15 pt-6 pl-5">
-            {([1, 2, 3, 4] as const).map((line) => (
-              <li key={line} className="text-sm leading-7 text-[color:var(--ink)]/80">
-                {t(`guide.verification.badge_line_${line}`)}
-              </li>
-            ))}
-          </ul>
+        <div className="mt-14 max-w-4xl">
+          <GuideHeading>{t("guide.verification.not_mean_title")}</GuideHeading>
+          <div className="mt-6 space-y-3">
+            <div className="flex items-start gap-3 rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6">
+              <CircleX className="mt-0.5 h-4 w-4 shrink-0 text-[#dc2626]" aria-hidden="true" />
+              <p className="text-sm leading-relaxed text-[color:var(--ink)]/80">
+                {t("guide.verification.disclaimer_grade")}
+              </p>
+            </div>
+            <div className="flex items-start gap-3 rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6">
+              <CircleX className="mt-0.5 h-4 w-4 shrink-0 text-[#dc2626]" aria-hidden="true" />
+              <p className="text-sm leading-relaxed text-[color:var(--ink)]/80">
+                {t("guide.verification.disclaimer_endorsement")}
+              </p>
+            </div>
+            <div className="flex items-start gap-3 rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6">
+              <CircleCheck
+                className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                aria-hidden="true"
+              />
+              <p className="text-sm leading-relaxed text-[color:var(--ink)]/80">
+                {t("guide.verification.disclaimer_slip")}
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="mt-14 flex flex-wrap gap-3">
-          <Button asChild size="lg" variant="solid" color="accent">
+        <GuideCtaRow>
+          <Button
+            asChild
+            size="lg"
+            variant="solid"
+            color="neutral"
+            className="h-auto w-full rounded-xl px-6 py-3.5 sm:col-span-2"
+          >
             <Link to="/tutors">
               {t("hiw.hero_cta_browse")} <ArrowRight />
             </Link>
           </Button>
-        </div>
+        </GuideCtaRow>
       </section>
     </GuidePage>
   );

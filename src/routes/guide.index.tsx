@@ -1,30 +1,27 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { canonicalUrl, currentSeoLocale, hreflangLinks, localizedMeta } from "@/features/i18n/seo";
-
-import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 import {
   ArrowRight,
-  Building2,
   BookOpen,
-  Clock3,
-  CreditCard,
-  FileText,
+  Building2,
+  Check,
   Gift,
   Search,
-  ShieldCheck,
   UserRoundCheck,
   Users,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger,
-} from "@/components/ui/accordion";
-import { ContentsRow, GuideHeading, GuidePage, type GuideTab } from "@/features/guide/guide-shell";
+  GuideCtaRow,
+  GuideFaq,
+  GuideHeading,
+  GuidePage,
+  type GuideTab,
+} from "@/features/guide/guide-shell";
+
+import { canonicalUrl, currentSeoLocale, hreflangLinks, localizedMeta } from "@/features/i18n/seo";
+import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
 export const Route = createFileRoute("/guide/")({
   head: () => {
@@ -51,14 +48,9 @@ export const Route = createFileRoute("/guide/")({
   component: GuideIndexPage,
 });
 
-type ComparisonRow = {
-  aspect: string;
-  oldWay: string;
-  advantage: string;
-  detail: string;
-};
+type ComparisonRow = { aspect: string; oldWay: string; max: string };
 
-type FaqItem = { id: string; title: string; content: string };
+type FaqItem = { title: string; content: string };
 
 type GuideCard = {
   to: GuideTab;
@@ -70,23 +62,21 @@ type GuideCard = {
 function useGuideContent() {
   const { t } = useTranslation();
 
-  const comparisonRow = (key: string): ComparisonRow => ({
-    aspect: t(`hiw.edu.${key}.aspect`),
-    oldWay: t(`hiw.edu.${key}.old`),
-    advantage: t(`hiw.edu.${key}.adv`),
-    detail: t(`hiw.edu.${key}.detail`),
-  });
-
-  const guideComparison = (["commission", "screening", "fit", "privacy"] as const).map(
-    comparisonRow,
+  // Issue #492: fee density moved to the fee-bar visual, so the comparison
+  // table carries the three non-money rows only, MatchMax column highlighted.
+  const guideComparison: ComparisonRow[] = (["verification", "fit", "privacy"] as const).map(
+    (key) => ({
+      aspect: t(`hiw.edu.${key}.aspect`),
+      oldWay: t(`hiw.edu.${key}.old`),
+      max: t(`hiw.edu.${key}.max`),
+    }),
   );
 
   const faqItems = (
     group: "tutor_faq" | "parent_faq" | "billing_faq",
     keys: readonly string[],
   ): FaqItem[] =>
-    keys.map((key, index) => ({
-      id: String(index + 1),
+    keys.map((key) => ({
       title: t(`hiw.${group}.${key}.q`),
       content: t(`hiw.${group}.${key}.a`),
     }));
@@ -126,13 +116,44 @@ function useGuideContent() {
   };
 }
 
+/** Issue #492 wireframe D: fee bars — old agencies' full slate bar vs the
+ * short azure MatchMax bar (~25% width). Labels ride the token azure
+ * (--btn-accent), never raw #1d9bf0, so the AA floor holds. */
+function FeeBars() {
+  const { t } = useTranslation();
+  return (
+    <div className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--card)] p-5 text-left sm:p-6">
+      <h3 className="text-lg font-bold tracking-tight">{t("hiw.fee_title")}</h3>
+      <div className="mt-5 space-y-4">
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <span className="w-40 shrink-0 text-sm text-muted-foreground max-sm:w-full">
+            {t("hiw.fee_old_label")}
+          </span>
+          <div className="h-7 min-w-[120px] flex-1 rounded-md bg-[color:var(--ink)]/20" />
+          <span className="shrink-0 text-sm text-muted-foreground">{t("hiw.fee_old_value")}</span>
+        </div>
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
+          <span className="w-40 shrink-0 text-sm font-semibold max-sm:w-full">
+            {t("hiw.fee_max_label")}
+          </span>
+          <div className="h-7 w-1/4 min-w-[120px] rounded-md bg-[color:var(--btn-accent)]" />
+          <span className="shrink-0 text-sm font-semibold text-[color:var(--ink)]">
+            {t("hiw.fee_max_value")}
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/** Comparison rows with the MatchMax column highlighted (azure wash). */
 function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[] }) {
   const { t } = useTranslation();
   return (
-    <div>
+    <div className="mt-14 text-left">
       <GuideHeading>{title}</GuideHeading>
-      <div className="mt-5 rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--card)] p-5 md:p-8">
-        <div className="hidden gap-x-10 border-b border-[color:var(--ink)]/20 pb-4 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)]">
+      <div className="mt-6 rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--card)] p-5 sm:p-6 md:p-8">
+        <div className="hidden gap-x-8 border-b border-[color:var(--ink)]/20 pb-4 md:grid md:grid-cols-[minmax(0,0.6fr)_minmax(0,1fr)_minmax(0,1.4fr)]">
           <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.table_aspect")}</p>
           <p className="text-sm font-bold text-[color:var(--ink)]/55">{t("hiw.table_old")}</p>
           <p className="text-sm font-bold text-[color:var(--brand-link)]">{t("hiw.table_max")}</p>
@@ -143,33 +164,23 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
             return (
               <li
                 key={row.aspect}
-                className={`max-md:py-5 md:grid md:grid-cols-[minmax(0,0.9fr)_minmax(0,1fr)_minmax(0,1.2fr)] md:gap-x-10 md:py-9 transition-colors hover:bg-[color:var(--foreground)]/[0.02] ${
-                  isLast ? "" : "border-b border-[color:var(--ink)]/12"
+                className={`py-5 md:grid md:grid-cols-[minmax(0,0.6fr)_minmax(0,1fr)_minmax(0,1.4fr)] md:gap-x-8 md:py-5 ${
+                  isLast ? "" : "border-b border-[color:var(--ink)]/10"
                 }`}
               >
-                <h3 className="text-lg font-bold tracking-tight">{row.aspect}</h3>
-                <div className="max-md:mt-4">
+                <h3 className="text-base font-bold tracking-tight">{row.aspect}</h3>
+                <div className="max-md:mt-3">
                   <p className="mb-1 text-xs font-medium text-[color:var(--ink)]/45 md:hidden">
                     {t("hiw.table_old_mobile")}
                   </p>
                   <p className="text-sm leading-6 text-[color:var(--ink)]/60">{row.oldWay}</p>
                 </div>
-                <div aria-hidden="true" className="flex items-center gap-3 md:hidden max-md:mt-4">
-                  <span className="h-px flex-1 bg-[color:var(--border)]" />
-                  <span className="text-[11px] font-medium text-[color:var(--ink)]">
-                    {t("hiw.table_vs")}
-                  </span>
-                  <span className="h-px flex-1 bg-[color:var(--border)]" />
-                </div>
-                <div className="max-md:mt-4">
+                <div className="max-md:mt-3 md:rounded-xl md:bg-[color:var(--accent)] md:px-4 md:py-3">
                   <p className="mb-1 text-xs font-medium text-[color:var(--brand-link)] md:hidden">
                     {t("hiw.table_max")}
                   </p>
-                  <p className="text-sm leading-6 text-[color:var(--ink)]">
-                    <strong className="font-bold text-[color:var(--brand-link)]">
-                      {row.advantage}:
-                    </strong>{" "}
-                    {row.detail}
+                  <p className="text-sm font-semibold leading-6 text-[color:var(--ink)]">
+                    {row.max}
                   </p>
                 </div>
               </li>
@@ -178,22 +189,6 @@ function ComparisonTable({ title, rows }: { title: string; rows: ComparisonRow[]
         </ul>
       </div>
     </div>
-  );
-}
-
-/** FAQ accordion, flat, borders only. */
-function FaqAccordion({ items }: { items: FaqItem[] }) {
-  return (
-    <Accordion type="single" collapsible>
-      {items.map((item, index) => (
-        <AccordionItem key={index} value={`item-${index}`}>
-          <AccordionTrigger className="font-semibold hover:no-underline">
-            {item.title}
-          </AccordionTrigger>
-          <AccordionContent className="text-muted-foreground">{item.content}</AccordionContent>
-        </AccordionItem>
-      ))}
-    </Accordion>
   );
 }
 
@@ -228,7 +223,7 @@ function GuideIndexPage() {
     },
     {
       to: "/guide/verification",
-      icon: ShieldCheck,
+      icon: Search,
       title: t("guide.tab_verification"),
       body: t("guide.index_verification_body"),
     },
@@ -247,65 +242,69 @@ function GuideIndexPage() {
 
   return (
     <GuidePage current="/guide">
-      <ContentsRow
-        items={[
-          { id: "why-us", label: t("guide.nav_why_us") },
-          { id: "matching", label: t("guide.nav_matching") },
-          { id: "verification", label: t("guide.nav_verification") },
-          { id: "faq", label: t("guide.nav_faq") },
-        ]}
-      />
       {/* Why us */}
       <section
         id="why-us"
-        className="mx-auto max-w-[1600px] scroll-mt-32 px-5 py-16 text-center sm:px-8 sm:py-24 lg:px-12"
+        className="mx-auto max-w-[1600px] scroll-mt-32 px-5 pb-16 pt-12 text-center sm:px-8 sm:pb-24 sm:pt-16 lg:px-12"
       >
-        <h1 className="mx-auto max-w-4xl text-5xl font-medium leading-[1.02] tracking-tight sm:text-6xl lg:text-7xl">
+        <span className="inline-flex items-center gap-2 rounded-full bg-[color:var(--accent)] px-4 py-1.5 text-sm font-semibold text-[color:var(--ink)]">
+          {t("guide.index_badge")}
+        </span>
+        <h1 className="mx-auto mt-6 max-w-3xl text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl lg:text-6xl">
           {t("hiw.hero_title")}
         </h1>
-        <p className="mx-auto mt-6 max-w-4xl text-lg leading-8 text-[color:var(--ink)]/65">
+        <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-[color:var(--ink)]/65">
           {t("hiw.hero_body")}
         </p>
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
-          <Button asChild size="lg" variant="solid" color="accent">
+        <div className="mx-auto mt-6 flex max-w-3xl flex-wrap items-center justify-center gap-2">
+          {(["hiw.value_pill_1", "hiw.value_pill_2"] as const).map((key) => (
+            <span
+              key={key}
+              className="inline-flex items-center gap-2 rounded-full border border-[color:var(--ink)]/12 px-4 py-2 text-sm font-medium"
+            >
+              <Check className="h-4 w-4 text-[color:var(--brand-link)]" aria-hidden="true" />
+              {t(key)}
+            </span>
+          ))}
+        </div>
+        <div className="mx-auto mt-8 grid max-w-xl gap-3 sm:grid-cols-2">
+          <Button
+            asChild
+            size="lg"
+            variant="solid"
+            color="neutral"
+            className="h-auto w-full rounded-xl px-6 py-3.5"
+          >
             <Link to="/tutors">
               {t("hiw.hero_cta_browse")} <ArrowRight />
             </Link>
           </Button>
-          <Button asChild size="lg" variant="outline">
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="h-auto w-full rounded-xl px-6 py-3.5"
+          >
             <Link to="/join">{t("hiw.hero_cta_apply")}</Link>
           </Button>
         </div>
-        <div className="mt-14 text-left">
-          <ComparisonTable title={t("hiw.compare_table_title")} rows={guideComparison} />
+        <div className="mx-auto mt-12 max-w-4xl">
+          <FeeBars />
         </div>
+        <ComparisonTable title={t("hiw.compare_table_title")} rows={guideComparison} />
       </section>
 
-      {/* Matching flow */}
+      {/* Concierge matching, for parents and tutors (fee framing locked:
+          tutor-pays, Cap.57 independent operators — issue #492). */}
       <section
         id="matching"
         className="scroll-mt-32 bg-[#0f1419] py-16 text-[#0f1419] dark:bg-[color:var(--surface-subtle)] dark:text-white sm:py-24"
       >
-        <div className="mx-auto max-w-[1600px] px-5 text-white sm:px-8 lg:px-12">
-          <div className="grid gap-6 md:grid-cols-[0.7fr_1.3fr] md:items-end">
-            <div>
-              <div className="mt-5 flex items-center gap-3 text-sm font-bold">
-                <Clock3 className="h-5 w-5" /> {t("hiw.flow_speed")}
-              </div>
-            </div>
-            <div>
-              <h2 className="max-w-3xl text-4xl font-bold leading-[1.02] tracking-tight text-white sm:text-5xl">
-                {t("hiw.flow_title")}
-              </h2>
-              <p className="mt-5 max-w-xl text-base leading-7 text-white/85">
-                {t("hiw.flow_body")}
-              </p>
-              <p className="mt-3 max-w-xl text-base font-bold leading-7 text-white">
-                {t("hiw.flow_oneliner")}
-              </p>
-            </div>
-          </div>
-          <div className="mt-12 grid gap-4 md:grid-cols-2">
+        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12">
+          <h2 className="text-3xl font-bold leading-[1.05] tracking-tight text-white sm:text-4xl">
+            {t("hiw.flow_title")}
+          </h2>
+          <div className="mt-10 grid gap-4 md:grid-cols-2">
             {(
               [
                 { icon: Search, key: "parents" },
@@ -314,18 +313,26 @@ function GuideIndexPage() {
             ).map(({ icon: Icon, key }) => (
               <div
                 key={key}
-                className="rounded-2xl border border-white/15 bg-white/[0.04] p-6 transition-colors hover:border-white/30 sm:p-8"
+                className="rounded-2xl border border-white/15 bg-white/[0.04] p-6 sm:p-8"
               >
-                <Icon className="h-6 w-6" aria-hidden="true" />
-                <h3 className="mt-4 text-xl font-bold tracking-tight text-white">
+                <h3 className="flex items-center gap-2.5 text-xl font-bold tracking-tight text-white">
+                  <Icon className="h-5 w-5" aria-hidden="true" />
                   {t(`guide.match_${key}_title`)}
                 </h3>
-                <p className="mt-3 text-sm leading-7 text-white/75">
-                  {t(`guide.match_${key}_body`)}
-                </p>
+                <ul className="mt-4 space-y-3">
+                  {([1, 2, 3] as const).map((n) => (
+                    <li key={n} className="flex gap-3 text-sm leading-relaxed text-white/80">
+                      <Check
+                        className="mt-0.5 h-4 w-4 shrink-0 text-[#8ecdf8]"
+                        aria-hidden="true"
+                      />
+                      <span>{t(`guide.match_${key}_p${n}`)}</span>
+                    </li>
+                  ))}
+                </ul>
                 <Link
                   to={key === "parents" ? "/guide/parents" : "/guide/tutors"}
-                  className="mt-4 inline-flex items-center text-sm font-bold transition-transform hover:translate-x-1"
+                  className="mt-5 inline-flex items-center text-sm font-bold text-white"
                 >
                   {t(`guide.match_${key}_link`)} <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
@@ -345,8 +352,11 @@ function GuideIndexPage() {
               to={to}
               className="group rounded-2xl border border-[color:var(--ink)]/12 p-6 transition-colors hover:border-[color:var(--brand-link)]/40"
             >
-              <Icon className="h-6 w-6 text-[color:var(--brand-link)]" aria-hidden="true" />
-              <h3 className="mt-4 flex items-center gap-2 text-lg font-bold tracking-tight">
+              <h3 className="flex items-center gap-2.5 text-lg font-bold tracking-tight">
+                <Icon
+                  className="h-5 w-5 shrink-0 text-[color:var(--brand-link)]"
+                  aria-hidden="true"
+                />
                 {title}
                 <ArrowRight className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100" />
               </h3>
@@ -356,94 +366,32 @@ function GuideIndexPage() {
         </div>
       </section>
 
-      {/* Verification summary */}
-      <section
-        id="verification"
-        className="scroll-mt-32 border-t border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] py-16 sm:py-24"
-      >
-        <div className="mx-auto max-w-[1600px] px-5 sm:px-8 lg:px-12">
-          <div className="mx-auto max-w-4xl">
-            <GuideHeading>{t("hiw.verification_title")}</GuideHeading>
-            <div className="mt-8 grid gap-5 md:grid-cols-2">
-              <div className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--card)] p-6 transition-colors hover:border-[color:var(--ink)]/25 md:p-8">
-                <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight sm:text-xl">
-                  <ShieldCheck
-                    className="h-5 w-5 text-[color:var(--brand-link)]"
-                    aria-hidden="true"
-                  />
-                  {t("hiw.verification_tier2_title")}
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/65">
-                  {t("hiw.verification_tier2_body")}
-                </p>
-              </div>
-              <div className="rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--card)] p-6 transition-colors hover:border-[color:var(--ink)]/25 md:p-8">
-                <h3 className="flex items-center gap-2 text-lg font-bold tracking-tight sm:text-xl">
-                  <FileText
-                    className="h-5 w-5 text-[color:var(--muted-foreground)]"
-                    aria-hidden="true"
-                  />
-                  {t("hiw.verification_tier1_title")}
-                </h3>
-                <p className="mt-3 text-sm leading-7 text-[color:var(--ink)]/65">
-                  {t("hiw.verification_tier1_body")}
-                </p>
-              </div>
-            </div>
-            <p className="mt-6 text-sm leading-6 text-[color:var(--ink)]/55">
-              {t("hiw.verification_disclaimer")}
-            </p>
-            <Link
-              to="/guide/verification"
-              className="mt-4 inline-flex items-center text-sm font-bold transition-transform hover:translate-x-1"
-            >
-              {t("guide.index_verification_link")} <ArrowRight className="ml-2 h-4 w-4" />
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* FAQ, all three groups live here (Ryan: subpages stay lean) */}
+      {/* FAQ, all three groups live here (subpages stay lean) */}
       <section
         id="faq"
-        className="mx-auto max-w-[1600px] scroll-mt-32 px-5 py-16 sm:px-8 sm:py-24 lg:px-12"
+        className="mx-auto max-w-[1600px] scroll-mt-32 px-5 pb-24 pt-0 sm:px-8 sm:pb-24 lg:px-12"
       >
         <div className="mx-auto max-w-4xl">
           <GuideHeading>{t("hiw.faq_title")}</GuideHeading>
 
-          <div className="mt-12">
-            <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-              <UserRoundCheck
-                className="h-6 w-6 text-[color:var(--muted-foreground)]"
-                aria-hidden="true"
-              />
-              {t("hiw.faq_tutors")}
-            </h3>
-            <div className="mt-5">
-              <FaqAccordion items={tutorFaqItems} />
+          <div className="mt-10">
+            <h3 className="text-xl font-bold tracking-tight">{t("hiw.faq_tutors")}</h3>
+            <div className="mt-3">
+              <GuideFaq items={tutorFaqItems} />
             </div>
           </div>
 
           <div className="mt-12">
-            <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-              <Search className="h-6 w-6 text-[color:var(--muted-foreground)]" aria-hidden="true" />
-              {t("hiw.faq_parents")}
-            </h3>
-            <div className="mt-5">
-              <FaqAccordion items={parentFaqItems} />
+            <h3 className="text-xl font-bold tracking-tight">{t("hiw.faq_parents")}</h3>
+            <div className="mt-3">
+              <GuideFaq items={parentFaqItems} />
             </div>
           </div>
 
           <div className="mt-12">
-            <h3 className="flex items-center gap-2 text-2xl font-bold tracking-tight">
-              <CreditCard
-                className="h-6 w-6 text-[color:var(--muted-foreground)]"
-                aria-hidden="true"
-              />
-              {t("hiw.faq_billing")}
-            </h3>
-            <div className="mt-5">
-              <FaqAccordion items={billingFaqItems} />
+            <h3 className="text-xl font-bold tracking-tight">{t("hiw.faq_billing")}</h3>
+            <div className="mt-3">
+              <GuideFaq items={billingFaqItems} />
             </div>
           </div>
         </div>

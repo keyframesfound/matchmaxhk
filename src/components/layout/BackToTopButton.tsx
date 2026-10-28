@@ -17,7 +17,13 @@ export function BackToTopButton() {
     return () => window.removeEventListener("scroll", updateVisibility);
   }, []);
 
-  if (pathname === "/join" || !isVisible || compareBarVisible) return null;
+  // Issue #492: the floating ↑ collides with the WhatsApp float and the
+  // mobile bottom nav on the guide hub, so it is excluded on guide routes
+  // (the router strips the locale prefix, so /zh/guide arrives as /guide),
+  // mirroring the existing /join exclusion. WhatsApp float is unchanged.
+  const isGuideRoute = pathname === "/guide" || pathname.startsWith("/guide/");
+
+  if (isGuideRoute || pathname === "/join" || !isVisible || compareBarVisible) return null;
 
   return (
     <button

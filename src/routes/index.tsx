@@ -39,8 +39,9 @@ import {
   type RankedTrending,
 } from "@/features/tutors/engagement";
 import { fetchTrendingTutorSummaries } from "@/features/tutors/trending";
+import { buildHomeCurriculumRails } from "@/features/tutors/home-rails";
+import { dailyTieBreakSort, hktDate } from "@/features/tutors/daily-shuffle";
 import { trackTutorEvent } from "@/features/tracking/engagement-client";
-import { matchesCategoryFilter } from "@/features/tutors/subjects";
 import { collectEducationValueSets } from "@/features/tutors/education-filters";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -575,11 +576,44 @@ function Landing() {
       qualityFor,
     ).filter((candidate) => candidate.popularity_score > 0);
     if (eligible.length < TRENDING_MIN_ELIGIBLE) return [];
-    return eligible.slice(0, TRENDING_TUTOR_LIMIT).flatMap((candidate) => {
+    // Issue #485 Phase B: rankTrending already ordered by popularity_score
+    // desc, then requests_30d desc. This pass re-orders ONLY exact ties on
+    // BOTH keys (never different engagement tiers) by the daily HKT hash,
+    // ascending, so tie groups rotate at Hong Kong midnight instead of
+    // sticking to query order all week. Slice AFTER the tie-break so the
+    // TRENDING_TUTOR_LIMIT cut itself is what rotates.
+    const tieBroken = dailyTieBreakSort(
+      eligible,
+      (a, b) => b.popularity_score - a.popularity_score || b.requests_30d - a.requests_30d,
+      (candidate) => candidate.tutor_id,
+      hktDate(),
+    );
+    return tieBroken.slice(0, TRENDING_TUTOR_LIMIT).flatMap((candidate) => {
       const tutor = tutorById.get(candidate.tutor_id);
       return tutor ? [{ tutor, engagement: candidate }] : [];
     });
   }, [publishedTutors, trendingCandidates]);
+
+  // Issue #485 Phase A: one card per home layout. The old per-category
+  // tutorsForCategory() built every rail independently, so multi-tag tutors
+  // repeated across Most Requested + IBDP + DSE. This single sequential
+  // builder seeds alreadyShown with the trending row, then walks the
+  // categories in CURRICULUM_CATEGORIES order, taking the NEXT 6 unique
+  // tutors per rail (exclude BEFORE the slice). Rails whose post-exclude
+  // pool drops below 3 are hidden at render time (same ≥3 bar as the
+  // notes/gigs rows); /tutors?category= browse keeps full membership.
+  const curriculumRails = useMemo(
+    () =>
+      buildHomeCurriculumRails({
+        tutors: publishedTutors,
+        trendingTutorIds: trendingEntries.map((entry) => entry.tutor.id),
+        categories: CURRICULUM_CATEGORIES.map(({ value }) => value),
+        maxPerRail: MAX_HOME_TUTORS,
+        day: hktDate(),
+        highlightsFor: getTutorCardHighlights,
+      }),
+    [publishedTutors, trendingEntries],
+  );
 
   // Education dropdown options = the distinct values that actually appear on
   // tutor profiles (issue #130), refreshed whenever the tutor list does.
@@ -595,16 +629,6 @@ function Landing() {
 
   const { compareIds, compareTutors, toggleCompare, compareOpen, setCompareOpen, clearCompare } =
     useTutorCompare(publishedTutors);
-
-  const tutorsForCategory = (category: string) =>
-    publishedTutors
-      .filter((tutor) =>
-        matchesCategoryFilter(category, tutor.subjects, [
-          ...tutor.target_students,
-          ...getTutorCardHighlights(tutor),
-        ]),
-      )
-      .slice(0, MAX_HOME_TUTORS);
 
   const openTutorDetail = (tutorCode: string) => {
     navigate({ to: "/tutors/$tutorCode", params: { tutorCode } });
@@ -750,19 +774,28 @@ function Landing() {
                   onCompareToggle={toggleCompare}
                 />
               ) : null}
-              {CURRICULUM_CATEGORIES.map(({ label, value }) => (
-                <CurriculumTutorSection
-                  label={label}
-                  category={value}
-                  tutors={tutorsForCategory(value)}
-                  loading={publishedTutorsLoading}
-                  priceSuffix={t("featured.per_hour")}
-                  whatsappNumber={whatsappNumber}
-                  onOpen={openTutorDetail}
-                  compareSelectedIds={compareIds}
-                  onCompareToggle={toggleCompare}
-                />
-              ))}
+              {CURRICULUM_CATEGORIES.map(({ label, value }) => {
+                const tutors = curriculumRails[value] ?? [];
+                // Issue #485: hide a rail whose post-exclude pool fell
+                // below the notes/gigs ≥3 bar — no empty heading. While the
+                // tutor fetch is in flight the rails are still empty, so
+                // keep the section (and its skeletons) until loading ends.
+                if (!publishedTutorsLoading && tutors.length < 3) return null;
+                return (
+                  <CurriculumTutorSection
+                    key={value}
+                    label={label}
+                    category={value}
+                    tutors={tutors}
+                    loading={publishedTutorsLoading}
+                    priceSuffix={t("featured.per_hour")}
+                    whatsappNumber={whatsappNumber}
+                    onOpen={openTutorDetail}
+                    compareSelectedIds={compareIds}
+                    onCompareToggle={toggleCompare}
+                  />
+                );
+              })}
             </div>
           </div>
         </section>

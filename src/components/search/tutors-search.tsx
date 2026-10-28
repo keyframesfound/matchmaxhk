@@ -606,7 +606,11 @@ export function TutorsSearchBar({
       id: "keyword",
       label: t("search_ui.segment_keyword"),
       title: t("search_ui.panel_keyword_title"),
-      display: draft.q?.trim() ? draft.q : t("search_panel.keyword_placeholder"),
+      // #484: rest on the short compact-pill value, not the 36-char panel
+      // placeholder. The long string overflowed its pill segment (colliding
+      // with the Curriculum value) wherever ellipsis truncation was defeated;
+      // the instructive placeholder stays on the panel input below.
+      display: draft.q?.trim() ? draft.q : t("search_ui.compact_any_keyword"),
       filled: Boolean(draft.q?.trim()),
       grow: "flex-[1.3]",
       content: (

@@ -428,7 +428,9 @@ export function CasesSearchBar({
       id: "keyword",
       label: t("search_ui.segment_keyword"),
       title: t("search_ui.panel_keyword_title"),
-      display: draft.q?.trim() ? draft.q : t("search_ui.cases_placeholder"),
+      // #484: short resting value (same fix as the tutors bar) — the long
+      // cases placeholder overflowed its segment at lg widths.
+      display: draft.q?.trim() ? draft.q : t("search_ui.compact_any_keyword"),
       filled: Boolean(draft.q?.trim()),
       grow: "flex-[1.3]",
       content: (
