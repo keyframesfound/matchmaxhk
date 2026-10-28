@@ -138,3 +138,10 @@ $function$;
 GRANT EXECUTE ON FUNCTION public.get_tutor_completed_case_count(uuid) TO anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.get_my_completed_case_count() TO authenticated;
 REVOKE ALL ON FUNCTION public.get_my_completed_case_count() FROM anon;
+
+-- DEFAULT PRIVILEGES hand PUBLIC an implicit EXECUTE at function creation;
+-- a REVOKE ... FROM anon does NOT remove it (verified live via
+-- has_function_privilege after first apply). Without this, anon callers
+-- keep a working path to the SECURITY DEFINER fn through PUBLIC.
+REVOKE ALL ON FUNCTION public.get_my_completed_case_count() FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.get_tutor_completed_case_count(uuid) FROM PUBLIC;
