@@ -35,6 +35,7 @@ describe("SoR status machine (#201)", () => {
       ["fee_invoiced", "fee_paid"],
       ["fee_invoiced", "waived"],
       ["fee_paid", "active"],
+      ["fee_paid", "closed"], // #503 bilateral End Case
       ["active", "replaced"],
       ["active", "closed"],
       ["waived", "closed"],
