@@ -1533,7 +1533,7 @@
       "h1": "Parents: how it works"
     },
     "tutors": {
-      "intro": "List as an independent tutor, claim cases on your commute, keep 100% after the 1.5-lesson fee.",
+      "intro": "List as an independent tutor, claim cases on your commute, keep 100% after the admin fee (1.5 lessons on private; centre intros step down to free on the 4th+).",
       "steps_title": "How it works",
       "s1_title": "Create your profile",
       "s1_body": "Add your grades and the MTR stations that work for you.",
@@ -1542,9 +1542,9 @@
       "s3_title": "Claim cases or get requested",
       "s3_body": "Claim cases near your stations, or receive parent requests.",
       "s4_title": "Complete Lessons 1 & 2; keep the rest",
-      "s4_body": "MatchMax’s admin fee is 1.5 lessons (100% L1 + 50% L2), owed by you as an independent operator. After that, every lesson’s hourly pay is yours.",
+      "s4_body": "MatchMax’s admin fee is normally 1.5 lessons (100% L1 + 50% L2), owed by you as an independent operator. For partner-centre intros, further students at the same centre within 6 months step down: 1.5 → 1.0 → 0.5 → free on the 4th+. Private cases stay 1.5 each. After the fee, every lesson’s hourly pay is yours.",
       "not_cut_label": "No ongoing percentage",
-      "not_cut_body": "The 1.5-lesson admin fee per match is everything we take.",
+      "not_cut_body": "The admin fee per match is everything we take — normally 1.5 lessons. Centre intros use the stepped ladder (1.5 → 1 → 0.5 → free on 4th+) within 6 months at the same centre; private stays 1.5 each.",
       "not_clients_label": "Don’t poach your students",
       "not_clients_body": "After the introduction and the fee, the student is yours.",
       "not_schedule_label": "Don’t run your calendar",
@@ -1653,7 +1653,7 @@
       "r3": "Educators keep control of their teaching methodology and stay free to serve other clients.",
       "r4": "Vacancy hiring is out of scope, MatchMax never publishes job listings.",
       "fee_title": "Fees",
-      "fee_body": "MatchMax's matching admin fee is the standard 1.5-lesson fee, 100% of Lesson 1 plus 50% of Lesson 2, charged to the self-employed educator after the first two introductions. Short packages of five lessons or fewer use 20% of the package, and pro-bono engagements are free. Organisations never pay MatchMax a matching fee.",
+      "fee_body": "MatchMax's matching admin fee is owed by the self-employed educator — organisations never pay MatchMax a matching fee. Private / standard matches: 1.5 lessons (100% of Lesson 1 + 50% of Lesson 2). Partner-centre introductions: when the same centre assigns more students to that tutor within 6 months of the original intro, the tutor’s fee steps down — 1st student 1.5 lessons, 2nd 1.0 lesson, 3rd 0.5 lesson, 4th and later $0 (max about 3.0 lessons per centre intro). Short packages of five lessons or fewer use 20% of the package, and pro-bono engagements are free.",
       "cta": "Create an Education Partner account"
     },
     "index_badge": "Built by IB & DSE graduates",
@@ -1662,7 +1662,7 @@
     "match_parents_p3": "Admin fee is 1.5 lessons (100% Lesson 1 + 50% Lesson 2), owed by the self-employed tutor and paid to MatchMax by FPS. Parents do not pay MatchMax a matching fee. You pay the tutor’s hourly rate directly for every lesson.",
     "match_tutors_p1": "Create anonymous profile (optional Gold Badge)",
     "match_tutors_p2": "Claim cases on your MTR line or get parent requests",
-    "match_tutors_p3": "Keep 100% of your hourly rate after the one-time 1.5-lesson fee."
+    "match_tutors_p3": "Keep 100% of your hourly rate after the admin fee — 1.5 lessons on private cases; partner-centre intros step 1.5 → 1 → 0.5 → free on the 4th+ within 6 months at that centre."
   },
   "legal": {
     "notes_terms": {

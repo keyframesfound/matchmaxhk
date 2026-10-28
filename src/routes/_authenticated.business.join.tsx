@@ -382,11 +382,12 @@ function BusinessJoinPage() {
                 />
                 <span>
                   I have read and agree to the Matching and Platform Service Fee Agreement (version{" "}
-                  {FEE_TERMS_VERSION}). MatchMax&apos;s matching admin fee is the standard
-                  1.5-lesson fee, 100% of Lesson 1 plus 50% of Lesson 2, charged to the
-                  self-employed tutor after the first two introductions. Short packages of five
-                  lessons or fewer use 20% of the package, and pro-bono engagements are free.
-                  Parents and centres never pay MatchMax a matching fee. *
+                  {FEE_TERMS_VERSION}). MatchMax&apos;s matching admin fee is owed by the
+                  self-employed tutor — parents and centres never pay MatchMax a matching fee.
+                  Private / standard matches: 1.5 lessons (100% of Lesson 1 + 50% of Lesson 2).
+                  Partner-centre intros step down within 6 months at the same centre: 1st student
+                  1.5 lessons, 2nd 1.0, 3rd 0.5, 4th+ $0. Short packages of five lessons or fewer
+                  use 20% of the package, and pro-bono engagements are free. *
                 </span>
               </label>
               <label className="flex gap-3 text-sm text-muted-foreground">
