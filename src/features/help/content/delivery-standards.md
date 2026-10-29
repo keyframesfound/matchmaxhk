@@ -9,6 +9,8 @@ tags: [delivery, logistics, punctuality, reminders, admin, checklist, operations
 featured: false
 order: 3
 status: published
+author: MatchMax Team
+updated: 2026-10-29
 ---
 # Setting Up for Success: Delivery Standards, Logistics, and Admin
 
@@ -128,3 +130,12 @@ Hi Admin, Lesson 1 with [Student Name] completed successfully for [Number] hours
 - Materials uploaded to Drive folder
 - Next session confirmed
 - Admin notified of hours
+
+## Related guides
+
+- [Confirm lesson dates, reschedules, and tutor sick days](/help/scheduling-logistics/coordinate-lesson-dates)
+- [In-home, Zoom, and travel setups](/help/scheduling-logistics/travel-and-online-setups)
+- [Your first WhatsApp intro and lesson ground rules](/help/parent-communication/introduce-yourself-whatsapp)
+- [The 1.5-lesson admin fee and unlocking parent contact](/help/payments-policies/admin-fee-structure)
+
+Still stuck? Email contact@matchmax.hk or message the MatchMax team on WhatsApp. — MatchMax Team

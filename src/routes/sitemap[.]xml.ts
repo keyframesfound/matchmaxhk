@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
+import { HELP_ARTICLES } from "@/features/help/content";
 
 const BASE_URL = "https://matchmax.hk";
 
@@ -117,10 +118,22 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/guide/refer", lastmod: today, changefreq: "monthly", priority: "0.5" },
           { path: "/guide/verification", lastmod: today, changefreq: "monthly", priority: "0.5" },
           { path: "/legal/notes-terms", lastmod: today, changefreq: "yearly", priority: "0.4" },
-          { path: "/tutor-playbook", lastmod: today, changefreq: "monthly", priority: "0.6" },
           { path: "/help", lastmod: today, changefreq: "weekly", priority: "0.7" },
           { path: "/join", lastmod: today, changefreq: "monthly", priority: "0.7" },
         ];
+
+        // Issue #500: every published Help article is a real indexable URL.
+        // The old /tutor-playbook entry is gone (it 301s to /help now), and
+        // draft or external-stub articles stay out of the sitemap.
+        for (const article of HELP_ARTICLES) {
+          if (article.status !== "published" || article.external) continue;
+          entries.push({
+            path: `/help/${article.category}/${article.slug}`,
+            lastmod: article.updated ?? today,
+            changefreq: "monthly",
+            priority: "0.5",
+          });
+        }
 
         try {
           const tutorEntries = await fetchPublishedTutorEntries();

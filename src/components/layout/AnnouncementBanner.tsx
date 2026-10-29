@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -12,6 +12,12 @@ export function AnnouncementBanner() {
   const [slide, setSlide] = useState(0);
   const [paused, setPaused] = useState(false);
 
+  // Issue #500: the Help Centre is a support surface, not a promo surface.
+  // Suppress the sticky announcement banner on every /help/* route. Kept
+  // after the hooks so hook order stays stable across routes.
+  const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const isHelpRoute = pathname === "/help" || pathname.startsWith("/help/");
+
   useEffect(() => {
     setIsDismissed(window.sessionStorage.getItem(STORAGE_KEY) === "true");
   }, []);
@@ -24,7 +30,7 @@ export function AnnouncementBanner() {
     return () => window.clearInterval(id);
   }, [isDismissed, paused]);
 
-  if (isDismissed) return null;
+  if (isDismissed || isHelpRoute) return null;
 
   const handleDismiss = (event: React.MouseEvent<HTMLButtonElement>) => {
     event.preventDefault();

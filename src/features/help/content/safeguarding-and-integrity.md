@@ -9,6 +9,8 @@ tags: [safeguarding, boundaries, ethics, child protection, escalation, academic 
 featured: false
 order: 6
 status: published
+author: MatchMax Team
+updated: 2026-10-29
 ---
 # Protecting Yourself and the Student: Safety, Boundaries, and Integrity
 
@@ -67,3 +69,11 @@ Check school and examination-board rules before helping with graded assignmentsâ
 - Asking guiding questions
 - Teaching relevant skills
 - Demonstrating how to improve future independent work
+
+## Related guides
+
+- [Lesson safety and supervision guidelines](/help/parent-safety/lesson-safety-and-supervision-guidelines)
+- [The 1.5-lesson admin fee and unlocking parent contact](/help/payments-policies/admin-fee-structure)
+- [Confirm lesson dates, reschedules, and tutor sick days](/help/scheduling-logistics/coordinate-lesson-dates)
+
+Still stuck? Email contact@matchmax.hk or message the MatchMax team on WhatsApp. â€” MatchMax Team

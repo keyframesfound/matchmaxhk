@@ -14,7 +14,7 @@ const productLinks = [
 
 const companyLinks = [
   { key: "footer.faq", to: "/guide", hash: "faq" },
-  { key: "footer.playbook", to: "/tutor-playbook" },
+  { key: "footer.playbook", to: "/help", search: { audience: "tutors" } },
   { key: "footer.terms", to: "/tos" },
   { key: "footer.privacy", to: "/privacy-policy" },
   { key: "footer.commitment", to: "/tos", hash: "community-commitment" },
