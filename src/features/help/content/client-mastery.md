@@ -6,9 +6,10 @@ audience: tutor
 summary: The full triad — parent confidence, student trust, tutor clarity. Onboarding scripts, the Rule of 3 debrief, and the scenario survival guide for difficult conversations.
 icon: message-circle
 tags: [parents, communication, scripts, onboarding, rule of 3, scenarios, trust]
-featured: false
 order: 3
 status: published
+author: MatchMax Team
+updated: 2026-10-29
 ---
 # Client Mastery: Winning Over Parents & Building Trust
 
@@ -148,3 +149,12 @@ To transform from a "good tutor" to an "irreplaceable MatchMax elite tutor," dep
 # The Exam Care Package
 Hi [Parent], mocks are approaching! I've mapped out a 6-week revision schedule for [Student] so we are fully prepared and there are no last-minute panics. I've uploaded it to our shared folder! 🫡
 ```
+
+## Related guides
+
+- [Your first WhatsApp intro and lesson ground rules](/help/parent-communication/introduce-yourself-whatsapp)
+- [Post-lesson updates: the Rule of 3](/help/parent-communication/post-lesson-feedback)
+- [Confirm lesson dates, reschedules, and tutor sick days](/help/scheduling-logistics/coordinate-lesson-dates)
+- [Decoding Students: Motivation, Interventions, and SEN](/help/pedagogy-excellence/decoding-students)
+
+Still stuck? Email contact@matchmax.hk or message the MatchMax team on WhatsApp. — MatchMax Team

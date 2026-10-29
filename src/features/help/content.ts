@@ -23,10 +23,11 @@ import {
  * the `help.*` locale subtree.
  *
  * Frontmatter fields: title, slug, category, audience (tutor | parent | all),
- * summary, icon, tags, featured, order, status (published | draft), external.
+ * summary, icon, tags, order, status (published | draft), external,
+ * updated.
  * - `status: draft` renders the "Guide coming soon" placeholder state.
  * - `external` points the card/listing at an existing page instead of the
- *   article route (e.g. /tutor-playbook, /how-it-works).
+ *   article route (e.g. /guide, /tutor-requests).
  */
 
 export type HelpAudience = "tutor" | "parent" | "all";
@@ -34,13 +35,7 @@ export type HelpAudience = "tutor" | "parent" | "all";
 export type HelpArticleStatus = "published" | "draft";
 
 /** Existing pages an article listing can point at instead of the article route. */
-const HELP_EXTERNAL_ROUTES = [
-  "/tutor-playbook",
-  "/guide",
-  "/tutor-requests",
-  "/tutors",
-  "/pricing",
-] as const;
+const HELP_EXTERNAL_ROUTES = ["/guide", "/tutor-requests", "/tutors", "/pricing"] as const;
 
 export type HelpExternalRoute = (typeof HELP_EXTERNAL_ROUTES)[number];
 
@@ -52,11 +47,12 @@ export type HelpArticle = {
   audience: HelpAudience;
   icon: string;
   tags: string[];
-  featured: boolean;
   order: number;
   status: HelpArticleStatus;
   /** When set, listings link straight to this path instead of the article route. */
   external?: HelpExternalRoute;
+  /** Last content-update date (YYYY-MM-DD) shown in the article byline. */
+  updated?: string;
   body: string;
 };
 
@@ -160,12 +156,12 @@ function toHelpArticle(fileName: string, raw: string): HelpArticle {
     audience: data.audience === "tutor" || data.audience === "all" ? data.audience : "parent",
     icon: typeof data.icon === "string" ? data.icon : "",
     tags: Array.isArray(data.tags) ? data.tags : [],
-    featured: data.featured === true,
     order: typeof data.order === "number" ? data.order : 100,
     status: data.status === "published" ? "published" : "draft",
     external: HELP_EXTERNAL_ROUTES.includes(data.external as HelpExternalRoute)
       ? (data.external as HelpExternalRoute)
       : undefined,
+    updated: typeof data.updated === "string" ? data.updated : undefined,
     body,
   };
 }
@@ -175,77 +171,95 @@ export const HELP_ARTICLES: HelpArticle[] = Object.entries(contentModules)
   .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
 
 const HELP_CATEGORY_LIST: HelpCategory[] = [
+  // Parent categories (issue #500: six-topic parent directory, 3-col × 2-row grid).
+  {
+    slug: "parent-getting-started",
+    name: "Getting started",
+    blurb: "How matching works, requesting a tutor, and choosing the right fit.",
+    icon: "compass",
+    audience: "parent",
+    order: 1,
+  },
+  {
+    slug: "parent-scheduling",
+    name: "Scheduling & lessons",
+    blurb: "Preparing for lessons, reschedules, and cancellations.",
+    icon: "calendar-clock",
+    audience: "parent",
+    order: 2,
+  },
+  {
+    slug: "parent-payments",
+    name: "Payments & fees",
+    blurb: "Paying your tutor directly and understanding the admin fee.",
+    icon: "wallet",
+    audience: "parent",
+    order: 3,
+  },
+  {
+    slug: "parent-verification",
+    name: "Tutor verification",
+    blurb: "What the Blue Tick and verification tiers do and do not mean.",
+    icon: "shield-check",
+    audience: "parent",
+    order: 4,
+  },
+  {
+    slug: "parent-safety",
+    name: "Safety & safeguarding",
+    blurb: "Lesson supervision guidelines and child-protection duties.",
+    icon: "life-buoy",
+    audience: "parent",
+    order: 5,
+  },
+  {
+    slug: "parent-support",
+    name: "Supporting your child",
+    blurb: "Tracking progress lesson by lesson and comparing curricula.",
+    icon: "graduation-cap",
+    audience: "parent",
+    order: 6,
+  },
+  // Tutor categories.
   {
     slug: "tutor-guide",
-    name: "MatchMax Tutor Handbook",
-    blurb: "The must-read guide to communication, scheduling, and teaching excellence.",
+    name: "Tutor handbook",
+    blurb: "Delivery standards, logistics, and the MatchMax service level.",
     icon: "book-open",
     audience: "tutor",
     order: 1,
   },
   {
     slug: "parent-communication",
-    name: "Parent Communication & Etiquette",
-    blurb: "Professional first impressions, expectations, and feedback loops.",
+    name: "Parent communication",
+    blurb: "WhatsApp intros, expectations, and the Rule of 3 feedback loop.",
     icon: "message-circle",
     audience: "tutor",
     order: 2,
   },
   {
     slug: "scheduling-logistics",
-    name: "Scheduling & Lesson Logistics",
-    blurb: "Coordinating dates, reschedules, travel, and online setups.",
+    name: "Scheduling & logistics",
+    blurb: "Confirming dates, reschedules, tutor sick days, and setups.",
     icon: "calendar-clock",
     audience: "tutor",
     order: 3,
   },
   {
     slug: "pedagogy-excellence",
-    name: "Pedagogy & Classroom Excellence",
-    blurb: "Diagnostic trial lessons and pacing for high-stakes exams.",
+    name: "Teaching & pedagogy",
+    blurb: "Diagnostic first lessons, blueprints, motivation, and exam pacing.",
     icon: "graduation-cap",
     audience: "tutor",
     order: 4,
   },
   {
     slug: "payments-policies",
-    name: "Payments, Fees & Policies",
-    blurb: "The administrative fee, cancellations, and lesson safety.",
+    name: "Fees, policies & safety",
+    blurb: "The admin fee, phone unlocks, and safeguarding duties.",
     icon: "wallet",
     audience: "tutor",
     order: 5,
-  },
-  {
-    slug: "parent-getting-started",
-    name: "Getting Started",
-    blurb: "How matching works, trials, and finding the right tutor.",
-    icon: "compass",
-    audience: "parent",
-    order: 1,
-  },
-  {
-    slug: "parent-payments",
-    name: "Payments & Fees",
-    blurb: "Payment methods, billing, and the administrative fee.",
-    icon: "wallet",
-    audience: "parent",
-    order: 2,
-  },
-  {
-    slug: "parent-policies",
-    name: "Policies & Safety",
-    blurb: "Cancellations, tutor verification, and lesson safety.",
-    icon: "shield-check",
-    audience: "parent",
-    order: 3,
-  },
-  {
-    slug: "parent-supporting-learning",
-    name: "Supporting Your Child",
-    blurb: "Curricula explained and tracking progress over time.",
-    icon: "graduation-cap",
-    audience: "parent",
-    order: 4,
   },
 ];
 
@@ -266,24 +280,16 @@ function matchesAudience(article: HelpAudience, selected: HelpAudience): boolean
   return article === "all" || article === selected;
 }
 
-/** Featured cards for one tab, sorted by article order. Drafts never feature. */
-export function getFeaturedHelpArticles(audience: Exclude<HelpAudience, "all">): HelpArticle[] {
-  return HELP_ARTICLES.filter(
-    (article) =>
-      article.status === "published" &&
-      article.featured &&
-      matchesAudience(article.audience, audience),
-  );
-}
-
-/** Categories (with their articles) for one tab, in display order. */
+/** Categories (with their published articles) for one tab, in display order. */
 export function getHelpTopics(audience: Exclude<HelpAudience, "all">): {
   category: HelpCategory;
   articles: HelpArticle[];
 }[] {
   return HELP_CATEGORIES.filter((category) => category.audience === audience).map((category) => ({
     category,
-    articles: HELP_ARTICLES.filter((article) => article.category === category.slug),
+    articles: HELP_ARTICLES.filter(
+      (article) => article.category === category.slug && article.status === "published",
+    ),
   }));
 }
 
@@ -296,6 +302,7 @@ export function searchHelpArticles(
   if (!needle) return [];
   const categoryNames = new Map(HELP_CATEGORIES.map((c) => [c.slug, c.name.toLowerCase()]));
   return HELP_ARTICLES.filter((article) => {
+    if (article.status !== "published") return false;
     if (!matchesAudience(article.audience, audience)) return false;
     const haystack = [
       article.title,

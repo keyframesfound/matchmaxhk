@@ -922,3 +922,9 @@ html .driver-popover-progress-text {
   --sidebar-border: #e4e4e7;
   --sidebar-ring: #a1a1aa;
 }
+
+/* Help Centre tables (issue #500): wide fee/SoT tables scroll inside the
+   article column instead of stretching the page. */
+.help-table-scroll {
+  overflow-x: auto;
+}

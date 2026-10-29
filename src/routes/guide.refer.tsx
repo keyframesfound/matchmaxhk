@@ -46,7 +46,12 @@ function GuideReferPage() {
   const { t } = useTranslation();
 
   // Blocker 5 of the AI review: "15% of what" must link the fee explainer.
-  const feeArticle = getHelpArticle("parent-payments", "administrative-fee-explained");
+  // The old administrative-fee-explained stub was superseded by the full fee
+  // article in the #500 pack; the old slug 301s to it (see help.$category.$slug).
+  const feeArticle = getHelpArticle(
+    "parent-payments",
+    "understand-zero-parent-commission-and-tutor-admin-fees",
+  );
 
   const steps: [string, string, string][] = (["s1", "s2", "s3", "s4", "s5"] as const).map(
     (key, index) => [

@@ -6,9 +6,10 @@ audience: tutor
 summary: The elite educator's toolkit — 60-minute lesson blueprints, the SRL cycle, Gradual Release of Responsibility, CRA sequencing, PEEL+ essays, and the curriculum resource vault.
 icon: book-open
 tags: [pedagogy, lesson plans, SRL, GRR, CRA, PEEL, resources, curriculum, teaching]
-featured: false
 order: 4
 status: published
+author: MatchMax Team
+updated: 2026-10-29
 ---
 # Teaching Tactics, Lesson Blueprints, and Resource Vault
 
@@ -134,3 +135,12 @@ Verify links, access rights, and permissions before distribution.
 | **IB/A-Level** | Save My Exams | Concise revision notes and topic-specific worksheets. |
 | **General STEM** | PMT (physicsandmathstutor.com) | Collection of past papers and mark schemes across international curricula. |
 | **All** | Anki | Spaced-repetition flashcard software for long-term retention of dates, vocabulary, and key facts. |
+
+## Related guides
+
+- [The first lesson: a diagnostic, not a lecture](/help/pedagogy-excellence/first-trial-lesson-diagnostic)
+- [Pacing lessons for high-stakes exams (IB, DSE, A-Level)](/help/pedagogy-excellence/pacing-exam-prep)
+- [Decoding Students: Motivation, Interventions, and SEN](/help/pedagogy-excellence/decoding-students)
+- [Protecting Yourself and the Student: Safety, Boundaries, and Integrity](/help/payments-policies/safeguarding-and-integrity)
+
+Still stuck? Email contact@matchmax.hk or message the MatchMax team on WhatsApp. — MatchMax Team

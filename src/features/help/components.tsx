@@ -6,6 +6,7 @@ import remarkGfm from "remark-gfm";
 import { useTranslation } from "react-i18next";
 import { useState, type ReactNode } from "react";
 
+import { cn } from "@/lib/utils";
 import type { HelpArticle } from "@/features/help/content";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -97,6 +98,126 @@ export function extractHelpToc(markdown: string): HelpTocEntry[] {
   return entries;
 }
 
+/**
+ * Bilingual script card (issue #500): EN | 繁中 tabs over one copy-paste
+ * script. Authors write a fenced block with info string `script`:
+ *
+ * ```script
+ * # Tutor sick: same-day notice
+ * --en
+ * Good morning [Parent Name], ...
+ * --zh
+ * [家長稱謂]早晨！...
+ * ```
+ *
+ * Copy always copies the active tab as plain text (no markdown markers).
+ */
+function HelpScriptCard({ label, en, zh }: { label?: string; en: string; zh: string }) {
+  const { t } = useTranslation();
+  const [tab, setTab] = useState<"en" | "zh">("en");
+  const [copied, setCopied] = useState(false);
+
+  const text = tab === "en" ? en : zh;
+
+  const copy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Clipboard API can be unavailable (permissions/insecure context); still
+      // fall back to the legacy path so the button keeps working.
+      const textarea = document.createElement("textarea");
+      textarea.value = text;
+      textarea.style.position = "fixed";
+      textarea.style.opacity = "0";
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand("copy");
+      } finally {
+        textarea.remove();
+      }
+    }
+    setCopied(true);
+    window.setTimeout(() => setCopied(false), 1600);
+  };
+
+  const tabs: { id: "en" | "zh"; label: string }[] = [
+    { id: "en", label: t("help.script_tab_en") },
+    { id: "zh", label: t("help.script_tab_zh") },
+  ];
+
+  return (
+    <div className="rounded-[18px] border border-[color:var(--brand-link)]/30 bg-[color:var(--brand-link)]/[0.04]">
+      <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[color:var(--brand-link)]/20 px-4 py-2">
+        <div className="flex min-w-0 items-center gap-3">
+          <span className="min-w-0 truncate text-[11px] font-medium text-[color:var(--brand-link)]">
+            {label || t("help.copy_box_label")}
+          </span>
+          <div
+            role="tablist"
+            aria-label={t("help.script_tabs_label")}
+            className="flex shrink-0 items-center gap-1 rounded-full border border-border bg-[color:var(--surface)] p-0.5"
+          >
+            {tabs.map((item) => (
+              <button
+                key={item.id}
+                role="tab"
+                type="button"
+                aria-selected={tab === item.id}
+                onClick={() => setTab(item.id)}
+                className={cn(
+                  "h-7 rounded-full px-3 text-xs font-semibold transition-colors",
+                  tab === item.id
+                    ? "bg-[color:var(--foreground)] text-[color:var(--background)]"
+                    : "text-muted-foreground hover:text-foreground",
+                )}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={copy}
+          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border border-[color:var(--brand-link)]/40 bg-card px-3 text-xs font-semibold text-foreground transition-colors hover:bg-[color:var(--brand-link)]/10"
+          aria-label={t("help.copy_button")}
+        >
+          {copied ? (
+            <>
+              <span className="mm-control-pop inline-flex">
+                <Check className="h-3.5 w-3.5 text-[color:var(--brand-link)]" aria-hidden="true" />
+              </span>
+              {t("help.copied")}
+            </>
+          ) : (
+            <>
+              <span className="mm-control-pop inline-flex">
+                <ClipboardCopy className="h-3.5 w-3.5" aria-hidden="true" />
+              </span>
+              {t("help.copy_button")}
+            </>
+          )}
+        </button>
+      </div>
+      <div
+        className="cursor-pointer px-4 py-3"
+        onClick={copy}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            void copy();
+          }
+        }}
+      >
+        <HighlightPlaceholders text={text} />
+      </div>
+    </div>
+  );
+}
+
 /** Label shown above a copy box (parsed from the first line of the fenced block). */
 function HelpCopyBox({ label, text }: { label?: string; text: string }) {
   const { t } = useTranslation();
@@ -153,7 +274,18 @@ function HelpCopyBox({ label, text }: { label?: string; text: string }) {
           )}
         </button>
       </div>
-      <div className="cursor-pointer px-4 py-3" onClick={copy}>
+      <div
+        className="cursor-pointer px-4 py-3"
+        onClick={copy}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            void copy();
+          }
+        }}
+      >
         <HighlightPlaceholders text={text} />
       </div>
     </div>
@@ -207,7 +339,7 @@ export function HelpMarkdown({ children }: { children: string }) {
       remarkPlugins={[remarkGfm]}
       components={{
         table: ({ children: tableChildren }) => (
-          <div className="-mx-1 overflow-x-auto px-1">
+          <div className="help-table-scroll -mx-1 overflow-x-auto px-1">
             <table className="w-full min-w-[36rem] border-collapse text-left text-sm">
               {tableChildren}
             </table>
@@ -245,6 +377,26 @@ export function HelpMarkdown({ children }: { children: string }) {
             const text = (label ? lines.slice(1) : lines).join("\n").trim();
             return <HelpCopyBox label={label} text={text} />;
           }
+          if (language === "script") {
+            // Bilingual script card: `# label`, then `--en` / `--zh` sections.
+            const label = lines[0]?.startsWith("# ") ? lines[0].slice(2).trim() : undefined;
+            let en = "";
+            let zh = "";
+            let active: "en" | "zh" | null = null;
+            for (const line of label ? lines.slice(1) : lines) {
+              const trimmed = line.trim();
+              if (trimmed === "--en") {
+                active = "en";
+              } else if (trimmed === "--zh") {
+                active = "zh";
+              } else if (active === "en") {
+                en += (en ? "\n" : "") + line;
+              } else if (active === "zh") {
+                zh += (zh ? "\n" : "") + line;
+              }
+            }
+            return <HelpScriptCard label={label} en={en.trim()} zh={zh.trim()} />;
+          }
           if (language === "diagram") {
             const title = lines[0].replace(/^#\s*/, "").trim() || "Diagram";
             return <HelpDiagramPlaceholder title={title} body={lines.slice(1).join("\n").trim()} />;
@@ -277,16 +429,30 @@ export function HelpMarkdown({ children }: { children: string }) {
         strong: ({ children: strongChildren }) => (
           <strong className="font-semibold text-foreground">{strongChildren}</strong>
         ),
-        a: ({ children: aChildren, href }) => (
-          <a
-            href={href}
-            target="_blank"
-            rel="noreferrer"
-            className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
-          >
-            {aChildren}
-          </a>
-        ),
+        a: ({ children: aChildren, href }) => {
+          // Internal article/app links navigate in place; only true external
+          // links open a new tab.
+          if (typeof href === "string" && href.startsWith("/")) {
+            return (
+              <a
+                href={href}
+                className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
+              >
+                {aChildren}
+              </a>
+            );
+          }
+          return (
+            <a
+              href={href}
+              target="_blank"
+              rel="noreferrer"
+              className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
+            >
+              {aChildren}
+            </a>
+          );
+        },
         ul: ({ children: ulChildren }) => (
           <ul className="list-disc space-y-3 pl-5 marker:text-[color:var(--brand-link)]">
             {ulChildren}

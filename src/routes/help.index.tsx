@@ -1,6 +1,6 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { LifeBuoy, Search, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, useReducedMotion } from "motion/react";
 import { z } from "zod";
@@ -10,7 +10,6 @@ import { PublicPage } from "@/components/layout/PublicPage";
 import { useAuth } from "@/features/auth/useAuth";
 import { HelpArticleLink, useSupportWhatsAppHref } from "@/features/help/components";
 import {
-  getFeaturedHelpArticles,
   getHelpCategory,
   getHelpIcon,
   getHelpTopics,
@@ -21,7 +20,31 @@ import { cn } from "@/lib/utils";
 
 import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/help/")({
-  validateSearch: z.object({ audience: z.enum(["tutors", "parents"]).optional() }),
+  // `q` prefills the search box when arriving from a sub-header search on a
+  // topic/article page (issue #500: persistent Help search), so the index
+  // immediately renders the results view.
+  validateSearch: z.object({
+    // TanStack JSON-decodes search params, so a hand-typed /help?audience=1
+    // arrives as a number and a bare z.enum would 500 on the cold URL
+    // (GLM review round 2, verified against /tutors?q=123). Invalid values
+    // fall back to the defaults instead of rejecting the navigation.
+    audience: z
+      .preprocess(
+        (v) => (v === "tutors" || v === "parents" ? v : undefined),
+        z.enum(["tutors", "parents"]).optional(),
+      )
+      .optional(),
+    q: z
+      .preprocess(
+        // Total over every JSON-parseable value (round 3: ?q=null/[1]/{a:1}
+        // would otherwise reject and 500 the cold SSR load). Numbers and
+        // booleans stringify; objects/arrays carry no usable query and are
+        // dropped, like null.
+        (v) => (v != null && typeof v !== "object" ? String(v) : undefined),
+        z.string().optional(),
+      )
+      .optional(),
+  }),
   head: () => ({
     meta: [
       { title: "Help Centre | MatchMax" },
@@ -45,41 +68,59 @@ export const Route = createFileRoute("/help/")({
 
 type AudienceTab = "tutors" | "parents";
 
-function FeaturedGuideCard({ article }: { article: HelpArticle }) {
+/** Quick-link chips that swap with the audience pill (issue #500, copy lock). */
+const QUICK_CHIPS: Record<AudienceTab, { key: string; to: { category: string; slug: string } }[]> =
+  {
+    tutors: [
+      {
+        key: "help.chip_tutor_fee",
+        to: { category: "payments-policies", slug: "admin-fee-structure" },
+      },
+      {
+        key: "help.chip_tutor_intro",
+        to: { category: "parent-communication", slug: "introduce-yourself-whatsapp" },
+      },
+      {
+        key: "help.chip_tutor_dates",
+        to: { category: "scheduling-logistics", slug: "coordinate-lesson-dates" },
+      },
+    ],
+    parents: [
+      {
+        key: "help.chip_parent_match",
+        to: { category: "parent-getting-started", slug: "request-a-tutor-and-get-matched" },
+      },
+      {
+        key: "help.chip_parent_pay",
+        to: {
+          category: "parent-payments",
+          slug: "understand-zero-parent-commission-and-tutor-admin-fees",
+        },
+      },
+      {
+        key: "help.chip_parent_first",
+        to: { category: "parent-scheduling", slug: "prepare-for-your-first-lesson" },
+      },
+    ],
+  };
+
+function QuickChips({ activeTab }: { activeTab: AudienceTab }) {
   const { t } = useTranslation();
-  const Icon = getHelpIcon(article.icon);
-  const isHandbook = article.category === "tutor-guide";
 
   return (
-    <HelpArticleLink
-      article={article}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-border bg-card transition-colors hover:border-[color:var(--foreground)]/25"
-    >
-      <div className="relative aspect-[21/9] shrink-0 border-b border-border bg-muted">
-        <Icon
-          className="absolute left-1/2 top-1/2 h-12 w-12 -translate-x-1/2 -translate-y-1/2 text-[color:var(--brand-link)]"
-          aria-hidden="true"
-        />
-        {isHandbook ? (
-          <span className="absolute left-4 top-4 rounded-full bg-[color:var(--foreground)] px-3 py-1 text-[11px] font-medium text-[color:var(--background)]">
-            {t("help.must_read")}
-          </span>
-        ) : null}
-      </div>
-      <div className="flex flex-1 flex-col p-5">
-        <p className="text-base font-bold leading-snug tracking-tight text-foreground sm:text-lg">
-          {article.title}
-        </p>
-        <p className="mt-2 line-clamp-3 text-sm leading-6 text-muted-foreground">
-          {article.summary}
-        </p>
-        {article.status === "draft" ? (
-          <span className="mt-3 inline-flex w-fit items-center rounded-full border border-border px-2.5 py-0.5 text-[11px] font-medium text-muted-foreground">
-            {t("help.coming_soon_badge")}
-          </span>
-        ) : null}
-      </div>
-    </HelpArticleLink>
+    <div className="mx-auto mt-6 flex max-w-3xl flex-wrap items-center justify-center gap-2">
+      <span className="mr-1 text-sm text-muted-foreground">{t("help.chips_label")}</span>
+      {QUICK_CHIPS[activeTab].map((chip) => (
+        <Link
+          key={chip.key}
+          to="/help/$category/$slug"
+          params={{ category: chip.to.category, slug: chip.to.slug }}
+          className="inline-flex h-9 items-center rounded-full border border-border bg-[color:var(--surface)] px-4 text-sm font-medium text-foreground transition-colors hover:bg-[color:var(--surface-hover)] focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] focus-visible:outline-none"
+        >
+          {t(chip.key)}
+        </Link>
+      ))}
+    </div>
   );
 }
 
@@ -90,17 +131,14 @@ function TopicCategoryCard({
   categorySlug: string;
   articles: HelpArticle[];
 }) {
-  const { t } = useTranslation();
   const category = getHelpCategory(categorySlug);
   if (!category) return null;
   const Icon = getHelpIcon(category.icon);
 
   return (
-    <section className="rounded-2xl border border-border bg-card p-5 sm:p-6">
+    <section className="rounded-[26px] border border-border bg-card p-5 sm:p-6">
       <div className="flex items-center gap-3">
-        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-border bg-muted">
-          <Icon className="h-5 w-5 text-[color:var(--brand-link)]" aria-hidden="true" />
-        </span>
+        <Icon className="h-5 w-5 shrink-0 text-[color:var(--brand-link)]" aria-hidden="true" />
         <h3 className="text-base font-bold leading-snug tracking-tight text-foreground">
           {category.name}
         </h3>
@@ -116,11 +154,6 @@ function TopicCategoryCard({
                 {article.summary}
               </span>
             </HelpArticleLink>
-            {article.status === "draft" ? (
-              <span className="mt-1.5 inline-block text-[11px] font-medium text-muted-foreground/80">
-                {t("help.coming_soon_badge")}
-              </span>
-            ) : null}
           </li>
         ))}
       </ul>
@@ -180,24 +213,46 @@ function HelpCentrePage() {
   const { hasRole } = useAuth();
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
-  const { audience } = Route.useSearch();
-  const [query, setQuery] = useState("");
+  const { audience, q } = Route.useSearch();
+  const urlQuery = q ?? "";
+  // The URL is the source of truth for the active query (article pages link
+  // here with ?q=); the draft keeps typing snappy and the URL honest.
+  const [query, setQueryDraft] = useState(urlQuery);
   const supportHref = useSupportWhatsAppHref();
 
   // Tutors land on the tutor tab; everyone else on the parents tab.
   const activeTab: AudienceTab = audience ?? (hasRole("tutor") ? "tutors" : "parents");
   const contentAudience = activeTab === "tutors" ? "tutor" : "parent";
 
-  const setTab = (tab: AudienceTab) => {
-    // The parents tab is the default, so it clears the param for clean URLs.
-    navigate({
+  useEffect(() => {
+    setQueryDraft(urlQuery);
+  }, [urlQuery]);
+  const setQuery = (value: string) => {
+    setQueryDraft(value);
+    void navigate({
       to: "/help",
-      search: tab === "tutors" ? { audience: "tutors" } : {},
+      search: {
+        audience,
+        q: value.trim() ? value : undefined,
+      },
       replace: true,
     });
   };
 
-  const featured = useMemo(() => getFeaturedHelpArticles(contentAudience), [contentAudience]);
+  const setTab = (tab: AudienceTab) => {
+    // The parents tab is the default, so it clears the param for clean URLs.
+    // An active search survives the switch (GLM review round 2: the results
+    // view and the URL must not diverge) — results just re-filter.
+    navigate({
+      to: "/help",
+      search: {
+        audience: tab === "tutors" ? ("tutors" as const) : undefined,
+        q: query.trim() ? query : undefined,
+      },
+      replace: true,
+    });
+  };
+
   const topics = useMemo(() => getHelpTopics(contentAudience), [contentAudience]);
   const results = useMemo(
     () => searchHelpArticles(query, contentAudience),
@@ -286,39 +341,27 @@ function HelpCentrePage() {
               </button>
             ))}
           </div>
+          <QuickChips activeTab={activeTab} />
         </div>
       </section>
 
       {isSearching ? (
         <SearchResults query={query.trim()} results={results} />
       ) : (
-        <>
-          <section className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 lg:px-12">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              {t("help.featured_title")}
-            </h2>
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {featured.map((article) => (
-                <FeaturedGuideCard key={article.slug} article={article} />
-              ))}
-            </div>
-          </section>
-
-          <section className="mx-auto w-full max-w-[1600px] px-5 pb-14 sm:px-8 lg:px-12">
-            <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-              {t("help.topics_title")}
-            </h2>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {topics.map(({ category, articles }) => (
-                <TopicCategoryCard
-                  key={category.slug}
-                  categorySlug={category.slug}
-                  articles={articles}
-                />
-              ))}
-            </div>
-          </section>
-        </>
+        <section className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 lg:px-12">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
+            {t("help.topics_title")}
+          </h2>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {topics.map(({ category, articles }) => (
+              <TopicCategoryCard
+                key={category.slug}
+                categorySlug={category.slug}
+                articles={articles}
+              />
+            ))}
+          </div>
+        </section>
       )}
 
       <section className="border-t border-border bg-muted/40">

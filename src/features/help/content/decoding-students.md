@@ -6,9 +6,10 @@ audience: tutor
 summary: Educational-psychology frameworks in practice — Self-Determination Theory, student profiles from high achievers to burnout, and micro-scaffolding that beats task avoidance.
 icon: graduation-cap
 tags: [motivation, SEN, ADHD, dyslexia, anxiety, burnout, scaffolding, psychology]
-featured: false
 order: 3
 status: published
+author: MatchMax Team
+updated: 2026-10-29
 ---
 # Decoding Students: Motivation, Interventions, and SEN
 
@@ -71,3 +72,12 @@ A staircase graphic showing how a massive task is broken down into micro-steps
 to combat task avoidance. Sequence from Step 1 at the bottom to Step 8 at the
 top.
 ```
+
+## Related guides
+
+- [The first lesson: a diagnostic, not a lecture](/help/pedagogy-excellence/first-trial-lesson-diagnostic)
+- [Pacing lessons for high-stakes exams (IB, DSE, A-Level)](/help/pedagogy-excellence/pacing-exam-prep)
+- [Teaching Tactics, Lesson Blueprints, and Resource Vault](/help/pedagogy-excellence/lesson-blueprints)
+- [Post-lesson updates: the Rule of 3](/help/parent-communication/post-lesson-feedback)
+
+Still stuck? Email contact@matchmax.hk or message the MatchMax team on WhatsApp. — MatchMax Team

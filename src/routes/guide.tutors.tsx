@@ -68,7 +68,8 @@ function GuideTutorsPage() {
             {t("guide.tutors.intro")}
           </p>
           <Link
-            to="/tutor-playbook"
+            to="/help"
+            search={{ audience: "tutors" }}
             className="mt-5 inline-flex items-center gap-2 rounded-full bg-[color:var(--accent)] px-4 py-2 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--accent)]/70"
           >
             <ClipboardList className="h-4 w-4 shrink-0" aria-hidden="true" />
@@ -127,7 +128,8 @@ function GuideTutorsPage() {
           </Button>
           <p className="text-sm text-[color:var(--ink)]/60 sm:col-span-2">
             <Link
-              to="/tutor-playbook"
+              to="/help"
+              search={{ audience: "tutors" }}
               className="font-bold text-[color:var(--brand-link)] underline underline-offset-4 hover:opacity-80"
             >
               {t("guide.tutors.playbook_link")}

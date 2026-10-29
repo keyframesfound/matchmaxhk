@@ -26,6 +26,8 @@ type CardSpec = {
   primaryLabelKey: string;
   /** Appends `{ post: true }` to the primary link (case-posting entry). */
   primaryPost?: boolean;
+  /** Explicit search params for the primary link (e.g. Help audience tab). */
+  primarySearch?: Record<string, unknown>;
   secondaryTo?: string;
   secondaryLabelKey?: string;
   /** data-tour anchor for the coach-mark tours (issue #397). */
@@ -64,7 +66,8 @@ const TUTOR_ACTION_CARDS: CardSpec[] = [
     tagColor: "gray",
     headlineKey: "dashboard.actions.tutor_guide_headline",
     descriptionKey: "dashboard.actions.tutor_guide_desc",
-    primaryTo: "/tutor-playbook",
+    primaryTo: "/help",
+    primarySearch: { audience: "tutors" },
     primaryLabelKey: "dashboard.actions.tutor_guide_primary",
     secondaryTo: "/help",
     secondaryLabelKey: "dashboard.actions.secondary_help_center",
@@ -154,7 +157,7 @@ export function SuggestedActionsSection({ isTutor }: { isTutor: boolean }) {
             descriptionKey={card.descriptionKey}
             primaryTo={card.primaryTo}
             primaryLabelKey={card.primaryLabelKey}
-            primarySearch={card.primaryPost ? { post: true } : undefined}
+            primarySearch={card.primarySearch ?? (card.primaryPost ? { post: true } : undefined)}
             secondaryTo={card.secondaryTo}
             secondaryLabelKey={card.secondaryLabelKey}
             dataTour={card.tourId}
