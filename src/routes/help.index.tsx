@@ -34,13 +34,13 @@ export const Route = createFileRoute("/help/")({
         z.enum(["tutors", "parents"]).optional(),
       )
       .optional(),
-    // `q` prefills the search box when arriving from a sub-header search on a
-    // topic/article page (issue #500: persistent Help search), so the index
-    // immediately renders the results view. Numbers/booleans are stringified
-    // so /help?q=123 renders search results instead of a 500.
     q: z
       .preprocess(
-        (v) => (typeof v === "number" || typeof v === "boolean" ? String(v) : v),
+        // Total over every JSON-parseable value (round 3: ?q=null/[1]/{a:1}
+        // would otherwise reject and 500 the cold SSR load). Numbers and
+        // booleans stringify; objects/arrays carry no usable query and are
+        // dropped, like null.
+        (v) => (v != null && typeof v !== "object" ? String(v) : undefined),
         z.string().optional(),
       )
       .optional(),
