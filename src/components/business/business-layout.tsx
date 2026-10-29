@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import {
   BookOpen,
   ClipboardList,
@@ -147,19 +147,25 @@ export function BusinessLayout({
       headerExtra={
         <>
           <PlanBadge plan={organization.plan} />
-          <a
-            href={`/business/${organization.slug}`}
+          <Link
+            to="/business/$slug"
+            params={{ slug: organization.slug }}
             target="_blank"
             rel="noreferrer"
             className="hidden text-xs text-muted-foreground hover:text-[color:var(--brand-link)] hover:underline md:inline"
           >
             matchmax.hk/business/{organization.slug}
-          </a>
+          </Link>
           <Button asChild variant="outline" size="sm">
-            <a href={`/business/${organization.slug}`} target="_blank" rel="noreferrer">
+            <Link
+              to="/business/$slug"
+              params={{ slug: organization.slug }}
+              target="_blank"
+              rel="noreferrer"
+            >
               <ExternalLink className="mr-1.5 h-4 w-4" />
               Public site
-            </a>
+            </Link>
           </Button>
           <Button
             variant="outline"
@@ -178,9 +184,14 @@ export function BusinessLayout({
             <UsageMeter used={usage.coursesUsed} limit={usage.courseLimit} label="Courses posted" />
           ) : null}
           <Button asChild variant="outline" size="sm" className="w-full">
-            <a href={`/business/${organization.slug}`} target="_blank" rel="noreferrer">
+            <Link
+              to="/business/$slug"
+              params={{ slug: organization.slug }}
+              target="_blank"
+              rel="noreferrer"
+            >
               View public profile
-            </a>
+            </Link>
           </Button>
         </div>
       }

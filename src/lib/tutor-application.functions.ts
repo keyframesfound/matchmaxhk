@@ -130,6 +130,9 @@ async function sendCardLiveEmail(params: {
 }
 
 export const generateSelfIntroduction = createServerFn({ method: "POST" })
+  // Spends the account's OpenRouter quota: never callable without a session
+  // (the /join form sits behind the _authenticated layout anyway).
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
@@ -196,6 +199,8 @@ const suggestedRateSchema = z.object({
 });
 
 export const suggestHourlyRate = createServerFn({ method: "POST" })
+  // Same OpenRouter-quota rule as generateSelfIntroduction.
+  .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({

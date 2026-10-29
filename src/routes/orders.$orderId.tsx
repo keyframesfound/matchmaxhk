@@ -516,10 +516,10 @@ function OrderPage() {
             </div>
             {order.action === "download" && isShopProduct && order.materialSlug ? (
               <Button asChild variant="solid" color="accent" className="w-full font-bold">
-                <a href={`/notes/${order.materialSlug}`}>
+                <Link to="/notes/$slug" params={{ slug: order.materialSlug }}>
                   <PlayCircle className="mr-2 h-4 w-4" aria-hidden />
                   {t("orders.open_course_button")}
-                </a>
+                </Link>
               </Button>
             ) : null}
             {order.action === "download" &&

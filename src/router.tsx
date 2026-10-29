@@ -12,7 +12,17 @@ import {
 } from "@/features/i18n/routing";
 
 export const getRouter = () => {
-  const queryClient = new QueryClient();
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        // Navigating back to a recently seen page must render from cache
+        // instead of flashing its loading skeleton again; queries still
+        // refetch in the background once stale (or on window focus).
+        staleTime: 30_000,
+        retry: 1,
+      },
+    },
+  });
 
   // The URL locale lives in a per-router-instance closure: on the server a
   // fresh router is built per request, so rendered link hrefs can never leak
@@ -47,6 +57,10 @@ export const getRouter = () => {
     context: { queryClient },
     rewrite,
     scrollRestoration: true,
+    // Hover/focus intent prefetches route loaders, so by the time a link is
+    // clicked the data (and the chunk) is usually already cached and the
+    // pending skeleton never appears.
+    defaultPreload: "intent",
     defaultPreloadStaleTime: 0,
     defaultPendingComponent: PageSkeleton,
   });

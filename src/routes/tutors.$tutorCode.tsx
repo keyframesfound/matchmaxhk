@@ -1,5 +1,5 @@
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { useMemo, useEffect, useState } from "react";
 import {
   MapPin,
@@ -359,14 +359,24 @@ function TutorProfileSkeleton() {
 }
 
 export const Route = createFileRoute("/tutors/$tutorCode")({
-  loader: async ({ params }) => {
-    const tutor = await fetchTutorByCode(params.tutorCode);
+  loader: async ({
+    params,
+    context,
+  }: {
+    params: { tutorCode: string };
+    context: { queryClient: QueryClient };
+  }) => {
+    // Read-through react-query cache: hover-intent prefetch warms it, a click
+    // resolves instantly, and ["tutors"] invalidations cover the detail page.
+    const tutor = await context.queryClient.ensureQueryData({
+      queryKey: ["tutors", "detail", params.tutorCode],
+      queryFn: () => fetchTutorByCode(params.tutorCode),
+    });
     if (!tutor) throw notFound();
     return { tutor };
   },
   pendingComponent: TutorProfileSkeleton,
   pendingMs: 0,
-  pendingMinMs: 400,
   head: ({ loaderData, params }) => {
     const url = canonicalUrl(`/tutors/${params.tutorCode}`);
     if (!loaderData) {

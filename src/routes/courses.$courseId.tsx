@@ -1,6 +1,6 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { type QueryClient, useQuery } from "@tanstack/react-query";
 import {
   ArrowLeft,
   ArrowUpRight,
@@ -37,8 +37,19 @@ export const Route = createFileRoute("/courses/$courseId")({
   beforeLoad: () => {
     if (!CENTRE_MARKET_ENABLED) throw notFound();
   },
-  loader: async ({ params }) => {
-    const course = await fetchCourseById(params.courseId);
+  loader: async ({
+    params,
+    context,
+  }: {
+    params: { courseId: string };
+    context: { queryClient: QueryClient };
+  }) => {
+    // Read-through cache: hover-intent prefetch warms it, ["courses"]
+    // invalidations from the business console keep it fresh.
+    const course = await context.queryClient.ensureQueryData({
+      queryKey: ["courses", "detail", params.courseId],
+      queryFn: () => fetchCourseById(params.courseId),
+    });
     if (!course) throw notFound();
     return course;
   },
@@ -160,10 +171,10 @@ function BusinessProfileCard({
 
       <div className="mt-4 flex items-center gap-2">
         <Button asChild className="flex-1 font-bold">
-          <a href={`/business/${organization.slug}`}>
+          <Link to="/business/$slug" params={{ slug: organization.slug }}>
             View profile
             <ArrowUpRight className="ml-1 h-4 w-4" aria-hidden />
-          </a>
+          </Link>
         </Button>
         {organization.website_url ? (
           <Button asChild variant="outline" className="flex-1">

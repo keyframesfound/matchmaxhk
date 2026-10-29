@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
 import { GraduationCap, Hash, SearchX } from "lucide-react";
@@ -120,7 +120,34 @@ const searchSchema = z.object({
 });
 type SearchState = z.infer<typeof searchSchema>;
 
+async function fetchWhatsappNumber(): Promise<string> {
+  const { data, error } = await supabase
+    .from("app_settings")
+    .select("value")
+    .eq("key", "whatsapp_number")
+    .maybeSingle();
+  if (error) throw error;
+  const value = data?.value;
+  return typeof value === "string" ? value : "";
+}
+
+// Hover-intent prefetch target: the directory list (shared cache key with
+// the landing page) resolves before paint instead of flashing skeletons.
+const tutorsLoader = async ({ context }: { context: { queryClient: QueryClient } }) => {
+  await Promise.all([
+    context.queryClient.ensureQueryData({
+      queryKey: ["tutors", "published"],
+      queryFn: fetchPublishedTutors,
+    }),
+    context.queryClient.ensureQueryData({
+      queryKey: ["settings", "whatsapp_number"],
+      queryFn: fetchWhatsappNumber,
+    }),
+  ]);
+};
+
 export const Route = createFileRoute("/tutors/")({
+  loader: tutorsLoader,
   validateSearch: (s) => searchSchema.parse(s),
   head: () => {
     const locale = currentSeoLocale();
@@ -180,16 +207,7 @@ function TutorsDirectory() {
 
   const { data: whatsappNumber = "" } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("app_settings")
-        .select("value")
-        .eq("key", "whatsapp_number")
-        .maybeSingle();
-      if (error) throw error;
-      const value = data?.value;
-      return typeof value === "string" ? value : "";
-    },
+    queryFn: fetchWhatsappNumber,
   });
 
   const categoryFilter = (draft.category ?? "").toLowerCase();

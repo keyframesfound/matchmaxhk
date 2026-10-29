@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarClock, Wallet } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -13,6 +13,11 @@ import { MatchStageChip } from "@/features/cases/parent/match-status-card";
 
 export const Route = createFileRoute("/_authenticated/account/cases")({
   ssr: false,
+  loader: ({ context }: { context: { queryClient: QueryClient } }) =>
+    context.queryClient.ensureQueryData({
+      queryKey: ["sor", "parent-cases"],
+      queryFn: getMyParentCases,
+    }),
   head: () => ({
     meta: [{ title: "My cases | MatchMax" }, { name: "robots", content: "noindex" }],
   }),

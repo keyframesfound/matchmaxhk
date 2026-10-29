@@ -1,4 +1,4 @@
-import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
@@ -124,10 +124,10 @@ function AdminLayout() {
           <>
             <AdminCommandPalette />
             <Button asChild variant="outline" size="sm">
-              <a href="/" target="_blank" rel="noreferrer">
+              <Link to="/" target="_blank" rel="noreferrer">
                 <ExternalLink className="mr-1.5 h-4 w-4" />
                 View site
-              </a>
+              </Link>
             </Button>
           </>
         }
