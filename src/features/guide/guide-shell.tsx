@@ -210,6 +210,21 @@ export function GuideHeading({ children }: { children: ReactNode }) {
   );
 }
 
+/**
+ * Issue #498 (restores the #492 CEO lock): decorative 16:9 illustration slot.
+ * The frame is fixed (aspect-video, rounded-2xl, sky wash), so swapping the
+ * file in public/guide/<slot>.webp for a real asset later shifts nothing.
+ * Alt stays empty: the images are decorative and must never carry copy that
+ * duplicates the H1.
+ */
+export function GuideHeroImage({ slot }: { slot: string }) {
+  return (
+    <figure className="aspect-video mx-auto w-full max-w-4xl overflow-hidden rounded-2xl bg-[#E3ECF6]">
+      <img src={`/guide/${slot}.webp`} alt="" className="h-full w-full object-cover" />
+    </figure>
+  );
+}
+
 export function GuidePage({ current, children }: { current: GuideTab; children: ReactNode }) {
   const { hash } = useLocation();
   const pathname = useRouterState({ select: (s) => s.location.pathname });

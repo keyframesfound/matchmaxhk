@@ -381,7 +381,9 @@ function BusinessPublicProfile() {
                   You're viewing your public profile, edit it inline or in the console.
                 </p>
                 <Button asChild variant="outline" size="sm">
-                  <a href="/business">Open console</a>
+                  <Link to="/business" search={{ tab: undefined }}>
+                    Open console
+                  </Link>
                 </Button>
               </div>
             )}

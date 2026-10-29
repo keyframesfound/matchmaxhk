@@ -1,9 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Briefcase, CircleCheck, CircleX, FileText, ShieldCheck } from "lucide-react";
+import { ArrowRight, BadgeCheck, Briefcase, CircleCheck, CircleX, FileText } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { GuideCtaRow, GuideHeading, GuidePage, GuideSteps } from "@/features/guide/guide-shell";
+import {
+  GuideCtaRow,
+  GuideHeading,
+  GuideHeroImage,
+  GuidePage,
+  GuideSteps,
+} from "@/features/guide/guide-shell";
 
 import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/guide/verification")({
@@ -31,25 +37,27 @@ export const Route = createFileRoute("/guide/verification")({
 
 /**
  * Issue #208: the verification detail page behind the hub's summary block.
- * Issue #492: tier card order locked Gold → Professionals → Stated with
- * amber / azure-wash / white contrast, connected 3-step process, and one
- * merged disclaimer card (replaces the duplicated "does not mean" +
- * "badge covers" blocks).
+ * Issue #492: tier card order locked Verified → Professionals → Stated,
+ * connected 3-step process, and one merged disclaimer card (replaces the
+ * duplicated "does not mean" + "badge covers" blocks).
+ * Issue #498: the verified tier is the #411 azure Blue Tick (BadgeCheck,
+ * #1d9bf0 fill like the tutor card) — the amber-gold trophy chrome is gone;
+ * Professionals and Stated stay secondary/neutral.
  */
 function GuideVerificationPage() {
   const { t } = useTranslation();
 
   const tiers: {
     key: "tier2" | "professionals" | "tier1";
-    icon: typeof ShieldCheck;
+    icon: typeof BadgeCheck;
     className: string;
     iconClass: string;
   }[] = [
     {
       key: "tier2",
-      icon: ShieldCheck,
-      className: "border-amber-300 bg-amber-50/40 dark:border-amber-500/40 dark:bg-amber-400/10",
-      iconClass: "text-amber-600 dark:text-amber-400",
+      icon: BadgeCheck,
+      className: "border-[#1d9bf0] bg-[#E3ECF6]/60 dark:border-[#1d9bf0]/50 dark:bg-[#1d9bf0]/10",
+      iconClass: "fill-[#1d9bf0] text-white dark:text-[#0b2230]",
     },
     {
       key: "professionals",
@@ -73,8 +81,9 @@ function GuideVerificationPage() {
 
   return (
     <GuidePage current="/guide/verification">
+      {/* Issue #498: narrow rails centred (mx-auto) + hero illustration slot. */}
       <section className="mx-auto max-w-[1600px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
-        <div className="max-w-3xl">
+        <div className="mx-auto max-w-3xl">
           <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
             {t("hiw.verification_title")}
           </h1>
@@ -83,7 +92,11 @@ function GuideVerificationPage() {
           </p>
         </div>
 
-        <div className="mt-12 max-w-4xl">
+        <div className="mt-10">
+          <GuideHeroImage slot="verification" />
+        </div>
+
+        <div className="mx-auto mt-12 max-w-4xl">
           <GuideHeading>{t("guide.verification.tiers_title")}</GuideHeading>
           <div className="mt-6 space-y-4">
             {tiers.map(({ key, icon: Icon, className, iconClass }) => (
@@ -100,14 +113,14 @@ function GuideVerificationPage() {
           </div>
         </div>
 
-        <div className="mt-14 max-w-4xl">
+        <div className="mx-auto mt-14 max-w-4xl">
           <GuideHeading>{t("guide.verification.process_title")}</GuideHeading>
           <div className="mt-6">
             <GuideSteps steps={process} />
           </div>
         </div>
 
-        <div className="mt-14 max-w-4xl">
+        <div className="mx-auto mt-14 max-w-4xl">
           <GuideHeading>{t("guide.verification.not_mean_title")}</GuideHeading>
           <div className="mt-6 space-y-3">
             <div className="flex items-start gap-3 rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6">

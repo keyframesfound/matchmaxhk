@@ -1,5 +1,5 @@
 /**
- * Issues #205 + #287, case review rules (pure half).
+ * Issues #205 + #287 + #503, case review rules (pure half).
  *
  * One score, one comment, per direction, per case. A comment containing a
  * phone, email, or WhatsApp reference is HELD, not published. The card shows
@@ -8,6 +8,10 @@
  * Comment bounds differ by direction: parent→tutor 20–600 (#205), tutor→parent
  * 20–400 (#287 P7). Both bounds are enforced server-side; the client mirrors
  * them for inline hints.
+ *
+ * #503: reviews unlock after at least one BILATERALLY confirmed lesson (both
+ * confirm columns set), stay editable while the case is ongoing, and freeze
+ * once the case ends (sor_status 'closed') — enforced in the submit fns.
  */
 
 import { CONTACT_EMAIL_PATTERN } from "@/lib/contact-filter";
@@ -150,7 +154,31 @@ export function buildParentDisplayLine(parts: {
   return tail ? `Parent of ${grade} ${tail}` : `Parent of ${grade}`;
 }
 
-/** Can this parent review this case? A done lesson on the case is required (#205/#287). */
-export function parentCanReviewCase(lessons: { status: string }[]): boolean {
-  return lessons.some((l) => l.status === "done");
+/**
+ * #503 eligibility gate: ratings open after BOTH parties have confirmed at
+ * least one lesson on the case — the existing dual-confirm semantics (a
+ * lesson is 'confirmed' exactly when confirmed_by_parent_at AND
+ * confirmed_by_tutor_at are both set, per confirmLessonParent /
+ * confirmLessonTutor). "Tutor logged alone" (a done lesson marked from
+ * 'planned' with no parent confirm) does NOT unlock ratings, per the issue.
+ * The lesson must still be live-or-done (confirmed/done); a later cancel,
+ * late-cancel or no-show unwinds it.
+ */
+export type LessonConfirmRow = {
+  status: string;
+  confirmed_by_parent_at: string | null;
+  confirmed_by_tutor_at: string | null;
+};
+
+/** Can this parent review this case? A bilaterally confirmed lesson (#503). */
+export function parentCanReviewCase(lessons: LessonConfirmRow[]): boolean {
+  return lessons.some(
+    (l) =>
+      (l.status === "confirmed" || l.status === "done") &&
+      l.confirmed_by_parent_at != null &&
+      l.confirmed_by_tutor_at != null,
+  );
 }
+
+/** Direction-shared alias for the tutor submit fn (#503: same gate both ways). */
+export const caseHasVerifiedLesson = parentCanReviewCase;

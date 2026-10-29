@@ -215,6 +215,22 @@ export function PublicTutorCard({
     : null;
   const showParentFavorite = engagement ? isParentFavorite(engagement) : false;
   const statusLabel = statusKey ? t(statusKey) : "";
+  // Issue #502: the preferred/display name is the primary identity under the
+  // photo; the tutor code stays visible as secondary meta so parents can
+  // still quote the MM-T... code when requesting. Unnamed cards (display
+  // name blank or equal to the code) keep today's code-only rendering.
+  const formattedCode = formatTutorCode(tutor.tutor_code);
+  const displayName = tutor.display_name.trim();
+  const cardIdentity = displayName || formattedCode;
+  const isNamed = Boolean(displayName) && displayName !== formattedCode;
+  const compareLabel = (selected: boolean) =>
+    selected
+      ? isNamed
+        ? t("tutor_card.compare_remove_named", { name: displayName, code: formattedCode })
+        : t("tutor_card.compare_remove", { code: formattedCode })
+      : isNamed
+        ? t("tutor_card.compare_add_named", { name: displayName, code: formattedCode })
+        : t("tutor_card.compare_add", { code: formattedCode });
   const primaryCredential = removeEmoji(
     activeHeadline ??
       tutor.undergrad_university ??
@@ -316,9 +332,11 @@ export function PublicTutorCard({
     event.stopPropagation();
     void shareOrCopy(
       {
-        // Issue #417: share title is the tutor's display name; the URL is the
-        // canonical profile path resolved at click time (SSR-safe).
-        title: tutor.display_name,
+        // Issue #417/#502: share title is the tutor's display name (falls
+        // back to the tutor code); the URL is the canonical profile path
+        // resolved at click time (SSR-safe). The text keeps the code so
+        // parents can quote it.
+        title: cardIdentity,
         // Issue #125: a flagged pricing field strips the rate, omit it.
         // Issue #319: the shared figure is always the card floor ("$X up/hr"),
         // never a range and never max_hourly_rate_hkd.
@@ -367,7 +385,11 @@ export function PublicTutorCard({
               {showPhoto ? (
                 <img
                   src={tutor.photo_url ?? ""}
-                  alt={t("tutor_card.tutor_alt", { code: formatTutorCode(tutor.tutor_code) })}
+                  alt={
+                    isNamed
+                      ? t("tutor_card.tutor_alt_named", { name: displayName, code: formattedCode })
+                      : t("tutor_card.tutor_alt", { code: formattedCode })
+                  }
                   loading="lazy"
                   decoding="async"
                   onError={() => setHasPhotoError(true)}
@@ -378,14 +400,23 @@ export function PublicTutorCard({
                 // the grey/muted circle fallback (no silhouettes anywhere).
                 <InitialAvatar
                   stableId={tutor.user_id ?? tutor.tutor_code}
-                  name={tutor.display_name || tutor.tutor_code}
+                  name={cardIdentity}
                   className="h-11 w-11 text-sm md:h-[3.25rem] md:w-[3.25rem] md:text-base"
                 />
               )}
             </div>
-            <p className="whitespace-nowrap text-xs font-semibold text-muted-foreground">
-              {formatTutorCode(tutor.tutor_code)}
+            {/* Issue #502: primary identity under the photo — display name
+                when set, else the tutor code (today's behaviour). */}
+            <p className="max-w-full whitespace-normal text-center text-xs font-semibold break-words text-muted-foreground">
+              {cardIdentity}
             </p>
+            {/* Issue #502: the code stays reachable for parent requests as a
+                small secondary line when a display name leads. */}
+            {isNamed ? (
+              <p className="max-w-full text-[11px] leading-tight text-muted-foreground">
+                ({formattedCode})
+              </p>
+            ) : null}
             {/* Issues #77/#52: tutor status badge (uni student / full-part-time
                 / examiner) under the tutor code. Wraps to two lines for long
                 labels instead of ellipsizing. */}
@@ -723,13 +754,7 @@ export function PublicTutorCard({
                   <button
                     type="button"
                     aria-pressed={compareSelected ?? false}
-                    aria-label={
-                      compareSelected
-                        ? t("tutor_card.compare_remove", {
-                            code: formatTutorCode(tutor.tutor_code),
-                          })
-                        : t("tutor_card.compare_add", { code: formatTutorCode(tutor.tutor_code) })
-                    }
+                    aria-label={compareLabel(compareSelected ?? false)}
                     onClick={handleCompareToggle}
                     onKeyDown={(event) => event.stopPropagation()}
                     className={cn(
@@ -746,11 +771,7 @@ export function PublicTutorCard({
                     )}
                   </button>
                 </TooltipTrigger>
-                <TooltipContent side="top">
-                  {compareSelected
-                    ? t("tutor_card.compare_remove", { code: formatTutorCode(tutor.tutor_code) })
-                    : t("tutor_card.compare_add", { code: formatTutorCode(tutor.tutor_code) })}
-                </TooltipContent>
+                <TooltipContent side="top">{compareLabel(Boolean(compareSelected))}</TooltipContent>
               </Tooltip>
             </TooltipProvider>
           ) : null}

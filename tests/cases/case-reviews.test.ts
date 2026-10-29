@@ -79,9 +79,41 @@ describe("case review rules (#205 + #287)", () => {
     expect(buildParentDisplayLine({})).toBe("Parent of a parent");
   });
 
-  it("review opens only after a done lesson (#287 acceptance)", () => {
-    expect(parentCanReviewCase([{ status: "confirmed" }])).toBe(false);
-    expect(parentCanReviewCase([{ status: "done" }, { status: "planned" }])).toBe(true);
+  it("#503: ratings open only after a BILATERALLY confirmed lesson", () => {
+    const noConfirms = { confirmed_by_parent_at: null, confirmed_by_tutor_at: null };
+    // A tutor-only logged done lesson (parent never confirmed) does NOT unlock.
+    expect(parentCanReviewCase([{ status: "done", ...noConfirms }])).toBe(false);
+    // Planned lessons unlock nothing, even when both sides confirmed.
+    expect(
+      parentCanReviewCase([
+        { status: "planned", confirmed_by_parent_at: "t", confirmed_by_tutor_at: "t" },
+      ]),
+    ).toBe(false);
+    // A cancelled lesson does not count even with both confirms on record.
+    expect(
+      parentCanReviewCase([
+        { status: "cancelled", confirmed_by_parent_at: "t", confirmed_by_tutor_at: "t" },
+      ]),
+    ).toBe(false);
+    // A live bilaterally confirmed lesson unlocks (#503 "dual-confirm").
+    expect(
+      parentCanReviewCase([
+        { status: "confirmed", confirmed_by_parent_at: "t", confirmed_by_tutor_at: "t" },
+      ]),
+    ).toBe(true);
+    // A done lesson from the normal flow (both confirms set) unlocks.
+    expect(
+      parentCanReviewCase([
+        { status: "done", confirmed_by_parent_at: "t", confirmed_by_tutor_at: "t" },
+        { status: "planned", ...noConfirms },
+      ]),
+    ).toBe(true);
+    // Tutor confirmed alone still waits for the parent (#503 explicit).
+    expect(
+      parentCanReviewCase([
+        { status: "done", confirmed_by_parent_at: null, confirmed_by_tutor_at: "t" },
+      ]),
+    ).toBe(false);
   });
 });
 

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import { useState } from "react";
@@ -186,7 +186,7 @@ function BusinessOverview() {
             description="You need a MatchMax account to access the business console."
             action={
               <Button asChild>
-                <a href="/auth">Sign in</a>
+                <Link to="/auth">Sign in</Link>
               </Button>
             }
           />
@@ -217,7 +217,7 @@ function BusinessOverview() {
               }
               secondaryAction={
                 <Button variant="outline" asChild>
-                  <a href="/pricing">Compare plans</a>
+                  <Link to="/pricing">Compare plans</Link>
                 </Button>
               }
             />
@@ -707,7 +707,7 @@ function RequestsPanel({
           </p>
         </div>
         <Button asChild variant="solid" color="blue" className="font-bold">
-          <a href="/business/cases/new">New case request</a>
+          <Link to="/business/cases/new">New case request</Link>
         </Button>
       </div>
 
@@ -727,7 +727,7 @@ function RequestsPanel({
           description="Engage an independent educator for a course module, exam clinic, or class series."
           action={
             <Button variant="solid" color="blue" className="font-bold" asChild>
-              <a href="/business/cases/new">New case request</a>
+              <Link to="/business/cases/new">New case request</Link>
             </Button>
           }
         />

@@ -192,6 +192,24 @@ function AccountPage() {
     enabled: Boolean(user),
   });
 
+  // #503: completed (ended + fee-settled) case count for the parent's own
+  // profile block — self-only SECURITY DEFINER RPC (auth.uid() inside), so no
+  // other account's number is reachable. Tolerant: a pre-migration deploy
+  // hides the count, never breaks the page.
+  const completedCasesQuery = useQuery({
+    queryKey: ["account", "completed-cases", user?.id],
+    queryFn: async () => {
+      const client = supabase as unknown as {
+        rpc: (fn: string) => Promise<{ data: unknown; error: { message: string } | null }>;
+      };
+      const { data, error } = await client.rpc("get_my_completed_case_count");
+      if (error || data == null) return 0;
+      const n = Number(Array.isArray(data) ? data[0] : data);
+      return Number.isFinite(n) ? n : 0;
+    },
+    enabled: Boolean(user),
+  });
+
   const hideMutation = useMutation({
     mutationFn: (input: { materialId: string; hidden: boolean }) => setNoteHidden({ data: input }),
     onSuccess: () => {
@@ -313,10 +331,10 @@ function AccountPage() {
               </Button>
             ) : null}
             <Button variant="outline" className="font-semibold" asChild>
-              <a href="/settings">
+              <Link to="/dashboard">
                 <Pencil className="mr-2 h-4 w-4" aria-hidden />
                 {t("account.edit_profile")}
-              </a>
+              </Link>
             </Button>
           </div>
         </section>
@@ -340,7 +358,7 @@ function AccountPage() {
               <p className="mt-1 text-sm text-muted-foreground">{t("account.tutor_cta_body")}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Button variant="solid" color="blue" className="font-bold" asChild>
-                  <a href="/join">{t("account.become_tutor")}</a>
+                  <Link to="/join">{t("account.become_tutor")}</Link>
                 </Button>
               </div>
             </section>
@@ -353,10 +371,10 @@ function AccountPage() {
             <div className="flex flex-wrap items-center justify-between gap-3">
               <h2 className="text-lg font-bold">{t("account.profile_block")}</h2>
               <Button variant="ghost" size="sm" className="font-semibold" asChild>
-                <a href="/settings#my-tutor">
+                <Link to="/dashboard" hash="my-tutor">
                   <Pencil className="mr-2 h-4 w-4" aria-hidden />
                   {t("account.edit")}
-                </a>
+                </Link>
               </Button>
             </div>
             <dl className="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
@@ -409,10 +427,10 @@ function AccountPage() {
                 {t("account.status_block")}
               </h2>
               <Button variant="ghost" size="sm" className="font-semibold" asChild>
-                <a href="/settings#availability">
+                <Link to="/dashboard" hash="availability">
                   <Pencil className="mr-2 h-4 w-4" aria-hidden />
                   {t("account.edit")}
-                </a>
+                </Link>
               </Button>
             </div>
             <p className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-[color:var(--ink)]">
@@ -447,10 +465,10 @@ function AccountPage() {
               {t("account.my_notes")}
             </h2>
             <Button variant="outline" className="font-semibold" asChild>
-              <a href="/account/notes/new">
+              <Link to="/account/notes/new">
                 <Plus className="mr-2 h-4 w-4" aria-hidden />
                 {t("account.add_note")}
-              </a>
+              </Link>
             </Button>
           </div>
 
@@ -463,10 +481,10 @@ function AccountPage() {
               <FilePlus2 className="h-8 w-8 text-muted-foreground" aria-hidden />
               <p className="text-sm text-muted-foreground">{t("account.no_notes")}</p>
               <Button variant="solid" color="accent" className="font-bold" asChild>
-                <a href="/account/notes/new">
+                <Link to="/account/notes/new">
                   <Plus className="mr-2 h-4 w-4" aria-hidden />
                   {t("account.add_note")}
-                </a>
+                </Link>
               </Button>
             </div>
           ) : (
@@ -509,9 +527,12 @@ function AccountPage() {
                   </div>
                   <div className="flex items-center gap-1">
                     <Button variant="ghost" size="sm" aria-label={t("account.edit_note")} asChild>
-                      <a href={`/account/notes/${material.id}/edit`}>
+                      <Link
+                        to="/account/notes/$materialId/edit"
+                        params={{ materialId: material.id }}
+                      >
                         <Pencil className="h-4 w-4" aria-hidden />
-                      </a>
+                      </Link>
                     </Button>
                     {(material.status === "published" || material.status === "hidden") && (
                       <Button
@@ -547,10 +568,10 @@ function AccountPage() {
               {t("account.my_services")}
             </h2>
             <Button variant="outline" className="font-semibold" asChild>
-              <a href="/account/services/new">
+              <Link to="/account/services/new">
                 <Plus className="mr-2 h-4 w-4" aria-hidden />
                 {t("account.add_service")}
-              </a>
+              </Link>
             </Button>
           </div>
 
@@ -563,10 +584,10 @@ function AccountPage() {
               <FilePlus2 className="h-8 w-8 text-muted-foreground" aria-hidden />
               <p className="text-sm text-muted-foreground">{t("account.no_services")}</p>
               <Button variant="solid" color="accent" className="font-bold" asChild>
-                <a href="/account/services/new">
+                <Link to="/account/services/new">
                   <Plus className="mr-2 h-4 w-4" aria-hidden />
                   {t("account.add_service")}
-                </a>
+                </Link>
               </Button>
             </div>
           ) : (
@@ -604,9 +625,9 @@ function AccountPage() {
                       aria-label={t("account.edit_service")}
                       asChild
                     >
-                      <a href={`/account/services/${gig.id}/edit`}>
+                      <Link to="/account/services/$materialId/edit" params={{ materialId: gig.id }}>
                         <Pencil className="h-4 w-4" aria-hidden />
-                      </a>
+                      </Link>
                     </Button>
                   </div>
                 </li>
@@ -638,9 +659,16 @@ function AccountPage() {
 
         {/* P6 parent block: my cases */}
         <section className="mt-12 space-y-4">
-          <h2 className="flex items-center gap-2 text-lg font-bold">
-            <Inbox className="h-5 w-5" aria-hidden />
-            {t("account.cases_block")}
+          <h2 className="flex flex-wrap items-center gap-3 text-lg font-bold">
+            <span className="flex items-center gap-2">
+              <Inbox className="h-5 w-5" aria-hidden />
+              {t("account.cases_block")}
+            </span>
+            {(completedCasesQuery.data ?? 0) > 0 ? (
+              <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-3 py-1 text-xs font-medium text-muted-foreground">
+                {t("account.completed_cases_count", { count: completedCasesQuery.data ?? 0 })}
+              </span>
+            ) : null}
           </h2>
           {myCasesQuery.isLoading ? (
             <div className="flex h-24 items-center justify-center rounded-xl border border-border bg-card">

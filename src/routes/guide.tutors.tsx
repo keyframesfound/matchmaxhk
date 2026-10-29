@@ -3,7 +3,13 @@ import { useTranslation } from "react-i18next";
 import { ArrowRight, CircleX, ClipboardList } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { GuideCtaRow, GuideHeading, GuidePage, GuideSteps } from "@/features/guide/guide-shell";
+import {
+  GuideCtaRow,
+  GuideHeading,
+  GuideHeroImage,
+  GuidePage,
+  GuideSteps,
+} from "@/features/guide/guide-shell";
 
 import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/guide/tutors")({
@@ -52,8 +58,9 @@ function GuideTutorsPage() {
 
   return (
     <GuidePage current="/guide/tutors">
+      {/* Issue #498: narrow rails centred (mx-auto) + hero illustration slot. */}
       <section className="mx-auto max-w-[1600px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
-        <div className="max-w-3xl">
+        <div className="mx-auto max-w-3xl">
           <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
             {t("guide.tutors.h1")}
           </h1>
@@ -69,14 +76,18 @@ function GuideTutorsPage() {
           </Link>
         </div>
 
-        <div className="mt-12 max-w-4xl">
+        <div className="mt-10">
+          <GuideHeroImage slot="tutors" />
+        </div>
+
+        <div className="mx-auto mt-12 max-w-4xl">
           <GuideHeading>{t("guide.tutors.steps_title")}</GuideHeading>
           <div className="mt-6">
             <GuideSteps steps={steps} />
           </div>
         </div>
 
-        <div className="mt-14 max-w-4xl">
+        <div className="mx-auto mt-14 max-w-4xl">
           <GuideHeading>{t("guide.not_do_title")}</GuideHeading>
           <div className="mt-6 space-y-3">
             {notDo.map(([label, body]) => (

@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
 import { Pencil, Rocket, X } from "lucide-react";
@@ -191,7 +191,7 @@ function PreviewPage() {
                 {t("preview.empty_body")}
               </p>
               <Button asChild variant="solid" color="blue" className="mt-4 font-bold">
-                <a href="/join">{t("preview.empty_cta")}</a>
+                <Link to="/join">{t("preview.empty_cta")}</Link>
               </Button>
             </div>
           </section>
@@ -206,20 +206,20 @@ function PreviewPage() {
       <div className="fixed inset-x-0 bottom-[calc(5rem+env(safe-area-inset-bottom))] z-40 border-t border-border bg-[color:var(--surface)] lg:bottom-0">
         <div className="mx-auto flex w-full max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Button variant="outline" className="font-semibold" asChild>
-            <a href="/dashboard#my-tutor">
+            <Link to="/dashboard" hash="my-tutor">
               <Pencil className="mr-2 h-4 w-4" aria-hidden />
               {t("preview.edit_cta")}
-            </a>
+            </Link>
           </Button>
           {/* #356: the submit/go-live CTA exists only while the card is not
               live, a live card shows no submit button. /join owns the
               existing confirmation flow (ack + verification + publish). */}
           {showGoLiveCta ? (
             <Button variant="solid" color="blue" className="font-bold" asChild>
-              <a href="/join">
+              <Link to="/join">
                 <Rocket className="mr-2 h-4 w-4" aria-hidden />
                 {t("preview.submit_cta")}
-              </a>
+              </Link>
             </Button>
           ) : null}
         </div>

@@ -1558,6 +1558,10 @@ export function ApplicationForm() {
     if (step === 1) {
       required("name", base.name.trim());
       rejectContact("name", base.name);
+      // Issue #502: the preferred name becomes the public display name, so
+      // the same step-level contact filter runs here that the server schema
+      // applies at submit, mirroring the medium field pattern.
+      rejectContact("preferredName", base.preferredName);
       rejectContact("graduationYear", base.graduationYear);
       required("phone", base.phone.trim());
       required("email", base.email.trim());
@@ -2494,14 +2498,15 @@ export function ApplicationForm() {
                     />
                   </Field>
                   <Field
-                    label="Preferred Name"
+                    label={t("join.display_name_label")}
                     optional
-                    hint="What should we call you on WhatsApp?"
+                    hint={t("join.display_name_hint")}
+                    error={fieldErrors.preferredName}
                   >
                     <Input
                       value={base.preferredName}
                       onChange={(event) => setBaseField("preferredName", event.target.value)}
-                      placeholder="Hauzton"
+                      placeholder="Dr Chan"
                       maxLength={80}
                     />
                   </Field>

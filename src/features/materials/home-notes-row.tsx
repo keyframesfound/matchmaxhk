@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useNavigate } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { ArrowRight, ChevronLeft, ChevronRight, FileText } from "lucide-react";
 
@@ -206,10 +206,10 @@ export function HomeNotesRow() {
           hoverArrow
           className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-bold text-[color:var(--brand-link)] hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] sm:h-9 sm:px-3 sm:text-sm"
         >
-          <a href="/tutors?view=materials">
+          <Link to="/tutors" search={{ view: "materials" }}>
             {t("notes.home.view_all")}
             <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
-          </a>
+          </Link>
         </Button>
         <NotesCarouselArrows pages={pages.length} currentPage={currentPage} goToPage={goToPage} />
       </div>

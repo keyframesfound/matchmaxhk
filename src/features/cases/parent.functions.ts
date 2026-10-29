@@ -22,6 +22,7 @@ import {
   parentDisplayLineFromCase,
 } from "@/features/cases/parent/review-flow";
 import { canPublishHeldReview, isCaseFeeSettled } from "@/features/cases/case-reviews";
+import type { LessonConfirmRow } from "@/features/cases/case-reviews";
 import { sweepDueSessionLogs, type SessionLogRowT } from "@/features/cases/experience.functions";
 
 type Row = Record<string, unknown>;
@@ -160,6 +161,9 @@ export type ParentCaseDetail = {
   status: string;
   matched_tutor_id: string | null;
   sor_status: SorStatus | null;
+  /** #503 bilateral End Case: per-side markers (null until that side taps). */
+  ended_by_parent_at: string | null;
+  ended_by_tutor_at: string | null;
   fee: { status: FeeStatus; amount_hkd: number } | null;
   lessons: {
     id: string;
@@ -204,11 +208,13 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         student_level: string | null;
         status: string;
         matched_tutor_id: string | null;
+        ended_by_parent_at: string | null;
+        ended_by_tutor_at: string | null;
         tutors: { tutor_code: string | null } | null;
       }>(
         db,
         "tutoring_cases",
-        "case_code, title, subjects, exam_system, student_level, status, matched_tutor_id, tutors(tutor_code)",
+        "case_code, title, subjects, exam_system, student_level, status, matched_tutor_id, ended_by_parent_at, ended_by_tutor_at, tutors(tutor_code)",
         [{ col: "id", op: "eq", value: c.id }],
       ),
       selectRows<{
@@ -336,6 +342,10 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
       status: head?.status ?? c.status,
       matched_tutor_id: head?.matched_tutor_id ?? null,
       sor_status: c.sor_status,
+      // #503 bilateral End Case state (who has tapped; the control derives
+      // eligibility from sor_status via canEndCase).
+      ended_by_parent_at: head?.ended_by_parent_at ?? null,
+      ended_by_tutor_at: head?.ended_by_tutor_at ?? null,
       fee: openFee ? { status: openFee.status, amount_hkd: openFee.amount_hkd } : null,
       lessons: lessons.map((l) => ({
         id: l.id,
@@ -564,11 +574,17 @@ export const submitParentReview = createServerFn({ method: "POST" })
       const db = asAdminDb(supabaseAdmin);
       const c = await myCase(db, data.caseId, context.userId);
       if (!c.matched_tutor_id) throw new Error("NO_TUTOR");
+      // #503 stop condition: once the case ENDED (staff force-end or bilateral
+      // End Case), ratings are final — no insert, edit or replace gets through.
+      if (c.sor_status === "closed") throw new Error("CASE_ENDED");
 
       const [lessons, headRows, mine, feeRows] = await Promise.all([
-        selectRows<{ status: string }>(db, "case_lessons", "status", [
-          { col: "case_id", op: "eq", value: c.id },
-        ]),
+        selectRows<LessonConfirmRow>(
+          db,
+          "case_lessons",
+          "status, confirmed_by_parent_at, confirmed_by_tutor_at",
+          [{ col: "case_id", op: "eq", value: c.id }],
+        ),
         selectRows<{
           student_level: string | null;
           student_grade_current: string | null;

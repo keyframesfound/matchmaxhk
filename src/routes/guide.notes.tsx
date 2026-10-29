@@ -4,7 +4,13 @@ import { ArrowRight, CircleCheck, CircleX } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { canonicalUrl } from "@/features/i18n/seo";
-import { GuideCtaRow, GuideHeading, GuidePage, GuideSteps } from "@/features/guide/guide-shell";
+import {
+  GuideCtaRow,
+  GuideHeading,
+  GuideHeroImage,
+  GuidePage,
+  GuideSteps,
+} from "@/features/guide/guide-shell";
 
 export const Route = createFileRoute("/guide/notes")({
   head: () => ({
@@ -53,8 +59,9 @@ function GuideNotesPage() {
 
   return (
     <GuidePage current="/guide/notes">
+      {/* Issue #498: narrow rails centred (mx-auto) + hero illustration slot. */}
       <section className="mx-auto max-w-[1600px] px-5 py-14 sm:px-8 sm:py-20 lg:px-12">
-        <div className="max-w-3xl">
+        <div className="mx-auto max-w-3xl">
           <h1 className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-5xl">
             {t("guide.notes.h1")}
           </h1>
@@ -63,14 +70,18 @@ function GuideNotesPage() {
           </p>
         </div>
 
-        <div className="mt-12 max-w-4xl">
+        <div className="mt-10">
+          <GuideHeroImage slot="notes" />
+        </div>
+
+        <div className="mx-auto mt-12 max-w-4xl">
           <GuideHeading>{t("guide.notes.how_title")}</GuideHeading>
           <div className="mt-6">
             <GuideSteps steps={steps} />
           </div>
         </div>
 
-        <div className="mt-14 grid max-w-4xl gap-6 lg:grid-cols-2">
+        <div className="mx-auto mt-14 grid max-w-4xl gap-6 lg:grid-cols-2">
           <div>
             <GuideHeading>{t("guide.notes.banned_title")}</GuideHeading>
             <div className="mt-6 rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6">

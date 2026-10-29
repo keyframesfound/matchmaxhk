@@ -61,6 +61,27 @@ describe("bus planning (#205/#292)", () => {
     expect(bellLinkFor("experience.session_logged", {})).toBe("/account");
   });
 
+  it("#503: an End Case tap prompts only the OTHER party, in-app", () => {
+    // The event type names the ACTOR; the plan reaches the other side only.
+    const byParent = planDeliveriesForEvent("case.end_requested_by_parent");
+    expect(byParent).toEqual({
+      kind: "deliver",
+      deliveries: [{ channel: "in_app", role: "tutor" }],
+    });
+    const byTutor = planDeliveriesForEvent("case.end_requested_by_tutor");
+    expect(byTutor).toEqual({
+      kind: "deliver",
+      deliveries: [{ channel: "in_app", role: "parent" }],
+    });
+    // Deep links: the tutor lands on their Schedule hub, the parent on the case.
+    expect(bellLinkFor("case.end_requested_by_parent", { case_id: "c1" }, "tutor")).toBe(
+      "/dashboard#lessons",
+    );
+    expect(bellLinkFor("case.end_requested_by_tutor", { case_id: "c1" }, "parent")).toBe(
+      "/account/cases/c1",
+    );
+  });
+
   it("unknown types are unknown (stored failed, not dropped)", () => {
     expect(planDeliveriesForEvent("marketing.blast")).toEqual({ kind: "unknown" });
     expect(planDeliveriesForEvent("discord.invite")).toEqual({ kind: "unknown" });

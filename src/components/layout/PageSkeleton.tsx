@@ -6,7 +6,9 @@ import { Skeleton } from "@/components/ui/skeleton";
  */
 export function PageSkeleton() {
   return (
-    <main aria-busy="true" aria-label="Loading page" className="min-h-screen bg-background">
+    // A div, not <main>: the root layout already renders <main id="main-content">
+    // around the Outlet, and nested main landmarks are invalid HTML.
+    <div aria-busy="true" aria-label="Loading page" className="min-h-screen bg-background">
       <header className="border-b border-border bg-background">
         <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Skeleton className="h-8 w-32" />
@@ -43,6 +45,6 @@ export function PageSkeleton() {
           ))}
         </section>
       </div>
-    </main>
+    </div>
   );
 }
