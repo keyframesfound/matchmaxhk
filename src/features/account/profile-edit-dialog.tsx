@@ -90,45 +90,59 @@ export function ProfileEditDialog({
           <DialogTitle>{t("account.profile_edit.title")}</DialogTitle>
           <DialogDescription>{t("account.profile_edit.description")}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={save} className="space-y-5">
-          <div className="space-y-2">
-            <Label htmlFor="account-name" className="text-[color:var(--ink)]">
-              {t("account.profile_edit.name")}
-            </Label>
-            <Input
-              id="account-name"
-              value={displayName}
-              onChange={(event) => setDisplayName(event.target.value)}
-              placeholder={t("account.profile_edit.name_placeholder")}
-              maxLength={80}
-              disabled={!profileQuery.data || saving}
-              autoComplete="name"
-              className="bg-[color:var(--surface)]"
-            />
+        {profileQuery.isError ? (
+          <div className="space-y-3">
+            <p className="text-sm text-destructive">{t("account.profile_edit.load_error")}</p>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => void profileQuery.refetch()}
+              disabled={profileQuery.isFetching}
+            >
+              {t("account.profile_edit.retry")}
+            </Button>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="account-phone" className="text-[color:var(--ink)]">
-              {t("account.profile_edit.phone")}
-            </Label>
-            <Input
-              id="account-phone"
-              type="tel"
-              value={phone}
-              onChange={(event) => setPhone(event.target.value)}
-              placeholder={t("account.profile_edit.phone_placeholder")}
-              maxLength={20}
-              disabled={!profileQuery.data || saving}
-              autoComplete="tel"
-              className="bg-[color:var(--surface)]"
-            />
-            <p className="text-xs text-[color:var(--ink)]/55">
-              {t("account.profile_edit.phone_hint")}
-            </p>
-          </div>
-          <Button type="submit" disabled={!profileQuery.data || saving} className="font-bold">
-            {saving ? t("account.profile_edit.saving") : t("account.profile_edit.save")}
-          </Button>
-        </form>
+        ) : (
+          <form onSubmit={save} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="account-name" className="text-[color:var(--ink)]">
+                {t("account.profile_edit.name")}
+              </Label>
+              <Input
+                id="account-name"
+                value={displayName}
+                onChange={(event) => setDisplayName(event.target.value)}
+                placeholder={t("account.profile_edit.name_placeholder")}
+                maxLength={80}
+                disabled={!profileQuery.data || saving}
+                autoComplete="name"
+                className="bg-[color:var(--surface)]"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="account-phone" className="text-[color:var(--ink)]">
+                {t("account.profile_edit.phone")}
+              </Label>
+              <Input
+                id="account-phone"
+                type="tel"
+                value={phone}
+                onChange={(event) => setPhone(event.target.value)}
+                placeholder={t("account.profile_edit.phone_placeholder")}
+                maxLength={20}
+                disabled={!profileQuery.data || saving}
+                autoComplete="tel"
+                className="bg-[color:var(--surface)]"
+              />
+              <p className="text-xs text-[color:var(--ink)]/55">
+                {t("account.profile_edit.phone_hint")}
+              </p>
+            </div>
+            <Button type="submit" disabled={!profileQuery.data || saving} className="font-bold">
+              {saving ? t("account.profile_edit.saving") : t("account.profile_edit.save")}
+            </Button>
+          </form>
+        )}
       </DialogContent>
     </Dialog>
   );

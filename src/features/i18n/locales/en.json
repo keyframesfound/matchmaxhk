@@ -51,8 +51,10 @@
       "phone_invalid": "Enter a valid phone number, or leave this blank.",
       "save": "Save changes",
       "saving": "Saving…",
-      "saved": "Your profile has been updated."
-    },
+      "saved": "Your profile has been updated.",
+      "load_error": "We couldn't load your profile. Please try again.",
+      "retry": "Retry"
+      },
     "edit": "Edit",
     "tutor_cta_title": "Teach on MatchMax",
     "tutor_cta_body": "Create your tutor card, set your rate and availability, and sell notes. If a card was already created for you, you can claim it from your public profile.",
