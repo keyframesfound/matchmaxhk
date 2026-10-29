@@ -608,7 +608,7 @@ function TutorsDirectory() {
                 </div>
 
                 {isLoading && (
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {Array.from({ length: 6 }).map((_, i) => (
                       <Skeleton key={i} className="h-[23rem] rounded-[10px] border border-border" />
                     ))}
@@ -635,7 +635,7 @@ function TutorsDirectory() {
                     </div>
                     {fallbackTutors.length > 0 && (
                       <div className="mt-8 text-left">
-                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                           {fallbackTutors.map((tut: Tutor) => {
                             const inquiry = getTutorInquiryAction(
                               tut,
@@ -725,7 +725,7 @@ function TutorsDirectory() {
                 )}
 
                 {!isLoading && filtered.length > 0 && (
-                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {filtered.map((tut: Tutor, index: number) => {
                       const inquiry = getTutorInquiryAction(tut, whatsappNumber, i18n.language);
                       return (
