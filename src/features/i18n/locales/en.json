@@ -1557,7 +1557,7 @@
     "score_label": "Exact score achieved: {{score}}",
     "examiner_comments_label": "Includes examiner comments",
     "no_refund_notice": "All Sales Final. Payments are securely held in escrow by the MatchMax Official Business Account to guarantee delivery. Because digital files cannot be returned, we do not offer refunds. Please review the 3-page preview before purchasing.",
-    "disclaimer": "Disclaimer: Digital materials are user-generated and sold through MatchMax. Parents pay MatchMax by FPS, payment is held securely until your file is delivered, and the tutor receives the balance after our 20% administrative fee. Please review the watermarked preview before purchasing.",
+    "disclaimer": "Disclaimer: Digital materials are user-generated and sold through MatchMax. Parents pay MatchMax by FPS, payment is held securely until your file is delivered, and the tutor receives the balance after our 20% platform fee. Please review the watermarked preview before purchasing.",
     "promotional_note_fallback": "Note: I provide all premium digital materials for free to my active students after the 3rd lesson.",
     "empty_state": "Study materials from this tutor are coming soon.",
     "directory_title": "Study Materials",
