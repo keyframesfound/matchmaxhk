@@ -302,6 +302,7 @@ export function searchHelpArticles(
   if (!needle) return [];
   const categoryNames = new Map(HELP_CATEGORIES.map((c) => [c.slug, c.name.toLowerCase()]));
   return HELP_ARTICLES.filter((article) => {
+    if (article.status !== "published") return false;
     if (!matchesAudience(article.audience, audience)) return false;
     const haystack = [
       article.title,

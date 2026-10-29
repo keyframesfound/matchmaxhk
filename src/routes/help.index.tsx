@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { LifeBuoy, Search, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion, useReducedMotion } from "motion/react";
 import { z } from "zod";
@@ -24,8 +24,26 @@ export const Route = createFileRoute("/help/")({
   // topic/article page (issue #500: persistent Help search), so the index
   // immediately renders the results view.
   validateSearch: z.object({
-    audience: z.enum(["tutors", "parents"]).optional(),
-    q: z.string().optional(),
+    // TanStack JSON-decodes search params, so a hand-typed /help?audience=1
+    // arrives as a number and a bare z.enum would 500 on the cold URL
+    // (GLM review round 2, verified against /tutors?q=123). Invalid values
+    // fall back to the defaults instead of rejecting the navigation.
+    audience: z
+      .preprocess(
+        (v) => (v === "tutors" || v === "parents" ? v : undefined),
+        z.enum(["tutors", "parents"]).optional(),
+      )
+      .optional(),
+    // `q` prefills the search box when arriving from a sub-header search on a
+    // topic/article page (issue #500: persistent Help search), so the index
+    // immediately renders the results view. Numbers/booleans are stringified
+    // so /help?q=123 renders search results instead of a 500.
+    q: z
+      .preprocess(
+        (v) => (typeof v === "number" || typeof v === "boolean" ? String(v) : v),
+        z.string().optional(),
+      )
+      .optional(),
   }),
   head: () => ({
     meta: [
@@ -196,20 +214,41 @@ function HelpCentrePage() {
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
   const { audience, q } = Route.useSearch();
-  // Sub-header searches on article pages land here with ?q= (issue #500);
-  // afterwards the box is plain local state, URL not synced back.
-  const [query, setQuery] = useState(q ?? "");
+  const urlQuery = q ?? "";
+  // The URL is the source of truth for the active query (article pages link
+  // here with ?q=); the draft keeps typing snappy and the URL honest.
+  const [query, setQueryDraft] = useState(urlQuery);
   const supportHref = useSupportWhatsAppHref();
 
   // Tutors land on the tutor tab; everyone else on the parents tab.
   const activeTab: AudienceTab = audience ?? (hasRole("tutor") ? "tutors" : "parents");
   const contentAudience = activeTab === "tutors" ? "tutor" : "parent";
 
+  useEffect(() => {
+    setQueryDraft(urlQuery);
+  }, [urlQuery]);
+  const setQuery = (value: string) => {
+    setQueryDraft(value);
+    void navigate({
+      to: "/help",
+      search: {
+        audience,
+        q: value.trim() ? value : undefined,
+      },
+      replace: true,
+    });
+  };
+
   const setTab = (tab: AudienceTab) => {
     // The parents tab is the default, so it clears the param for clean URLs.
+    // An active search survives the switch (GLM review round 2: the results
+    // view and the URL must not diverge) — results just re-filter.
     navigate({
       to: "/help",
-      search: tab === "tutors" ? { audience: "tutors" } : {},
+      search: {
+        audience: tab === "tutors" ? ("tutors" as const) : undefined,
+        q: query.trim() ? query : undefined,
+      },
       replace: true,
     });
   };

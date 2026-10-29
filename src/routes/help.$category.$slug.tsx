@@ -21,12 +21,75 @@ import {
 import { cn } from "@/lib/utils";
 import { canonicalUrl } from "@/features/i18n/seo";
 
+// Issue #500 (GLM review round 2): the redesign deleted these stub URLs, so
+// their indexed/bookmarked paths would hard-404. Each 301s to its successor
+// (the pack's replaces: targets; tutor-handbook/tutor-playbook are handled
+// explicitly below).
+const DELETED_STUB_REDIRECTS: Record<string, { category: string; slug: string }> = {
+  "parent-payments/administrative-fee-explained": {
+    category: "parent-payments",
+    slug: "understand-zero-parent-commission-and-tutor-admin-fees",
+  },
+  "parent-getting-started/booking-first-trial": {
+    category: "parent-scheduling",
+    slug: "prepare-for-your-first-lesson",
+  },
+  "parent-policies/cancellations-and-rescheduling": {
+    category: "parent-scheduling",
+    slug: "reschedule-or-cancel-a-lesson",
+  },
+  "payments-policies/cancellation-policies-safety": {
+    category: "scheduling-logistics",
+    slug: "coordinate-lesson-dates",
+  },
+  "parent-getting-started/choosing-the-right-tutor": {
+    category: "parent-getting-started",
+    slug: "choose-the-right-tutor-for-your-child",
+  },
+  "parent-supporting-learning/curricula-explained": {
+    category: "parent-support",
+    slug: "compare-ib-dse-igcse-and-a-level-curricula",
+  },
+  "parent-getting-started/how-matchmax-works": {
+    category: "parent-getting-started",
+    slug: "how-matchmax-matching-works",
+  },
+  "parent-policies/lesson-safety": {
+    category: "parent-safety",
+    slug: "lesson-safety-and-supervision-guidelines",
+  },
+  "parent-payments/payment-methods": {
+    category: "parent-payments",
+    slug: "pay-your-tutor-directly-and-billing-cycles",
+  },
+  "parent-getting-started/request-a-tutor": {
+    category: "parent-getting-started",
+    slug: "request-a-tutor-and-get-matched",
+  },
+  "parent-communication/setting-parent-expectations": {
+    category: "parent-communication",
+    slug: "introduce-yourself-whatsapp",
+  },
+  "parent-supporting-learning/tracking-progress": {
+    category: "parent-support",
+    slug: "track-your-childs-progress-lesson-by-lesson",
+  },
+  "parent-policies/tutor-verification": {
+    category: "parent-verification",
+    slug: "how-matchmax-verifies-tutors",
+  },
+};
+
 // Issue #500: the old handbook hub page folds into the tutor Help tab.
 // Old bookmarks to /help/tutor-guide/tutor-handbook land on the tutor index.
 export const Route = createFileRoute("/help/$category/$slug")({
   beforeLoad: ({ params }) => {
     if (params.category === "tutor-guide" && params.slug === "tutor-handbook") {
       throw redirect({ to: "/help", search: { audience: "tutors" }, statusCode: 301 });
+    }
+    const successor = DELETED_STUB_REDIRECTS[`${params.category}/${params.slug}`];
+    if (successor) {
+      throw redirect({ to: "/help/$category/$slug", params: successor, statusCode: 301 });
     }
     const article = getHelpArticle(params.category, params.slug);
     if (!article) throw notFound();
