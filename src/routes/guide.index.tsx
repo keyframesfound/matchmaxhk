@@ -85,7 +85,11 @@ function useGuideContent() {
 
   const tutorFaqItems = faqItems("tutor_faq", [
     "paid",
+    "fee_types",
+    "short_package",
+    "contact",
     "anonymity",
+    "employment",
     "speed",
     "rates",
     "experience",
@@ -93,6 +97,8 @@ function useGuideContent() {
     "after_trial",
   ]);
   const parentFaqItems = faqItems("parent_faq", [
+    "matching_fee",
+    "blue_tick",
     "negotiate",
     "trial",
     "matching",
@@ -103,6 +109,7 @@ function useGuideContent() {
   ]);
   const billingFaqItems = faqItems("billing_faq", [
     "pay",
+    "centre_ladder",
     "notes",
     "rematch",
     "reschedule",
