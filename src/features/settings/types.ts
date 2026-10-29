@@ -47,7 +47,6 @@ export type SettingsProfile = {
 export type SettingsCategory =
   | "home"
   | "general"
-  | "profile"
   | "my-tutor"
   | "availability"
   | "group-classes"
@@ -62,7 +61,6 @@ export type SettingsCategory =
 export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   "home",
   "general",
-  "profile",
   "my-tutor",
   "availability",
   "group-classes",

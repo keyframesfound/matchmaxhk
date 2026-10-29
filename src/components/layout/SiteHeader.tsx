@@ -269,13 +269,10 @@ export function SiteHeader({
 
             {user && <BellMenu />}
 
+            {/* #501: the header avatar opens the Account home; Settings lives
+                in the menu below. */}
             {user ? (
-              <Link
-                to="/dashboard"
-                hash="profile"
-                aria-label={t("nav.profile")}
-                className={headerCircleClassName}
-              >
+              <Link to="/account" aria-label={t("nav.profile")} className={headerCircleClassName}>
                 {/* Issue #437: client accounts are locked to the generated
                     branded initial avatar (no photo upload in V1). */}
                 <InitialAvatar
@@ -328,8 +325,9 @@ export function SiteHeader({
                         </Link>
                       </DropdownMenuItem>
                     )}
+                    {/* #501: Profile opens the Account home, not Settings. */}
                     <DropdownMenuItem asChild className={menuLinkClassName}>
-                      <Link to="/dashboard" hash="profile">
+                      <Link to="/account">
                         <MenuIcon>
                           <UserRound className="size-5" />
                         </MenuIcon>

@@ -161,6 +161,7 @@ export function MobileBottomNav() {
                     </span>
                   </span>
                 </div>
+                {/* #501: Settings stays the settings surface only. */}
                 <Link
                   to="/dashboard"
                   onClick={() => setAccountOpen(false)}
@@ -169,12 +170,8 @@ export function MobileBottomNav() {
                   <Settings className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
                   {t("nav.settings")}
                 </Link>
-                <Link
-                  to="/dashboard"
-                  hash="profile"
-                  onClick={() => setAccountOpen(false)}
-                  className={itemRowClass}
-                >
+                {/* #501: Profile opens the Account home, not Settings. */}
+                <Link to="/account" onClick={() => setAccountOpen(false)} className={itemRowClass}>
                   <UserRound className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
                   {t("nav.profile")}
                 </Link>
