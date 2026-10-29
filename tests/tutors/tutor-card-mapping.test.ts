@@ -148,7 +148,14 @@ describe("buildTutorCardInsert (#310 publish-at-submit mapping)", () => {
   it("maps every obvious card counterpart and publishes by default", () => {
     const payload = buildTutorCardInsert(baseApplication(), "MM-T042", files);
     expect(payload.tutor_code).toBe("MM-T042");
-    expect(payload.display_name).toBe("Chan Tai Man");
+    // Issue #502: the intake preferred name is the public display name; the
+    // legal `name` stays internal. Blank preferred name -> '' here, and the
+    // publish RPC COALESCEs it to the allocated tutor code.
+    expect(payload.display_name).toBe("");
+    expect(
+      buildTutorCardInsert(baseApplication({ preferredName: "Dr Chan" }), "MM-T042", files)
+        .display_name,
+    ).toBe("Dr Chan");
     expect(payload.is_published).toBe(true);
     expect(payload.created_by).toBeNull();
     expect(payload.currency).toBe("HKD");
@@ -307,8 +314,23 @@ describe("mappedCardContactError (#357 / #359)", () => {
     );
     expect(mappedCardContactError(withSubject)).toMatch(/whatsapp/i);
 
-    const withName = buildTutorCardInsert(baseApplication({ name: "Chan 9123 4567" }), "MM-T001");
+    // Issue #502: the preferred name is the public display name, so a phone
+    // typed into it must still be flagged; the legal `name` is no longer
+    // copied onto the card at all.
+    const withName = buildTutorCardInsert(
+      baseApplication({ preferredName: "Chan 9123 4567" }),
+      "MM-T001",
+    );
     expect(mappedCardContactError(withName)).toMatch(/phone/i);
+
+    // A legacy stored application predating preferredName must not crash the
+    // mapper (field undefined) — display_name falls back to ''.
+    const legacy = buildTutorCardInsert(
+      { ...baseApplication(), preferredName: undefined } as unknown as StoredApplication,
+      "MM-T001",
+    );
+    expect(legacy.display_name).toBe("");
+    expect(mappedCardContactError(legacy)).toBeNull();
   });
 });
 
