@@ -798,7 +798,9 @@
     "terms_verification_1": "我哋會查核導師上載嘅文件，但唔會向IB、HKEAA或任何學校確認。",
     "terms_verification_2": "我哋唔會保證成績、取錄或教學成果。",
     "terms_verification_3": "徽章只涵蓋卡片上顯示嘅成績，唔包括個人簡介。",
-    "terms_verification_4": "家長如果想看成績紙，喺介紹之後直接向導師攞。MatchMax唔會發送任何身份證明文件。"
+    "terms_verification_4": "家長如果想看成績紙，喺介紹之後直接向導師攞。MatchMax唔會發送任何身份證明文件。",
+    "centre_spinoff_note": "合作中心之後再派學生俾你（簡介後 6 個月內）屬可申報個案，MatchMax 行政費會遞減——1.5、1.0、0.5 堂，第 4 位起免費。",
+    "centre_spinoff_guide_link": "收費指南"
   },
   "materials": {
     "section_title": "📚 溫習筆記",

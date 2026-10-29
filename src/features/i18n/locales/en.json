@@ -776,7 +776,9 @@
     "terms_verification_1": "We check documents the tutor uploads. We do not confirm them with the IB, HKEAA, or any school.",
     "terms_verification_2": "We do not guarantee a grade, an offer, or a teaching result.",
     "terms_verification_3": "The badge covers the grades shown on the card, not the bio.",
-    "terms_verification_4": "A parent who wants the slip asks the tutor after the introduction. MatchMax does not send identity documents."
+    "terms_verification_4": "A parent who wants the slip asks the tutor after the introduction. MatchMax does not send identity documents.",
+    "centre_spinoff_note": "If a partner centre later assigns you more students (within 6 months of the intro), they are reportable and MatchMax's admin fee steps down — 1.5, then 1.0, then 0.5 lessons, free from the 4th student.",
+    "centre_spinoff_guide_link": "See the fee guide"
   },
   "materials": {
     "section_title": "📚 Study Materials",
