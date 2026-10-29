@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: How the tutor-paid administrative matching fee works, what it covers, and how settling it unlocks parent phone contact.
 icon: wallet
 tags: [fees, admin fee, billing, policies, payments]
-featured: true
 order: 1
 status: published
 updated: 2026-10-29

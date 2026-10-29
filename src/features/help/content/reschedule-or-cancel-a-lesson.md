@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: How to move or cancel a lesson politely over WhatsApp, with copy-paste scripts in English and Chinese, make-up slot tips, and how refunds work with self-employed tutors.
 icon: calendar-clock
 tags: [rescheduling, cancellation, whatsapp, parents]
-featured: false
 order: 2
 status: published
 updated: 2026-10-29

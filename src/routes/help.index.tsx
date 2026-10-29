@@ -20,7 +20,13 @@ import { cn } from "@/lib/utils";
 
 import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/help/")({
-  validateSearch: z.object({ audience: z.enum(["tutors", "parents"]).optional() }),
+  // `q` prefills the search box when arriving from a sub-header search on a
+  // topic/article page (issue #500: persistent Help search), so the index
+  // immediately renders the results view.
+  validateSearch: z.object({
+    audience: z.enum(["tutors", "parents"]).optional(),
+    q: z.string().optional(),
+  }),
   head: () => ({
     meta: [
       { title: "Help Centre | MatchMax" },
@@ -189,8 +195,10 @@ function HelpCentrePage() {
   const { hasRole } = useAuth();
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
-  const { audience } = Route.useSearch();
-  const [query, setQuery] = useState("");
+  const { audience, q } = Route.useSearch();
+  // Sub-header searches on article pages land here with ?q= (issue #500);
+  // afterwards the box is plain local state, URL not synced back.
+  const [query, setQuery] = useState(q ?? "");
   const supportHref = useSupportWhatsAppHref();
 
   // Tutors land on the tutor tab; everyone else on the parents tab.

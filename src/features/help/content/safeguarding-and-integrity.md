@@ -6,7 +6,6 @@ audience: tutor
 summary: Safeguarding essentials — boundaries with minors, Hong Kong child-protection duties under Cap. 650, escalation protocols, objective documentation, and academic-integrity rules.
 icon: shield-check
 tags: [safeguarding, boundaries, ethics, child protection, escalation, academic integrity]
-featured: false
 order: 6
 status: published
 author: MatchMax Team

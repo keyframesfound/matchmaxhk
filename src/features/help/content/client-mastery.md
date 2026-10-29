@@ -6,7 +6,6 @@ audience: tutor
 summary: The full triad — parent confidence, student trust, tutor clarity. Onboarding scripts, the Rule of 3 debrief, and the scenario survival guide for difficult conversations.
 icon: message-circle
 tags: [parents, communication, scripts, onboarding, rule of 3, scenarios, trust]
-featured: false
 order: 3
 status: published
 author: MatchMax Team

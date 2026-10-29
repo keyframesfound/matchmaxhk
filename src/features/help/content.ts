@@ -23,7 +23,7 @@ import {
  * the `help.*` locale subtree.
  *
  * Frontmatter fields: title, slug, category, audience (tutor | parent | all),
- * summary, icon, tags, featured, order, status (published | draft), external,
+ * summary, icon, tags, order, status (published | draft), external,
  * updated.
  * - `status: draft` renders the "Guide coming soon" placeholder state.
  * - `external` points the card/listing at an existing page instead of the
@@ -47,7 +47,6 @@ export type HelpArticle = {
   audience: HelpAudience;
   icon: string;
   tags: string[];
-  featured: boolean;
   order: number;
   status: HelpArticleStatus;
   /** When set, listings link straight to this path instead of the article route. */
@@ -157,7 +156,6 @@ function toHelpArticle(fileName: string, raw: string): HelpArticle {
     audience: data.audience === "tutor" || data.audience === "all" ? data.audience : "parent",
     icon: typeof data.icon === "string" ? data.icon : "",
     tags: Array.isArray(data.tags) ? data.tags : [],
-    featured: data.featured === true,
     order: typeof data.order === "number" ? data.order : 100,
     status: data.status === "published" ? "published" : "draft",
     external: HELP_EXTERNAL_ROUTES.includes(data.external as HelpExternalRoute)
@@ -282,24 +280,16 @@ function matchesAudience(article: HelpAudience, selected: HelpAudience): boolean
   return article === "all" || article === selected;
 }
 
-/** Featured cards for one tab, sorted by article order. Drafts never feature. */
-export function getFeaturedHelpArticles(audience: Exclude<HelpAudience, "all">): HelpArticle[] {
-  return HELP_ARTICLES.filter(
-    (article) =>
-      article.status === "published" &&
-      article.featured &&
-      matchesAudience(article.audience, audience),
-  );
-}
-
-/** Categories (with their articles) for one tab, in display order. */
+/** Categories (with their published articles) for one tab, in display order. */
 export function getHelpTopics(audience: Exclude<HelpAudience, "all">): {
   category: HelpCategory;
   articles: HelpArticle[];
 }[] {
   return HELP_CATEGORIES.filter((category) => category.audience === audience).map((category) => ({
     category,
-    articles: HELP_ARTICLES.filter((article) => article.category === category.slug),
+    articles: HELP_ARTICLES.filter(
+      (article) => article.category === category.slug && article.status === "published",
+    ),
   }));
 }
 

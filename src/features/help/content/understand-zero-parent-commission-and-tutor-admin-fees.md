@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: Parents pay zero commission and never pay MatchMax anything, while tutors pay a one-off administrative matching fee of 1.5 lessons per match under the Terms of Service.
 icon: wallet
 tags: [fees, payments, commission, parents]
-featured: true
 order: 2
 status: published
 updated: 2026-10-29

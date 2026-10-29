@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: Use Lesson 1 to diagnose the real bottleneck and agree a study plan with the parent, instead of delivering a lecture.
 icon: graduation-cap
 tags: [first lesson, diagnostic, trial lesson, study plan, pedagogy]
-featured: false
 order: 1
 status: published
 updated: 2026-10-29

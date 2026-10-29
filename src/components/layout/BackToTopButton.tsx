@@ -21,9 +21,14 @@ export function BackToTopButton() {
   // mobile bottom nav on the guide hub, so it is excluded on guide routes
   // (the router strips the locale prefix, so /zh/guide arrives as /guide),
   // mirroring the existing /join exclusion. WhatsApp float is unchanged.
+  // Issue #500: also excluded on /help/* — help articles render their own
+  // inline "Back to top" link, so the float would duplicate it.
   const isGuideRoute = pathname === "/guide" || pathname.startsWith("/guide/");
+  const isHelpRoute = pathname === "/help" || pathname.startsWith("/help/");
 
-  if (isGuideRoute || pathname === "/join" || !isVisible || compareBarVisible) return null;
+  if (isGuideRoute || isHelpRoute || pathname === "/join" || !isVisible || compareBarVisible) {
+    return null;
+  }
 
   return (
     <button

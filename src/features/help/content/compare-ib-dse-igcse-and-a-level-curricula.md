@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: A parent-friendly comparison of HKDSE, IB, IGCSE, and A-Level, how each is assessed, typical ages, and what tutors focus on, with no verdict on which is better.
 icon: graduation-cap
 tags: [curricula, hkdse, ib, igcse, a-level]
-featured: false
 order: 2
 status: published
 updated: 2026-10-29

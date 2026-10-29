@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: How to set up safe Face-to-face / in-home lessons, what supervision to expect for minors, the boundaries tutors follow, and what to do if something feels wrong.
 icon: life-buoy
 tags: [safety, supervision, safeguarding, in-home-lessons, parents]
-featured: false
 order: 1
 status: published
 updated: 2026-10-29

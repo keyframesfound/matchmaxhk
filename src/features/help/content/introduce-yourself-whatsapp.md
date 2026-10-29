@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: How to open the match chat with a warm, professional first message and set healthy ground rules with parents from day one.
 icon: message-circle
 tags: [whatsapp, introduction, first impressions, scripts, communication]
-featured: true
 order: 1
 status: published
 updated: 2026-10-29

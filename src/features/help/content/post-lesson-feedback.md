@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: A simple three-part structure for short post-lesson updates that show parents real progress and set the next step.
 icon: message-circle
 tags: [feedback, progress reports, summaries, communication]
-featured: false
 order: 2
 status: published
 updated: 2026-10-29

@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: How to lock in lesson dates, run gentle reminders, and handle reschedules, sick days, and no-shows with ready-to-send scripts.
 icon: calendar-clock
 tags: [scheduling, rescheduling, sick days, no-show, whatsapp]
-featured: true
 order: 1
 status: published
 updated: 2026-10-29

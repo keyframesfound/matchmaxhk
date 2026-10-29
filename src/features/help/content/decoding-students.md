@@ -6,7 +6,6 @@ audience: tutor
 summary: Educational-psychology frameworks in practice — Self-Determination Theory, student profiles from high achievers to burnout, and micro-scaffolding that beats task avoidance.
 icon: graduation-cap
 tags: [motivation, SEN, ADHD, dyslexia, anxiety, burnout, scaffolding, psychology]
-featured: false
 order: 3
 status: published
 author: MatchMax Team

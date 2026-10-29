@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: A short checklist for confirming the slot, setting up the space for Face-to-face / in-home or Zoom lessons, and knowing what the first lesson covers.
 icon: calendar-clock
 tags: [first-lesson, scheduling, preparation, parents]
-featured: true
 order: 1
 status: published
 updated: 2026-10-29

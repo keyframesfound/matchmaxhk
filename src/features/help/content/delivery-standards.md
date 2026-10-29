@@ -6,7 +6,6 @@ audience: tutor
 summary: The MatchMax service standard — punctuality, delivery-mode standards, reminder protocols, admin hour reporting, and the ultimate session checklist.
 icon: book-open
 tags: [delivery, logistics, punctuality, reminders, admin, checklist, operations]
-featured: false
 order: 3
 status: published
 author: MatchMax Team

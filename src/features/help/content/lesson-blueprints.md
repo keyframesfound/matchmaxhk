@@ -6,7 +6,6 @@ audience: tutor
 summary: The elite educator's toolkit — 60-minute lesson blueprints, the SRL cycle, Gradual Release of Responsibility, CRA sequencing, PEEL+ essays, and the curriculum resource vault.
 icon: book-open
 tags: [pedagogy, lesson plans, SRL, GRR, CRA, PEEL, resources, curriculum, teaching]
-featured: false
 order: 4
 status: published
 author: MatchMax Team

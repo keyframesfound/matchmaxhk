@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: Reverse-plan from the exam date, prioritise high-mark topics, and alternate content coverage with timed past-paper practice.
 icon: graduation-cap
 tags: [ib, dse, a-level, exam prep, pacing, revision]
-featured: false
 order: 2
 status: published
 updated: 2026-10-29

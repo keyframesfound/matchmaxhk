@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: Agree the delivery mode with the parent, then run in-home and Zoom lessons that feel organised from the first minute.
 icon: calendar-clock
 tags: [travel, zoom, online lessons, logistics, scheduling]
-featured: false
 order: 2
 status: published
 updated: 2026-10-29

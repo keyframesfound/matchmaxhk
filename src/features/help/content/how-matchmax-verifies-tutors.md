@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: Every tutor card is reviewed by a person before it goes live; here is what the optional two-tier verification system checks, and what a badge does not promise.
 icon: shield-check
 tags: [verification, tutor-cards, blue-tick, parents]
-featured: false
 order: 1
 status: published
 updated: 2026-10-29

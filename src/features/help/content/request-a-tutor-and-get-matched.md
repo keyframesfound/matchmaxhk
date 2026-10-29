@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: Learn what to include in a tutor request and what happens after you post it, from coordinator review to matched introductions.
 icon: message-circle
 tags: [matching, tutor-requests, getting-started, parents]
-featured: true
 order: 2
 status: published
 updated: 2026-10-29

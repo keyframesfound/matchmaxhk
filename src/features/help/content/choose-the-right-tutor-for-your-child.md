@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: How to read a MatchMax tutor card, match curriculum specialism and rapport, and what to ask a tutor before Lesson 1.
 icon: graduation-cap
 tags: [choosing-a-tutor, curriculum, verification, parents]
-featured: false
 order: 3
 status: published
 updated: 2026-10-29

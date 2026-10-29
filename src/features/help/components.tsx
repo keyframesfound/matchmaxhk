@@ -200,7 +200,18 @@ function HelpScriptCard({ label, en, zh }: { label?: string; en: string; zh: str
           )}
         </button>
       </div>
-      <div className="cursor-pointer px-4 py-3" onClick={copy}>
+      <div
+        className="cursor-pointer px-4 py-3"
+        onClick={copy}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            void copy();
+          }
+        }}
+      >
         <HighlightPlaceholders text={text} />
       </div>
     </div>
@@ -263,7 +274,18 @@ function HelpCopyBox({ label, text }: { label?: string; text: string }) {
           )}
         </button>
       </div>
-      <div className="cursor-pointer px-4 py-3" onClick={copy}>
+      <div
+        className="cursor-pointer px-4 py-3"
+        onClick={copy}
+        role="button"
+        tabIndex={0}
+        onKeyDown={(event) => {
+          if (event.key === "Enter" || event.key === " ") {
+            event.preventDefault();
+            void copy();
+          }
+        }}
+      >
         <HighlightPlaceholders text={text} />
       </div>
     </div>

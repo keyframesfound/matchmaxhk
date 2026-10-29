@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: Use the Rule of 3 after every lesson: what the task was, why it matters for the goal, and the exact measurable next step, so you always know tuition is working.
 icon: graduation-cap
 tags: [progress, feedback, post-lesson, parents]
-featured: false
 order: 1
 status: published
 updated: 2026-10-29

@@ -1,5 +1,5 @@
-import { createFileRoute, Link, notFound, redirect } from "@tanstack/react-router";
-import { ArrowUp, Check, ChevronRight, Clock3, X } from "lucide-react";
+import { createFileRoute, Link, notFound, redirect, useNavigate } from "@tanstack/react-router";
+import { ArrowUp, Check, ChevronRight, Clock3, Search, X } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { useState } from "react";
 
@@ -134,6 +134,50 @@ function DidThisHelp() {
   );
 }
 
+/**
+ * Persistent Help sub-header search on article pages (issue #500 §B): a
+ * compact pill matching the index hero anatomy. Submitting hands the query
+ * to the Help index via ?q=, which renders the full results view there.
+ */
+function HelpSubHeaderSearch({ audience }: { audience?: "tutors" }) {
+  const { t } = useTranslation();
+  const navigate = useNavigate();
+  const [query, setQuery] = useState("");
+
+  const submit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const trimmed = query.trim();
+    navigate({
+      to: "/help",
+      search: trimmed
+        ? { q: trimmed, ...(audience ? { audience } : {}) }
+        : audience
+          ? { audience }
+          : {},
+    });
+  };
+
+  return (
+    <form role="search" onSubmit={submit} className="relative mt-5">
+      <input
+        type="search"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        placeholder={t("help.search_placeholder")}
+        aria-label={t("help.search_label")}
+        className="h-11 w-full rounded-full border border-border bg-[color:var(--surface)] pl-5 pr-12 text-sm text-foreground outline-none transition-colors placeholder:text-muted-foreground focus-visible:border-[color:var(--brand-link)]"
+      />
+      <button
+        type="submit"
+        aria-label={t("help.search_label")}
+        className="absolute right-1 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full bg-[color:var(--brand-link)] text-white transition-colors hover:bg-[color:var(--brand-link)]/85"
+      >
+        <Search className="h-4 w-4" aria-hidden="true" />
+      </button>
+    </form>
+  );
+}
+
 function HelpArticlePage() {
   const { t } = useTranslation();
   const params = Route.useParams();
@@ -184,6 +228,11 @@ function HelpArticlePage() {
           </li>
         </ol>
       </nav>
+
+      <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
+        {/* Issue #500: tutor-audience articles search with the tutor tab preselected. */}
+        <HelpSubHeaderSearch audience={article.audience === "tutor" ? "tutors" : undefined} />
+      </div>
 
       <article id="top" className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
         <header>

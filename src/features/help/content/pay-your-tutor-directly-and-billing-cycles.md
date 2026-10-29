@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: Parents pay the tutor directly by FPS, bank transfer, or cash, agree the rate and billing cycle with the tutor, and keep simple records of what was paid.
 icon: wallet
 tags: [payments, billing, fps, parents]
-featured: false
 order: 1
 status: published
 updated: 2026-10-29

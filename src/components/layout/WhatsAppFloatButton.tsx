@@ -22,13 +22,16 @@ export function WhatsAppIcon(props: React.SVGProps<SVGSVGElement>) {
  * band and the float (z-50) would paint over the bar's Compare/Clear
  * controls (mirrors BackToTopButton); the hotline
  * digits come from app_settings.whatsapp_number via the server value.
+ * Also hidden on /help/* (issue #500): every help article renders its own
+ * ungated WhatsApp contact band, so the float would duplicate it.
  */
 export function WhatsAppFloatButton() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const compareBarVisible = useCompareBarVisible();
   const prefersReducedMotion = useReducedMotion();
-  const digits = useWhatsAppNumber(pathname !== "/join");
-  if (pathname === "/join" || compareBarVisible || !digits) return null;
+  const isHelpRoute = pathname === "/help" || pathname.startsWith("/help/");
+  const digits = useWhatsAppNumber(!isHelpRoute && pathname !== "/join");
+  if (isHelpRoute || pathname === "/join" || compareBarVisible || !digits) return null;
 
   const message = "Hi MatchMax, I need support.";
   const href = `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;

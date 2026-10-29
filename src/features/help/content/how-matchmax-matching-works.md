@@ -7,7 +7,6 @@ author: MatchMax Team
 summary: See how MatchMax matches your child with a self-employed tutor, from posting a request to agreeing a regular weekly schedule.
 icon: compass
 tags: [matching, getting-started, parents, how-it-works]
-featured: true
 order: 1
 status: published
 updated: 2026-10-29
