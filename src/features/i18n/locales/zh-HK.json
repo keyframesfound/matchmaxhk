@@ -39,6 +39,22 @@
     "state_inactive": "暫停",
     "view_public": "查看公開導師卡",
     "edit_profile": "編輯個人檔案",
+    "profile_edit": {
+      "title": "編輯個人檔案",
+      "description": "更新你 MatchMax 帳戶嘅姓名同電話號碼。",
+      "name": "姓名",
+      "name_placeholder": "你嘅姓名",
+      "name_required": "請輸入你嘅姓名。",
+      "phone": "電話號碼",
+      "phone_placeholder": "+852 9123 4567",
+      "phone_hint": "當 MatchMax 團隊需要就配對聯絡你時使用。",
+      "phone_invalid": "請輸入有效嘅電話號碼，或者留空。",
+      "save": "儲存變更",
+      "saving": "儲存中…",
+      "saved": "你嘅個人資料已更新。",
+      "load_error": "載入個人檔案失敗，請再試一次。",
+      "retry": "重試"
+      },
     "edit": "編輯",
     "tutor_cta_title": "喺 MatchMax 教書",
     "tutor_cta_body": "建立你嘅導師卡，設定價錢同時間，仲可以賣筆記。如果團隊已經幫你建立咗導師卡，你可以喺公開頁面認領。",
@@ -2131,11 +2147,10 @@
   },
   "settings": {
     "title": "設定",
-    "subtitle": "管理你嘅個人資料同帳戶存取。",
+    "subtitle": "管理你嘅帳戶、安全同通知偏好設定。",
     "load_error": "載入設定失敗，請重新整理再試一次。",
     "nav": {
       "general": "一般",
-      "profile": "個人資料",
       "account": "帳戶",
       "security": "安全",
       "notifications": "通知",
@@ -2184,22 +2199,6 @@
       "language_zh": "繁體中文",
       "language_zh_desc": "以繁體中文瀏覽 MatchMax。",
       "language_saved": "語言已更新。"
-    },
-    "profile": {
-      "title": "個人資料",
-      "description": "更新你 MatchMax 帳戶嘅詳細資料。",
-      "name": "姓名",
-      "name_placeholder": "你嘅姓名",
-      "name_required": "請輸入你嘅姓名。",
-      "phone": "電話號碼",
-      "phone_placeholder": "+852 9123 4567",
-      "phone_hint": "當 MatchMax 團隊需要就配對聯絡你時使用。",
-      "phone_invalid": "請輸入有效嘅電話號碼，或者留空。",
-      "email": "電郵地址",
-      "email_readonly_hint": "你嘅電郵地址可以喺「帳戶」入面更改。",
-      "save": "儲存變更",
-      "saving": "儲存中…",
-      "saved": "你嘅個人資料已更新。"
     },
     "account": {
       "overview_title": "帳戶概覽",

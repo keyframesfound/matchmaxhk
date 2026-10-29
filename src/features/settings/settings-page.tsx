@@ -6,7 +6,6 @@ import {
   BookOpen,
   Bookmark,
   CalendarClock,
-  CircleUserRound,
   Database,
   Gift,
   GraduationCap,
@@ -39,7 +38,6 @@ import { GroupClassesSection } from "@/features/settings/sections/group-classes-
 import { MyTutorProfileSection } from "@/features/settings/sections/my-tutor-profile-section";
 import { NotificationsSection } from "@/features/settings/sections/notifications-section";
 import { PrivacySection } from "@/features/settings/sections/privacy-section";
-import { ProfileSection } from "@/features/settings/sections/profile-section";
 import { ReferralsSection } from "@/features/settings/sections/referrals-section";
 import { StudyMaterialsSection } from "@/features/settings/sections/study-materials-section";
 import {
@@ -56,7 +54,6 @@ import { cn } from "@/lib/utils";
 const CATEGORY_META: Record<SettingsCategory, { labelKey: string; icon: typeof Settings2 }> = {
   home: { labelKey: "settings.nav.home", icon: Home },
   general: { labelKey: "settings.nav.general", icon: Settings2 },
-  profile: { labelKey: "settings.nav.profile", icon: CircleUserRound },
   "my-tutor": { labelKey: "settings.nav.my_tutor", icon: GraduationCap },
   availability: { labelKey: "settings.nav.availability", icon: CalendarClock },
   "group-classes": { labelKey: "settings.nav.group_classes", icon: Users },
@@ -109,7 +106,6 @@ function LessonsTab(_props: SettingsSectionProps) {
 const SECTION_COMPONENTS: Record<SettingsCategory, ComponentType<SettingsSectionProps>> = {
   home: HomeTab,
   general: GeneralSection,
-  profile: ProfileSection,
   "my-tutor": MyTutorProfileSection,
   availability: AvailabilityTab,
   "group-classes": GroupClassesSection,
@@ -250,6 +246,15 @@ export function SettingsPage() {
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
+
+  // #501: Settings no longer hosts profile editing. Legacy /dashboard#profile
+  // deep links (old bookmarks, older app versions) retarget to the Account
+  // home, where the edit-profile dialog now lives.
+  useEffect(() => {
+    if (location.hash === "#profile") {
+      void navigate({ to: "/account", replace: true });
+    }
+  }, [location.hash, navigate]);
 
   if (!user) return null;
 

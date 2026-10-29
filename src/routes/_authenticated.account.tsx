@@ -27,6 +27,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useAuth } from "@/features/auth/useAuth";
 import { SignupChecklistCard } from "@/features/account/signup-checklist";
+import { ProfileEditDialog } from "@/features/account/profile-edit-dialog";
 import { getMyApplicationStatus } from "@/features/tutor-application/application-status.functions";
 import { ApplicationStatusPanel } from "@/features/tutor-application/application-status-card";
 import {
@@ -125,6 +126,8 @@ function AccountPage() {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  // #501: Edit profile now opens an on-page dialog instead of /dashboard.
+  const [profileEditOpen, setProfileEditOpen] = useState(false);
 
   const materialsQuery = useQuery({
     queryKey: ["account", "my-materials", user?.id],
@@ -330,11 +333,15 @@ function AccountPage() {
                 </Link>
               </Button>
             ) : null}
-            <Button variant="outline" className="font-semibold" asChild>
-              <Link to="/dashboard">
-                <Pencil className="mr-2 h-4 w-4" aria-hidden />
-                {t("account.edit_profile")}
-              </Link>
+            {/* #501: edits display name + phone here on /account; Settings
+                no longer hosts profile editing. */}
+            <Button
+              variant="outline"
+              className="font-semibold"
+              onClick={() => setProfileEditOpen(true)}
+            >
+              <Pencil className="mr-2 h-4 w-4" aria-hidden />
+              {t("account.edit_profile")}
             </Button>
           </div>
         </section>
@@ -817,6 +824,13 @@ function AccountPage() {
           )}
         </section>
       </main>
+      {user ? (
+        <ProfileEditDialog
+          open={profileEditOpen}
+          onOpenChange={setProfileEditOpen}
+          userId={user.id}
+        />
+      ) : null}
       <SiteFooter />
     </div>
   );

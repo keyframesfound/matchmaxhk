@@ -39,6 +39,22 @@
     "state_inactive": "Inactive",
     "view_public": "View public card",
     "edit_profile": "Edit profile",
+    "profile_edit": {
+      "title": "Edit profile",
+      "description": "Update the name and phone number on your MatchMax account.",
+      "name": "Name",
+      "name_placeholder": "Your name",
+      "name_required": "Please enter your name.",
+      "phone": "Phone number",
+      "phone_placeholder": "+852 9123 4567",
+      "phone_hint": "Used when the MatchMax team needs to reach you about a match.",
+      "phone_invalid": "Enter a valid phone number, or leave this blank.",
+      "save": "Save changes",
+      "saving": "Saving…",
+      "saved": "Your profile has been updated.",
+      "load_error": "We couldn't load your profile. Please try again.",
+      "retry": "Retry"
+      },
     "edit": "Edit",
     "tutor_cta_title": "Teach on MatchMax",
     "tutor_cta_body": "Create your tutor card, set your rate and availability, and sell notes. If a card was already created for you, you can claim it from your public profile.",
@@ -2131,11 +2147,10 @@
   },
   "settings": {
     "title": "Settings",
-    "subtitle": "Manage your profile details and account access.",
+    "subtitle": "Manage your account, security and notification preferences.",
     "load_error": "We couldn't load your settings. Please refresh and try again.",
     "nav": {
       "general": "General",
-      "profile": "Profile",
       "account": "Account",
       "security": "Security",
       "notifications": "Notifications",
@@ -2184,22 +2199,6 @@
       "language_zh": "繁體中文",
       "language_zh_desc": "以繁體中文瀏覽 MatchMax。",
       "language_saved": "Language updated."
-    },
-    "profile": {
-      "title": "Profile",
-      "description": "Update the details associated with your MatchMax account.",
-      "name": "Name",
-      "name_placeholder": "Your name",
-      "name_required": "Please enter your name.",
-      "phone": "Phone number",
-      "phone_placeholder": "+852 9123 4567",
-      "phone_hint": "Used when the MatchMax team needs to reach you about a match.",
-      "phone_invalid": "Enter a valid phone number, or leave this blank.",
-      "email": "Email",
-      "email_readonly_hint": "Your email address is managed under Account.",
-      "save": "Save changes",
-      "saving": "Saving…",
-      "saved": "Your profile has been updated."
     },
     "account": {
       "overview_title": "Account overview",
