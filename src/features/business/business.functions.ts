@@ -141,7 +141,7 @@ const CENTRE_PARTNERSHIP_CHECKBOX_STRINGS = {
     `I confirm that I am authorised to accept these Terms and bind ${legalEntityName}.`,
   terms:
     "I have read and agree to the MatchMax Platform Terms of Service and Privacy Collection Statement.",
-  fee: "I have read and agree to the Matching and Platform Service Fee Agreement (1.5-lesson admin fee, paid by the self-employed tutor).",
+  fee: "I have read and agree to the Matching and Platform Service Fee Agreement (tutor-pays admin fee: private 1.5; centre intro 1.5 / 1 / 0.5 then $0).",
   marketing:
     "I consent to receive updates, case alerts, and promotional communications from MatchMax.",
 };

@@ -492,6 +492,10 @@ const SECTIONS: Section[] = [
       },
       {
         kind: "p",
+        text: "For Partner Organisation or tutorial-centre introductions, when the same centre assigns additional students to that Tutor within six months of the original MatchMax introduction, the Tutor’s admin fee for those further students is stepped: 1.5 lessons for the first student, 1.0 lesson for the second, 0.5 lesson for the third, and $0 for the fourth and later students at that centre under that introduction (maximum about 3.0 lessons per centre introduction). Private parent matches remain 1.5 lessons per enrolled student or case; there is no centre-style step-down for siblings in a private household.",
+      },
+      {
+        kind: "p",
         text: "A Tutor who takes lessons from an introduction without paying the admin fee when it falls due is in breach of these Terms. The remedy is the unpaid fee, closure of the case, and a bar on new introductions through the Platform. No other penalty applies.",
       },
       {

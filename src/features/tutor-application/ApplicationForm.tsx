@@ -3941,6 +3941,18 @@ export function ApplicationForm() {
                           <li key={line}>{t(`join.terms_verification_${line}`)}</li>
                         ))}
                       </ul>
+                      {/* Issue #508: tutor-intake row — centre spin-offs are
+                          reportable; short note + fee-guide link. */}
+                      <p className="mt-2 text-xs leading-relaxed">
+                        {t("join.centre_spinoff_note")}{" "}
+                        <Link
+                          className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
+                          to="/guide/tutors"
+                          target="_blank"
+                        >
+                          {t("join.centre_spinoff_guide_link")}
+                        </Link>
+                      </p>
                     </span>
                   </label>
                 </div>

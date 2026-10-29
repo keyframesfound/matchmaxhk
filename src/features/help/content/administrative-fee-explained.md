@@ -11,3 +11,5 @@ status: published
 external: /guide
 ---
 The fee is summarised in the billing FAQ on the Guide page, including the concierge window for the first two lessons and short-term case rates.
+
+Parents do not pay MatchMax a matching fee; the self-employed tutor settles the admin fee with MatchMax.
