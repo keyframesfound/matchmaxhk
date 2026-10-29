@@ -21,7 +21,11 @@ import {
   TUTOR_PLUS_THRESHOLD,
 } from "@/features/cases/sor";
 import { generateSlots, type GeneratedSlot } from "@/features/cases/slot";
-import { validateReviewInput } from "@/features/cases/case-reviews";
+import {
+  caseHasVerifiedLesson,
+  validateReviewInput,
+  type LessonConfirmRow,
+} from "@/features/cases/case-reviews";
 import { sweepDueSessionLogs, type SessionLogRowT } from "@/features/cases/experience.functions";
 import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
 import {
@@ -127,6 +131,9 @@ export type TutorCaseItem = {
   /** #443: short-case chip inputs (false/null on legacy rows). */
   is_short_case: boolean;
   scheduled_lesson_count: number | null;
+  /** #503 bilateral End Case: per-side markers (null until that side taps). */
+  ended_by_parent_at: string | null;
+  ended_by_tutor_at: string | null;
 };
 
 export const getMyTutorCases = createServerFn({ method: "POST" })
@@ -151,10 +158,12 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
       created_at: string;
       is_short_case: boolean | null;
       scheduled_lesson_count: number | null;
+      ended_by_parent_at: string | null;
+      ended_by_tutor_at: string | null;
     }>(
       db,
       "tutoring_cases",
-      "id, case_code, title, subjects, exam_system, district, lesson_mode, sor_status, is_short_case, scheduled_lesson_count, created_at",
+      "id, case_code, title, subjects, exam_system, district, lesson_mode, sor_status, is_short_case, scheduled_lesson_count, ended_by_parent_at, ended_by_tutor_at, created_at",
       [{ col: "matched_tutor_id", op: "eq", value: tutorId }],
       { col: "created_at", asc: false, limit: 100 },
     );
@@ -241,6 +250,8 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
       sor_status: c.sor_status,
       is_short_case: c.is_short_case === true,
       scheduled_lesson_count: c.scheduled_lesson_count ?? null,
+      ended_by_parent_at: c.ended_by_parent_at,
+      ended_by_tutor_at: c.ended_by_tutor_at,
       fee_status: openFeeByCase.get(c.id)?.status ?? null,
       fee_amount_hkd: openFeeByCase.get(c.id)?.amount_hkd ?? null,
       lessons: lessons
@@ -742,11 +753,16 @@ export const submitTutorReview = createServerFn({ method: "POST" })
       ],
     );
     if (rows.length === 0) throw new Error("CASE_NOT_FOUND");
+    // #503 stop condition: an ENDED case's ratings are final.
+    if (rows[0].sor_status === "closed") throw new Error("CASE_ENDED");
 
     const [lessons, mine] = await Promise.all([
-      selectRows<{ status: string }>(db, "case_lessons", "status", [
-        { col: "case_id", op: "eq", value: data.caseId },
-      ]),
+      selectRows<LessonConfirmRow>(
+        db,
+        "case_lessons",
+        "status, confirmed_by_parent_at, confirmed_by_tutor_at",
+        [{ col: "case_id", op: "eq", value: data.caseId }],
+      ),
       selectRows<{ id: string; status: string; author_account_id: string }>(
         db,
         "case_reviews",
@@ -755,9 +771,10 @@ export const submitTutorReview = createServerFn({ method: "POST" })
       ),
     ]);
 
-    // Same rules as the parent direction, mirrored: done lesson required,
-    // 20–400 bound (#287), holds on contact details, one visible per case.
-    if (!lessons.some((l) => l.status === "done")) throw new Error("NO_DONE_LESSON");
+    // Same rules as the parent direction, mirrored: one bilaterally confirmed
+    // lesson required (#503 — not tutor-logged-alone), 20–400 bound (#287),
+    // holds on contact details, one visible per case.
+    if (!caseHasVerifiedLesson(lessons)) throw new Error("NO_VERIFIED_LESSON");
     const validity = validateReviewInput("tutor_to_parent", data.rating, data.comment);
     if (!validity.ok) throw new Error(validity.message);
     const status: "visible" | "held" = validity.heldReasons.length > 0 ? "held" : "visible";

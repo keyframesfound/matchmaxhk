@@ -11,12 +11,20 @@ import {
   isCaseFeeSettledStatus,
 } from "../../src/features/cases/case-reviews";
 
-const doneLesson = { status: "done" };
-const plannedLesson = { status: "planned" };
+const doneLesson = {
+  status: "done",
+  confirmed_by_parent_at: "2026-01-01T00:00:00Z",
+  confirmed_by_tutor_at: "2026-01-01T00:00:00Z",
+};
+const plannedLesson = {
+  status: "planned",
+  confirmed_by_parent_at: null,
+  confirmed_by_tutor_at: null,
+};
 const cleanComment = "Great tutor, very clear explanations.";
 
 describe("review submit state machine (#205/#287)", () => {
-  it("rejects without a done lesson", () => {
+  it("rejects without a bilaterally confirmed lesson (#503)", () => {
     const res = decideReviewSubmit({
       lessons: [plannedLesson],
       rating: 5,
@@ -24,7 +32,18 @@ describe("review submit state machine (#205/#287)", () => {
       existingMine: [],
       feeSettled: false,
     });
-    expect(res).toEqual({ action: "reject", message: "NO_DONE_LESSON" });
+    expect(res).toEqual({ action: "reject", message: "NO_VERIFIED_LESSON" });
+  });
+
+  it("rejects a tutor-only done lesson (parent never confirmed, #503)", () => {
+    const res = decideReviewSubmit({
+      lessons: [{ status: "done", confirmed_by_parent_at: null, confirmed_by_tutor_at: "t" }],
+      rating: 5,
+      comment: cleanComment,
+      existingMine: [],
+      feeSettled: true,
+    });
+    expect(res).toEqual({ action: "reject", message: "NO_VERIFIED_LESSON" });
   });
 
   it("inserts visible when clean, no prior review, fee already settled", () => {

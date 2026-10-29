@@ -31,6 +31,9 @@ import {
   type TutorCaseItem,
 } from "@/features/cases/tutor.functions";
 import { logTutorSession } from "@/features/cases/experience.functions";
+import { EndCaseControl } from "@/features/cases/end-case-control";
+import { ReviewStepHeader } from "@/features/cases/review-step-header";
+import { caseHasVerifiedLesson } from "@/features/cases/case-reviews";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { ShortCaseChip } from "@/features/cases/tutor/short-case-chip";
 import { lessonActionsFor } from "@/features/cases/tutor/week-model";
@@ -63,6 +66,7 @@ function TutorReviewParentForm({
   const [open, setOpen] = useState(false);
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState("");
+  const [step, setStep] = useState(1);
 
   const submit = useMutation({
     mutationFn: () => submitTutorReview({ data: { caseId, rating, comment } }),
@@ -73,9 +77,11 @@ function TutorReviewParentForm({
       setRating(0);
       setComment("");
       setOpen(false);
+      setStep(1);
       queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
     },
-    onError: (e) => toast.error(e.message),
+    // #503: map the server gate codes to plain copy (raw codes otherwise).
+    onError: (e) => toast.error(t(`sor.err_${e.message}`, { defaultValue: e.message })),
   });
 
   const valid =
@@ -91,42 +97,61 @@ function TutorReviewParentForm({
       </Button>
     );
   }
+  const stepLabels = [t("sor.review_step_rating"), t("sor.review_step_comment")];
   return (
-    <div className="mt-2 rounded-lg border border-[color:var(--ink)]/10 p-3">
-      <div className="flex items-center gap-1">
-        {[1, 2, 3, 4, 5].map((s) => (
-          <button key={s} type="button" aria-label={`${s}/5`} onClick={() => setRating(s)}>
-            <Star
-              className={cn(
-                "h-5 w-5",
-                s <= rating ? "fill-current text-amber-500" : "text-muted-foreground",
-              )}
-            />
-          </button>
-        ))}
-      </div>
-      <textarea
-        className="mt-2 w-full rounded-md border border-[color:var(--ink)]/15 bg-transparent p-2 text-sm"
-        rows={3}
-        maxLength={REVIEW_COMMENT_MAX_TUTOR}
-        placeholder={t("sor.parent_tutor_review_placeholder")}
-        value={comment}
-        onChange={(e) => setComment(e.target.value)}
-      />
-      <div className="mt-2 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">
-          {comment.trim().length}/{REVIEW_COMMENT_MAX_TUTOR}
-        </span>
-        <span className="flex gap-2">
-          <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
-            {t("sor.admin_cancel")}
-          </Button>
-          <Button size="sm" disabled={!valid || submit.isPending} onClick={() => submit.mutate()}>
-            {submit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {t("sor.parent_tutor_review_submit")}
-          </Button>
-        </span>
-      </div>
+    <div className="mt-2 rounded-[var(--radius-panel)] border border-border bg-card p-4">
+      {/* #503: same carousel-like step flow as the parent's rating card. */}
+      <ReviewStepHeader labels={stepLabels} step={step} onStepClick={(s) => setStep(s)} />
+      {step === 1 ? (
+        <div>
+          <div className="flex items-center gap-1">
+            {[1, 2, 3, 4, 5].map((s) => (
+              <button key={s} type="button" aria-label={`${s}/5`} onClick={() => setRating(s)}>
+                <Star
+                  className={cn(
+                    "h-6 w-6",
+                    s <= rating ? "fill-current text-amber-500" : "text-muted-foreground",
+                  )}
+                />
+              </button>
+            ))}
+          </div>
+          <div className="mt-4 flex justify-end">
+            <Button size="sm" disabled={rating < 1} onClick={() => setStep(2)}>
+              {t("sor.review_step_next")}
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <div>
+          <textarea
+            className="w-full rounded-md border border-[color:var(--ink)]/15 bg-transparent p-2 text-sm"
+            rows={3}
+            maxLength={REVIEW_COMMENT_MAX_TUTOR}
+            placeholder={t("sor.parent_tutor_review_placeholder")}
+            value={comment}
+            onChange={(e) => setComment(e.target.value)}
+          />
+          <div className="mt-2 flex items-center justify-between">
+            <span className="text-xs text-muted-foreground">
+              {comment.trim().length}/{REVIEW_COMMENT_MAX_TUTOR}
+            </span>
+            <span className="flex gap-2">
+              <Button size="sm" variant="ghost" onClick={() => setStep(1)}>
+                {t("sor.review_step_back")}
+              </Button>
+              <Button
+                size="sm"
+                disabled={!valid || submit.isPending}
+                onClick={() => submit.mutate()}
+              >
+                {submit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                {t("sor.parent_tutor_review_submit")}
+              </Button>
+            </span>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -443,6 +468,9 @@ function TutorPlusBanner({ t }: { t: ReturnType<typeof useTranslation>["t"] }) {
 /** #201 tutor list + lesson actions + #204 Tutor Plus banner. No parent phone, no WhatsApp. */
 export function TutorCasesSection() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const invalidateTutorCases = () =>
+    queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
   const { data, isLoading } = useQuery({
     queryKey: ["sor", "tutor-cases"],
     queryFn: getMyTutorCases,
@@ -491,11 +519,23 @@ export function TutorCasesSection() {
                     ))}
                   </ul>
                 )}
-                {c.lessons.some((l) => l.status === "done") &&
+                {caseHasVerifiedLesson(c.lessons) &&
                   c.sor_status !== "closed" &&
                   c.sor_status !== "replaced" && <TutorReviewParentForm caseId={c.id} t={t} />}
                 {/* #387: logged sessions + logging form (fee-paid cases). */}
                 <SessionLogForm item={c} />
+                {/* #503: bilateral End Case — the tutor marks the case
+                    finished; it ends when both sides (or staff) confirm. */}
+                <div className="mt-3">
+                  <EndCaseControl
+                    caseId={c.id}
+                    sorStatus={c.sor_status}
+                    endedByParentAt={c.ended_by_parent_at}
+                    endedByTutorAt={c.ended_by_tutor_at}
+                    actorRole="tutor"
+                    onDone={invalidateTutorCases}
+                  />
+                </div>
                 {/* Issue #412 F: engagement summary, the tutor confirms the
                     agreed arrangements before contact/lessons finalise. */}
                 <EngagementSummaryCard caseId={c.id} party="tutor" />

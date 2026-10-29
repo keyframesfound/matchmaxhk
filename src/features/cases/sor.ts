@@ -33,7 +33,10 @@ export const ALLOWED_TRANSITIONS: Readonly<Record<SorStatus, readonly SorStatus[
   lesson_2_scheduled: ["lesson_2_done", "closed"],
   lesson_2_done: ["fee_invoiced"],
   fee_invoiced: ["fee_paid", "waived"],
-  fee_paid: ["active"],
+  // #503: bilateral End Case completes a live post-fee case to 'closed' from
+  // fee_paid (the state live cases rest at) — mirrors migration
+  // 20261028120000, which adds the same edge to the DB trigger guard.
+  fee_paid: ["active", "closed"],
   active: ["replaced", "closed"],
   replaced: [],
   closed: [],

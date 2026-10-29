@@ -8,6 +8,7 @@ import {
   FEE_SETTLEMENT_HOLD_REASON,
   parentCanReviewCase,
   validateReviewInput,
+  type LessonConfirmRow,
   type ReviewDirection,
 } from "@/features/cases/case-reviews";
 
@@ -25,7 +26,8 @@ export type ReviewSubmitDecision =
 
 /**
  * Decide what a parent review submission does against existing rows:
- *  - no done lesson on the case -> reject (#205/#287 "no done lesson, no review")
+ *  - #503: no bilaterally confirmed lesson on the case -> reject (both parties
+ *    must have confirmed at least one lesson; tutor-only logging never unlocks)
  *  - #386: while the case's admin fee is NOT settled the review is HELD under
  *    pending_fee_settlement (plus any contact reasons); it publishes lazily
  *    on read once the fee settles
@@ -35,7 +37,7 @@ export type ReviewSubmitDecision =
  *    in admin as 'replaced')
  */
 export function decideReviewSubmit(input: {
-  lessons: { status: string }[];
+  lessons: LessonConfirmRow[];
   rating: number;
   comment: string;
   existingMine: ExistingReview[];
@@ -43,7 +45,7 @@ export function decideReviewSubmit(input: {
   feeSettled: boolean;
 }): ReviewSubmitDecision {
   if (!parentCanReviewCase(input.lessons)) {
-    return { action: "reject", message: "NO_DONE_LESSON" };
+    return { action: "reject", message: "NO_VERIFIED_LESSON" };
   }
   const validity = validateReviewInput("parent_to_tutor", input.rating, input.comment);
   if (!validity.ok) return { action: "reject", message: validity.message };

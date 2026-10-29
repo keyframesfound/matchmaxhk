@@ -40,6 +40,9 @@ export const BELL_EVENT_TYPES: readonly string[] = [
   "lesson.reminder_due",
   "lesson.review_prompt",
   "experience.session_logged",
+  // #503 soft prompt after one side taps End Case.
+  "case.end_requested_by_parent",
+  "case.end_requested_by_tutor",
 ];
 
 /**
@@ -88,6 +91,11 @@ export const DELIVERY_PLAN: Readonly<
   //, lightweight by issue design; the Dispute button lives on the linked
   // case page). No email: fee/order classes are the email set.
   "experience.session_logged": [{ channel: "in_app", role: "parent" }],
+  // #503 soft prompt: one side tapped End Case. Two event types (one per
+  // actor) so the delivery plan reaches only the OTHER party — the actor
+  // already knows they tapped.
+  "case.end_requested_by_parent": [{ channel: "in_app", role: "tutor" }],
+  "case.end_requested_by_tutor": [{ channel: "in_app", role: "parent" }],
   // Concierge unpaid-fee digest (#205). Generated at most once per 24h by the
   // drain; not a bell item for parents/tutors.
   "admin_fee.digest": [
@@ -142,6 +150,12 @@ export function bellLinkFor(
     }
     case "lesson.review_prompt":
       return caseId ? `/account/cases/${caseId}#review` : "/account";
+    // #503 soft prompt: the recipient lands where their End Case control
+    // lives (tutor Schedule hub / parent case page).
+    case "case.end_requested_by_parent":
+    case "case.end_requested_by_tutor":
+      if (role === "tutor") return tutorHome;
+      return caseId ? `/account/cases/${caseId}` : "/account";
     case "lesson.reminder_due":
       if (role === "tutor") return tutorHome;
       return caseId ? `/account/cases/${caseId}` : "/account";

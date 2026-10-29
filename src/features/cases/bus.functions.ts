@@ -666,6 +666,12 @@ export const getMyBell = createServerFn({ method: "POST" })
         // The log is parent-facing by design (#387): only the parent gets the
         // delivery, so the hint is statically theirs.
         roleHint = "parent";
+      } else if (eventType === "case.end_requested_by_parent") {
+        // #503 soft prompt: the event type names the ACTOR, the delivery goes
+        // to the other party only, so the hint is statically the recipient's.
+        roleHint = "tutor";
+      } else if (eventType === "case.end_requested_by_tutor") {
+        roleHint = "parent";
       } else if (eventType === "lesson.reminder_due") {
         const caseId = typeof payload.case_id === "string" ? payload.case_id : null;
         roleHint =

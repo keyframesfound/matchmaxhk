@@ -192,6 +192,24 @@ function AccountPage() {
     enabled: Boolean(user),
   });
 
+  // #503: completed (ended + fee-settled) case count for the parent's own
+  // profile block — self-only SECURITY DEFINER RPC (auth.uid() inside), so no
+  // other account's number is reachable. Tolerant: a pre-migration deploy
+  // hides the count, never breaks the page.
+  const completedCasesQuery = useQuery({
+    queryKey: ["account", "completed-cases", user?.id],
+    queryFn: async () => {
+      const client = supabase as unknown as {
+        rpc: (fn: string) => Promise<{ data: unknown; error: { message: string } | null }>;
+      };
+      const { data, error } = await client.rpc("get_my_completed_case_count");
+      if (error || data == null) return 0;
+      const n = Number(Array.isArray(data) ? data[0] : data);
+      return Number.isFinite(n) ? n : 0;
+    },
+    enabled: Boolean(user),
+  });
+
   const hideMutation = useMutation({
     mutationFn: (input: { materialId: string; hidden: boolean }) => setNoteHidden({ data: input }),
     onSuccess: () => {
@@ -638,9 +656,16 @@ function AccountPage() {
 
         {/* P6 parent block: my cases */}
         <section className="mt-12 space-y-4">
-          <h2 className="flex items-center gap-2 text-lg font-bold">
-            <Inbox className="h-5 w-5" aria-hidden />
-            {t("account.cases_block")}
+          <h2 className="flex flex-wrap items-center gap-3 text-lg font-bold">
+            <span className="flex items-center gap-2">
+              <Inbox className="h-5 w-5" aria-hidden />
+              {t("account.cases_block")}
+            </span>
+            {(completedCasesQuery.data ?? 0) > 0 ? (
+              <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-3 py-1 text-xs font-medium text-muted-foreground">
+                {t("account.completed_cases_count", { count: completedCasesQuery.data ?? 0 })}
+              </span>
+            ) : null}
           </h2>
           {myCasesQuery.isLoading ? (
             <div className="flex h-24 items-center justify-center rounded-xl border border-border bg-card">

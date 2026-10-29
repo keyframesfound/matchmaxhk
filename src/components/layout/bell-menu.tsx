@@ -1,7 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { formatPostedAgo } from "@/lib/relative-time";
-import { Bell, CalendarClock, GraduationCap, Package, Star, Wallet } from "lucide-react";
+import {
+  Bell,
+  CalendarClock,
+  CheckCheck,
+  GraduationCap,
+  Package,
+  Star,
+  Wallet,
+} from "lucide-react";
 import { useTranslation } from "react-i18next";
 import i18n from "@/features/i18n/config";
 
@@ -19,6 +27,8 @@ function bellIcon(eventType: string) {
   if (eventType === "review.published" || eventType === "lesson.review_prompt") return Star;
   if (eventType === "lesson.reminder_due") return CalendarClock;
   if (eventType === "experience.session_logged") return GraduationCap;
+  if (eventType === "case.end_requested_by_parent" || eventType === "case.end_requested_by_tutor")
+    return CheckCheck;
   if (eventType.startsWith("admin_fee")) return Wallet;
   return Bell;
 }
@@ -35,6 +45,10 @@ function bellLabelKey(item: BellItem): string {
       return "sor.bell_lesson_tomorrow";
     case "experience.session_logged":
       return "sor.bell_session_logged";
+    case "case.end_requested_by_parent":
+      return "sor.bell_case_end_by_parent";
+    case "case.end_requested_by_tutor":
+      return "sor.bell_case_end_by_tutor";
     case "admin_fee.invoiced":
       return "sor.bell_fee_due";
     case "admin_fee.unpaid":

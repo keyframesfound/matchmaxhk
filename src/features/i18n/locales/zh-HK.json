@@ -1925,6 +1925,7 @@
     "status_block": "可用時間",
     "slots_left": "剩餘 {{count}} 個名額",
     "cases_block": "我嘅個案",
+    "completed_cases_count": "已完成 {{count}}",
     "no_cases": "仲未有個案。",
     "create_case": "搵導師",
     "case_status_pending": "待處理",
@@ -2482,7 +2483,27 @@
     "tutor_home_notes_link": "查看你的商品",
     "tutor_home_open_lessons": "前往課堂",
     "bell_session_logged": "導師已記錄新的補習課堂",
-    "admin_students_suffix": "位學生"
+    "admin_students_suffix": "位學生",
+    "bell_case_end_by_parent": "家長已標記此個案完結。",
+    "bell_case_end_by_tutor": "導師已標記此個案完結。",
+    "end_case_title": "完結此個案",
+    "end_case_button": "完結個案",
+    "end_case_confirm": "確認完結",
+    "end_case_confirm_copy": "完結此個案。雙方檔案都會保留紀錄；評分此後不能再更改。",
+    "end_case_waiting": "你已標記此個案完結。待對方確認後個案便會結束；雙方檔案都會保留紀錄。",
+    "end_case_other_marked": "對方已標記此個案完結。你可以確認完結，或繼續上課。",
+    "end_case_marked_toast": "已標記。待對方確認後個案便會結束。",
+    "end_case_done_toast": "個案已完結。雙方檔案都會保留紀錄。",
+    "review_step_rating": "評分",
+    "review_step_comment": "內容",
+    "review_steps_aria": "評分步驟",
+    "review_step_next": "下一步",
+    "review_step_back": "上一步",
+    "review_final_note": "個案已完結，此評分為最終評分。",
+    "err_CASE_ENDED": "此個案已完結，評分不能再更改。",
+    "err_NO_VERIFIED_LESSON": "雙方確認第一課後，評分功能便會開放。",
+    "err_NOT_ONGOING": "此個案並非進行中，無法在此完結。",
+    "err_CASE_NOT_FOUND": "找不到個案。"
   },
   "currency": {
     "switcher_label": "貨幣",
@@ -2704,7 +2725,8 @@
     "desk_title": "經驗紀錄",
     "desk_empty": "沒有已登記課堂。",
     "desk_revoke": "撤銷",
-    "desk_revoked_ok": "已撤銷課堂——公開數據已即時重算。"
+    "desk_revoked_ok": "已撤銷課堂——公開數據已即時重算。",
+    "completed_cases": "已完成個案：{{count}}"
   },
   "tour": {
     "back": "上一步",
