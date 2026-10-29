@@ -1017,16 +1017,16 @@
       "verification": {
         "aspect": "Verification",
         "old": "Unverified self-claims.",
-        "max": "Gold Badge checked by hand. Others show proof before Lesson 1."
+        "max": "Blue Tick checked by hand. Others show proof before Lesson 1."
       }
     },
     "flow_title": "Concierge matching",
     "parents_audience": "For Parents",
-    "parents_title": "Gold Verified top scorers, transparent paper scores, zero guesswork.",
+    "parents_title": "Blue Tick verified top scorers, transparent paper scores, zero guesswork.",
     "parents_steps": {
       "s1": {
         "title": "Browse Premium Tutor Profiles",
-        "detail": "We enforce a strictly high academic bar. Browse clean, easy-to-read profiles featuring exact paper scores and secondary school backgrounds. Gold Verified profiles carry staff-checked transcripts, for everyone else, ask the tutor for proof before the first lesson."
+        "detail": "We enforce a strictly high academic bar. Browse clean, easy-to-read profiles featuring exact paper scores and secondary school backgrounds. Blue Tick verified profiles carry staff-checked transcripts, for everyone else, ask the tutor for proof before the first lesson."
       },
       "s2": {
         "title": "Compare & Request Seamlessly",
@@ -1170,7 +1170,7 @@
       },
       "verification": {
         "q": "How does MatchMax verify tutor qualifications and grades?",
-        "a": "MatchMax uses a two-tier system. Tier 1 tutors list self-reported results as “Stated Qualifications”. MatchMax does not cryptographically verify these claims, so you can request photographic proof directly from the tutor before the first lesson. Tier 2 tutors carry the gold Verified Scholar Badge, meaning our team has manually checked their identity and academic documents. Either way, you can always ask for proof before committing."
+        "a": "MatchMax uses a two-tier system. Tier 1 tutors list self-reported results as “Stated Qualifications”. MatchMax does not cryptographically verify these claims, so you can request photographic proof directly from the tutor before the first lesson. Tier 2 tutors carry the Blue Tick verification badge, meaning our team has manually checked their identity and academic documents. Either way, you can always ask for proof before committing."
       },
       "payments": {
         "q": "How do payments work between parents and tutors?",
@@ -1200,7 +1200,7 @@
       }
     },
     "value_pill_1": "1.5-lesson fee only — no ongoing cut after Lesson 2",
-    "value_pill_2": "Verified credentials — Gold Badge transcripts checked by hand",
+    "value_pill_2": "Verified credentials, Blue Tick transcripts checked by hand",
     "fee_title": "Commission fee per match",
     "fee_old_label": "Old-school agencies",
     "fee_old_value": "2–8 lessons",
@@ -1616,8 +1616,8 @@
     "verification": {
       "intro": "Every card is reviewed by a person. Optional two-tier system — what a badge does and does not mean.",
       "tiers_title": "What we verify",
-      "tier2_title": "Gold Verified Scholar (Tier 2)",
-      "tier2_body": "Staff cross-check official transcripts and HKID by hand. Approved tutors carry the gold badge on their card.",
+      "tier2_title": "Blue Tick Verified (Tier 2)",
+      "tier2_body": "Staff cross-check official transcripts and HKID by hand. Approved tutors carry the Blue Tick on their card.",
       "tier1_title": "Stated Qualifications (Tier 1)",
       "tier1_body": "Self-reported results; parents can ask for proof before Lesson 1.",
       "professionals_title": "Verified Professionals",
@@ -1660,9 +1660,11 @@
     "match_parents_p1": "Browse tutor cards or submit a request for a curated shortlist.",
     "match_parents_p2": "Concierge introduces and stays on call for Lessons 1 & 2.",
     "match_parents_p3": "Admin fee is 1.5 lessons (100% Lesson 1 + 50% Lesson 2), owed by the self-employed tutor and paid to MatchMax by FPS. Parents do not pay MatchMax a matching fee. You pay the tutor’s hourly rate directly for every lesson.",
-    "match_tutors_p1": "Create anonymous profile (optional Gold Badge)",
+    "match_parents_p4": "Rematch, reschedule, or payment questions: message the concierge any time.",
+    "match_tutors_p1": "Create anonymous profile (optional Blue Tick)",
     "match_tutors_p2": "Claim cases on your MTR line or get parent requests",
-    "match_tutors_p3": "Keep 100% of your hourly rate after the one-time 1.5-lesson fee."
+    "match_tutors_p3": "Keep 100% of your hourly rate after the one-time 1.5-lesson fee.",
+    "match_tutors_p4": "Set your own rate and calendar, and accept only the cases you want."
   },
   "legal": {
     "notes_terms": {

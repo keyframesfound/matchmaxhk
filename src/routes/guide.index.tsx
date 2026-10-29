@@ -16,9 +16,11 @@ import {
   GuideCtaRow,
   GuideFaq,
   GuideHeading,
+  GuideHeroImage,
   GuidePage,
   type GuideTab,
 } from "@/features/guide/guide-shell";
+import { cn } from "@/lib/utils";
 
 import { canonicalUrl, currentSeoLocale, hreflangLinks, localizedMeta } from "@/features/i18n/seo";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
@@ -256,7 +258,11 @@ function GuideIndexPage() {
         <p className="mx-auto mt-5 max-w-2xl text-lg leading-8 text-[color:var(--ink)]/65">
           {t("hiw.hero_body")}
         </p>
-        <div className="mx-auto mt-6 flex max-w-3xl flex-wrap items-center justify-center gap-2">
+        {/* Issue #498: hero illustration slot (was locked on #492, ships here). */}
+        <div className="mt-10">
+          <GuideHeroImage slot="hero-learning" />
+        </div>
+        <div className="mx-auto mt-8 flex max-w-3xl flex-wrap items-center justify-center gap-2">
           {(["hiw.value_pill_1", "hiw.value_pill_2"] as const).map((key) => (
             <span
               key={key}
@@ -288,7 +294,9 @@ function GuideIndexPage() {
             <Link to="/join">{t("hiw.hero_cta_apply")}</Link>
           </Button>
         </div>
-        <div className="mx-auto mt-12 max-w-4xl">
+        {/* Issue #498: fee illustration slot beside the fee bars. */}
+        <div className="mx-auto mt-12 grid max-w-4xl items-center gap-4 lg:grid-cols-2">
+          <GuideHeroImage slot="fee-fair" />
           <FeeBars />
         </div>
         <ComparisonTable title={t("hiw.compare_table_title")} rows={guideComparison} />
@@ -313,14 +321,16 @@ function GuideIndexPage() {
             ).map(({ icon: Icon, key }) => (
               <div
                 key={key}
-                className="rounded-2xl border border-white/15 bg-white/[0.04] p-6 sm:p-8"
+                className="flex flex-col rounded-2xl border border-white/15 bg-white/[0.04] p-6 sm:p-8"
               >
                 <h3 className="flex items-center gap-2.5 text-xl font-bold tracking-tight text-white">
                   <Icon className="h-5 w-5" aria-hidden="true" />
                   {t(`guide.match_${key}_title`)}
                 </h3>
-                <ul className="mt-4 space-y-3">
-                  {([1, 2, 3] as const).map((n) => (
+                {/* flex-1 keeps the guide link on a shared baseline, so the two
+                    cards stay balanced when the bullet counts differ. */}
+                <ul className="mt-4 flex-1 space-y-3">
+                  {([1, 2, 3, 4] as const).map((n) => (
                     <li key={n} className="flex gap-3 text-sm leading-relaxed text-white/80">
                       <Check
                         className="mt-0.5 h-4 w-4 shrink-0 text-[#8ecdf8]"
@@ -345,12 +355,23 @@ function GuideIndexPage() {
       {/* Explore the guides */}
       <section className="mx-auto max-w-[1600px] px-5 py-16 sm:px-8 sm:py-24 lg:px-12">
         <GuideHeading>{t("guide.index_explore_title")}</GuideHeading>
-        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {guideCards.map(({ to, icon: Icon, title, body }) => (
+        {/* Issue #498: 6-col base grid with per-index spans. Five cards fill
+            3 + 2 (wide last row) instead of stranding an empty third cell,
+            and the flag-gated partners card still lands a clean 3 + 3. */}
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-6">
+          {guideCards.map(({ to, icon: Icon, title, body }, index) => (
             <Link
               key={to}
               to={to}
-              className="group rounded-2xl border border-[color:var(--ink)]/12 p-6 transition-colors hover:border-[color:var(--brand-link)]/40"
+              className={cn(
+                "group rounded-2xl border border-[color:var(--ink)]/12 p-6 transition-colors hover:border-[color:var(--brand-link)]/40",
+                // Odd count: the last card spans the sm 2-col row's full width.
+                index === guideCards.length - 1 && guideCards.length % 2 === 1 && "sm:col-span-2",
+                // Two cards short of a 3-col row: widen the final pair.
+                guideCards.length % 3 === 2 && index >= guideCards.length - 2
+                  ? "lg:col-span-3"
+                  : "lg:col-span-2",
+              )}
             >
               <h3 className="flex items-center gap-2.5 text-lg font-bold tracking-tight">
                 <Icon
