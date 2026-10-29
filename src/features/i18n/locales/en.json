@@ -569,7 +569,7 @@
     }
   },
   "directory": {
-    "subtitle": "Gold Verified tutors have staff-checked transcripts, everyone else self-reports and shows proof before the first lesson.",
+    "subtitle": "Blue Tick tutors have staff-checked transcripts, everyone else self-reports and shows proof before the first lesson.",
     "empty_title": "No tutors match these filters yet",
     "empty_desc": "Widen the price range or clear a filter to see more profiles, or let our team match one for you, free.",
     "empty_clear": "Clear all filters",
@@ -947,7 +947,7 @@
     "index_parents_body": "How matching works, what the admin fee covers, and what we don't do after the introduction.",
     "index_partners_body": "For tutorial centres, schools, and NGOs engaging independent educators, Contracts for Services only, never staff recruitment.",
     "index_refer_body": "Share a link, your friend applies as a tutor, you earn 15% of the admin fee.",
-    "index_tutors_body": "How listing works, what the 1.5-lesson commission really is, and what we never touch.",
+    "index_tutors_body": "How listing works, what the 1.5-lesson admin fee really is, and what we never touch.",
     "index_verification_body": "What we check at each tier, and what verification does not promise.",
     "index_verification_link": "Full verification details",
     "match_parents_link": "Read the parent guide",
@@ -1016,7 +1016,7 @@
       "fact_rates_label": "Rates are the tutor’s",
       "fact_rates_body": "Tutors set their own hourly rates; the card shows exactly what they charge.",
       "fact_names_label": "Privacy until matched",
-      "fact_names_body": "Cards show first names only; the full name arrives with the concierge introduction.",
+      "fact_names_body": "Cards show a preferred display name or an anonymous code; the full name arrives with the concierge introduction.",
       "fact_fit_label": "Replacement after poor Lesson 1 fit",
       "fact_fit_body": "If Lesson 1 is a poor fit, tell the concierge and we arrange a replacement tutor.",
       "fact_sickness_label": "Sickness/reschedule with tutor",
@@ -1096,7 +1096,7 @@
       "s1_title": "Create your profile",
       "s1_body": "Add your grades and the MTR stations that work for you.",
       "s2_title": "Pass staff review",
-      "s2_body": "We check documents by hand, then your anonymous card goes live.",
+      "s2_body": "We check documents by hand, then your card goes live with your display name or MatchMax code.",
       "s3_title": "Claim cases or get requested",
       "s3_body": "Claim cases near your stations, or receive parent requests.",
       "s4_title": "Complete Lessons 1 & 2; keep the rest",
@@ -1197,7 +1197,7 @@
       "privacy": {
         "aspect": "Privacy",
         "old": "Full names public.",
-        "max": "Anonymous public cards. Full name only on matched intro."
+        "max": "Cards show a preferred display name or an anonymous code. Legal names and phone numbers are only exchanged after the introduction, once the fee rules are settled."
       },
       "verification": {
         "aspect": "Verification",
@@ -1237,8 +1237,8 @@
         "detail": "Build your profile by uploading your official transcripts, specific component scores, and reachable MTR stations."
       },
       "s2": {
-        "title": "Manual Verification & Anonymous Listing",
-        "detail": "Our team manually checks your documents to maintain our premium standard. Your profile goes live completely anonymously: your full name and sensitive details remain 100% private."
+        "title": "Manual Verification & Private Listing",
+        "detail": "Our team manually checks your documents to maintain our premium standard. Your card leads with your preferred display name if you set one, or stays anonymous under your MatchMax code (e.g., “MM-T104”); your full name and contact details are never public."
       },
       "s3": {
         "title": "Teach & Keep What You Earn",
@@ -1304,12 +1304,12 @@
     "faq_billing": "Payments & Policies",
     "tutor_faq": {
       "paid": {
-        "q": "How much is the MatchMax commission?",
-        "a": "MatchMax is entirely free to join. For standard, ongoing tutoring cases, we charge a one-time administrative fee equivalent to your first 1.5 lessons. You keep 100% of your earnings for every lesson after that. For Short-Term Cases: If a parent explicitly requests a short-term assignment (defined as 5 lessons or fewer), our fee is automatically adjusted to just 20% of the total assignment value, so you always retain an 80% majority cut."
+        "q": "How does the MatchMax administrative matching fee work?",
+        "a": "Joining is free. For a standard ongoing case the parent still pays you, the tutor, at your agreed hourly rate for every lesson — including Lessons 1 and 2. What you settle with MatchMax is one administrative matching fee equal to 1.5 lessons of that same tuition: 100% of Lesson 1 plus 50% of Lesson 2, paid once by FPS. It is the slice of those first intros that would otherwise have been your pay — never an extra charge stacked on the parent. For short-term assignments of 5 lessons or fewer, the fee is instead 20% of the total assignment value, so you keep 80%."
       },
       "anonymity": {
         "q": "Will my name and photo be publicly visible on Google?",
-        "a": "No. MatchMax respects the privacy of our top scholars and university students. Your public directory profile is completely anonymous and focuses solely on your academic achievements. Furthermore, our concierge team will only ever introduce you to parents using your last name (e.g., “Tutor Chan”). You have complete control over sharing your full name once your lessons begin."
+        "a": "No. Your public card leads with your preferred display name if you set one, or stays fully anonymous under your MatchMax code (e.g., “MM-T104”). Your legal name, photo, and contact details are never public. The concierge introduces you to parents using your display name, or your last name (e.g., “Tutor Chan”) when that is your preferred form. You control when your full name is shared once lessons begin."
       },
       "speed": {
         "q": "How many days does it usually take to find students?",
@@ -1330,6 +1330,22 @@
       "after_trial": {
         "q": "How do payments work after the trial lessons?",
         "a": "To give you full financial control and ensure you keep 100% of your earnings, all ongoing lesson fees are paid directly from the parent to you using your preferred method. Because you manage your own ongoing schedule and billing, we recommend collecting payment on a lesson-by-lesson basis or upfront for the month. If a payment issue ever arises, you can report it to our team; while we do not act as a collection agency, we take community safety seriously and will restrict non-paying users from future matching."
+      },
+      "fee_types": {
+        "q": "Is the fee the same for a private student and a partner-centre introduction?",
+        "a": "No. Private / standard matches carry 1.5 lessons of tuition per student or case. Partner-centre introductions step down when the same centre assigns more students to you within 6 months of the original intro: 1st student 1.5 lessons, 2nd 1.0, 3rd 0.5, 4th and later 0."
+      },
+      "short_package": {
+        "q": "What if the engagement is a short package (5 lessons or fewer)?",
+        "a": "Short-term assignments of 5 lessons or fewer are charged at 20% of the total package value instead of the 1.5-lesson fee, so you keep 80%. This applies when a parent explicitly requests a short-term assignment."
+      },
+      "contact": {
+        "q": "When do I get the parent’s phone number or WhatsApp?",
+        "a": "After the Administrative Matching Fee for that match is settled. Until then, the concierge coordinates Lessons 1 and 2 between you and the parent; full phone and WhatsApp details are exchanged once the fee is paid."
+      },
+      "employment": {
+        "q": "Are MatchMax tutors employees?",
+        "a": "No. Tutors on MatchMax are independent, self-employed professionals. MatchMax is a marketplace, not an employment agency: we do not hire staff, publish job vacancies, or employ tutors — this is set out in our Terms. You keep control of your rates, teaching methods, and schedule."
       }
     },
     "parent_faq": {
@@ -1346,8 +1362,8 @@
         "a": "You have two straightforward options: you can click forward directly on any tutor's profile card to request that specific tutor, or reach out to our WhatsApp hotline and tell us exactly what you are looking for so we can match you. Once confirmed, we connect you directly with the tutor to finalize lesson times."
       },
       "anonymity": {
-        "q": "Why don't I see the tutors' full names on their profiles?",
-        "a": "To attract the highest tier of university scholars and official examiners (many of whom require strict privacy and prefer not to have their tutoring profiles publicly searchable), so MatchMax utilizes anonymous profiles (e.g., “MM-T104”). Once you request a specific profile, our concierge team will introduce you to your match using their professional title and last name (e.g., “Tutor Chan” or “Miss Lee”) to arrange the trial lesson."
+        "q": "Why does a tutor card show a display name or a code (like “MM-T104”)?",
+        "a": "Tutors can set an optional preferred display name (e.g., “Dr Chan” or “Miss Lee”). If one is set, the card leads with it; if not, the card shows the MatchMax code (e.g., “MM-T104”). The concierge introduces your match by that display name, or in last-name style (e.g., “Tutor Chan”) when that is the tutor’s preferred form. Full names and phone numbers are only exchanged after the introduction, once the fee rules are settled."
       },
       "involvement": {
         "q": "How long does MatchMax stay involved in our tutoring arrangement?",
@@ -1355,21 +1371,29 @@
       },
       "verification": {
         "q": "How does MatchMax verify tutor qualifications and grades?",
-        "a": "MatchMax uses a two-tier system. Tier 1 tutors list self-reported results as “Stated Qualifications”. MatchMax does not cryptographically verify these claims, so you can request photographic proof directly from the tutor before the first lesson. Tier 2 tutors carry the Blue Tick verification badge, meaning our team has manually checked their identity and academic documents. Either way, you can always ask for proof before committing."
+        "a": "MatchMax uses a two-tier system plus a professionals track. Tier 1 tutors list self-reported results as “Stated Qualifications”; you can request photographic proof directly from the tutor before the first lesson. Tier 2 tutors carry the Blue Tick, meaning our team has manually checked their identity and academic documents. Full-time tutors and certified teachers are assessed as Verified Professionals, on degrees, PGDE qualifications, and teaching track records. Verification is a document check only: it does not promise grades or exam outcomes, and it is not an endorsement by IBO, HKEAA, or any school. Either way, you can always ask for proof before committing."
       },
       "payments": {
         "q": "How do payments work between parents and tutors?",
         "a": "Tuition is paid directly to the tutor based on the agreed hourly rate and schedule. MatchMax does not hold or handle your tuition fees, keeping the payment process direct and transparent."
+      },
+      "matching_fee": {
+        "q": "Do I pay MatchMax any matching fee?",
+        "a": "No. Parents never pay MatchMax a matching fee. You pay the tutor directly at the agreed hourly or package rate for every lesson, including the first two. The administrative matching fee — 1.5 lessons of that same tuition — is owed by the tutor: it is their slice of the first intros, not an extra charge added on top of what you pay."
+      },
+      "blue_tick": {
+        "q": "What does the Blue Tick mean?",
+        "a": "The Blue Tick means our staff have manually checked the tutor’s identity documents and academic transcripts. It is a document check only — it is not a promise of grades or exam outcomes, and it is not an endorsement by IBO, HKEAA, or any school. Tier 1 tutors show self-reported “Stated Qualifications”, and you can ask any tutor for proof before Lesson 1."
       }
     },
     "billing_faq": {
       "pay": {
         "q": "How and when do I pay for the lessons?",
-        "a": "MatchMax charges one administrative matching fee for a standard match: 100% of the first lesson plus 50% of the second lesson, 1.5 lessons in total, owed by the self-employed tutor and paid to MatchMax by FPS. Parents do not pay MatchMax a matching fee. Our concierge stays close for those first lessons and makes sure the match is right. For short-term assignments (5 lessons or fewer) the fee is instead 20% of the total scheduled package. You pay your tutor directly for tuition; MatchMax does not handle tuition payments."
+        "a": "For a standard match, the parent pays the tutor directly at the agreed hourly or package rate for every lesson — including Lessons 1 and 2. Parents do not pay MatchMax a matching fee. Instead, the tutor owes one administrative matching fee of 1.5 lessons of that same tuition: 100% of Lesson 1 plus 50% of Lesson 2, paid to MatchMax by FPS. That is the slice of the first two intros that would otherwise have stayed as the tutor’s pay — not an extra charge stacked on the parent. Our concierge stays close for those first lessons and makes sure the match is right. For short-term assignments (5 lessons or fewer) the fee is instead 20% of the total scheduled package. MatchMax does not handle tuition payments."
       },
       "rematch": {
         "q": "What if the tutor stops or isn't a good fit?",
-        "a": "Our concierge team will help arrange a replacement. We support the introduction and the first lessons; after that, parents and tutors continue directly. You can leave a review after the first completed lesson."
+        "a": "Message the concierge and we will arrange a rematch or replacement tutor. We support the new introduction and the first lessons; after that, parents and tutors continue directly. A rematch is a matching service — it does not come with a promise of particular grades or exam outcomes. You can leave a review after the first completed lesson."
       },
       "reschedule": {
         "q": "What happens if my child is sick or we need to reschedule?",
@@ -1381,12 +1405,16 @@
       },
       "notes": {
         "q": "How do purchases of digital study materials work?",
-        "a": "Study materials are sold through MatchMax. You pay the full amount to the MatchMax official business account via FPS, and staff release the file inside your account before the tutor receives their 80% share on the 1st of the following month (MatchMax retains a 20% platform commission). Because digital files cannot be returned, all sales are final, so please review the free watermarked preview before purchasing."
+        "a": "Study materials are sold through MatchMax only. You pay the full amount to the MatchMax official business account via FPS, and staff release the file inside your account; the tutor receives their 80% net share on the 1st of the following month (MatchMax keeps a 20% platform fee). Direct P2P or WhatsApp payment is for lesson tuition only — never for study materials. Because digital files cannot be returned, all sales are final, so please review the free watermarked preview before purchasing."
+      },
+      "centre_ladder": {
+        "q": "How does the partner-centre fee ladder work in practice?",
+        "a": "When the same centre assigns you more students within 6 months of the original introduction, your admin fee per extra student steps down: 1st student 1.5 lessons, 2nd 1.0, 3rd 0.5, 4th and later 0. Worked example at an agreed HK$400 hourly rate: the 1st intro costs 1.5 lessons (HK$600), the 2nd 1.0 lesson (HK$400), the 3rd 0.5 lesson (HK$200), and the 4th onward cost nothing. Private cases stay at 1.5 lessons each."
       }
     },
     "value_pill_1": "1.5-lesson fee only — no ongoing cut after Lesson 2",
     "value_pill_2": "Verified credentials, Blue Tick transcripts checked by hand",
-    "fee_title": "Commission fee per match",
+    "fee_title": "Admin matching fee per match",
     "fee_old_label": "Old-school agencies",
     "fee_old_value": "2–8 lessons",
     "fee_max_label": "MatchMax",
