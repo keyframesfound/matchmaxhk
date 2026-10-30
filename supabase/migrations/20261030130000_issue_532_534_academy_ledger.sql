@@ -453,6 +453,21 @@ REVOKE ALL ON FUNCTION public.reserve_tutor_slot(uuid, timestamptz, integer, uui
 REVOKE ALL ON FUNCTION public.confirm_slot_reservation(uuid, uuid, numeric, uuid, text) FROM PUBLIC;
 REVOKE ALL ON FUNCTION public.release_slot_reservation(uuid) FROM PUBLIC;
 
+-- Supabase default privileges grant EXECUTE to anon/authenticated directly,
+-- so REVOKE ... FROM PUBLIC alone leaves these callable over /rest/v1/rpc.
+DO $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+    REVOKE EXECUTE ON FUNCTION public.post_credit_entry(uuid, text, numeric, text, uuid, text, uuid, uuid, uuid, boolean, text) FROM anon, authenticated;
+    REVOKE EXECUTE ON FUNCTION public.release_expired_slot_reservations() FROM anon, authenticated;
+    REVOKE EXECUTE ON FUNCTION public.reserve_tutor_slot(uuid, timestamptz, integer, uuid, uuid, integer) FROM anon, authenticated;
+    REVOKE EXECUTE ON FUNCTION public.confirm_slot_reservation(uuid, uuid, numeric, uuid, text) FROM anon, authenticated;
+    REVOKE EXECUTE ON FUNCTION public.release_slot_reservation(uuid) FROM anon, authenticated;
+    REVOKE EXECUTE ON FUNCTION public.credit_ledger_append_only() FROM anon, authenticated;
+  END IF;
+END;
+$$;
+
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'service_role') THEN

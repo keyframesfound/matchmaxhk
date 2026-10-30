@@ -88,6 +88,7 @@ REVOKE ALL ON public.case_fit_signals FROM PUBLIC;
 DO $$
 BEGIN
   IF EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+    REVOKE EXECUTE ON FUNCTION public.case_lessons_count_reschedule() FROM anon, authenticated;
     REVOKE ALL ON public.case_fit_signals FROM anon, authenticated;
     GRANT SELECT ON public.case_fit_signals TO service_role;
   END IF;
