@@ -97,3 +97,17 @@ lessons (`app_settings.trust_new_tutor_first_lesson_cap`).
 
 Not in V1 (needs vendors): +852 SMS OTP, WhatsApp Business webhook
 classifier, T-16h tutor nudge. Rate floors stay Later until tuned on data.
+
+## L1 retention fit data (#528 Phase A)
+
+Code: `src/features/cases/fit-tags.ts`. No fee rule changes.
+
+- A verified stop after Lesson 1 needs one fit tag (`drop_fit_reason`, `fitReasonError`).
+  Tutor-side reason classes preselect it (`tutor_flake` / `tutor_emergency` → `TUTOR_QUIT`).
+- Tutor quit: the desk panel offers the priority-rematch WhatsApp script (24–48h, no extra
+  cost, no refund) next to the `TUTOR_FLAKE_VOID` / `TUTOR_EMERGENCY_VOID` preview.
+- Optional soft tags (teaching style, materials, vibe, homework) live on `tutors` (tutor sets
+  them in settings) and on `tutoring_cases.pref_*` (desk sets them from the parent). `fitHint`
+  never counts an unset tag against a tutor. A materials mismatch with both sides set is a
+  hard block for suggestions.
+- Backend-only signals: `case_fit_signals` (match → Lesson 1 booked, Lesson 1 reschedules).

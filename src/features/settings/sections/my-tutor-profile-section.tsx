@@ -54,6 +54,7 @@ import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
 import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
 import { TutorGradesEditor } from "@/features/settings/sections/tutor-grades-editor";
 import { FirstLessonOffersCard } from "@/features/settings/sections/first-lesson-offers-card";
+import { TeachingFitCard } from "@/features/settings/sections/teaching-fit-card";
 import { getSystem } from "@/features/tutors/examSystems";
 import { GRADE_SLIP_ACCEPT_ATTRIBUTE } from "@/features/tutors/grades";
 import {
@@ -850,6 +851,9 @@ export function MyTutorProfileSection() {
 
           {/* Issue #520: first-lesson offers (public badges). */}
           {user ? <FirstLessonOffersCard userId={user.id} /> : null}
+
+          {/* Issue #528: optional teaching fit tags (soft matching hint). */}
+          {user ? <TeachingFitCard userId={user.id} /> : null}
 
           {/* Issue #101: instant visibility toggle, reuses is_published. */}
           <div className="flex items-center justify-between gap-4 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 py-3">
