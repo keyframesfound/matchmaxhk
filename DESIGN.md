@@ -4,10 +4,10 @@ description: Proof-first tutoring marketplace for Hong Kong. A calm, Arc-aligned
 colors:
   ink: "#0F1419"
   azure: "#1D9BF0"
-  azure-fill: "#0F7DB8"
-  azure-fill-dark: "#1273B4"
+  azure-fill: "#1D9BF0"
+  azure-fill-dark: "#1C9CF0"
   azure-deep: "#1DA1F2"
-  link-blue: "#0B72B5"
+  link-blue: "#1D9BF0"
   sky: "#8ECDF8"
   azure-wash: "#E3ECF6"
   card-tint: "#F7F8F8"
@@ -91,7 +91,7 @@ components:
     padding: "8px 16px"
     fontWeight: 600
   button-primary-hover:
-    backgroundColor: "#0A6296"
+    backgroundColor: "#1A8CD8"
   button-neutral:
     backgroundColor: "{colors.paper-white}"
     textColor: "{colors.ink}"
@@ -160,7 +160,7 @@ MatchMax pairs the **Twitter Azure palette** (21st.dev community theme by serafi
 The palette is a quiet news feed: ink text, paper and card-tint surfaces, hairline borders, and one azure signal. Statuses (green, amber, red) exist only for real states, never decoration. This section is Arc's "accent with intent" and "status means status" already in place, and it does not change.
 
 ### Primary
-- **Azure** (an AA-scaled family around `#1D9BF0`): **the one accent.** Money-CTA fills (`--btn-accent`/`--primary`: `#0F7DB8` light, `#1273B4` dark; hover `#0A6296`/`#0E66A1`), text links and signature blue (`--brand-link`: `#0B72B5` light, `#1D9BF0` dark), focus rings (`--ring`: `#0B72B5` light, `#1DA1F2` dark), selected and active states, stepper and progress fills, and data-viz series. Raw `#1D9BF0` (`--brand-royal`/`--brand-teal`) stays the gradient and decorative blue; it carries no text and holds no white label (3.0:1 on white fails the AA floor). The `--color-brand` utility token (`hover:text-brand` in the footer) rides `--brand-link`.
+- **Azure** (`#1D9BF0` family; theme primary `#1E9DF1`, ring `#1DA1F2`): **the one accent.** Money-CTA fills (`--btn-accent`/`--primary`: `#1D9BF0` light, `#1C9CF0` dark; hover `#1A8CD8` both themes), text links and signature blue (`--brand-link`: `#1D9BF0` both themes), focus rings (`--ring`: `#1DA1F2` both themes), selected and active states, stepper and progress fills, and data-viz series. Raw `#1D9BF0` (`--brand-royal`/`--brand-teal`) is also the gradient and decorative blue. **Contrast note (owner decision, issue #531, 2026-10-30):** the 2026-10-25 AA-darkened fills (`#0F7DB8`/`#1273B4` light, `#0B72B5` links) were reverted to the prior brand azure. White-on-azure labels and azure links on white measure ~3.0:1 — AA passes only as large text / non-text UI, not body-size text; dark-theme links on the `#121212` canvas stay AA at 6.2:1. The `--color-brand` utility token (`hover:text-brand` in the footer) rides `--brand-link`.
 - **Ink** (`#0F1419`, `--ink`/`--foreground`/`--brand-navy`): The text and neutral-button colour of the system. Body and heading text on light surfaces, ghost and neutral button fills (`color="neutral"`, `--secondary`), the dark start of the brand gradient, and dark-theme inverted surfaces.
 
 ### Secondary
@@ -184,7 +184,7 @@ The palette is a quiet news feed: ink text, paper and card-tint surfaces, hairli
 
 **The Constant Signal Rule.** Dark mode dims the world, not the signal: Azure keeps carrying accent fills, links, and focus in both themes. Dark neutral and secondary buttons use X's translucent slate fill (`rgba(91,112,131,0.4)`, `--btn-neutral`) with white text, deepening to `0.6` alpha on hover; the white pill is never a resting neutral in dark mode. The inverted CTA pill (`--surface-invert`) is white with ink text in dark, white text on ink in light; never hardcode `text-white` on an invert fill.
 
-**The AA Floor Rule.** Every text token pair passes WCAG AA in both themes: 4.5:1 for text, 3:1 for indicators and non-text UI. Never dim text with opacity classes (`/40` through `/70` are retired; `/80` to `/90` on foreground are the only sanctioned softened-ink steps), never alpha-fade a focus indicator (rings and outlines are solid `--ring`), and never introduce a colour without checking its pairs against `background`, `card`, `muted`, and `accent`. Light-theme link blue is `#0B72B5`, not `#1D9BF0`, for exactly this reason.
+**The AA Floor Rule.** Every text token pair passes WCAG AA in both themes: 4.5:1 for text, 3:1 for indicators and non-text UI. Never dim text with opacity classes (`/40` through `/70` are retired; `/80` to `/90` on foreground are the only sanctioned softened-ink steps), never alpha-fade a focus indicator (rings and outlines are solid `--ring`), and never introduce a colour without checking its pairs against `background`, `card`, `muted`, and `accent`. Sanctioned exception (owner decision, issue #531): the azure accent family (`--primary`/`--btn-accent`/`--brand-link`) is the prior brand azure, not the AA-darkened variant — its white-on-azure and azure-on-white pairs sit at ~3.0:1, which passes AA only as large text / non-text UI.
 
 ## Typography
 
@@ -316,7 +316,7 @@ For each component: one clear primary action, calm signage, tactile feedback.
 ### Buttons
 - **Shape:** `--radius-control` (18px). Heights: 36px default, 44px for mobile-primary and full-width CTAs, 50px for hero large. Weight 600, verb-plus-object labels.
 - **Neutral default** (`variant="default"`): white fill, ink text, hairline `foreground/15` border, no shadow; hover washes to the hover wash and deepens the border. The resting state of ~90% of buttons.
-- **Accent** (`variant="solid" color="blue"`, `color="accent"` is an alias): the money CTA. `--btn-accent` fill (`#0F7DB8` light, `#1273B4` dark) with white text, hover `#0A6296`/`#0E66A1`. Reserved for the conversion list: hero Find a Tutor, directory Search, Post your request (and submit), Join as Tutor (and final submit), Contact and Request Tutor, header Sign up, auth continue, pricing highlighted CTA, dashboard and case CTAs, Publish course, business signup.
+- **Accent** (`variant="solid" color="blue"`, `color="accent"` is an alias): the money CTA. `--btn-accent` fill (`#1D9BF0` light, `#1C9CF0` dark) with white text, hover `#1A8CD8`. Reserved for the conversion list: hero Find a Tutor, directory Search, Post your request (and submit), Join as Tutor (and final submit), Contact and Request Tutor, header Sign up, auth continue, pricing highlighted CTA, dashboard and case CTAs, Publish course, business signup.
 - **Request-tutor decision:** the full-size "Request tutor" CTA on the tutor profile page is the one azure contact CTA; on tutor cards (home rails, directory, suggested tutors) the compact "Request tutor" WhatsApp button ships neutral so the card stays scannable and azure stays scarce. Do not flip card contact buttons to azure.
 - **Colour axis** (`color` sets `--btn/--btn-fg/--btn-hover`): blue/accent (azure tokens), neutral (ink fill), green `#00875A→#006B47`, amber `#A16207→#854D0E`, destructive. `variant="candy"` adds a vertical gradient for marquee CTAs (legacy; no new uses). `variant="soft"` renders the colour as a 12 to 18% tint.
 - **Ghost / Link / Outline / Secondary:** Ghost is ink text with a 6% hover wash; Link is azure, underlined on hover; Outline is surface fill with a `foreground/15` border shifting to `/25` plus a 4% wash on hover; Secondary is the neutral axis (`--btn-neutral`): ink fill with white text on light, translucent slate `rgba(91,112,131,0.4)` with `#F0F3F4` text on dark, hover deepens the same fill.
@@ -346,7 +346,7 @@ For each component: one clear primary action, calm signage, tactile feedback.
 
 ### Signature components
 - **Brand-gradient wordmark** (`text-brand-gradient`): ink, azure, sky at 135°, clipped to text (dark mode: sky to azure). The wordmark, the footer sign-off, and hero backdrops are the only gradient homes; banned on all other text, buttons, and component surfaces.
-- **Join stepper**: 36px numbered circles (status shapes) with azure fill for active (`#0F7DB8` light, `#1273B4` dark), green for complete (`#157F47` light, `#4ADE80` dark), animated connector bars on `spring.smooth`, card shell at panel radius, slide-forward and back content transitions.
+- **Join stepper**: 36px numbered circles (status shapes) with azure fill for active (`#1D9BF0` both themes), green for complete (`#157F47` light, `#4ADE80` dark), animated connector bars on `spring.smooth`, card shell at panel radius, slide-forward and back content transitions.
 - **Hero backdrops**: patterned and photographic scrims (education pattern, tutor-network photo at `saturate(0.78) contrast(1.1)` with ink gradient overlays and an azure radial hotspot). Gradients here are subtle backdrops, never component fills. Dark mode dims imagery to 18% opacity and recolours the logo via `.logo-dark-recolor`.
 - **WhatsApp float**: the persistent circular WhatsApp-green contact affordance on public pages; it floats, so it may use the floating shadow.
 
