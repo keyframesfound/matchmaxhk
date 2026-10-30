@@ -193,6 +193,10 @@ export type Tutor = {
   profile_tags: string[];
   /** Epic #280 P2: owning auth account id; null = unclaimed card. */
   user_id: string | null;
+  /** Issue #520: first-lesson offer badges (false/50 pre-migration). */
+  offers_free_trial: boolean;
+  offers_first_lesson_discount: boolean;
+  first_lesson_discount_pct: number;
   /** Issue #199: self-reported SEN experience + HK-common categories. */
   sen_enabled: boolean;
   sen_categories: string[];
@@ -237,7 +241,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, university_year_of_study, university_gpa, university_courses, course_specific_grades, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, portfolio_images, profile_tags, user_id, owner_account_status, sen_enabled, sen_categories, sen_experience, is_fast_responder, approved_grade_labels, custom_headline_en, custom_headline_zh";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, university_year_of_study, university_gpa, university_courses, course_specific_grades, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, portfolio_images, profile_tags, user_id, owner_account_status, sen_enabled, sen_categories, sen_experience, is_fast_responder, approved_grade_labels, custom_headline_en, custom_headline_zh, offers_free_trial, offers_first_lesson_discount, first_lesson_discount_pct";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -492,6 +496,10 @@ function normalize(
     profile_tags: Array.isArray(row.profile_tags)
       ? row.profile_tags.filter((tag): tag is string => typeof tag === "string" && tag !== "")
       : [],
+    // Issue #520: offer badges; tolerate missing columns pre-migration.
+    offers_free_trial: row.offers_free_trial === true,
+    offers_first_lesson_discount: row.offers_first_lesson_discount === true,
+    first_lesson_discount_pct: Number(row.first_lesson_discount_pct) || 50,
     // Issue #199: SEN capability; tolerate missing columns pre-migration.
     sen_enabled: row.sen_enabled === true,
     sen_categories: normalizeSenCategories(row.sen_categories),

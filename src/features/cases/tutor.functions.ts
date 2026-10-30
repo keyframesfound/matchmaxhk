@@ -29,6 +29,12 @@ import {
 import { sweepDueSessionLogs, type SessionLogRowT } from "@/features/cases/experience.functions";
 import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
 import {
+  canRevealParentContact,
+  parentContactView,
+  type ParentContactView,
+} from "@/features/trust/trust";
+import { tutorVerifiedHours } from "@/features/trust/trust-db";
+import {
   countActiveStudents,
   firstNameOf,
   groupWeekByDay,
@@ -134,6 +140,12 @@ export type TutorCaseItem = {
   /** #503 bilateral End Case: per-side markers (null until that side taps). */
   ended_by_parent_at: string | null;
   ended_by_tutor_at: string | null;
+  /**
+   * #535 progressive reveal: parent contact, masked until the intro fee is
+   * settled or the tutor holds verified hours, and while a blocking risk
+   * flag is open. Never unmasked server-side unless the gate clears.
+   */
+  parent_contact: ParentContactView;
 };
 
 export const getMyTutorCases = createServerFn({ method: "POST" })
@@ -160,10 +172,12 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
       scheduled_lesson_count: number | null;
       ended_by_parent_at: string | null;
       ended_by_tutor_at: string | null;
+      contact_name: string | null;
+      contact_phone: string | null;
     }>(
       db,
       "tutoring_cases",
-      "id, case_code, title, subjects, exam_system, district, lesson_mode, sor_status, is_short_case, scheduled_lesson_count, ended_by_parent_at, ended_by_tutor_at, created_at",
+      "id, case_code, title, subjects, exam_system, district, lesson_mode, sor_status, is_short_case, scheduled_lesson_count, ended_by_parent_at, ended_by_tutor_at, contact_name, contact_phone, created_at",
       [{ col: "matched_tutor_id", op: "eq", value: tutorId }],
       { col: "created_at", asc: false, limit: 100 },
     );
@@ -171,7 +185,7 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
     if (mine.length === 0) return [];
 
     const caseIds = mine.map((c) => c.id);
-    const [lessons, fees, sessionLogs] = await Promise.all([
+    const [lessons, fees, sessionLogs, riskFlags, verifiedHours] = await Promise.all([
       selectRows<{
         id: string;
         case_id: string;
@@ -203,7 +217,19 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         [{ col: "case_id", op: "in", value: caseIds }],
         { col: "log_date", asc: false },
       ),
+      selectRows<{ case_id: string; flag_type: string; resolved_at: string | null }>(
+        db,
+        "case_risk_flags",
+        "case_id, flag_type, resolved_at",
+        [{ col: "case_id", op: "in", value: caseIds }],
+      ),
+      tutorVerifiedHours(db, tutorId),
     ]);
+    const openFlagsByCase = new Map<string, string[]>();
+    for (const f of riskFlags) {
+      if (f.resolved_at !== null) continue;
+      openFlagsByCase.set(f.case_id, [...(openFlagsByCase.get(f.case_id) ?? []), f.flag_type]);
+    }
 
     // #204: a slot request the tutor never confirmed within 12h expires —
     // lazy-cancel on read (idempotent: only still-planned rows are touched).
@@ -277,6 +303,18 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         sessionLogs.filter((l) => l.case_id === c.id && l.status === "disputed").length < 2 &&
         c.sor_status !== "replaced" &&
         c.sor_status !== "closed",
+      parent_contact: parentContactView(
+        { name: c.contact_name, phone: c.contact_phone },
+        canRevealParentContact({
+          isMatchedTutor: true,
+          caseClosed: c.sor_status === "closed" || c.sor_status === "replaced",
+          openFlagTypes: openFlagsByCase.get(c.id) ?? [],
+          introFeeSettled:
+            openFeeByCase.get(c.id)?.status === "paid" ||
+            openFeeByCase.get(c.id)?.status === "waived",
+          tutorVerifiedHours: verifiedHours,
+        }),
+      ),
     }));
   });
 

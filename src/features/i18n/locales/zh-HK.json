@@ -252,6 +252,7 @@
   },
   "brand": "MatchMax",
   "caseApplications": {
+    "new_tutor_cap": "新導師同一時間可持有的首堂個案已達上限。完成一堂首堂後即可再申請。",
     "title": "申請紀錄",
     "empty": "暫時未有導師申請。",
     "no_subjects": "未填任教科目",
@@ -2411,6 +2412,15 @@
       "saving": "儲存中…",
       "saved": "檔案已儲存——變更已生效",
       "form_errors": "請先處理標示的錯誤。",
+      "promo_title": "首堂優惠",
+      "promo_hint": "可選擇喺公開檔案卡顯示徽章。正式課堂一律按你嘅全額收費，平台行政費亦按全額計算。",
+      "free_trial_label": "提供免費 15–20 分鐘網上介紹",
+      "free_trial_hint": "簡短網上傾談，了解需要同目標。唔係免費正式一堂。",
+      "discount_label": "提供首堂折扣",
+      "discount_hint": "折扣由你承擔。如家長確認上完呢堂付費課後停止，Drop-Protection 會按實際已付金額計算。",
+      "discount_pct_label": "首堂折扣",
+      "drop_protection_note": "上完一堂付費課就結束嘅個案，即使用咗 Drop-Protection，仍然會計入你嘅完成率同已核實時數。",
+      "promo_saved": "首堂優惠已儲存",
       "hide_profile_label": "隱藏公開檔案",
       "hide_profile_hint": "開啟此選項即可暫時喺 MatchMax 目錄中隱藏你嘅檔案。（適合排滿堂或者考試期間休息）。'隱藏' 之後你嘅檔案會即時喺公開目錄中移除。",
       "hidden_toast": "你嘅檔案已經喺目錄中隱藏",
@@ -2955,7 +2965,10 @@
     "view_all_grades": "查看全部 {{count}} 項成績",
     "show_fewer_grades": "收起成績",
     "group_badge_rate": "小組 ${{rate}}/hr 起",
-    "group_badge_title": "設有小組班，每位學生費率更低（唔會影響上面嘅一對一收費）"
+    "group_badge_title": "設有小組班，每位學生費率更低（唔會影響上面嘅一對一收費）",
+    "trial_badge": "⚡ 免費 15–20 分鐘網上試堂",
+    "discount_badge": "🎁 首堂 {{pct}}% 折扣",
+    "promo_tooltip": "只限簡短網上介紹。正式課堂按全額收費。如家長確認上完第一堂付費課後停止，Drop-Protection 適用。"
   },
   "tutors": {
     "tier_aria": "學術程度",

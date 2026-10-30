@@ -669,6 +669,16 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       throw acceptanceError;
     }
 
+    // Issue #535: a blacklisted household is not rejected (no tip-off); the
+    // case lands with an open BLACKLISTED_CONTACT flag for the desk. Never
+    // throws, so trust bookkeeping cannot fail the submit.
+    const { flagIfBlacklisted } = await import("@/features/trust/trust.functions");
+    await flagIfBlacklisted({
+      caseId: row.id as string,
+      parentId: context.userId,
+      contactPhone: data.contactPhone,
+    });
+
     // Issue #55: nudge ops over the webhook (app_settings key
     // `ops_webhook_url`, see ops-webhook.server.ts). Fire-and-forget —
     // notifyOps never throws and must never fail the submit. Dynamic import:
