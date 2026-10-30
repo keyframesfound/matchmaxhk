@@ -36,6 +36,7 @@ import {
   ParentFavoriteBadge,
 } from "@/features/tutors/engagement-badges";
 import { ExperiencePill } from "@/features/tutors/experience-badge";
+import { PromoBadges } from "@/features/tutors/promo-badges";
 import { useFitText } from "@/hooks/use-fit-text";
 import { shareOrCopy } from "@/lib/share";
 import { cn } from "@/lib/utils";
@@ -460,6 +461,8 @@ export function PublicTutorCard({
             {/* Issue #391: group-classes availability pill (rate rows +
                 open cohorts). */}
             {groupRate !== null ? <GroupClassBadge rate={groupRate} /> : null}
+            {/* Issue #520: tutor-set first-lesson offers. */}
+            <PromoBadges tutor={tutor} />
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">

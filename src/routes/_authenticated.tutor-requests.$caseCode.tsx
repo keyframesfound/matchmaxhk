@@ -329,7 +329,10 @@ function CaseDetailPage() {
       }
       void queryClient.invalidateQueries({ queryKey: myAppliedCasesQueryKey });
     },
-    onError: (e: Error) => toast.error(e.message),
+    onError: (e: Error) =>
+      toast.error(
+        e.message === "NEW_TUTOR_CAP_REACHED" ? t("caseApplications.new_tutor_cap") : e.message,
+      ),
   });
   const handleInAppApply = () => {
     if (applyDisabled) {

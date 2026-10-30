@@ -1539,6 +1539,10 @@ export function TutorEditor({
       sen_enabled: form.sen_enabled,
       sen_categories: form.sen_enabled ? form.sen_categories : [],
       sen_experience: form.sen_enabled ? form.sen_experience?.trim() || null : null,
+      // #520: tutor-owned offer toggles; the admin preview mirrors the saved card.
+      offers_free_trial: initialData?.offers_free_trial ?? false,
+      offers_first_lesson_discount: initialData?.offers_first_lesson_discount ?? false,
+      first_lesson_discount_pct: initialData?.first_lesson_discount_pct ?? 50,
       remaining_student_slots: form.remaining_student_slots,
       is_accepting_students: form.is_accepting_students,
       preferred_time_windows: form.preferred_time_windows,
@@ -1550,7 +1554,14 @@ export function TutorEditor({
         courseGradeRowsToRecord(form.course_grade_rows),
       ),
     }),
-    [form, initialData?.id, initialData?.created_at],
+    [
+      form,
+      initialData?.id,
+      initialData?.created_at,
+      initialData?.offers_free_trial,
+      initialData?.offers_first_lesson_discount,
+      initialData?.first_lesson_discount_pct,
+    ],
   );
 
   const handleSubmit = (e: React.FormEvent) => {

@@ -252,6 +252,7 @@
   },
   "brand": "MatchMax",
   "caseApplications": {
+    "new_tutor_cap": "You already have the most first lessons a new tutor can hold. Finish a first lesson to apply for more.",
     "title": "Applications",
     "empty": "No tutor applications yet.",
     "no_subjects": "No subjects listed",
@@ -2411,6 +2412,15 @@
       "saving": "Saving…",
       "saved": "Profile saved, changes are live",
       "form_errors": "Please resolve the highlighted errors.",
+      "promo_title": "First-lesson offers",
+      "promo_hint": "Optional badges on your public card. Regular lessons always start at your full rate, and the Platform Administrative Fee is worked out on that full rate.",
+      "free_trial_label": "Offer a free 15–20 min online intro",
+      "free_trial_hint": "A short online call to talk about fit and goals. Not a free full lesson.",
+      "discount_label": "Offer a discounted first lesson",
+      "discount_hint": "You fund the discount. If the family stops after that paid lesson and the parent confirms, Drop-Protection applies to the amount paid.",
+      "discount_pct_label": "Discount on the first lesson",
+      "drop_protection_note": "Cases that end after exactly one paid lesson still count toward your completion rate and verified hours, even if Drop-Protection is applied.",
+      "promo_saved": "First-lesson offers saved",
       "hide_profile_label": "Hide Public Profile",
       "hide_profile_hint": "Turn this on to temporarily hide your profile from the MatchMax directory. (Useful if you are fully booked or taking a break for exams).",
       "hidden_toast": "Your profile is now hidden from the directory",
@@ -2955,7 +2965,10 @@
     "view_all_grades": "View all {{count}} grades",
     "show_fewer_grades": "Show fewer grades",
     "group_badge_rate": "Group from ${{rate}}/hr",
-    "group_badge_title": "Small-group classes available at a lower per-student rate, it never changes the 1-on-1 rate above"
+    "group_badge_title": "Small-group classes available at a lower per-student rate, it never changes the 1-on-1 rate above",
+    "trial_badge": "⚡ Free 15–20m Online Trial",
+    "discount_badge": "🎁 {{pct}}% Off 1st Lesson",
+    "promo_tooltip": "Free short online intro only. Regular lessons start at the full rate. Drop-Protection applies after the first paid lesson if parent confirms they stopped."
   },
   "tutors": {
     "tier_aria": "Academic tier",

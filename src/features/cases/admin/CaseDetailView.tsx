@@ -45,6 +45,7 @@ import { CaseEditDialog } from "@/features/cases/admin/CaseEditDialog";
 import { CaseApplicationsCard } from "@/features/cases/admin/CaseApplicationsCard";
 import { MatchFeePanel } from "@/features/cases/admin/MatchFeePanel";
 import { ShortCasePanel } from "@/features/cases/admin/ShortCasePanel";
+import { DropProtectionPanel } from "@/features/cases/admin/DropProtectionPanel";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { formatStudentLevel } from "@/features/cases/display";
 import {
@@ -757,6 +758,9 @@ export function CaseDetailView({
           <ShortCasePanel caseId={caseRow.id} />
 
           <MatchFeePanel caseRow={caseRow} onPatched={invalidateCase} />
+
+          {/* Epic #537: Drop-Protection, ownership window, trust flags (#536 engine). */}
+          <DropProtectionPanel caseId={caseRow.id} />
 
           {/* Issue #81: 1-click applications from the tutor board, triaged here. */}
           <CaseApplicationsCard caseId={caseRow.id} />

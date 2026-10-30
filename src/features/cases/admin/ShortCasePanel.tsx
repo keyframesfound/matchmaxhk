@@ -115,7 +115,7 @@ async function copyText(text: string): Promise<boolean> {
   }
 }
 
-function MacroRow({ label, text }: { label: string; text: string }) {
+export function MacroRow({ label, text }: { label: string; text: string }) {
   const [copied, setCopied] = useState(false);
   return (
     <div className="rounded-xl border border-[color:var(--ink)]/[0.07] bg-[color:var(--surface-subtle)]/40 px-3 py-2.5">

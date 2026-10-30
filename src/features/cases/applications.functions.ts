@@ -22,6 +22,7 @@ import {
   validateApplicationNote,
   type CaseApplicationAdminRow,
 } from "@/features/cases/applications";
+import { checkFirstLessonCap } from "@/features/trust/trust";
 
 type Row = Record<string, unknown>;
 type Db = ReturnType<typeof asAdminDb>;
@@ -123,6 +124,24 @@ export const applyToCase = createServerFn({ method: "POST" })
 
     const note = validateApplicationNote(data.note);
     if (!note.ok) throw new Error(note.error);
+
+    // Issue #535: new tutors (< 3 verified hours) hold at most N open first
+    // lessons (app_settings / per-tutor override). Established tutors pass.
+    // A re-apply stays the silent no-op below, so the cap is checked only for
+    // a NEW application.
+    const prior = await selectRows<{ id: string }>(db, "case_applications", "id", [
+      { col: "case_id", op: "eq", value: caseRow.id },
+      { col: "tutor_id", op: "eq", value: tutor.id },
+    ]);
+    if (prior.length > 0) return { applied: false, alreadyApplied: true };
+    const { tutorTrustSnapshot } = await import("@/features/trust/trust-db");
+    const trust = await tutorTrustSnapshot(db, tutor.id);
+    const cap = checkFirstLessonCap({
+      tutorVerifiedHours: trust.verifiedHours,
+      openFirstLessonCount: trust.openFirstLessonCount,
+      cap: trust.firstLessonCap,
+    });
+    if (!cap.ok) throw new Error(cap.reason);
 
     // UNIQUE (case_id, tutor_id), a re-apply is a no-op, not an error.
     // The structural AdminTable insert has no options; cast just this call
