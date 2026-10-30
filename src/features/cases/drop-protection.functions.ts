@@ -38,7 +38,7 @@ import {
   normalizePromoType,
   normalizeSplitMode,
   resolveCaseFee,
-  standardLessonValueHkd,
+  lessonValueFromRate,
   suggestOutcomeKind,
   trustCounterDelta,
   trustCountersFor,
@@ -58,8 +58,13 @@ import {
   type OwnershipSnapshot,
   type PriorCase,
 } from "@/features/cases/ownership-window";
-import { hashPhone } from "@/features/trust/trust";
 import { insertAudit, requireAdmin, selectRows, type Db, type Row } from "@/features/cases/desk-db";
+
+/** Keyed blacklist phone hash; dynamic import keeps the secret read server-only. */
+async function phoneKey(raw: string | null): Promise<string | null> {
+  const { hashPhone } = await import("@/features/trust/phone-hash.server");
+  return hashPhone(raw);
+}
 
 const DAY_MS = 24 * 60 * 60 * 1000;
 const ENDED_SOR_STATUSES = new Set(["closed", "replaced", "waived"]);
@@ -190,7 +195,7 @@ async function loadPriorCases(
 async function isParentBlacklisted(db: Db, c: DropCaseRow): Promise<boolean> {
   const checks: Array<{ col: string; value: string }> = [];
   if (c.parent_id) checks.push({ col: "parent_id", value: c.parent_id });
-  const hash = await hashPhone(c.contact_phone);
+  const hash = await phoneKey(c.contact_phone);
   if (hash) checks.push({ col: "phone_hash", value: hash });
   for (const check of checks) {
     const rows = await selectRows<{ id: string; lifted_at: string | null }>(
@@ -264,7 +269,7 @@ async function loadContext(db: Db, caseId: string): Promise<Context> {
       0,
       (trust[0]?.quality_drop_count ?? 0) - trustCountersFor(c.consequences_rule_id).qualityDrops,
     ),
-    lessonValueHkd: standardLessonValueHkd(c.hourly_rate_hkd, c.session_length_minutes),
+    lessonValueHkd: lessonValueFromRate(c.hourly_rate_hkd),
   };
 }
 
@@ -395,7 +400,7 @@ async function blacklistParent(
   note: string | null,
 ): Promise<void> {
   if (await isParentBlacklisted(db, c)) return;
-  const phoneHash = await hashPhone(c.contact_phone);
+  const phoneHash = await phoneKey(c.contact_phone);
   if (!phoneHash && !c.parent_id) throw new Error("NO_PARENT_KEY_TO_BLACKLIST");
   const { error } = await db
     .from<Row>("trust_blacklist")
@@ -433,7 +438,7 @@ export const recordDropOutcome = createServerFn({ method: "POST" })
     if (gateError) throw new Error(gateError);
 
     const ctx = await loadContext(db, data.caseId);
-    if (ctx.lessonValueHkd === null) throw new Error("NO_RATE_OR_DURATION");
+    if (ctx.lessonValueHkd === null) throw new Error("NO_RATE_ON_CASE");
 
     const isStop = data.outcomeKind === "stopped_after_l1";
     const resolution = resolveCaseFee({

@@ -9,10 +9,11 @@
  * carries the same table as a Mermaid diagram. Change a rule HERE (and on
  * #536) first, then the children.
  *
- * Units: every multiplier is "× R", where R is the standard lesson value —
- * agreed hourly rate × standard lesson duration fixed at match confirmation
- * (#520 lesson-duration rule, see standardLessonValueHkd). Amounts scale by
- * student count and round once to whole HKD (#385 / #391 precedent).
+ * Units: every multiplier is "× R", where R is the case's locked
+ * hourly_rate_hkd, the same rate basis the #385 match-fee panel
+ * (fee-breakdown.ts) invoices 1.5× on (CEO 2026-10-30: the lesson price is
+ * the hourly rate). Amounts scale by student count and round once to whole
+ * HKD (#385 / #391 precedent).
  *
  * CEO locks encoded (do not reopen):
  *   * Default split 100_50: 1.0×R after L1 + 0.5×R after L2 = 1.5×R. 75_75 is
@@ -182,20 +183,14 @@ export function lessonOnePortion(splitMode: SplitMode): number {
 }
 
 /**
- * R from the case's locked inputs: hourly rate × standard lesson minutes / 60.
- * Null when either input is missing so callers show "inputs incomplete"
- * instead of a fee that lies.
+ * R from the case's locked hourly_rate_hkd (the #385 rate basis). Null when
+ * no positive rate is locked, so callers show "inputs incomplete" instead of
+ * a fee that lies.
  */
-export function standardLessonValueHkd(
-  hourlyRateHkd: number | null | undefined,
-  sessionLengthMinutes: number | null | undefined,
-): number | null {
-  if (hourlyRateHkd == null || sessionLengthMinutes == null) return null;
+export function lessonValueFromRate(hourlyRateHkd: number | null | undefined): number | null {
+  if (hourlyRateHkd == null) return null;
   const rate = Number(hourlyRateHkd);
-  const minutes = Number(sessionLengthMinutes);
-  if (!Number.isFinite(rate) || rate <= 0) return null;
-  if (!Number.isFinite(minutes) || minutes <= 0) return null;
-  return (rate * minutes) / 60;
+  return Number.isFinite(rate) && rate > 0 ? rate : null;
 }
 
 function normalizeCount(studentCount: number | undefined): number {

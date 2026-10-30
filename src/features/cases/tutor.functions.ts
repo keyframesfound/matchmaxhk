@@ -265,57 +265,63 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
       }
     }
 
-    return mine.map((c) => ({
-      id: c.id,
-      case_code: c.case_code,
-      student_first_name: firstNameOf(c.title),
-      subject: c.subjects?.[0] ?? null,
-      exam_system: c.exam_system,
-      station: c.district,
-      lesson_mode: c.lesson_mode,
-      sor_status: c.sor_status,
-      is_short_case: c.is_short_case === true,
-      scheduled_lesson_count: c.scheduled_lesson_count ?? null,
-      ended_by_parent_at: c.ended_by_parent_at,
-      ended_by_tutor_at: c.ended_by_tutor_at,
-      fee_status: openFeeByCase.get(c.id)?.status ?? null,
-      fee_amount_hkd: openFeeByCase.get(c.id)?.amount_hkd ?? null,
-      lessons: lessons
-        .filter((l) => l.case_id === c.id)
-        .map((l) => ({
-          id: l.id,
-          sequence: l.sequence,
-          starts_at: l.starts_at,
-          duration_min: l.duration_min,
-          status: l.status,
-          created_at: l.created_at,
-          confirmed_by_parent_at: l.confirmed_by_parent_at,
-          confirmed_by_tutor_at: l.confirmed_by_tutor_at,
-          location_or_link: l.location_or_link,
-        })),
-      // #387 experience log: list rows for every case; the FORM only opens
-      // when the 1.5-lesson admin fee is settled (paid OR waived, #425
-      // precedent, matching canLogOnCase) and the dispute lock is not hit.
-      session_logs: sessionLogs.filter((l) => l.case_id === c.id),
-      can_log_session:
-        (openFeeByCase.get(c.id)?.status === "paid" ||
-          openFeeByCase.get(c.id)?.status === "waived") &&
-        sessionLogs.filter((l) => l.case_id === c.id && l.status === "disputed").length < 2 &&
-        c.sor_status !== "replaced" &&
-        c.sor_status !== "closed",
-      parent_contact: parentContactView(
-        { name: c.contact_name, phone: c.contact_phone },
-        canRevealParentContact({
-          isMatchedTutor: true,
-          caseClosed: c.sor_status === "closed" || c.sor_status === "replaced",
-          openFlagTypes: openFlagsByCase.get(c.id) ?? [],
-          introFeeSettled:
-            openFeeByCase.get(c.id)?.status === "paid" ||
-            openFeeByCase.get(c.id)?.status === "waived",
-          tutorVerifiedHours: verifiedHours,
-        }),
-      ),
-    }));
+    return mine.map((c) => {
+      const revealGate = canRevealParentContact({
+        isMatchedTutor: true,
+        caseClosed: c.sor_status === "closed" || c.sor_status === "replaced",
+        openFlagTypes: openFlagsByCase.get(c.id) ?? [],
+        introFeeSettled:
+          openFeeByCase.get(c.id)?.status === "paid" ||
+          openFeeByCase.get(c.id)?.status === "waived",
+        tutorVerifiedHours: verifiedHours,
+      });
+      // #529: the lesson location / link is part of what a matched tutor
+      // accepted, so only a safety hold or an ended case hides it.
+      const hidesLocation = !revealGate.reveal && revealGate.reason !== "FEE_OR_HOURS_REQUIRED";
+      return {
+        id: c.id,
+        case_code: c.case_code,
+        student_first_name: firstNameOf(c.title),
+        subject: c.subjects?.[0] ?? null,
+        exam_system: c.exam_system,
+        station: c.district,
+        lesson_mode: c.lesson_mode,
+        sor_status: c.sor_status,
+        is_short_case: c.is_short_case === true,
+        scheduled_lesson_count: c.scheduled_lesson_count ?? null,
+        ended_by_parent_at: c.ended_by_parent_at,
+        ended_by_tutor_at: c.ended_by_tutor_at,
+        fee_status: openFeeByCase.get(c.id)?.status ?? null,
+        fee_amount_hkd: openFeeByCase.get(c.id)?.amount_hkd ?? null,
+        lessons: lessons
+          .filter((l) => l.case_id === c.id)
+          .map((l) => ({
+            id: l.id,
+            sequence: l.sequence,
+            starts_at: l.starts_at,
+            duration_min: l.duration_min,
+            status: l.status,
+            created_at: l.created_at,
+            confirmed_by_parent_at: l.confirmed_by_parent_at,
+            confirmed_by_tutor_at: l.confirmed_by_tutor_at,
+            location_or_link: hidesLocation ? null : l.location_or_link,
+          })),
+        // #387 experience log: list rows for every case; the FORM only opens
+        // when the 1.5-lesson admin fee is settled (paid OR waived, #425
+        // precedent, matching canLogOnCase) and the dispute lock is not hit.
+        session_logs: sessionLogs.filter((l) => l.case_id === c.id),
+        can_log_session:
+          (openFeeByCase.get(c.id)?.status === "paid" ||
+            openFeeByCase.get(c.id)?.status === "waived") &&
+          sessionLogs.filter((l) => l.case_id === c.id && l.status === "disputed").length < 2 &&
+          c.sor_status !== "replaced" &&
+          c.sor_status !== "closed",
+        parent_contact: parentContactView(
+          { name: c.contact_name, phone: c.contact_phone },
+          revealGate,
+        ),
+      };
+    });
   });
 
 /**

@@ -100,6 +100,12 @@ export function MatchStatusCard({ status, matchedTutorId, sorStatus }: MatchStag
       <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
         {t(`case_status.desc_${stage}`)}
       </p>
+      {/* #529 bait-and-switch guard, shown once a tutor is matched. */}
+      {matchedTutorId ? (
+        <p className="mt-3 border-t border-border pt-3 text-sm leading-relaxed text-[color:var(--ink)]">
+          {t("case_status.safety_note")}
+        </p>
+      ) : null}
     </section>
   );
 }

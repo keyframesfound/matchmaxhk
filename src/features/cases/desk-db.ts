@@ -50,6 +50,41 @@ export async function selectRowsOrEmpty<T extends Row>(
   }
 }
 
+type RangeQuery<T> = PromiseLike<{ data: T[] | null; error: { message: string } | null }> & {
+  eq: (col: string, value: unknown) => RangeQuery<T>;
+  in: (col: string, values: unknown[]) => RangeQuery<T>;
+  gte: (col: string, value: unknown) => RangeQuery<T>;
+  lte: (col: string, value: unknown) => RangeQuery<T>;
+  order: (col: string, opts?: { ascending?: boolean }) => RangeQuery<T>;
+  limit: (n: number) => RangeQuery<T>;
+};
+
+/**
+ * selectRows plus an inclusive [from, to] range on one column, ordered
+ * ascending by it. The structural AdminDb type has no gte/lte, so this one
+ * query is cast to the real supabase-js builder surface.
+ */
+export async function selectRowsInRange<T extends Row>(
+  db: Db,
+  table: string,
+  cols: string,
+  match: Match[],
+  range: { col: string; from: string; to: string; limit: number },
+): Promise<T[]> {
+  let q = db.from<T>(table).select(cols) as unknown as RangeQuery<T>;
+  for (const m of match) {
+    q = m.op === "eq" ? q.eq(m.col, m.value) : q.in(m.col, m.value as unknown[]);
+  }
+  q = q
+    .gte(range.col, range.from)
+    .lte(range.col, range.to)
+    .order(range.col, { ascending: true })
+    .limit(range.limit);
+  const { data, error } = await q;
+  if (error) throw new Error(error.message);
+  return (data ?? []) as T[];
+}
+
 /** admin / super_admin only (fee and trust decisions are Operator actions). */
 export async function requireAdmin(db: Db, userId: string): Promise<void> {
   for (const role of ["admin", "super_admin"] as const) {

@@ -95,17 +95,28 @@ export function isCaseRiskFlagType(value: unknown): value is CaseRiskFlagType {
 }
 
 /**
- * SHA-256 hex of the normalized phone, the blacklist lookup key. The table is
- * staff-only (RLS, no grants); the hash keeps raw numbers out of exports and
- * logs, it is not a secrecy guarantee for an 8-digit space. Null when the
- * input is too short to be a phone number.
+ * HMAC-SHA256 hex of the normalized phone under a server secret, the
+ * blacklist lookup key. Keyed so an exported or leaked trust_blacklist row
+ * cannot be brute-forced back to a number across the ~10^8 HK phone space.
+ * Null when the input is too short to be a phone number or no secret is set.
+ * Callers use phone-hash.server.ts, which supplies the secret.
  */
-export async function hashPhone(raw: string | null | undefined): Promise<string | null> {
+export async function hmacPhone(
+  raw: string | null | undefined,
+  secret: string | null | undefined,
+): Promise<string | null> {
   const digits = normalizePhone(raw ?? "");
-  if (digits.length < 8) return null;
-  const bytes = new TextEncoder().encode(`mm-trust:${digits}`);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return Array.from(new Uint8Array(digest), (b) => b.toString(16).padStart(2, "0")).join("");
+  if (digits.length < 8 || !secret) return null;
+  const encoder = new TextEncoder();
+  const key = await crypto.subtle.importKey(
+    "raw",
+    encoder.encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const mac = await crypto.subtle.sign("HMAC", key, encoder.encode(digits));
+  return Array.from(new Uint8Array(mac), (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
 /** "9123 4567" → "9••• ••67": first and last two digits only. */
