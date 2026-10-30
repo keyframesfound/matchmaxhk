@@ -234,13 +234,54 @@ export const listCaseApplicationsAdmin = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     await requireDeskAccess(db, context.userId);
-    return selectRows<CaseApplicationAdminRow>(
+    const rows = await selectRows<CaseApplicationAdminRow>(
       db,
       "case_applications",
       "id, case_id, tutor_id, account_id, note, status, created_at, updated_at, tutors(tutor_code, display_name, subjects, verification_tier)",
       [{ col: "case_id", op: "eq", value: data.caseId }],
       { col: "created_at", asc: false, limit: 50 },
     );
+
+    // #508 flag (not a block): applicants whose intro window with this case's
+    // counterparty has closed — the fee engine prices those matches at $0,
+    // the card just surfaces it before staff approve. Best-effort: a lookup
+    // failure must never hide the application list.
+    try {
+      const cases = await selectRows<{ organisation_id: string | null; parent_id: string | null }>(
+        db,
+        "tutoring_cases",
+        "organisation_id, parent_id",
+        [{ col: "id", op: "eq", value: data.caseId }],
+      );
+      const c = cases[0];
+      const party = c
+        ? c.organisation_id
+          ? { kind: "centre" as const, col: "organisation_id", id: c.organisation_id }
+          : c.parent_id
+            ? { kind: "parent" as const, col: "parent_id", id: c.parent_id }
+            : null
+        : null;
+      if (party && rows.length > 0) {
+        const { closedWindowEndsByTutor } =
+          await import("@/features/cases/match-dispatch.functions");
+        const closed = await closedWindowEndsByTutor(
+          db,
+          party,
+          rows.map((r) => r.tutor_id),
+          new Date(),
+        );
+        for (const row of rows) {
+          const endsAt = closed.get(row.tutor_id);
+          if (endsAt) {
+            row.out_of_window = true;
+            row.window_ends_at = endsAt;
+          }
+        }
+      }
+    } catch (flagError) {
+      console.error("[applications] #508 out-of-window flag lookup failed:", flagError);
+    }
+    return rows;
   });
 
 export const updateApplicationStatus = createServerFn({ method: "POST" })

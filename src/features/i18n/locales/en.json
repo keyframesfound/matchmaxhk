@@ -269,7 +269,9 @@
     "status_new": "New",
     "status_reviewed": "Reviewed",
     "status_shortlisted": "Shortlisted",
-    "status_rejected": "Rejected"
+    "status_rejected": "Rejected",
+    "out_of_window": "Out of window",
+    "out_of_window_hint": "Their 6-month intro window with this client has closed — a match here earns the platform $0 (the fee engine marks it OWNERSHIP_EXPIRED). Advising them to contact the client directly is fine."
   },
   "caseDesk": {
     "tutor_code_label": "Tutor code",

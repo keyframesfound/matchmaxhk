@@ -123,6 +123,31 @@ function windowFlagFor(
   };
 }
 
+/**
+ * Per-tutor ISO close of the intro window with `party`, for tutors whose
+ * window has CLOSED. Consumers flag rather than block (e.g. the board
+ * applications card: the fee engine prices those matches at $0 anyway, staff
+ * just deserve to see it before approving).
+ */
+export async function closedWindowEndsByTutor(
+  db: Db,
+  party: { kind: CounterpartyKind; col: string; id: string },
+  tutorIds: readonly string[],
+  now: Date,
+): Promise<Map<string, string>> {
+  const firstL1 = await earliestPaidL1WithCounterparty(db, tutorIds, party);
+  const closed = new Map<string, string>();
+  for (const [tutorId, l1At] of firstL1) {
+    if (isPastOwnershipWindow(l1At, now)) {
+      closed.set(
+        tutorId,
+        new Date(Date.parse(l1At) + INTRO_WINDOW_DAYS * 24 * 60 * 60 * 1000).toISOString(),
+      );
+    }
+  }
+  return closed;
+}
+
 export const searchCaseTutorsForMatch = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>

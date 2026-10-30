@@ -269,7 +269,9 @@
     "status_new": "新申請",
     "status_reviewed": "已審閱",
     "status_shortlisted": "入圍",
-    "status_rejected": "已拒絕"
+    "status_rejected": "已拒絕",
+    "out_of_window": "已過簡介期",
+    "out_of_window_hint": "佢同呢個客嘅 6 個月簡介期已過——再配對平台費會係 $0（費用引擎會標 OWNERSHIP_EXPIRED）。可以建議客戶直接聯絡佢。"
   },
   "caseDesk": {
     "tutor_code_label": "導師編號",

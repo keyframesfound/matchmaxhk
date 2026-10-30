@@ -46,6 +46,13 @@ export type CaseApplicationAdminRow = CaseApplicationRow & {
     subjects: string[] | null;
     verification_tier: string | null;
   } | null;
+  /**
+   * #508 flag (not a block): the applicant's 6-month intro window with this
+   * case's counterparty has closed, so the match would earn the platform $0.
+   * Attached by listCaseApplicationsAdmin; absent on raw selects.
+   */
+  out_of_window?: boolean | null;
+  window_ends_at?: string | null;
 };
 
 // ---------------------------------------------------------------------------

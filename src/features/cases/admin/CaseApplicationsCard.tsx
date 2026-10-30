@@ -9,7 +9,7 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { formatDistanceToNow } from "date-fns";
+import { format, formatDistanceToNow } from "date-fns";
 import { Inbox } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -69,6 +69,19 @@ function ApplicationRow({
             ) : null}
             {/* Issue #441: risk badge so agents don't re-ping a flagged tutor. */}
             <RiskFlagBadge flag={flagRow?.risk_flag} note={flagRow?.risk_note} />
+            {/* #508 flag (not a block): past-window applicants earn the
+                platform $0 — staff see it before approving. */}
+            {application.out_of_window ? (
+              <span
+                className="shrink-0 rounded border border-[color:var(--ink)]/[0.12] px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground"
+                title={t("caseApplications.out_of_window_hint")}
+              >
+                {t("caseApplications.out_of_window")}
+                {application.window_ends_at
+                  ? ` · ${format(new Date(application.window_ends_at), "d MMM yyyy")}`
+                  : ""}
+              </span>
+            ) : null}
           </p>
           <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
             {subjects.length > 0
