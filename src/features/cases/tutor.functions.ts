@@ -13,7 +13,6 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import type { CaseLessonRow, FeeStatus, SorStatus } from "@/features/cases/sor-db";
 import {
-  canMarkDone,
   cancelActionFor,
   hktFromParts,
   isActiveStudentCase,
@@ -119,6 +118,8 @@ export type TutorCaseItem = {
   sor_status: SorStatus | null;
   fee_status: FeeStatus | null;
   fee_amount_hkd: number | null;
+  /** #533: MatchMax Managed (#530 Hybrid) — attendance note gate + credits. */
+  managed: boolean;
   lessons: {
     id: string;
     sequence: number;
@@ -129,6 +130,7 @@ export type TutorCaseItem = {
     confirmed_by_parent_at: string | null;
     confirmed_by_tutor_at: string | null;
     location_or_link: string | null;
+    attendance: string | null;
   }[];
   /** #387 experience-log rows for this case (any status). */
   session_logs: SessionLogRowT[];
@@ -174,10 +176,11 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
       ended_by_tutor_at: string | null;
       contact_name: string | null;
       contact_phone: string | null;
+      managed: boolean | null;
     }>(
       db,
       "tutoring_cases",
-      "id, case_code, title, subjects, exam_system, district, lesson_mode, sor_status, is_short_case, scheduled_lesson_count, ended_by_parent_at, ended_by_tutor_at, contact_name, contact_phone, created_at",
+      "id, case_code, title, subjects, exam_system, district, lesson_mode, sor_status, is_short_case, scheduled_lesson_count, ended_by_parent_at, ended_by_tutor_at, contact_name, contact_phone, managed, created_at",
       [{ col: "matched_tutor_id", op: "eq", value: tutorId }],
       { col: "created_at", asc: false, limit: 100 },
     );
@@ -197,10 +200,11 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         confirmed_by_parent_at: string | null;
         confirmed_by_tutor_at: string | null;
         location_or_link: string | null;
+        attendance: string | null;
       }>(
         db,
         "case_lessons",
-        "id, case_id, sequence, starts_at, duration_min, status, created_at, confirmed_by_parent_at, confirmed_by_tutor_at, location_or_link",
+        "id, case_id, sequence, starts_at, duration_min, status, created_at, confirmed_by_parent_at, confirmed_by_tutor_at, location_or_link, attendance",
         [{ col: "case_id", op: "in", value: caseIds }],
         { col: "starts_at", asc: true },
       ),
@@ -293,6 +297,7 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         ended_by_tutor_at: c.ended_by_tutor_at,
         fee_status: openFeeByCase.get(c.id)?.status ?? null,
         fee_amount_hkd: openFeeByCase.get(c.id)?.amount_hkd ?? null,
+        managed: c.managed === true,
         lessons: lessons
           .filter((l) => l.case_id === c.id)
           .map((l) => ({
@@ -305,6 +310,7 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
             confirmed_by_parent_at: l.confirmed_by_parent_at,
             confirmed_by_tutor_at: l.confirmed_by_tutor_at,
             location_or_link: hidesLocation ? null : l.location_or_link,
+            attendance: l.attendance,
           })),
         // #387 experience log: list rows for every case; the FORM only opens
         // when the 1.5-lesson admin fee is settled (paid OR waived, #425
@@ -405,35 +411,6 @@ export const declineLessonTutor = createServerFn({ method: "POST" })
       "lesson_cancelled",
       data.reason ?? "Tutor declined",
     );
-    return { ok: true };
-  });
-
-export const markLessonDoneTutor = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z
-      .object({ lessonId: z.string().uuid(), privateNote: z.string().max(500).optional() })
-      .parse(input),
-  )
-  .handler(async ({ context, data }): Promise<{ ok: boolean }> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const db = asAdminDb(supabaseAdmin);
-    const tutorId = await myTutorId(db, context.userId);
-    const lesson = await myLesson(db, data.lessonId, tutorId);
-    if (lesson.status !== "planned" && lesson.status !== "confirmed") throw new Error("NOT_LIVE");
-    // #204 mark-done window: 15 min before start until 7 days after.
-    if (!canMarkDone(new Date(lesson.starts_at), new Date())) throw new Error("DONE_WINDOW_CLOSED");
-
-    const { error } = await db
-      .from<Row>("case_lessons")
-      .update({
-        status: "done",
-        marked_done_by: context.userId,
-        done_at: new Date().toISOString(),
-        private_note: data.privateNote ?? null,
-      })
-      .eq("id", lesson.id);
-    if (error) throw new Error(error.message);
     return { ok: true };
   });
 

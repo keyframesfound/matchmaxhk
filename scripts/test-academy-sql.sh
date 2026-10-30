@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# #532 Phase 0 acceptance: runs the academy ledger migration on a throwaway
+# #532 Phase 0 + #533 Phase 1 acceptance: runs the academy ledger migration on a throwaway
 # Postgres 16 container and checks slot-lock concurrency, ledger invariants,
 # idempotency and TTL release. Needs Docker. Usage: scripts/test-academy-sql.sh
 set -euo pipefail
@@ -7,6 +7,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 NAME="mm-academy-pg-test"
 MIGRATION="$ROOT/supabase/migrations/20261030130000_issue_532_534_academy_ledger.sql"
+MIGRATION_533="$ROOT/supabase/migrations/20261031090000_issue_533_attendance_ledger.sql"
 RACE_DIR="$(mktemp -d)"
 
 cleanup() { docker rm -f "$NAME" >/dev/null 2>&1 || true; rm -rf "$RACE_DIR"; }
@@ -22,6 +23,7 @@ pass() { echo "ok   $1"; }
 
 psql_q < "$ROOT/tests/sql/academy-stubs.sql"
 psql_q < "$MIGRATION" 2>/dev/null
+psql_q < "$MIGRATION_533" 2>/dev/null
 
 # Fixture: one tutor, one student account with 3 credits.
 read -r TUTOR STUDENT ACCOUNT < <(psql_q -F ' ' <<'SQL'
@@ -126,4 +128,67 @@ LINKED=$(psql_q -c "SELECT (public.post_credit_entry('$ACCOUNT','CONSUME',NULL,'
 [ "$LINKED" = "$DID" ] || fail "consume did not carry deliverable_id"
 pass "async_deliverables HOLD -> CONSUME via ledger"
 
-echo "All #532/#534 SQL acceptance checks passed."
+# ---------------------------------------------------------------------------
+# #533 Phase 1: managed lessons drive the ledger through case_lessons.
+# ---------------------------------------------------------------------------
+read -r MCASE MACC < <(psql_q -F ' ' <<SQL
+WITH s AS (INSERT INTO public.students (display_name) VALUES ('Managed student') RETURNING id),
+     a AS (INSERT INTO public.credit_accounts (student_id, tutor_id) SELECT s.id, '$TUTOR' FROM s RETURNING id),
+     c AS (INSERT INTO public.tutoring_cases (managed, credit_account_id) SELECT true, a.id FROM a RETURNING id, credit_account_id)
+SELECT id, credit_account_id FROM c;
+SQL
+)
+psql_q -c "SELECT public.post_credit_entry('$MACC','PURCHASE',3,'purchase:managed-1',NULL,'admin');" >/dev/null
+lesson() { psql_q -c "INSERT INTO public.case_lessons (case_id, sequence, tutor_id, starts_at) VALUES ('$MCASE', $1, '$TUTOR', now() + interval '$1 days' + interval '9 days') RETURNING id;" | head -1; }
+bal() { psql_q -F ' ' -c "SELECT balance, held FROM public.credit_accounts WHERE id='$MACC';"; }
+
+L1=$(lesson 1)
+[ "$(bal)" = "2.00 1.00" ] || fail "booking did not HOLD: $(bal)"
+psql_q -c "UPDATE public.case_lessons SET status='done', attendance='present', attendance_note='Worked on quadratics. Next week we start functions.' WHERE id='$L1';"
+psql_q -c "UPDATE public.case_lessons SET attendance='late' WHERE id='$L1';"
+read -r B H < <(bal)
+PAY=$(psql_q -c "SELECT payout_status FROM public.case_lessons WHERE id='$L1';")
+[ "$B $H" = "2.00 0.00" ] && [ "$PAY" = "pending_payout" ] || fail "present did not CONSUME once: $B $H $PAY"
+pass "managed lesson: HOLD at book -> CONSUME on attendance, once, PENDING_PAYOUT"
+
+L2=$(lesson 2)
+psql_q -c "UPDATE public.case_lessons SET status='cancelled', attendance='absent_excused', note_skipped=true WHERE id='$L2';"
+[ "$(bal)" = "2.00 0.00" ] || fail "absent_excused did not RELEASE: $(bal)"
+pass "absent excused / cancel -> RELEASE"
+
+psql_q -c "UPDATE public.tutoring_cases SET cancellation_policy='{\"late_cancel_billable\": false}' WHERE id='$MCASE';"
+L3=$(lesson 3)
+psql_q -c "UPDATE public.case_lessons SET status='late_cancel' WHERE id='$L3';"
+[ "$(bal)" = "2.00 0.00" ] || fail "non-billable late cancel did not RELEASE: $(bal)"
+pass "late cancel follows cancellation_policy (data, not code)"
+
+L4=$(lesson 4)
+set +e
+SKIP=$(psql_q -c "UPDATE public.case_lessons SET status='done', attendance='present', note_skipped=true WHERE id='$L4';" 2>&1)
+set -e
+echo "$SKIP" | grep -q NOTE_SKIP_USED || fail "second note skip allowed: $SKIP"
+psql_q -c "UPDATE public.case_lessons SET status='done', attendance='present', note_skipped=true, note_override_by='$TUTOR' WHERE id='$L4';"
+pass "note skip once per case; admin override allowed"
+
+psql_q -c "INSERT INTO public.case_lessons (case_id, sequence, tutor_id, starts_at) VALUES ('$MCASE', 5, '$TUTOR', now() + interval '20 days');" >/dev/null
+set +e
+NOCRED=$(psql_q -c "INSERT INTO public.case_lessons (case_id, sequence, tutor_id, starts_at) VALUES ('$MCASE', 6, '$TUTOR', now() + interval '21 days');" 2>&1)
+set -e
+echo "$NOCRED" | grep -q INSUFFICIENT_CREDITS || fail "booking without credits allowed: $NOCRED"
+pass "no credits -> managed booking refused (no negative balance)"
+
+PURE=$(psql_q -c "INSERT INTO public.tutoring_cases DEFAULT VALUES RETURNING id;" | head -1)
+BEFORE=$(psql_q -c "SELECT count(*) FROM public.credit_ledger_entries;")
+PL=$(psql_q -c "INSERT INTO public.case_lessons (case_id, sequence, tutor_id, starts_at) VALUES ('$PURE', 1, '$TUTOR', now() + interval '30 days') RETURNING id;" | head -1)
+psql_q -c "UPDATE public.case_lessons SET status='done', attendance='present' WHERE id='$PL';"
+AFTER=$(psql_q -c "SELECT count(*) FROM public.credit_ledger_entries;")
+[ "$BEFORE" = "$AFTER" ] || fail "pure-matching lesson touched the ledger"
+pass "pure-matching case never touches the ledger"
+
+INV2=$(psql_q -c "SELECT bool_and(a.balance = s.amt AND a.held = s.hd) FROM public.credit_accounts a
+  JOIN (SELECT account_id, sum(amount) amt, sum(held_delta) hd FROM public.credit_ledger_entries GROUP BY 1) s
+  ON s.account_id = a.id;")
+[ "$INV2" = "t" ] || fail "sum(entries) != balance after #533 flows"
+pass "ledger invariant holds after attendance flows"
+
+echo "All #532/#534/#533 SQL acceptance checks passed."

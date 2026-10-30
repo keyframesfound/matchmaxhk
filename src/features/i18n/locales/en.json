@@ -3056,5 +3056,28 @@
       "postgrad": "Postgraduate",
       "alumni": "Alumni / Graduate"
     }
+  },
+  "academy": {
+    "attendance_label": "Attendance",
+    "attendance_present": "Present",
+    "attendance_late": "Late",
+    "attendance_left_early": "Left early",
+    "attendance_absent_excused": "Absent, excused",
+    "attendance_absent_billable": "Absent, billable",
+    "note_label": "Lesson note (optional)",
+    "note_label_managed": "Lesson note",
+    "note_placeholder": "What you covered, and the plan for next lesson.",
+    "note_hint_managed": "Two short sentences: what you covered, and the plan for next lesson.",
+    "skip_note_once": "Skip the note this once",
+    "admin_override": "Admin override: save without a note",
+    "save": "Save attendance",
+    "saved": "Attendance saved",
+    "mark_attendance": "Mark attendance",
+    "error_note_required": "Add a two-sentence note, or skip it this once.",
+    "error_note_skip_used": "You have already skipped the note once on this case. Please add a short note.",
+    "error_insufficient_credits": "This family has no lesson credits left. Ask MatchMax to top up first.",
+    "error_window_closed": "Attendance can be marked from 15 minutes before the lesson until 7 days after.",
+    "error_already_marked": "Attendance is already recorded for this lesson.",
+    "managed_badge": "Managed"
   }
 }

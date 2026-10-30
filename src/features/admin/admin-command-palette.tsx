@@ -18,6 +18,7 @@ import {
   UserPlus,
   Users,
   type LucideIcon,
+  CalendarDays,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -48,6 +49,7 @@ const GO_TO: PaletteEntry[] = [
   { label: "Study materials", to: "/admin/materials", icon: BookOpen },
   { label: "Reports", to: "/admin/reports", icon: Flag },
   { label: "Trust & safety", to: "/admin/trust-safety", icon: ShieldAlert },
+  { label: "Academy calendar", to: "/admin/academy", icon: CalendarDays },
   { label: "Users", to: "/admin/users", icon: Users },
   { label: "Organizations", to: "/admin/organizations", icon: Building2 },
   { label: "R2 images", to: "/admin/r2", icon: ImageIcon },
