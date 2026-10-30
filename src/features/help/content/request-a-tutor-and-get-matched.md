@@ -37,6 +37,18 @@ One or two lines about your child's goals also help: catching up, building confi
 
 The first two lessons are the supported concierge window. If the fit is not right in that period, tell the coordinator and other tutors can be introduced. To understand how this works overall, read [how MatchMax matching works](/help/parent-getting-started/how-matchmax-matching-works).
 
+## Not sure yet? Ask for a free online fit call first
+
+If your child has had a run of bad fits, or you are unsure whether tuition is the right move at all, tell the coordinator. Many tutors on the platform offer a free 15–20 minute online call before any lesson: a short video chat where your child meets the tutor, talks through goals and how they like to learn, and both sides see whether it clicks.
+
+What a fit call is and is not:
+
+- **It is a conversation** about goals, expectations, and scheduling — roughly the length of a coffee chat.
+- **It is not a free lesson.** Actual teaching starts in the first booked lesson, and asking a tutor to teach a full session unpaid is not something we will broker.
+- **It is optional on both sides.** Tutors offer it when they want to; the coordinator will tell you which of your introductions do.
+
+Asking for a fit call costs nothing and saves everyone a mismatched Lesson 1. Just say "we'd like a fit call first" when you respond to an introduction.
+
 ## What to prepare before introductions
 
 A little preparation makes the first conversations easier:
