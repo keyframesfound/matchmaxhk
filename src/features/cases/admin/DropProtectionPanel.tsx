@@ -115,7 +115,7 @@ const ERROR_COPY: Record<string, string> = {
   CLIENT_CONFIRMATION_REQUIRED:
     "A parent or centre stop needs their confirmation. Tutor word alone never reduces the fee.",
   DISCOUNT_PCT_REQUIRED: "Enter the first-lesson discount %.",
-  NO_RATE_OR_DURATION: "Lock an hourly rate and lesson length on the case first.",
+  NO_RATE_ON_CASE: "Lock an agreed rate on the case first.",
   NO_PARENT_KEY_TO_BLACKLIST: "No parent account or phone on the case to blacklist.",
 };
 
@@ -379,7 +379,7 @@ function FeePreview({
   if (preview === null) {
     return (
       <p className="rounded-xl border border-[color:var(--ink)]/[0.07] px-3.5 py-3 text-[11px] text-muted-foreground">
-        Lock an hourly rate and lesson length to see the fee.
+        Lock an agreed rate on the case to see the fee.
       </p>
     );
   }

@@ -8,8 +8,9 @@ Single source of truth for the #537 Fee · Drop · Trust cluster. The code is
 Change a rule on #536 and in `fee-drop.ts` first, then the child issues
 (#520, #525, #508, #528, #529).
 
-`R` = agreed hourly rate × standard lesson duration fixed at match
-confirmation. Amounts scale by student count and round once to whole HKD.
+`R` = the case's locked `hourly_rate_hkd`, the same rate basis the #385
+match-fee panel invoices 1.5× on (CEO 2026-10-30). Amounts scale by student
+count and round once to whole HKD.
 
 ## Diagram
 
@@ -73,3 +74,26 @@ Notes:
 - Only parent or centre confirmation can reduce the fee. Admin-reviewed evidence is accepted only on the tutor-initiated hostile-parent and emergency paths (`dropRecordError`).
 - Consequences (blacklist, strike, shadowban) apply once per rule change, so re-saving a decision never double-counts. Bans stay a human action.
 - No parent refund in any row. Rematch is the parent remedy.
+
+## Trust and safety (#529 V1)
+
+Rules, not an LLM (`src/features/trust/safety-screen.ts`). Every hit is a
+`case_risk_flags` row; humans resolve all of them at `/admin/trust-safety`.
+
+| Signal | Where | Effect |
+| --- | --- | --- |
+| Industrial / hotel venue phrases (EN + 繁中; study subjects excluded) | request intake | `HIGH_RISK_LOCATION`; hold (`compliance_hold`) for adult learners |
+| Adult learner + specific tutor gender + time ≥ 21:30 | request intake | hold + `LATE_NIGHT_ADULT` |
+| Overpayment / cheque / wire / crypto language | request intake | hold + `SCAM_OVERPAYMENT` |
+| "Pay directly" / skip MatchMax language | request intake | flag `BYPASS_COLLUSION_RISK` |
+| "Tried N agencies" or 3+ early drops in 30 days | request intake | flag `SERIAL_HOPPER_PARENT` |
+| Requester on `trust_blacklist` | request intake | hold + `BLACKLISTED_CONTACT` (not rejected, no tip-off) |
+| Lesson 1 within 12 h, tutor unconfirmed | queue load | flag `TUTOR_GHOST_RISK` + ops ping |
+
+Tutor-facing: parent contact masked until the intro fee is settled or the
+tutor has 3+ verified hours; lesson location hidden only while a blocking
+flag is open or the case has ended. New tutors hold at most 2 open first
+lessons (`app_settings.trust_new_tutor_first_lesson_cap`).
+
+Not in V1 (needs vendors): +852 SMS OTP, WhatsApp Business webhook
+classifier, T-16h tutor nudge. Rate floors stay Later until tuned on data.

@@ -4,7 +4,7 @@ import {
   DEFAULT_NEW_TUTOR_FIRST_LESSON_CAP,
   canRevealParentContact,
   checkFirstLessonCap,
-  hashPhone,
+  hmacPhone,
   isBlacklistReason,
   isCaseRiskFlagType,
   maskName,
@@ -23,18 +23,25 @@ const baseReveal: RevealInput = {
   tutorVerifiedHours: 0,
 };
 
-describe("hashPhone", () => {
+describe("hmacPhone", () => {
+  const SECRET = "test-secret";
+
   it("normalizes +852 and separators to the same key", async () => {
-    const a = await hashPhone("+852 9123 4567");
-    const b = await hashPhone("9123-4567");
+    const a = await hmacPhone("+852 9123 4567", SECRET);
+    const b = await hmacPhone("9123-4567", SECRET);
     expect(a).toMatch(/^[0-9a-f]{64}$/);
     expect(a).toBe(b);
   });
 
-  it("returns null for non-phones", async () => {
-    expect(await hashPhone("")).toBeNull();
-    expect(await hashPhone("123")).toBeNull();
-    expect(await hashPhone(null)).toBeNull();
+  it("is keyed: another secret gives another hash", async () => {
+    expect(await hmacPhone("91234567", SECRET)).not.toBe(await hmacPhone("91234567", "other"));
+  });
+
+  it("returns null for non-phones or a missing secret", async () => {
+    expect(await hmacPhone("", SECRET)).toBeNull();
+    expect(await hmacPhone("123", SECRET)).toBeNull();
+    expect(await hmacPhone("91234567", "")).toBeNull();
+    expect(await hmacPhone("91234567", undefined)).toBeNull();
   });
 });
 

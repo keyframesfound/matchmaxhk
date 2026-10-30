@@ -10,7 +10,7 @@ import {
   normalizePromoType,
   normalizeSplitMode,
   resolveCaseFee,
-  standardLessonValueHkd,
+  lessonValueFromRate,
   suggestOutcomeKind,
   tierBaseMultiplier,
   trustCounterDelta,
@@ -20,8 +20,9 @@ import {
   type DropVerification,
   type FeeResolutionInput,
 } from "../../src/features/cases/fee-drop";
+import { fullAdminFeeAmount } from "../../src/features/cases/fee-breakdown";
 
-// R = $600 standard lesson (e.g. $400/h × 90 min).
+// R = $600: the case's locked rate.
 const R = 600;
 
 function stop(
@@ -36,17 +37,18 @@ function fee(overrides: Partial<FeeResolutionInput> & { outcome: CaseOutcome }) 
   return resolveCaseFee({ lessonValueHkd: R, ...overrides });
 }
 
-describe("standardLessonValueHkd (#520 lesson-duration rule)", () => {
-  it("multiplies the hourly rate by the standard duration", () => {
-    expect(standardLessonValueHkd(400, 90)).toBe(600);
-    expect(standardLessonValueHkd(300, 120)).toBe(600);
+describe("lessonValueFromRate (R = the locked hourly rate, #385 basis)", () => {
+  it("uses the hourly rate as R, matching fullAdminFeeAmount", () => {
+    expect(lessonValueFromRate(600)).toBe(600);
+    expect(
+      resolveCaseFee({ lessonValueHkd: 600, outcome: { kind: "continued" } }).finalCommissionDueHkd,
+    ).toBe(fullAdminFeeAmount(600));
   });
 
-  it("returns null when an input is missing or non-positive", () => {
-    expect(standardLessonValueHkd(null, 90)).toBeNull();
-    expect(standardLessonValueHkd(400, null)).toBeNull();
-    expect(standardLessonValueHkd(0, 90)).toBeNull();
-    expect(standardLessonValueHkd(400, -5)).toBeNull();
+  it("returns null when no positive rate is locked", () => {
+    expect(lessonValueFromRate(null)).toBeNull();
+    expect(lessonValueFromRate(0)).toBeNull();
+    expect(lessonValueFromRate(-5)).toBeNull();
   });
 });
 

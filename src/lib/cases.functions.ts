@@ -19,6 +19,7 @@ import {
 } from "@/features/cases/case-options";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "@/lib/money";
 import { sanitizeCaseFreeText } from "@/lib/contact-filter";
+import { screenCaseRequest } from "@/features/trust/safety-screen";
 import { buildCaseTitle as buildStructuredTitle } from "@/features/cases/case-title";
 
 /**
@@ -550,6 +551,17 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       "en",
     );
 
+    // Issue #529: rules-based safety screen on the RAW request (before the
+    // contact filter strips text). HOLD hits reuse the #412 compliance_hold
+    // desk state; every hit is persisted as a case_risk_flags row below.
+    const safetyScreen = screenCaseRequest({
+      notes: data.notes,
+      district: data.district,
+      targetSchool: data.targetSchool,
+      whoFor: data.whoFor,
+      preferredGender: data.tutorGenderPreference,
+    });
+
     const insertRow = {
       // Issue #423 (sections 2+3): structured auto-title when the structured
       // fields suffice; the legacy builder only covers rows it can't express.
@@ -629,7 +641,7 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       // Issue #412 E: triage routes to compliance_hold instead of `new` —
       // held requests are invisible to the public board and locked in the
       // admin desk until staff re-screen.
-      status: parentTriageStatus(data.triage),
+      status: safetyScreen.hold ? "compliance_hold" : parentTriageStatus(data.triage),
       compliance_triage: { scope: "parent", ...data.triage },
     };
 
@@ -669,14 +681,16 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       throw acceptanceError;
     }
 
-    // Issue #535: a blacklisted household is not rejected (no tip-off); the
-    // case lands with an open BLACKLISTED_CONTACT flag for the desk. Never
-    // throws, so trust bookkeeping cannot fail the submit.
-    const { flagIfBlacklisted } = await import("@/features/trust/trust.functions");
-    await flagIfBlacklisted({
+    // Issues #535 / #529: blacklist match, serial-hopper history and the
+    // safety-screen hits become case_risk_flags; a blacklisted household is
+    // held (not rejected, no tip-off). Never throws, so trust bookkeeping
+    // cannot fail the submit.
+    const { runIntakeTrustChecks } = await import("@/features/trust/trust.functions");
+    await runIntakeTrustChecks({
       caseId: row.id as string,
       parentId: context.userId,
       contactPhone: data.contactPhone,
+      screenHits: safetyScreen.hits,
     });
 
     // Issue #55: nudge ops over the webhook (app_settings key

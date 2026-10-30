@@ -437,6 +437,7 @@
     "desc_tutor_intro": "We're introducing your tutor on WhatsApp.",
     "desc_lessons": "Lessons are running. Agree times with your tutor on WhatsApp.",
     "desc_closed": "This case is closed. Need a tutor again? Send a new request.",
+    "safety_note": "Check that the tutor at your door matches their MatchMax profile, and pay only your matched tutor. Never send money to anyone else.",
     "step_done": "completed",
     "step_current": "current step",
     "step_upcoming": "not started"

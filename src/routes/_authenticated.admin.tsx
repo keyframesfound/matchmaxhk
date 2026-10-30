@@ -13,6 +13,7 @@ import {
   Image as ImageIcon,
   LayoutDashboard,
   Settings,
+  ShieldAlert,
   ShieldCheck,
   UserPlus,
   Users,
@@ -38,6 +39,7 @@ const ADMIN_TITLES: { prefix: string; title: string }[] = [
   { prefix: "/admin/referrals", title: "Referrals & bounties" },
   { prefix: "/admin/materials", title: "Study materials" },
   { prefix: "/admin/reports", title: "Reports" },
+  { prefix: "/admin/trust-safety", title: "Trust & safety" },
   { prefix: "/admin/users", title: "Users" },
   { prefix: "/admin/organizations", title: "Organizations" },
   { prefix: "/admin/r2", title: "R2 images" },
@@ -69,6 +71,7 @@ function useAdminNavGroups(pendingJoinRequests: number | undefined): ConsoleNavG
         { label: "Referrals", to: "/admin/referrals", icon: Gift },
         { label: "Study Materials", to: "/admin/materials", icon: BookOpen },
         { label: "Reports", to: "/admin/reports", icon: Flag },
+        { label: "Trust & Safety", to: "/admin/trust-safety", icon: ShieldAlert },
       ],
     },
     {
