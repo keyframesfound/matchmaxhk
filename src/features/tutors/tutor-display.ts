@@ -1,3 +1,4 @@
+import i18n from "@/features/i18n/config";
 import type { Tutor } from "@/features/tutors/queries";
 import { isTutorFullyBooked } from "@/features/tutors/queries";
 import { EXAM_SYSTEMS } from "@/features/tutors/examSystems";
@@ -221,23 +222,25 @@ export function getTutorInquiryAction(
   // Issue #308: a suspended owner keeps their card up but loses every
   // request/waitlist/pre-book action; the caller renders a status chip.
   // Undefined (pre-migration data) counts as active.
+  // Labels resolve through the i18n singleton (same idiom as
+  // verticals-labels.ts) so zh surfaces never render English CTA strings.
   if (tutor.owner_account_status === "suspended" || tutor.owner_account_status === "banned") {
-    return { kind: "status", href: "", label: "Requests paused" };
+    return { kind: "status", href: "", label: i18n.t("tutor_card.status_paused") };
   }
   // P5 (#280): Full and Inactive hide the Request-tutor action; the caller
   // renders a status chip instead (kind "status").
   const availabilityState = getTutorAvailabilityState(tutor);
   if (availabilityState === "inactive") {
-    return { kind: "status", href: "", label: "Inactive" };
+    return { kind: "status", href: "", label: i18n.t("tutor_card.status_inactive") };
   }
   if (availabilityState === "full") {
-    return { kind: "status", href: "", label: "Full" };
+    return { kind: "status", href: "", label: i18n.t("tutor_card.status_full") };
   }
   if (isTutorFullyBooked(tutor)) {
     return {
       kind: "waitlist",
       href: buildTutorWaitlistWhatsAppUrl(whatsappNumber, tutor.tutor_code),
-      label: "Join Waitlist via WhatsApp",
+      label: i18n.t("tutor_card.waitlist_cta"),
     };
   }
   if (getTutorAvailabilityReadiness(tutor) === "pre_booking" && tutor.earliest_start_date) {
@@ -249,13 +252,15 @@ export function getTutorInquiryAction(
         tutor.earliest_start_date,
         language,
       ),
-      label: `Pre-book for ${formatAvailabilityDate(tutor.earliest_start_date, language)}`,
+      label: i18n.t("tutor_card.prebook_cta", {
+        date: formatAvailabilityDate(tutor.earliest_start_date, language),
+      }),
     };
   }
   return {
     kind: "request",
     href: buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code),
-    label: "Request tutor",
+    label: i18n.t("tutor_card.request_cta"),
   };
 }
 

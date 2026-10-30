@@ -37,9 +37,10 @@ type HasRoleClient = {
 
 /** Mirrors the pattern used across the branch's admin server functions. */
 async function assertAdmin(client: unknown, userId: string): Promise<void> {
-  const rpc = (client as HasRoleClient).rpc;
   for (const role of ADMIN_ROLES) {
-    const { data: ok, error } = await rpc("has_role", {
+    // Method call keeps the receiver: a detached `const rpc = client.rpc`
+    // loses `this` and supabase-js crashes reading `.rest`.
+    const { data: ok, error } = await (client as HasRoleClient).rpc("has_role", {
       _user_id: userId,
       _role: role,
     });

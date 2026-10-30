@@ -154,10 +154,12 @@ export function canonicalUrl(path: string, locale: SeoLocale = currentSeoLocale(
 /** hreflang alternates (en + zh-HK + x-default → en) for a route's head links. */
 export function hreflangLinks(
   path: string,
-): { rel: "alternate"; hreflang: string; href: string }[] {
+): { rel: "alternate"; hrefLang: string; href: string }[] {
+  // React's DOM prop is `hrefLang`; the lowercase JSX prop logs an
+  // "Invalid DOM property" warning on every client-side head re-render.
   return [
-    { rel: "alternate", hreflang: "en", href: canonicalUrl(path, "en") },
-    { rel: "alternate", hreflang: "zh-HK", href: canonicalUrl(path, "zh-HK") },
-    { rel: "alternate", hreflang: "x-default", href: canonicalUrl(path, "en") },
+    { rel: "alternate", hrefLang: "en", href: canonicalUrl(path, "en") },
+    { rel: "alternate", hrefLang: "zh-HK", href: canonicalUrl(path, "zh-HK") },
+    { rel: "alternate", hrefLang: "x-default", href: canonicalUrl(path, "en") },
   ];
 }

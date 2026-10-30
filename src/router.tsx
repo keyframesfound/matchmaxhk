@@ -1,5 +1,6 @@
 import { QueryClient } from "@tanstack/react-query";
 import { createRouter } from "@tanstack/react-router";
+import { routerWithQueryClient } from "@tanstack/react-router-with-query";
 import { routeTree } from "./routeTree.gen";
 import { PageSkeleton } from "./components/layout/PageSkeleton";
 import {
@@ -52,18 +53,24 @@ export const getRouter = () => {
     },
   };
 
-  const router = createRouter({
-    routeTree,
-    context: { queryClient },
-    rewrite,
-    scrollRestoration: true,
-    // Hover/focus intent prefetches route loaders, so by the time a link is
-    // clicked the data (and the chunk) is usually already cached and the
-    // pending skeleton never appears.
-    defaultPreload: "intent",
-    defaultPreloadStaleTime: 0,
-    defaultPendingComponent: PageSkeleton,
-  });
-
-  return router;
+  // routerWithQueryClient dehydrates the loader-prewarmed query cache into
+  // the SSR payload and hydrates it before the client render. Without it the
+  // client boots with an empty cache: data-conditional SSR content (e.g. the
+  // landing JSON-LD script) mismatches at hydration and every loader query
+  // refetches from scratch.
+  return routerWithQueryClient(
+    createRouter({
+      routeTree,
+      context: { queryClient },
+      rewrite,
+      scrollRestoration: true,
+      // Hover/focus intent prefetches route loaders, so by the time a link is
+      // clicked the data (and the chunk) is usually already cached and the
+      // pending skeleton never appears.
+      defaultPreload: "intent",
+      defaultPreloadStaleTime: 0,
+      defaultPendingComponent: PageSkeleton,
+    }),
+    queryClient,
+  );
 };

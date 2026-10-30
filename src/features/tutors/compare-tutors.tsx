@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { toast } from "sonner";
 import { ListChecks } from "lucide-react";
 
+import i18n from "@/features/i18n/config";
 import { Button } from "@/components/ui/button";
 import { InitialAvatar } from "@/components/ui/initial-avatar";
 import {
@@ -215,7 +216,7 @@ function CompareDialog({
     {
       label: "",
       render: (t) => {
-        const inquiry = getTutorInquiryAction(t, whatsappNumber, "en");
+        const inquiry = getTutorInquiryAction(t, whatsappNumber, i18n.language);
         return (
           <Button asChild size="sm" className="h-9 rounded-sm px-4 text-[13px] font-bold">
             <a href={inquiry.href} target="_blank" rel="noreferrer">
