@@ -35,6 +35,13 @@ import {
   type PromoType,
   type SplitMode,
 } from "@/features/cases/fee-drop";
+import {
+  DROP_FIT_REASONS,
+  defaultFitReason,
+  fitReasonError,
+  tutorQuitRematchMessage,
+  type DropFitReason,
+} from "@/features/cases/fit-tags";
 import { outOfWindowWarning, ownershipBannerLabel } from "@/features/cases/ownership-window";
 import {
   CASE_RISK_FLAG_LABELS,
@@ -80,6 +87,20 @@ const REASON_LABEL: Record<DropReasonClass, string> = {
   tutor_flake: "Tutor quit, no emergency",
   tutor_emergency: "Tutor emergency with proof",
 };
+// #528 §3.2: the one required fit tag on a verified stop.
+const FIT_REASON_LABEL: Record<DropFitReason | "", string> = {
+  "": "Choose…",
+  STYLE_TOO_LENIENT: "Style too lenient",
+  STYLE_TOO_STRICT: "Style too strict",
+  NO_CUSTOM_MATERIALS: "No custom materials",
+  PACE_MISMATCH: "Pace mismatch",
+  COMMUNICATION_GAP: "Communication gap",
+  TUTOR_UNPREPARED: "Tutor unprepared",
+  SCHEDULE_CHANGE: "Schedule change",
+  TUTOR_QUIT: "Tutor quit",
+  OTHER: "Other",
+};
+const FIT_REASON_OPTIONS: readonly (DropFitReason | "")[] = ["", ...DROP_FIT_REASONS];
 const VERIFICATION_LABEL: Record<DropVerification, string> = {
   none: "Not asked yet",
   pending: "Asked, waiting for reply",
@@ -115,6 +136,7 @@ const ERROR_COPY: Record<string, string> = {
   CLIENT_CONFIRMATION_REQUIRED:
     "A parent or centre stop needs their confirmation. Tutor word alone never reduces the fee.",
   DISCOUNT_PCT_REQUIRED: "Enter the first-lesson discount %.",
+  FIT_REASON_REQUIRED: "Pick the fit reason for this stop.",
   NO_RATE_ON_CASE: "Lock an agreed rate on the case first.",
   NO_PARENT_KEY_TO_BLACKLIST: "No parent account or phone on the case to blacklist.",
 };
@@ -276,6 +298,7 @@ type FormState = {
   outcomeKind: OutcomeKind;
   initiator: DropInitiator;
   reasonClass: DropReasonClass;
+  fitReason: DropFitReason | "";
   verification: DropVerification;
   verifiedBy: DropVerifiedBy | "";
   proofNote: string;
@@ -292,6 +315,7 @@ function initialForm(state: DropProtectionState): FormState {
     outcomeKind: s.outcomeKind ?? state.suggestedOutcome,
     initiator: s.initiator ?? "parent",
     reasonClass: s.reasonClass ?? "vague",
+    fitReason: s.fitReason ?? defaultFitReason(s.reasonClass) ?? "",
     verification: s.verification === "none" ? "pending" : s.verification,
     verifiedBy: s.verifiedBy ?? "",
     proofNote: s.proofNote ?? "",
@@ -333,7 +357,18 @@ function StopFields({
         value={form.reasonClass}
         options={DROP_REASON_CLASSES}
         labels={REASON_LABEL}
-        onChange={(v) => set("reasonClass", v)}
+        onChange={(v) => {
+          set("reasonClass", v);
+          const fit = defaultFitReason(v);
+          if (fit) set("fitReason", fit);
+        }}
+      />
+      <EnumSelect
+        label="Fit reason (one tag)"
+        value={form.fitReason}
+        options={FIT_REASON_OPTIONS}
+        labels={FIT_REASON_LABEL}
+        onChange={(v) => set("fitReason", v)}
       />
       <EnumSelect
         label="Confirmed by"
@@ -450,6 +485,19 @@ function DropForm({ caseId, state }: PanelProps) {
     discountPct,
   });
 
+  const fitError = isStop
+    ? fitReasonError({
+        kind: form.outcomeKind,
+        verification: form.verification,
+        fitReason: form.fitReason || null,
+      })
+    : null;
+  const blockingError = gateError ?? fitError;
+  const tutorQuit =
+    isStop &&
+    form.initiator === "tutor" &&
+    (form.reasonClass === "tutor_flake" || form.reasonClass === "tutor_emergency");
+
   const save = useMutation({
     mutationFn: () =>
       recordDropOutcome({
@@ -458,6 +506,7 @@ function DropForm({ caseId, state }: PanelProps) {
           outcomeKind: form.outcomeKind,
           initiator: isStop ? form.initiator : null,
           reasonClass: isStop ? form.reasonClass : null,
+          fitReason: isStop && form.fitReason ? form.fitReason : null,
           verification: isStop ? form.verification : null,
           verifiedBy: isStop && form.verifiedBy ? form.verifiedBy : null,
           proofNote: form.proofNote.trim() || null,
@@ -534,13 +583,23 @@ function DropForm({ caseId, state }: PanelProps) {
 
       <FeePreview state={state} preview={preview} />
 
-      {gateError ? (
-        <p className="text-[11px] text-[color:var(--warning)]">{ERROR_COPY[gateError]}</p>
+      {tutorQuit ? (
+        <MacroRow
+          label="Tutor quit · priority rematch (24–48h)"
+          text={tutorQuitRematchMessage({
+            caseCode: state.caseCode,
+            emergency: form.reasonClass === "tutor_emergency",
+          })}
+        />
+      ) : null}
+
+      {blockingError ? (
+        <p className="text-[11px] text-[color:var(--warning)]">{ERROR_COPY[blockingError]}</p>
       ) : null}
       <Button
         size="sm"
         className="h-9 w-full font-semibold"
-        disabled={gateError !== null || preview === null || save.isPending}
+        disabled={blockingError !== null || preview === null || save.isPending}
         onClick={() => save.mutate()}
       >
         {save.isPending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}

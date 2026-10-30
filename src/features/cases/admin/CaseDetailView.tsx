@@ -46,6 +46,7 @@ import { CaseApplicationsCard } from "@/features/cases/admin/CaseApplicationsCar
 import { MatchFeePanel } from "@/features/cases/admin/MatchFeePanel";
 import { ShortCasePanel } from "@/features/cases/admin/ShortCasePanel";
 import { DropProtectionPanel } from "@/features/cases/admin/DropProtectionPanel";
+import { CaseFitPanel } from "@/features/cases/admin/CaseFitPanel";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { formatStudentLevel } from "@/features/cases/display";
 import {
@@ -761,6 +762,9 @@ export function CaseDetailView({
 
           {/* Epic #537: Drop-Protection, ownership window, trust flags (#536 engine). */}
           <DropProtectionPanel caseId={caseRow.id} />
+
+          {/* #528: soft fit tags, matching hint, L1 signals. */}
+          <CaseFitPanel caseId={caseRow.id} />
 
           {/* Issue #81: 1-click applications from the tutor board, triaged here. */}
           <CaseApplicationsCard caseId={caseRow.id} />

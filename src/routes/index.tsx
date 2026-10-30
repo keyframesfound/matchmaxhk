@@ -305,7 +305,7 @@ function CurriculumTutorSection({
       </div>
 
       {loading ? (
-        <div className="-mx-4 flex gap-3 overflow-hidden px-4 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:px-0 lg:grid-cols-3">
+        <div className="-mx-4 flex gap-3 overflow-hidden px-4 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:px-0 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: TUTORS_PER_PAGE }).map((_, index) => (
             <Skeleton
               key={index}
@@ -339,7 +339,7 @@ function CurriculumTutorSection({
                     key={pageIndex}
                     inert={!isCurrentPage}
                     aria-hidden={!isCurrentPage}
-                    className="grid w-full shrink-0 grid-cols-2 gap-6 lg:grid-cols-3"
+                    className="grid w-full shrink-0 grid-cols-2 gap-6 lg:grid-cols-3 xl:grid-cols-4"
                   >
                     {pageTutors.map((tutor) => renderTutorCard(tutor))}
                     {withSeeAllTile ? seeAllTile("min-h-[23rem]") : null}

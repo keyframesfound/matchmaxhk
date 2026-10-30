@@ -58,6 +58,7 @@ import {
   type OwnershipSnapshot,
   type PriorCase,
 } from "@/features/cases/ownership-window";
+import { DROP_FIT_REASONS, fitReasonError, type DropFitReason } from "@/features/cases/fit-tags";
 import { insertAudit, requireAdmin, selectRows, type Db, type Row } from "@/features/cases/desk-db";
 
 /** Keyed blacklist phone hash; dynamic import keeps the secret read server-only. */
@@ -89,6 +90,7 @@ type DropCaseRow = {
   drop_outcome: string | null;
   drop_initiator: string | null;
   drop_reason_class: string | null;
+  drop_fit_reason: string | null;
   drop_verification: string | null;
   drop_verified_by: string | null;
   drop_proof_note: string | null;
@@ -100,7 +102,7 @@ type DropCaseRow = {
 };
 
 const CASE_COLS =
-  "id, case_code, hourly_rate_hkd, session_length_minutes, student_count, package_type, matched_tutor_id, parent_id, organisation_id, contact_phone, sor_status, ended_by_parent_at, ended_by_tutor_at, promo_type, first_lesson_discount_pct, commission_split_mode, drop_outcome, drop_initiator, drop_reason_class, drop_verification, drop_verified_by, drop_proof_note, drop_recorded_at, bypass_flag, fee_rule_id, consequences_rule_id, final_commission_due";
+  "id, case_code, hourly_rate_hkd, session_length_minutes, student_count, package_type, matched_tutor_id, parent_id, organisation_id, contact_phone, sor_status, ended_by_parent_at, ended_by_tutor_at, promo_type, first_lesson_discount_pct, commission_split_mode, drop_outcome, drop_initiator, drop_reason_class, drop_fit_reason, drop_verification, drop_verified_by, drop_proof_note, drop_recorded_at, bypass_flag, fee_rule_id, consequences_rule_id, final_commission_due";
 
 type LessonRow = { case_id: string; sequence: number; status: string; done_at: string | null };
 
@@ -108,6 +110,7 @@ export type SavedDropDecision = {
   outcomeKind: OutcomeKind | null;
   initiator: DropInitiator | null;
   reasonClass: DropReasonClass | null;
+  fitReason: DropFitReason | null;
   verification: DropVerification;
   verifiedBy: DropVerifiedBy | null;
   proofNote: string | null;
@@ -214,6 +217,7 @@ function savedDecision(c: DropCaseRow): SavedDropDecision {
     outcomeKind: oneOfOrNull(OUTCOME_KINDS, c.drop_outcome),
     initiator: oneOfOrNull(DROP_INITIATORS, c.drop_initiator),
     reasonClass: oneOfOrNull(DROP_REASON_CLASSES, c.drop_reason_class),
+    fitReason: oneOfOrNull(DROP_FIT_REASONS, c.drop_fit_reason),
     verification: normalizeDropVerification(c.drop_verification),
     verifiedBy: oneOfOrNull(DROP_VERIFIED_BY, c.drop_verified_by),
     proofNote: c.drop_proof_note,
@@ -324,6 +328,7 @@ const recordInput = z.object({
   outcomeKind: z.enum(OUTCOME_KINDS),
   initiator: z.enum(DROP_INITIATORS).nullable().optional(),
   reasonClass: z.enum(DROP_REASON_CLASSES).nullable().optional(),
+  fitReason: z.enum(DROP_FIT_REASONS).nullable().optional(),
   verification: z.enum(DROP_VERIFICATIONS).nullable().optional(),
   verifiedBy: z.enum(DROP_VERIFIED_BY).nullable().optional(),
   proofNote: z.string().max(2000).nullable().optional(),
@@ -436,6 +441,12 @@ export const recordDropOutcome = createServerFn({ method: "POST" })
       discountPct: data.discountPct ?? null,
     });
     if (gateError) throw new Error(gateError);
+    const fitError = fitReasonError({
+      kind: data.outcomeKind,
+      verification: data.verification ?? null,
+      fitReason: data.fitReason ?? null,
+    });
+    if (fitError) throw new Error(fitError);
 
     const ctx = await loadContext(db, data.caseId);
     if (ctx.lessonValueHkd === null) throw new Error("NO_RATE_ON_CASE");
@@ -486,6 +497,7 @@ export const recordDropOutcome = createServerFn({ method: "POST" })
         drop_outcome: data.outcomeKind,
         drop_initiator: isStop ? (data.initiator ?? "parent") : null,
         drop_reason_class: isStop ? (data.reasonClass ?? "vague") : null,
+        drop_fit_reason: isStop ? (data.fitReason ?? null) : null,
         drop_verification: isStop ? (data.verification ?? "pending") : "none",
         drop_verified_by: isStop ? (data.verifiedBy ?? null) : null,
         drop_proof_note: data.proofNote?.trim() || null,
