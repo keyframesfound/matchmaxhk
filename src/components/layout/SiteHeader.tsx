@@ -235,7 +235,7 @@ export function SiteHeader({
               )}
             >
               <DesktopTab to="/tutors" active={isActive("/tutors")} icon="/nav-find.png">
-                {t("nav.tab_tutors")}
+                {t("nav.find")}
               </DesktopTab>
               <DesktopTab to="/guide" active={isActive("/guide")} icon="/nav-how-it-works.png">
                 {t("nav.how")}
