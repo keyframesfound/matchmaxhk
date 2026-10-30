@@ -8,7 +8,7 @@ import {
   occupancyPct,
   parentSummaryMessage,
   settlementFor,
-} from "@/features/academy/attendance";
+} from "../../src/features/academy/attendance";
 
 const gate = {
   managed: true,

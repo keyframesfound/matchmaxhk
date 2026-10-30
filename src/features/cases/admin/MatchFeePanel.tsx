@@ -1,48 +1,51 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { useServerFn } from "@tanstack/react-start";
 import { format } from "date-fns";
-import { Loader2, UserRoundCheck, Wallet, X } from "lucide-react";
+import { Loader2, ShieldAlert, UserRoundCheck, Wallet, X } from "lucide-react";
 import { toast } from "sonner";
 
-import { ensureEngagementSummary } from "@/features/cases/engagement.functions";
+import {
+  matchCaseTutor,
+  searchCaseTutorsForMatch,
+  type CaseTutorHit,
+} from "@/features/cases/match-dispatch.functions";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { ConsolePanel } from "@/components/ui/console-panel";
 import { InitialAvatar } from "@/components/ui/initial-avatar";
+import {
+  AlertDialog,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 import { formatMoneyFromCents } from "@/lib/money";
 import type { CaseRow } from "./shared";
 
-type TutorHit = {
-  id: string;
-  display_name: string;
-  tutor_code: string;
-  hourly_rate: number;
-  min_hourly_rate_hkd: number | null;
-  photo_url: string | null;
-  referrer: { display_name: string } | null;
-};
-
-const TUTOR_SELECT =
-  "id, display_name, tutor_code, hourly_rate, min_hourly_rate_hkd, photo_url, referrer:tutors!tutors_referred_by_fkey(display_name)";
-
 // Fee policy comparisons happen in HKD (issue #112), so a tutor quoting in
 // another currency is judged on the HKD-normalized snapshot.
-function tutorHkdRate(hit: Pick<TutorHit, "hourly_rate" | "min_hourly_rate_hkd">): number {
-  return hit.min_hourly_rate_hkd ?? hit.hourly_rate;
+function tutorHkdRate(hit: Pick<CaseTutorHit, "hourlyRate" | "minHourlyRateHkd">): number {
+  return hit.minHourlyRateHkd ?? hit.hourlyRate;
 }
 
 function formatHkd(cents: number | null): string {
   return cents === null ? "—" : formatMoneyFromCents(cents);
 }
 
-function TutorAvatar({ hit }: { hit: TutorHit }) {
-  if (hit.photo_url) {
+function TutorAvatar({
+  hit,
+}: {
+  hit: Pick<CaseTutorHit, "id" | "displayName" | "tutorCode" | "photoUrl">;
+}) {
+  if (hit.photoUrl) {
     return (
       <img
-        src={hit.photo_url}
+        src={hit.photoUrl}
         alt=""
         className="h-9 w-9 shrink-0 rounded-lg object-cover ring-1 ring-[color:var(--ink)]/10"
       />
@@ -51,8 +54,8 @@ function TutorAvatar({ hit }: { hit: TutorHit }) {
   // Issue #437: branded deterministic initial avatar (no grey placeholders).
   return (
     <InitialAvatar
-      stableId={hit.tutor_code}
-      name={hit.display_name}
+      stableId={hit.tutorCode ?? hit.id}
+      name={hit.displayName}
       className="h-9 w-9 text-[11px]"
     />
   );
@@ -65,22 +68,19 @@ function TutorAvatar({ hit }: { hit: TutorHit }) {
  * referrer's 15% bounty via the trg_cases_fee_referral_bounty trigger.
  */
 export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatched: () => void }) {
-  const ensureFn = useServerFn(ensureEngagementSummary);
   const [query, setQuery] = useState("");
   const [feeInput, setFeeInput] = useState("");
+  // The assignment that hit the #508 hard warning and awaits acknowledgement.
+  const [ack, setAck] = useState<{ tutorId: string; name: string; warning: string } | null>(null);
 
   const { data: hits = [], isFetching: searching } = useQuery({
-    queryKey: ["admin", "tutor-picker", query.trim()],
+    queryKey: ["admin", "tutor-picker", caseRow.id, query.trim()],
     enabled: !caseRow.matched_tutor_id && query.trim().length >= 2,
     queryFn: async () => {
-      const q = query.trim().replace(/[,()%]/g, "");
-      const { data, error } = await supabase
-        .from("tutors")
-        .select(TUTOR_SELECT)
-        .or(`display_name.ilike.%${q}%,tutor_code.ilike.%${q}%`)
-        .limit(6);
-      if (error) throw error;
-      return data as unknown as TutorHit[];
+      const res = await searchCaseTutorsForMatch({
+        data: { caseId: caseRow.id, query: query.trim() },
+      });
+      return res.hits;
     },
   });
 
@@ -90,11 +90,38 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tutors")
-        .select(TUTOR_SELECT)
+        .select(
+          "id, display_name, tutor_code, hourly_rate, min_hourly_rate_hkd, photo_url, referrer:tutors!tutors_referred_by_fkey(display_name)",
+        )
         .eq("id", caseRow.matched_tutor_id as string)
         .maybeSingle();
       if (error) throw error;
-      return (data ?? null) as TutorHit | null;
+      if (!data) return null;
+      const row = data as {
+        id: string;
+        display_name: string;
+        tutor_code: string | null;
+        hourly_rate: number;
+        min_hourly_rate_hkd: number | null;
+        photo_url: string | null;
+        referrer: { display_name: string } | { display_name: string }[] | null;
+      };
+      // The fkey embed's inferred shape oscillates between object and array
+      // depending on the generated client; normalize both.
+      const referrerRow = Array.isArray(row.referrer) ? (row.referrer[0] ?? null) : row.referrer;
+      const view: CaseTutorHit = {
+        id: row.id,
+        displayName: row.display_name,
+        tutorCode: row.tutor_code,
+        hourlyRate: row.hourly_rate,
+        minHourlyRateHkd: row.min_hourly_rate_hkd,
+        photoUrl: row.photo_url,
+        referrerName: referrerRow?.display_name ?? null,
+        outOfWindow: false,
+        windowEndsAt: null,
+        warning: null,
+      };
+      return view;
     },
   });
 
@@ -110,32 +137,59 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
     onError: (e: Error) => toast.error(e.message),
   });
 
-  const markMatched = (tutor: TutorHit) => {
-    // Issue #412: a compliance-held request cannot be matched until staff
-    // re-screen and clear the hold.
+  /**
+   * Assign a tutor. The server re-checks the #508 window and answers
+   * `needs_ack` with the hard-warning copy when it has closed — the dialog
+   * then re-calls with `acknowledgeOutOfWindow: true` (audited server-side).
+   */
+  const matchMutation = useMutation({
+    mutationFn: async (input: { tutorId: string; name: string; acknowledge: boolean }) =>
+      matchCaseTutor({
+        data: {
+          caseId: caseRow.id,
+          tutorId: input.tutorId,
+          acknowledgeOutOfWindow: input.acknowledge,
+        },
+      }),
+    onSuccess: (res, input) => {
+      if (res.outcome === "needs_ack") {
+        setAck({ tutorId: input.tutorId, name: input.name, warning: res.warning });
+        return;
+      }
+      setAck(null);
+      setQuery("");
+      toast.success(`Case ${caseRow.case_code} matched to ${input.name}`);
+      onPatched();
+    },
+    onError: (e: Error) => {
+      if (e.message === "COMPLIANCE_HOLD") {
+        toast.error("Compliance hold: re-screen this request before matching a tutor.");
+        return;
+      }
+      toast.error(e.message);
+    },
+  });
+
+  const onHitClick = (tutor: CaseTutorHit) => {
+    // Issue #412: client-side guard mirrors the server check for instant UX.
     if (caseRow.status === "compliance_hold") {
       toast.error("Compliance hold: re-screen this request before matching a tutor.");
       return;
     }
-    patchMutation.mutate(
-      {
-        status: "matched",
-        matched_tutor_id: tutor.id,
-        matched_at: new Date().toISOString(),
-      },
-      {
-        onSuccess: () => {
-          setQuery("");
-          toast.success(`Case ${caseRow.case_code} matched to ${tutor.display_name}`);
-          // Issue #412 F: auto-create the engagement summary at match time
-          // (board-matched path; the SoR `introduced` transition has its own
-          // hook). Fail-open, it re-ensures idempotently later.
-          void ensureFn({ data: { caseId: caseRow.id } }).catch((e: unknown) => {
-            console.error("[engagement] failed to ensure summary on match:", e);
-          });
-        },
-      },
-    );
+    matchMutation.mutate({
+      tutorId: tutor.id,
+      name: tutor.displayName,
+      acknowledge: false,
+    });
+  };
+
+  const confirmAck = () => {
+    if (!ack) return;
+    matchMutation.mutate({
+      tutorId: ack.tutorId,
+      name: ack.name,
+      acknowledge: true,
+    });
   };
 
   const clearMatch = () => {
@@ -174,8 +228,8 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
     );
   };
 
-  const pending = patchMutation.isPending;
-  const referrerName = matchedTutor?.referrer?.display_name ?? null;
+  const pending = patchMutation.isPending || matchMutation.isPending;
+  const referrerName = matchedTutor?.referrerName ?? null;
 
   return (
     <ConsolePanel>
@@ -192,7 +246,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
               <TutorAvatar hit={matchedTutor} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-bold text-[color:var(--ink)]">
-                  {matchedTutor.display_name}
+                  {matchedTutor.displayName}
                 </p>
                 <p className="truncate text-[11px] text-muted-foreground">
                   HK${tutorHkdRate(matchedTutor)}/hr
@@ -240,29 +294,59 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
                   No tutors match “{query.trim()}”.
                 </p>
               ) : (
-                hits.map((hit) => (
-                  <button
-                    key={hit.id}
-                    type="button"
-                    disabled={pending}
-                    onClick={() => markMatched(hit)}
-                    className="flex w-full items-center gap-3 rounded-xl border border-[color:var(--ink)]/[0.07] px-3 py-2 text-left transition-colors hover:bg-[color:var(--surface-subtle)]/70 disabled:opacity-50"
-                  >
-                    <TutorAvatar hit={hit} />
-                    <span className="min-w-0 flex-1">
-                      <span className="block truncate text-xs font-bold text-[color:var(--ink)]">
-                        {hit.display_name}
+                hits.map((hit) =>
+                  hit.outOfWindow ? (
+                    // #508 dispatch filter: past-window tutors are excluded
+                    // from the shortlist proper — shown flagged, assignment
+                    // goes through the hard warning.
+                    <div
+                      key={hit.id}
+                      className="rounded-xl border border-[color:var(--ink)]/[0.07] bg-[color:var(--surface-subtle)]/40 px-3 py-2"
+                    >
+                      <div className="flex items-center gap-3">
+                        <TutorAvatar hit={hit} />
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-xs font-bold text-muted-foreground">
+                            {hit.displayName}
+                          </span>
+                          <span className="block truncate text-[11px] text-muted-foreground">
+                            {hit.tutorCode} · HK${tutorHkdRate(hit)}/hr
+                            {hit.referrerName ? ` · referred by ${hit.referrerName}` : ""}
+                          </span>
+                        </span>
+                        <span className="flex shrink-0 items-center gap-1 text-[11px] font-bold text-muted-foreground">
+                          <ShieldAlert className="h-3.5 w-3.5" aria-hidden="true" />
+                          Out of window
+                        </span>
+                      </div>
+                      <p className="mt-1.5 text-[11px] leading-relaxed text-muted-foreground">
+                        {hit.warning}
+                      </p>
+                    </div>
+                  ) : (
+                    <button
+                      key={hit.id}
+                      type="button"
+                      disabled={pending}
+                      onClick={() => onHitClick(hit)}
+                      className="flex w-full items-center gap-3 rounded-xl border border-[color:var(--ink)]/[0.07] px-3 py-2 text-left transition-colors hover:bg-[color:var(--surface-subtle)]/70 disabled:opacity-50"
+                    >
+                      <TutorAvatar hit={hit} />
+                      <span className="min-w-0 flex-1">
+                        <span className="block truncate text-xs font-bold text-[color:var(--ink)]">
+                          {hit.displayName}
+                        </span>
+                        <span className="block truncate text-[11px] text-muted-foreground">
+                          {hit.tutorCode} · HK${tutorHkdRate(hit)}/hr
+                          {hit.referrerName ? ` · referred by ${hit.referrerName}` : ""}
+                        </span>
                       </span>
-                      <span className="block truncate text-[11px] text-muted-foreground">
-                        {hit.tutor_code} · HK${tutorHkdRate(hit)}/hr
-                        {hit.referrer ? ` · referred by ${hit.referrer.display_name}` : ""}
+                      <span className="shrink-0 text-[11px] font-bold text-[color:var(--brand-link)]">
+                        Match
                       </span>
-                    </span>
-                    <span className="shrink-0 text-[11px] font-bold text-[color:var(--brand-link)]">
-                      Match
-                    </span>
-                  </button>
-                ))
+                    </button>
+                  ),
+                )
               )}
             </div>
           ) : null}
@@ -335,6 +419,31 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
           </div>
         )}
       </div>
+
+      {/* #508 hard warning: assigning a tutor past the 6-month intro window
+          with this counterparty earns $0 — the operator must acknowledge. */}
+      <AlertDialog
+        open={ack !== null}
+        onOpenChange={(open) => {
+          if (!open) setAck(null);
+        }}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Out of window</AlertDialogTitle>
+            <AlertDialogDescription>{ack?.warning}</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Don't assign</AlertDialogCancel>
+            <Button className="font-bold" disabled={matchMutation.isPending} onClick={confirmAck}>
+              {matchMutation.isPending ? (
+                <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+              ) : null}
+              Assign anyway
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </ConsolePanel>
   );
 }

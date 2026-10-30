@@ -9,7 +9,7 @@ import {
   fitTagsToRow,
   tutorQuitRematchMessage,
   type FitTags,
-} from "@/features/cases/fit-tags";
+} from "../../src/features/cases/fit-tags";
 
 const tutor: FitTags = {
   teachingStyle: "EXAM_DRILLING",
