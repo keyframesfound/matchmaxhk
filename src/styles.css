@@ -172,7 +172,7 @@ html {
   --card-foreground: #0f1419;
   --popover: #ffffff;
   --popover-foreground: #0f1419;
-  --primary: #0f7db8; /* accessible azure: white labels hit 4.5:1 */
+  --primary: #1e9df1;
   --primary-foreground: #ffffff;
   --secondary: #0f1419;
   --secondary-foreground: #ffffff;
@@ -188,7 +188,7 @@ html {
   --warning-foreground: #0f1419;
   --border: #e1eaef;
   --input: #f7f9fa;
-  --ring: #0b72b5;
+  --ring: #1da1f2;
 
   --chart-1: #1e9df1;
   --chart-2: #00b87a;
@@ -198,17 +198,17 @@ html {
 
   --sidebar: #f7f8f8;
   --sidebar-foreground: #0f1419;
-  --sidebar-primary: #0f7db8;
+  --sidebar-primary: #1e9df1;
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #e3ecf6;
   --sidebar-accent-foreground: #0f1419;
   --sidebar-border: #e1e8ed;
-  --sidebar-ring: #0b72b5;
+  --sidebar-ring: #1da1f2;
 
   /* Accent button (money CTAs) — Azure in both themes */
-  --btn-accent: #0f7db8;
+  --btn-accent: #1d9bf0;
   --btn-accent-fg: #ffffff;
-  --btn-accent-hover: #0a6296;
+  --btn-accent-hover: #1a8cd8;
 
   /* Neutral solid button — ink in light; goes translucent slate in dark */
   --btn-neutral: #0f1419;
@@ -228,7 +228,7 @@ html {
   --surface-invert: #0f1419;
   --surface-invert-hover: #272c30;
   --surface-invert-fg: #ffffff;
-  --brand-link: #0b72b5; /* link/signature blue — #1d9bf0 is only 3:1 on white */
+  --brand-link: #1d9bf0; /* link/signature blue (restored azure — see issue #531 contrast note) */
 
   /* Stepper */
   --stepper-row-bg: linear-gradient(
@@ -238,12 +238,12 @@ html {
   );
   --stepper-inactive-bg: #eff3f4;
   --stepper-inactive-fg: #46535e;
-  --stepper-active-bg: #0f7db8;
+  --stepper-active-bg: #1d9bf0;
   --stepper-active-fg: #ffffff;
   --stepper-complete-bg: #157f47;
   --stepper-complete-fg: #ffffff;
   --stepper-dot: #ffffff;
-  --stepper-connector: #0f7db8;
+  --stepper-connector: #1d9bf0;
 
   /* Gradients */
   --gradient-brand: linear-gradient(135deg, #0f1419 0%, #1d9bf0 55%, #8ecdf8 100%);
@@ -296,12 +296,12 @@ html {
   );
   --stepper-inactive-bg: #2a2d33;
   --stepper-inactive-fg: #a3aab1;
-  --stepper-active-bg: #1273b4;
+  --stepper-active-bg: #1d9bf0;
   --stepper-active-fg: #ffffff;
   --stepper-complete-bg: #4ade80;
   --stepper-complete-fg: #052e16;
   --stepper-dot: #121212;
-  --stepper-connector: #1273b4;
+  --stepper-connector: #1d9bf0;
   --gradient-brand: linear-gradient(135deg, #121212 0%, #0a1e30 55%, #123a5e 100%);
   --gradient-brand-x: linear-gradient(90deg, #121212 0%, #0a1e30 55%, #123a5e 100%);
   --gradient-brand-soft: linear-gradient(135deg, #121212 0%, #1e1e1e 100%);
@@ -312,7 +312,7 @@ html {
   --card-foreground: #e7e9ea;
   --popover: #232327;
   --popover-foreground: #e7e9ea;
-  --primary: #1273b4; /* dark-mode primary keeps white labels at 4.5:1 */
+  --primary: #1c9cf0;
   --primary-foreground: #ffffff;
   --secondary: #f0f3f4;
   --secondary-foreground: #0f1419;
@@ -340,9 +340,9 @@ html {
   --sidebar-ring: #1da1f2;
 
   /* Accent button in dark — Azure stays the signal (Inverted Signal Rule) */
-  --btn-accent: #1273b4;
+  --btn-accent: #1d9bf0;
   --btn-accent-fg: #ffffff;
-  --btn-accent-hover: #0e66a1;
+  --btn-accent-hover: #1a8cd8;
 
   /* Neutral button in dark — X's translucent slate, never white; label stays crisp white */
   --btn-neutral: rgba(91, 112, 131, 0.4);
@@ -883,7 +883,7 @@ html .driver-popover-progress-text {
   --surface-invert: #0f1419;
   --surface-invert-hover: #272c30;
   --surface-invert-fg: #ffffff;
-  --brand-link: #0b72b5;
+  --brand-link: #1d9bf0;
 
   --background: #fafafa;
   --foreground: #09090b;
