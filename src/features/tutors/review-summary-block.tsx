@@ -27,7 +27,10 @@ export function ReviewSummaryBlock({ tutorId }: { tutorId: string }) {
   useEffect(() => {
     let cancelled = false;
     (async () => {
-      const rpc = supabase.rpc as unknown as (
+      // The RPC is missing from the generated Database types, so the call
+      // needs a cast — bind first (the admin-index idiom), a detached
+      // `supabase.rpc` loses `this` and supabase-js crashes reading `.rest`.
+      const rpc = supabase.rpc.bind(supabase) as unknown as (
         fn: string,
         args: Record<string, unknown>,
       ) => Promise<{ data: unknown; error: { message: string } | null }>;

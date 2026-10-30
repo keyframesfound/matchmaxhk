@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BecomeATutorRouteImport } from './routes/become-a-tutor'
 import { Route as CaseRequestRouteImport } from './routes/case-request'
+import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as GroupClassesRouteImport } from './routes/group-classes'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as PricingRouteImport } from './routes/pricing'
@@ -104,6 +105,11 @@ const BecomeATutorRoute = BecomeATutorRouteImport.update({
 const CaseRequestRoute = CaseRequestRouteImport.update({
   id: '/case-request',
   path: '/case-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const FeedbackRoute = FeedbackRouteImport.update({
+  id: '/feedback',
+  path: '/feedback',
   getParentRoute: () => rootRouteImport,
 } as any)
 const GroupClassesRoute = GroupClassesRouteImport.update({
@@ -479,6 +485,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
+  '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
@@ -552,6 +559,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
+  '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
@@ -626,6 +634,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
+  '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
@@ -701,6 +710,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
+    | '/feedback'
     | '/group-classes'
     | '/how-it-works'
     | '/pricing'
@@ -774,6 +784,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
+    | '/feedback'
     | '/group-classes'
     | '/how-it-works'
     | '/pricing'
@@ -847,6 +858,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
+    | '/feedback'
     | '/group-classes'
     | '/how-it-works'
     | '/pricing'
@@ -922,6 +934,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BecomeATutorRoute: typeof BecomeATutorRoute
   CaseRequestRoute: typeof CaseRequestRoute
+  FeedbackRoute: typeof FeedbackRoute
   GroupClassesRoute: typeof GroupClassesRoute
   HowItWorksRoute: typeof HowItWorksRoute
   PricingRoute: typeof PricingRoute
@@ -986,6 +999,13 @@ declare module '@tanstack/react-router' {
       path: '/case-request'
       fullPath: '/case-request'
       preLoaderRoute: typeof CaseRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/feedback': {
+      id: '/feedback'
+      path: '/feedback'
+      fullPath: '/feedback'
+      preLoaderRoute: typeof FeedbackRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/group-classes': {
@@ -1591,6 +1611,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BecomeATutorRoute: BecomeATutorRoute,
   CaseRequestRoute: CaseRequestRoute,
+  FeedbackRoute: FeedbackRoute,
   GroupClassesRoute: GroupClassesRoute,
   HowItWorksRoute: HowItWorksRoute,
   PricingRoute: PricingRoute,

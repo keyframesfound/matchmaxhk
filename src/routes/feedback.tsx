@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -15,12 +15,26 @@ type FeedbackRole = "parent_student" | "tutor";
 
 type RatingKey = "speed" | "smoothness" | "service";
 
+export const Route = createFileRoute("/feedback")({
+  head: () => ({
+    meta: [
+      { title: "Share your feedback | MatchMax" },
+      {
+        name: "description",
+        content: "Tell the MatchMax team how the platform is working for you.",
+      },
+      { name: "robots", content: "noindex, follow" },
+    ],
+  }),
+  component: FeedbackPage,
+});
+
 /**
  * Issue #148: platform-level service quality feedback form.
  * Screen 1 = identity routing; Screen 2 = role-specific form. Submissions go
  * to the service_feedback table with the role tagged for admin routing.
  */
-export default function Feedback() {
+function FeedbackPage() {
   const { t, i18n } = useTranslation();
   const [role, setRole] = useState<FeedbackRole | null>(null);
   const [ratings, setRatings] = useState<Record<RatingKey, number>>({

@@ -146,9 +146,13 @@ export const runGigOrderSweep = createServerFn({ method: "POST" })
 
 /** Same admin gate as the notes cashier, returning the service-role client. */
 async function assertGigStaffDb(client: unknown, userId: string): Promise<AdminDb> {
-  const rpc = (client as AdminDb).rpc;
   for (const role of ["admin", "super_admin"] as const) {
-    const { data: ok, error } = await rpc("has_role", { _user_id: userId, _role: role });
+    // Method call keeps the receiver: a detached `const rpc = client.rpc`
+    // loses `this` and supabase-js crashes reading `.rest`.
+    const { data: ok, error } = await (client as AdminDb).rpc("has_role", {
+      _user_id: userId,
+      _role: role,
+    });
     if (!error && ok === true) {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       return asAdminDb(supabaseAdmin);
