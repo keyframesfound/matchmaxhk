@@ -6,6 +6,9 @@ CREATE TABLE public.tutors (id uuid PRIMARY KEY DEFAULT gen_random_uuid());
 CREATE TABLE public.tutoring_cases (id uuid PRIMARY KEY DEFAULT gen_random_uuid());
 CREATE TABLE public.case_lessons (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  case_id uuid REFERENCES public.tutoring_cases(id),
+  sequence integer NOT NULL DEFAULT 1,
+  created_by uuid,
   tutor_id uuid REFERENCES public.tutors(id),
   starts_at timestamptz NOT NULL,
   duration_min integer NOT NULL DEFAULT 60,

@@ -25,13 +25,13 @@ import {
   declineLessonTutor,
   getMyTutorCases,
   getTutorPlusState,
-  markLessonDoneTutor,
   registerTutorPlusInterest,
   submitTutorReview,
   type TutorCaseItem,
 } from "@/features/cases/tutor.functions";
 import { logTutorSession } from "@/features/cases/experience.functions";
 import { EndCaseControl } from "@/features/cases/end-case-control";
+import { AttendanceForm } from "@/features/academy/attendance-form";
 import { ReviewStepHeader } from "@/features/cases/review-step-header";
 import { caseHasVerifiedLesson } from "@/features/cases/case-reviews";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
@@ -158,14 +158,15 @@ function TutorReviewParentForm({
 
 function LessonRow({
   lesson,
+  managed,
   t,
 }: {
   lesson: TutorCaseItem["lessons"][number];
+  managed: boolean;
   t: ReturnType<typeof useTranslation>["t"];
 }) {
   const queryClient = useQueryClient();
-  const [note, setNote] = useState("");
-  const [showNote, setShowNote] = useState(false);
+  const [showAttendance, setShowAttendance] = useState(false);
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
 
@@ -185,17 +186,6 @@ function LessonRow({
     },
     onError: (e) => toast.error(e.message),
   });
-  const done = useMutation({
-    mutationFn: () =>
-      markLessonDoneTutor({ data: { lessonId: lesson.id, privateNote: note || undefined } }),
-    onSuccess: () => {
-      toast.success(t("sor.tutor_marked_done"));
-      setShowNote(false);
-      setNote("");
-      invalidate();
-    },
-    onError: (e) => toast.error(e.message),
-  });
   const cancel = useMutation({
     mutationFn: () => cancelLessonTutor({ data: { lessonId: lesson.id } }),
     onSuccess: (res) => {
@@ -208,7 +198,7 @@ function LessonRow({
   });
 
   const actions = lessonActionsFor(lesson, new Date(), canMarkDone);
-  const busy = confirm.isPending || decline.isPending || done.isPending || cancel.isPending;
+  const busy = confirm.isPending || decline.isPending || cancel.isPending;
   const startLabel = format(new Date(lesson.starts_at), "EEE d MMM, HH:mm", {
     locale: dateFnsLocale(i18n.language),
   });
@@ -233,13 +223,14 @@ function LessonRow({
         )}
       </div>
 
-      {showNote && (
-        <Input
-          className="mt-2"
-          maxLength={500}
-          placeholder={t("sor.tutor_private_note_placeholder")}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
+      {showAttendance && actions.done && (
+        <AttendanceForm
+          lessonId={lesson.id}
+          managed={managed}
+          onSaved={() => {
+            setShowAttendance(false);
+            invalidate();
+          }}
         />
       )}
 
@@ -266,18 +257,10 @@ function LessonRow({
               size="sm"
               variant="outline"
               disabled={busy}
-              onClick={() => {
-                if (!showNote) {
-                  // First click reveals the private-note field; the note is
-                  // optional, the second click submits with whatever is there.
-                  setShowNote(true);
-                  return;
-                }
-                done.mutate();
-              }}
+              onClick={() => setShowAttendance((open) => !open)}
             >
               <Check className="h-4 w-4" />
-              {t("sor.tutor_mark_done")}
+              {t("academy.mark_attendance")}
             </Button>
           )}
           {actions.cancel && (
@@ -515,7 +498,7 @@ export function TutorCasesSection() {
                 {c.lessons.length > 0 && (
                   <ul className="mt-3 space-y-2">
                     {c.lessons.map((l) => (
-                      <LessonRow key={l.id} lesson={l} t={t} />
+                      <LessonRow key={l.id} lesson={l} managed={c.managed} t={t} />
                     ))}
                   </ul>
                 )}

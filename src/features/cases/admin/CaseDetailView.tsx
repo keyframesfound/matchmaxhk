@@ -47,6 +47,7 @@ import { MatchFeePanel } from "@/features/cases/admin/MatchFeePanel";
 import { ShortCasePanel } from "@/features/cases/admin/ShortCasePanel";
 import { DropProtectionPanel } from "@/features/cases/admin/DropProtectionPanel";
 import { CaseFitPanel } from "@/features/cases/admin/CaseFitPanel";
+import { AcademyPanel } from "@/features/cases/admin/AcademyPanel";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { formatStudentLevel } from "@/features/cases/display";
 import {
@@ -765,6 +766,9 @@ export function CaseDetailView({
 
           {/* #528: soft fit tags, matching hint, L1 signals. */}
           <CaseFitPanel caseId={caseRow.id} />
+
+          {/* #533: optional Managed tier — credits, attendance, parent summary. */}
+          <AcademyPanel caseId={caseRow.id} />
 
           {/* Issue #81: 1-click applications from the tutor board, triaged here. */}
           <CaseApplicationsCard caseId={caseRow.id} />

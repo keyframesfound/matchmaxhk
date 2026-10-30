@@ -3056,5 +3056,28 @@
       "postgrad": "研究生",
       "alumni": "校友／已畢業"
     }
+  },
+  "academy": {
+    "attendance_label": "出席",
+    "attendance_present": "出席",
+    "attendance_late": "遲到",
+    "attendance_left_early": "早退",
+    "attendance_absent_excused": "缺席（已請假）",
+    "attendance_absent_billable": "缺席（照計堂數）",
+    "note_label": "課堂筆記（可選）",
+    "note_label_managed": "課堂筆記",
+    "note_placeholder": "今堂教咗乜，同埋下堂嘅計劃。",
+    "note_hint_managed": "兩句就得：今堂教咗乜，同埋下堂嘅計劃。",
+    "skip_note_once": "今次先唔寫筆記",
+    "admin_override": "管理員豁免：唔使筆記都可以儲存",
+    "save": "儲存出席",
+    "saved": "已儲存出席",
+    "mark_attendance": "記錄出席",
+    "error_note_required": "請寫兩句筆記，或者今次先略過。",
+    "error_note_skip_used": "呢個個案你已經略過一次筆記，請寫兩句簡短筆記。",
+    "error_insufficient_credits": "呢個家庭已經冇剩堂數，請先叫 MatchMax 增值。",
+    "error_window_closed": "出席可以喺上堂前 15 分鐘至上堂後 7 日內記錄。",
+    "error_already_marked": "呢堂已經記錄咗出席。",
+    "managed_badge": "Managed"
   }
 }
