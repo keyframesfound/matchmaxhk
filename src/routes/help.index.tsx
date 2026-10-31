@@ -14,6 +14,7 @@ import {
   getHelpIcon,
   getHelpTopics,
   searchHelpArticles,
+  type HelpAudience,
   type HelpArticle,
 } from "@/features/help/content";
 import { cn } from "@/lib/utils";
@@ -30,8 +31,8 @@ export const Route = createFileRoute("/help/")({
     // fall back to the defaults instead of rejecting the navigation.
     audience: z
       .preprocess(
-        (v) => (v === "tutors" || v === "parents" ? v : undefined),
-        z.enum(["tutors", "parents"]).optional(),
+        (v) => (v === "tutors" || v === "parents" || v === "centres" ? v : undefined),
+        z.enum(["tutors", "parents", "centres"]).optional(),
       )
       .optional(),
     q: z
@@ -66,7 +67,7 @@ export const Route = createFileRoute("/help/")({
   component: HelpCentrePage,
 });
 
-type AudienceTab = "tutors" | "parents";
+type AudienceTab = "tutors" | "parents" | "centres";
 
 /** Quick-link chips that swap with the audience pill (issue #500, copy lock). */
 const QUICK_CHIPS: Record<AudienceTab, { key: string; to: { category: string; slug: string } }[]> =
@@ -100,6 +101,21 @@ const QUICK_CHIPS: Record<AudienceTab, { key: string; to: { category: string; sl
       {
         key: "help.chip_parent_first",
         to: { category: "parent-scheduling", slug: "prepare-for-your-first-lesson" },
+      },
+    ],
+    // Issue #541: B2B partners get their own quick links.
+    centres: [
+      {
+        key: "help.chip_centre_apply",
+        to: { category: "centre-partners", slug: "how-centres-apply" },
+      },
+      {
+        key: "help.chip_centre_fees",
+        to: { category: "centre-partners", slug: "partner-centre-fees" },
+      },
+      {
+        key: "help.chip_centre_accounts",
+        to: { category: "centre-partners", slug: "centre-vs-tutor-accounts" },
       },
     ],
   };
@@ -222,7 +238,8 @@ function HelpCentrePage() {
 
   // Land on the tab for the account type the user is acting as (#459).
   const activeTab: AudienceTab = audience ?? (activeRole === "tutor" ? "tutors" : "parents");
-  const contentAudience = activeTab === "tutors" ? "tutor" : "parent";
+  const contentAudience: HelpAudience =
+    activeTab === "tutors" ? "tutor" : activeTab === "centres" ? "centre" : "parent";
 
   useEffect(() => {
     setQueryDraft(urlQuery);
@@ -246,7 +263,7 @@ function HelpCentrePage() {
     navigate({
       to: "/help",
       search: {
-        audience: tab === "tutors" ? ("tutors" as const) : undefined,
+        audience: tab === "parents" ? undefined : (tab as "tutors" | "centres"),
         q: query.trim() ? query : undefined,
       },
       replace: true,
@@ -309,6 +326,7 @@ function HelpCentrePage() {
               [
                 ["tutors", t("help.tab_tutors")],
                 ["parents", t("help.tab_parents")],
+                ["centres", t("help.tab_centres")],
               ] as const
             ).map(([tab, label]) => (
               <button

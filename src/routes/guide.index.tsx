@@ -23,7 +23,6 @@ import {
 import { cn } from "@/lib/utils";
 
 import { canonicalUrl, currentSeoLocale, hreflangLinks, localizedMeta } from "@/features/i18n/seo";
-import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
 export const Route = createFileRoute("/guide/")({
   head: () => {
@@ -236,17 +235,14 @@ function GuideIndexPage() {
       title: t("guide.tab_verification"),
       body: t("guide.index_verification_body"),
     },
-    // Issue #412 G: hidden with the tab while the centre market is off.
-    ...(CENTRE_MARKET_ENABLED
-      ? [
-          {
-            to: "/guide/partners" as const,
-            icon: Building2,
-            title: t("guide.tab_partners"),
-            body: t("guide.index_partners_body"),
-          },
-        ]
-      : []),
+    // Issue #541: the Centres & Educators card ships with its tab (the
+    // apply CTA /business/join exists, so the old flag gate is gone).
+    {
+      to: "/guide/partners",
+      icon: Building2,
+      title: t("guide.tab_partners"),
+      body: t("guide.index_partners_body"),
+    },
   ];
 
   return (

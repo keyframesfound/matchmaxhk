@@ -30,7 +30,7 @@ import {
  *   article route (e.g. /guide, /tutor-requests).
  */
 
-export type HelpAudience = "tutor" | "parent" | "all";
+export type HelpAudience = "tutor" | "parent" | "centre" | "all";
 
 export type HelpArticleStatus = "published" | "draft";
 
@@ -61,7 +61,9 @@ export type HelpCategory = {
   name: string;
   blurb: string;
   icon: string;
-  audience: Exclude<HelpAudience, "all">;
+  // "all" categories (issue #541: Account, roles & profiles) render on
+  // every audience tab — the same-account questions apply to everyone.
+  audience: HelpAudience;
   order: number;
 };
 
@@ -153,7 +155,10 @@ function toHelpArticle(fileName: string, raw: string): HelpArticle {
     category: typeof data.category === "string" ? data.category : "",
     title,
     summary: typeof data.summary === "string" ? data.summary : "",
-    audience: data.audience === "tutor" || data.audience === "all" ? data.audience : "parent",
+    audience:
+      data.audience === "tutor" || data.audience === "all" || data.audience === "centre"
+        ? data.audience
+        : "parent",
     icon: typeof data.icon === "string" ? data.icon : "",
     tags: Array.isArray(data.tags) ? data.tags : [],
     order: typeof data.order === "number" ? data.order : 100,
@@ -171,6 +176,26 @@ export const HELP_ARTICLES: HelpArticle[] = Object.entries(contentModules)
   .sort((a, b) => a.order - b.order || a.title.localeCompare(b.title));
 
 const HELP_CATEGORY_LIST: HelpCategory[] = [
+  // Issue #541: account-wide category — one base account, Learning/Teaching
+  // modes, learner sub-profiles. Shows on every audience tab.
+  {
+    slug: "account-roles",
+    name: "Account, roles & profiles",
+    blurb: "One base account, Learning/Teaching modes, child profiles, and pausing your listing.",
+    icon: "graduation-cap",
+    audience: "all",
+    order: 0,
+  },
+  // Issue #541: B2B partner categories so centres are not orphaned on the
+  // learning/tutor tabs.
+  {
+    slug: "centre-partners",
+    name: "For centres & B2B partners",
+    blurb: "Centre workspaces, the partner application, and the introduction-fee ladder.",
+    icon: "handshake",
+    audience: "centre",
+    order: 1,
+  },
   // Parent categories (issue #500: six-topic parent directory, 3-col × 2-row grid).
   {
     slug: "parent-getting-started",
@@ -281,11 +306,13 @@ function matchesAudience(article: HelpAudience, selected: HelpAudience): boolean
 }
 
 /** Categories (with their published articles) for one tab, in display order. */
-export function getHelpTopics(audience: Exclude<HelpAudience, "all">): {
+export function getHelpTopics(audience: HelpAudience): {
   category: HelpCategory;
   articles: HelpArticle[];
 }[] {
-  return HELP_CATEGORIES.filter((category) => category.audience === audience).map((category) => ({
+  return HELP_CATEGORIES.filter(
+    (category) => category.audience === audience || category.audience === "all",
+  ).map((category) => ({
     category,
     articles: HELP_ARTICLES.filter(
       (article) => article.category === category.slug && article.status === "published",
@@ -294,10 +321,7 @@ export function getHelpTopics(audience: Exclude<HelpAudience, "all">): {
 }
 
 /** Live keyword search across titles, summaries, tags, and category names. */
-export function searchHelpArticles(
-  query: string,
-  audience: Exclude<HelpAudience, "all">,
-): HelpArticle[] {
+export function searchHelpArticles(query: string, audience: HelpAudience): HelpArticle[] {
   const needle = query.trim().toLowerCase();
   if (!needle) return [];
   const categoryNames = new Map(HELP_CATEGORIES.map((c) => [c.slug, c.name.toLowerCase()]));

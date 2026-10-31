@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, CircleX, ClipboardList } from "lucide-react";
+import { ArrowRight, BadgeCheck, CircleX, ClipboardList } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -67,6 +67,16 @@ function GuideTutorsPage() {
           <p className="mt-4 text-lg leading-8 text-[color:var(--ink)]/65">
             {t("guide.tutors.intro")}
           </p>
+          {/* Issue #541: same-account Teaching Mode (no second email) — the
+              #459 additive Become a Tutor flow. */}
+          <div className="mt-6 rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--accent)] p-5 text-left sm:p-6">
+            <p className="text-sm leading-7 text-[color:var(--ink)]/75">
+              {t("guide.tutors.same_account")}
+            </p>
+            <p className="mt-2 text-xs leading-6 text-[color:var(--ink)]/55">
+              {t("guide.tutors.cap57")}
+            </p>
+          </div>
           <Link
             to="/help"
             search={{ audience: "tutors" }}
@@ -85,6 +95,17 @@ function GuideTutorsPage() {
           <GuideHeading>{t("guide.tutors.steps_title")}</GuideHeading>
           <div className="mt-6">
             <GuideSteps steps={steps} />
+          </div>
+          {/* Issue #541: case badges tell tutors who they are contacting
+              (#459 slice 9 — Parent Account vs Independent Student). */}
+          <div className="mt-6 flex items-start gap-3 rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6">
+            <BadgeCheck
+              className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+              aria-hidden="true"
+            />
+            <p className="text-sm leading-7 text-[color:var(--ink)]/75">
+              {t("guide.tutors.case_badges")}
+            </p>
           </div>
         </div>
 
