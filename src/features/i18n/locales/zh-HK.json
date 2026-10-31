@@ -271,7 +271,9 @@
     "status_shortlisted": "入圍",
     "status_rejected": "已拒絕",
     "out_of_window": "已過簡介期",
-    "out_of_window_hint": "佢同呢個客嘅 6 個月簡介期已過——再配對平台費會係 $0（費用引擎會標 OWNERSHIP_EXPIRED）。可以建議客戶直接聯絡佢。"
+    "out_of_window_hint": "佢同呢個客嘅 6 個月簡介期已過——再配對平台費會係 $0（費用引擎會標 OWNERSHIP_EXPIRED）。可以建議客戶直接聯絡佢。",
+    "shadowbanned": "限制配對至 {{date}}",
+    "shadowbanned_hint": "呢位導師喺第一堂後無緊急證明就退出，限制配對 30 日（#529）。你仍然可以批准，但有選擇時請優先揀其他導師。"
   },
   "caseDesk": {
     "tutor_code_label": "導師編號",

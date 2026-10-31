@@ -9,6 +9,7 @@
 
 import { selectRows, selectRowsOrEmpty, readSetting, type Db } from "@/features/cases/desk-db";
 import {
+  activeShadowbanUntil,
   FIRST_LESSON_CAP_SETTING_KEY,
   OPEN_FIRST_LESSON_STATUSES,
   resolveFirstLessonCap,
@@ -41,6 +42,27 @@ export async function tutorVerifiedHours(db: Db, tutorId: string): Promise<numbe
     ...confirmed.map((l) => Number(l.duration_min)),
     ...logs.map((l) => Number(l.duration_min)),
   ]);
+}
+
+/** Tutors among `tutorIds` with a running #529 shadowban → its ISO end. */
+export async function activeShadowbansByTutor(
+  db: Db,
+  tutorIds: readonly string[],
+  now: Date,
+): Promise<Map<string, string>> {
+  if (tutorIds.length === 0) return new Map();
+  const rows = await selectRowsOrEmpty<{ tutor_id: string; shadowban_until: string | null }>(
+    db,
+    "tutor_trust_state",
+    "tutor_id, shadowban_until",
+    [{ col: "tutor_id", op: "in", value: [...tutorIds] }],
+  );
+  const active = new Map<string, string>();
+  for (const row of rows) {
+    const until = activeShadowbanUntil(row.shadowban_until, now);
+    if (until) active.set(row.tutor_id, until);
+  }
+  return active;
 }
 
 export async function tutorTrustSnapshot(db: Db, tutorId: string): Promise<TutorTrustSnapshot> {

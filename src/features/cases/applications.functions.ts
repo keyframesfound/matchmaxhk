@@ -281,6 +281,22 @@ export const listCaseApplicationsAdmin = createServerFn({ method: "POST" })
     } catch (flagError) {
       console.error("[applications] #508 out-of-window flag lookup failed:", flagError);
     }
+
+    // #529 flag (not a block): applicants still serving a tutor-flake
+    // shadowban. Best-effort, like the #508 flag above.
+    try {
+      const { activeShadowbansByTutor } = await import("@/features/trust/trust-db");
+      const shadowbans = await activeShadowbansByTutor(
+        db,
+        rows.map((r) => r.tutor_id),
+        new Date(),
+      );
+      for (const row of rows) {
+        row.shadowban_until = shadowbans.get(row.tutor_id) ?? null;
+      }
+    } catch (flagError) {
+      console.error("[applications] #529 shadowban flag lookup failed:", flagError);
+    }
     return rows;
   });
 

@@ -43,6 +43,8 @@ export type CaseTutorHit = {
   windowEndsAt: string | null;
   /** The exact #508 hard-warning copy; null while open / not started. */
   warning: string | null;
+  /** ISO end of a running #529 tutor-flake shadowban; null when none. */
+  shadowbanUntil: string | null;
 };
 
 type CaseParty = {
@@ -212,6 +214,12 @@ export const searchCaseTutorsForMatch = createServerFn({ method: "POST" })
         )
       : new Map<string, string>();
     const now = new Date();
+    const { activeShadowbansByTutor } = await import("@/features/trust/trust-db");
+    const shadowbans = await activeShadowbansByTutor(
+      db,
+      tutorHits.map((t) => t.id),
+      now,
+    );
 
     const hits: CaseTutorHit[] = tutorHits.map((t) => {
       // The fkey embed's runtime shape oscillates between object and array
@@ -226,12 +234,15 @@ export const searchCaseTutorsForMatch = createServerFn({ method: "POST" })
         photoUrl: t.photo_url,
         referrerName: referrer?.display_name ?? null,
         ...windowFlagFor(firstL1ByTutor.get(t.id), now),
+        shadowbanUntil: shadowbans.get(t.id) ?? null,
       };
     });
     // Active hits first: the shortlist must read as if out-of-window tutors
     // were excluded, while still being findable for the "centre asks by name"
-    // path (#508 dispatch filter).
-    hits.sort((a, b) => Number(a.outOfWindow) - Number(b.outOfWindow));
+    // path (#508 dispatch filter). Shadowbanned tutors (#529) sit below the
+    // active ones but stay matchable.
+    const rank = (h: CaseTutorHit) => (h.outOfWindow ? 2 : h.shadowbanUntil ? 1 : 0);
+    hits.sort((a, b) => rank(a) - rank(b));
     return { hits };
   });
 

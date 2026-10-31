@@ -53,6 +53,8 @@ export type CaseApplicationAdminRow = CaseApplicationRow & {
    */
   out_of_window?: boolean | null;
   window_ends_at?: string | null;
+  /** #529 flag (not a block): ISO end of the applicant's running flake shadowban. */
+  shadowban_until?: string | null;
 };
 
 // ---------------------------------------------------------------------------
