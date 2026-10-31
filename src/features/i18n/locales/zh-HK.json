@@ -442,6 +442,12 @@
     "desc_lessons": "課堂已展開，上堂時間直接在 WhatsApp 與導師商定。",
     "desc_closed": "此個案已結束。如再需要導師，歡迎提交新要求。",
     "safety_note": "請確認上門導師與其 MatchMax 檔案相符，並只付款給配對導師，切勿轉帳給任何其他人。",
+    "safety_card_title": "你的配對導師",
+    "safety_card_rate": "已議定 HK${{rate}}/小時",
+    "safety_card_one_student": "收費以 1 位學生計",
+    "safety_card_students": "收費以 {{count}} 位學生同堂計",
+    "safety_card_profile": "查看檔案",
+    "safety_card_check": "第一堂時，請確認到場的就是這位導師。",
     "step_done": "已完成",
     "step_current": "進行中",
     "step_upcoming": "未開始"

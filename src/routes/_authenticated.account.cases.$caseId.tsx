@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { MatchStatusCard } from "@/features/cases/parent/match-status-card";
+import { MatchedTutorSafetyCard } from "@/features/cases/parent/matched-tutor-card";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -116,6 +117,9 @@ function ParentCaseDetailPage() {
               matchedTutorId={data.matched_tutor_id}
               sorStatus={data.sor_status}
             />
+
+            {/* #529 bait-and-switch card: who to expect at the first lesson. */}
+            {data.matched_tutor ? <MatchedTutorSafetyCard tutor={data.matched_tutor} /> : null}
 
             {/* Fee (amount + status only; no tutor contact) */}
             {data.fee && (
