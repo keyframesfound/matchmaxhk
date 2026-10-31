@@ -65,10 +65,10 @@
     "block_bio": "About you",
     "status_block": "Availability",
     "slots_left": "{{count}} open slots",
-    "cases_block": "My cases",
+    "cases_block": "Registered lessons",
     "completed_cases_count": "{{count}} completed",
     "no_cases": "No cases yet.",
-    "create_case": "Request a tutor",
+    "create_case": "Find a tutor",
     "case_status_pending": "Pending",
     "case_status_matched": "Matched",
     "case_status_closed": "Closed",
@@ -393,7 +393,9 @@
     "screening_clarify_submit": "Send to the matching desk",
     "screening_clarify_sending": "Sending…",
     "screening_clarify_sent": "Thanks, your note went to the matching desk and the request is on hold for re-screening.",
-    "screening_confirm_required": "Confirm the screening summary (or send a clarification) before applying."
+    "screening_confirm_required": "Confirm the screening summary (or send a clarification) before applying.",
+    "identity_parent_account": "Parent account",
+    "identity_independent_student": "Independent student"
   },
   "case_request": {
     "fee_notice_title": "The matching fee",
@@ -2308,16 +2310,15 @@
       "email_change_sent": "Check your inbox to confirm your new email address.",
       "email_changed": "Your email address has been updated.",
       "email_change_error": "Unable to update your email address.",
-      "type_title": "Account type",
-      "type_desc": "Choose how you use MatchMax, as a parent or student, or as a tutor. You can switch anytime.",
-      "type_parent": "Looking for a tutor",
-      "type_parent_desc": "Find tutoring for yourself or your child.",
-      "type_tutor": "Tutor",
-      "type_tutor_desc": "Offer tutoring and find new students.",
-      "type_update": "Update account type",
-      "type_saving": "Saving…",
-      "type_saved": "Your account type has been updated.",
-      "type_error": "Unable to update your account type."
+      "capabilities_title": "Active capabilities",
+      "capabilities_desc": "One account, two modes. Switch between Learning and Teaching from the header. Nothing is ever deleted.",
+      "cap_learning": "Learning and parent management",
+      "cap_learning_desc": "Request tutors, track lessons and manage child profiles.",
+      "cap_teaching": "Independent tutor profile",
+      "cap_teaching_desc": "Offer tutoring and receive case leads.",
+      "cap_active": "Active",
+      "cap_activate": "Become a tutor",
+      "cap_manage": "Manage tutor profile"
     },
     "security": {
       "password_title": "Change password",
@@ -3188,7 +3189,6 @@
   "children": {
     "title": "My children",
     "desc": "Add each child once so their cases and lessons stay separate.",
-    "empty": "No children added yet.",
     "add": "Add child",
     "edit": "Edit",
     "archive": "Remove",
@@ -3246,6 +3246,8 @@
       "err_CLAIM_CHILD_NOT_FOUND": "Child profile not found.",
       "err_CLAIM_CHILD_NOT_MANAGED": "This profile can no longer be claimed.",
       "accepted_toast": "{{name}} now owns their learner profile."
-    }
+    },
+    "add_first": "Add a child",
+    "add_first_hint": "Booking for a child? Add them here so their lessons stay separate."
   }
 }

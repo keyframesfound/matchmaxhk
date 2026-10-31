@@ -1,32 +1,17 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
-import { Check, GraduationCap, Search } from "lucide-react";
+import { BookOpen, GraduationCap } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SettingsCard, OptionCard, OptionCardGroup } from "@/features/settings/option-card";
+import { SettingsCard } from "@/features/settings/option-card";
 import type { SettingsSectionProps } from "@/features/settings/types";
 import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { supabase } from "@/integrations/supabase/client";
-
-const ACCOUNT_TYPE_OPTIONS = [
-  {
-    value: "parent" as const,
-    labelKey: "settings.account.type_parent",
-    descKey: "settings.account.type_parent_desc",
-    icon: Search,
-  },
-  {
-    value: "tutor" as const,
-    labelKey: "settings.account.type_tutor",
-    descKey: "settings.account.type_tutor_desc",
-    icon: GraduationCap,
-  },
-];
 
 function formatDate(value: string | null, locale: string) {
   if (!value) return null;
@@ -48,40 +33,17 @@ function OverviewRow({ label, value }: { label: string; value: React.ReactNode }
 
 export function AccountSection({ user, profile, updateProfile }: SettingsSectionProps) {
   const { t, i18n } = useTranslation();
-  const { activeRole: currentRole, hasAnyRole, refreshRoles } = useAuth();
+  const { hasRole, hasAnyRole } = useAuth();
   const { membership } = useMyOrganization();
   const isInternal = hasAnyRole(["admin", "staff", "super_admin"]);
-  const [roleChoice, setRoleChoice] = useState<"parent" | "tutor">(currentRole);
-  const [savingRole, setSavingRole] = useState(false);
-  const roleDirty = roleChoice !== currentRole;
-
   const [newEmail, setNewEmail] = useState("");
   const [changingEmail, setChangingEmail] = useState(false);
-
-  useEffect(() => {
-    setRoleChoice(currentRole);
-  }, [currentRole]);
 
   const dateLocale = i18n.language?.startsWith("zh") ? "zh-HK" : "en-HK";
   const provider =
     typeof user.app_metadata?.provider === "string" ? user.app_metadata.provider : "email";
   const memberSince = formatDate(user.created_at ?? null, dateLocale);
   const tosAccepted = formatDate(profile?.tos_accepted_at ?? null, dateLocale);
-
-  async function saveAccountType() {
-    if (!roleDirty || savingRole) return;
-    setSavingRole(true);
-    try {
-      const { error } = await supabase.rpc("switch_role", { _role: roleChoice });
-      if (error) throw error;
-      await refreshRoles();
-      toast.success(t("settings.account.type_saved"));
-    } catch (error) {
-      toast.error(error instanceof Error ? error.message : t("settings.account.type_error"));
-    } finally {
-      setSavingRole(false);
-    }
-  }
 
   async function changeEmail(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -193,55 +155,82 @@ export function AccountSection({ user, profile, updateProfile }: SettingsSection
         </form>
       </SettingsCard>
 
+      {/* #459 §F: additive capabilities replace the old exclusive "account
+          type" switch. Mode switching lives in the header; nothing here can
+          remove a role or its data. */}
       {!isInternal && (
         <SettingsCard
-          title={t("settings.account.type_title")}
-          description={t("settings.account.type_desc")}
+          title={t("settings.account.capabilities_title")}
+          description={t("settings.account.capabilities_desc")}
         >
-          <div className="space-y-5">
-            <OptionCardGroup label={t("settings.account.type_title")} columns={2}>
-              {ACCOUNT_TYPE_OPTIONS.map((option) => {
-                const Icon = option.icon;
-                const selected = roleChoice === option.value;
-                return (
-                  <OptionCard
-                    key={option.value}
-                    selected={selected}
-                    onSelect={() => setRoleChoice(option.value)}
-                    label={t(option.labelKey)}
-                    description={t(option.descKey)}
-                    disabled={savingRole}
-                    preview={
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--primary)]/10 text-[color:var(--primary)]">
-                        <Icon className="h-5 w-5" aria-hidden="true" />
-                      </span>
-                    }
-                    className="pr-9"
-                    badge={
-                      selected ? (
-                        <span
-                          aria-hidden
-                          className="flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--ink)]"
-                        >
-                          <Check className="h-3 w-3 text-[color:var(--surface)]" strokeWidth={3} />
-                        </span>
-                      ) : undefined
-                    }
-                  />
-                );
-              })}
-            </OptionCardGroup>
-            <Button
-              type="button"
-              onClick={saveAccountType}
-              disabled={!roleDirty || savingRole}
-              className="font-bold"
-            >
-              {savingRole ? t("settings.account.type_saving") : t("settings.account.type_update")}
-            </Button>
-          </div>
+          <ul className="divide-y divide-border">
+            <CapabilityRow
+              icon={BookOpen}
+              label={t("settings.account.cap_learning")}
+              description={t("settings.account.cap_learning_desc")}
+              action={<ActiveBadge />}
+            />
+            <CapabilityRow
+              icon={GraduationCap}
+              label={t("settings.account.cap_teaching")}
+              description={t("settings.account.cap_teaching_desc")}
+              action={
+                hasRole("tutor") ? (
+                  <div className="flex items-center gap-3">
+                    <ActiveBadge />
+                    <Link
+                      to="/account"
+                      className="text-sm font-semibold text-[color:var(--brand-link)] underline underline-offset-2"
+                    >
+                      {t("settings.account.cap_manage")}
+                    </Link>
+                  </div>
+                ) : (
+                  <Button asChild variant="outline" size="sm" className="font-bold">
+                    <Link to="/join">{t("settings.account.cap_activate")}</Link>
+                  </Button>
+                )
+              }
+            />
+          </ul>
         </SettingsCard>
       )}
     </div>
+  );
+}
+
+function ActiveBadge() {
+  const { t } = useTranslation();
+  return (
+    <span className="inline-flex items-center rounded-full border border-[color:var(--success)]/30 bg-[color:var(--success)]/10 px-2.5 py-0.5 text-xs font-semibold text-[color:var(--success)]">
+      {t("settings.account.cap_active")}
+    </span>
+  );
+}
+
+function CapabilityRow({
+  icon: Icon,
+  label,
+  description,
+  action,
+}: {
+  icon: React.ComponentType<{ className?: string; "aria-hidden"?: boolean }>;
+  label: string;
+  description: string;
+  action: React.ReactNode;
+}) {
+  return (
+    <li className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex min-w-0 items-start gap-3">
+        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--primary)]/10 text-[color:var(--primary)]">
+          <Icon className="h-5 w-5" aria-hidden />
+        </span>
+        <div className="min-w-0">
+          <p className="text-sm font-bold text-[color:var(--ink)]">{label}</p>
+          <p className="text-sm text-muted-foreground">{description}</p>
+        </div>
+      </div>
+      <div className="shrink-0">{action}</div>
+    </li>
   );
 }

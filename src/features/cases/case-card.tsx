@@ -22,6 +22,7 @@ import {
   type CaseTitleLocale,
 } from "@/features/cases/case-title";
 import { caseChips, type CaseChip } from "@/features/cases/case-chips";
+import { caseLearnerContext, type CaseLearnerContext } from "@/features/cases/learner-context";
 import type { PublicCaseBoardItem } from "@/lib/cases.functions";
 
 export type CasePackageType = "ongoing_1_5" | "short_20" | "pro_bono";
@@ -226,12 +227,36 @@ export function CaseIdentityRow({ item }: { item: PublicCaseBoardItem }) {
       </span>
     );
   }
+  // #459 §E: tell the tutor up front whether a parent or the student
+  // themselves booked, so the first message is framed right.
+  const learner = caseLearnerContext(item.whoFor);
+  if (learner === "generic") {
+    return (
+      <span className="truncate text-xs font-medium text-muted-foreground">
+        {t("case_board.identity_parent")}
+      </span>
+    );
+  }
   return (
-    <span className="truncate text-xs font-medium text-muted-foreground">
-      {t("case_board.identity_parent")}
+    <span
+      className={`inline-flex min-w-0 items-center truncate rounded-full border px-2 py-0.5 text-[11px] font-semibold ${LEARNER_BADGE_CLASS[learner]}`}
+    >
+      {t(LEARNER_BADGE_KEY[learner])}
     </span>
   );
 }
+
+const LEARNER_BADGE_KEY: Record<Exclude<CaseLearnerContext, "generic">, string> = {
+  parent: "case_board.identity_parent_account",
+  independent: "case_board.identity_independent_student",
+};
+
+const LEARNER_BADGE_CLASS: Record<Exclude<CaseLearnerContext, "generic">, string> = {
+  parent:
+    "border-[color:var(--brand-link)]/30 bg-[color:var(--brand-link)]/10 text-[color:var(--brand-link)]",
+  independent:
+    "border-[color:var(--success)]/30 bg-[color:var(--success)]/10 text-[color:var(--success)]",
+};
 
 /** Permanent Cap.57 chip on centre cards, never reads as a job vacancy. */
 export function CaseCap57Chip() {
