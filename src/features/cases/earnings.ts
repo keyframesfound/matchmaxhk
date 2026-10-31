@@ -12,7 +12,9 @@
  * - Pipeline: planned/confirmed lessons still ahead of `now`, in range
  * - Forecast: Realized + Pipeline
  * - Admin fee: the admin fee on those same lessons
- * Pending tuition collection needs a schema flag and lands in #461 3b.
+ * - Pending tuition: full tuition of realized lessons the tutor marked
+ *   unpaid (owed by the family to the tutor, not the MatchMax fee)
+ * Voided lessons (3b) are neither done nor upcoming, so they drop out.
  */
 
 import {
@@ -30,6 +32,7 @@ export type EarningsLessonInput = {
   startsAt: string;
   durationMin: number;
   status: string;
+  tuitionStatus?: string | null;
 };
 
 export type EarningsSessionLogInput = {
@@ -38,6 +41,7 @@ export type EarningsSessionLogInput = {
   startMinute: number;
   durationMin: number;
   status: string;
+  tuitionStatus?: string | null;
 };
 
 export type EarningsCaseInput = {
@@ -67,6 +71,8 @@ export type EarningsLesson = {
   grossHkd: number;
   adminHkd: number;
   netHkd: number;
+  /** Realized and marked unpaid by the tutor. */
+  tuitionUnpaid: boolean;
 };
 
 export type EarningsTotals = {
@@ -75,6 +81,7 @@ export type EarningsTotals = {
   forecastHkd: number;
   adminHkd: number;
   realizedHours: number;
+  unpaidTuitionHkd: number;
 };
 
 export type EarningsCase = {
@@ -108,6 +115,7 @@ const ZERO_TOTALS: EarningsTotals = {
   forecastHkd: 0,
   adminHkd: 0,
   realizedHours: 0,
+  unpaidTuitionHkd: 0,
 };
 
 /** tutoring_cases.secondary_tier_applied text → ladder tier; unknown → primary. */
@@ -163,6 +171,7 @@ function sumTotals(lessons: readonly EarningsLesson[]): EarningsTotals {
     forecastHkd: realizedHkd + pipelineHkd,
     adminHkd: lessons.reduce((s, l) => s + l.adminHkd, 0),
     realizedHours: Math.round((realizedMinutes / MINUTES_PER_HOUR) * 100) / 100,
+    unpaidTuitionHkd: realized.filter((l) => l.tuitionUnpaid).reduce((s, l) => s + l.grossHkd, 0),
   };
 }
 
@@ -173,6 +182,7 @@ function addTotals(a: EarningsTotals, b: EarningsTotals): EarningsTotals {
     forecastHkd: a.forecastHkd + b.forecastHkd,
     adminHkd: a.adminHkd + b.adminHkd,
     realizedHours: Math.round((a.realizedHours + b.realizedHours) * 100) / 100,
+    unpaidTuitionHkd: a.unpaidTuitionHkd + b.unpaidTuitionHkd,
   };
 }
 
@@ -221,6 +231,7 @@ function caseEarnings(c: EarningsCaseInput, range: EarningsRange, now: Date): Ea
         grossHkd,
         adminHkd,
         netHkd: grossHkd - adminHkd,
+        tuitionUnpaid: bucket === "realized" && l.tuitionStatus === "unpaid",
       },
     ];
   });
@@ -244,6 +255,7 @@ function caseEarnings(c: EarningsCaseInput, range: EarningsRange, now: Date): Ea
         grossHkd,
         adminHkd: 0,
         netHkd: grossHkd,
+        tuitionUnpaid: s.tuitionStatus === "unpaid",
       },
     ];
   });

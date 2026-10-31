@@ -289,6 +289,7 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
   const [logDate, setLogDate] = useState(today);
   const [start, setStart] = useState("18:00");
   const [durationMin, setDurationMin] = useState(60);
+  const [tuitionUnpaid, setTuitionUnpaid] = useState(false);
 
   const timeMatch = /^(\d{1,2}):(\d{2})$/.exec(start);
   const startMinute = timeMatch ? Number(timeMatch[1]) * 60 + Number(timeMatch[2]) : -1;
@@ -299,11 +300,15 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
 
   const log = useMutation({
     mutationFn: () =>
-      logTutorSession({ data: { caseId: item.id, logDate, startMinute, durationMin } }),
+      logTutorSession({
+        data: { caseId: item.id, logDate, startMinute, durationMin, tuitionUnpaid },
+      }),
     onSuccess: () => {
       toast.success(t("experience.log_success"));
       setOpen(false);
+      setTuitionUnpaid(false);
       invalidate();
+      void queryClient.invalidateQueries({ queryKey: ["sor", "earnings"] });
     },
     onError: (e) => toast.error(t(`experience.err_${e.message}`, { defaultValue: e.message })),
   });
@@ -388,6 +393,15 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
             ) : (
               <p className="mt-2 text-xs text-muted-foreground">{t("experience.log_hint")}</p>
             )}
+            {/* #461 3b: tuition the family still owes the tutor (not the admin fee). */}
+            <label className="mt-2 flex items-center gap-2 text-xs text-[color:var(--ink)]">
+              <input
+                type="checkbox"
+                checked={tuitionUnpaid}
+                onChange={(e) => setTuitionUnpaid(e.target.checked)}
+              />
+              {t("experience.log_tuition_unpaid")}
+            </label>
             <div className="mt-2 flex justify-end gap-2">
               <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
                 {t("sor.admin_cancel")}

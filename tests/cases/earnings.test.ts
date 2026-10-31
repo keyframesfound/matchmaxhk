@@ -245,7 +245,44 @@ describe("computeEarnings — range and missing data", () => {
       forecastHkd: 0,
       adminHkd: 0,
       realizedHours: 0,
+      unpaidTuitionHkd: 0,
     });
+  });
+});
+
+describe("computeEarnings — pending tuition and void (3b)", () => {
+  it("sums the full tuition of realized lessons the family has not paid", () => {
+    const c = makeCase({
+      lessons: [
+        { ...lesson(1, "2026-10-01T10:00:00Z", "done"), tuitionStatus: "unpaid" },
+        { ...lesson(2, "2026-10-08T10:00:00Z", "done"), tuitionStatus: "paid" },
+        lesson(3, "2026-10-12T10:00:00Z", "done"),
+      ],
+      sessionLogs: [
+        {
+          id: "s1",
+          logDate: "2026-10-13",
+          startMinute: 18 * 60,
+          durationMin: 60,
+          status: "pending",
+          tuitionStatus: "unpaid",
+        },
+      ],
+    });
+    const result = computeEarnings([c], OCTOBER, NOW);
+    expect(result.totals.unpaidTuitionHkd).toBe(1500); // 900 lesson + 600 log, gross
+    expect(result.cases[0].lessons.filter((l) => l.tuitionUnpaid)).toHaveLength(2);
+  });
+
+  it("drops a voided lesson without spending lesson 1's fee", () => {
+    const c = makeCase({
+      lessons: [
+        lesson(1, "2026-10-01T10:00:00Z", "voided"),
+        lesson(2, "2026-10-08T10:00:00Z", "done"),
+      ],
+    });
+    const rows = computeEarnings([c], OCTOBER, NOW).cases[0].lessons;
+    expect(rows.map((l) => l.adminHkd)).toEqual([600]);
   });
 });
 

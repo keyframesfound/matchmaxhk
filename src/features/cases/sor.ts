@@ -104,7 +104,7 @@ export function isFeeOpen(
 // ---------------------------------------------------------------------------
 
 export type LessonStatus =
-  "planned" | "confirmed" | "done" | "no_show" | "cancelled" | "late_cancel";
+  "planned" | "confirmed" | "done" | "no_show" | "cancelled" | "late_cancel" | "voided";
 
 /** #204: mark done is available from 15 minutes before start until 7 days after. */
 export const MARK_DONE_EARLY_MIN = 15;

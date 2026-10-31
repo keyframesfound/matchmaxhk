@@ -1,11 +1,15 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
+import { Button } from "@/components/ui/button";
 import { ConsolePanel } from "@/components/ui/console-panel";
 import { cn } from "@/lib/utils";
 import { getEarningsDashboard } from "@/features/cases/earnings.functions";
-import type { EarningsTotals } from "@/features/cases/earnings";
+import { setTuitionStatus } from "@/features/cases/tuition.functions";
+import type { EarningsLesson, EarningsResult, EarningsTotals } from "@/features/cases/earnings";
 
 /**
  * Issue #461 Phase A — tutor earnings strip on /dashboard: Realized,
@@ -34,7 +38,7 @@ function Figure({ label, value, hint }: { label: string; value: string; hint?: s
 function Figures({ totals }: { totals: EarningsTotals }) {
   const { t } = useTranslation();
   return (
-    <dl className="grid grid-cols-2 gap-4 sm:grid-cols-4">
+    <dl className="grid grid-cols-2 gap-4 sm:grid-cols-5">
       <Figure
         label={t("sor.tutor_earnings_realized")}
         value={hkd(totals.realizedHkd)}
@@ -43,7 +47,58 @@ function Figures({ totals }: { totals: EarningsTotals }) {
       <Figure label={t("sor.tutor_earnings_pipeline")} value={hkd(totals.pipelineHkd)} />
       <Figure label={t("sor.tutor_earnings_forecast")} value={hkd(totals.forecastHkd)} />
       <Figure label={t("sor.tutor_earnings_admin")} value={hkd(totals.adminHkd)} />
+      <Figure
+        label={t("sor.tutor_earnings_unpaid")}
+        value={hkd(totals.unpaidTuitionHkd)}
+        hint={t("sor.tutor_earnings_unpaid_hint")}
+      />
     </dl>
+  );
+}
+
+/** #461 3b: realized lessons with a paid / unpaid toggle (tutor-only write). */
+function TuitionList({ result }: { result: EarningsResult }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const toggle = useMutation({
+    mutationFn: (l: EarningsLesson) =>
+      setTuitionStatus({
+        data: { source: l.source, id: l.id, status: l.tuitionUnpaid ? "paid" : "unpaid" },
+      }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["sor", "earnings"] }),
+    onError: (e) =>
+      toast.error(t(`sor.tutor_earnings_err_${e.message}`, { defaultValue: e.message })),
+  });
+  const realized = result.cases.flatMap((c) =>
+    c.lessons.filter((l) => l.bucket === "realized").map((l) => ({ c, l })),
+  );
+  if (realized.length === 0) return null;
+  return (
+    <details className="mt-3 text-sm">
+      <summary className="cursor-pointer text-xs font-semibold text-[color:var(--brand-link)]">
+        {t("sor.tutor_earnings_tuition_list")}
+      </summary>
+      <ul className="mt-2 space-y-1.5">
+        {realized.map(({ c, l }) => (
+          <li key={l.id} className="flex flex-wrap items-center justify-between gap-2">
+            <span className="tabular-nums text-xs text-[color:var(--ink)]">
+              {format(new Date(l.startsAt), "d MMM")} · {c.studentLabel} · {hkd(l.grossHkd)}
+              {l.tuitionUnpaid ? ` · ${t("sor.tutor_earnings_unpaid_tag")}` : ""}
+            </span>
+            <Button
+              size="sm"
+              variant="outline"
+              disabled={toggle.isPending}
+              onClick={() => toggle.mutate(l)}
+            >
+              {l.tuitionUnpaid
+                ? t("sor.tutor_earnings_mark_paid")
+                : t("sor.tutor_earnings_mark_unpaid")}
+            </Button>
+          </li>
+        ))}
+      </ul>
+    </details>
   );
 }
 
@@ -113,6 +168,7 @@ export function EarningsPanel() {
             ) : (
               <p className="mt-3 text-sm text-muted-foreground">{t("sor.tutor_earnings_empty")}</p>
             )}
+            <TuitionList result={data} />
             {data.casesMissingRate > 0 ? (
               <p className="mt-3 text-xs text-muted-foreground">
                 {t("sor.tutor_earnings_missing_rate", { n: data.casesMissingRate })}

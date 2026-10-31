@@ -43,6 +43,7 @@ type LessonRow = {
   starts_at: string;
   duration_min: number;
   status: string;
+  tuition_status: string | null;
 };
 
 type LogRow = {
@@ -52,6 +53,7 @@ type LogRow = {
   start_minute: number;
   duration_min: number;
   status: string;
+  tuition_status: string | null;
 };
 
 export type EarningsDashboard = EarningsResult & {
@@ -99,13 +101,13 @@ export const getEarningsDashboard = createServerFn({ method: "POST" })
       selectRows<LessonRow>(
         db,
         "case_lessons",
-        "id, case_id, sequence, starts_at, duration_min, status",
+        "id, case_id, sequence, starts_at, duration_min, status, tuition_status",
         [{ col: "case_id", op: "in", value: caseIds }],
       ),
       selectRows<LogRow>(
         db,
         "tutor_session_logs",
-        "id, case_id, log_date, start_minute, duration_min, status",
+        "id, case_id, log_date, start_minute, duration_min, status, tuition_status",
         [
           { col: "case_id", op: "in", value: caseIds },
           { col: "tutor_id", op: "eq", value: tutorId },
@@ -131,6 +133,7 @@ export const getEarningsDashboard = createServerFn({ method: "POST" })
           startsAt: l.starts_at,
           durationMin: l.duration_min,
           status: l.status,
+          tuitionStatus: l.tuition_status,
         })),
       sessionLogs: logs
         .filter((s) => s.case_id === c.id)
@@ -140,6 +143,7 @@ export const getEarningsDashboard = createServerFn({ method: "POST" })
           startMinute: s.start_minute,
           durationMin: s.duration_min,
           status: s.status,
+          tuitionStatus: s.tuition_status,
         })),
     }));
     return { ...computeEarnings(inputs, range, now), range: rangeOut };
