@@ -1693,7 +1693,15 @@
     "tab_cases": "個案",
     "site_menu": "主選單",
     "become_tutor_subtitle": "開始補習賺取額外收入，原來咁容易。",
-    "post_case": "刊登個案"
+    "post_case": "刊登個案",
+    "mode_label": "學習或教學模式",
+    "mode_learning": "學習",
+    "mode_teaching": "教學",
+    "switch_to_learning": "切換去學習",
+    "switch_to_teaching": "切換去教學",
+    "mode_switched_learning": "已切換到學習模式。",
+    "mode_switched_teaching": "已切換到教學模式。",
+    "mode_switch_error": "無法切換模式，請再試一次。"
   },
   "nav_mobile": {
     "case": "個案",

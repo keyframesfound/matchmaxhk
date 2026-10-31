@@ -103,14 +103,21 @@
   counter-increment: menu-item;
 }
 
-.smm-menu-item a {
+.smm-menu-item a,
+.smm-menu-item button {
   display: block;
+  width: 100%;
   padding: 0.75rem 2.5rem 0.75rem 0;
+  border: none;
+  background: none;
   color: var(--ink);
+  font: inherit;
   font-size: clamp(1.8rem, 7vw, 2.6rem);
   font-weight: 700;
   line-height: 1;
+  text-align: left;
   text-decoration: none;
+  cursor: pointer;
   transition: color 180ms ease;
 }
 
@@ -126,7 +133,9 @@
 }
 
 .smm-menu-item a:hover,
-.smm-menu-item a:active {
+.smm-menu-item a:active,
+.smm-menu-item button:hover,
+.smm-menu-item button:active {
   color: var(--brand-link);
 }
 

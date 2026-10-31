@@ -1693,7 +1693,15 @@
     "tab_cases": "Cases",
     "site_menu": "Main menu",
     "become_tutor_subtitle": "It's easy to start tutoring and earn extra income.",
-    "post_case": "Post a case"
+    "post_case": "Post a case",
+    "mode_label": "Learning or Teaching mode",
+    "mode_learning": "Learning",
+    "mode_teaching": "Teaching",
+    "switch_to_learning": "Switch to Learning",
+    "switch_to_teaching": "Switch to Teaching",
+    "mode_switched_learning": "Switched to Learning.",
+    "mode_switched_teaching": "Switched to Teaching.",
+    "mode_switch_error": "Could not switch mode. Please try again."
   },
   "nav_mobile": {
     "case": "Case",

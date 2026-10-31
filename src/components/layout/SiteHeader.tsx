@@ -7,6 +7,7 @@ import {
   Globe,
   Menu,
   Moon,
+  Repeat,
   Settings,
   ShieldCheck,
   Sun,
@@ -15,6 +16,7 @@ import {
 import { motion, useMotionValueEvent, useTransform } from "motion/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 import { useSwitchLocale } from "@/features/i18n/switch-locale";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
@@ -32,6 +34,7 @@ import { Button } from "@/components/ui/button";
 import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { BellMenu } from "@/components/layout/bell-menu";
 import { useAuth } from "@/features/auth/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { useTheme } from "@/features/theme/ThemeProvider";
 import { requestTour, TOUR_STORAGE_KEYS } from "@/features/tours/tour-requests";
@@ -142,13 +145,43 @@ export function SiteHeader({
   centerSlot?: React.ReactNode;
 }) {
   const { t, i18n } = useTranslation();
-  const { user, signOut, hasAnyRole, hasRole } = useAuth();
+  const { user, signOut, hasAnyRole, hasRole, activeRole, refreshRoles } = useAuth();
   const navigate = useNavigate();
   const switchLocale = useSwitchLocale();
   const { membership } = useMyOrganization();
   const hasOrg = !!membership;
   const { theme, setTheme } = useTheme();
   const isAdmin = hasAnyRole(["admin", "super_admin"]);
+  // #459 §B: dual-role users get a Learning/Teaching mode switcher once
+  // Teaching is activated; Learning-only users keep the Become a Tutor link.
+  const isTutor = Boolean(user && hasRole("tutor"));
+  const [switchingMode, setSwitchingMode] = useState(false);
+
+  async function switchMode(role: "parent" | "tutor") {
+    if (switchingMode || role === activeRole) return;
+    setSwitchingMode(true);
+    try {
+      // Additive RPC (slice 1): adds the role if missing, never deletes the
+      // sibling; it only sets which side the UI leads with.
+      const { error } = await supabase.rpc("switch_role", { _role: role });
+      if (error) throw error;
+      await refreshRoles();
+      toast.success(
+        role === "tutor" ? t("nav.mode_switched_teaching") : t("nav.mode_switched_learning"),
+      );
+      void navigate({ to: role === "tutor" ? "/dashboard" : "/account" });
+    } catch {
+      toast.error(t("nav.mode_switch_error"));
+    } finally {
+      setSwitchingMode(false);
+    }
+  }
+
+  const modeSwitchItem = (to: "parent" | "tutor") => ({
+    label: to === "tutor" ? t("nav.switch_to_teaching") : t("nav.switch_to_learning"),
+    ariaLabel: to === "tutor" ? t("nav.switch_to_teaching") : t("nav.switch_to_learning"),
+    action: () => switchMode(to),
+  });
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
   const { collapseProgress } = useSearchGroup();
@@ -182,7 +215,10 @@ export function SiteHeader({
       ? [{ label: t("nav.courses"), ariaLabel: t("nav.courses"), to: "/courses" }]
       : []),
     { label: t("nav.saved_posts"), ariaLabel: t("nav.saved_posts"), to: "/saved-posts" },
-    { label: t("nav.become_tutor"), ariaLabel: t("nav.become_tutor"), to: "/join" },
+    // #459 §B: tutors switch modes instead of seeing Become a Tutor.
+    ...(isTutor
+      ? [activeRole === "tutor" ? { ...modeSwitchItem("parent") } : { ...modeSwitchItem("tutor") }]
+      : [{ label: t("nav.become_tutor"), ariaLabel: t("nav.become_tutor"), to: "/join" }]),
     ...(CENTRE_MARKET_ENABLED
       ? [{ label: t("nav.for_business"), ariaLabel: t("nav.for_business"), to: "/pricing" }]
       : []),
@@ -254,18 +290,57 @@ export function SiteHeader({
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
-            <Link
-              to="/join"
-              aria-current={isActive("/join") ? "page" : undefined}
-              className={cn(
-                "whitespace-nowrap rounded-full px-3 py-2.5 text-base font-semibold transition-colors hover:bg-[color:var(--foreground)]/[0.05] sm:px-4",
-                isActive("/join")
-                  ? "text-[color:var(--brand-link)]"
-                  : "text-[color:var(--ink)] hover:text-[color:var(--ink)]",
-              )}
-            >
-              {t("nav.become_tutor")}
-            </Link>
+            {/* #459 §B: once Teaching is activated the Become a Tutor link
+                becomes the Learning/Teaching mode switcher. */}
+            {isTutor ? (
+              <div
+                role="group"
+                aria-label={t("nav.mode_label")}
+                className="flex items-center rounded-full border border-[color:var(--ink)]/15 p-0.5"
+              >
+                <button
+                  type="button"
+                  aria-pressed={activeRole !== "tutor"}
+                  disabled={switchingMode}
+                  onClick={() => switchMode("parent")}
+                  className={cn(
+                    "rounded-full px-3 py-1.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed",
+                    activeRole !== "tutor"
+                      ? "bg-[color:var(--ink)] text-[color:var(--surface)]"
+                      : "text-muted-foreground hover:text-[color:var(--ink)]",
+                  )}
+                >
+                  {t("nav.mode_learning")}
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={activeRole === "tutor"}
+                  disabled={switchingMode}
+                  onClick={() => switchMode("tutor")}
+                  className={cn(
+                    "rounded-full px-3 py-1.5 text-sm font-semibold transition-colors disabled:cursor-not-allowed",
+                    activeRole === "tutor"
+                      ? "bg-[color:var(--ink)] text-[color:var(--surface)]"
+                      : "text-muted-foreground hover:text-[color:var(--ink)]",
+                  )}
+                >
+                  {t("nav.mode_teaching")}
+                </button>
+              </div>
+            ) : (
+              <Link
+                to="/join"
+                aria-current={isActive("/join") ? "page" : undefined}
+                className={cn(
+                  "whitespace-nowrap rounded-full px-3 py-2.5 text-base font-semibold transition-colors hover:bg-[color:var(--foreground)]/[0.05] sm:px-4",
+                  isActive("/join")
+                    ? "text-[color:var(--brand-link)]"
+                    : "text-[color:var(--ink)] hover:text-[color:var(--ink)]",
+                )}
+              >
+                {t("nav.become_tutor")}
+              </Link>
+            )}
 
             {user && <BellMenu />}
 
@@ -323,6 +398,23 @@ export function SiteHeader({
                           </MenuIcon>
                           {t("nav.my_business")}
                         </Link>
+                      </DropdownMenuItem>
+                    )}
+                    {/* #459 §B: mode switch is also reachable from the menu. */}
+                    {isTutor && (
+                      <DropdownMenuItem
+                        disabled={switchingMode}
+                        onSelect={() =>
+                          void switchMode(activeRole === "tutor" ? "parent" : "tutor")
+                        }
+                        className={menuLinkClassName}
+                      >
+                        <MenuIcon>
+                          <Repeat className="size-5" />
+                        </MenuIcon>
+                        {activeRole === "tutor"
+                          ? t("nav.switch_to_learning")
+                          : t("nav.switch_to_teaching")}
                       </DropdownMenuItem>
                     )}
                     {/* #501: Profile opens the Account home, not Settings. */}

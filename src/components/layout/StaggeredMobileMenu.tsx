@@ -16,8 +16,11 @@ import "./StaggeredMobileMenu.css";
 export type StaggeredMobileMenuItem = {
   label: string;
   ariaLabel: string;
-  to: string;
+  to?: string;
   hash?: string;
+  /** #459: action items (the Learning/Teaching mode switch) render a
+      button instead of a Link; `to` must then be omitted. */
+  action?: () => void;
 };
 
 type StaggeredMobileMenuProps = {
@@ -192,15 +195,32 @@ export function StaggeredMobileMenu({ items, renderFooter }: StaggeredMobileMenu
                 <nav aria-label="Mobile navigation">
                   <ol className="smm-menu-list">
                     {items.map((item) => (
-                      <li key={item.to} className="smm-menu-item">
-                        <Link
-                          to={item.to}
-                          hash={item.hash}
-                          aria-label={item.ariaLabel}
-                          onClick={() => closeMenu()}
-                        >
-                          <span className="smm-item-label">{item.label}</span>
-                        </Link>
+                      <li
+                        key={item.action ? `action:${item.label}` : (item.to ?? "")}
+                        className="smm-menu-item"
+                      >
+                        {item.action ? (
+                          <button
+                            type="button"
+                            aria-label={item.ariaLabel}
+                            onClick={() => {
+                              closeMenu();
+                              const run = item.action;
+                              if (run) run();
+                            }}
+                          >
+                            <span className="smm-item-label">{item.label}</span>
+                          </button>
+                        ) : (
+                          <Link
+                            to={item.to ?? "/"}
+                            hash={item.hash}
+                            aria-label={item.ariaLabel}
+                            onClick={() => closeMenu()}
+                          >
+                            <span className="smm-item-label">{item.label}</span>
+                          </Link>
+                        )}
                       </li>
                     ))}
                   </ol>
