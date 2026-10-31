@@ -930,7 +930,14 @@ function TutorDetail() {
                     ) : null}
                   </div>
                 ) : null}
-                {inquiry.kind === "status" ? (
+                {/* #459 §F guardrail: the card owner cannot request their
+                    own listing. */}
+                {user && user.id === t.user_id ? (
+                  <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
+                    <Lock className="h-3.5 w-3.5" aria-hidden="true" />
+                    {translate("profile.own_listing_disabled")}
+                  </p>
+                ) : inquiry.kind === "status" ? (
                   <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
                     <Lock className="h-3.5 w-3.5" aria-hidden="true" />
                     {inquiry.label}

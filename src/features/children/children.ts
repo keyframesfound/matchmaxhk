@@ -44,6 +44,8 @@ export type ChildProfile = {
   school: string | null;
   curriculum: string | null;
   gradYear: number | null;
+  /** #459: managed_by_parent until the child claims their own account. */
+  status: "managed_by_parent" | "linked_independent" | "claimed_independent";
 };
 
 export function shouldWarnChildCount(count: number): boolean {

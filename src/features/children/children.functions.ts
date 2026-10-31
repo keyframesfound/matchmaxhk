@@ -21,11 +21,13 @@ type StudentRow = {
   school: string | null;
   curriculum: string | null;
   grad_year: number | null;
+  status: "managed_by_parent" | "linked_independent" | "claimed_independent";
   archived_at: string | null;
   created_at: string;
 };
 
-const STUDENT_COLS = "id, display_name, school, curriculum, grad_year, archived_at, created_at";
+const STUDENT_COLS =
+  "id, display_name, school, curriculum, grad_year, status, archived_at, created_at";
 
 function toChildProfile(row: StudentRow): ChildProfile {
   return {
@@ -34,6 +36,7 @@ function toChildProfile(row: StudentRow): ChildProfile {
     school: row.school,
     curriculum: row.curriculum,
     gradYear: row.grad_year,
+    status: row.status,
   };
 }
 
@@ -81,14 +84,14 @@ export const saveChild = createServerFn({ method: "POST" })
     };
 
     if (data.id) {
-      await requireOwnedChild(db, context.userId, data.id);
+      const row = await requireOwnedChild(db, context.userId, data.id);
       const { error } = await db
         .from("students")
         .update({ ...fields, updated_at: new Date().toISOString() })
         .eq("id", data.id)
         .eq("parent_user_id", context.userId);
       if (error) throw new Error(error.message);
-      return { id: data.id, ...data.child };
+      return { id: data.id, ...data.child, status: row.status };
     }
 
     const { data: row, error } = await db

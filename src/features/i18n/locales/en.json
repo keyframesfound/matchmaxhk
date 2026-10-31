@@ -1968,7 +1968,8 @@
     "rates_online": "Online",
     "rates_inperson": "In person",
     "section_group_classes": "Group classes",
-    "group_classes_view_all": "View & book group classes"
+    "group_classes_view_all": "View & book group classes",
+    "own_listing_disabled": "You cannot request your own listing."
   },
   "report": {
     "button_aria": "Report {{item}}",
@@ -3192,6 +3193,44 @@
     "soft_limit": "You have more than {{count}} children listed. That's fine, just check each one is a different child.",
     "picker_label": "Which child is this for?",
     "picker_hint": "Picking a child keeps siblings' cases separate.",
-    "picker_add_placeholder": "Child's nickname"
+    "picker_add_placeholder": "Child's nickname",
+    "claim": {
+      "invite_cta": "Invite to claim",
+      "invite_title": "Invite {{name}} to claim their profile",
+      "invite_desc": "They get a one-time email link, valid for 7 days. Claiming moves the profile to their own account; you keep view access.",
+      "invite_email_label": "Their email",
+      "invite_email_placeholder": "student@example.com",
+      "invite_hint": "The link works once, for the account they sign in with.",
+      "invite_send": "Send invite",
+      "invite_sending": "Sending…",
+      "invite_sent": "Claim link sent. It stays valid for 7 days.",
+      "invite_send_failed": "Invite saved, but the email could not be sent just now. Try again in a moment.",
+      "title": "{{name}}, claim your learner profile",
+      "body": "Claiming moves this profile to your own MatchMax account. Its lessons and verified hours stay on it, and your parent keeps view access.",
+      "hours": "{{hours}} verified learning hours will move with it.",
+      "self_parent_note": "Sign in with the student's own account, not the parent account.",
+      "confirm": "Claim profile",
+      "sign_in_title": "Sign in to claim",
+      "sign_in_body": "Sign in with the student's account (or create one), then open the link again.",
+      "invalid_title": "This claim link is invalid",
+      "invalid_body": "Ask your parent to send a fresh invite.",
+      "expired_title": "This claim link has expired",
+      "expired_body": "Ask your parent to resend the invite; new links are valid for 7 days.",
+      "used_title": "Already claimed",
+      "used_body": "This learner profile has already been claimed.",
+      "done_title": "{{name}} now owns their profile",
+      "done_body": "Lessons and verified hours moved with it. Your parent keeps view and billing access unless they change it in settings.",
+      "done_cta": "Go to my account",
+      "error": "Could not complete the claim. Please try again.",
+      "err_CLAIM_INVALID": "This claim link is invalid.",
+      "err_CLAIM_EXPIRED": "This claim link has expired. Ask your parent to resend it.",
+      "err_CLAIM_REVOKED": "This claim link is no longer valid. Ask your parent to resend it.",
+      "err_CLAIM_USED": "This learner profile has already been claimed.",
+      "err_CLAIM_NOT_FOUND": "This claim link is invalid.",
+      "err_CLAIM_SELF_PARENT": "Sign in as the student account to claim this profile.",
+      "err_CLAIM_CHILD_NOT_FOUND": "Child profile not found.",
+      "err_CLAIM_CHILD_NOT_MANAGED": "This profile can no longer be claimed.",
+      "accepted_toast": "{{name}} now owns their learner profile."
+    }
   }
 }

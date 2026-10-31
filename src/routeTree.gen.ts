@@ -46,6 +46,7 @@ import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
 import { Route as AuthenticatedAccountCasesRouteImport } from './routes/_authenticated.account.cases'
 import { Route as AuthenticatedAccountClaimRouteImport } from './routes/_authenticated.account.claim'
+import { Route as AuthenticatedAccountClaimChildRouteImport } from './routes/_authenticated.account.claim-child'
 import { Route as AuthenticatedAccountPreviewRouteImport } from './routes/_authenticated.account.preview'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as AuthenticatedAdminAcademyRouteImport } from './routes/_authenticated.admin.academy'
@@ -268,6 +269,12 @@ const AuthenticatedAccountClaimRoute =
   AuthenticatedAccountClaimRouteImport.update({
     id: '/claim',
     path: '/claim',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
+const AuthenticatedAccountClaimChildRoute =
+  AuthenticatedAccountClaimChildRouteImport.update({
+    id: '/claim-child',
+    path: '/claim-child',
     getParentRoute: () => AuthenticatedAccountRoute,
   } as any)
 const AuthenticatedAccountPreviewRoute =
@@ -517,6 +524,7 @@ export interface FileRoutesByFullPath {
   '/tutors/': typeof TutorsIndexRoute
   '/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
   '/account/claim': typeof AuthenticatedAccountClaimRoute
+  '/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
   '/account/preview': typeof AuthenticatedAccountPreviewRoute
   '/admin/academy': typeof AuthenticatedAdminAcademyRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
@@ -590,6 +598,7 @@ export interface FileRoutesByTo {
   '/tutors': typeof TutorsIndexRoute
   '/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
   '/account/claim': typeof AuthenticatedAccountClaimRoute
+  '/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
   '/account/preview': typeof AuthenticatedAccountPreviewRoute
   '/admin/academy': typeof AuthenticatedAdminAcademyRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
@@ -666,6 +675,7 @@ export interface FileRoutesById {
   '/tutors/': typeof TutorsIndexRoute
   '/_authenticated/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
   '/_authenticated/account/claim': typeof AuthenticatedAccountClaimRoute
+  '/_authenticated/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
   '/_authenticated/account/preview': typeof AuthenticatedAccountPreviewRoute
   '/_authenticated/admin/academy': typeof AuthenticatedAdminAcademyRoute
   '/_authenticated/admin/cases': typeof AuthenticatedAdminCasesRoute
@@ -742,6 +752,7 @@ export interface FileRouteTypes {
     | '/tutors/'
     | '/account/cases'
     | '/account/claim'
+    | '/account/claim-child'
     | '/account/preview'
     | '/admin/academy'
     | '/admin/cases'
@@ -815,6 +826,7 @@ export interface FileRouteTypes {
     | '/tutors'
     | '/account/cases'
     | '/account/claim'
+    | '/account/claim-child'
     | '/account/preview'
     | '/admin/academy'
     | '/admin/cases'
@@ -890,6 +902,7 @@ export interface FileRouteTypes {
     | '/tutors/'
     | '/_authenticated/account/cases'
     | '/_authenticated/account/claim'
+    | '/_authenticated/account/claim-child'
     | '/_authenticated/account/preview'
     | '/_authenticated/admin/academy'
     | '/_authenticated/admin/cases'
@@ -1225,6 +1238,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountClaimRouteImport
       parentRoute: typeof AuthenticatedAccountRoute
     }
+    '/_authenticated/account/claim-child': {
+      id: '/_authenticated/account/claim-child'
+      path: '/claim-child'
+      fullPath: '/account/claim-child'
+      preLoaderRoute: typeof AuthenticatedAccountClaimChildRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
     '/_authenticated/account/preview': {
       id: '/_authenticated/account/preview'
       path: '/preview'
@@ -1497,6 +1517,7 @@ const AuthenticatedAccountCasesRouteWithChildren =
 interface AuthenticatedAccountRouteChildren {
   AuthenticatedAccountCasesRoute: typeof AuthenticatedAccountCasesRouteWithChildren
   AuthenticatedAccountClaimRoute: typeof AuthenticatedAccountClaimRoute
+  AuthenticatedAccountClaimChildRoute: typeof AuthenticatedAccountClaimChildRoute
   AuthenticatedAccountPreviewRoute: typeof AuthenticatedAccountPreviewRoute
   AuthenticatedAccountCoursesNewRoute: typeof AuthenticatedAccountCoursesNewRoute
   AuthenticatedAccountFoldersNewRoute: typeof AuthenticatedAccountFoldersNewRoute
@@ -1511,6 +1532,7 @@ interface AuthenticatedAccountRouteChildren {
 const AuthenticatedAccountRouteChildren: AuthenticatedAccountRouteChildren = {
   AuthenticatedAccountCasesRoute: AuthenticatedAccountCasesRouteWithChildren,
   AuthenticatedAccountClaimRoute: AuthenticatedAccountClaimRoute,
+  AuthenticatedAccountClaimChildRoute: AuthenticatedAccountClaimChildRoute,
   AuthenticatedAccountPreviewRoute: AuthenticatedAccountPreviewRoute,
   AuthenticatedAccountCoursesNewRoute: AuthenticatedAccountCoursesNewRoute,
   AuthenticatedAccountFoldersNewRoute: AuthenticatedAccountFoldersNewRoute,

@@ -1,12 +1,13 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Pencil, Plus, Trash2 } from "lucide-react";
+import { Mail, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
   CHILD_SOFT_LIMIT,
   ChildInput,
@@ -14,6 +15,7 @@ import {
   type ChildProfile,
 } from "@/features/children/children";
 import { archiveChild, listMyChildren, saveChild } from "@/features/children/children.functions";
+import { startChildClaim } from "@/features/children/claim.functions";
 
 export const CHILDREN_QUERY_KEY = ["account", "children"] as const;
 
@@ -42,6 +44,9 @@ export function MyChildrenSection() {
     queryFn: () => listMyChildren(),
   });
   const children = childrenQuery.data ?? [];
+  // #459 slice 6: child id with the claim-invite dialog open.
+  const [inviting, setInviting] = useState<string | null>(null);
+  const invitingChild = children.find((child) => child.id === inviting) ?? null;
 
   const archiveMutation = useMutation({
     mutationFn: (id: string) => archiveChild({ data: { id } }),
@@ -106,6 +111,19 @@ export function MyChildrenSection() {
                 </p>
               </div>
               <div className="flex shrink-0 gap-1">
+                {/* #459 slice 6: managed children only — claimed ones own
+                    their account already. */}
+                {child.status === "managed_by_parent" ? (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setInviting(child.id)}
+                  >
+                    <Mail className="h-4 w-4" aria-hidden />
+                    {t("children.claim.invite_cta")}
+                  </Button>
+                ) : null}
                 <Button
                   type="button"
                   variant="ghost"
@@ -130,7 +148,78 @@ export function MyChildrenSection() {
           ),
         )}
       </ul>
+
+      {/* #459 slice 6: email-only claim invite (the WhatsApp channel is
+          excluded per the owner's instruction). */}
+      <Dialog open={Boolean(invitingChild)} onOpenChange={(open) => !open && setInviting(null)}>
+        <DialogContent className="max-w-md">
+          <DialogTitle className="text-lg font-bold text-[color:var(--ink)]">
+            {t("children.claim.invite_title", { name: invitingChild?.nickname ?? "" })}
+          </DialogTitle>
+          <DialogDescription className="mt-1 text-sm text-muted-foreground">
+            {t("children.claim.invite_desc")}
+          </DialogDescription>
+          {invitingChild ? (
+            <ClaimInviteForm childId={invitingChild.id} onDone={() => setInviting(null)} />
+          ) : null}
+        </DialogContent>
+      </Dialog>
     </section>
+  );
+}
+
+function ClaimInviteForm({ childId, onDone }: { childId: string; onDone: () => void }) {
+  const { t } = useTranslation();
+  const [email, setEmail] = useState("");
+
+  const invite = useMutation({
+    mutationFn: () => startChildClaim({ data: { studentId: childId, email: email.trim() } }),
+    onSuccess: (res) => {
+      toast.success(
+        res.delivered ? t("children.claim.invite_sent") : t("children.claim.invite_send_failed"),
+      );
+      onDone();
+    },
+    onError: (e) => {
+      toast.error(
+        t(`children.claim.err_${e.message}`, { defaultValue: t("children.claim.error") }),
+      );
+    },
+  });
+
+  return (
+    <form
+      className="mt-4 space-y-4"
+      onSubmit={(event) => {
+        event.preventDefault();
+        invite.mutate();
+      }}
+    >
+      <div className="space-y-2">
+        <Label htmlFor="claim-invite-email" className="text-[color:var(--ink)]">
+          {t("children.claim.invite_email_label")}
+        </Label>
+        <Input
+          id="claim-invite-email"
+          type="email"
+          value={email}
+          onChange={(event) => setEmail(event.target.value)}
+          placeholder={t("children.claim.invite_email_placeholder")}
+          autoComplete="email"
+          required
+          className="bg-[color:var(--surface)]"
+        />
+        <p className="text-xs text-muted-foreground">{t("children.claim.invite_hint")}</p>
+      </div>
+      <div className="flex justify-end gap-2">
+        <Button type="button" variant="ghost" onClick={onDone}>
+          {t("children.cancel")}
+        </Button>
+        <Button type="submit" disabled={invite.isPending} className="font-bold">
+          {invite.isPending ? t("children.claim.invite_sending") : t("children.claim.invite_send")}
+        </Button>
+      </div>
+    </form>
   );
 }
 

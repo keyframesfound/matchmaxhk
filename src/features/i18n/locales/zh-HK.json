@@ -1968,7 +1968,8 @@
     "rates_online": "網上",
     "rates_inperson": "實體",
     "section_group_classes": "小組班",
-    "group_classes_view_all": "查看並報名小組班"
+    "group_classes_view_all": "查看並報名小組班",
+    "own_listing_disabled": "你唔可以預約自己嘅導師卡。"
   },
   "report": {
     "button_aria": "舉報{{item}}",
@@ -3192,6 +3193,44 @@
     "soft_limit": "你已列出超過 {{count}} 位子女。冇問題，只要確認每位都係唔同嘅子女就得。",
     "picker_label": "呢個個案係幫邊位子女搵？",
     "picker_hint": "揀返子女，兄弟姊妹嘅個案就唔會混埋一齊。",
-    "picker_add_placeholder": "子女暱稱"
+    "picker_add_placeholder": "子女暱稱",
+    "claim": {
+      "invite_cta": "邀請認領",
+      "invite_title": "邀請 {{name}} 認領自己嘅檔案",
+      "invite_desc": "佢會收到一條一次性電郵連結，7 日內有效。認領後檔案會轉到佢自己嘅帳戶，你仍然可以查看。",
+      "invite_email_label": "佢嘅電郵",
+      "invite_email_placeholder": "student@example.com",
+      "invite_hint": "連結只可以用一次，並以佢登入嘅帳戶為準。",
+      "invite_send": "發送邀請",
+      "invite_sending": "發送中…",
+      "invite_sent": "已發送認領連結，7 日內有效。",
+      "invite_send_failed": "邀請已建立，但電郵暫時無法發送，請稍後再試。",
+      "title": "{{name}}，認領你嘅學習檔案",
+      "body": "認領後此檔案會轉到你嘅 MatchMax 帳戶，課堂同已驗證時數一併保留，家長仍然可以查看。",
+      "hours": "將有 {{hours}} 小時已驗證學習時數一併轉移。",
+      "self_parent_note": "請用學生本人嘅帳戶登入，唔好用家長帳戶。",
+      "confirm": "認領檔案",
+      "sign_in_title": "請先登入以認領",
+      "sign_in_body": "用學生帳戶登入（或註冊新帳戶），然後重新打開連結。",
+      "invalid_title": "此認領連結無效",
+      "invalid_body": "請叫家長重新發送邀請。",
+      "expired_title": "此認領連結已過期",
+      "expired_body": "請叫家長重新發送邀請，新連結 7 日內有效。",
+      "used_title": "已被認領",
+      "used_body": "此學習檔案已被認領。",
+      "done_title": "{{name}} 而家擁有自己的檔案",
+      "done_body": "課堂同已驗證時數已一併轉移；除非家長喺設定中更改，家長仍可查看及管理繳費。",
+      "done_cta": "前往我的帳戶",
+      "error": "無法完成認領，請再試一次。",
+      "err_CLAIM_INVALID": "此認領連結無效。",
+      "err_CLAIM_EXPIRED": "此認領連結已過期，請叫家長重新發送。",
+      "err_CLAIM_REVOKED": "此認領連結已失效，請叫家長重新發送。",
+      "err_CLAIM_USED": "此學習檔案已被認領。",
+      "err_CLAIM_NOT_FOUND": "此認領連結無效。",
+      "err_CLAIM_SELF_PARENT": "請用學生帳戶登入先可以認領。",
+      "err_CLAIM_CHILD_NOT_FOUND": "找不到子女檔案。",
+      "err_CLAIM_CHILD_NOT_MANAGED": "此檔案已不能再認領。",
+      "accepted_toast": "{{name}} 已擁有自己的學習檔案。"
+    }
   }
 }
