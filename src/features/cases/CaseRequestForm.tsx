@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { submitCaseRequest } from "@/lib/cases.functions";
+import { ChildPicker } from "@/features/children/child-picker";
 import {
   ADMISSIONS_CATEGORY_OPTIONS,
   ADMISSIONS_CURRICULUM,
@@ -106,6 +107,8 @@ type FormState = {
   // Issue #437: "Who is this for?", demographics live on the case, never
   // the account (no account-level gender/role/photo for clients).
   whoFor: string;
+  /** Issue #459: child sub-profile id when whoFor is my_child ("" = none). */
+  studentId: string;
   parentName: string;
   contactPhone: string;
   supportType: string;
@@ -173,6 +176,7 @@ type FormState = {
 const INITIAL_FORM: FormState = {
   requesterType: "",
   whoFor: "",
+  studentId: "",
   parentName: "",
   contactPhone: "",
   supportType: "",
@@ -661,6 +665,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           requesterType: form.requesterType as "parent" | "student",
           // Issue #437: demographics live on the case, not the account.
           whoFor: form.whoFor as "my_child" | "myself" | "someone_else",
+          studentId: form.whoFor === "my_child" ? form.studentId || null : null,
           studentGender: form.studentGender as "female" | "male" | "prefer_not_to_say",
           tutorGenderPreference: (form.tutorGenderPreference || "any") as "any" | "male" | "female",
           parentName: form.parentName,
@@ -1095,7 +1100,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               </label>
               <SearchableSelect
                 value={form.whoFor}
-                onChange={(v) => update({ whoFor: v })}
+                onChange={(v) =>
+                  update(v === "my_child" ? { whoFor: v } : { whoFor: v, studentId: "" })
+                }
                 options={WHO_FOR_OPTIONS}
                 placeholder="Who is this for?"
                 searchPlaceholder="Search..."
@@ -1106,6 +1113,20 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 <p className="mt-1 text-xs font-semibold text-destructive">{errors.whoFor}</p>
               ) : null}
             </div>
+            {form.whoFor === "my_child" ? (
+              <ChildPicker
+                value={form.studentId}
+                onSelect={(child) =>
+                  update({
+                    studentId: child?.id ?? "",
+                    // Prefill the school from the child's profile, never overwrite.
+                    ...(child?.school && !form.schoolName.trim()
+                      ? { schoolName: child.school }
+                      : {}),
+                  })
+                }
+              />
+            ) : null}
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-support-type`}>
                 Type of support

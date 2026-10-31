@@ -1093,6 +1093,7 @@ export type Database = {
           specific_component: string | null;
           start_timing: string | null;
           status: Database["public"]["Enums"]["case_request_status"];
+          student_id: string | null;
           student_gender: string | null;
           who_for: string | null;
           student_grade_current: string | null;
@@ -1163,6 +1164,7 @@ export type Database = {
           specific_component?: string | null;
           start_timing?: string | null;
           status?: Database["public"]["Enums"]["case_request_status"];
+          student_id?: string | null;
           student_grade_current?: string | null;
           student_gender?: string | null;
           student_level: string;
@@ -1241,6 +1243,7 @@ export type Database = {
           specific_component?: string | null;
           start_timing?: string | null;
           status?: Database["public"]["Enums"]["case_request_status"];
+          student_id?: string | null;
           student_grade_current?: string | null;
           student_level?: string;
           student_school?: string | null;

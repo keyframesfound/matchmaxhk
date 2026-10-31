@@ -3144,5 +3144,30 @@
     "error_window_closed": "出席可以喺上堂前 15 分鐘至上堂後 7 日內記錄。",
     "error_already_marked": "呢堂已經記錄咗出席。",
     "managed_badge": "Managed"
+  },
+  "children": {
+    "title": "我的子女",
+    "desc": "每位子女加一次，佢哋嘅個案同堂數就會分開記錄。",
+    "empty": "未加任何子女。",
+    "add": "加子女",
+    "edit": "編輯",
+    "archive": "移除",
+    "archive_confirm": "移除 {{name}}？以前嘅個案會保留記錄。",
+    "save": "儲存",
+    "saving": "儲存中…",
+    "cancel": "取消",
+    "nickname": "暱稱",
+    "nickname_placeholder": "你平時點叫佢，例如 Anson",
+    "school": "學校（選填）",
+    "curriculum": "課程（選填）",
+    "curriculum_placeholder": "例如 HKDSE、IB",
+    "grad_year": "畢業年份（選填）",
+    "saved": "已儲存。",
+    "removed": "已移除。",
+    "error": "出咗少少問題，請再試一次。",
+    "soft_limit": "你已列出超過 {{count}} 位子女。冇問題，只要確認每位都係唔同嘅子女就得。",
+    "picker_label": "呢個個案係幫邊位子女搵？",
+    "picker_hint": "揀返子女，兄弟姊妹嘅個案就唔會混埋一齊。",
+    "picker_add_placeholder": "子女暱稱"
   }
 }

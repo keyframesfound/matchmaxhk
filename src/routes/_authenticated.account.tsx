@@ -28,6 +28,7 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/features/auth/useAuth";
 import { SignupChecklistCard } from "@/features/account/signup-checklist";
 import { ProfileEditDialog } from "@/features/account/profile-edit-dialog";
+import { MyChildrenSection } from "@/features/children/my-children-section";
 import { getMyApplicationStatus } from "@/features/tutor-application/application-status.functions";
 import { ApplicationStatusPanel } from "@/features/tutor-application/application-status-card";
 import {
@@ -124,7 +125,7 @@ type MyCaseRow = {
 
 function AccountPage() {
   const { t, i18n } = useTranslation();
-  const { user } = useAuth();
+  const { user, activeRole } = useAuth();
   const queryClient = useQueryClient();
   // #501: Edit profile now opens an on-page dialog instead of /dashboard.
   const [profileEditOpen, setProfileEditOpen] = useState(false);
@@ -345,6 +346,9 @@ function AccountPage() {
             </Button>
           </div>
         </section>
+
+        {/* #459: parent-managed child sub-profiles */}
+        {activeRole === "parent" ? <MyChildrenSection /> : null}
 
         {/* P6: parent CTA, no card linked yet — but when this account has a
             /join application in flight (#477), the read-only applicant status

@@ -12,6 +12,9 @@ import {
 import { FEE_TERMS_VERSION } from "@/features/legal/terms";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAccountActive } from "@/lib/account-status-enforcement";
+import { ownedChildIdOrNull } from "@/features/children/children";
+import { selectRows } from "@/features/cases/desk-db";
+import { asAdminDb } from "@/features/materials/storage-helpers";
 import {
   TARGET_PATHWAY_LABELS,
   TUTOR_BACKGROUND_LABELS,
@@ -44,6 +47,8 @@ const CaseRequestInput = z
     requesterType: z.enum(["parent", "student"]),
     // Issue #437: demographics live on the case, never the account.
     whoFor: z.enum(["my_child", "myself", "someone_else"]),
+    // Issue #459: the child sub-profile this request is for (my_child only).
+    studentId: z.string().uuid().optional().nullable(),
     studentGender: z.enum(["female", "male", "prefer_not_to_say"]),
     // Case-level hard tutor gender preference (board dims Apply on mismatch).
     tutorGenderPreference: z.enum(["any", "male", "female"]).default("any"),
@@ -562,7 +567,24 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       preferredGender: data.tutorGenderPreference,
     });
 
+    // Issue #459: link the child sub-profile only if this parent owns it
+    // (dropped, never rejected, if stale or tampered).
+    let studentId: string | null = null;
+    if (data.whoFor === "my_child" && data.studentId) {
+      const owned = await selectRows<{ id: string; archived_at: string | null }>(
+        asAdminDb(supabaseAdmin),
+        "students",
+        "id, archived_at",
+        [{ col: "parent_user_id", op: "eq", value: context.userId }],
+      );
+      studentId = ownedChildIdOrNull(data.studentId, owned);
+    }
+
     const insertRow = {
+      // Issue #459: website cases never set parent_id, so "My cases" and the
+      // parent-side case actions (ownership-gated on it) never saw them.
+      parent_id: context.userId,
+      student_id: studentId,
       // Issue #423 (sections 2+3): structured auto-title when the structured
       // fields suffice; the legacy builder only covers rows it can't express.
       title:

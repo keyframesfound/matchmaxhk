@@ -3144,5 +3144,30 @@
     "error_window_closed": "Attendance can be marked from 15 minutes before the lesson until 7 days after.",
     "error_already_marked": "Attendance is already recorded for this lesson.",
     "managed_badge": "Managed"
+  },
+  "children": {
+    "title": "My children",
+    "desc": "Add each child once so their cases and lessons stay separate.",
+    "empty": "No children added yet.",
+    "add": "Add child",
+    "edit": "Edit",
+    "archive": "Remove",
+    "archive_confirm": "Remove {{name}}? Their past cases stay on record.",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel",
+    "nickname": "Nickname",
+    "nickname_placeholder": "What you call them, e.g. Anson",
+    "school": "School (optional)",
+    "curriculum": "Curriculum (optional)",
+    "curriculum_placeholder": "e.g. HKDSE, IB",
+    "grad_year": "Graduation year (optional)",
+    "saved": "Saved.",
+    "removed": "Removed.",
+    "error": "Something went wrong. Please try again.",
+    "soft_limit": "You have more than {{count}} children listed. That's fine, just check each one is a different child.",
+    "picker_label": "Which child is this for?",
+    "picker_hint": "Picking a child keeps siblings' cases separate.",
+    "picker_add_placeholder": "Child's nickname"
   }
 }
