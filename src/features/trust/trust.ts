@@ -195,6 +195,20 @@ export function resolveFirstLessonCap(settingValue: unknown): number {
     : DEFAULT_NEW_TUTOR_FIRST_LESSON_CAP;
 }
 
+/**
+ * #529 tutor-flake shadowban: the ISO end while it is still running, else
+ * null. Staff surfaces flag (not block) a shadowbanned tutor, like #508.
+ */
+export function activeShadowbanUntil(
+  shadowbanUntil: string | null | undefined,
+  now: Date,
+): string | null {
+  if (!shadowbanUntil) return null;
+  const end = Date.parse(shadowbanUntil);
+  if (!Number.isFinite(end) || end <= now.getTime()) return null;
+  return new Date(end).toISOString();
+}
+
 export type FirstLessonCapResult =
   { ok: true } | { ok: false; reason: "NEW_TUTOR_CAP_REACHED"; cap: number };
 

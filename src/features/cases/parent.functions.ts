@@ -24,6 +24,11 @@ import {
 import { canPublishHeldReview, isCaseFeeSettled } from "@/features/cases/case-reviews";
 import type { LessonConfirmRow } from "@/features/cases/case-reviews";
 import { sweepDueSessionLogs, type SessionLogRowT } from "@/features/cases/experience.functions";
+import {
+  matchedTutorCard,
+  type MatchedTutorCardView,
+  type MatchedTutorRow,
+} from "@/features/cases/parent/matched-tutor";
 
 type Row = Record<string, unknown>;
 type Db = ReturnType<typeof asAdminDb>;
@@ -160,6 +165,8 @@ export type ParentCaseDetail = {
   tutor_code: string | null;
   status: string;
   matched_tutor_id: string | null;
+  /** #529 bait-and-switch card: who was matched, on the case's locked terms. */
+  matched_tutor: MatchedTutorCardView | null;
   sor_status: SorStatus | null;
   /** #503 bilateral End Case: per-side markers (null until that side taps). */
   ended_by_parent_at: string | null;
@@ -210,11 +217,13 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         matched_tutor_id: string | null;
         ended_by_parent_at: string | null;
         ended_by_tutor_at: string | null;
-        tutors: { tutor_code: string | null } | null;
+        hourly_rate_hkd: number | null;
+        student_count: number | null;
+        tutors: MatchedTutorRow | null;
       }>(
         db,
         "tutoring_cases",
-        "case_code, title, subjects, exam_system, student_level, status, matched_tutor_id, ended_by_parent_at, ended_by_tutor_at, tutors(tutor_code)",
+        "case_code, title, subjects, exam_system, student_level, status, matched_tutor_id, ended_by_parent_at, ended_by_tutor_at, hourly_rate_hkd, student_count, tutors(tutor_code, display_name, photo_url, undergrad_university)",
         [{ col: "id", op: "eq", value: c.id }],
       ),
       selectRows<{
@@ -341,6 +350,13 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
       tutor_code: head?.tutors?.tutor_code ?? null,
       status: head?.status ?? c.status,
       matched_tutor_id: head?.matched_tutor_id ?? null,
+      matched_tutor: head?.matched_tutor_id
+        ? matchedTutorCard({
+            tutor: head.tutors,
+            hourlyRateHkd: head.hourly_rate_hkd,
+            studentCount: head.student_count,
+          })
+        : null,
       sor_status: c.sor_status,
       // #503 bilateral End Case state (who has tapped; the control derives
       // eligibility from sor_status via canEndCase).

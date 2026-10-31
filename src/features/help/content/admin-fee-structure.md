@@ -41,7 +41,9 @@ Parents pay you directly and never pay MatchMax. The admin fee is a separate arr
 
 ## Cancellations and no-shows
 
-If Lesson 1 is cancelled or the student does not show up, there is no admin fee. Nothing is owed until Lesson 1 actually happens.
+If Lesson 1 is cancelled with at least 24 hours' notice, or the match ends before Lesson 1 is ever booked, there is no admin fee.
+
+If the family does not show up for Lesson 1, or cancels it less than 24 hours before the start, the family still owes you the Lesson 1 rate, and the Lesson 1 portion of the admin fee applies (1.0 lesson). If they later continue, the normal 1.5-lesson total applies instead. Drop-Protection does not cover a no-show or a late cancellation.
 
 Once Lesson 1 is completed, however, the Lesson 1 portion of the fee is accrued and payable even if either party cancels before Lesson 2. The lesson happened and the match was delivered, so that portion stands. If you are ever unsure how to handle a cancellation, check the guidance on handling last-minute changes in [Confirm lesson dates, reschedules, and tutor sick days](/help/scheduling-logistics/coordinate-lesson-dates).
 

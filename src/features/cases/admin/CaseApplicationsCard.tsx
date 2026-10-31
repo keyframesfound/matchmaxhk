@@ -82,6 +82,17 @@ function ApplicationRow({
                   : ""}
               </span>
             ) : null}
+            {/* #529 flag (not a block): tutor quit a Lesson 1 without proof. */}
+            {application.shadowban_until ? (
+              <span
+                className="shrink-0 rounded border border-[color:var(--ink)]/[0.12] px-1.5 py-0.5 text-[10px] font-bold text-muted-foreground"
+                title={t("caseApplications.shadowbanned_hint")}
+              >
+                {t("caseApplications.shadowbanned", {
+                  date: format(new Date(application.shadowban_until), "d MMM yyyy"),
+                })}
+              </span>
+            ) : null}
           </p>
           <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
             {subjects.length > 0

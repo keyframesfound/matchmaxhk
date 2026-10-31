@@ -120,6 +120,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
         outOfWindow: false,
         windowEndsAt: null,
         warning: null,
+        shadowbanUntil: null,
       };
       return view;
     },
@@ -341,6 +342,14 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
                           {hit.referrerName ? ` · referred by ${hit.referrerName}` : ""}
                         </span>
                       </span>
+                      {hit.shadowbanUntil ? (
+                        <span
+                          className="shrink-0 text-[11px] font-bold text-muted-foreground"
+                          title="Quit a Lesson 1 without emergency proof (#529). Matching is allowed; prefer active tutors."
+                        >
+                          Shadowbanned to {format(new Date(hit.shadowbanUntil), "d MMM")}
+                        </span>
+                      ) : null}
                       <span className="shrink-0 text-[11px] font-bold text-[color:var(--brand-link)]">
                         Match
                       </span>

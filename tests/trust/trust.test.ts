@@ -9,6 +9,7 @@ import {
   isCaseRiskFlagType,
   maskName,
   maskPhone,
+  activeShadowbanUntil,
   parentContactView,
   resolveFirstLessonCap,
   verifiedHoursFromMinutes,
@@ -148,5 +149,23 @@ describe("vocabulary guards", () => {
     expect(isBlacklistReason("hostile")).toBe(false);
     expect(isCaseRiskFlagType("BYPASS_COLLUSION_RISK")).toBe(true);
     expect(isCaseRiskFlagType("NOPE")).toBe(false);
+  });
+});
+
+describe("activeShadowbanUntil (#529 flake shadowban)", () => {
+  const now = new Date("2026-10-31T12:00:00Z");
+
+  it("returns the end while the shadowban is still running", () => {
+    expect(activeShadowbanUntil("2026-11-20T00:00:00Z", now)).toBe("2026-11-20T00:00:00.000Z");
+  });
+
+  it("is null once the shadowban has ended", () => {
+    expect(activeShadowbanUntil("2026-10-31T11:59:59Z", now)).toBeNull();
+  });
+
+  it("is null for no shadowban or an unparseable value", () => {
+    expect(activeShadowbanUntil(null, now)).toBeNull();
+    expect(activeShadowbanUntil(undefined, now)).toBeNull();
+    expect(activeShadowbanUntil("not a date", now)).toBeNull();
   });
 });
