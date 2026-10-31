@@ -607,6 +607,31 @@
       "priceRange": "Price Range"
     }
   },
+  "deskTrack": {
+    "saved": "Desk track saved",
+    "review_set": "REVIEW flag set",
+    "level_label": "Desk track level",
+    "level_new": "New",
+    "level_active": "Active",
+    "level_experienced": "Experienced",
+    "hint_new": "Prefer foundation, junior secondary, short-case and Pro-Bono desks; avoid S6/DSE final and IBDP Y2 unless supply is thin.",
+    "hint_active": "Reached after 1 paid fee-collected case or 5+ verified Pro-Bono hours.",
+    "hint_experienced": "Manual in V1. Set from the Master Sheet judgement call.",
+    "guide_label": "Tutor Service Guide sent",
+    "guide_sent_at": "Sent {{when}}",
+    "guide_untouched": "Share in the private 1:1 at the first match (/tfirst).",
+    "guide_open": "Open Guide",
+    "guide_copy": "Copy link",
+    "dropoff_label": "Early L1 drop-offs",
+    "dropoff_hint": "Counted by the desk when a tutor goes quiet after Lesson 1. Two or more point at the REVIEW path.",
+    "dropoff_minus": "Decrease count",
+    "dropoff_plus": "Increase count",
+    "dropoff_note_placeholder": "Staff note: e.g. went silent after L1 on C-2001",
+    "review_hint": "{{count}} early L1 drop-offs. Set the REVIEW flag and keep this tutor on easier cases until one completes cleanly.",
+    "review_action": "Set REVIEW flag",
+    "chip_guide_sent": "Guide sent",
+    "chip_dropoffs": "L1 drop-offs: {{count}}"
+  },
   "directory": {
     "subtitle": "Blue Tick tutors have staff-checked transcripts, everyone else self-reports and shows proof before the first lesson.",
     "empty_title": "No tutors match these filters yet",
