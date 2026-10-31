@@ -1,13 +1,24 @@
-import { useMemo, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Loader2, Lock } from "lucide-react";
+import {
+  FileText,
+  ImageIcon,
+  Link2,
+  Loader2,
+  Lock,
+  Paperclip,
+  Sparkles,
+  Upload,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Progress } from "@/components/ui/progress";
 import {
   Select,
   SelectContent,
@@ -15,6 +26,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 import { findContactViolations } from "@/lib/contact-filter";
 import {
   GRADE_ACHIEVED_MAX_LEN,
@@ -28,32 +40,81 @@ import {
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { TermsGateCheckbox } from "@/features/legal/TermsGateCheckbox";
 import {
+  editLiveNote,
   saveNoteDraft,
   submitNoteForReview,
+  uploadNotePdf,
   type MyMaterialsRow,
 } from "@/features/materials/note-drafts.functions";
+import {
+  attachNoteMainPdf,
+  createNoteUploadTargets,
+  getNoteExtrasForOwner,
+  getNoteOriginalUrlForOwner,
+  importNotePdfFromLink,
+  saveNoteExtras,
+  updateNotePreviewPages,
+  type NoteExtra,
+} from "@/features/materials/note-uploads.functions";
+import { suggestNoteDetails } from "@/features/materials/note-ai.functions";
+import {
+  classifyUploadFile,
+  CONTENT_LANGUAGES,
+  detectLinkProvider,
+  getSubcategoriesForCurriculum,
+  MAX_EXTRA_FILE_BYTES,
+  MAX_EXTRA_FILES,
+  MAX_IMAGES_TO_MERGE,
+  MAX_LINKS,
+  MAX_MAIN_PDF_BYTES,
+  toDirectImportUrl,
+  UPLOAD_ACCEPT,
+  type UploadFormat,
+} from "@/features/materials/note-taxonomy";
+import {
+  extractPdfText,
+  fileToBase64,
+  formatBytes,
+  mergeImagesToPdf,
+  openPdf,
+  renderPage,
+  uploadToSignedUrl,
+} from "@/features/materials/note-file-tools";
+import { NotePreviewPicker } from "@/features/materials/note-preview-picker";
+import { NotePriceGuidePanel } from "@/features/materials/note-price-guide-panel";
 
 /**
- * P8 (#288) / P9 (#289) / #313 / #314 / #136: the draft-or-submit note form,
- * shared by /account/notes/new and /account/notes/$id/edit. Any subset saves
- * as a draft; submit enforces the required fields (title, price, file,
- * curriculum, subject, type) and the ban list via the contact filter, runs
- * it client-side (title, description, topic, grade achieved) so the tutor
- * sees which sentence failed before the server rejects it, gates exemplars
- * on the written-permission checkbox, allows HK$0 (free pack), and takes an
- * OPTIONAL approximate word count (positive integer when present). A
- * flashcards file may be a PDF or an .apkg deck (max 20MB, the repo upload
- * cap wins over the issue's 40MB); decks get no in-browser preview.
+ * P8/P9/#313/#314/#136 + notes upload v2: the draft-or-submit note form,
+ * shared by /account/notes/new and /account/notes/$id/edit.
+ *
+ * v2 adds, all inside this one form:
+ *  - one multi-format drop zone: a PDF (main), photos/scans (merged into one
+ *    PDF in the browser), Word/PPT/ZIP/video extras up to 2 GB each, and
+ *    cloud links (import a public Drive/Docs/Dropbox PDF, or attach the link
+ *    as a buyer download). Big files upload straight to Storage through
+ *    signed URLs with a progress bar;
+ *  - AI detection (Qwen via OpenRouter) that fills title, summary,
+ *    description, curriculum, subject, type, category, topic, year,
+ *    language and tags; every field stays editable;
+ *  - the preview-page picker (thumbnails, never the whole document);
+ *  - the Carousell-style price guide.
+ *
+ * Submit still enforces the required fields, the contact filter and the
+ * notes-terms gate exactly as before.
  */
 
-async function fileToBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result).split(",")[1] ?? "");
-    reader.onerror = () => reject(new Error("Could not read the file."));
-    reader.readAsDataURL(file);
-  });
-}
+type ExtraItem = {
+  key: string;
+  /** New file picked in this session (uploaded on save). */
+  file?: File;
+  /** Already stored extra (edit mode). */
+  stored?: NoteExtra;
+  name: string;
+  size: number;
+  format: UploadFormat | null;
+};
+
+type LinkItem = { key: string; url: string; label: string };
 
 const isNoteCurriculum = (value: string): value is (typeof NOTE_CURRICULA)[number] =>
   (NOTE_CURRICULA as readonly string[]).includes(value);
@@ -61,12 +122,36 @@ const isNoteCurriculum = (value: string): value is (typeof NOTE_CURRICULA)[numbe
 const isMaterialType = (value: string): value is MaterialType =>
   (MATERIAL_TYPES as readonly string[]).includes(value);
 
+const isContentLanguage = (value: string): value is (typeof CONTENT_LANGUAGES)[number] =>
+  (CONTENT_LANGUAGES as readonly string[]).includes(value);
+
+let keySeq = 0;
+const nextKey = () => `k${(keySeq += 1)}`;
+
+const LIVE_STATUSES = new Set(["published", "hidden"]);
+
+function parseTags(text: string): string[] {
+  return Array.from(
+    new Set(
+      text
+        .split(/[,，、\n]/)
+        .map((t) => t.trim())
+        .filter((t) => t.length >= 1 && t.length <= 30),
+    ),
+  ).slice(0, 20);
+}
+
 export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null }) {
   const { t } = useTranslation();
+  const isLive = Boolean(existing && LIVE_STATUSES.has(existing.status));
+
+  // --- Listing details -----------------------------------------------------
   const [title, setTitle] = useState(existing?.title ?? "");
-  const [description, setDescription] = useState("");
+  const [summary, setSummary] = useState(existing?.summary ?? "");
+  const [description, setDescription] = useState(existing?.description ?? "");
   const [price, setPrice] = useState<string>(existing ? String(existing.priceHkd ?? 0) : "");
   const [curriculum, setCurriculum] = useState<string>(existing?.curriculumTag ?? "");
+  const [subcategory, setSubcategory] = useState<string>(existing?.subcategory ?? "");
   const [subject, setSubject] = useState(existing?.subjectTag ?? "");
   const [materialType, setMaterialType] = useState<MaterialType>(
     existing?.materialType && isMaterialType(existing.materialType)
@@ -78,33 +163,235 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   const [exemplarPermission, setExemplarPermission] = useState(
     existing?.exemplarPermission === true,
   );
-  const [year, setYear] = useState("");
+  const [year, setYear] = useState(existing?.yearTag ?? "");
   const [wordCount, setWordCount] = useState(
     existing?.wordCount != null ? String(existing.wordCount) : "",
   );
-  const [file, setFile] = useState<File | null>(null);
+  const [language, setLanguage] = useState<string>(existing?.contentLanguage ?? "");
+  const [tagsText, setTagsText] = useState((existing?.searchTags ?? []).join(", "));
+
+  // --- Files -----------------------------------------------------------------
+  const [pdfFile, setPdfFile] = useState<File | null>(null);
+  const [images, setImages] = useState<File[]>([]);
+  const [mergedPdf, setMergedPdf] = useState<File | null>(null);
+  const [merging, setMerging] = useState(false);
+  const [apkgFile, setApkgFile] = useState<File | null>(null);
+  const [extras, setExtras] = useState<ExtraItem[]>([]);
+  const [links, setLinks] = useState<LinkItem[]>([]);
+  const [extrasDirty, setExtrasDirty] = useState(false);
+  const [linkInput, setLinkInput] = useState("");
+  const [importing, setImporting] = useState(false);
+  /** Owner-signed URL of the server-side original (imported link / edit mode). */
+  const [remoteMainUrl, setRemoteMainUrl] = useState<string | null>(null);
+  const [previewPicks, setPreviewPicks] = useState<number[] | null>(
+    existing?.previewPageIndices ?? null,
+  );
+  const [picksDirty, setPicksDirty] = useState(false);
+  const [mainPageCount, setMainPageCount] = useState<number | null>(existing?.pageCount ?? null);
+  const [materialId, setMaterialId] = useState<string | undefined>(existing?.id);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [dragOver, setDragOver] = useState(false);
+
+  // --- Progress / AI ---------------------------------------------------------
   const [saving, setSaving] = useState(false);
-  // Issue #214: the notes-terms gate, required for SUBMIT (drafts save
-  // without it); the server fn re-validates and records the acceptance row.
+  const [progress, setProgress] = useState<Record<string, number>>({});
+  const [aiBusy, setAiBusy] = useState(false);
+  const [aiNote, setAiNote] = useState<string | null>(null);
+  const autoDetected = useRef(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
 
   const subjectOptions = useMemo(
     () => getSubjectOptionsForCategory(curriculum || undefined),
     [curriculum],
   );
+  const subcategoryOptions = useMemo(
+    () => (curriculum ? getSubcategoriesForCurriculum(curriculum) : []),
+    [curriculum],
+  );
 
-  const copyViolations = useMemo(() => {
-    const titleV = findContactViolations(title);
-    const descV = findContactViolations(description);
-    const topicV = findContactViolations(topic);
-    const gradeV = findContactViolations(gradeAchieved);
-    return { titleV, descV, topicV, gradeV };
-  }, [title, description, topic, gradeAchieved]);
+  // Edit mode: load stored extras + links once.
+  const extrasQuery = useQuery({
+    queryKey: ["notes", "owner-extras", existing?.id],
+    queryFn: () => getNoteExtrasForOwner({ data: { materialId: existing?.id ?? "" } }),
+    enabled: Boolean(existing?.id),
+    staleTime: Infinity,
+  });
+  useEffect(() => {
+    if (!extrasQuery.data) return;
+    setExtras(
+      extrasQuery.data
+        .filter((e) => e.kind === "file")
+        .map((e) => ({
+          key: nextKey(),
+          stored: e,
+          name: e.fileName ?? e.label ?? "file",
+          size: e.sizeBytes ?? 0,
+          format: (e.format as UploadFormat | null) ?? null,
+        })),
+    );
+    setLinks(
+      extrasQuery.data
+        .filter((e) => e.kind === "link" && e.url)
+        .map((e) => ({ key: nextKey(), url: e.url ?? "", label: e.label ?? "" })),
+    );
+  }, [extrasQuery.data]);
 
-  const done = () => {
-    window.location.assign("/account");
+  // Edit mode: the stored original drives the page picker until replaced.
+  useEffect(() => {
+    if (!existing?.id || isLive) return;
+    let cancelled = false;
+    getNoteOriginalUrlForOwner({ data: { materialId: existing.id } })
+      .then(({ url }) => {
+        if (!cancelled && url) setRemoteMainUrl(url);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [existing?.id, isLive]);
+
+  // Photos / scans merge into one PDF when there is no PDF.
+  useEffect(() => {
+    if (images.length === 0 || pdfFile) {
+      setMergedPdf(null);
+      return;
+    }
+    let cancelled = false;
+    setMerging(true);
+    mergeImagesToPdf(images, "photos.pdf")
+      .then((file) => {
+        if (cancelled) return;
+        if (file.size > MAX_MAIN_PDF_BYTES) {
+          toast.error(t("notes.upload.merged_too_large"));
+          setMergedPdf(null);
+        } else {
+          setMergedPdf(file);
+        }
+      })
+      .catch((error: unknown) =>
+        toast.error(error instanceof Error ? error.message : t("notes.upload.merge_failed")),
+      )
+      .finally(() => {
+        if (!cancelled) setMerging(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [images, pdfFile, t]);
+
+  const mainLocal = pdfFile ?? mergedPdf;
+  const mainSource: File | string | null = mainLocal ?? remoteMainUrl;
+
+  // --- Validation -------------------------------------------------------------
+  const copyViolations = useMemo(
+    () => ({
+      titleV: findContactViolations(title),
+      summaryV: findContactViolations(summary),
+      descV: findContactViolations(description),
+      topicV: findContactViolations(topic),
+      gradeV: findContactViolations(gradeAchieved),
+    }),
+    [title, summary, description, topic, gradeAchieved],
+  );
+  const blockedByContact = Object.values(copyViolations).some((v) => v.length > 0);
+  const wordCountError = validateWordCount(wordCount.trim() === "" ? null : Number(wordCount));
+  const apkgTooLarge = apkgFile != null && apkgFile.size > MAX_APKG_BYTES;
+  const hasMainFile =
+    Boolean(mainLocal || apkgFile || remoteMainUrl) ||
+    Boolean(existing?.previewUrl) ||
+    Boolean(existing && existing.pageCount != null);
+
+  const missing: string[] = [];
+  if (title.trim().length < 3) missing.push(t("notes.form.field_title"));
+  const priceNum = price.trim() === "" ? Number.NaN : Number(price);
+  if (Number.isNaN(priceNum) || priceNum < 0) missing.push(t("notes.form.field_price"));
+  if (!hasMainFile) missing.push(t("notes.form.field_pdf"));
+  if (!curriculum) missing.push(t("notes.form.field_curriculum"));
+  if (!subject.trim()) missing.push(t("notes.form.field_subject"));
+  if (materialType === "exemplar" && !exemplarPermission)
+    missing.push(t("notes.form.exemplar_permission_short"));
+  if (!isLive && !termsAccepted) missing.push(t("terms.gate.missing"));
+
+  // --- Files: add / remove ------------------------------------------------------
+  const addFiles = (list: FileList | File[]) => {
+    const incoming = Array.from(list);
+    let nextExtras = [...extras];
+    const nextImages = [...images];
+    let nextPdf = pdfFile;
+    for (const file of incoming) {
+      const format = classifyUploadFile(file.name);
+      if (!format) {
+        toast.error(t("notes.upload.unsupported", { name: file.name }));
+        continue;
+      }
+      if (format === "pdf" && !nextPdf) {
+        if (file.size > MAX_MAIN_PDF_BYTES) {
+          toast.message(t("notes.upload.pdf_too_big_for_preview", { name: file.name }));
+        } else {
+          nextPdf = file;
+          continue;
+        }
+      }
+      if (format === "image" && !nextPdf && nextImages.length < MAX_IMAGES_TO_MERGE) {
+        nextImages.push(file);
+        continue;
+      }
+      if (format === "apkg" && materialType === "flashcards" && !apkgFile) {
+        setApkgFile(file);
+        continue;
+      }
+      if (file.size > MAX_EXTRA_FILE_BYTES) {
+        toast.error(t("notes.upload.too_large_2gb", { name: file.name }));
+        continue;
+      }
+      if (nextExtras.length >= MAX_EXTRA_FILES) {
+        toast.error(t("notes.upload.too_many_files", { count: MAX_EXTRA_FILES }));
+        break;
+      }
+      nextExtras = [
+        ...nextExtras,
+        { key: nextKey(), file, name: file.name, size: file.size, format },
+      ];
+    }
+    if (nextPdf !== pdfFile) {
+      setPdfFile(nextPdf);
+      setPreviewPicks(null);
+      setPicksDirty(true);
+      autoDetected.current = false;
+    }
+    if (nextImages.length !== images.length) {
+      setImages(nextImages);
+      setPreviewPicks(null);
+      setPicksDirty(true);
+      autoDetected.current = false;
+    }
+    if (nextExtras.length !== extras.length) {
+      setExtras(nextExtras);
+      setExtrasDirty(true);
+    }
   };
 
+  const removeExtra = (key: string) => {
+    setExtras((prev) => prev.filter((e) => e.key !== key));
+    setExtrasDirty(true);
+  };
+
+  const addLink = () => {
+    const url = linkInput.trim();
+    if (!detectLinkProvider(url)) {
+      toast.error(t("notes.upload.link_invalid"));
+      return;
+    }
+    if (links.length >= MAX_LINKS) {
+      toast.error(t("notes.upload.too_many_links", { count: MAX_LINKS }));
+      return;
+    }
+    setLinks((prev) => [...prev, { key: nextKey(), url, label: "" }]);
+    setExtrasDirty(true);
+    setLinkInput("");
+  };
+
+  // --- Meta payload ---------------------------------------------------------------
   const payload = () => ({
     title: title.trim(),
     description: description.trim() || undefined,
@@ -117,80 +404,317 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     exemplarPermission: materialType === "exemplar" ? exemplarPermission : false,
     wordCount: wordCount.trim() === "" ? null : Number(wordCount),
     yearTag: year.trim() || undefined,
+    summary: summary.trim() || null,
+    subcategory: subcategory || null,
+    searchTags: parseTags(tagsText),
+    contentLanguage: isContentLanguage(language) ? language : null,
+    sourceFormats: Array.from(
+      new Set(
+        [
+          pdfFile || remoteMainUrl ? "pdf" : null,
+          images.length > 0 ? "image" : null,
+          apkgFile ? "apkg" : null,
+          ...extras.map((e) => e.format),
+          links.length > 0 ? "link" : null,
+        ].filter((f): f is UploadFormat => Boolean(f)),
+      ),
+    ),
   });
 
-  const draftMutation = useMutation({
-    mutationFn: async () =>
-      saveNoteDraft({
-        data: {
-          materialId: existing?.id,
-          ...payload(),
-        },
-      }),
-    onSuccess: () => {
-      toast.success(t("notes.form.draft_saved"));
-      done();
+  /** Make sure a row exists (draft) and return its id. */
+  const ensureDraft = async (): Promise<string> => {
+    if (materialId) return materialId;
+    const { materialId: id } = await saveNoteDraft({ data: payload() });
+    if (!id) throw new Error(t("notes.form.save_failed"));
+    setMaterialId(id);
+    return id;
+  };
+
+  // --- AI detection -----------------------------------------------------------------
+  const runDetect = useCallback(
+    async (overwrite: boolean) => {
+      if (!mainSource) {
+        toast.error(t("notes.ai.need_file"));
+        return;
+      }
+      setAiBusy(true);
+      setAiNote(null);
+      try {
+        const doc = await openPdf(mainSource);
+        const text = await extractPdfText(doc);
+        const pageImages: string[] = [];
+        if (text.replace(/\s+/g, "").length < 200) {
+          for (let i = 1; i <= Math.min(3, doc.numPages); i += 1) {
+            pageImages.push(await renderPage(doc, i, 900, "image/jpeg", 0.7));
+          }
+        }
+        const fileName = pdfFile?.name ?? (mergedPdf ? "photos.pdf" : null);
+        const suggestion = await suggestNoteDetails({
+          data: {
+            fileName,
+            pageCount: doc.numPages,
+            text,
+            images: pageImages,
+          },
+        });
+        await doc.destroy();
+        let filled = 0;
+        const apply = (current: string, next: string, set: (v: string) => void) => {
+          if (!next) return;
+          if (overwrite || !current.trim()) {
+            set(next);
+            filled += 1;
+          }
+        };
+        apply(title, suggestion.title, setTitle);
+        apply(summary, suggestion.summary, setSummary);
+        apply(description, suggestion.description, setDescription);
+        if (suggestion.curriculum && (overwrite || !curriculum)) {
+          setCurriculum(suggestion.curriculum);
+          filled += 1;
+          if (suggestion.subject) {
+            setSubject(suggestion.subject);
+            filled += 1;
+          }
+          if (suggestion.subcategory) {
+            setSubcategory(suggestion.subcategory);
+            filled += 1;
+          }
+        } else {
+          apply(subject, suggestion.subject, setSubject);
+          apply(subcategory, suggestion.subcategory, setSubcategory);
+        }
+        if (
+          suggestion.materialType &&
+          (overwrite || (!existing && materialType === "notes")) &&
+          suggestion.materialType !== materialType
+        ) {
+          setMaterialType(suggestion.materialType);
+          filled += 1;
+        }
+        apply(topic, suggestion.topic, setTopic);
+        apply(year, suggestion.year, setYear);
+        apply(language, suggestion.language, setLanguage);
+        if (suggestion.tags.length > 0 && (overwrite || !tagsText.trim())) {
+          setTagsText(suggestion.tags.join(", "));
+          filled += 1;
+        }
+        setAiNote(t("notes.ai.applied", { count: filled }));
+      } catch (error) {
+        setAiNote(null);
+        toast.error(error instanceof Error ? error.message : t("notes.ai.failed"));
+      } finally {
+        setAiBusy(false);
+      }
     },
-    onError: (error) =>
-      toast.error(error instanceof Error ? error.message : t("notes.form.save_failed")),
-    onSettled: () => setSaving(false),
-  });
+    [
+      mainSource,
+      pdfFile,
+      mergedPdf,
+      title,
+      summary,
+      description,
+      curriculum,
+      subject,
+      subcategory,
+      materialType,
+      topic,
+      year,
+      language,
+      tagsText,
+      existing,
+      t,
+    ],
+  );
 
-  const submitMutation = useMutation({
-    mutationFn: async () => {
-      const base64 = file ? await fileToBase64(file) : undefined;
-      return submitNoteForReview({
+  // Auto-detect once per newly added (or imported) main file while the
+  // title is still empty; edit mode never auto-runs (the title is set).
+  useEffect(() => {
+    if (!mainSource || autoDetected.current || title.trim() || aiBusy) return;
+    autoDetected.current = true;
+    void runDetect(false);
+  }, [mainSource, title, aiBusy, runDetect]);
+
+  // --- Import a public link as the main PDF -------------------------------------------
+  const importLink = async () => {
+    const url = linkInput.trim();
+    if (!toDirectImportUrl(url)) {
+      toast.error(t("notes.upload.import_unsupported"));
+      return;
+    }
+    setImporting(true);
+    try {
+      const id = await ensureDraft();
+      const result = await importNotePdfFromLink({
+        data: { materialId: id, url, previewPageIndices: null },
+      });
+      setPdfFile(null);
+      setImages([]);
+      setRemoteMainUrl(result.ownerFileUrl);
+      setPreviewPicks(null);
+      setPicksDirty(false);
+      if (result.pageCount) setMainPageCount(result.pageCount);
+      setLinkInput("");
+      autoDetected.current = false;
+      toast.success(t("notes.upload.imported"));
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : t("notes.upload.import_failed"));
+    } finally {
+      setImporting(false);
+    }
+  };
+
+  // --- Save pipeline ----------------------------------------------------------------------
+  const persist = async (kind: "draft" | "submit") => {
+    const meta = payload();
+    let id = materialId;
+
+    // 1. Listing details.
+    if (isLive && id) {
+      await editLiveNote({
         data: {
-          materialId: existing?.id,
-          ...payload(),
-          base64Data: base64,
-          fileName: file?.name,
-          // Issue #214: only reachable with the terms gate checked (it sits
-          // in the `missing` list below), but the server re-validates it.
-          legalAgreed: true,
+          materialId: id,
+          title: meta.title,
+          description: meta.description,
+          priceHkd: meta.priceHkd,
+          yearTag: meta.yearTag,
+          summary: meta.summary,
+          subcategory: meta.subcategory,
+          searchTags: meta.searchTags,
+          contentLanguage: meta.contentLanguage,
         },
       });
-    },
-    onSuccess: () => {
-      toast.success(t("notes.form.submitted"));
-      done();
+    } else {
+      const saved = await saveNoteDraft({ data: { materialId: id, ...meta } });
+      id = saved.materialId;
+      setMaterialId(id);
+    }
+    if (!id) throw new Error(t("notes.form.save_failed"));
+
+    // 2. Files that go straight to Storage (main PDF + new extras).
+    const newExtras = isLive ? [] : extras.filter((e) => e.file);
+    const imagesAsExtras = pdfFile && images.length > 0 && !isLive ? images : [];
+    const extraFiles: { key: string; file: File }[] = [
+      ...newExtras.map((e) => ({ key: e.key, file: e.file as File })),
+      ...imagesAsExtras.map((file) => ({ key: nextKey(), file })),
+    ];
+    const uploadMain = mainLocal && !apkgFile ? mainLocal : null;
+    if (uploadMain || extraFiles.length > 0) {
+      const targets = await createNoteUploadTargets({
+        data: {
+          materialId: id,
+          files: [
+            ...(uploadMain
+              ? [{ role: "main" as const, fileName: uploadMain.name, sizeBytes: uploadMain.size }]
+              : []),
+            ...extraFiles.map((x) => ({
+              role: "extra" as const,
+              fileName: x.file.name,
+              sizeBytes: x.file.size,
+            })),
+          ],
+        },
+      });
+      let extraIndex = 0;
+      const uploadedExtras: { path: string; fileName: string; sizeBytes: number }[] = [];
+      for (const target of targets) {
+        if (target.role === "main" && uploadMain) {
+          await uploadToSignedUrl(target.signedUrl, uploadMain, (f) =>
+            setProgress((p) => ({ ...p, main: f })),
+          );
+          await attachNoteMainPdf({
+            data: {
+              materialId: id,
+              path: target.path,
+              fileName: uploadMain.name,
+              previewPageIndices: previewPicks,
+            },
+          });
+        } else {
+          const item = extraFiles[extraIndex];
+          extraIndex += 1;
+          await uploadToSignedUrl(target.signedUrl, item.file, (f) =>
+            setProgress((p) => ({ ...p, [item.key]: f })),
+          );
+          uploadedExtras.push({
+            path: target.path,
+            fileName: item.file.name,
+            sizeBytes: item.file.size,
+          });
+        }
+      }
+      if (!isLive && (extrasDirty || uploadedExtras.length > 0)) {
+        await saveNoteExtras({
+          data: {
+            materialId: id,
+            files: [
+              ...extras
+                .filter((e) => e.stored?.path)
+                .map((e) => ({
+                  path: e.stored?.path as string,
+                  fileName: e.name,
+                  sizeBytes: e.size,
+                })),
+              ...uploadedExtras,
+            ],
+            links: links.map((l) => ({ url: l.url, label: l.label || null })),
+          },
+        });
+      }
+    } else if (!isLive && extrasDirty) {
+      await saveNoteExtras({
+        data: {
+          materialId: id,
+          files: extras
+            .filter((e) => e.stored?.path)
+            .map((e) => ({ path: e.stored?.path as string, fileName: e.name, sizeBytes: e.size })),
+          links: links.map((l) => ({ url: l.url, label: l.label || null })),
+        },
+      });
+    }
+
+    // 3. Flashcard decks (.apkg, <= 20 MB) keep the original base64 path.
+    if (apkgFile) {
+      await uploadNotePdf({
+        data: { materialId: id, fileName: apkgFile.name, base64Data: await fileToBase64(apkgFile) },
+      });
+    }
+
+    // 4. Re-picked preview pages on an already stored PDF.
+    if (!uploadMain && !isLive && picksDirty && previewPicks && previewPicks.length > 0) {
+      await updateNotePreviewPages({ data: { materialId: id, previewPageIndices: previewPicks } });
+    }
+
+    // 5. Submit for staff review.
+    if (kind === "submit" && !isLive) {
+      await submitNoteForReview({ data: { materialId: id, ...meta, legalAgreed: true } });
+    }
+  };
+
+  const saveMutation = useMutation({
+    mutationFn: persist,
+    onSuccess: (_data, kind) => {
+      toast.success(
+        isLive
+          ? t("notes.upload.live_saved")
+          : kind === "submit"
+            ? t("notes.form.submitted")
+            : t("notes.form.draft_saved"),
+      );
+      window.location.assign("/account");
     },
     onError: (error) =>
       toast.error(error instanceof Error ? error.message : t("notes.form.submit_failed")),
-    onSettled: () => setSaving(false),
+    onSettled: () => {
+      setSaving(false);
+      setProgress({});
+    },
   });
 
-  const missing: string[] = [];
-  if (title.trim().length < 3) missing.push(t("notes.form.field_title"));
-  const priceNum = price.trim() === "" ? Number.NaN : Number(price);
-  if (Number.isNaN(priceNum) || priceNum < 0) missing.push(t("notes.form.field_price"));
-  if (!file && !existing?.previewUrl) missing.push(t("notes.form.field_pdf"));
-  if (!curriculum) missing.push(t("notes.form.field_curriculum"));
-  if (!subject.trim()) missing.push(t("notes.form.field_subject"));
-  if (materialType === "exemplar" && !exemplarPermission)
-    missing.push(t("notes.form.exemplar_permission_short"));
-  // Issue #214: submit (not draft) is also the notes-terms acceptance click.
-  if (!termsAccepted) missing.push(t("terms.gate.missing"));
-
-  // #136: the approximate word count is OPTIONAL, empty never blocks
-  // publish, but a present value must be a positive whole number.
-  const wordCountError = validateWordCount(wordCount.trim() === "" ? null : Number(wordCount));
-  // A present-but-invalid file is also a hard block (#314): only PDFs and,
-  // for flashcards, .apkg decks are accepted, and the repo upload cap is
-  // 20MB (the issue's 40MB loses to the Workers body limit).
-  const fileTooLarge = file != null && file.size > MAX_APKG_BYTES;
-
-  const blockedByContact =
-    copyViolations.titleV.length > 0 ||
-    copyViolations.descV.length > 0 ||
-    copyViolations.topicV.length > 0 ||
-    copyViolations.gradeV.length > 0;
-
   const run = (kind: "draft" | "submit") => {
-    if (wordCountError || fileTooLarge) return;
+    if (wordCountError || apkgTooLarge || merging) return;
     setSaving(true);
-    if (kind === "draft") draftMutation.mutate();
-    else submitMutation.mutate();
+    saveMutation.mutate(kind);
   };
 
   const violationNote = (violations: { match: string }[]) =>
@@ -205,130 +729,548 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
       </p>
     ) : null;
 
+  const progressBar = (key: string) =>
+    progress[key] != null ? (
+      <Progress value={Math.round((progress[key] ?? 0) * 100)} className="mt-1 h-1.5" />
+    ) : null;
+
+  const tags = parseTags(tagsText);
+
   return (
     <form
-      className="space-y-5"
+      className="space-y-8"
       onSubmit={(event) => {
         event.preventDefault();
         if (!blockedByContact && missing.length === 0) run("submit");
       }}
     >
-      <div className="space-y-1.5">
-        <Label htmlFor="note-title">{t("notes.form.field_title")}</Label>
-        <Input
-          id="note-title"
-          value={title}
-          maxLength={160}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder={t("notes.form.title_placeholder")}
-          className="h-11"
-        />
-        {violationNote(copyViolations.titleV)}
-      </div>
+      {/* 1. Files ------------------------------------------------------------- */}
+      <section className="space-y-3">
+        <div>
+          <h2 className="text-base font-bold">{t("notes.upload.step_files")}</h2>
+          <p className="text-sm text-muted-foreground">{t("notes.upload.step_files_hint")}</p>
+        </div>
 
-      <div className="space-y-1.5">
-        <Label htmlFor="note-description">{t("notes.form.field_contents")}</Label>
-        <textarea
-          id="note-description"
-          value={description}
-          maxLength={4000}
-          onChange={(e) => setDescription(e.target.value)}
-          rows={5}
-          placeholder={t("notes.form.contents_placeholder")}
-          className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
-        />
-        {violationNote(copyViolations.descV)}
-      </div>
+        <div
+          role="button"
+          tabIndex={0}
+          onClick={() => fileInputRef.current?.click()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              fileInputRef.current?.click();
+            }
+          }}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setDragOver(true);
+          }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setDragOver(false);
+            if (e.dataTransfer.files.length > 0) addFiles(e.dataTransfer.files);
+          }}
+          className={cn(
+            "flex cursor-pointer flex-col items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-4 py-8 text-center transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+            dragOver
+              ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/5"
+              : "border-border hover:bg-muted/30",
+          )}
+        >
+          <Upload className="h-6 w-6 text-[color:var(--brand-link)]" aria-hidden />
+          <p className="text-sm font-semibold">{t("notes.upload.drop_title")}</p>
+          <p className="text-xs text-muted-foreground">{t("notes.upload.drop_formats")}</p>
+          <input
+            ref={fileInputRef}
+            id="note-files"
+            type="file"
+            multiple
+            accept={UPLOAD_ACCEPT}
+            className="sr-only"
+            onChange={(e) => {
+              if (e.target.files) addFiles(e.target.files);
+              e.target.value = "";
+            }}
+          />
+        </div>
 
-      <div className="grid gap-4 sm:grid-cols-2">
+        {/* Cloud link: import as the main PDF, or attach as a download link. */}
         <div className="space-y-1.5">
-          <Label htmlFor="note-curriculum">{t("notes.form.field_curriculum")}</Label>
-          <Select
-            value={curriculum}
-            onValueChange={(v) => {
-              setCurriculum(v);
-              setSubject("");
-            }}
-          >
-            <SelectTrigger id="note-curriculum" className="w-full">
-              <SelectValue placeholder={t("notes.form.curriculum_placeholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              {NOTE_CURRICULA.map((entry) => (
-                <SelectItem key={entry} value={entry}>
-                  {entry === "Other" ? t("notes.form.curriculum_other") : entry}
-                </SelectItem>
-              ))}
-              {/* #313 review fix: legacy free-text values stay visible so the
-                  owner can migrate them onto the canonical list. */}
-              {curriculum && !isNoteCurriculum(curriculum) ? (
-                <SelectItem value={curriculum}>
-                  {curriculum} ({t("notes.form.legacy_value")})
-                </SelectItem>
+          <Label htmlFor="note-link">{t("notes.upload.link_label")}</Label>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Input
+              id="note-link"
+              value={linkInput}
+              onChange={(e) => setLinkInput(e.target.value)}
+              placeholder="https://drive.google.com/file/d/..."
+              className="h-11 flex-1"
+            />
+            <Button
+              type="button"
+              variant="outline"
+              disabled={importing || !linkInput.trim() || isLive}
+              onClick={() => void importLink()}
+            >
+              {importing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden /> : null}
+              {t("notes.upload.import_pdf")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              disabled={!linkInput.trim() || isLive}
+              onClick={addLink}
+            >
+              <Link2 className="mr-2 h-4 w-4" aria-hidden />
+              {t("notes.upload.add_link")}
+            </Button>
+          </div>
+          <p className="text-xs text-muted-foreground">{t("notes.upload.link_hint")}</p>
+        </div>
+
+        {/* What will be uploaded */}
+        <ul className="space-y-2">
+          {pdfFile ? (
+            <li className="rounded-xl border border-border p-3">
+              <div className="flex items-center gap-3">
+                <FileText className="h-4 w-4 shrink-0 text-[color:var(--brand-link)]" aria-hidden />
+                <span className="min-w-0 flex-1 truncate text-sm font-medium">{pdfFile.name}</span>
+                <span className="text-xs text-muted-foreground">{formatBytes(pdfFile.size)}</span>
+                <span className="rounded bg-accent px-1.5 text-[11px] font-semibold text-accent-foreground">
+                  {t("notes.upload.badge_main")}
+                </span>
+                <button
+                  type="button"
+                  aria-label={t("notes.upload.remove")}
+                  onClick={() => {
+                    setPdfFile(null);
+                    setPreviewPicks(null);
+                  }}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" aria-hidden />
+                </button>
+              </div>
+              {progressBar("main")}
+            </li>
+          ) : null}
+          {images.length > 0 ? (
+            <li className="rounded-xl border border-border p-3">
+              <div className="flex items-center gap-3">
+                <ImageIcon
+                  className="h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                  aria-hidden
+                />
+                <span className="min-w-0 flex-1 text-sm font-medium">
+                  {pdfFile
+                    ? t("notes.upload.images_as_extras", { count: images.length })
+                    : t("notes.upload.images_merged", { count: images.length })}
+                </span>
+                {merging ? (
+                  <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" aria-hidden />
+                ) : null}
+                <button
+                  type="button"
+                  aria-label={t("notes.upload.remove")}
+                  onClick={() => setImages([])}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" aria-hidden />
+                </button>
+              </div>
+              {!pdfFile ? progressBar("main") : null}
+            </li>
+          ) : null}
+          {remoteMainUrl && !mainLocal ? (
+            <li className="flex items-center gap-3 rounded-xl border border-border p-3 text-sm">
+              <FileText className="h-4 w-4 shrink-0 text-[color:var(--brand-link)]" aria-hidden />
+              <span className="flex-1">{t("notes.upload.stored_main")}</span>
+              <span className="rounded bg-accent px-1.5 text-[11px] font-semibold text-accent-foreground">
+                {t("notes.upload.badge_main")}
+              </span>
+            </li>
+          ) : null}
+          {apkgFile ? (
+            <li className="flex items-center gap-3 rounded-xl border border-border p-3 text-sm">
+              <Paperclip className="h-4 w-4 shrink-0" aria-hidden />
+              <span className="min-w-0 flex-1 truncate">{apkgFile.name}</span>
+              {apkgTooLarge ? (
+                <span className="text-xs text-destructive">{t("notes.form.file_too_large")}</span>
               ) : null}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="note-subject">{t("notes.form.field_subject")}</Label>
-          <Select value={subject} onValueChange={setSubject}>
-            <SelectTrigger id="note-subject" className="w-full">
-              <SelectValue placeholder={t("notes.form.subject_placeholder")} />
-            </SelectTrigger>
-            <SelectContent>
-              {subjectOptions.map((entry) => (
-                <SelectItem key={entry} value={entry}>
-                  {entry}
-                </SelectItem>
-              ))}
-              {/* #313 review fix: a stored subject outside the current
-                  curriculum's list still renders instead of a blank select. */}
-              {subject && !subjectOptions.includes(subject) ? (
-                <SelectItem value={subject}>
-                  {subject} ({t("notes.form.legacy_value")})
-                </SelectItem>
+              <button
+                type="button"
+                aria-label={t("notes.upload.remove")}
+                onClick={() => setApkgFile(null)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4" aria-hidden />
+              </button>
+            </li>
+          ) : null}
+          {extras.map((item) => (
+            <li key={item.key} className="rounded-xl border border-border p-3">
+              <div className="flex items-center gap-3 text-sm">
+                <Paperclip className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+                <span className="min-w-0 flex-1 truncate">{item.name}</span>
+                <span className="text-xs text-muted-foreground">
+                  {item.size ? formatBytes(item.size) : ""}
+                </span>
+                <span className="rounded border border-border px-1.5 text-[11px] font-semibold">
+                  {t(`notes.format.${item.format ?? "file"}`)}
+                </span>
+                {!isLive ? (
+                  <button
+                    type="button"
+                    aria-label={t("notes.upload.remove")}
+                    onClick={() => removeExtra(item.key)}
+                    className="text-muted-foreground hover:text-foreground"
+                  >
+                    <X className="h-4 w-4" aria-hidden />
+                  </button>
+                ) : null}
+              </div>
+              {progressBar(item.key)}
+            </li>
+          ))}
+          {links.map((link) => (
+            <li
+              key={link.key}
+              className="flex items-center gap-3 rounded-xl border border-border p-3 text-sm"
+            >
+              <Link2 className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+              <span className="min-w-0 flex-1 truncate">{link.url}</span>
+              <span className="rounded border border-border px-1.5 text-[11px] font-semibold">
+                {t(`notes.format.${detectLinkProvider(link.url) ?? "link"}`)}
+              </span>
+              {!isLive ? (
+                <button
+                  type="button"
+                  aria-label={t("notes.upload.remove")}
+                  onClick={() => {
+                    setLinks((prev) => prev.filter((l) => l.key !== link.key));
+                    setExtrasDirty(true);
+                  }}
+                  className="text-muted-foreground hover:text-foreground"
+                >
+                  <X className="h-4 w-4" aria-hidden />
+                </button>
               ) : null}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="note-type">{t("notes.form.field_type")}</Label>
-          <Select
-            value={materialType}
-            onValueChange={(v) => {
-              if (isMaterialType(v)) {
-                setMaterialType(v);
-                if (v !== "exemplar") {
-                  setGradeAchieved("");
-                  setExemplarPermission(false);
-                }
-              }
-            }}
+            </li>
+          ))}
+        </ul>
+        {isLive ? (
+          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Lock className="h-3 w-3" aria-hidden />
+            {t("notes.upload.live_files_note")}
+          </p>
+        ) : (
+          <p className="flex items-center gap-1 text-xs text-muted-foreground">
+            <Lock className="h-3 w-3" aria-hidden />
+            {t("notes.upload.private_note")}
+          </p>
+        )}
+      </section>
+
+      {/* 2. AI detection -------------------------------------------------------- */}
+      <section className="space-y-2 rounded-2xl border border-border bg-muted/20 p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <p className="flex items-center gap-2 text-sm font-bold">
+              <Sparkles className="h-4 w-4 text-[color:var(--brand-link)]" aria-hidden />
+              {t("notes.ai.title")}
+            </p>
+            <p className="text-xs text-muted-foreground">{t("notes.ai.hint")}</p>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={aiBusy || !mainSource}
+            onClick={() => void runDetect(true)}
           >
-            <SelectTrigger id="note-type" className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {MATERIAL_TYPES.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {t(`notes.form.type_${type}`)}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            {aiBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden /> : null}
+            {aiBusy ? t("notes.ai.running") : t("notes.ai.detect")}
+          </Button>
         </div>
+        {aiNote ? <p className="text-xs font-medium text-success">{aiNote}</p> : null}
+      </section>
+
+      {/* 3. Preview pages ----------------------------------------------------- */}
+      {mainSource && !isLive ? (
+        <section className="space-y-3">
+          <div>
+            <h2 className="text-base font-bold">{t("notes.preview_pick.title")}</h2>
+            <p className="text-sm text-muted-foreground">{t("notes.preview_pick.hint")}</p>
+          </div>
+          <NotePreviewPicker
+            source={mainSource}
+            selected={previewPicks}
+            onChange={(next) => {
+              setPreviewPicks(next);
+              setPicksDirty(true);
+            }}
+            onPageCount={setMainPageCount}
+          />
+        </section>
+      ) : null}
+
+      {/* 4. Details ---------------------------------------------------------------- */}
+      <section className="space-y-5">
+        <h2 className="text-base font-bold">{t("notes.upload.step_details")}</h2>
         <div className="space-y-1.5">
-          <Label htmlFor="note-topic">{t("notes.form.field_topic")}</Label>
+          <Label htmlFor="note-title">{t("notes.form.field_title")}</Label>
           <Input
-            id="note-topic"
-            value={topic}
-            maxLength={NOTE_TOPIC_MAX_LEN}
-            onChange={(e) => setTopic(e.target.value)}
-            placeholder={t("notes.form.topic_placeholder")}
+            id="note-title"
+            value={title}
+            maxLength={160}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder={t("notes.form.title_placeholder")}
             className="h-11"
           />
-          {violationNote(copyViolations.topicV)}
+          {violationNote(copyViolations.titleV)}
         </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="note-summary">{t("notes.upload.field_summary")}</Label>
+          <Input
+            id="note-summary"
+            value={summary}
+            maxLength={280}
+            onChange={(e) => setSummary(e.target.value)}
+            placeholder={t("notes.upload.summary_placeholder")}
+            className="h-11"
+          />
+          {violationNote(copyViolations.summaryV)}
+        </div>
+
+        <div className="space-y-1.5">
+          <Label htmlFor="note-description">{t("notes.form.field_contents")}</Label>
+          <textarea
+            id="note-description"
+            value={description}
+            maxLength={4000}
+            onChange={(e) => setDescription(e.target.value)}
+            rows={6}
+            placeholder={t("notes.form.contents_placeholder")}
+            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
+          />
+          {violationNote(copyViolations.descV)}
+        </div>
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="note-curriculum">{t("notes.form.field_curriculum")}</Label>
+            <Select
+              value={curriculum}
+              disabled={isLive}
+              onValueChange={(v) => {
+                setCurriculum(v);
+                setSubject("");
+                setSubcategory("");
+              }}
+            >
+              <SelectTrigger id="note-curriculum" className="w-full">
+                <SelectValue placeholder={t("notes.form.curriculum_placeholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                {NOTE_CURRICULA.map((entry) => (
+                  <SelectItem key={entry} value={entry}>
+                    {entry === "Other" ? t("notes.form.curriculum_other") : entry}
+                  </SelectItem>
+                ))}
+                {curriculum && !isNoteCurriculum(curriculum) ? (
+                  <SelectItem value={curriculum}>
+                    {curriculum} ({t("notes.form.legacy_value")})
+                  </SelectItem>
+                ) : null}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="note-subject">{t("notes.form.field_subject")}</Label>
+            <Select value={subject} onValueChange={setSubject} disabled={isLive}>
+              <SelectTrigger id="note-subject" className="w-full">
+                <SelectValue placeholder={t("notes.form.subject_placeholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                {subjectOptions.map((entry) => (
+                  <SelectItem key={entry} value={entry}>
+                    {entry}
+                  </SelectItem>
+                ))}
+                {subject && !subjectOptions.includes(subject) ? (
+                  <SelectItem value={subject}>
+                    {subject} ({t("notes.form.legacy_value")})
+                  </SelectItem>
+                ) : null}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {subcategoryOptions.length > 0 ? (
+          <div className="space-y-1.5">
+            <Label>{t("notes.upload.field_subcategory")}</Label>
+            <div className="flex flex-wrap gap-2" role="group">
+              {subcategoryOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={subcategory === option.value}
+                  onClick={() => setSubcategory(subcategory === option.value ? "" : option.value)}
+                  className={cn(
+                    "rounded-full border px-3 py-1 text-[13px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+                    subcategory === option.value
+                      ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--surface-invert-fg)]"
+                      : "border-border bg-card hover:bg-[color:var(--surface-subtle)]",
+                  )}
+                >
+                  {t(option.labelKey)}
+                </button>
+              ))}
+            </div>
+          </div>
+        ) : null}
+
+        <div className="grid gap-4 sm:grid-cols-2">
+          <div className="space-y-1.5">
+            <Label htmlFor="note-type">{t("notes.form.field_type")}</Label>
+            <Select
+              value={materialType}
+              disabled={isLive}
+              onValueChange={(v) => {
+                if (isMaterialType(v)) {
+                  setMaterialType(v);
+                  if (v !== "exemplar") {
+                    setGradeAchieved("");
+                    setExemplarPermission(false);
+                  }
+                }
+              }}
+            >
+              <SelectTrigger id="note-type" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {MATERIAL_TYPES.map((type) => (
+                  <SelectItem key={type} value={type}>
+                    {t(`notes.form.type_${type}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="note-topic">{t("notes.form.field_topic")}</Label>
+            <Input
+              id="note-topic"
+              value={topic}
+              maxLength={NOTE_TOPIC_MAX_LEN}
+              disabled={isLive}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder={t("notes.form.topic_placeholder")}
+              className="h-11"
+            />
+            {violationNote(copyViolations.topicV)}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="note-language">{t("notes.upload.field_language")}</Label>
+            <Select value={language} onValueChange={setLanguage}>
+              <SelectTrigger id="note-language" className="w-full">
+                <SelectValue placeholder={t("notes.upload.language_placeholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                {CONTENT_LANGUAGES.map((code) => (
+                  <SelectItem key={code} value={code}>
+                    {t(`notes.language.${code}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="note-year">{t("notes.form.field_year")}</Label>
+            <Input
+              id="note-year"
+              value={year}
+              maxLength={20}
+              onChange={(e) => setYear(e.target.value)}
+              placeholder="2026"
+              className="h-11"
+            />
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="note-word-count">{t("notes.form.field_word_count")}</Label>
+            <Input
+              id="note-word-count"
+              type="number"
+              min={1}
+              step="1"
+              value={wordCount}
+              disabled={isLive}
+              onChange={(e) => setWordCount(e.target.value)}
+              placeholder="12000"
+              className="h-11"
+            />
+            <p className="text-xs text-muted-foreground">{t("notes.form.word_count_hint")}</p>
+            {wordCountError ? (
+              <p className="text-xs text-destructive">{t("notes.form.word_count_invalid")}</p>
+            ) : null}
+          </div>
+          <div className="space-y-1.5">
+            <Label htmlFor="note-tags">{t("notes.upload.field_tags")}</Label>
+            <Input
+              id="note-tags"
+              value={tagsText}
+              onChange={(e) => setTagsText(e.target.value)}
+              placeholder={t("notes.upload.tags_placeholder")}
+              className="h-11"
+            />
+            {tags.length > 0 ? (
+              <div className="flex flex-wrap gap-1">
+                {tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </div>
+        </div>
+
+        {materialType === "exemplar" ? (
+          <div className="space-y-3 rounded-2xl border border-border bg-muted/30 p-4 sm:p-5">
+            <div className="space-y-1.5">
+              <Label htmlFor="note-grade">{t("notes.form.field_grade")}</Label>
+              <Input
+                id="note-grade"
+                value={gradeAchieved}
+                maxLength={GRADE_ACHIEVED_MAX_LEN}
+                onChange={(e) => setGradeAchieved(e.target.value)}
+                placeholder={t("notes.form.grade_placeholder")}
+                className="h-11"
+              />
+              <p className="text-xs text-muted-foreground">{t("notes.form.grade_hint")}</p>
+              {violationNote(copyViolations.gradeV)}
+            </div>
+            <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
+              <Checkbox
+                checked={exemplarPermission}
+                onCheckedChange={(c) => setExemplarPermission(c === true)}
+                className="mt-1"
+              />
+              <span>{t("notes.form.exemplar_permission")}</span>
+            </label>
+          </div>
+        ) : null}
+      </section>
+
+      {/* 5. Price ---------------------------------------------------------------------- */}
+      <section className="space-y-3">
+        <h2 className="text-base font-bold">{t("notes.upload.step_price")}</h2>
         <div className="space-y-1.5">
           <Label htmlFor="note-price">{t("notes.form.field_price")}</Label>
           <Input
@@ -343,112 +1285,42 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           />
           <p className="text-xs text-muted-foreground">{t("notes.form.price_free_note")}</p>
         </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="note-word-count">{t("notes.form.field_word_count")}</Label>
-          <Input
-            id="note-word-count"
-            type="number"
-            min={1}
-            step="1"
-            value={wordCount}
-            onChange={(e) => setWordCount(e.target.value)}
-            placeholder="12000"
-            className="h-11"
-          />
-          <p className="text-xs text-muted-foreground">{t("notes.form.word_count_hint")}</p>
-          {wordCountError ? (
-            <p className="text-xs text-destructive">{t("notes.form.word_count_invalid")}</p>
-          ) : null}
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="note-year">{t("notes.form.field_year")}</Label>
-          <Input
-            id="note-year"
-            value={year}
-            maxLength={20}
-            onChange={(e) => setYear(e.target.value)}
-            placeholder="2026"
-            className="h-11"
-          />
-        </div>
-      </div>
+        <NotePriceGuidePanel
+          materialType={materialType}
+          curriculumTag={curriculum}
+          subjectTag={subject}
+          subcategory={subcategory}
+          pageCount={mainPageCount}
+          excludeId={materialId ?? null}
+          priceHkd={Number.isNaN(priceNum) ? null : priceNum}
+          onUsePrice={(value) => setPrice(String(value))}
+        />
+      </section>
 
-      {materialType === "exemplar" ? (
-        <div className="space-y-3 rounded-2xl border border-border bg-muted/30 p-4 sm:p-5">
-          <div className="space-y-1.5">
-            <Label htmlFor="note-grade">{t("notes.form.field_grade")}</Label>
-            <Input
-              id="note-grade"
-              value={gradeAchieved}
-              maxLength={GRADE_ACHIEVED_MAX_LEN}
-              onChange={(e) => setGradeAchieved(e.target.value)}
-              placeholder={t("notes.form.grade_placeholder")}
-              className="h-11"
-            />
-            <p className="text-xs text-muted-foreground">{t("notes.form.grade_hint")}</p>
-            {violationNote(copyViolations.gradeV)}
-          </div>
-          <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
-            <Checkbox
-              checked={exemplarPermission}
-              onCheckedChange={(c) => setExemplarPermission(c === true)}
-              className="mt-1"
-            />
-            <span>{t("notes.form.exemplar_permission")}</span>
-          </label>
-        </div>
+      {!isLive ? (
+        <TermsGateCheckbox
+          section="notes"
+          checked={termsAccepted}
+          onCheckedChange={setTermsAccepted}
+        />
       ) : null}
 
-      <div className="space-y-1.5">
-        <Label htmlFor="note-pdf">
-          {materialType === "flashcards"
-            ? t("notes.form.field_file_flashcards")
-            : existing?.previewUrl
-              ? t("notes.form.replace_pdf")
-              : t("notes.form.field_pdf")}
-        </Label>
-        <Input
-          id="note-pdf"
-          type="file"
-          accept={materialType === "flashcards" ? "application/pdf,.pdf,.apkg" : "application/pdf"}
-          className="h-11 cursor-pointer"
-          onChange={(e) => setFile(e.target.files?.[0] ?? null)}
-        />
-        {fileTooLarge ? (
-          <p className="text-xs text-destructive">{t("notes.form.file_too_large")}</p>
-        ) : materialType === "flashcards" ? (
-          <p className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Lock className="h-3 w-3" aria-hidden />
-            {t("notes.form.file_hint_flashcards")}
-          </p>
-        ) : (
-          <p className="flex items-center gap-1 text-xs text-muted-foreground">
-            <Lock className="h-3 w-3" aria-hidden />
-            {t("notes.form.pdf_hint")}
-          </p>
-        )}
-      </div>
-
-      {/* Issue #214: the notes-terms gate, required to submit for review;
-          drafts save without it. Links the notes section of the ToS. */}
-      <TermsGateCheckbox
-        section="notes"
-        checked={termsAccepted}
-        onCheckedChange={setTermsAccepted}
-      />
-
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
-        <Button
-          type="button"
-          variant="outline"
-          disabled={saving || Boolean(wordCountError) || fileTooLarge}
-          onClick={() => run("draft")}
-        >
-          {saving && draftMutation.isPending ? (
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
-          ) : null}
-          {t("notes.form.save_draft")}
-        </Button>
+        {!isLive ? (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={saving || Boolean(wordCountError) || apkgTooLarge || merging}
+            onClick={() => run("draft")}
+          >
+            {saving && saveMutation.variables === "draft" ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+            ) : null}
+            {t("notes.form.save_draft")}
+          </Button>
+        ) : (
+          <span />
+        )}
         <Button
           type="submit"
           variant="solid"
@@ -456,16 +1328,17 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           className="font-bold"
           disabled={
             saving ||
+            merging ||
             blockedByContact ||
             missing.length > 0 ||
             Boolean(wordCountError) ||
-            fileTooLarge
+            apkgTooLarge
           }
         >
-          {saving && submitMutation.isPending ? (
+          {saving && saveMutation.variables === "submit" ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
           ) : null}
-          {t("notes.form.submit_review")}
+          {isLive ? t("notes.upload.save_live") : t("notes.form.submit_review")}
         </Button>
       </div>
       {missing.length > 0 && !blockedByContact && (
@@ -473,6 +1346,12 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           {t("notes.form.missing_note", { fields: missing.join(", ") })}
         </p>
       )}
+      <p className="text-xs text-muted-foreground">
+        {t("notes.upload.guide_prompt")}{" "}
+        <a href="/guide/notes" className="font-semibold text-[color:var(--brand-link)] underline">
+          {t("notes.upload.guide_link")}
+        </a>
+      </p>
     </form>
   );
 }

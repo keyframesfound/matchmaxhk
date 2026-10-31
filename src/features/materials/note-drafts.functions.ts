@@ -28,6 +28,8 @@ import {
   type AdminDb,
 } from "@/features/materials/storage-helpers";
 import { watermarkPdfPreview } from "@/features/materials/watermark";
+import { sanitizePreviewIndices } from "@/features/materials/preview-pages";
+import { CONTENT_LANGUAGES, isValidSubcategory } from "@/features/materials/note-taxonomy";
 
 /**
  * P8 (#288) / P9 (#289): the tutor-side notes lifecycle server functions.
@@ -41,7 +43,7 @@ import { watermarkPdfPreview } from "@/features/materials/watermark";
 const PRIVATE_BUCKET = "materials-originals";
 const PUBLIC_BUCKET = "materials-previews";
 
-type MaterialRow = {
+export type MaterialRow = {
   id: string;
   tutor_id: string;
   title: string;
@@ -76,7 +78,42 @@ const DraftMetaInput = z.object({
   // null clears a stored value; absent keeps it (same semantics as topic).
   wordCount: z.number().int().min(1).max(WORD_COUNT_MAX).nullish(),
   yearTag: z.string().trim().max(20).optional(),
+  // Notes upload v2 (all optional; absent = keep the stored value).
+  summary: z.string().trim().max(280).nullish(),
+  subcategory: z.string().trim().max(40).nullish(),
+  searchTags: z.array(z.string().trim().min(1).max(30)).max(20).optional(),
+  contentLanguage: z.enum(CONTENT_LANGUAGES).nullish(),
+  sourceFormats: z.array(z.string().trim().min(1).max(20)).max(12).optional(),
 });
+
+/**
+ * Notes upload v2: the new listing columns, written only when the client
+ * sent them, so older clients (and environments without the v2 migration)
+ * keep saving exactly as before.
+ */
+export function v2ListingPatch(data: {
+  summary?: string | null;
+  subcategory?: string | null;
+  searchTags?: string[];
+  contentLanguage?: string | null;
+  sourceFormats?: string[];
+}): Record<string, unknown> {
+  const patch: Record<string, unknown> = {};
+  if (data.summary !== undefined) patch.summary = data.summary || null;
+  if (data.subcategory !== undefined) patch.subcategory = data.subcategory || null;
+  if (data.searchTags !== undefined) {
+    patch.search_tags = Array.from(new Set(data.searchTags.map((t) => t.trim()).filter(Boolean)));
+  }
+  if (data.contentLanguage !== undefined) patch.content_language = data.contentLanguage || null;
+  if (data.sourceFormats !== undefined) patch.source_formats = data.sourceFormats;
+  return patch;
+}
+
+function assertValidSubcategory(curriculum: string | null | undefined, value?: string | null) {
+  if (value && !isValidSubcategory(curriculum, value)) {
+    throw new Error("Pick a category from the list for this curriculum.");
+  }
+}
 
 const SaveDraftInput = DraftMetaInput.extend({
   materialId: z.string().uuid().optional(),
@@ -113,9 +150,19 @@ export type MyMaterialsRow = {
   gradeAchieved: string | null;
   exemplarPermission: boolean;
   wordCount: number | null;
+  // Notes upload v2 (null when the v2 migration is not applied yet).
+  description: string | null;
+  summary: string | null;
+  subcategory: string | null;
+  searchTags: string[];
+  contentLanguage: string | null;
+  previewPageIndices: number[] | null;
+  pageCount: number | null;
+  yearTag: string | null;
+  slug: string | null;
 };
 
-async function myTutorRow(
+export async function myTutorRow(
   db: AdminDb,
   userId: string,
 ): Promise<{ id: string; display_name: string }> {
@@ -134,10 +181,12 @@ function assertCleanCopy(fields: {
   description?: string;
   topic?: string;
   gradeAchieved?: string;
+  summary?: string;
 }) {
   const labels: Record<string, string> = {
     title: "Title",
     description: "Description",
+    summary: "Summary",
     topic: "Topic",
     gradeAchieved: "Grade achieved",
   };
@@ -156,7 +205,7 @@ function assertCleanCopy(fields: {
 }
 
 /** Owner-only load that works for every status (drafts included). */
-async function loadOwnedMaterial(
+export async function loadOwnedMaterial(
   db: AdminDb,
   materialId: string,
   tutorId: string,
@@ -208,6 +257,26 @@ async function stageFileForMaterial(
   fileName: string,
   base64Data: string,
 ): Promise<{ staged: boolean }> {
+  return stageFileBytesForMaterial(db, tutor, material, fileName, base64ToBytes(base64Data));
+}
+
+/**
+ * Notes upload v2: the byte-level pipeline behind stageFileForMaterial.
+ * `storedPath` = the browser already uploaded the original straight into
+ * the private bucket through a signed upload URL (large files never pass
+ * through the Worker body), so only the preview is generated here.
+ * `previewPageIndices` = the seller's page pick (sanitized; never the whole
+ * document). Undefined keeps the legacy "first ~30%" behaviour and does not
+ * touch the v2 preview_page_indices column.
+ */
+export async function stageFileBytesForMaterial(
+  db: AdminDb,
+  tutor: { id: string; display_name: string },
+  material: MaterialRow,
+  fileName: string,
+  bytes: Uint8Array,
+  options: { storedPath?: string; previewPageIndices?: number[] | null } = {},
+): Promise<{ staged: boolean; pageCount: number | null; previewPages: number | null }> {
   const kind = materialFileKind(fileName);
   if (!kind || !isAllowedMaterialFile(material.material_type, fileName)) {
     throw new Error(
@@ -217,18 +286,24 @@ async function stageFileForMaterial(
     );
   }
   const isApkg = kind === "apkg";
-  const bytes = base64ToBytes(base64Data);
   const isLiveDoc = material.status === "published" || material.status === "hidden";
   // Live docs skip preview generation until approval, the staged file is
   // not public, and stamping the wrong version onto the live preview URL
   // would leak the replacement before staff sign it off.
-  const preview = isLiveDoc || isApkg ? null : await buildExtendedPreview(bytes);
+  const preview =
+    isLiveDoc || isApkg ? null : await buildExtendedPreview(bytes, options.previewPageIndices);
 
-  const path = buildMaterialStorageName(fileName, tutor.display_name);
-  const { error } = await db.storage
-    .from(PRIVATE_BUCKET)
-    .upload(path, bytes as unknown as BlobPart, { contentType: materialFileContentType(kind) });
-  if (error) throw new Error(error.message);
+  const path = options.storedPath ?? buildMaterialStorageName(fileName, tutor.display_name);
+  if (!options.storedPath) {
+    const { error } = await db.storage
+      .from(PRIVATE_BUCKET)
+      .upload(path, bytes as unknown as BlobPart, { contentType: materialFileContentType(kind) });
+    if (error) throw new Error(error.message);
+  }
+  const pickColumn =
+    options.previewPageIndices !== undefined && preview
+      ? { preview_page_indices: preview.indices }
+      : {};
 
   if (preview) {
     const previewPath = previewPathFor(path);
@@ -249,6 +324,7 @@ async function stageFileForMaterial(
         watermarked_preview_url: url?.publicUrl ?? "",
         preview_pages: preview.previewPages,
         page_count: preview.pageCount,
+        ...pickColumn,
       })
       .eq("id", material.id);
     if (updateError) {
@@ -282,7 +358,11 @@ async function stageFileForMaterial(
       throw new Error(updateError.message);
     }
   }
-  return { staged: isLiveDoc };
+  return {
+    staged: isLiveDoc,
+    pageCount: preview?.pageCount ?? null,
+    previewPages: preview?.previewPages ?? null,
+  };
 }
 
 /**
@@ -290,19 +370,33 @@ async function stageFileForMaterial(
  * ~30% of pages, cap 12; first 3 render crisp on the note page, the rest
  * blur client-side). Returns everything the listing row needs.
  */
-async function buildExtendedPreview(bytes: Uint8Array): Promise<{
+async function buildExtendedPreview(
+  bytes: Uint8Array,
+  pickedIndices?: number[] | null,
+): Promise<{
   pageCount: number;
   previewPages: number;
   previewBytes: Uint8Array;
+  indices: number[];
 }> {
   const pageCount = await assertPdfNotEncrypted(bytes).catch(() => {
     throw new Error(UNLOCKED_FILE_ERROR);
   });
-  const limit = extendedPreviewPageLimit(pageCount);
+  // v2: seller-picked pages (or the default first ~30%), sanitized so the
+  // preview never contains the whole document. Legacy callers (no pick)
+  // keep the original extendedPreviewPageLimit behaviour.
+  const indices =
+    pickedIndices !== undefined
+      ? sanitizePreviewIndices(pickedIndices, pageCount)
+      : Array.from(
+          { length: Math.min(pageCount, extendedPreviewPageLimit(pageCount)) },
+          (_, i) => i,
+        );
   const { bytes: previewBytes, pageCount: previewPages } = await watermarkPdfPreview(bytes, {
-    pageLimit: limit,
+    pageLimit: indices.length,
+    pageIndices: indices,
   });
-  return { pageCount, previewPages, previewBytes };
+  return { pageCount, previewPages, previewBytes, indices };
 }
 
 type DraftKindInput = {
@@ -409,11 +503,14 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
     // type away from exemplar (or clearing topic/grade) must actually write
     // the cleared values, not silently keep the stored ones.
     const kinds = mergeDraftNoteKinds(data, existing);
+    assertValidSubcategory(kinds.curriculum, data.subcategory);
+    assertCleanCopy({ summary: data.summary ?? undefined });
 
     if (existing) {
       const { error } = await db
         .from<never>("digital_materials")
         .update({
+          ...v2ListingPatch(data),
           ...(data.title != null ? { title: data.title } : {}),
           ...(data.description != null ? { description: data.description } : {}),
           ...(data.priceHkd != null ? { price_hkd: data.priceHkd } : {}),
@@ -446,6 +543,7 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
         exemplar_permission: kinds.exemplarPermission,
         word_count: data.wordCount ?? null,
         year_tag: data.yearTag ?? null,
+        ...v2ListingPatch(data),
         status: "draft",
         original_file_path: "",
         watermarked_preview_url: "",
@@ -517,6 +615,8 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
     // stale grade/permission instead of letting them fail validation.
     // #340: curriculum/subject are remapped inside mergeDraftNoteKinds.
     const kinds = mergeDraftNoteKinds(data, existing);
+    assertValidSubcategory(kinds.curriculum, data.subcategory);
+    assertCleanCopy({ summary: data.summary ?? undefined });
     const merged = {
       title: data.title ?? existing?.title,
       priceHkd: data.priceHkd ?? Number(existing?.price_hkd ?? 0),
@@ -603,6 +703,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
         exemplar_permission: kinds.exemplarPermission,
         word_count: data.wordCount ?? null,
         year_tag: data.yearTag ?? null,
+        ...v2ListingPatch(data),
         status: "pending_review",
         submitted_at: new Date().toISOString(),
         slug,
@@ -642,6 +743,8 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
           grade_achieved: kinds.gradeAchieved,
           exemplar_permission: kinds.exemplarPermission,
           ...(data.wordCount !== undefined ? { word_count: data.wordCount } : {}),
+          ...(data.yearTag != null ? { year_tag: data.yearTag } : {}),
+          ...v2ListingPatch(data),
           status: next,
           rejection_reason: null,
           submitted_at: new Date().toISOString(),
@@ -683,7 +786,12 @@ export const editLiveNote = createServerFn({ method: "POST" })
     const db = asAdminDb(supabaseAdmin);
     const tutor = await myTutorRow(db, context.userId);
     const material = await loadOwnedMaterial(db, data.materialId, tutor.id);
-    assertCleanCopy({ title: data.title, description: data.description });
+    assertCleanCopy({
+      title: data.title,
+      description: data.description,
+      summary: data.summary ?? undefined,
+    });
+    assertValidSubcategory(material.curriculum_tag, data.subcategory);
 
     if (data.base64Data) {
       await stageFileForMaterial(db, tutor, material, data.fileName || "note.pdf", data.base64Data);
@@ -696,6 +804,7 @@ export const editLiveNote = createServerFn({ method: "POST" })
         ...(data.description != null ? { description: data.description } : {}),
         ...(data.priceHkd != null ? { price_hkd: data.priceHkd } : {}),
         ...(data.yearTag != null ? { year_tag: data.yearTag } : {}),
+        ...v2ListingPatch(data),
       })
       .eq("id", data.materialId);
     if (error) throw new Error(error.message);
@@ -732,51 +841,53 @@ export const getMyMaterials = createServerFn({ method: "POST" })
     const db = asAdminDb(supabaseAdmin);
     const tutor = await myTutorRow(db, context.userId);
 
-    const { data, error } = await db
-      .from<{
-        id: string;
-        title: string;
-        status: MaterialStatus;
-        price_hkd: number;
-        rejection_reason: string | null;
-        edit_status: string | null;
-        edit_rejection_reason: string | null;
-        view_count: number;
-        sold_count: number;
-        watermarked_preview_url: string | null;
-        updated_at: string;
-        curriculum_tag: string;
-        subject_tag: string | null;
-        material_type: MaterialType;
-        topic: string | null;
-        grade_achieved: string | null;
-        exemplar_permission: boolean;
-        word_count: number | null;
-      }>("digital_materials")
-      .select(
-        "id, title, status, price_hkd, rejection_reason, edit_status, edit_rejection_reason, view_count, sold_count, watermarked_preview_url, updated_at, curriculum_tag, subject_tag, material_type, topic, grade_achieved, exemplar_permission, word_count",
-      )
-      .eq("tutor_id", tutor.id)
-      .order("updated_at", { ascending: false });
+    const baseColumns =
+      "id, title, status, price_hkd, rejection_reason, edit_status, edit_rejection_reason, view_count, sold_count, watermarked_preview_url, updated_at, curriculum_tag, subject_tag, material_type, topic, grade_achieved, exemplar_permission, word_count, description, page_count, year_tag, slug";
+    const v2Columns = "summary, subcategory, search_tags, content_language, preview_page_indices";
+    const run = (columns: string) =>
+      db
+        .from<Record<string, unknown>>("digital_materials")
+        .select(columns)
+        .eq("tutor_id", tutor.id)
+        .order("updated_at", { ascending: false });
+    // Notes upload v2: fall back to the pre-v2 column list when the v2
+    // migration is not applied yet (42703 = undefined column).
+    let result = await run(`${baseColumns}, ${v2Columns}`);
+    if (result.error?.code === "42703") result = await run(baseColumns);
+    const { data, error } = result;
     if (error) throw new Error(error.message);
+    const str = (v: unknown) => (typeof v === "string" ? v : null);
     return (data ?? []).map((row) => ({
-      id: row.id,
-      title: row.title || "Untitled note",
-      status: row.status ?? "draft",
+      id: String(row.id),
+      title: str(row.title) || "Untitled note",
+      status: (str(row.status) as MaterialStatus | null) ?? "draft",
       priceHkd: Number(row.price_hkd ?? 0),
-      rejectionReason: row.rejection_reason ?? null,
-      editStatus: row.edit_status ?? null,
-      editRejectionReason: row.edit_rejection_reason ?? null,
+      rejectionReason: str(row.rejection_reason),
+      editStatus: str(row.edit_status),
+      editRejectionReason: str(row.edit_rejection_reason),
       viewCount: Number(row.view_count ?? 0),
       soldCount: Number(row.sold_count ?? 0),
-      previewUrl: row.watermarked_preview_url ?? "",
-      updatedAt: row.updated_at ?? "",
-      curriculumTag: row.curriculum_tag ?? "",
-      subjectTag: row.subject_tag ?? null,
-      materialType: row.material_type ?? "notes",
-      topic: row.topic ?? null,
-      gradeAchieved: row.grade_achieved ?? null,
+      previewUrl: str(row.watermarked_preview_url) ?? "",
+      updatedAt: str(row.updated_at) ?? "",
+      curriculumTag: str(row.curriculum_tag) ?? "",
+      subjectTag: str(row.subject_tag),
+      materialType: (str(row.material_type) as MaterialType | null) ?? "notes",
+      topic: str(row.topic),
+      gradeAchieved: str(row.grade_achieved),
       exemplarPermission: row.exemplar_permission === true,
       wordCount: typeof row.word_count === "number" ? row.word_count : null,
+      description: str(row.description),
+      summary: str(row.summary),
+      subcategory: str(row.subcategory),
+      searchTags: Array.isArray(row.search_tags)
+        ? row.search_tags.filter((t): t is string => typeof t === "string")
+        : [],
+      contentLanguage: str(row.content_language),
+      previewPageIndices: Array.isArray(row.preview_page_indices)
+        ? row.preview_page_indices.filter((n): n is number => typeof n === "number")
+        : null,
+      pageCount: typeof row.page_count === "number" ? row.page_count : null,
+      yearTag: str(row.year_tag),
+      slug: str(row.slug),
     }));
   });

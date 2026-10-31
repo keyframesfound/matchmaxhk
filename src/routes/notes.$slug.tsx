@@ -25,6 +25,15 @@ import { FolderDetailPage } from "@/features/folders/folder-detail";
 import { CourseDetailPage } from "@/features/courses/course-detail";
 import { ReportMenuButton } from "@/features/reports/report-button";
 import { canonicalUrl } from "@/features/i18n/seo";
+import {
+  NoteDeliverablesPanel,
+  NoteIncludedFiles,
+  NoteReviewsSection,
+  SaveNoteButton,
+  SellNotesCta,
+  ShareNoteButton,
+  SimilarNotesSection,
+} from "@/features/materials/note-engagement";
 
 /**
  * #203 + P8/P14: the public note page, the marketplace's Clastify-style
@@ -185,10 +194,23 @@ function NotePage() {
                     {note.subjectTag}
                   </span>
                 )}
+                {note.subcategory && (
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
+                    {t(`notes.subcategory.${note.subcategory}`)}
+                  </span>
+                )}
+                {note.contentLanguage && (
+                  <span className="rounded-md border border-border px-2.5 py-0.5 text-xs font-semibold text-foreground/80">
+                    {t(`notes.language.${note.contentLanguage}`)}
+                  </span>
+                )}
               </div>
               <h1 className="text-2xl font-bold leading-tight tracking-normal sm:text-3xl">
                 {note.title}
               </h1>
+              {note.summary ? (
+                <p className="text-[0.95rem] leading-relaxed text-foreground/80">{note.summary}</p>
+              ) : null}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
                 <Link
                   to="/tutors/$tutorCode"
@@ -220,6 +242,14 @@ function NotePage() {
                     {t("notes.sold", { count: note.soldCount })}
                   </span>
                 )}
+              </div>
+              {/* Notes upload v2: save / share / jump to reviews. */}
+              <div className="flex flex-wrap items-center gap-2">
+                <SaveNoteButton materialId={note.id} onRequireAuth={() => setGateOpen(true)} />
+                <ShareNoteButton note={note} />
+                <Button asChild variant="ghost" size="sm">
+                  <a href="#reviews">{t("notes.reviews.jump")}</a>
+                </Button>
               </div>
             </header>
 
@@ -253,6 +283,8 @@ function NotePage() {
                 </p>
               </section>
             )}
+
+            <NoteIncludedFiles materialId={note.id} />
 
             <section className="space-y-3">
               <h2 className="text-lg font-bold">{t("notes.details_title")}</h2>
@@ -306,6 +338,8 @@ function NotePage() {
                 <p className="text-xs text-muted-foreground">{t("notes.exemplar_disclaimer")}</p>
               )}
             </section>
+
+            <NoteReviewsSection materialId={note.id} isOwner={isOwner} />
           </section>
 
           {/* Buy rail */}
@@ -389,6 +423,9 @@ function NotePage() {
                 <li>· {t("notes.perk_download")}</li>
               </ul>
             </div>
+            <div className="mt-3">
+              <NoteDeliverablesPanel materialId={note.id} />
+            </div>
             {user && !isOwner && (
               <div className="mt-3 flex justify-end">
                 <ReportMenuButton
@@ -423,6 +460,9 @@ function NotePage() {
             </div>
           </section>
         )}
+
+        <SimilarNotesSection note={note} />
+        <SellNotesCta className="mt-14" />
       </main>
       <SiteFooter />
       <AuthGateDialog

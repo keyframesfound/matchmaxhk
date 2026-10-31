@@ -39,6 +39,11 @@ export type StudyMaterial = {
   cover_image_path: string | null;
   /** #392: delivered orders only, incremented at delivery. */
   sold_count: number;
+  // Notes upload v2 (empty until the v2 migration is applied).
+  summary: string | null;
+  subcategory: string | null;
+  search_tags: string[];
+  content_language: string | null;
 };
 
 export const MATERIALS_PREVIEW_DISCLAIMER_KEY = "materials.disclaimer";
@@ -46,6 +51,9 @@ export const MATERIALS_PREVIEW_DISCLAIMER_KEY = "materials.disclaimer";
 function isMissingRelation(error: unknown): boolean {
   return (error as { code?: string })?.code === "42P01";
 }
+
+/** Notes upload v2 columns, read with a fallback when the migration is missing. */
+const MATERIAL_V2_COLS = "summary, subcategory, search_tags, content_language";
 
 const MATERIAL_COLS =
   "id, tutor_id, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, word_count, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, admin_marketing_summary, created_at, slug, cover_image_path, sold_count";
@@ -92,6 +100,12 @@ function mapMaterial(row: Record<string, unknown>): StudyMaterial {
     slug: typeof row.slug === "string" ? row.slug : null,
     cover_image_path: typeof row.cover_image_path === "string" ? row.cover_image_path : null,
     sold_count: Number(row.sold_count ?? 0),
+    summary: typeof row.summary === "string" ? row.summary : null,
+    subcategory: typeof row.subcategory === "string" ? row.subcategory : null,
+    search_tags: Array.isArray(row.search_tags)
+      ? row.search_tags.filter((t): t is string => typeof t === "string")
+      : [],
+    content_language: typeof row.content_language === "string" ? row.content_language : null,
   };
 }
 
@@ -157,12 +171,15 @@ export type MarketplaceMaterial = StudyMaterial & {
  * own note-only RPCs and queries.
  */
 export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]> {
-  const { data, error } = await materialsTable()
-    .select(
-      `${MATERIAL_COLS}, tutors!inner(display_name, tutor_code, is_published, verification_tier)`,
-    )
-    .eq("status", "published")
-    .order("created_at", { ascending: false });
+  const run = (columns: string) =>
+    materialsTable()
+      .select(`${columns}, tutors!inner(display_name, tutor_code, is_published, verification_tier)`)
+      .eq("status", "published")
+      .order("created_at", { ascending: false });
+  // Notes upload v2: 42703 = the v2 columns do not exist yet; read without them.
+  let result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}`);
+  if (result.error?.code === "42703") result = await run(MATERIAL_COLS);
+  const { data, error } = result;
   if (error) {
     if (isMissingRelation(error)) return [];
     throw error;

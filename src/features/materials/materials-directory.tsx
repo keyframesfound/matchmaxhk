@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { BookOpen, SearchX, Users } from "lucide-react";
+import { BookOpen, Heart, SearchX, Upload, Users } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
@@ -20,6 +20,16 @@ import {
 } from "@/features/materials/queries";
 import { StudyMaterialCard } from "@/features/materials/material-card";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/features/auth/useAuth";
+import { rankBySearch } from "@/features/materials/note-search";
+import {
+  CONTENT_LANGUAGES,
+  getSubcategoriesForCurriculum,
+  NOTE_SUBCATEGORIES,
+} from "@/features/materials/note-taxonomy";
+import { getMySavedNoteIds } from "@/features/materials/note-engagement.functions";
+import { SAVED_NOTES_QUERY_KEY, SellNotesCta } from "@/features/materials/note-engagement";
+import { formatMaterialTypeLabel } from "@/features/materials/queries";
 
 /**
  * Issue #131 + #392: the SHOP side of the /tutors directory toggle, ONE
@@ -55,10 +65,22 @@ export function MaterialsDirectory() {
   const [subject, setSubject] = useState("");
   const [curriculum, setCurriculum] = useState("");
   const [kind, setKind] = useState<KindFilter>("all");
+  // Notes upload v2: finer category, document language and saved-only.
+  const [subcategory, setSubcategory] = useState("");
+  const [language, setLanguage] = useState("");
+  const [savedOnly, setSavedOnly] = useState(false);
+  const { user } = useAuth();
   const { data: materials = [], isLoading } = useQuery({
     queryKey: ["materials", "marketplace"],
     queryFn: fetchMarketplaceMaterials,
   });
+  const savedQuery = useQuery({
+    queryKey: [...SAVED_NOTES_QUERY_KEY, user?.id],
+    queryFn: () => getMySavedNoteIds(),
+    enabled: Boolean(user),
+    staleTime: 60_000,
+  });
+  const savedIds = useMemo(() => new Set(savedQuery.data ?? []), [savedQuery.data]);
 
   const schools = useMemo(() => collectSchoolTags(materials), [materials]);
   const subjects = useMemo(
@@ -76,10 +98,20 @@ export function MaterialsDirectory() {
     [materials],
   );
 
+  // Sub-category chips: the selected curriculum's list, else every
+  // category that at least one listing in the shop uses.
+  const subcategoryOptions = useMemo(() => {
+    if (curriculum) return getSubcategoriesForCurriculum(curriculum);
+    const used = new Set(materials.map((m) => m.subcategory).filter(Boolean));
+    const seen = new Set<string>();
+    return Object.values(NOTE_SUBCATEGORIES)
+      .flat()
+      .filter((s) => used.has(s.value) && !seen.has(s.value) && seen.add(s.value));
+  }, [curriculum, materials]);
+
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
     const kindTypes = kind === "all" ? null : KIND_FILTER_TYPES[kind];
-    return materials.filter((m) => {
+    const narrowed = materials.filter((m) => {
       if (kindTypes && !kindTypes.includes(m.material_type)) return false;
       if (school && (m.school_tag ?? "").trim().toLowerCase() !== school.toLowerCase())
         return false;
@@ -87,21 +119,47 @@ export function MaterialsDirectory() {
         return false;
       if (curriculum && m.curriculum_tag.trim().toLowerCase() !== curriculum.toLowerCase())
         return false;
-      if (
-        q &&
-        !(
-          m.title.toLowerCase().includes(q) ||
-          (m.description ?? "").toLowerCase().includes(q) ||
-          (m.school_tag ?? "").toLowerCase().includes(q) ||
-          m.subject_tag?.toLowerCase().includes(q) ||
-          m.curriculum_tag.toLowerCase().includes(q) ||
-          m.tutor_display_name.toLowerCase().includes(q)
-        )
-      )
-        return false;
+      if (subcategory && m.subcategory !== subcategory) return false;
+      if (language && m.content_language !== language) return false;
+      if (savedOnly && !savedIds.has(m.id)) return false;
       return true;
     });
-  }, [materials, query, school, subject, curriculum, kind]);
+    // Notes upload v2: ranked, forgiving search (synonyms EN/繁/简, typos,
+    // Chinese bigrams), see note-search.ts.
+    return rankBySearch(narrowed, query, (m) => ({
+      primary: [
+        m.title,
+        m.summary ?? "",
+        m.subject_tag ?? "",
+        m.topic ?? "",
+        m.subcategory ? m.subcategory.replace(/_/g, " ") : "",
+        m.subcategory ? t(`notes.subcategory.${m.subcategory}`) : "",
+        ...m.search_tags,
+      ],
+      secondary: [
+        m.description ?? "",
+        m.curriculum_tag,
+        m.school_tag ?? "",
+        m.material_type,
+        formatMaterialTypeLabel(m.material_type, t),
+        m.year_tag ?? "",
+        m.tutor_display_name,
+        m.admin_marketing_summary ?? "",
+      ],
+    }));
+  }, [
+    materials,
+    query,
+    school,
+    subject,
+    curriculum,
+    kind,
+    subcategory,
+    language,
+    savedOnly,
+    savedIds,
+    t,
+  ]);
 
   const clearAll = () => {
     setQuery("");
@@ -109,8 +167,19 @@ export function MaterialsDirectory() {
     setSubject("");
     setCurriculum("");
     setKind("all");
+    setSubcategory("");
+    setLanguage("");
+    setSavedOnly(false);
   };
-  const hasFilters = query || school || subject || curriculum || kind !== "all";
+  const hasFilters =
+    query ||
+    school ||
+    subject ||
+    curriculum ||
+    kind !== "all" ||
+    subcategory ||
+    language ||
+    savedOnly;
 
   useEffect(() => {
     document.title = "Study Materials Marketplace | MatchMax";
@@ -127,6 +196,8 @@ export function MaterialsDirectory() {
   return (
     <section className="pt-6 pb-12 sm:pt-8">
       <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
+        {/* Notes upload v2: the upload entry sits at the top of the shop. */}
+        <SellNotesCta className="mb-5" />
         {/* Kind chips, #392 unified shop grid. */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
           {kindChips.map((chip) => (
@@ -145,7 +216,45 @@ export function MaterialsDirectory() {
               {chip.label}
             </button>
           ))}
+          {user ? (
+            <button
+              type="button"
+              aria-pressed={savedOnly}
+              onClick={() => setSavedOnly((v) => !v)}
+              className={cn(
+                "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+                savedOnly
+                  ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--surface-invert-fg)]"
+                  : "border-border bg-card text-[color:var(--ink)]/70 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]",
+              )}
+            >
+              <Heart className="h-3.5 w-3.5" aria-hidden />
+              {t("notes.search.saved_only")}
+            </button>
+          ) : null}
         </div>
+
+        {/* Notes upload v2: finer categories (IA / EE / Paper 1 / SBA ...). */}
+        {(kind === "all" || kind === "notes") && subcategoryOptions.length > 0 ? (
+          <div className="mb-4 flex flex-wrap items-center gap-2" role="group">
+            {subcategoryOptions.map((option) => (
+              <button
+                key={option.value}
+                type="button"
+                aria-pressed={subcategory === option.value}
+                onClick={() => setSubcategory(subcategory === option.value ? "" : option.value)}
+                className={cn(
+                  "rounded-full border px-3 py-1 text-[12px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+                  subcategory === option.value
+                    ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 text-[color:var(--brand-link)]"
+                    : "border-border bg-card text-[color:var(--ink)]/70 hover:bg-[color:var(--surface-subtle)]",
+                )}
+              >
+                {t(option.labelKey)}
+              </button>
+            ))}
+          </div>
+        ) : null}
 
         {/* Filter bar, flat, border-delineated, same chrome as the tutors bar. */}
         <div className="mb-6 flex flex-col gap-3 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-center">
@@ -153,11 +262,11 @@ export function MaterialsDirectory() {
             type="search"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder={t("materials.search_placeholder")}
+            placeholder={t("notes.search.placeholder")}
             className="h-10 flex-1 rounded-md border border-border bg-background px-3 text-sm text-[color:var(--ink)] placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]"
             aria-label={t("materials.search_placeholder")}
           />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
             <Select
               value={school === "" ? MATERIALS_ALL_VALUE : school}
               onValueChange={(v) => setSchool(v === MATERIALS_ALL_VALUE ? "" : v)}
@@ -221,6 +330,27 @@ export function MaterialsDirectory() {
                 ))}
               </SelectContent>
             </Select>
+            <Select
+              value={language === "" ? MATERIALS_ALL_VALUE : language}
+              onValueChange={(v) => setLanguage(v === MATERIALS_ALL_VALUE ? "" : v)}
+            >
+              <SelectTrigger
+                aria-label={t("notes.search.language_all")}
+                className="h-10 min-h-10 w-full px-3"
+              >
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={MATERIALS_ALL_VALUE}>
+                  {t("notes.search.language_all")}
+                </SelectItem>
+                {CONTENT_LANGUAGES.map((code) => (
+                  <SelectItem key={code} value={code}>
+                    {t(`notes.language.${code}`)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </div>
 
@@ -280,6 +410,14 @@ export function MaterialsDirectory() {
           </div>
         )}
       </div>
+      {/* Notes upload v2: always-reachable upload button (floating layer). */}
+      <a
+        href="/account/notes/new"
+        className="mm-overlay-lift fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-[color:var(--ink)] px-5 py-3 text-sm font-bold text-[color:var(--surface-invert-fg)] transition-colors hover:bg-[color:var(--ink)]/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]"
+      >
+        <Upload className="h-4 w-4" aria-hidden />
+        {t("notes.cta.upload_fab")}
+      </a>
     </section>
   );
 }
