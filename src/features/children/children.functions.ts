@@ -24,10 +24,12 @@ type StudentRow = {
   status: "managed_by_parent" | "linked_independent" | "claimed_independent";
   archived_at: string | null;
   created_at: string;
+  can_view_schedule: boolean;
+  can_manage_billing: boolean;
 };
 
 const STUDENT_COLS =
-  "id, display_name, school, curriculum, grad_year, status, archived_at, created_at";
+  "id, display_name, school, curriculum, grad_year, status, archived_at, created_at, can_view_schedule, can_manage_billing";
 
 function toChildProfile(row: StudentRow): ChildProfile {
   return {
@@ -37,6 +39,8 @@ function toChildProfile(row: StudentRow): ChildProfile {
     curriculum: row.curriculum,
     gradYear: row.grad_year,
     status: row.status,
+    canViewSchedule: row.can_view_schedule !== false,
+    canManageBilling: row.can_manage_billing !== false,
   };
 }
 
@@ -91,7 +95,7 @@ export const saveChild = createServerFn({ method: "POST" })
         .eq("id", data.id)
         .eq("parent_user_id", context.userId);
       if (error) throw new Error(error.message);
-      return { id: data.id, ...data.child, status: row.status };
+      return { ...toChildProfile(row), ...data.child };
     }
 
     const { data: row, error } = await db
@@ -117,4 +121,41 @@ export const archiveChild = createServerFn({ method: "POST" })
       .eq("parent_user_id", context.userId);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+/**
+ * #459 §4.4 / §15.3: after a child claims their profile the parent chooses
+ * whether to keep seeing the schedule and paying. Only claimed children —
+ * a managed child is the parent's to run.
+ */
+export const setChildRetain = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth, requireAccountActive])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        id: z.string().uuid(),
+        canViewSchedule: z.boolean(),
+        canManageBilling: z.boolean(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ context, data }): Promise<ChildProfile> => {
+    const db = await adminDb();
+    const row = await requireOwnedChild(db, context.userId, data.id);
+    if (row.status !== "claimed_independent") throw new Error("CHILD_NOT_CLAIMED");
+    const { error } = await db
+      .from("students")
+      .update({
+        can_view_schedule: data.canViewSchedule,
+        can_manage_billing: data.canManageBilling,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", data.id)
+      .eq("parent_user_id", context.userId);
+    if (error) throw new Error(error.message);
+    return toChildProfile({
+      ...row,
+      can_view_schedule: data.canViewSchedule,
+      can_manage_billing: data.canManageBilling,
+    });
   });

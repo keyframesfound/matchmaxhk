@@ -106,27 +106,37 @@ export const getMyParentCases = createServerFn({ method: "POST" })
       matched_tutor_id: string | null;
       tutors: { tutor_code: string | null } | null;
       created_at: string;
+      student_id: string | null;
     }>(
       db,
       "tutoring_cases",
-      "id, case_code, title, subjects, exam_system, status, sor_status, matched_tutor_id, tutors(tutor_code), created_at",
+      "id, case_code, title, subjects, exam_system, status, sor_status, matched_tutor_id, tutors(tutor_code), created_at, student_id",
       [{ col: "parent_id", op: "eq", value: context.userId }],
       { col: "created_at", asc: false, limit: 100 },
     );
-    if (cases.length === 0) return [];
+    // #459 §4.4: claimed children whose parent switched schedule view off
+    // drop out of the parent's list (a parent-set preference).
+    const hidden = await selectRows<{ id: string }>(db, "students", "id", [
+      { col: "parent_user_id", op: "eq", value: context.userId },
+      { col: "status", op: "eq", value: "claimed_independent" },
+      { col: "can_view_schedule", op: "eq", value: false },
+    ]);
+    const hiddenIds = new Set(hidden.map((row) => row.id));
+    const visible = cases.filter((c) => !c.student_id || !hiddenIds.has(c.student_id));
+    if (visible.length === 0) return [];
 
     const [fees, lessons] = await Promise.all([
       selectRows<{ case_id: string; status: FeeStatus; amount_hkd: number }>(
         db,
         "case_fees",
         "case_id, status, amount_hkd",
-        [{ col: "case_id", op: "in", value: cases.map((c) => c.id) }],
+        [{ col: "case_id", op: "in", value: visible.map((c) => c.id) }],
       ),
       selectRows<{ case_id: string; starts_at: string }>(
         db,
         "case_lessons",
         "case_id, starts_at",
-        [{ col: "case_id", op: "in", value: cases.map((c) => c.id) }],
+        [{ col: "case_id", op: "in", value: visible.map((c) => c.id) }],
         { col: "starts_at", asc: true },
       ),
     ]);
@@ -144,7 +154,7 @@ export const getMyParentCases = createServerFn({ method: "POST" })
       }
     }
 
-    return cases.map((c) => ({
+    return visible.map((c) => ({
       id: c.id,
       case_code: c.case_code,
       title: c.title,

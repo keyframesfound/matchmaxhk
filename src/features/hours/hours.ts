@@ -39,3 +39,22 @@ export function canParentReviewHours(
   if (row.status !== "pending_confirmation") return false;
   return now.getTime() - new Date(row.pending_since).getTime() < AUTO_VERIFY_HOURS * HOUR_MS;
 }
+
+/** #459 §15.8 Phase 0 teaching badges: pure recompute from the ledger sum. */
+export const RISING_HOURS = 25;
+export const AZURE_HOURS = 100;
+
+/** #459 §4.2 step 4: a tutor's own verified learning hours unlock Scholar. */
+export const SCHOLAR_LEARNING_HOURS = 10;
+
+export type TeachingBadge = "rising" | "azure";
+
+export function teachingBadge(teachingHours: number): TeachingBadge | null {
+  if (teachingHours >= AZURE_HOURS) return "azure";
+  if (teachingHours >= RISING_HOURS) return "rising";
+  return null;
+}
+
+export function isVerifiedScholar(learningHours: number): boolean {
+  return learningHours >= SCHOLAR_LEARNING_HOURS;
+}

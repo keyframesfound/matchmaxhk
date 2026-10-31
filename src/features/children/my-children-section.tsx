@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
   CHILD_SOFT_LIMIT,
@@ -14,7 +15,12 @@ import {
   shouldWarnChildCount,
   type ChildProfile,
 } from "@/features/children/children";
-import { archiveChild, listMyChildren, saveChild } from "@/features/children/children.functions";
+import {
+  archiveChild,
+  listMyChildren,
+  saveChild,
+  setChildRetain,
+} from "@/features/children/children.functions";
 import { startChildClaim } from "@/features/children/claim.functions";
 
 export const CHILDREN_QUERY_KEY = ["account", "children"] as const;
@@ -119,6 +125,7 @@ export function MyChildrenSection() {
                 <p className="truncate text-sm text-muted-foreground">
                   {[child.school, child.curriculum, child.gradYear].filter(Boolean).join(" · ")}
                 </p>
+                {child.status === "claimed_independent" ? <RetainToggles child={child} /> : null}
               </div>
               <div className="flex shrink-0 gap-1">
                 {/* #459 slice 6: managed children only — claimed ones own
@@ -175,6 +182,47 @@ export function MyChildrenSection() {
         </DialogContent>
       </Dialog>
     </section>
+  );
+}
+
+/** #459 §4.4: what the parent keeps after the child claims their account. */
+function RetainToggles({ child }: { child: ChildProfile }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const retain = useMutation({
+    mutationFn: (next: { canViewSchedule: boolean; canManageBilling: boolean }) =>
+      setChildRetain({ data: { id: child.id, ...next } }),
+    onSuccess: () => {
+      toast.success(t("children.retain.saved"));
+      void queryClient.invalidateQueries({ queryKey: CHILDREN_QUERY_KEY });
+    },
+    onError: () => toast.error(t("children.error")),
+  });
+  const current = {
+    canViewSchedule: child.canViewSchedule,
+    canManageBilling: child.canManageBilling,
+  };
+
+  return (
+    <div className="mt-2 space-y-1.5">
+      <p className="text-xs font-semibold text-muted-foreground">{t("children.retain.claimed")}</p>
+      <label className="flex items-center gap-2 text-sm text-[color:var(--ink)]">
+        <Switch
+          checked={child.canViewSchedule}
+          disabled={retain.isPending}
+          onCheckedChange={(checked) => retain.mutate({ ...current, canViewSchedule: checked })}
+        />
+        {t("children.retain.view_schedule")}
+      </label>
+      <label className="flex items-center gap-2 text-sm text-[color:var(--ink)]">
+        <Switch
+          checked={child.canManageBilling}
+          disabled={retain.isPending}
+          onCheckedChange={(checked) => retain.mutate({ ...current, canManageBilling: checked })}
+        />
+        {t("children.retain.manage_billing")}
+      </label>
+    </div>
   );
 }
 

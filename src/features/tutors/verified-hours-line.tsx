@@ -6,20 +6,21 @@
 //
 // The number is always SUM(duration_hours) over verified_completed ledger
 // rows (§11: public counters = ledger sum, no manual edits). Badges are
-// pure recomputation: ≥25h Rising, ≥100h Azure. Zero-state rule: 0 hours →
+// pure recomputation: ≥25h Rising, ≥100h Azure, ≥10 own learning hours
+// Verified MatchMax Scholar. Zero-state rule: 0 hours →
 // render NOTHING (hide-at-zero, like the experience pill).
 
 import { useEffect, useState } from "react";
-import { BadgeCheck } from "lucide-react";
+import { BadgeCheck, GraduationCap } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
+import { isVerifiedScholar, teachingBadge } from "@/features/hours/hours";
 
-const RISING_HOURS = 25;
-const AZURE_HOURS = 100;
+type HoursRpc = "get_tutor_verified_hours" | "get_tutor_learning_hours";
 
-function useVerifiedHours(tutorId: string | undefined): number | null {
+function useTutorHours(rpc: HoursRpc, tutorId: string | undefined): number | null {
   const [hours, setHours] = useState<number | null>(null);
   useEffect(() => {
     if (!tutorId) return;
@@ -33,7 +34,7 @@ function useVerifiedHours(tutorId: string | undefined): number | null {
           args: Record<string, unknown>,
         ) => Promise<{ data: unknown; error: { message: string } | null }>;
       };
-      const { data, error } = await client.rpc("get_tutor_verified_hours", {
+      const { data, error } = await client.rpc(rpc, {
         _tutor_id: tutorId,
       });
       if (cancelled || error || data == null) return;
@@ -43,7 +44,7 @@ function useVerifiedHours(tutorId: string | undefined): number | null {
     return () => {
       cancelled = true;
     };
-  }, [tutorId]);
+  }, [rpc, tutorId]);
   return hours;
 }
 
@@ -54,24 +55,34 @@ function useVerifiedHours(tutorId: string | undefined): number | null {
  */
 export function VerifiedHoursLine({ tutorId, className }: { tutorId: string; className?: string }) {
   const { t } = useTranslation();
-  const hours = useVerifiedHours(tutorId);
-  if (hours == null || hours <= 0) return null;
+  const hours = useTutorHours("get_tutor_verified_hours", tutorId);
+  // #459 §4.2 step 4: the tutor's own verified learning hours (as a former
+  // MatchMax student) unlock Scholar, even before they have taught.
+  const learningHours = useTutorHours("get_tutor_learning_hours", tutorId);
+  const teaching = hours ?? 0;
+  const scholar = isVerifiedScholar(learningHours ?? 0);
+  if (teaching <= 0 && !scholar) return null;
 
-  const azure = hours >= AZURE_HOURS;
-  const rising = hours >= RISING_HOURS;
+  const badge = teachingBadge(teaching);
 
   return (
     <p className={cn("flex flex-wrap items-center gap-2 text-sm text-muted-foreground", className)}>
-      <span>{t("hours.profile_line", { count: hours })}</span>
-      {azure ? (
+      {teaching > 0 ? <span>{t("hours.profile_line", { count: teaching })}</span> : null}
+      {badge === "azure" ? (
         <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--brand-link)]/30 bg-[color:var(--brand-link)]/[0.06] px-2 py-0.5 text-xs font-semibold text-[color:var(--brand-link)]">
           <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
           {t("hours.badge_azure")}
         </span>
-      ) : rising ? (
+      ) : badge === "rising" ? (
         <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--ink)]/15 bg-[color:var(--foreground)]/[0.04] px-2 py-0.5 text-xs font-semibold text-[color:var(--ink)]">
           <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
           {t("hours.badge_rising")}
+        </span>
+      ) : null}
+      {scholar ? (
+        <span className="inline-flex items-center gap-1 rounded-full border border-[color:var(--success)]/30 bg-[color:var(--success)]/[0.06] px-2 py-0.5 text-xs font-semibold text-[color:var(--success)]">
+          <GraduationCap className="h-3.5 w-3.5" aria-hidden />
+          {t("hours.badge_scholar")}
         </span>
       ) : null}
     </p>
