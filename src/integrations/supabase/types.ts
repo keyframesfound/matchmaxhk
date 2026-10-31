@@ -576,6 +576,7 @@ export type Database = {
           account_status: string;
           account_status_at: string | null;
           account_status_reason: string | null;
+          active_role: string | null;
           avatar_url: string | null;
           community_commitment_at: string | null;
           community_commitment_version: string | null;
@@ -597,6 +598,7 @@ export type Database = {
           account_status?: string;
           account_status_at?: string | null;
           account_status_reason?: string | null;
+          active_role?: string | null;
           avatar_url?: string | null;
           community_commitment_at?: string | null;
           community_commitment_version?: string | null;
@@ -618,6 +620,7 @@ export type Database = {
           account_status?: string;
           account_status_at?: string | null;
           account_status_reason?: string | null;
+          active_role?: string | null;
           avatar_url?: string | null;
           community_commitment_at?: string | null;
           community_commitment_version?: string | null;

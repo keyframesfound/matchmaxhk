@@ -48,10 +48,9 @@ function OverviewRow({ label, value }: { label: string; value: React.ReactNode }
 
 export function AccountSection({ user, profile, updateProfile }: SettingsSectionProps) {
   const { t, i18n } = useTranslation();
-  const { hasRole, hasAnyRole, refreshRoles } = useAuth();
+  const { activeRole: currentRole, hasAnyRole, refreshRoles } = useAuth();
   const { membership } = useMyOrganization();
   const isInternal = hasAnyRole(["admin", "staff", "super_admin"]);
-  const currentRole: "parent" | "tutor" = hasRole("tutor") ? "tutor" : "parent";
   const [roleChoice, setRoleChoice] = useState<"parent" | "tutor">(currentRole);
   const [savingRole, setSavingRole] = useState(false);
   const roleDirty = roleChoice !== currentRole;

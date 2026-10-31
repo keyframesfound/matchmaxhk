@@ -3,6 +3,7 @@ import type { Session, User } from "@supabase/supabase-js";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
+import { resolveActiveRole, type AccountType } from "@/features/auth/active-role";
 
 import type { AccountStatus } from "@/features/admin-users/account-status.shared";
 
@@ -12,6 +13,8 @@ type AuthContextValue = {
   user: User | null;
   session: Session | null;
   roles: AppRole[];
+  /** Issue #459: account type the user is acting as. Roles stay additive. */
+  activeRole: AccountType;
   /** Issue #308: mirror of profiles.account_status for the signed-in user. */
   accountStatus: AccountStatus | null;
   /** Staff-facing reason shown to the suspended user (never names a reporter). */
@@ -27,10 +30,22 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-async function fetchRoles(userId: string): Promise<AppRole[]> {
-  const { data, error } = await supabase.from("user_roles").select("role").eq("user_id", userId);
-  if (error) return [];
-  return (data ?? []).map((r) => r.role as AppRole);
+type RoleState = { roles: AppRole[]; storedActiveRole: AccountType | null };
+
+const NO_ROLES: RoleState = { roles: [], storedActiveRole: null };
+
+async function fetchRoles(userId: string): Promise<RoleState> {
+  const [rolesResult, profileResult] = await Promise.all([
+    supabase.from("user_roles").select("role").eq("user_id", userId),
+    supabase.from("profiles").select("active_role").eq("id", userId).maybeSingle(),
+  ]);
+  const roles = rolesResult.error ? [] : (rolesResult.data ?? []).map((r) => r.role as AppRole);
+  // Missing column (pre-migration) or row falls back to role-derived default.
+  const stored = profileResult.error ? null : profileResult.data?.active_role;
+  return {
+    roles,
+    storedActiveRole: stored === "parent" || stored === "tutor" ? stored : null,
+  };
 }
 
 /**
@@ -63,7 +78,7 @@ function withTimeout<T>(promise: Promise<T>, timeoutMs: number, fallback: T): Pr
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [roles, setRoles] = useState<AppRole[]>([]);
+  const [{ roles, storedActiveRole }, setRoles] = useState<RoleState>(NO_ROLES);
   const [accountStatus, setAccountStatus] = useState<AccountStatus | null>(null);
   const [suspensionReason, setSuspensionReason] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -129,7 +144,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           }
         }, 0);
       } else {
-        setRoles([]);
+        setRoles(NO_ROLES);
       }
       if (event === "SIGNED_IN" || event === "SIGNED_OUT") {
         router.invalidate();
@@ -144,12 +159,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setUser(data.session?.user ?? null);
         setLoading(false);
         if (data.session?.user) {
-          withTimeout(fetchRoles(data.session.user.id), 8000, []).then((r) => {
+          withTimeout(fetchRoles(data.session.user.id), 8000, NO_ROLES).then((r) => {
             if (mounted) setRoles(r);
           });
           applyAccountStatus(data.session.user.id);
         } else {
-          setRoles([]);
+          setRoles(NO_ROLES);
         }
       })
       .catch(() => {
@@ -166,6 +181,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     user,
     session,
     roles,
+    activeRole: resolveActiveRole(storedActiveRole, roles),
     accountStatus,
     suspensionReason,
     loading,

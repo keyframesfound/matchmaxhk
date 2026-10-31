@@ -210,7 +210,7 @@ function SearchResults({ query, results }: { query: string; results: HelpArticle
 
 function HelpCentrePage() {
   const { t } = useTranslation();
-  const { hasRole } = useAuth();
+  const { activeRole } = useAuth();
   const navigate = useNavigate();
   const shouldReduceMotion = useReducedMotion();
   const { audience, q } = Route.useSearch();
@@ -220,8 +220,8 @@ function HelpCentrePage() {
   const [query, setQueryDraft] = useState(urlQuery);
   const supportHref = useSupportWhatsAppHref();
 
-  // Tutors land on the tutor tab; everyone else on the parents tab.
-  const activeTab: AudienceTab = audience ?? (hasRole("tutor") ? "tutors" : "parents");
+  // Land on the tab for the account type the user is acting as (#459).
+  const activeTab: AudienceTab = audience ?? (activeRole === "tutor" ? "tutors" : "parents");
   const contentAudience = activeTab === "tutors" ? "tutor" : "parent";
 
   useEffect(() => {
