@@ -16,6 +16,12 @@ export const BUS_EVENT_TYPES = [
   "admin_fee.unpaid",
   "note_order.delivered",
   "review.published",
+  // #461 addendum Triggers 8-9: bilateral lesson cancel + schedule/
+  // reschedule. Actor-split event types so only the OTHER party is messaged.
+  "lesson.cancelled_by_parent",
+  "lesson.cancelled_by_tutor",
+  "lesson.scheduled_by_parent",
+  "lesson.scheduled_by_tutor",
   // Accepted but unconsumed (#205): stored as skipped, no message.
   "listing.viewed",
   "listing.saved",
@@ -43,6 +49,12 @@ export const BELL_EVENT_TYPES: readonly string[] = [
   // #503 soft prompt after one side taps End Case.
   "case.end_requested_by_parent",
   "case.end_requested_by_tutor",
+  // #461 addendum Triggers 8-9: lesson lifecycle changes reach the
+  // counterparty (the actor-side variant never reaches the actor).
+  "lesson.cancelled_by_parent",
+  "lesson.cancelled_by_tutor",
+  "lesson.scheduled_by_parent",
+  "lesson.scheduled_by_tutor",
 ];
 
 /**
@@ -96,6 +108,24 @@ export const DELIVERY_PLAN: Readonly<
   // already knows they tapped.
   "case.end_requested_by_parent": [{ channel: "in_app", role: "tutor" }],
   "case.end_requested_by_tutor": [{ channel: "in_app", role: "parent" }],
+  // #461 addendum Triggers 8-9: counterparty gets the bell plus the email
+  // (case_updates class — a schedule/cancel change is email-worthy).
+  "lesson.cancelled_by_parent": [
+    { channel: "in_app", role: "tutor" },
+    { channel: "email", role: "tutor" },
+  ],
+  "lesson.cancelled_by_tutor": [
+    { channel: "in_app", role: "parent" },
+    { channel: "email", role: "parent" },
+  ],
+  "lesson.scheduled_by_parent": [
+    { channel: "in_app", role: "tutor" },
+    { channel: "email", role: "tutor" },
+  ],
+  "lesson.scheduled_by_tutor": [
+    { channel: "in_app", role: "parent" },
+    { channel: "email", role: "parent" },
+  ],
   // Concierge unpaid-fee digest (#205). Generated at most once per 24h by the
   // drain; not a bell item for parents/tutors.
   "admin_fee.digest": [
@@ -157,6 +187,14 @@ export function bellLinkFor(
       if (role === "tutor") return tutorHome;
       return caseId ? `/account/cases/${caseId}` : "/account";
     case "lesson.reminder_due":
+      if (role === "tutor") return tutorHome;
+      return caseId ? `/account/cases/${caseId}` : "/account";
+    // #461 addendum Triggers 8-9: same split as reminders — the tutor's
+    // lessons surface vs the parent's case page.
+    case "lesson.cancelled_by_parent":
+    case "lesson.cancelled_by_tutor":
+    case "lesson.scheduled_by_parent":
+    case "lesson.scheduled_by_tutor":
       if (role === "tutor") return tutorHome;
       return caseId ? `/account/cases/${caseId}` : "/account";
     case "admin_fee.invoiced":

@@ -27,6 +27,8 @@ import {
   type LessonConfirmRow,
 } from "@/features/cases/case-reviews";
 import { sweepDueSessionLogs, type SessionLogRowT } from "@/features/cases/experience.functions";
+import { format } from "date-fns";
+import { insertLessonLifecycleEvent } from "@/features/cases/bus.functions";
 import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
 import {
   canRevealParentContact,
@@ -345,14 +347,14 @@ export function rankFee(status: FeeStatus): number {
 // ---------------------------------------------------------------------------
 
 type LessonWithCase = CaseLessonRow & {
-  tutoring_cases: { matched_tutor_id: string | null } | null;
+  tutoring_cases: { matched_tutor_id: string | null; case_code: string | null } | null;
 };
 
 async function myLesson(db: Db, lessonId: string, tutorId: string): Promise<LessonWithCase> {
   const rows = await selectRows<LessonWithCase>(
     db,
     "case_lessons",
-    "*, tutoring_cases(matched_tutor_id)",
+    "*, tutoring_cases(matched_tutor_id, case_code)",
     [{ col: "id", op: "eq", value: lessonId }],
   );
   const lesson = rows[0];
@@ -428,6 +430,20 @@ export const cancelLessonTutor = createServerFn({ method: "POST" })
     const { error } = await db.from<Row>("case_lessons").update({ status }).eq("id", lesson.id);
     if (error) throw new Error(error.message);
     await insertAudit(db, lesson.case_id, context.userId, `lesson_${status}`, "Tutor cancelled");
+    // #461 addendum Trigger 8: notify the counterparty (parent bell + email).
+    await insertLessonLifecycleEvent(
+      db,
+      "lesson.cancelled_by_tutor",
+      {
+        case_id: lesson.case_id,
+        starts_at: lesson.starts_at,
+        heading: "Lesson cancelled",
+        body: "Your tutor cancelled this lesson.",
+        lessonLine: format(new Date(lesson.starts_at), "EEE d MMM, HH:mm"),
+        caseCode: lesson.tutoring_cases?.case_code ?? undefined,
+      },
+      lesson.id,
+    );
     return { status };
   });
 

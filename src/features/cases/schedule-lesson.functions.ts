@@ -14,7 +14,9 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import { insertAudit, selectRows, type Db } from "@/features/cases/desk-db";
+import { format } from "date-fns";
 import { nextLessonSequence, scheduleLessonError } from "@/features/cases/schedule-lesson";
+import { insertLessonLifecycleEvent } from "@/features/cases/bus.functions";
 
 type Row = Record<string, unknown>;
 
@@ -62,7 +64,8 @@ export const scheduleNextLesson = createServerFn({ method: "POST" })
       matched_tutor_id: string | null;
       sor_status: string | null;
       mode: string | null;
-    }>(db, "tutoring_cases", "id, matched_tutor_id, sor_status, mode", [
+      case_code: string | null;
+    }>(db, "tutoring_cases", "id, matched_tutor_id, sor_status, mode, case_code", [
       { col: "id", op: "eq", value: data.caseId },
     ]);
     const c = cases[0];
@@ -120,6 +123,20 @@ export const scheduleNextLesson = createServerFn({ method: "POST" })
       if (!insertError) {
         const lessonId = String((inserted as { id: string }).id);
         await insertAudit(db, c.id, context.userId, "planned", "tutor_scheduled_next_lesson");
+        // #461 addendum Trigger 9: notify the counterparty (parent bell + email).
+        await insertLessonLifecycleEvent(
+          db,
+          "lesson.scheduled_by_tutor",
+          {
+            case_id: c.id,
+            case_code: c.case_code ?? undefined,
+            starts_at: new Date(data.startsAtIso).toISOString(),
+            heading: "New lesson scheduled",
+            body: "Your tutor scheduled a lesson; it is waiting for your confirmation.",
+            lessonLine: format(new Date(data.startsAtIso), "EEE d MMM, HH:mm"),
+          },
+          lessonId,
+        );
         return { lessonId, duplicate: false };
       }
       const message = insertError.message;

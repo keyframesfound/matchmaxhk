@@ -2969,7 +2969,11 @@
     "err_CASE_NOT_FOUND": "Case not found.",
     "err_TIME_CLASH": "Time clash: You or the student already have a confirmed lesson during this time block.",
     "parent_cancel_confirm": "Are you sure you want to cancel this lesson? The other party will be notified immediately.",
-    "tutor_cancel_confirm": "Are you sure you want to cancel this lesson? The other party will be notified immediately."
+    "tutor_cancel_confirm": "Are you sure you want to cancel this lesson? The other party will be notified immediately.",
+    "bell_lesson_cancelled_parent": "A lesson was cancelled by the parent",
+    "bell_lesson_cancelled_tutor": "Your tutor cancelled a lesson",
+    "bell_lesson_scheduled_parent": "A lesson slot was requested by the parent",
+    "bell_lesson_scheduled_tutor": "Your tutor scheduled a lesson"
   },
   "subjects": {
     "title": "Popular subjects",

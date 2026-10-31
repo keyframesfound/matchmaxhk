@@ -2969,7 +2969,11 @@
     "err_CASE_NOT_FOUND": "找不到個案。",
     "err_TIME_CLASH": "時間衝突：您或學生於此時段已有已確認的課堂。",
     "parent_cancel_confirm": "確定取消此課堂？系統將立即通知對方。",
-    "tutor_cancel_confirm": "確定取消此課堂？系統將立即通知對方。"
+    "tutor_cancel_confirm": "確定取消此課堂？系統將立即通知對方。",
+    "bell_lesson_cancelled_parent": "家長已取消一節課堂",
+    "bell_lesson_cancelled_tutor": "你的導師已取消一節課堂",
+    "bell_lesson_scheduled_parent": "家長已要求一個課堂時段",
+    "bell_lesson_scheduled_tutor": "你的導師已安排一節課堂"
   },
   "subjects": {
     "title": "熱門科目",

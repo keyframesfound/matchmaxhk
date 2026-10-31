@@ -8,6 +8,7 @@
  * selected here; tutor real name is never exposed (tutor_code only).
  */
 
+import { format } from "date-fns";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
@@ -24,6 +25,7 @@ import {
 import { canPublishHeldReview, isCaseFeeSettled } from "@/features/cases/case-reviews";
 import type { LessonConfirmRow } from "@/features/cases/case-reviews";
 import { sweepDueSessionLogs, type SessionLogRowT } from "@/features/cases/experience.functions";
+import { insertLessonLifecycleEvent } from "@/features/cases/bus.functions";
 import type { HoursLedgerRowT } from "@/features/hours/hours.functions";
 import { selectRowsOrEmpty } from "@/features/cases/desk-db";
 import {
@@ -60,7 +62,8 @@ async function myCase(db: Db, caseId: string, userId: string) {
     matched_tutor_id: string | null;
     sor_status: SorStatus | null;
     status: string;
-  }>(db, "tutoring_cases", "id, parent_id, matched_tutor_id, sor_status, status", [
+    case_code: string | null;
+  }>(db, "tutoring_cases", "id, parent_id, matched_tutor_id, sor_status, status, case_code", [
     { col: "id", op: "eq", value: caseId },
   ]);
   const c = rows[0];
@@ -457,8 +460,8 @@ export const cancelLessonParent = createServerFn({ method: "POST" })
       status: string;
       starts_at: string;
       case_id: string;
-      tutoring_cases: { parent_id: string | null } | null;
-    }>(db, "case_lessons", "id, status, starts_at, case_id, tutoring_cases(parent_id)", [
+      tutoring_cases: { parent_id: string | null; case_code: string | null } | null;
+    }>(db, "case_lessons", "id, status, starts_at, case_id, tutoring_cases(parent_id, case_code)", [
       { col: "id", op: "eq", value: data.lessonId },
     ]);
     const lesson = rows[0];
@@ -480,6 +483,20 @@ export const cancelLessonParent = createServerFn({ method: "POST" })
       })
       .select("id")
       .single();
+    // #461 addendum Trigger 8: notify the counterparty (tutor bell + email).
+    await insertLessonLifecycleEvent(
+      db,
+      "lesson.cancelled_by_parent",
+      {
+        case_id: lesson.case_id,
+        starts_at: lesson.starts_at,
+        heading: "Lesson cancelled",
+        body: "The parent cancelled this lesson.",
+        lessonLine: format(new Date(lesson.starts_at), "EEE d MMM, HH:mm"),
+        caseCode: lesson.tutoring_cases?.case_code ?? undefined,
+      },
+      lesson.id,
+    );
     return { status };
   });
 
@@ -564,7 +581,7 @@ export const requestSlot = createServerFn({ method: "POST" })
       { col: "case_id", op: "eq", value: c.id },
     ]);
     const sequence = all.reduce((max, l) => Math.max(max, l.sequence), 0) + 1;
-    const { error } = await db
+    const { data: lessonRow, error } = await db
       .from<Row>("case_lessons")
       .insert({
         case_id: c.id,
@@ -578,6 +595,22 @@ export const requestSlot = createServerFn({ method: "POST" })
       .select("id")
       .single();
     if (error) throw new Error(error.message);
+    // #461 addendum Trigger 9: notify the counterparty (tutor bell + email).
+    if (lessonRow?.id) {
+      await insertLessonLifecycleEvent(
+        db,
+        "lesson.scheduled_by_parent",
+        {
+          case_id: c.id,
+          starts_at: data.startsAt,
+          heading: "New lesson scheduled",
+          body: "The parent requested a lesson slot; please confirm or cancel it.",
+          lessonLine: format(new Date(data.startsAt), "EEE d MMM, HH:mm"),
+          caseCode: c.case_code ?? undefined,
+        },
+        String(lessonRow.id),
+      );
+    }
     return { ok: true };
   });
 

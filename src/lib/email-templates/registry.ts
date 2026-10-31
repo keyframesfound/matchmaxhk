@@ -3,6 +3,7 @@ import type { ComponentType } from "react";
 import { AccountStatusEmail } from "./account-status";
 import { ConciergeUnpaidDigestEmail } from "./concierge-unpaid-digest";
 import { FeeReminderEmail } from "./fee-reminder";
+import { LessonUpdateEmail } from "./lesson-update";
 import { OrderDeliveredEmail } from "./order-delivered";
 import { TutorCardLiveEmail } from "./tutor-card-live";
 
@@ -56,5 +57,14 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
     component: ConciergeUnpaidDigestEmail as unknown as ComponentType<Record<string, unknown>>,
     subject: (data: Record<string, unknown>) =>
       `${Number(data?.count ?? 0)} unpaid admin fee(s) past due`,
+  },
+  // #461 addendum Triggers 8-9: one template, four lifecycle variants; the
+  // emitting server fn owns heading/body/lessonLine in the payload.
+  "lesson-update": {
+    component: LessonUpdateEmail as unknown as ComponentType<Record<string, unknown>>,
+    subject: (data: Record<string, unknown>) =>
+      `${String(data?.heading ?? "Lesson update")}${
+        data?.caseCode ? `, case ${String(data.caseCode)}` : ""
+      }`,
   },
 };

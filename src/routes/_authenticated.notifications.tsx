@@ -3,7 +3,7 @@ import { useEffect, useRef } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatPostedAgo } from "@/lib/relative-time";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import { Bell, CalendarClock, Package, Star, Wallet } from "lucide-react";
+import { Bell, CalendarClock, CalendarX, Package, Star, Wallet } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import i18n from "@/features/i18n/config";
 import { cn } from "@/lib/utils";
@@ -29,7 +29,9 @@ export const Route = createFileRoute("/_authenticated/notifications")({
 function bellIcon(eventType: string) {
   if (eventType === "note_order.delivered") return Package;
   if (eventType === "review.published" || eventType === "lesson.review_prompt") return Star;
-  if (eventType === "lesson.reminder_due") return CalendarClock;
+  if (eventType.startsWith("lesson.cancelled")) return CalendarX;
+  if (eventType.startsWith("lesson.scheduled") || eventType === "lesson.reminder_due")
+    return CalendarClock;
   if (eventType.startsWith("admin_fee")) return Wallet;
   return Bell;
 }
@@ -50,6 +52,16 @@ function bellLabelKey(item: BellItem): string {
       return "sor.bell_fee_unpaid";
     case "admin_fee.digest":
       return "sor.bell_unpaid_digest";
+    // #461 addendum Triggers 8-9: actor-split event types, so the label
+    // always describes the OTHER side's action.
+    case "lesson.cancelled_by_parent":
+      return "sor.bell_lesson_cancelled_parent";
+    case "lesson.cancelled_by_tutor":
+      return "sor.bell_lesson_cancelled_tutor";
+    case "lesson.scheduled_by_parent":
+      return "sor.bell_lesson_scheduled_parent";
+    case "lesson.scheduled_by_tutor":
+      return "sor.bell_lesson_scheduled_tutor";
     default:
       return "sor.bell_update";
   }

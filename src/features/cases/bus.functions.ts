@@ -74,6 +74,28 @@ async function insertEvent(
   }
 }
 
+/**
+ * #461 addendum Triggers 8-9: lesson lifecycle events (cancelled/scheduled,
+ * actor-split so the counterparty is messaged, never the actor). Best-effort
+ * from the caller's side: a failed insert must never fail the lesson action,
+ * and duplicates are deduped on the (event_type, source_id) key.
+ */
+export async function insertLessonLifecycleEvent(
+  db: Db,
+  eventType: string,
+  payload: Record<string, unknown>,
+  lessonId: string,
+): Promise<void> {
+  try {
+    await insertEvent(db, eventType, payload, lessonId);
+  } catch (e) {
+    console.warn(
+      `[bus] lesson event ${eventType} not recorded:`,
+      e instanceof Error ? e.message : e,
+    );
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Event generation (lazy, replaces the cron this repo does not have)
 // ---------------------------------------------------------------------------
@@ -336,6 +358,12 @@ const EMAIL_TEMPLATE_BY_EVENT: Record<string, string> = {
   "admin_fee.unpaid": "fee-reminder",
   "note_order.delivered": "order-delivered",
   "admin_fee.digest": "concierge-unpaid-digest",
+  // #461 addendum Triggers 8-9 share one template; the heading/body come
+  // from the event payload the emitting server fn built.
+  "lesson.cancelled_by_parent": "lesson-update",
+  "lesson.cancelled_by_tutor": "lesson-update",
+  "lesson.scheduled_by_parent": "lesson-update",
+  "lesson.scheduled_by_tutor": "lesson-update",
 };
 
 function fmtHkd(n: unknown): string {
