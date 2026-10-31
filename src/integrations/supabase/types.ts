@@ -1588,7 +1588,10 @@ export type Database = {
         Args: { p_tutor_id: string; p_event_type: string; p_viewer_key: string };
         Returns: undefined;
       };
-      complete_onboarding: { Args: { _choice: string }; Returns: undefined };
+      complete_onboarding: {
+        Args: { _choice: string | null; _display_name?: string | null };
+        Returns: undefined;
+      };
       confirm_tutor_claim: { Args: { p_tutor_id: string }; Returns: string };
       request_tutor_claim: { Args: { p_tutor_id: string }; Returns: string };
       publish_tutor_from_application: {

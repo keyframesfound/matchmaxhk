@@ -7,15 +7,18 @@ import { TosAcceptanceGate } from "@/features/auth/TosAcceptanceGate";
 import { GateOverlayContext } from "@/features/auth/gate-overlay";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
 type OnboardingChoice = "parent" | "tutor";
 
 /**
- * Blocks the entire app behind a Fiverr-style "What brings you to MatchMax?"
- * role-selection dialog for any signed-in user who has not completed
- * onboarding yet. Internal roles (admins/staff) skip straight to the Terms
- * gate. Once the choice is recorded the ToS acceptance gate takes over, so
+ * Blocks the entire app behind a first-run dialog for any signed-in user who
+ * has not completed onboarding yet: a required display name plus OPTIONAL
+ * parent/tutor intent pills with a Skip (#459 §A — zero lock-in; the old
+ * blocking XOR choice is gone). Internal roles (admins/staff) skip straight
+ * to the Terms gate. Once saved the ToS acceptance gate takes over, so
  * first-time users see onboarding first, then the ToS dialog.
  */
 export function OnboardingGate({ children }: { children: ReactNode }) {
@@ -67,7 +70,13 @@ export function OnboardingGate({ children }: { children: ReactNode }) {
         // stay strictly sequential instead of stacking.
         <>
           {children}
-          <OnboardingRoleDialog displayName={displayName} onDone={() => setOnboardedFor(user.id)} />
+          <OnboardingRoleDialog
+            displayName={displayName}
+            fallbackName={
+              typeof user.user_metadata?.name === "string" ? user.user_metadata.name : ""
+            }
+            onDone={() => setOnboardedFor(user.id)}
+          />
         </>
       ) : (
         <TosAcceptanceGate>{children}</TosAcceptanceGate>
@@ -78,26 +87,34 @@ export function OnboardingGate({ children }: { children: ReactNode }) {
 
 function OnboardingRoleDialog({
   displayName,
+  fallbackName,
   onDone,
 }: {
   displayName: string | null;
+  fallbackName: string;
   onDone: () => void;
 }) {
   const { t } = useTranslation();
   const { refreshRoles } = useAuth();
+  const [name, setName] = useState(displayName ?? fallbackName);
   const [choice, setChoice] = useState<OnboardingChoice | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  async function confirm() {
-    if (!choice || submitting) return;
+  async function save(nextChoice: OnboardingChoice | null) {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    if (submitting) return;
     setSubmitting(true);
-    const { error } = await supabase.rpc("complete_onboarding", { _choice: choice });
+    const { error } = await supabase.rpc("complete_onboarding", {
+      _choice: nextChoice,
+      _display_name: trimmed,
+    });
     if (error) {
       toast.error(t("auth.onboarding_error"));
       setSubmitting(false);
       return;
     }
-    await refreshRoles();
+    if (nextChoice) await refreshRoles();
     onDone();
   }
 
@@ -126,17 +143,35 @@ function OnboardingRoleDialog({
         className="top-auto bottom-0 left-1/2 w-full max-w-[520px] translate-x-[-50%] translate-y-0 gap-0 rounded-t-3xl border-0 bg-[color:var(--surface)] p-6 pb-8 data-[state=closed]:slide-out-to-bottom-full data-[state=open]:slide-in-from-bottom-1/2 sm:top-1/2 sm:bottom-auto sm:translate-y-[-50%] sm:rounded-3xl sm:data-[state=open]:slide-in-from-bottom-0 sm:data-[state=open]:zoom-in-95"
       >
         <DialogTitle className="text-2xl font-bold tracking-tight text-[color:var(--ink)]">
-          {displayName
-            ? t("auth.onboarding_title_named", { name: displayName })
-            : t("auth.onboarding_title")}
+          {t("auth.onboarding_title")}
         </DialogTitle>
         <DialogDescription className="mt-2 text-base leading-relaxed text-muted-foreground">
           {t("auth.onboarding_subtitle")}
         </DialogDescription>
+
+        {/* #459 §4.1: Display Name is the only required field. */}
+        <div className="mt-6 space-y-2">
+          <Label htmlFor="onboarding-name" className="text-[color:var(--ink)]">
+            {t("auth.onboarding_name_label")}
+          </Label>
+          <Input
+            id="onboarding-name"
+            value={name}
+            maxLength={80}
+            autoComplete="name"
+            placeholder={t("auth.onboarding_name_placeholder")}
+            onChange={(event) => setName(event.target.value)}
+            className="bg-[color:var(--surface)]"
+          />
+        </div>
+
+        <p className="mt-5 text-sm font-medium text-muted-foreground">
+          {t("auth.onboarding_intent_optional")}
+        </p>
         <div
           role="radiogroup"
-          aria-label={t("auth.onboarding_subtitle")}
-          className="mt-6 grid grid-cols-1 gap-3 sm:grid-cols-2"
+          aria-label={t("auth.onboarding_intent_optional")}
+          className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2"
         >
           {options.map((option) => {
             const selected = choice === option.value;
@@ -178,16 +213,28 @@ function OnboardingRoleDialog({
             );
           })}
         </div>
-        <Button
-          variant="solid"
-          color="neutral"
-          loading={submitting}
-          disabled={!choice}
-          onClick={confirm}
-          className="mt-6 h-12 w-full rounded-xl text-base font-bold"
-        >
-          {t("auth.onboarding_next")}
-        </Button>
+        {/* #459 §A: intent pills are optional — Skip records the name and
+            adds no role; Continue records the chosen intent alongside it. */}
+        <div className="mt-6 flex flex-col gap-2 sm:flex-row-reverse">
+          <Button
+            variant="solid"
+            color="neutral"
+            loading={submitting}
+            disabled={!name.trim()}
+            onClick={() => save(choice)}
+            className="h-12 flex-1 rounded-xl text-base font-bold"
+          >
+            {t("auth.onboarding_next")}
+          </Button>
+          <Button
+            variant="ghost"
+            disabled={submitting || !name.trim()}
+            onClick={() => save(null)}
+            className="h-12 flex-1 rounded-xl text-base font-semibold"
+          >
+            {t("auth.onboarding_skip")}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
