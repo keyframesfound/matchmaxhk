@@ -2,7 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { type QueryClient, useQuery } from "@tanstack/react-query";
-import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Flame } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -412,6 +412,11 @@ function TrendingTutorsSection({
   return (
     <section className="mx-auto max-w-[1536px]">
       <div className="mb-4 flex items-center gap-2 sm:gap-3">
+        <Flame
+          className="h-5 w-5 shrink-0 text-[color:var(--brand-link)] sm:h-6 sm:w-6"
+          strokeWidth={1.75}
+          aria-hidden="true"
+        />
         <h2 className="min-w-0 truncate text-xl font-bold tracking-tight text-[color:var(--ink)] md:text-2xl">
           {t("home.trending_title")}
         </h2>

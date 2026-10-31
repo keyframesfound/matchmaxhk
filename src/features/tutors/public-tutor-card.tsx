@@ -11,6 +11,7 @@ import {
   LineChart,
   School,
   Share2,
+  UserRound,
 } from "lucide-react";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { getTutorCardHighlights, type Tutor } from "@/features/tutors/queries";
@@ -74,10 +75,13 @@ function AcademicResultChip({ chip }: { chip: TutorSubjectChip }) {
     >
       <span className="break-words font-medium">{chip.subject}</span>
       {grade ? (
-        <span className="ml-1 shrink-0 font-semibold tabular-nums">
-          {grade.prefix}
-          {grade.value}
-        </span>
+        <>
+          <span className="mx-0.5 shrink-0 text-muted-foreground">:</span>
+          <span className="shrink-0 font-semibold">
+            {grade.prefix}
+            {grade.value}
+          </span>
+        </>
       ) : null}
     </span>
   );
@@ -352,10 +356,7 @@ export function PublicTutorCard({
     <article
       data-tour={tourId}
       className={cn(
-        // Content-height card (no min-h / h-full stretch) so short cards never
-        // carry an empty band above the footer; self-start opts out of grid
-        // and flex stretch in every caller.
-        "@container relative flex w-full flex-col self-start overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card transition-colors duration-200 hover:border-[color:var(--foreground)]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] motion-reduce:transition-none",
+        "@container relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card transition-[transform,border-color] duration-200 hover:-translate-y-1 hover:border-[color:var(--foreground)]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:min-h-[23rem]",
         interactive && "cursor-pointer",
         compareSelected && "border-[color:var(--ring)] ring-2 ring-[color:var(--ring)]",
         className,
@@ -483,9 +484,15 @@ export function PublicTutorCard({
                 className="mt-1 flex min-w-0 items-center gap-1.5 text-xs leading-snug text-muted-foreground"
               >
                 {line.icon === "graduation" ? (
-                  <GraduationCap className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  <GraduationCap
+                    className="h-3 w-3 shrink-0 text-[color:var(--brand-link)]"
+                    aria-hidden="true"
+                  />
                 ) : (
-                  <School className="h-3 w-3 shrink-0" aria-hidden="true" />
+                  <School
+                    className="h-3 w-3 shrink-0 text-[color:var(--brand-link)]"
+                    aria-hidden="true"
+                  />
                 )}
                 <span className="min-w-0 break-words line-clamp-2">{removeEmoji(line.text)}</span>
               </p>
@@ -497,7 +504,8 @@ export function PublicTutorCard({
           </div>
 
           {genderLabel ? (
-            <span className="absolute right-3 top-2.5 text-xs text-muted-foreground @max-sm:text-[11px] md:right-4 md:top-3">
+            <span className="absolute right-3 top-2.5 inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-[color:var(--ink)] @max-sm:px-1.5 @max-sm:py-0.5 @max-sm:text-[11px] md:right-4 md:top-3">
+              <UserRound className="h-3 w-3 text-[color:var(--brand-link)]" aria-hidden="true" />
               {genderLabel}
             </span>
           ) : null}
@@ -538,7 +546,7 @@ export function PublicTutorCard({
           <section className="border-b border-border pb-2.5 md:pb-3">
             <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
               <LineChart
-                className="h-3.5 w-3.5 @max-sm:h-3 @max-sm:w-3"
+                className="h-3.5 w-3.5 text-[color:var(--brand-link)] @max-sm:h-3 @max-sm:w-3"
                 strokeWidth={2.5}
                 aria-hidden="true"
               />
@@ -637,7 +645,7 @@ export function PublicTutorCard({
         >
           <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <Award
-              className="h-3.5 w-3.5 @max-sm:h-3 @max-sm:w-3"
+              className="h-3.5 w-3.5 text-[color:var(--brand-link)] @max-sm:h-3 @max-sm:w-3"
               strokeWidth={2.5}
               aria-hidden="true"
             />
@@ -645,7 +653,7 @@ export function PublicTutorCard({
           </h3>
 
           {tutor.achievements.length > 0 ? (
-            <ul className="mt-1.5 list-disc space-y-1.5 pl-4 marker:text-muted-foreground">
+            <ul className="mt-1.5 list-disc space-y-1.5 pl-4 marker:text-[color:var(--brand-link)]">
               {tutor.achievements.slice(0, 3).map((achievement, index) => (
                 <FitText
                   key={`${achievement.short_text}-${index}`}
@@ -661,7 +669,7 @@ export function PublicTutorCard({
           ) : null}
 
           <ul
-            className="mt-2.5 list-disc space-y-1 pl-4 marker:text-muted-foreground md:mt-3"
+            className="mt-2.5 list-disc space-y-1 pl-4 marker:text-[color:var(--brand-link)] md:mt-3"
             aria-label={t("tutor_card.highlights_label")}
           >
             {(cardHighlights.length > 0
