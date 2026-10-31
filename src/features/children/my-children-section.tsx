@@ -63,6 +63,20 @@ export function MyChildrenSection() {
     }
   }
 
+  // #459 §C: a pure student never sees the "My children" block. Until the
+  // first child exists this collapses to a single quiet add-a-child entry.
+  if (childrenQuery.isSuccess && children.length === 0 && editing !== "new") {
+    return (
+      <section className="mt-6 flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-border bg-card p-5">
+        <p className="min-w-0 text-sm text-muted-foreground">{t("children.add_first_hint")}</p>
+        <Button type="button" variant="outline" onClick={() => setEditing("new")}>
+          <Plus className="h-4 w-4" aria-hidden />
+          {t("children.add_first")}
+        </Button>
+      </section>
+    );
+  }
+
   return (
     <section className="mt-6 rounded-2xl border border-border bg-card p-5">
       <div className="flex flex-wrap items-start justify-between gap-3">
@@ -86,10 +100,6 @@ export function MyChildrenSection() {
 
       {editing === "new" ? (
         <ChildForm initial={EMPTY_DRAFT} childId={null} onDone={() => setEditing(null)} />
-      ) : null}
-
-      {childrenQuery.isSuccess && children.length === 0 && editing !== "new" ? (
-        <p className="mt-4 text-sm text-muted-foreground">{t("children.empty")}</p>
       ) : null}
 
       <ul className="mt-4 divide-y divide-border">

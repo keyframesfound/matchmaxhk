@@ -65,7 +65,7 @@
     "block_bio": "關於你",
     "status_block": "可用時間",
     "slots_left": "剩餘 {{count}} 個名額",
-    "cases_block": "我嘅個案",
+    "cases_block": "已登記課堂",
     "completed_cases_count": "已完成 {{count}}",
     "no_cases": "仲未有個案。",
     "create_case": "搵導師",
@@ -393,7 +393,9 @@
     "screening_clarify_submit": "傳送給配對團隊",
     "screening_clarify_sending": "傳送中…",
     "screening_clarify_sent": "多謝你的意見——已通知配對團隊，此個案正重新審核中。",
-    "screening_confirm_required": "請先確認審核摘要（或提出澄清），才可以申請。"
+    "screening_confirm_required": "請先確認審核摘要（或提出澄清），才可以申請。",
+    "identity_parent_account": "家長帳戶",
+    "identity_independent_student": "獨立學生"
   },
   "case_request": {
     "fee_notice_title": "配對費用",
@@ -2308,16 +2310,15 @@
       "email_change_sent": "請去收件匣確認你嘅新電郵地址。",
       "email_changed": "你嘅電郵地址已更新。",
       "email_change_error": "無法更新你嘅電郵地址。",
-      "type_title": "帳戶類型",
-      "type_desc": "選擇你用 MatchMax 嘅方式——搵導師嘅家長/學生，定係導師。隨時可以切換。",
-      "type_parent": "搵導師",
-      "type_parent_desc": "為自己或者子女搵補習。",
-      "type_tutor": "導師",
-      "type_tutor_desc": "提供補習服務，搵新學生。",
-      "type_update": "更新帳戶類型",
-      "type_saving": "儲存中…",
-      "type_saved": "你嘅帳戶類型已更新。",
-      "type_error": "無法更新你嘅帳戶類型。"
+      "capabilities_title": "已啟用功能",
+      "capabilities_desc": "一個帳戶，兩種模式。喺頁頂切換學習同教學模式，資料永遠唔會被刪除。",
+      "cap_learning": "學習及子女管理",
+      "cap_learning_desc": "搵導師、跟進課堂同管理子女檔案。",
+      "cap_teaching": "獨立導師檔案",
+      "cap_teaching_desc": "提供補習服務，接收個案。",
+      "cap_active": "已啟用",
+      "cap_activate": "成為導師",
+      "cap_manage": "管理導師檔案"
     },
     "security": {
       "password_title": "更改密碼",
@@ -3188,7 +3189,6 @@
   "children": {
     "title": "我的子女",
     "desc": "每位子女加一次，佢哋嘅個案同堂數就會分開記錄。",
-    "empty": "未加任何子女。",
     "add": "加子女",
     "edit": "編輯",
     "archive": "移除",
@@ -3246,6 +3246,8 @@
       "err_CLAIM_CHILD_NOT_FOUND": "找不到子女檔案。",
       "err_CLAIM_CHILD_NOT_MANAGED": "此檔案已不能再認領。",
       "accepted_toast": "{{name}} 已擁有自己的學習檔案。"
-    }
+    },
+    "add_first": "加子女",
+    "add_first_hint": "幫子女搵補習？喺度加佢哋，堂數會分開記錄。"
   }
 }
