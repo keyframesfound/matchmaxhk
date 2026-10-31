@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { isSchemaDriftError } from "@/lib/schema-drift";
 import {
+  Clock,
   Download,
   ExternalLink,
   Eye,
@@ -61,6 +62,7 @@ import { RiskFlagBadge } from "@/features/admin/risk-flag-badge";
 import { listRiskFlags, type RiskFlagRow } from "@/features/admin/risk-flags.functions";
 import { normalizeRiskFlag } from "@/features/admin/risk-flags";
 import { TutorEditor } from "@/features/tutors/admin/TutorEditor";
+import { HoursReconcileDialog } from "@/features/hours/admin-hours-dialog";
 import { resolveAccountDeletion } from "@/lib/account.functions";
 
 type DeletionRequestRow = {
@@ -104,6 +106,8 @@ function AdminTutors() {
   const routeSearch = Route.useSearch();
   const queryClient = useQueryClient();
   const [editingTutor, setEditingTutor] = useState<Tutor | null>(null);
+  // #459 slice 8: tutor id with the hours-reconcile dialog open.
+  const [reconcileTutorId, setReconcileTutorId] = useState<string | null>(null);
   const [isCreating, setIsCreating] = useState(false);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
@@ -1025,6 +1029,17 @@ function AdminTutors() {
                             Edit
                           </Button>
 
+                          {/* #459 slice 8: read-only hours reconcile (§8.5). */}
+                          <Button
+                            size="icon"
+                            variant="ghost"
+                            onClick={() => setReconcileTutorId(row.id)}
+                            aria-label={`Reconcile hours for ${row.tutor_code || row.display_name || "tutor"}`}
+                            className="h-8 w-8 text-muted-foreground hover:text-[color:var(--ink)]"
+                          >
+                            <Clock className="h-3.5 w-3.5" />
+                          </Button>
+
                           <Button
                             size="icon"
                             variant="ghost"
@@ -1089,6 +1104,9 @@ function AdminTutors() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* #459 slice 8: read-only verified-hours reconcile (§8.5/§11). */}
+      <HoursReconcileDialog tutorId={reconcileTutorId} onClose={() => setReconcileTutorId(null)} />
     </div>
   );
 }
