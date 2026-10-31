@@ -112,6 +112,8 @@ export const logTutorSession = createServerFn({ method: "POST" })
         logDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
         startMinute: z.number().int(),
         durationMin: z.number().int(),
+        // #461 3b: the family has not paid this lesson's tuition yet.
+        tuitionUnpaid: z.boolean().optional(),
       })
       .parse(input),
   )
@@ -160,6 +162,9 @@ export const logTutorSession = createServerFn({ method: "POST" })
       start_minute: data.startMinute,
       duration_min: data.durationMin,
       status: "pending",
+      ...(data.tuitionUnpaid
+        ? { tuition_status: "unpaid", tuition_status_at: new Date().toISOString() }
+        : {}),
     });
     const { data: inserted, error } = await (
       insert as unknown as {

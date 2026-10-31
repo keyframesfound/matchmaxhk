@@ -104,7 +104,7 @@ export function isFeeOpen(
 // ---------------------------------------------------------------------------
 
 export type LessonStatus =
-  "planned" | "confirmed" | "done" | "no_show" | "cancelled" | "late_cancel";
+  "planned" | "confirmed" | "done" | "no_show" | "cancelled" | "late_cancel" | "voided";
 
 /** #204: mark done is available from 15 minutes before start until 7 days after. */
 export const MARK_DONE_EARLY_MIN = 15;
@@ -136,6 +136,22 @@ export function cancelActionFor(startsAt: Date, now: Date): "cancelled" | "late_
 /** #204: a lesson request auto-expires if the tutor never confirms within 12 hours. */
 export function isRequestExpired(createdAt: Date, now: Date): boolean {
   return now.getTime() - createdAt.getTime() >= REQUEST_EXPIRY_HOURS * 60 * 60 * 1000;
+}
+
+/**
+ * #204 lazy-cancel predicate: only a still-planned request the TUTOR never
+ * confirmed expires. A planned lesson the tutor already confirmed is waiting
+ * on the parent (incl. #461 tutor-scheduled lessons) and must not be cancelled.
+ */
+export function isUnconfirmedRequestExpired(
+  lesson: { status: string; created_at: string; confirmed_by_tutor_at: string | null },
+  now: Date,
+): boolean {
+  return (
+    lesson.status === "planned" &&
+    lesson.confirmed_by_tutor_at === null &&
+    isRequestExpired(new Date(lesson.created_at), now)
+  );
 }
 
 /**

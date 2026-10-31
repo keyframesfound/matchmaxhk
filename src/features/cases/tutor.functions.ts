@@ -17,6 +17,7 @@ import {
   hktFromParts,
   isActiveStudentCase,
   isRequestExpired,
+  isUnconfirmedRequestExpired,
   TUTOR_PLUS_THRESHOLD,
 } from "@/features/cases/sor";
 import { generateSlots, type GeneratedSlot } from "@/features/cases/slot";
@@ -238,9 +239,7 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
     // #204: a slot request the tutor never confirmed within 12h expires —
     // lazy-cancel on read (idempotent: only still-planned rows are touched).
     const now = new Date();
-    const expired = lessons.filter(
-      (l) => l.status === "planned" && isRequestExpired(new Date(l.created_at), now),
-    );
+    const expired = lessons.filter((l) => isUnconfirmedRequestExpired(l, now));
     if (expired.length > 0) {
       for (const l of expired) {
         const { error: expireError } = await db

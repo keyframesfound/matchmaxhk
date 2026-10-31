@@ -18,6 +18,7 @@ import {
   isLegalTransition,
   isReminderDue,
   reminderDueAt,
+  isUnconfirmedRequestExpired,
 } from "../../src/features/cases/sor";
 
 describe("SoR status machine (#201)", () => {
@@ -198,5 +199,36 @@ describe("HKT helpers (#204)", () => {
     expect(isReminderDue(lesson, dueAt)).toBe(true);
     expect(isReminderDue(lesson, new Date(lesson.getTime() - 1))).toBe(true);
     expect(isReminderDue(lesson, new Date(lesson.getTime() + 1))).toBe(false);
+  });
+});
+
+describe("isUnconfirmedRequestExpired (#204 12h rule)", () => {
+  const created = "2026-10-15T00:00:00Z";
+  const later = new Date("2026-10-15T13:00:00Z"); // 13h after the request
+
+  it("expires a planned request the tutor never confirmed", () => {
+    expect(
+      isUnconfirmedRequestExpired(
+        { status: "planned", created_at: created, confirmed_by_tutor_at: null },
+        later,
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps a planned lesson the tutor already confirmed (waiting on the parent)", () => {
+    expect(
+      isUnconfirmedRequestExpired(
+        { status: "planned", created_at: created, confirmed_by_tutor_at: created },
+        later,
+      ),
+    ).toBe(false);
+  });
+
+  it("ignores lessons that are no longer planned or still inside 12h", () => {
+    const row = { status: "confirmed", created_at: created, confirmed_by_tutor_at: null };
+    expect(isUnconfirmedRequestExpired(row, later)).toBe(false);
+    expect(
+      isUnconfirmedRequestExpired({ ...row, status: "planned" }, new Date("2026-10-15T06:00:00Z")),
+    ).toBe(false);
   });
 });

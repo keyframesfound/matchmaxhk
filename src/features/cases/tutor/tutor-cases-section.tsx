@@ -36,6 +36,7 @@ import { ReviewStepHeader } from "@/features/cases/review-step-header";
 import { caseHasVerifiedLesson } from "@/features/cases/case-reviews";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { ShortCaseChip } from "@/features/cases/tutor/short-case-chip";
+import { ScheduleNextLessonDialog } from "@/features/cases/tutor/schedule-next-lesson-dialog";
 import { lessonActionsFor } from "@/features/cases/tutor/week-model";
 import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
 import { canMarkDone, hktDateKey } from "@/features/cases/sor";
@@ -289,6 +290,7 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
   const [logDate, setLogDate] = useState(today);
   const [start, setStart] = useState("18:00");
   const [durationMin, setDurationMin] = useState(60);
+  const [tuitionUnpaid, setTuitionUnpaid] = useState(false);
 
   const timeMatch = /^(\d{1,2}):(\d{2})$/.exec(start);
   const startMinute = timeMatch ? Number(timeMatch[1]) * 60 + Number(timeMatch[2]) : -1;
@@ -299,11 +301,15 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
 
   const log = useMutation({
     mutationFn: () =>
-      logTutorSession({ data: { caseId: item.id, logDate, startMinute, durationMin } }),
+      logTutorSession({
+        data: { caseId: item.id, logDate, startMinute, durationMin, tuitionUnpaid },
+      }),
     onSuccess: () => {
       toast.success(t("experience.log_success"));
       setOpen(false);
+      setTuitionUnpaid(false);
       invalidate();
+      void queryClient.invalidateQueries({ queryKey: ["sor", "earnings"] });
     },
     onError: (e) => toast.error(t(`experience.err_${e.message}`, { defaultValue: e.message })),
   });
@@ -388,6 +394,15 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
             ) : (
               <p className="mt-2 text-xs text-muted-foreground">{t("experience.log_hint")}</p>
             )}
+            {/* #461 3b: tuition the family still owes the tutor (not the admin fee). */}
+            <label className="mt-2 flex items-center gap-2 text-xs text-[color:var(--ink)]">
+              <input
+                type="checkbox"
+                checked={tuitionUnpaid}
+                onChange={(e) => setTuitionUnpaid(e.target.checked)}
+              />
+              {t("experience.log_tuition_unpaid")}
+            </label>
             <div className="mt-2 flex justify-end gap-2">
               <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
                 {t("sor.admin_cancel")}
@@ -507,6 +522,8 @@ export function TutorCasesSection() {
                   c.sor_status !== "replaced" && <TutorReviewParentForm caseId={c.id} t={t} />}
                 {/* #387: logged sessions + logging form (fee-paid cases). */}
                 <SessionLogForm item={c} />
+                {/* #461 3c: one-slot schedule on fee-paid / active cases. */}
+                <ScheduleNextLessonDialog caseId={c.id} sorStatus={c.sor_status} />
                 {/* #503: bilateral End Case — the tutor marks the case
                     finished; it ends when both sides (or staff) confirm. */}
                 <div className="mt-3">
