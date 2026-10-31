@@ -276,3 +276,50 @@ export function computeEarnings(
     casesMissingRate: perCase.filter((c) => c.missingRate).length,
   };
 }
+
+/** #461 3d: what a centre sees for its cases — lesson value and hours only. */
+export type OrgLessonTotals = {
+  taughtHkd: number;
+  scheduledHkd: number;
+  taughtHours: number;
+  lessonsTaught: number;
+  lessonsScheduled: number;
+};
+
+export type OrgLessonCase = OrgLessonTotals & {
+  caseId: string;
+  caseCode: string;
+  studentLabel: string;
+  missingRate: boolean;
+};
+
+export type OrgLessonSummary = { cases: OrgLessonCase[]; totals: OrgLessonTotals };
+
+function orgTotals(lessons: readonly EarningsLesson[]): OrgLessonTotals {
+  const taught = lessons.filter((l) => l.bucket === "realized");
+  const scheduled = lessons.filter((l) => l.bucket === "pipeline");
+  const minutes = taught.reduce((s, l) => s + l.durationMin, 0);
+  return {
+    taughtHkd: taught.reduce((s, l) => s + l.grossHkd, 0),
+    scheduledHkd: scheduled.reduce((s, l) => s + l.grossHkd, 0),
+    taughtHours: Math.round((minutes / MINUTES_PER_HOUR) * 100) / 100,
+    lessonsTaught: taught.length,
+    lessonsScheduled: scheduled.length,
+  };
+}
+
+/**
+ * Centre (Organization) view of the same engine. The tutor's net and the
+ * admin fee are the tutor's own business (Independent Tutor), so only the
+ * gross lesson value and hours are exposed.
+ */
+export function summarizeForOrganisation(result: EarningsResult): OrgLessonSummary {
+  const cases = result.cases.map((c) => ({
+    caseId: c.caseId,
+    caseCode: c.caseCode,
+    studentLabel: c.studentLabel,
+    missingRate: c.missingRate,
+    ...orgTotals(c.lessons),
+  }));
+  return { cases, totals: orgTotals(result.cases.flatMap((c) => c.lessons)) };
+}

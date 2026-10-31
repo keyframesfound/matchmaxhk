@@ -106,7 +106,7 @@ export function centreTriageStatus(triage: {
   return "new";
 }
 
-async function requireOrgMembership(userId: string, orgId: string) {
+export async function requireOrgMembership(userId: string, orgId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const { data: membership, error } = await supabaseAdmin
     .from("organization_members")

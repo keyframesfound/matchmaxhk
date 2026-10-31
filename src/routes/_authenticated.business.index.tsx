@@ -39,6 +39,7 @@ import { CoursesPanel } from "@/features/business/courses-panel";
 import { TeamPanel } from "@/features/business/team-panel";
 import { ProfilePanel } from "@/features/business/profile-panel";
 import { getOrganizationCases } from "@/features/cases/centre-case.functions";
+import { OrganisationLessonsPanel } from "@/features/business/organisation-lessons-panel";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
@@ -716,7 +717,10 @@ function RequestsPanel({
           Your account is still under Business Registration review, case requests open once your
           account is activated.
         </div>
-      ) : null}
+      ) : (
+        // #461 3d: lessons on this centre's cases (value + hours, no tutor net).
+        <OrganisationLessonsPanel organizationId={organizationId} />
+      )}
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Loading requests…</p>

@@ -4,6 +4,7 @@ import {
   computeEarnings,
   earningsRange,
   parseSecondaryTier,
+  summarizeForOrganisation,
   type EarningsCaseInput,
   type EarningsLessonInput,
 } from "../../src/features/cases/earnings";
@@ -309,5 +310,36 @@ describe("parseSecondaryTier", () => {
   it("falls back to primary for empty or unknown values", () => {
     expect(parseSecondaryTier(null)).toBe("primary");
     expect(parseSecondaryTier("9")).toBe("primary");
+  });
+});
+
+describe("summarizeForOrganisation (3d centre view)", () => {
+  it("reports tuition value and hours, never the tutor's net or admin fee", () => {
+    const c = makeCase({
+      lessons: [
+        lesson(1, "2026-10-08T10:00:00Z", "done"),
+        lesson(2, "2026-10-20T10:00:00Z", "confirmed"),
+      ],
+    });
+    const summary = summarizeForOrganisation(computeEarnings([c], OCTOBER, NOW));
+    expect(summary.totals).toEqual({
+      taughtHkd: 900,
+      scheduledHkd: 900,
+      taughtHours: 1.5,
+      lessonsTaught: 1,
+      lessonsScheduled: 1,
+    });
+    expect(summary.cases[0]).toEqual({
+      caseId: "c1",
+      caseCode: "MM-001",
+      studentLabel: "Anson",
+      missingRate: false,
+      taughtHkd: 900,
+      scheduledHkd: 900,
+      taughtHours: 1.5,
+      lessonsTaught: 1,
+      lessonsScheduled: 1,
+    });
+    expect(JSON.stringify(summary)).not.toMatch(/admin|net/i);
   });
 });
