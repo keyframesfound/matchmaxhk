@@ -21,6 +21,8 @@ export type Rows<T> = {
   eq: (col: string, value: unknown) => Rows<T>;
   neq: (col: string, value: unknown) => Rows<T>;
   in: (col: string, values: unknown[]) => Rows<T>;
+  /** #543 release sweep: hold_expires_at <= now. */
+  lte: (col: string, value: unknown) => Rows<T>;
   order: (col: string, opts?: { ascending?: boolean; nullsLast?: boolean }) => Rows<T>;
   limit: (n: number) => Rows<T>;
   maybeSingle: () => Promise<{ data: T | null; error: DbError }>;
@@ -35,6 +37,8 @@ export type Rows<T> = {
  */
 export type AdminUpdateChain = {
   eq: (col: string, value: unknown) => AdminUpdateChain;
+  /** #543 release sweep: flip a batch of due orders in one statement. */
+  in: (col: string, values: unknown[]) => AdminUpdateChain;
   /** #429 hold sweep: hold_until <= now flips expired holds to released. */
   lte: (col: string, value: unknown) => AdminUpdateChain;
   /** #429: PostgREST or-filter, e.g. "dispute_status.is.null,dispute_status.neq.open". */

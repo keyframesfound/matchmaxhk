@@ -39,6 +39,8 @@ export default defineConfig({
       scheduledTasks: {
         // 06:00 HKT — after the ECB reference-rate fix.
         "0 22 * * *": "fx-refresh",
+        // #543: hourly materials checkout hold release (72h cut-off).
+        "15 * * * *": "materials-release",
       },
     }),
   ],

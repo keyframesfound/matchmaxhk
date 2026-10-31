@@ -337,6 +337,27 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
     if (signError || !signed) {
       throw new Error(signError?.message || "Failed to sign URL");
     }
+    // #543 §3.C.3: immutable download evidence — one row per signed-URL
+    // grant, read by admin dispute reviews. Best-effort: a logging hiccup
+    // must never block the buyer's download. (Loose cast: the generated
+    // types don't know the new table yet.)
+    try {
+      await (
+        supabaseAdmin as unknown as {
+          from: (t: string) => {
+            insert: (row: unknown) => Promise<{ error: { message: string } | null }>;
+          };
+        }
+      )
+        .from("material_download_logs")
+        .insert({
+          order_id: (order as { id: string }).id,
+          buyer_account_id: context.userId,
+          material_id: data.materialId,
+        });
+    } catch {
+      // Advisory only.
+    }
     return { signedUrl: signed.signedUrl };
   });
 
