@@ -23,14 +23,15 @@ import {
 } from "@/features/cases/tutor/tutor-home-model";
 import { getMyNotesSummary } from "@/features/materials/orders.functions";
 import { ShortCaseChip } from "@/features/cases/tutor/short-case-chip";
+import { EarningsPanel } from "@/features/cases/tutor/earnings-panel";
 
 /**
  * Issue #202, Tutor home. One page that tells the assigned tutor what to do
  * today, built from the SAME `getMyTutorCases` payload the Lessons tab uses
  * (shared React Query key) plus a small notes summary. It is a read-only
  * synthesis: no parent or buyer contact is ever selected, and the admin fee
- * card is always labelled as the PARENT'S fee to MatchMax, never tutor
- * earnings, never added to the notes net.
+ * card is always labelled as the fee the TUTOR owes MatchMax (#461: tutor
+ * pays, never the parent), never added to the notes net.
  */
 
 function toHomeLessons(cases: TutorCaseItem[]): HomeLesson[] {
@@ -269,6 +270,8 @@ export function TutorHomeSection() {
           </ul>
         </ConsolePanel>
       )}
+
+      <EarningsPanel />
 
       {feeCases.length > 0 && (
         <ConsolePanel title={t("sor.tutor_home_fees_title")}>
