@@ -139,6 +139,22 @@ export function isRequestExpired(createdAt: Date, now: Date): boolean {
 }
 
 /**
+ * #204 lazy-cancel predicate: only a still-planned request the TUTOR never
+ * confirmed expires. A planned lesson the tutor already confirmed is waiting
+ * on the parent (incl. #461 tutor-scheduled lessons) and must not be cancelled.
+ */
+export function isUnconfirmedRequestExpired(
+  lesson: { status: string; created_at: string; confirmed_by_tutor_at: string | null },
+  now: Date,
+): boolean {
+  return (
+    lesson.status === "planned" &&
+    lesson.confirmed_by_tutor_at === null &&
+    isRequestExpired(new Date(lesson.created_at), now)
+  );
+}
+
+/**
  * #204 buffer check: reject a new lesson when it overlaps a live lesson, or
  * when both are F2F and the gap is inside the 30-minute buffer. `bufferExempt`
  * (admin override, one lesson, with reason in audit) skips the buffer but not
