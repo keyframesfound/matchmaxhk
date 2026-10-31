@@ -247,7 +247,12 @@
     "onboarding_skip": "暫時跳過",
     "onboarding_error": "無法儲存你嘅資料，請再試一次。",
     "account_blocked_title": "帳戶已被封鎖",
-    "account_blocked_message": "此帳戶已被停用。請聯絡客戶支援。"
+    "account_blocked_message": "此帳戶已被停用。請聯絡客戶支援。",
+    "onboarding_handle_label": "外號",
+    "onboarding_handle_placeholder": "yourname",
+    "onboarding_handle_hint": "{{min}}–{{max}} 個字元：細楷英文字母、數字同底線。",
+    "onboarding_handle_taken": "此外號已被使用。",
+    "onboarding_cap57": "MatchMax 上嘅導師屬自僱人士，並非 MatchMax 嘅僱員或代理人，收費同時間由你自己決定。"
   },
   "banner": {
     "value_prop": "家長免費，導師公平。低至 1.5 課行政費，保留更多收入。",
@@ -721,7 +726,8 @@
     "err_HOURS_NOT_PENDING": "此課堂已不在待確認狀態。",
     "profile_line": "已驗證 MatchMax 時數：{{count}} 小時",
     "badge_rising": "Rising · 25 小時+",
-    "badge_azure": "Azure · 100 小時+"
+    "badge_azure": "Azure · 100 小時+",
+    "badge_scholar": "MatchMax 認證學者"
   },
   "featured": {
     "title": "精選導師",
@@ -1703,7 +1709,8 @@
     "switch_to_teaching": "切換去教學",
     "mode_switched_learning": "已切換到學習模式。",
     "mode_switched_teaching": "已切換到教學模式。",
-    "mode_switch_error": "無法切換模式，請再試一次。"
+    "mode_switch_error": "無法切換模式，請再試一次。",
+    "workspaces": "工作區"
   },
   "nav_mobile": {
     "case": "個案",
@@ -2318,7 +2325,12 @@
       "cap_teaching_desc": "提供補習服務，接收個案。",
       "cap_active": "已啟用",
       "cap_activate": "成為導師",
-      "cap_manage": "管理導師檔案"
+      "cap_manage": "管理導師檔案",
+      "handle_title": "外號",
+      "handle_desc": "你喺 MatchMax 嘅公開 @外號。",
+      "handle_save": "儲存外號",
+      "handle_saving": "儲存中…",
+      "handle_saved": "你嘅外號已儲存。"
     },
     "security": {
       "password_title": "更改密碼",
@@ -3248,6 +3260,17 @@
       "accepted_toast": "{{name}} 已擁有自己的學習檔案。"
     },
     "add_first": "加子女",
-    "add_first_hint": "幫子女搵補習？喺度加佢哋，堂數會分開記錄。"
+    "add_first_hint": "幫子女搵補習？喺度加佢哋，堂數會分開記錄。",
+    "pills": {
+      "label": "邊個學緊？",
+      "all": "全部",
+      "myself": "我自己"
+    },
+    "retain": {
+      "claimed": "佢已經有自己嘅帳戶。你仍然可以：",
+      "view_schedule": "睇佢嘅課堂",
+      "manage_billing": "幫佢嘅課堂付款",
+      "saved": "已儲存。"
+    }
   }
 }

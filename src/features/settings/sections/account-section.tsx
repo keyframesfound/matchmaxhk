@@ -12,6 +12,8 @@ import type { SettingsSectionProps } from "@/features/settings/types";
 import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { supabase } from "@/integrations/supabase/client";
+import { useQueryClient } from "@tanstack/react-query";
+import { HANDLE_MAX, HANDLE_MIN, normalizeHandle } from "@/features/auth/handle";
 
 function formatDate(value: string | null, locale: string) {
   if (!value) return null;
@@ -112,6 +114,8 @@ export function AccountSection({ user, profile, updateProfile }: SettingsSection
         </div>
       </SettingsCard>
 
+      <HandleCard userId={user.id} current={profile?.handle ?? null} />
+
       <SettingsCard
         title={t("settings.account.email_title")}
         description={t("settings.account.email_desc")}
@@ -193,6 +197,12 @@ export function AccountSection({ user, profile, updateProfile }: SettingsSection
               }
             />
           </ul>
+          {/* #459 §4.2 / §10: Cap.57 copy before anyone activates Teaching. */}
+          {!hasRole("tutor") ? (
+            <p className="mt-4 text-xs leading-relaxed text-muted-foreground">
+              {t("auth.onboarding_cap57")}
+            </p>
+          ) : null}
         </SettingsCard>
       )}
     </div>
@@ -232,5 +242,76 @@ function CapabilityRow({
       </div>
       <div className="shrink-0">{action}</div>
     </li>
+  );
+}
+
+/** #459 §15.2: existing users pick their @handle here (never auto-invented). */
+function HandleCard({ userId, current }: { userId: string; current: string | null }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [value, setValue] = useState(current ?? "");
+  const [error, setError] = useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+  const clean = normalizeHandle(value);
+  const dirty = clean !== null && clean !== current;
+
+  async function save(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!clean || !dirty || saving) return;
+    setSaving(true);
+    setError(null);
+    const { error: rpcError } = await supabase.rpc("set_my_handle", { _handle: clean });
+    setSaving(false);
+    if (rpcError) {
+      setError(
+        rpcError.message.includes("HANDLE_TAKEN")
+          ? t("auth.onboarding_handle_taken")
+          : t("auth.onboarding_handle_hint", { min: HANDLE_MIN, max: HANDLE_MAX }),
+      );
+      return;
+    }
+    setValue(clean);
+    toast.success(t("settings.account.handle_saved"));
+    await queryClient.invalidateQueries({ queryKey: ["settings", "profile", userId] });
+  }
+
+  return (
+    <SettingsCard
+      title={t("settings.account.handle_title")}
+      description={t("settings.account.handle_desc")}
+    >
+      <form onSubmit={save} className="space-y-3">
+        <div className="relative">
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-muted-foreground"
+          >
+            @
+          </span>
+          <Input
+            aria-label={t("auth.onboarding_handle_label")}
+            value={value}
+            maxLength={HANDLE_MAX + 1}
+            autoCapitalize="none"
+            spellCheck={false}
+            aria-invalid={Boolean(error)}
+            placeholder={t("auth.onboarding_handle_placeholder")}
+            onChange={(event) => {
+              setValue(event.target.value);
+              setError(null);
+            }}
+            className="bg-[color:var(--surface)] pl-7"
+          />
+        </div>
+        <p
+          className={`text-xs ${error ? "font-semibold text-destructive" : "text-muted-foreground"}`}
+        >
+          {error ?? t("auth.onboarding_handle_hint", { min: HANDLE_MIN, max: HANDLE_MAX })}
+        </p>
+        <Button type="submit" disabled={!dirty || saving} className="font-bold">
+          {saving ? t("settings.account.handle_saving") : t("settings.account.handle_save")}
+        </Button>
+      </form>
+    </SettingsCard>
   );
 }

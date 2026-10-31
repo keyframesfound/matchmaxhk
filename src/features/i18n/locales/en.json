@@ -247,7 +247,12 @@
     "onboarding_skip": "Skip for now",
     "onboarding_error": "Could not save your details. Please try again.",
     "account_blocked_title": "Account blocked",
-    "account_blocked_message": "This account is suspended. Contact support."
+    "account_blocked_message": "This account is suspended. Contact support.",
+    "onboarding_handle_label": "Handle",
+    "onboarding_handle_placeholder": "yourname",
+    "onboarding_handle_hint": "{{min}}–{{max}} characters: lowercase letters, numbers and underscores.",
+    "onboarding_handle_taken": "That handle is taken.",
+    "onboarding_cap57": "Tutors on MatchMax are self-employed. You are not an employee or agent of MatchMax, and you set your own rates and schedule."
   },
   "banner": {
     "value_prop": "Free for parents. Fair for tutors. Keep more with a low 1.5-lesson admin fee.",
@@ -721,7 +726,8 @@
     "err_HOURS_NOT_PENDING": "This lesson is no longer awaiting your confirmation.",
     "profile_line": "{{count}} verified MatchMax hours",
     "badge_rising": "Rising · 25h+",
-    "badge_azure": "Azure · 100h+"
+    "badge_azure": "Azure · 100h+",
+    "badge_scholar": "Verified MatchMax Scholar"
   },
   "featured": {
     "title": "Explore the tutors MatchMax offers",
@@ -1703,7 +1709,8 @@
     "switch_to_teaching": "Switch to Teaching",
     "mode_switched_learning": "Switched to Learning.",
     "mode_switched_teaching": "Switched to Teaching.",
-    "mode_switch_error": "Could not switch mode. Please try again."
+    "mode_switch_error": "Could not switch mode. Please try again.",
+    "workspaces": "Workspaces"
   },
   "nav_mobile": {
     "case": "Case",
@@ -2318,7 +2325,12 @@
       "cap_teaching_desc": "Offer tutoring and receive case leads.",
       "cap_active": "Active",
       "cap_activate": "Become a tutor",
-      "cap_manage": "Manage tutor profile"
+      "cap_manage": "Manage tutor profile",
+      "handle_title": "Handle",
+      "handle_desc": "Your public @handle on MatchMax.",
+      "handle_save": "Save handle",
+      "handle_saving": "Saving…",
+      "handle_saved": "Your handle has been saved."
     },
     "security": {
       "password_title": "Change password",
@@ -3248,6 +3260,17 @@
       "accepted_toast": "{{name}} now owns their learner profile."
     },
     "add_first": "Add a child",
-    "add_first_hint": "Booking for a child? Add them here so their lessons stay separate."
+    "add_first_hint": "Booking for a child? Add them here so their lessons stay separate.",
+    "pills": {
+      "label": "Who is learning?",
+      "all": "All",
+      "myself": "Myself"
+    },
+    "retain": {
+      "claimed": "Has their own account now. You keep:",
+      "view_schedule": "View their lessons",
+      "manage_billing": "Pay for their lessons",
+      "saved": "Saved."
+    }
   }
 }

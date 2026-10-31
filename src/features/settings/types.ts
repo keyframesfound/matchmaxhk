@@ -38,6 +38,8 @@ export function sanitizeNotificationPrefs(value: unknown): NotificationPrefs {
 /** Fields the settings page reads/writes on the profiles row. */
 export type SettingsProfile = {
   display_name: string | null;
+  /** #459: public @handle; changed only through the set_my_handle RPC. */
+  handle: string | null;
   phone: string | null;
   locale: string;
   notification_preferences: unknown;

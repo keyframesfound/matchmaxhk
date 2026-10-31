@@ -28,7 +28,14 @@ import { Label } from "@/components/ui/label";
 import { useAuth } from "@/features/auth/useAuth";
 import { SignupChecklistCard } from "@/features/account/signup-checklist";
 import { ProfileEditDialog } from "@/features/account/profile-edit-dialog";
-import { MyChildrenSection } from "@/features/children/my-children-section";
+import { CHILDREN_QUERY_KEY, MyChildrenSection } from "@/features/children/my-children-section";
+import { LearnerPills } from "@/features/children/learner-pills";
+import { listMyChildren } from "@/features/children/children.functions";
+import {
+  filterCasesByLearner,
+  hiddenChildIds,
+  type LearnerFilter,
+} from "@/features/children/children";
 import { VerifiedHoursLine } from "@/features/tutors/verified-hours-line";
 import { getMyApplicationStatus } from "@/features/tutor-application/application-status.functions";
 import { ApplicationStatusPanel } from "@/features/tutor-application/application-status-card";
@@ -122,6 +129,8 @@ type MyCaseRow = {
   subjects: string[] | null;
   status: string;
   created_at: string;
+  student_id: string | null;
+  who_for: string | null;
 };
 
 function AccountPage() {
@@ -187,7 +196,7 @@ function AccountPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("tutoring_cases")
-        .select("id, title, subjects, status, created_at")
+        .select("id, title, subjects, status, created_at, student_id, who_for")
         .eq("parent_id", user!.id)
         .order("created_at", { ascending: false })
         .limit(20);
@@ -232,6 +241,15 @@ function AccountPage() {
       toast.error(error instanceof Error ? error.message : t("orders.download_failed")),
   });
 
+  // #459 §C + §4.4: Who-is-learning filter, minus claimed children whose
+  // parent turned schedule view off.
+  const childrenQuery = useQuery({
+    queryKey: CHILDREN_QUERY_KEY,
+    queryFn: () => listMyChildren(),
+    enabled: Boolean(user) && activeRole === "parent",
+  });
+  const [learner, setLearner] = useState<LearnerFilter>("all");
+
   if (!user) {
     return (
       <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
@@ -248,6 +266,14 @@ function AccountPage() {
   const materials: MyMaterialsRow[] = materialsQuery.data ?? [];
   const bought = boughtQuery.data ?? [];
   const cases = myCasesQuery.data ?? [];
+  const hiddenChildren = hiddenChildIds(childrenQuery.data ?? []);
+  const visibleLearners = (childrenQuery.data ?? []).filter(
+    (child) => !hiddenChildren.has(child.id),
+  );
+  const shownCases = filterCasesByLearner(
+    cases.filter((row) => !row.student_id || !hiddenChildren.has(row.student_id)),
+    learner,
+  );
   const gigs: MyGigRow[] = gigsQuery.data ?? [];
   const gigOrders: MyGigOrderRow[] = gigOrdersQuery.data ?? [];
   const parentName =
@@ -685,11 +711,14 @@ function AccountPage() {
               </span>
             ) : null}
           </h2>
+          {activeRole === "parent" ? (
+            <LearnerPills learners={visibleLearners} value={learner} onChange={setLearner} />
+          ) : null}
           {myCasesQuery.isLoading ? (
             <div className="flex h-24 items-center justify-center rounded-xl border border-border bg-card">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden />
             </div>
-          ) : cases.length === 0 ? (
+          ) : shownCases.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
               {t("account.no_cases")}{" "}
               <Link
@@ -702,7 +731,7 @@ function AccountPage() {
             </div>
           ) : (
             <ul className="space-y-3">
-              {cases.map((row) => (
+              {shownCases.map((row) => (
                 <li
                   key={row.id}
                   className="flex flex-wrap items-center gap-x-4 gap-y-2 rounded-xl border border-border bg-card p-4"

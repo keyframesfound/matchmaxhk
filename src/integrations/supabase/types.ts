@@ -582,6 +582,7 @@ export type Database = {
           community_commitment_version: string | null;
           created_at: string;
           display_name: string | null;
+          handle: string | null;
           email: string | null;
           google_sub: string | null;
           id: string;
@@ -604,6 +605,7 @@ export type Database = {
           community_commitment_version?: string | null;
           created_at?: string;
           display_name?: string | null;
+          handle?: string | null;
           email?: string | null;
           google_sub?: string | null;
           id: string;
@@ -626,6 +628,7 @@ export type Database = {
           community_commitment_version?: string | null;
           created_at?: string;
           display_name?: string | null;
+          handle?: string | null;
           email?: string | null;
           google_sub?: string | null;
           id?: string;
@@ -1589,9 +1592,10 @@ export type Database = {
         Returns: undefined;
       };
       complete_onboarding: {
-        Args: { _choice: string | null; _display_name?: string | null };
+        Args: { _choice: string | null; _display_name?: string | null; _handle?: string | null };
         Returns: undefined;
       };
+      set_my_handle: { Args: { _handle: string }; Returns: undefined };
       confirm_tutor_claim: { Args: { p_tutor_id: string }; Returns: string };
       request_tutor_claim: { Args: { p_tutor_id: string }; Returns: string };
       publish_tutor_from_application: {

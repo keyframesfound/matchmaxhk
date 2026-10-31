@@ -390,6 +390,12 @@ export function SiteHeader({
                         {t("nav.saved_posts")}
                       </Link>
                     </DropdownMenuItem>
+                    {/* #459 §B: centres are a Workspace link, never a third mode. */}
+                    {hasOrg && (
+                      <p className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground">
+                        {t("nav.workspaces")}
+                      </p>
+                    )}
                     {hasOrg && (
                       <DropdownMenuItem asChild className={menuLinkClassName}>
                         <Link to="/business" search={{ tab: undefined }}>
