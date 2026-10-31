@@ -11,7 +11,7 @@ import {
   DisputeReason,
   canParentReviewHours,
   sumVerifiedHours,
-} from "@/features/hours/hours";
+} from "../../src/features/hours/hours";
 
 function source(relative: string): string {
   return readFileSync(new URL(relative, import.meta.url), "utf8");

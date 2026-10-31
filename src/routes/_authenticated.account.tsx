@@ -29,6 +29,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import { SignupChecklistCard } from "@/features/account/signup-checklist";
 import { ProfileEditDialog } from "@/features/account/profile-edit-dialog";
 import { MyChildrenSection } from "@/features/children/my-children-section";
+import { VerifiedHoursLine } from "@/features/tutors/verified-hours-line";
 import { getMyApplicationStatus } from "@/features/tutor-application/application-status.functions";
 import { ApplicationStatusPanel } from "@/features/tutor-application/application-status-card";
 import {
@@ -388,6 +389,9 @@ function AccountPage() {
                 </Link>
               </Button>
             </div>
+            {/* #459 §15.8: verified teaching hours + Rising/Azure badges on
+                the account home too — same ledger sum as the public card. */}
+            {tutor.id ? <VerifiedHoursLine tutorId={tutor.id} className="mt-3" /> : null}
             <dl className="mt-4 grid gap-x-8 gap-y-3 text-sm sm:grid-cols-2">
               <div>
                 <dt className="text-xs font-semibold text-muted-foreground">

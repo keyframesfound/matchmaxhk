@@ -24,6 +24,8 @@ import {
 import { canPublishHeldReview, isCaseFeeSettled } from "@/features/cases/case-reviews";
 import type { LessonConfirmRow } from "@/features/cases/case-reviews";
 import { sweepDueSessionLogs, type SessionLogRowT } from "@/features/cases/experience.functions";
+import type { HoursLedgerRowT } from "@/features/hours/hours.functions";
+import { selectRowsOrEmpty } from "@/features/cases/desk-db";
 import {
   matchedTutorCard,
   type MatchedTutorCardView,
@@ -191,6 +193,8 @@ export type ParentCaseDetail = {
   } | null;
   /** #387 tutor-logged sessions for this case (any status). */
   session_logs: SessionLogRowT[];
+  /** #459 verified-hours rows for this case (parent review queue). */
+  hoursLedger: HoursLedgerRowT[];
   canRequestSlot: boolean;
   slots: { startsAt: string; durationMin: number; station: string | null }[];
   slotDays: string[]; // HKT date keys for the picker
@@ -389,6 +393,17 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         [{ col: "case_id", op: "eq", value: c.id }],
         { col: "log_date", asc: false },
       ),
+      // #459 verified-hours review queue; tolerant read so a pre-migration
+      // deploy hides the section instead of failing the whole case page.
+      // Sorted newest-first here (selectRowsOrEmpty takes no order).
+      hoursLedger: (
+        await selectRowsOrEmpty<HoursLedgerRowT>(
+          db,
+          "verified_hours_ledger",
+          "id, case_lesson_id, status, duration_hours, occurred_at, pending_since, verified_at, verified_by, dispute_reason",
+          [{ col: "case_id", op: "eq", value: c.id }],
+        )
+      ).sort((a, b) => b.occurred_at.localeCompare(a.occurred_at)),
       canRequestSlot,
       slots,
       slotDays,

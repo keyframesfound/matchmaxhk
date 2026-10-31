@@ -7,7 +7,7 @@
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 
-import { resolveActiveRole } from "@/features/auth/active-role";
+import { resolveActiveRole } from "../../src/features/auth/active-role";
 
 function source(relative: string): string {
   return readFileSync(new URL(relative, import.meta.url), "utf8");

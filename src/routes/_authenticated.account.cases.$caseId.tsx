@@ -26,6 +26,7 @@ import {
 } from "@/features/cases/parent.functions";
 import { disputeSession } from "@/features/cases/experience.functions";
 import { disputeHoursLeft } from "@/features/tutors/experience";
+import { ParentHoursSection } from "@/features/hours/parent-hours-section";
 import {
   feeHoldKind,
   parentCanReviewCase,
@@ -236,6 +237,10 @@ function ParentCaseDetailPage() {
 
             {/* #387: tutor-logged sessions, one-click dispute + 72h hint */}
             <SessionLogsSection logs={data.session_logs} onChanged={invalidate} />
+
+            {/* #459: verified-hours review queue — confirm/dispute lessons
+                the tutor marked done; unreviewed rows auto-verify in 24h. */}
+            <ParentHoursSection rows={data.hoursLedger} onChanged={invalidate} />
           </div>
         )}
       </PageContainer>

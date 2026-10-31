@@ -697,6 +697,26 @@
     "desk_revoked_ok": "已撤銷課堂——公開數據已即時重算。",
     "completed_cases": "已完成個案：{{count}}"
   },
+  "hours": {
+    "title": "已驗證時數",
+    "duration_hours": "{{hours}} 小時",
+    "status_pending_confirmation": "待你確認",
+    "status_verified_completed": "已驗證",
+    "status_disputed": "已提出爭議，職員跟進中",
+    "status_cancelled": "已取消",
+    "pending_hint": "如無回應，{{hours}}小時後自動確認。",
+    "confirm": "確認",
+    "dispute": "提出爭議",
+    "dispute_reason": "請簡述原因（3 至 500 字）",
+    "dispute_echo": "你已就「{{reason}}」提出爭議，職員會盡快跟進。",
+    "confirmed_done": "已確認，時數即時計入。",
+    "disputed_done": "多謝你，此課堂在職員跟進前不會計入時數。",
+    "err_HOURS_ROW_NOT_FOUND": "找不到課堂紀錄。",
+    "err_HOURS_NOT_PENDING": "此課堂已不在待確認狀態。",
+    "profile_line": "已驗證 MatchMax 時數：{{count}} 小時",
+    "badge_rising": "Rising · 25 小時+",
+    "badge_azure": "Azure · 100 小時+"
+  },
   "featured": {
     "title": "精選導師",
     "subtitle": "香港各區人氣導師",

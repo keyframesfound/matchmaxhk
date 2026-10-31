@@ -81,6 +81,7 @@ import {
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { ExperienceLine } from "@/features/tutors/experience-badge";
 import { CompletedCasesLine } from "@/features/tutors/completed-cases-line";
+import { VerifiedHoursLine } from "@/features/tutors/verified-hours-line";
 import { TutorGroupClassesSection } from "@/features/cases/tutor-cohorts-section";
 import { InitialAvatar } from "@/components/ui/initial-avatar";
 import {
@@ -778,6 +779,9 @@ function TutorDetail() {
                 {/* Issue #503: completed (ended + fee-settled) case count;
                     hides completely at zero. */}
                 <CompletedCasesLine tutorId={t.id} className="mt-1" />
+                {/* #459 §15.8: verified teaching hours from the hours ledger
+                    + Rising (25h)/Azure (100h) badges; hides at zero. */}
+                <VerifiedHoursLine tutorId={t.id} className="mt-1" />
                 {t.has_postgrad && (t.postgrad_university || t.postgrad_degree) ? (
                   <p className="mt-2 flex items-start gap-1.5 text-base leading-snug text-[color:var(--ink)] sm:text-lg">
                     <GraduationCap

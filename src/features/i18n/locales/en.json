@@ -697,6 +697,26 @@
     "desk_revoked_ok": "Session revoked, public totals recalculated.",
     "completed_cases": "{{count}} completed case(s)"
   },
+  "hours": {
+    "title": "Verified hours",
+    "duration_hours": "{{hours}} hr",
+    "status_pending_confirmation": "Awaiting your confirmation",
+    "status_verified_completed": "Verified",
+    "status_disputed": "Disputed. Under review by our team.",
+    "status_cancelled": "Cancelled",
+    "pending_hint": "Auto-verifies in {{hours}}h unless you respond.",
+    "confirm": "Confirm",
+    "dispute": "Dispute",
+    "dispute_reason": "Briefly tell us what happened (3 to 500 characters)",
+    "dispute_echo": "You disputed: “{{reason}}”. Our team will review.",
+    "confirmed_done": "Confirmed. These hours now count.",
+    "disputed_done": "Thanks. This lesson will not count until our team reviews it.",
+    "err_HOURS_ROW_NOT_FOUND": "Lesson record not found.",
+    "err_HOURS_NOT_PENDING": "This lesson is no longer awaiting your confirmation.",
+    "profile_line": "{{count}} verified MatchMax hours",
+    "badge_rising": "Rising · 25h+",
+    "badge_azure": "Azure · 100h+"
+  },
   "featured": {
     "title": "Explore the tutors MatchMax offers",
     "subtitle": "Top scorering tutors across Hong Kong",

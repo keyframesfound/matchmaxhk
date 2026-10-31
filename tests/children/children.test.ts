@@ -11,7 +11,7 @@ import {
   ChildInput,
   ownedChildIdOrNull,
   shouldWarnChildCount,
-} from "@/features/children/children";
+} from "../../src/features/children/children";
 
 function source(relative: string): string {
   return readFileSync(new URL(relative, import.meta.url), "utf8");
