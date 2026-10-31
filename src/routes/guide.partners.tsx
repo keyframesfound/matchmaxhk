@@ -1,26 +1,29 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, Building2, ShieldCheck } from "lucide-react";
+import { ArrowRight, Building2, Handshake, ShieldCheck, Users } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { ContentsRow, GuideHeading, GuidePage } from "@/features/guide/guide-shell";
+import { useSupportWhatsAppHref } from "@/features/help/components";
 
 import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/guide/partners")({
   head: () => ({
     meta: [
-      { title: "Education Partners (B2B) | MatchMax" },
+      // Issue #541: the Centres & Educators guide (B2B partners are no
+      // longer orphaned on the learning/tutor tabs).
+      { title: "Centres & Educators | MatchMax" },
       {
         name: "description",
         content:
-          "How tutorial centres, schools, and NGOs engage independent educators on MatchMax, Contracts for Services only, never staff recruitment.",
+          "Partnering with MatchMax: how tuition centres and educational consultancies join as Organisation Partners — verification, the centre workspace, qualified enquiries, and the performance-based introduction fee.",
       },
       { name: "robots", content: "index, follow" },
-      { property: "og:title", content: "Education Partners (B2B) | MatchMax" },
+      { property: "og:title", content: "Centres & Educators | MatchMax" },
       {
         property: "og:description",
         content:
-          "How tutorial centres, schools, and NGOs engage independent educators on MatchMax, Contracts for Services only, never staff recruitment.",
+          "Partnering with MatchMax: how tuition centres and educational consultancies join as Organisation Partners — verification, the centre workspace, qualified enquiries, and the performance-based introduction fee.",
       },
       { property: "og:url", content: canonicalUrl("/guide/partners") },
     ],
@@ -30,26 +33,31 @@ export const Route = createFileRoute("/guide/partners")({
 });
 
 /**
- * Issue #412 G, the B2B tab beside Parents & Tutors (#258). Engage/match
- * language only: MatchMax facilitates Contracts for Services between partner
- * organisations and self-employed independent educators. It is not an
- * employment agency and never recruits staff.
+ * Issue #412 G, the B2B tab beside Parents & Tutors (#258); content
+ * rewritten to the Issue #541 Centres & Educators guide (§§1–4).
+ *
+ * Engage/match language only: MatchMax facilitates Contracts for Services
+ * between partner organisations and self-employed independent educators.
+ * It is not an employment agency and never recruits staff (Cap. 57).
  */
 function GuidePartnersPage() {
   const { t } = useTranslation();
+  const supportHref = useSupportWhatsAppHref();
 
-  const steps = (["s1", "s2", "s3"] as const).map((key) => [
+  const steps = (["s1", "s2", "s3", "s4"] as const).map((key) => [
     t(`guide.partners.${key}_title`),
     t(`guide.partners.${key}_body`),
   ]);
+  const who = (["who_1", "who_2", "who_3"] as const).map((key) => t(`guide.partners.${key}`));
   const rules = (["r1", "r2", "r3", "r4"] as const).map((key) => t(`guide.partners.${key}`));
 
   return (
     <GuidePage current="/guide/partners">
       <ContentsRow
         items={[
+          { id: "who", label: t("guide.partners.who_title") },
           { id: "steps", label: t("guide.partners.steps_title") },
-          { id: "rules", label: t("guide.partners.rules_title") },
+          { id: "vs", label: t("guide.partners.vs_title") },
           { id: "fee", label: t("guide.partners.fee_title") },
         ]}
       />
@@ -63,7 +71,23 @@ function GuidePartnersPage() {
           </p>
         </div>
 
-        <div id="steps" className="mt-12 max-w-4xl scroll-mt-40">
+        {/* §1 Who can join */}
+        <div id="who" className="mt-12 max-w-4xl scroll-mt-40">
+          <GuideHeading>{t("guide.partners.who_title")}</GuideHeading>
+          <ul className="mt-6 grid gap-4 sm:grid-cols-3">
+            {who.map((text) => (
+              <li
+                key={text}
+                className="rounded-2xl border border-[color:var(--ink)]/12 p-5 text-sm leading-7 text-[color:var(--ink)]/75"
+              >
+                {text}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* §2 How the Centre Portal works */}
+        <div id="steps" className="mt-14 max-w-4xl scroll-mt-40">
           <GuideHeading>{t("guide.partners.steps_title")}</GuideHeading>
           <ol className="mt-6 border-t border-[color:var(--ink)]/15">
             {steps.map(([title, body], index) => (
@@ -85,6 +109,38 @@ function GuidePartnersPage() {
           </ol>
         </div>
 
+        {/* §3 Centre vs independent tutor accounts */}
+        <div id="vs" className="mt-14 max-w-4xl scroll-mt-40">
+          <GuideHeading>{t("guide.partners.vs_title")}</GuideHeading>
+          <div className="mt-6 grid gap-4 sm:grid-cols-2">
+            <div className="rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6">
+              <h3 className="flex items-center gap-2.5 text-base font-bold tracking-tight">
+                <Building2
+                  className="h-5 w-5 shrink-0 text-[color:var(--brand-link)]"
+                  aria-hidden="true"
+                />
+                {t("guide.tab_partners")}
+              </h3>
+              <p className="mt-2 text-sm leading-7 text-[color:var(--ink)]/70">
+                {t("guide.partners.vs_body")}
+              </p>
+            </div>
+            <div className="rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6">
+              <h3 className="flex items-center gap-2.5 text-base font-bold tracking-tight">
+                <Users
+                  className="h-5 w-5 shrink-0 text-[color:var(--brand-link)]"
+                  aria-hidden="true"
+                />
+                {t("guide.tab_tutors")}
+              </h3>
+              <p className="mt-2 text-sm leading-7 text-[color:var(--ink)]/70">
+                {t("guide.tutors.cap57")}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* #412 G legal safeguards, kept from the original partners tab. */}
         <div id="rules" className="mt-14 max-w-4xl scroll-mt-40">
           <GuideHeading>{t("guide.partners.rules_title")}</GuideHeading>
           <div className="mt-6 rounded-2xl border-2 border-purple-500/30 bg-purple-500/[0.04] p-5 sm:p-6">
@@ -102,6 +158,7 @@ function GuidePartnersPage() {
           </div>
         </div>
 
+        {/* §4 Partner fee structure */}
         <div id="fee" className="mt-14 max-w-4xl scroll-mt-40">
           <GuideHeading>{t("guide.partners.fee_title")}</GuideHeading>
           <p className="mt-6 max-w-2xl text-sm leading-7 text-[color:var(--ink)]/70">
@@ -115,6 +172,14 @@ function GuidePartnersPage() {
               {t("guide.partners.cta")} <ArrowRight />
             </Link>
           </Button>
+          {supportHref ? (
+            <Button asChild size="lg" variant="outline">
+              <a href={supportHref} target="_blank" rel="noreferrer">
+                <Handshake className="mr-1.5 h-4 w-4" aria-hidden="true" />
+                {t("guide.partners.cta_contact")}
+              </a>
+            </Button>
+          ) : null}
         </div>
       </section>
     </GuidePage>

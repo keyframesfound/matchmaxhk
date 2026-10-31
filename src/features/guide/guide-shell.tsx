@@ -7,7 +7,6 @@ import { ChevronDown } from "lucide-react";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { cn } from "@/lib/utils";
-import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 
 /**
  * Issue #208: shared shell for the guide hub. The sticky bar sits under the
@@ -25,9 +24,10 @@ export const GUIDE_TABS = [
   { to: "/guide/notes", key: "guide.tab_notes" },
   { to: "/guide/refer", key: "guide.tab_refer" },
   { to: "/guide/verification", key: "guide.tab_verification" },
-  // Issue #412 G: the B2B tab ships with the partners page but stays hidden
-  // until the centre market flag flips, the join CTA would 404 otherwise.
-  { to: "/guide/partners", key: "guide.tab_partners", enabled: CENTRE_MARKET_ENABLED },
+  // Issue #541: the Centres & Educators guide ships visible so B2B partners
+  // are not orphaned on the learning/tutor tabs; the apply CTA (/business/join)
+  // exists, so the old #412 G 404 concern no longer holds.
+  { to: "/guide/partners", key: "guide.tab_partners" },
 ] as const;
 
 export type GuideTab = (typeof GUIDE_TABS)[number]["to"];

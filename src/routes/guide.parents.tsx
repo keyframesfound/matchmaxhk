@@ -24,18 +24,19 @@ import { canonicalUrl } from "@/features/i18n/seo";
 export const Route = createFileRoute("/guide/parents")({
   head: () => ({
     meta: [
-      { title: "Parent Guide | MatchMax" },
+      // Issue #541: inclusive of independent students, not parent-only.
+      { title: "Students & Parents Guide | MatchMax" },
       {
         name: "description",
         content:
-          "How parents use MatchMax: browse tutor profiles or send a request, the concierge introduction, the 1.5-lesson admin fee, and what MatchMax does not do.",
+          "How students and parents use MatchMax: browse tutor profiles or send a request, book for yourself or add child profiles, the concierge introduction, the 1.5-lesson admin fee, and what MatchMax does not do.",
       },
       { name: "robots", content: "index, follow" },
-      { property: "og:title", content: "Parent Guide | MatchMax" },
+      { property: "og:title", content: "Students & Parents Guide | MatchMax" },
       {
         property: "og:description",
         content:
-          "How parents use MatchMax: browse tutor profiles or send a request, the concierge introduction, the 1.5-lesson admin fee, and what MatchMax does not do.",
+          "How students and parents use MatchMax: browse tutor profiles or send a request, book for yourself or add child profiles, the concierge introduction, the 1.5-lesson admin fee, and what MatchMax does not do.",
       },
       { property: "og:url", content: canonicalUrl("/guide/parents") },
     ],
@@ -86,6 +87,23 @@ function GuideParentsPage() {
           <p className="mt-4 text-lg leading-8 text-[color:var(--ink)]/65">
             {t("guide.parents.intro")}
           </p>
+          {/* Issue #541: the unified-account callout — book for yourself or
+              add child profiles under /account (#459 Learning vs Teaching). */}
+          <div className="mt-6 rounded-2xl border border-[color:var(--ink)]/12 bg-[color:var(--accent)] p-5 text-left sm:p-6">
+            <h2 className="text-base font-bold tracking-tight text-[color:var(--ink)]">
+              {t("guide.parents.account_callout_title")}
+            </h2>
+            <p className="mt-2 text-sm leading-7 text-[color:var(--ink)]/70">
+              {t("guide.parents.account_callout_body")}
+            </p>
+            <Link
+              to="/account"
+              className="mt-3 inline-flex items-center gap-1.5 text-sm font-bold text-[color:var(--brand-link)] underline-offset-4 hover:underline"
+            >
+              {t("guide.parents.cta_account")}
+              <ArrowRight className="h-4 w-4" aria-hidden="true" />
+            </Link>
+          </div>
         </div>
 
         <div className="mt-10">
