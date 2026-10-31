@@ -27,6 +27,15 @@ import {
 import { disputeSession } from "@/features/cases/experience.functions";
 import { disputeHoursLeft } from "@/features/tutors/experience";
 import { ParentHoursSection } from "@/features/hours/parent-hours-section";
+import { isTimeClashError } from "@/features/cases/schedule-lesson";
+import i18n from "@/features/i18n/config";
+
+// #461 addendum §1: the DB clash trigger's named errors get the locked
+// blocking copy; everything else keeps the existing raw-message behaviour.
+function sorActionError(message: string): string {
+  if (isTimeClashError(message)) return i18n.t("sor.err_TIME_CLASH");
+  return message;
+}
 import {
   feeHoldKind,
   parentCanReviewCase,
@@ -66,7 +75,7 @@ function ParentCaseDetailPage() {
       toast.success(t("sor.tutor_confirmed"));
       invalidate();
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e) => toast.error(sorActionError(e.message)),
   });
   const cancel = useMutation({
     mutationFn: (lessonId: string) => cancelLessonParent({ data: { lessonId } }),
@@ -76,7 +85,7 @@ function ParentCaseDetailPage() {
       );
       invalidate();
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e) => toast.error(sorActionError(e.message)),
   });
   const request = useMutation({
     mutationFn: (startsAt: string) => requestSlot({ data: { caseId, startsAt } }),
@@ -84,7 +93,7 @@ function ParentCaseDetailPage() {
       toast.success(t("sor.parent_slot_requested"));
       invalidate();
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e) => toast.error(sorActionError(e.message)),
   });
 
   if (isError) throw notFound();
@@ -173,7 +182,13 @@ function ParentCaseDetailPage() {
                         size="sm"
                         variant="ghost"
                         disabled={cancel.isPending}
-                        onClick={() => cancel.mutate(l.id)}
+                        onClick={() => {
+                          // #461 addendum §2: bilateral cancel confirm — the
+                          // counterparty is notified immediately on cancel.
+                          if (window.confirm(t("sor.parent_cancel_confirm"))) {
+                            cancel.mutate(l.id);
+                          }
+                        }}
                       >
                         <X className="h-4 w-4" />
                         {t("sor.tutor_cancel")}

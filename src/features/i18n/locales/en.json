@@ -2966,7 +2966,10 @@
     "err_CASE_ENDED": "This case has ended, so ratings can no longer change.",
     "err_NO_VERIFIED_LESSON": "Ratings open once a lesson is confirmed by both you and the other side.",
     "err_NOT_ONGOING": "This case is not active, so it cannot be ended here.",
-    "err_CASE_NOT_FOUND": "Case not found."
+    "err_CASE_NOT_FOUND": "Case not found.",
+    "err_TIME_CLASH": "Time clash: You or the student already have a confirmed lesson during this time block.",
+    "parent_cancel_confirm": "Are you sure you want to cancel this lesson? The other party will be notified immediately.",
+    "tutor_cancel_confirm": "Are you sure you want to cancel this lesson? The other party will be notified immediately."
   },
   "subjects": {
     "title": "Popular subjects",

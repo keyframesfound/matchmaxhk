@@ -19,6 +19,15 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 export type ScheduleLessonError =
   "CASE_NOT_ACTIVE" | "BAD_TIME" | "IN_PAST" | "TOO_FAR_AHEAD" | "BAD_DURATION" | "SLOT_CONFLICT";
 
+/**
+ * #461 addendum §1: the DB clash trigger (guard_lesson_time_clash) raises
+ * TIME_CLASH_TUTOR / TIME_CLASH_LEARNER; PostgREST may wrap the name inside
+ * a longer message, so match the prefix anywhere.
+ */
+export function isTimeClashError(message: string): boolean {
+  return /TIME_CLASH_(TUTOR|LEARNER)/.test(message);
+}
+
 export function scheduleLessonError(input: {
   sorStatus: string | null;
   startsAtIso: string;

@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import i18n from "@/features/i18n/config";
 
+import { isTimeClashError } from "@/features/cases/schedule-lesson";
 import { Button } from "@/components/ui/button";
 import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
 import { Input } from "@/components/ui/input";
@@ -195,7 +196,12 @@ function LessonRow({
       );
       invalidate();
     },
-    onError: (e) => toast.error(e.message),
+    onError: (e) =>
+      toast.error(
+        isTimeClashError(e.message)
+          ? t("sor.err_TIME_CLASH")
+          : t(`sor.err_${e.message}`, { defaultValue: e.message }),
+      ),
   });
 
   const actions = lessonActionsFor(lesson, new Date(), canMarkDone);
@@ -265,7 +271,18 @@ function LessonRow({
             </Button>
           )}
           {actions.cancel && (
-            <Button size="sm" variant="ghost" disabled={busy} onClick={() => cancel.mutate()}>
+            <Button
+              size="sm"
+              variant="ghost"
+              disabled={busy}
+              onClick={() => {
+                // #461 addendum §2: bilateral cancel confirm — the
+                // counterparty is notified immediately on cancel.
+                if (window.confirm(t("sor.tutor_cancel_confirm"))) {
+                  cancel.mutate();
+                }
+              }}
+            >
               {t("sor.tutor_cancel")}
             </Button>
           )}

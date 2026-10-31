@@ -2966,7 +2966,10 @@
     "err_CASE_ENDED": "此個案已完結，評分不能再更改。",
     "err_NO_VERIFIED_LESSON": "雙方確認第一課後，評分功能便會開放。",
     "err_NOT_ONGOING": "此個案並非進行中，無法在此完結。",
-    "err_CASE_NOT_FOUND": "找不到個案。"
+    "err_CASE_NOT_FOUND": "找不到個案。",
+    "err_TIME_CLASH": "時間衝突：您或學生於此時段已有已確認的課堂。",
+    "parent_cancel_confirm": "確定取消此課堂？系統將立即通知對方。",
+    "tutor_cancel_confirm": "確定取消此課堂？系統將立即通知對方。"
   },
   "subjects": {
     "title": "熱門科目",

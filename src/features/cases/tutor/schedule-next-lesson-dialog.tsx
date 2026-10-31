@@ -15,7 +15,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { hktDateKey, hktFromParts } from "@/features/cases/sor";
-import { SCHEDULABLE_SOR_STATUSES } from "@/features/cases/schedule-lesson";
+import { SCHEDULABLE_SOR_STATUSES, isTimeClashError } from "@/features/cases/schedule-lesson";
 import { scheduleNextLesson } from "@/features/cases/schedule-lesson.functions";
 
 /**
@@ -62,7 +62,11 @@ export function ScheduleNextLessonDialog({ caseId, sorStatus }: Props) {
       void queryClient.invalidateQueries({ queryKey: ["sor", "earnings"] });
     },
     onError: (e) =>
-      toast.error(t(`sor.schedule_next_err_${e.message}`, { defaultValue: e.message })),
+      toast.error(
+        isTimeClashError(e.message)
+          ? t("sor.err_TIME_CLASH")
+          : t(`sor.schedule_next_err_${e.message}`, { defaultValue: e.message }),
+      ),
   });
 
   if (!sorStatus || !SCHEDULABLE_SOR_STATUSES.has(sorStatus)) return null;
