@@ -726,7 +726,7 @@
     "star_label_other": "{{count}} stars"
   },
   "footer": {
-    "tagline": "Master your exams through 1-on-1 tutoring with the experts who grade them and the elite alumni who aced them. Connect instantly with official examiners and proven top scorers.",
+    "tagline": "1-on-1 tutoring with verified top-scoring tutors for IBDP, IGCSE, DSE and AP. Free for parents.",
     "product": "Product",
     "company": "Company",
     "support": "Support",
@@ -1455,7 +1455,7 @@
     "fee_max_value": "1.5 lessons only (tutor keeps the rest)"
   },
   "home": {
-    "trending_title": "Most Requested Tutors This Week"
+    "trending_title": "Most requested tutors this week"
   },
   "how": {
     "title": "Search for the right tutor",
