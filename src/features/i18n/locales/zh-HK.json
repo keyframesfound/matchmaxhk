@@ -632,6 +632,14 @@
     "chip_guide_sent": "已發指南",
     "chip_dropoffs": "L1 流失：{{count}}"
   },
+  "rematch": {
+    "pivot": "失敗試堂轉配",
+    "nextTwo": "下一位：{{tutors}}",
+    "feeL1": "喺失敗個案開 1.0× 第 1 課帳單",
+    "emptyNext": "暫時冇合適人選。放寬時間／網課或用 Rate Nudge；P1 轉配個案仍會開出。",
+    "inactiveSort": "暫停接單（排尾，仍可選用）",
+    "exitRemindAfterInvoice": "轉配個案開出帳單後先可以 exit。"
+  },
   "directory": {
     "subtitle": "藍剔導師嘅成績表經職員核實；其餘導師成績屬自行申報，第一堂前須出示證明。",
     "empty_title": "未搵到符合條件嘅導師",
