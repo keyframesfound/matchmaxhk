@@ -632,6 +632,14 @@
     "chip_guide_sent": "Guide sent",
     "chip_dropoffs": "L1 drop-offs: {{count}}"
   },
+  "rematch": {
+    "pivot": "Failed-trial pivot",
+    "nextTwo": "Next: {{tutors}}",
+    "feeL1": "Invoice 1.0× Lesson 1 on the failed case",
+    "emptyNext": "No capacity. Widen time/online or use Rate Nudge; the P1 rematch case is still created.",
+    "inactiveSort": "Inactive (soft, still selectable)",
+    "exitRemindAfterInvoice": "Exit unlocks after the rematch invoice is issued."
+  },
   "directory": {
     "subtitle": "Blue Tick tutors have staff-checked transcripts, everyone else self-reports and shows proof before the first lesson.",
     "empty_title": "No tutors match these filters yet",
