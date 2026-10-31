@@ -139,6 +139,7 @@ import { AutofillDialog } from "./AutofillDialog";
 import { TutorReviewsAdmin } from "./tutor-reviews-admin";
 import { TutorContactDetails } from "./tutor-contact-details";
 import { RiskFlagEditor } from "@/features/admin/risk-flag-editor";
+import { DeskTrackEditor } from "@/features/admin/desk-track-editor";
 import {
   MAX_RATE_ROWS,
   RATE_MAX,
@@ -2375,6 +2376,20 @@ export function TutorEditor({
                 id="risk-flag"
               >
                 <RiskFlagEditor entity="tutor" entityId={initialData.id} />
+              </EditorSection>
+            ) : null}
+
+            {/* Issues #445 + #448: internal desk track (level, Guide sent,
+                early L1 drop-offs). Staff-only CS aid for matching quality —
+                soft prefer in shortlists, never public, never parent-facing. */}
+            {initialData ? (
+              <EditorSection
+                icon={UserCheck}
+                title="Desk Track"
+                description="Internal matching aid from CS-005: steer first matches, record the Guide share and early L1 drop-offs. Soft prefer only — agents override when supply is thin."
+                id="desk-track"
+              >
+                <DeskTrackEditor tutorId={initialData.id} />
               </EditorSection>
             ) : null}
 

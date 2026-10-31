@@ -37,6 +37,12 @@ import { Button } from "@/components/ui/button";
 import { RiskFlagBadge } from "@/features/admin/risk-flag-badge";
 import { RiskFlagEditor } from "@/features/admin/risk-flag-editor";
 import { listRiskFlags } from "@/features/admin/risk-flags.functions";
+import {
+  DESK_LEVEL_LABELS,
+  L1_DROPOFF_REVIEW_THRESHOLD,
+  type DeskTrackRow,
+} from "@/features/admin/desk-track";
+import { getDeskTracks } from "@/features/admin/desk-track.functions";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -103,6 +109,41 @@ type SuggestedTutor = {
   languages: string[] | null;
   score: number;
 };
+
+/** #448: internal desk-track chips on the matchmaking shortlist (admin-only). */
+function DeskTrackChips({ track }: { track: DeskTrackRow | undefined }) {
+  const { t } = useTranslation();
+  if (!track) return null;
+  const dropoffs = track.l1_early_dropoffs;
+  const chipClass =
+    "rounded-md bg-[color:var(--foreground)]/[0.06] px-1.5 py-0.5 text-[11px] font-bold text-[color:var(--foreground)]";
+  return (
+    <div className="mt-1 flex flex-wrap items-center gap-1">
+      <span className={chipClass}>{DESK_LEVEL_LABELS[track.tutor_level]}</span>
+      {track.guide_sent_at ? (
+        <span className={cn(chipClass, "inline-flex items-center gap-0.5")}>
+          <Check className="h-3 w-3" aria-hidden="true" />
+          {t("deskTrack.chip_guide_sent", { defaultValue: "Guide sent" })}
+        </span>
+      ) : null}
+      {dropoffs > 0 ? (
+        <span
+          className={cn(
+            "rounded-md px-1.5 py-0.5 text-[11px] font-bold",
+            dropoffs >= L1_DROPOFF_REVIEW_THRESHOLD
+              ? "bg-destructive/10 text-destructive"
+              : chipClass,
+          )}
+        >
+          {t("deskTrack.chip_dropoffs", {
+            defaultValue: "L1 drop-offs: {{count}}",
+            count: dropoffs,
+          })}
+        </span>
+      ) : null}
+    </div>
+  );
+}
 
 /** #412: readable labels for the stored triage answers (staff re-screen). */
 const TRIAGE_LABELS: Record<string, string> = {
@@ -276,6 +317,16 @@ export function CaseDetailView({
       return (data ?? []) as unknown as SuggestedTutor[];
     },
   });
+
+  // Issue #448: desk-track chips for the suggested rows (staff-only server
+  // fn — the RPC itself never returns desk data, so case owners stay clean).
+  const suggestionIds = suggestions.map((s) => s.id);
+  const { data: deskTracks = [] } = useQuery({
+    queryKey: ["admin", "desk-track", "case", caseRow.id, suggestionIds],
+    queryFn: () => getDeskTracks({ data: { tutorIds: suggestionIds } }),
+    enabled: suggestionIds.length > 0,
+  });
+  const deskTrackById = new Map(deskTracks.map((row) => [row.tutor_id, row]));
 
   const updateMutation = useMutation({
     mutationFn: async (patch: Partial<CaseRow>) => {
@@ -901,6 +952,7 @@ export function CaseDetailView({
                         HK${t.hourly_rate}/hr
                         {t.district ? ` · ${t.district}` : ""}
                       </p>
+                      <DeskTrackChips track={deskTrackById.get(t.id)} />
                     </div>
                     <span className="rounded-md bg-[color:var(--foreground)]/[0.06] px-1.5 py-0.5 text-[11px] font-bold text-[color:var(--foreground)]">
                       {Number(t.score).toFixed(0)}

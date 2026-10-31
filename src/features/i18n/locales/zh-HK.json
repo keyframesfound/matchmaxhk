@@ -607,6 +607,31 @@
       "priceRange": "Price Range"
     }
   },
+  "deskTrack": {
+    "saved": "已儲存配對等級記錄",
+    "review_set": "已設定 REVIEW 旗標",
+    "level_label": "內部配對等級",
+    "level_new": "新導師",
+    "level_active": "活躍",
+    "level_experienced": "資深",
+    "hint_new": "新導師宜配初小、初中、短期個案及義務教學；S6／DSE final 或 IBDP Y2 盡量避免，除非供應不足。",
+    "hint_active": "完成 1 個已收行政費個案，或 5 小時以上已核實義務教學後升級。",
+    "hint_experienced": "V1 由主管手動設定（按 Master Sheet 判斷）。",
+    "guide_label": "已發送導師服務指南",
+    "guide_sent_at": "已於 {{when}} 發送",
+    "guide_untouched": "首次配對時在私人 1:1 發送（/tfirst）。",
+    "guide_open": "開啟指南",
+    "guide_copy": "複製連結",
+    "dropoff_label": "L1 後早期流失",
+    "dropoff_hint": "導師在第 1 課後失聯時由客服記錄；兩次或以上須走 REVIEW 旗標流程。",
+    "dropoff_minus": "減一次",
+    "dropoff_plus": "加一次",
+    "dropoff_note_placeholder": "內部備註：例如 C-2001 第 1 課後失聯",
+    "review_hint": "已有 {{count}} 次 L1 後早期流失。請設定 REVIEW 旗標，並在導師順利完成一個個案前只分配較易個案。",
+    "review_action": "設定 REVIEW 旗標",
+    "chip_guide_sent": "已發指南",
+    "chip_dropoffs": "L1 流失：{{count}}"
+  },
   "directory": {
     "subtitle": "藍剔導師嘅成績表經職員核實；其餘導師成績屬自行申報，第一堂前須出示證明。",
     "empty_title": "未搵到符合條件嘅導師",
