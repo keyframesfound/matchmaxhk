@@ -236,3 +236,41 @@ export function formatMaterialTypeLabel(type: string, t: (key: string) => string
   const label = t(key);
   return label === key ? type.replace(/_/g, " ") : label;
 }
+
+/**
+ * #556: verified-buyer rating summaries for the shop cards (★ 4.9 (18)).
+ * Public RLS read of published notes' reviews; an empty map when the
+ * reviews table is not migrated yet.
+ */
+export async function fetchMaterialRatings(): Promise<
+  Map<string, { average: number | null; count: number }>
+> {
+  const client = supabase as unknown as {
+    from: (t: string) => {
+      select: (c: string) => {
+        limit: (n: number) => Promise<{
+          data: { material_id: string; rating: number }[] | null;
+          error?: { code?: string } | null;
+        }>;
+      };
+    };
+  };
+  const { data, error } = await client
+    .from("material_reviews")
+    .select("material_id, rating")
+    .limit(10000);
+  const sums = new Map<string, { sum: number; count: number }>();
+  if (error || !data) return new Map();
+  for (const row of data) {
+    const entry = sums.get(row.material_id) ?? { sum: 0, count: 0 };
+    entry.sum += Number(row.rating);
+    entry.count += 1;
+    sums.set(row.material_id, entry);
+  }
+  return new Map(
+    Array.from(sums.entries()).map(([id, { sum, count }]) => [
+      id,
+      { average: Math.round((sum / count) * 10) / 10, count },
+    ]),
+  );
+}

@@ -2115,7 +2115,9 @@
       "compare_rating": "評分",
       "compare_sold": "已售",
       "compare_tutor": "導師",
-      "get_free": "免費下載"
+      "get_free": "免費下載",
+      "compare_clear": "清除",
+      "compare_shop_description": "最多三件商品並排比較。"
     },
     "cta": {
       "sell_title": "出售你的筆記",
