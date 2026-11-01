@@ -145,6 +145,8 @@ type FormState = {
   budgetMax: string;
   // Issue #423 (sections 2+3): structured package fields (hard dropdowns).
   packageType: string;
+  proBonoRequest: boolean;
+  proBonoNote: string;
   studentCount: string;
   rateUnit: string;
   // Issue #391: 1-on-1 only | open to small group (lower rate) | either.
@@ -207,6 +209,8 @@ const INITIAL_FORM: FormState = {
   budgetMin: "",
   budgetMax: "",
   packageType: "ongoing_1_5",
+  proBonoRequest: false,
+  proBonoNote: "",
   studentCount: "1",
   rateUnit: "hr",
   classFormat: "either",
@@ -701,6 +705,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           budgetMin: form.budgetMin ? Number(form.budgetMin) : null,
           budgetMax: form.budgetMax ? Number(form.budgetMax) : null,
           // Issue #423 (sections 2+3): the structured package fields.
+          proBonoRequest: form.proBonoRequest,
+          proBonoNote: form.proBonoNote.trim() || null,
           packageType: (form.packageType || "ongoing_1_5") as
             "ongoing_1_5" | "short_20" | "pro_bono",
           studentCount: Number(form.studentCount) || 1,
@@ -1708,6 +1714,34 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 searchPlaceholder={t("case_board.form_package_type")}
                 className={controlClassName}
               />
+            </div>
+            {/* #548: private pro-bono / reduced-rate request. Strictly
+                private to the matched tutor + staff; never public. */}
+            <div className="sm:col-span-2 rounded-xl border border-border bg-[color:var(--foreground)]/[0.02] p-3">
+              <label className="flex items-start gap-2 text-sm text-[color:var(--ink)]">
+                <input
+                  type="checkbox"
+                  checked={form.proBonoRequest}
+                  onChange={(e) => update({ proBonoRequest: e.target.checked })}
+                  className="mt-0.5"
+                />
+                <span>
+                  {t("case_board.form_probono_request")}
+                  <span className="block text-xs font-normal text-muted-foreground">
+                    {t("case_board.form_probono_privacy")}
+                  </span>
+                </span>
+              </label>
+              {form.proBonoRequest && (
+                <textarea
+                  value={form.proBonoNote}
+                  maxLength={500}
+                  rows={2}
+                  onChange={(e) => update({ proBonoNote: e.target.value })}
+                  placeholder={t("case_board.form_probono_note")}
+                  className={`${controlClassName} mt-2`}
+                />
+              )}
             </div>
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-student-count`}>

@@ -518,7 +518,7 @@ export const feeMarkPaid = createServerFn({ method: "POST" })
                 )
               )[0]
             : undefined;
-          const isParent = introCase.who_for !== "independent_student";
+          const isParent = introCase.who_for !== "myself";
           const sharedPayload = {
             case_id: introCase.id,
             case_code: introCase.case_code,

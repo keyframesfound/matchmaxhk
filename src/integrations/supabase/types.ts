@@ -589,6 +589,10 @@ export type Database = {
           locale: string;
           notification_preferences: Json;
           onboarding_completed_at: string | null;
+          date_of_birth: string | null;
+          show_birthday_public: boolean;
+          parent_guardian_contact: string | null;
+          parental_awareness_confirmed_at: string | null;
           phone: string | null;
           theme_preference: string;
           tos_accepted_at: string | null;
@@ -612,6 +616,10 @@ export type Database = {
           locale?: string;
           notification_preferences?: Json;
           onboarding_completed_at?: string | null;
+          date_of_birth?: string | null;
+          show_birthday_public?: boolean;
+          parent_guardian_contact?: string | null;
+          parental_awareness_confirmed_at?: string | null;
           phone?: string | null;
           theme_preference?: string;
           tos_accepted_at?: string | null;
@@ -635,6 +643,10 @@ export type Database = {
           locale?: string;
           notification_preferences?: Json;
           onboarding_completed_at?: string | null;
+          date_of_birth?: string | null;
+          show_birthday_public?: boolean;
+          parent_guardian_contact?: string | null;
+          parental_awareness_confirmed_at?: string | null;
           phone?: string | null;
           theme_preference?: string;
           tos_accepted_at?: string | null;
@@ -1118,6 +1130,8 @@ export type Database = {
           uni_course_codes: string | null;
           compliance_note?: string | null;
           compliance_triage?: Json | null;
+          pro_bono_request?: boolean | null;
+          pro_bono_note?: string | null;
           organisation_id?: string | null;
           kindergarten_focus: Json;
           is_short_case: boolean;
@@ -1191,6 +1205,8 @@ export type Database = {
           uni_course_codes?: string | null;
           compliance_note?: string | null;
           compliance_triage?: Json | null;
+          pro_bono_request?: boolean | null;
+          pro_bono_note?: string | null;
           organisation_id?: string | null;
           kindergarten_focus?: Json;
           who_for?: string | null;
@@ -1266,6 +1282,8 @@ export type Database = {
           uni_course_codes?: string | null;
           compliance_note?: string | null;
           compliance_triage?: Json | null;
+          pro_bono_request?: boolean | null;
+          pro_bono_note?: string | null;
           organisation_id?: string | null;
           kindergarten_focus?: Json | null;
           is_short_case?: boolean;

@@ -141,6 +141,8 @@ export type TutorCaseItem = {
   can_log_session: boolean;
   /** #443: short-case chip inputs (false/null on legacy rows). */
   is_short_case: boolean;
+  /** #548: private pro-bono / reduced-rate request flag (tutor + staff only). */
+  pro_bono_request: boolean;
   scheduled_lesson_count: number | null;
   /** #503 bilateral End Case: per-side markers (null until that side taps). */
   ended_by_parent_at: string | null;
@@ -180,10 +182,11 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
       contact_name: string | null;
       contact_phone: string | null;
       managed: boolean | null;
+      pro_bono_request: boolean | null;
     }>(
       db,
       "tutoring_cases",
-      "id, case_code, title, subjects, exam_system, district, lesson_mode, sor_status, is_short_case, scheduled_lesson_count, ended_by_parent_at, ended_by_tutor_at, contact_name, contact_phone, managed, created_at",
+      "id, case_code, title, subjects, exam_system, district, lesson_mode, sor_status, is_short_case, scheduled_lesson_count, ended_by_parent_at, ended_by_tutor_at, contact_name, contact_phone, managed, pro_bono_request, created_at",
       [{ col: "matched_tutor_id", op: "eq", value: tutorId }],
       { col: "created_at", asc: false, limit: 100 },
     );
@@ -293,6 +296,7 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         lesson_mode: c.lesson_mode,
         sor_status: c.sor_status,
         is_short_case: c.is_short_case === true,
+        pro_bono_request: c.pro_bono_request === true,
         scheduled_lesson_count: c.scheduled_lesson_count ?? null,
         ended_by_parent_at: c.ended_by_parent_at,
         ended_by_tutor_at: c.ended_by_tutor_at,

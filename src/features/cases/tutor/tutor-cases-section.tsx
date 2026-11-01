@@ -38,6 +38,7 @@ import { caseHasVerifiedLesson } from "@/features/cases/case-reviews";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { ShortCaseChip } from "@/features/cases/tutor/short-case-chip";
 import { ScheduleNextLessonDialog } from "@/features/cases/tutor/schedule-next-lesson-dialog";
+import { LearnerSnapshotCard } from "@/features/cases/tutor/learner-snapshot-card";
 import { lessonActionsFor } from "@/features/cases/tutor/week-model";
 import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
 import { canMarkDone, hktDateKey } from "@/features/cases/sor";
@@ -510,6 +511,12 @@ export function TutorCasesSection() {
                       {c.exam_system ? ` (${c.exam_system})` : ""}
                     </p>
                     <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
+                      {/* #548: private pro-bono / access request badge. */}
+                      {c.pro_bono_request && (
+                        <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-700">
+                          🌱 {t("sor.lead_probono_badge")}
+                        </span>
+                      )}
                       <ShortCaseChip
                         isShortCase={c.is_short_case}
                         scheduledLessonCount={c.scheduled_lesson_count}
@@ -556,6 +563,8 @@ export function TutorCasesSection() {
                 {/* Issue #412 F: engagement summary, the tutor confirms the
                     agreed arrangements before contact/lessons finalise. */}
                 <EngagementSummaryCard caseId={c.id} party="tutor" />
+                {/* #545: the learner's shared academic snapshot. */}
+                <LearnerSnapshotCard caseId={c.id} />
               </li>
             ))}
           </ul>

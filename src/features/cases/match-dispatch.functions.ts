@@ -342,7 +342,7 @@ export const matchCaseTutor = createServerFn({ method: "POST" })
     // (bell + email) as an Action Required item until they claim or decline.
     try {
       const { emitActionEvent } = await import("@/features/cases/action-required.functions");
-      const isParent = c.who_for !== "independent_student";
+      const isParent = c.who_for !== "myself";
       await emitActionEvent(
         db,
         "case.lead_new",

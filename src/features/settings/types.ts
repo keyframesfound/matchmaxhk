@@ -38,6 +38,8 @@ export function sanitizeNotificationPrefs(value: unknown): NotificationPrefs {
 /** Fields the settings page reads/writes on the profiles row. */
 export type SettingsProfile = {
   display_name: string | null;
+  /** #522: strictly private; used for age tiers + optional month/day badge. */
+  date_of_birth?: string | null;
   /** #459: public @handle; changed only through the set_my_handle RPC. */
   handle: string | null;
   phone: string | null;
@@ -93,6 +95,7 @@ export function categoryFromHash(hash: string): SettingsCategory {
 /** Fields the settings page may write back to the profiles row. */
 export type SettingsProfileUpdate = {
   display_name?: string;
+  date_of_birth?: string | null;
   phone?: string | null;
   locale?: string;
   notification_preferences?: NotificationPrefs;

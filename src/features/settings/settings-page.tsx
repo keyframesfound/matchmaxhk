@@ -210,7 +210,9 @@ export function SettingsPage() {
       if (!userId) throw new Error("Not signed in");
       const { data, error } = await supabase
         .from("profiles")
-        .select("display_name, handle, phone, locale, notification_preferences, tos_accepted_at")
+        .select(
+          "display_name, handle, phone, locale, notification_preferences, tos_accepted_at, date_of_birth",
+        )
         .eq("id", userId)
         .maybeSingle();
       if (error) throw error;

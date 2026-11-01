@@ -425,6 +425,32 @@ const InviteMemberInput = z.object({
   email: z.string().trim().email("Enter a valid email address").max(200),
 });
 
+/**
+ * #550: append-only workspace audit (best-effort: a failed log line never
+ * fails the business action). Rows are service-role only.
+ */
+async function auditWorkspace(
+  client: unknown,
+  centreId: string,
+  actorId: string,
+  action: string,
+  target: string | null,
+): Promise<void> {
+  try {
+    const typed = client as {
+      from: (table: string) => {
+        insert: (row: Record<string, unknown>) => Promise<{ error?: { message?: string } | null }>;
+      };
+    };
+    const { error } = await typed
+      .from("workspace_audit_logs")
+      .insert({ centre_id: centreId, actor_id: actorId, action, target });
+    if (error) console.error("[workspace-audit] insert failed:", error.message);
+  } catch (e) {
+    console.error("[workspace-audit] failed:", e);
+  }
+}
+
 export const inviteMember = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => InviteMemberInput.parse(data))
@@ -461,6 +487,8 @@ export const inviteMember = createServerFn({ method: "POST" })
       }
       throw new Error(message);
     }
+
+    await auditWorkspace(client, data.orgId, context.userId, "invite_member", email);
 
     let emailSent = false;
     try {
@@ -521,6 +549,8 @@ export const removeMember = createServerFn({ method: "POST" })
       .eq("id", data.memberId)
       .eq("organization_id", data.orgId);
     if (error) throw new Error(error.message || "Failed to remove member");
+
+    await auditWorkspace(client, data.orgId, context.userId, "remove_member", member.id);
 
     return { ok: true };
   });

@@ -104,17 +104,44 @@ function OnboardingRoleDialog({
   const [submitting, setSubmitting] = useState(false);
   const cleanHandle = normalizeHandle(handle);
   const canSave = Boolean(name.trim()) && cleanHandle !== null;
+  // #522: optional DOB card (day/month/year selects, 2000–2012 fast reach).
+  const [dobDay, setDobDay] = useState("");
+  const [dobMonth, setDobMonth] = useState("");
+  const [dobYear, setDobYear] = useState("");
+  const [parentAware, setParentAware] = useState(false);
+  const [parentContact, setParentContact] = useState("");
+  const [showBirthday, setShowBirthday] = useState(false);
+  const dobIso =
+    dobDay && dobMonth && dobYear
+      ? `${dobYear}-${dobMonth.padStart(2, "0")}-${dobDay.padStart(2, "0")}`
+      : null;
+  const dob = dobIso ? new Date(`${dobIso}T00:00:00`) : null;
+  const age = dob ? Math.floor((Date.now() - dob.getTime()) / (365.2425 * 24 * 3600 * 1000)) : null;
 
   async function save(nextChoice: OnboardingChoice | null) {
     const trimmed = name.trim();
     if (!trimmed || !cleanHandle) return;
     if (submitting) return;
+    // #522: under-18 needs the parental awareness checkbox; under-16 cannot
+    // activate Teaching.
+    if (dob && age !== null && age < 18 && !parentAware) {
+      toast.error(t("auth.dob_parent_aware_required"));
+      return;
+    }
+    if (nextChoice === "tutor" && dob && age !== null && age < 16) {
+      toast.error(t("auth.dob_tutor_age_blocked"));
+      return;
+    }
     setSubmitting(true);
     setHandleError(null);
     const { error } = await supabase.rpc("complete_onboarding", {
       _choice: nextChoice,
       _display_name: trimmed,
       _handle: cleanHandle,
+      _date_of_birth: dobIso,
+      _show_birthday_public: showBirthday,
+      _parent_guardian_contact:
+        dob && age !== null && age < 13 ? parentContact.trim() || null : null,
     });
     if (error) {
       // The handle is the only field the server can reject on its own.
@@ -262,6 +289,99 @@ function OnboardingRoleDialog({
             );
           })}
         </div>
+        {/* #522: DOB card — optional, 5-second flow. HK age tiers: under-18
+            needs the parental awareness checkbox; under-13 collects the
+            parent/guardian contact; under-16 cannot activate Teaching. */}
+        <div className="mt-5 space-y-2">
+          <Label htmlFor="onboarding-dob-day" className="text-[color:var(--ink)]">
+            {t("auth.dob_label")}
+          </Label>
+          <div className="grid grid-cols-3 gap-2">
+            <select
+              id="onboarding-dob-day"
+              value={dobDay}
+              onChange={(event) => setDobDay(event.target.value)}
+              className="h-10 rounded-xl border border-border bg-[color:var(--surface)] px-3 text-sm"
+              aria-label={t("auth.dob_day")}
+            >
+              <option value="">{t("auth.dob_day")}</option>
+              {Array.from({ length: 31 }, (_, i) => String(i + 1)).map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+            <select
+              value={dobMonth}
+              onChange={(event) => setDobMonth(event.target.value)}
+              className="h-10 rounded-xl border border-border bg-[color:var(--surface)] px-3 text-sm"
+              aria-label={t("auth.dob_month")}
+            >
+              <option value="">{t("auth.dob_month")}</option>
+              {Array.from({ length: 12 }, (_, i) => String(i + 1)).map((m) => (
+                <option key={m} value={m}>
+                  {m}
+                </option>
+              ))}
+            </select>
+            <select
+              value={dobYear}
+              onChange={(event) => setDobYear(event.target.value)}
+              className="h-10 rounded-xl border border-border bg-[color:var(--surface)] px-3 text-sm"
+              aria-label={t("auth.dob_year")}
+            >
+              <option value="">{t("auth.dob_year")}</option>
+              {Array.from({ length: 80 }, (_, i) => String(new Date().getFullYear() - i)).map(
+                (y) => (
+                  <option key={y} value={y}>
+                    {y}
+                  </option>
+                ),
+              )}
+            </select>
+          </div>
+          <p className="text-xs text-muted-foreground">🔒 {t("auth.dob_privacy")}</p>
+          {dob && age !== null && age < 18 && (
+            <label className="flex items-start gap-2 rounded-xl border border-border bg-[color:var(--card-tint)] p-3 text-sm text-[color:var(--ink)]">
+              <input
+                type="checkbox"
+                checked={parentAware}
+                onChange={(event) => setParentAware(event.target.checked)}
+                className="mt-0.5"
+              />
+              {t("auth.dob_parent_aware")}
+            </label>
+          )}
+          {dob && age !== null && age < 13 && (
+            <div className="space-y-1.5">
+              <Label htmlFor="onboarding-parent-contact" className="text-[color:var(--ink)]">
+                {t("auth.dob_parent_contact")}
+              </Label>
+              <Input
+                id="onboarding-parent-contact"
+                value={parentContact}
+                maxLength={120}
+                placeholder="+852 … or parent@email.com"
+                onChange={(event) => setParentContact(event.target.value)}
+                className="bg-[color:var(--surface)]"
+              />
+            </div>
+          )}
+          {dob && age !== null && age < 16 && choice === "tutor" && (
+            <p className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-xs font-medium text-destructive">
+              {t("auth.dob_tutor_age_blocked")}
+            </p>
+          )}
+          <label className="flex items-center gap-2 text-sm text-muted-foreground">
+            <input
+              type="checkbox"
+              checked={showBirthday}
+              onChange={(event) => setShowBirthday(event.target.checked)}
+            />
+            {t("auth.dob_show_birthday")}
+          </label>
+        </div>
+
         {/* #459 §4.1 / §10: picking Tutor shows the Cap.57 self-employed note. */}
         {choice === "tutor" ? (
           <p className="mt-3 rounded-xl border border-border bg-[color:var(--card-tint)] p-3 text-xs leading-relaxed text-muted-foreground">

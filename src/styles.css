@@ -928,3 +928,25 @@ html .driver-popover-progress-text {
 .help-table-scroll {
   overflow-x: auto;
 }
+
+/* Issue #545: Print / Save PDF portfolio — window.print() shows only the
+   .cv-print Education CV block (timeline cards, snapshot; weaknesses hidden
+   via .cv-private-print which also unsets below). */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .cv-print,
+  .cv-print * {
+    visibility: visible;
+  }
+  .cv-print {
+    position: absolute;
+    inset: 0 auto auto 0;
+    width: 100%;
+    border: none !important;
+  }
+  .cv-print .print\:hidden {
+    display: none !important;
+  }
+}

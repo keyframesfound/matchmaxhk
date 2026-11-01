@@ -111,6 +111,10 @@ const CaseRequestInput = z
     // on the form, rendered on the board card (fee pill / students / rate
     // unit suffix). Defaults match the DB column defaults.
     packageType: z.enum(["ongoing_1_5", "short_20", "pro_bono"]).default("ongoing_1_5"),
+    // #548: private pro-bono / reduced-rate request. Visible ONLY to the
+    // matched tutor + staff; never rendered on public surfaces.
+    proBonoRequest: z.boolean().default(false),
+    proBonoNote: z.string().trim().max(500).optional().nullable(),
     studentCount: z.number().int().min(1).max(5).default(1),
     rateUnit: z.enum(["hr", "lesson", "month"]).default("hr"),
     // Issue #391: class format preference (1-on-1 only / open to group /
@@ -657,6 +661,9 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       budget_max: data.budgetMax ?? null,
       // Issue #423 (sections 2+3): the structured package fields.
       package_type: data.packageType,
+      // #548: private pro-bono request flag + note (tutor/staff-only).
+      pro_bono_request: data.proBonoRequest,
+      pro_bono_note: data.proBonoNote?.trim() || null,
       student_count: data.studentCount,
       rate_unit: data.rateUnit,
       // Issue #391: class format preference.

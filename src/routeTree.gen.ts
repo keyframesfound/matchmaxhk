@@ -44,6 +44,7 @@ import { Route as NotesSlugRouteImport } from './routes/notes.$slug'
 import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
+import { Route as UHandleRouteImport } from './routes/u.$handle'
 import { Route as AuthenticatedAccountCasesRouteImport } from './routes/_authenticated.account.cases'
 import { Route as AuthenticatedAccountClaimRouteImport } from './routes/_authenticated.account.claim'
 import { Route as AuthenticatedAccountClaimChildRouteImport } from './routes/_authenticated.account.claim-child'
@@ -258,6 +259,11 @@ const TutorsIndexRoute = TutorsIndexRouteImport.update({
 const TutorsTutorCodeRoute = TutorsTutorCodeRouteImport.update({
   id: '/tutors/$tutorCode',
   path: '/tutors/$tutorCode',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const UHandleRoute = UHandleRouteImport.update({
+  id: '/u/$handle',
+  path: '/u/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAccountCasesRoute =
@@ -525,6 +531,7 @@ export interface FileRoutesByFullPath {
   '/notes/$slug': typeof NotesSlugRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
+  '/u/$handle': typeof UHandleRoute
   '/courses/': typeof CoursesIndexRoute
   '/guide/': typeof GuideIndexRoute
   '/help/': typeof HelpIndexRoute
@@ -600,6 +607,7 @@ export interface FileRoutesByTo {
   '/notes/$slug': typeof NotesSlugRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
+  '/u/$handle': typeof UHandleRoute
   '/courses': typeof CoursesIndexRoute
   '/guide': typeof GuideIndexRoute
   '/help': typeof HelpIndexRoute
@@ -678,6 +686,7 @@ export interface FileRoutesById {
   '/notes/$slug': typeof NotesSlugRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
+  '/u/$handle': typeof UHandleRoute
   '/courses/': typeof CoursesIndexRoute
   '/guide/': typeof GuideIndexRoute
   '/help/': typeof HelpIndexRoute
@@ -756,6 +765,7 @@ export interface FileRouteTypes {
     | '/notes/$slug'
     | '/orders/$orderId'
     | '/tutors/$tutorCode'
+    | '/u/$handle'
     | '/courses/'
     | '/guide/'
     | '/help/'
@@ -831,6 +841,7 @@ export interface FileRouteTypes {
     | '/notes/$slug'
     | '/orders/$orderId'
     | '/tutors/$tutorCode'
+    | '/u/$handle'
     | '/courses'
     | '/guide'
     | '/help'
@@ -908,6 +919,7 @@ export interface FileRouteTypes {
     | '/notes/$slug'
     | '/orders/$orderId'
     | '/tutors/$tutorCode'
+    | '/u/$handle'
     | '/courses/'
     | '/guide/'
     | '/help/'
@@ -980,6 +992,7 @@ export interface RootRouteChildren {
   NotesSlugRoute: typeof NotesSlugRoute
   OrdersOrderIdRoute: typeof OrdersOrderIdRoute
   TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
+  UHandleRoute: typeof UHandleRoute
   CoursesIndexRoute: typeof CoursesIndexRoute
   GuideIndexRoute: typeof GuideIndexRoute
   HelpIndexRoute: typeof HelpIndexRoute
@@ -1235,6 +1248,13 @@ declare module '@tanstack/react-router' {
       path: '/tutors/$tutorCode'
       fullPath: '/tutors/$tutorCode'
       preLoaderRoute: typeof TutorsTutorCodeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/u/$handle': {
+      id: '/u/$handle'
+      path: '/u/$handle'
+      fullPath: '/u/$handle'
+      preLoaderRoute: typeof UHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/account/cases': {
@@ -1675,6 +1695,7 @@ const rootRouteChildren: RootRouteChildren = {
   NotesSlugRoute: NotesSlugRoute,
   OrdersOrderIdRoute: OrdersOrderIdRoute,
   TutorsTutorCodeRoute: TutorsTutorCodeRoute,
+  UHandleRoute: UHandleRoute,
   CoursesIndexRoute: CoursesIndexRoute,
   GuideIndexRoute: GuideIndexRoute,
   HelpIndexRoute: HelpIndexRoute,

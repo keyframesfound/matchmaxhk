@@ -269,6 +269,26 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
   })
   .handler(async ({ data, context }) => {
     const { turnstileToken, ...application } = data;
+
+    // #522 age tier: under-16s are blocked from the tutor role (13-15 tier);
+    // a missing DOB never blocks (legacy users). Defence in depth — the
+    // complete_onboarding RPC enforces the same tier.
+    {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const { data: dobRow } = await supabaseAdmin
+        .from("profiles")
+        .select("date_of_birth")
+        .eq("id", context.userId)
+        .maybeSingle();
+      const dob = (dobRow as { date_of_birth: string | null } | null)?.date_of_birth ?? null;
+      if (dob) {
+        const age = Math.floor(
+          (Date.now() - Date.parse(`${dob}T00:00:00Z`)) / (365.2425 * 86400_000),
+        );
+        if (age < 16) throw new Error("AGE_RESTRICTED");
+      }
+    }
+
     const secret = getRuntimeEnv("TURNSTILE_SECRET");
     const expectedHostnames = new Set(
       (getRuntimeEnv("TURNSTILE_HOSTNAMES") ?? "")

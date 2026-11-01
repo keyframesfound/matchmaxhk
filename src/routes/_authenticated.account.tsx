@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMyBell } from "@/features/cases/bus.functions";
+import { EducationCvSection } from "@/features/account/education-cv-section";
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -169,6 +170,22 @@ function AccountPage() {
   });
   const openActionCount = bellQuery.data?.openActions ?? 0;
 
+  // #522: legacy users get a non-blocking DOB collection banner (never a
+  // lockout) until the birthday is on file.
+  const profileQuery = useQuery({
+    queryKey: ["account", "dob", user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("date_of_birth")
+        .eq("id", user?.id ?? "")
+        .maybeSingle();
+      if (error) throw error;
+      return data as { date_of_birth: string | null } | null;
+    },
+  });
+  const dobMissing = profileQuery.data !== undefined && profileQuery.data?.date_of_birth == null;
+
   const gigOrdersQuery = useQuery({
     queryKey: ["account", "my-gig-orders", user?.id],
     queryFn: () => getMyGigOrders(),
@@ -313,6 +330,20 @@ function AccountPage() {
             </Link>
           )}
         </div>
+
+        {/* #522: non-blocking DOB collection banner for legacy users. */}
+        {dobMissing && (
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card px-4 py-3">
+            <p className="text-sm text-muted-foreground">{t("account.dob_banner")}</p>
+            <Link
+              to="/dashboard"
+              hash="general"
+              className="text-sm font-semibold text-[color:var(--brand-link)] hover:underline"
+            >
+              {t("account.dob_banner_cta")}
+            </Link>
+          </div>
+        )}
 
         {/* #141: post-signup checklist, first block, dismissible, hidden once done */}
         <SignupChecklistCard />
@@ -774,6 +805,18 @@ function AccountPage() {
             </ul>
           )}
         </section>
+
+        {/* #545: Education CV & Academic Records for the selected learner */}
+        {learner !== "all" && activeRole === "parent" ? (
+          <EducationCvSection
+            childProfileId={learner === "myself" ? null : learner}
+            learnerName={
+              learner === "myself"
+                ? (tutor?.display_name ?? parentName)
+                : ((childrenQuery.data ?? []).find((c) => c.id === learner)?.nickname ?? "")
+            }
+          />
+        ) : null}
 
         {/* Bought (parent side, P13) */}
         <section className="mt-12 space-y-4">

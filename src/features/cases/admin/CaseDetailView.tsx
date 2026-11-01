@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { LearnerSnapshotCard } from "@/features/cases/tutor/learner-snapshot-card";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
 import {
@@ -827,6 +828,9 @@ export function CaseDetailView({
           {/* Issue #412 F: engagement summary + open change reports with
               staff resolve actions. */}
           <EngagementSummaryCard caseId={caseRow.id} party="customer" staff />
+
+          {/* #545: the learner's shared academic snapshot (staff view). */}
+          <LearnerSnapshotCard caseId={caseRow.id} />
 
           <ConsolePanel>
             <div className="flex items-center justify-between">

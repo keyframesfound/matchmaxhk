@@ -67,6 +67,30 @@ export function GeneralSection({ profile, updateProfile }: SettingsSectionProps)
           ))}
         </OptionCardGroup>
       </SettingsCard>
+      {/* #522: strictly private DOB; powers age tiers + the optional
+          month/day birthday badge. */}
+      <SettingsCard
+        title={t("settings.general.dob_title")}
+        description={t("settings.general.dob_desc")}
+      >
+        <label className="block text-sm font-bold text-[color:var(--ink)]" htmlFor="dob-input">
+          {t("settings.general.dob_label")}
+        </label>
+        <input
+          id="dob-input"
+          type="date"
+          max={new Date().toISOString().slice(0, 10)}
+          defaultValue={profile?.date_of_birth ?? ""}
+          onBlur={(event) => {
+            const next = event.target.value || null;
+            if (next === (profile?.date_of_birth ?? null)) return;
+            void updateProfile({ date_of_birth: next }).then((ok) => {
+              if (ok) toast.success(t("settings.general.dob_saved"));
+            });
+          }}
+          className="mt-2 h-10 rounded-xl border border-border bg-[color:var(--surface)] px-3 text-sm"
+        />
+      </SettingsCard>
     </div>
   );
 }

@@ -96,74 +96,81 @@ export const startChildClaim = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ context, data }): Promise<{ ok: true; delivered: boolean }> => {
-    const db = await claimDb();
-    await requireClaimableChild(db, context.userId, data.studentId);
-    const email = data.email.toLowerCase();
+  .handler(
+    async ({ context, data }): Promise<{ ok: true; delivered: boolean; claimUrl: string }> => {
+      const db = await claimDb();
+      await requireClaimableChild(db, context.userId, data.studentId);
+      const email = data.email.toLowerCase();
 
-    // §15.3: a new invite invalidates any prior unused tokens for the child.
-    const now = new Date().toISOString();
-    const { error: revokeError } = await db
-      .from("child_claim_tokens")
-      .update({ revoked_at: now })
-      .eq("student_id", data.studentId)
-      .eq("parent_user_id", context.userId)
-      .eq("used_at", null)
-      .eq("revoked_at", null);
-    if (revokeError) throw new Error(revokeError.message);
+      // §15.3: a new invite invalidates any prior unused tokens for the child.
+      const now = new Date().toISOString();
+      const { error: revokeError } = await db
+        .from("child_claim_tokens")
+        .update({ revoked_at: now })
+        .eq("student_id", data.studentId)
+        .eq("parent_user_id", context.userId)
+        .eq("used_at", null)
+        .eq("revoked_at", null);
+      if (revokeError) throw new Error(revokeError.message);
 
-    const raw = generateRawToken();
-    const expiresAt = new Date(Date.now() + CLAIM_TOKEN_DAYS * 24 * 3_600_000).toISOString();
-    const { error } = await db.from("child_claim_tokens").insert({
-      student_id: data.studentId,
-      parent_user_id: context.userId,
-      token_hash: hashToken(raw),
-      delivery_channel: "email",
-      delivery_target: email,
-      expires_at: expiresAt,
-    });
-    if (error) throw new Error(error.message);
+      const raw = generateRawToken();
+      const expiresAt = new Date(Date.now() + CLAIM_TOKEN_DAYS * 24 * 3_600_000).toISOString();
+      const { error } = await db.from("child_claim_tokens").insert({
+        student_id: data.studentId,
+        parent_user_id: context.userId,
+        token_hash: hashToken(raw),
+        delivery_channel: "email",
+        delivery_target: email,
+        expires_at: expiresAt,
+      });
+      if (error) throw new Error(error.message);
 
-    // Degrade gracefully: a Resend outage must not fail the request — the
-    // token stays valid so the parent can resend (a resend revokes this one
-    // and issues a fresh link).
-    const apiKey = getRuntimeEnv("RESEND_API_KEY");
-    if (!apiKey) {
-      console.error("[child-claim] RESEND_API_KEY missing; claim email skipped");
-      return { ok: true, delivered: false };
-    }
-    const { Resend } = await import("resend");
-    const link = `https://matchmax.hk/account/claim-child?token=${raw}`;
-    const { error: sendError } = await new Resend(apiKey).emails.send({
-      from: "MatchMax <noreply@matchmax.hk>",
-      to: email,
-      subject: "Claim your MatchMax learner profile",
-      text: [
-        "Hi,",
-        "",
-        "Your parent/guardian has invited you to take over your MatchMax learner profile.",
-        "Open the link below within 7 days to claim it:",
-        "",
-        link,
-        "",
-        "The link works once, for the account you sign in with. If you were not expecting this email you can ignore it.",
-        "",
-        "MatchMax",
-      ].join("\n"),
-      html: [
-        "<p>Hi,</p>",
-        "<p>Your parent/guardian has invited you to take over your MatchMax learner profile.</p>",
-        `<p><a href="${link}">Claim your learner profile</a> (valid for 7 days, one use)</p>`,
-        "<p>The link works once, for the account you sign in with. If you were not expecting this email you can ignore it.</p>",
-        "<p>MatchMax</p>",
-      ].join(""),
-    });
-    if (sendError) {
-      console.error("[child-claim] claim email send failed:", sendError.message);
-      return { ok: true, delivered: false };
-    }
-    return { ok: true, delivered: true };
-  });
+      // #547: the raw link is also returned once for the parent to copy
+      // (WhatsApp / printed handoff); it is never stored server-side.
+      const claimUrl = `https://matchmax.hk/account/claim-child?token=${raw}`;
+
+      // Degrade gracefully: a Resend outage must not fail the request — the
+      // token stays valid so the parent can resend (a resend revokes this one
+      // and issues a fresh link).
+      const apiKey = getRuntimeEnv("RESEND_API_KEY");
+      if (!apiKey) {
+        console.error("[child-claim] RESEND_API_KEY missing; claim email skipped");
+        return { ok: true, delivered: false, claimUrl };
+      }
+      const { Resend } = await import("resend");
+      const link = `https://matchmax.hk/account/claim-child?token=${raw}`;
+      const { error: sendError } = await new Resend(apiKey).emails.send({
+        from: "MatchMax <noreply@matchmax.hk>",
+        to: email,
+        subject: "Claim your MatchMax learner profile",
+        text: [
+          "Hi,",
+          "",
+          "Your parent/guardian has invited you to take over your MatchMax learner profile.",
+          "Open the link below within 7 days to claim it:",
+          "",
+          link,
+          "",
+          "The link works once, for the account you sign in with. If you were not expecting this email you can ignore it.",
+          "",
+          "MatchMax",
+        ].join("\n"),
+        html: [
+          "<p>Hi,</p>",
+          "<p>Your parent/guardian has invited you to take over your MatchMax learner profile.</p>",
+          `<p><a href="${link}">Claim your learner profile</a> (valid for 7 days, one use)</p>`,
+          "<p>The link works once, for the account you sign in with. If you were not expecting this email you can ignore it.</p>",
+          "<p>MatchMax</p>",
+        ].join(""),
+      });
+      if (sendError) {
+        console.error("[child-claim] claim email send failed:", sendError.message);
+        return { ok: true, delivered: false, claimUrl };
+      }
+
+      return { ok: true, delivered: true, claimUrl };
+    },
+  );
 
 // ---------------------------------------------------------------------------
 // Child: preview + accept
@@ -249,6 +256,31 @@ export const acceptChildClaim = createServerFn({ method: "POST" })
     if (consumeError) throw new Error(consumeError.message);
     if (!consumed) throw new Error("CLAIM_INVALID");
 
+    // #547 guardrail: the receiving account must be fresh — no existing
+    // cases, children or CV rows — so a claim can never merge two histories.
+    const existingCases = await db
+      .from<{ id: string }>("tutoring_cases")
+      .select("id")
+      .eq("parent_id", context.userId)
+      .limit(1);
+    const existingChildren = await db
+      .from<{ id: string }>("students")
+      .select("id")
+      .eq("parent_user_id", context.userId)
+      .limit(1);
+    const existingCv = await db
+      .from<{ id: string }>("academic_records")
+      .select("id")
+      .eq("owner_user_id", context.userId)
+      .limit(1);
+    if (
+      (existingCases.data ?? []).length > 0 ||
+      (existingChildren.data ?? []).length > 0 ||
+      (existingCv.data ?? []).length > 0
+    ) {
+      throw new Error("CLAIM_NOT_FRESH");
+    }
+
     const { error: claimError } = await db
       .from("students")
       .update({
@@ -259,6 +291,27 @@ export const acceptChildClaim = createServerFn({ method: "POST" })
       .eq("id", token.student_id)
       .eq("owner_user_id", null);
     if (claimError) throw new Error(claimError.message);
+
+    // #547 atomic migration (§C): the CV and the cases follow the child.
+    // Rows flip from parent-managed to self-owned; failures are logged and
+    // retried server-side ops, never partial by design — the ownership flip
+    // above is the single gate (re-running is idempotent on owner_user_id).
+    const { error: cvError } = await db
+      .from("academic_records")
+      .update({ owner_user_id: context.userId, child_profile_id: null, updated_at: now })
+      .eq("child_profile_id", token.student_id);
+    if (cvError) console.error("[child-claim] academic_records migration failed:", cvError.message);
+    const { error: snapError } = await db
+      .from("learner_snapshots")
+      .update({ owner_user_id: context.userId, child_profile_id: null, updated_at: now })
+      .eq("child_profile_id", token.student_id);
+    if (snapError)
+      console.error("[child-claim] learner_snapshots migration failed:", snapError.message);
+    const { error: casesError } = await db
+      .from("tutoring_cases")
+      .update({ parent_id: context.userId, who_for: "myself" })
+      .eq("student_id", token.student_id);
+    if (casesError) console.error("[child-claim] case migration failed:", casesError.message);
 
     return { nickname: child.nickname };
   });

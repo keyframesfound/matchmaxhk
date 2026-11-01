@@ -102,6 +102,10 @@ import {
   tutorApplicationSchema,
 } from "@/lib/tutor-application.schema";
 import {
+  getJoinEducationPrefill,
+  type AcademicRecord,
+} from "@/features/account/academic-records.functions";
+import {
   getNearestMtrStation,
   getReachableMtrStations,
   MTR_LINES,
@@ -1086,6 +1090,77 @@ export function ApplicationForm() {
   // only; it narrows the suggestion list, never the submitted selection.
   const [taughtCurriculum, setTaughtCurriculum] = useState("");
   const [qualifications, setQualifications] = useState<Qualification[]>([blankQualification()]);
+  // #545: 1-click prefill from the user's Education CV (academic_records).
+  const [cvPrefill, setCvPrefill] = useState<AcademicRecord[] | null>(null);
+  const [cvPrefillBusy, setCvPrefillBusy] = useState(false);
+  async function loadCvPrefill() {
+    setCvPrefillBusy(true);
+    try {
+      const records = await getJoinEducationPrefill();
+      setCvPrefill(records);
+    } catch {
+      setCvPrefill([]);
+    } finally {
+      setCvPrefillBusy(false);
+    }
+  }
+  function applyCvPrefill() {
+    if (!cvPrefill || cvPrefill.length === 0) return;
+    const Known = ["IBDP", "A-Level", "IGCSE / GCSE", "HKDSE", "AP", "SAT", "IELTS"];
+    const academic = cvPrefill.filter(
+      (r) => r.category === "secondary" || r.category === "post_secondary",
+    );
+    const awards = cvPrefill.filter(
+      (r) => r.category === "extracurricular_award" || r.category === "certification_language",
+    );
+    if (academic.length > 0) {
+      setQualifications(
+        academic.map((r) => {
+          const curriculum =
+            Known.find(
+              (k) => k.toLowerCase() === (r.curriculum_or_body ?? "").trim().toLowerCase(),
+            ) ?? blankQualification().curriculum;
+          const q = blankQualification(curriculum);
+          q.overall = (r.grades_or_results ?? "").split(/[;,\n]/)[0]?.trim() ?? "";
+          const rows = (r.grades_or_results ?? "")
+            .split(/\n|\r\n/)
+            .map((line) => line.trim())
+            .filter(Boolean)
+            .map((line) => {
+              const m = line.match(/^(.+?)\s*[-–:\uFF1A]\s*(.+)$/);
+              return m
+                ? {
+                    subject: m[1].trim(),
+                    grade: m[2].trim(),
+                    level: "",
+                    gradeSystem: "",
+                    papers: [],
+                  }
+                : { subject: line, grade: "", level: "", gradeSystem: "", papers: [] };
+            });
+          if (rows.length > 0) q.scores = rows.slice(0, 12);
+          return q;
+        }),
+      );
+    }
+    if (awards.length > 0) {
+      setBase((current) => ({
+        ...current,
+        achievements: [
+          ...current.achievements,
+          ...awards
+            .filter((r) => !current.achievements.some((a) => a.title === r.title_or_program))
+            .map((r) => ({
+              title: r.title_or_program.slice(0, 80),
+              description: [r.institution_or_issuer, r.grades_or_results, r.notes]
+                .filter(Boolean)
+                .join(" · ")
+                .slice(0, 300),
+            })),
+        ].slice(0, 8),
+      }));
+    }
+  }
   // Issue #323: smart headline + manual-edit (dirty) flag. Auto-filled from
   // the qualifications while pristine; a manual keystroke freezes it, and
   // clearing the field on blur unfreezes it (see the effect + input handlers).
@@ -2685,6 +2760,35 @@ export function ApplicationForm() {
                   professional ? "Higher Education & Teaching Credentials" : "Academic Background"
                 }
               />
+              {/* #545: one-click prefill from the user's Education CV. */}
+              <div className="sm:col-span-2 rounded-xl border border-border bg-[color:var(--foreground)]/[0.02] p-4">
+                <p className="text-sm text-muted-foreground">
+                  {cvPrefill === null
+                    ? "Have an Education CV on your MatchMax account? Import it to skip re-typing your academic history."
+                    : cvPrefill.length === 0
+                      ? "No Education CV records found on your account."
+                      : `${cvPrefill.length} record${cvPrefill.length === 1 ? "" : "s"} found on your Education CV.`}
+                </p>
+                <div className="mt-2 flex gap-2">
+                  {cvPrefill === null ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={cvPrefillBusy}
+                      onClick={loadCvPrefill}
+                    >
+                      {cvPrefillBusy ? "Loading…" : "Check my Education CV"}
+                    </Button>
+                  ) : (
+                    cvPrefill.length > 0 && (
+                      <Button type="button" variant="outline" size="sm" onClick={applyCvPrefill}>
+                        Import into this form
+                      </Button>
+                    )
+                  )}
+                </div>
+              </div>
               {/* Issue #190: target teaching levels route the verticals. */}
               <Field label="Target Teaching Level" required error={fieldErrors.targetLevels}>
                 <Choices

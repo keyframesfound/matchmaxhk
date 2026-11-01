@@ -51,6 +51,7 @@ import {
 } from "@/features/tutors/verticals-form";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
+import { setProBonoPreferences } from "@/features/channels/channel.functions";
 import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
 import { TutorGradesEditor } from "@/features/settings/sections/tutor-grades-editor";
 import { FirstLessonOffersCard } from "@/features/settings/sections/first-lesson-offers-card";
@@ -1928,8 +1929,128 @@ export function MyTutorProfileSection() {
               t("settings.my_tutor.save")
             )}
           </Button>
+
+          {/* #548: Impact & Pro-Bono preferences (saves through the channel
+              server fn — outside the credential-guarded owner UPDATE). */}
+          <ProBonoPreferencesCard initial={proBonoPrefs(current)} />
         </form>
       )}
     </SettingsCard>
+  );
+}
+
+/** Narrow the wide tutor row to the pro-bono columns the card reads. */
+function proBonoPrefs(row: unknown): {
+  accepts_pro_bono?: boolean | null;
+  accepts_reduced_rate?: boolean | null;
+  reduced_hourly_rate_hkd?: number | null;
+  pro_bono_max_slots?: number | null;
+} | null {
+  if (!row || typeof row !== "object") return null;
+  const r = row as Record<string, unknown>;
+  return {
+    accepts_pro_bono: typeof r.accepts_pro_bono === "boolean" ? r.accepts_pro_bono : null,
+    accepts_reduced_rate:
+      typeof r.accepts_reduced_rate === "boolean" ? r.accepts_reduced_rate : null,
+    reduced_hourly_rate_hkd:
+      typeof r.reduced_hourly_rate_hkd === "number" ? r.reduced_hourly_rate_hkd : null,
+    pro_bono_max_slots: typeof r.pro_bono_max_slots === "number" ? r.pro_bono_max_slots : null,
+  };
+}
+
+/** #548 C1: tutor supply-side pro-bono / reduced-rate signalling settings. */
+function ProBonoPreferencesCard({
+  initial,
+}: {
+  initial: {
+    accepts_pro_bono?: boolean | null;
+    accepts_reduced_rate?: boolean | null;
+    reduced_hourly_rate_hkd?: number | null;
+    pro_bono_max_slots?: number | null;
+  } | null;
+}) {
+  const { t } = useTranslation();
+  const [acceptsProBono, setAcceptsProBono] = React.useState(initial?.accepts_pro_bono === true);
+  const [acceptsReduced, setAcceptsReduced] = React.useState(
+    initial?.accepts_reduced_rate === true,
+  );
+  const [rate, setRate] = React.useState(
+    initial?.reduced_hourly_rate_hkd != null ? String(initial.reduced_hourly_rate_hkd) : "",
+  );
+  const [slots, setSlots] = React.useState(String(initial?.pro_bono_max_slots ?? 0));
+  const [pending, setPending] = React.useState(false);
+
+  const save = async () => {
+    setPending(true);
+    try {
+      await setProBonoPreferences({
+        data: {
+          acceptsProBono,
+          acceptsReducedRate: acceptsReduced,
+          reducedHourlyRateHkd: acceptsReduced && rate ? Number(rate) : null,
+          maxSlots: Number(slots) || 0,
+        },
+      });
+      toast.success(t("settings.my_tutor.saved"));
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : "Save failed");
+    } finally {
+      setPending(false);
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-border p-4">
+      <p className="text-sm font-semibold text-[color:var(--ink)]">
+        🌱 {t("settings.my_tutor.probono_title")}
+      </p>
+      <p className="mt-1 text-xs text-muted-foreground">{t("settings.my_tutor.probono_hint")}</p>
+      <div className="mt-3 space-y-2.5">
+        <label className="flex items-center gap-2 text-sm text-[color:var(--ink)]">
+          <input
+            type="checkbox"
+            checked={acceptsProBono}
+            onChange={(e) => setAcceptsProBono(e.target.checked)}
+          />
+          {t("settings.my_tutor.probono_free")}
+        </label>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-[color:var(--ink)]">
+          <label className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              checked={acceptsReduced}
+              onChange={(e) => setAcceptsReduced(e.target.checked)}
+            />
+            {t("settings.my_tutor.probono_reduced")}
+          </label>
+          {acceptsReduced && (
+            <Input
+              type="number"
+              min={0}
+              max={5000}
+              value={rate}
+              onChange={(e) => setRate(e.target.value)}
+              placeholder="150"
+              className="w-24"
+            />
+          )}
+        </div>
+        <div className="flex flex-wrap items-center gap-2 text-sm text-[color:var(--ink)]">
+          <span>{t("settings.my_tutor.probono_slots")}</span>
+          <Input
+            type="number"
+            min={0}
+            max={10}
+            value={slots}
+            onChange={(e) => setSlots(e.target.value)}
+            className="w-20"
+          />
+        </div>
+        <Button type="button" variant="outline" size="sm" disabled={pending} onClick={save}>
+          {pending && <Loader2 className="mr-1.5 h-4 w-4 animate-spin" aria-hidden />}
+          {t("settings.my_tutor.probono_save")}
+        </Button>
+      </div>
+    </div>
   );
 }

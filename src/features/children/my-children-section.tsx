@@ -229,6 +229,10 @@ function RetainToggles({ child }: { child: ChildProfile }) {
 function ClaimInviteForm({ childId, onDone }: { childId: string; onDone: () => void }) {
   const { t } = useTranslation();
   const [email, setEmail] = useState("");
+  // #547: the one-time raw link, shown after creation so the parent can
+  // copy it into WhatsApp / print it; the server never stores the raw token.
+  const [claimUrl, setClaimUrl] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const invite = useMutation({
     mutationFn: () => startChildClaim({ data: { studentId: childId, email: email.trim() } }),
@@ -236,7 +240,7 @@ function ClaimInviteForm({ childId, onDone }: { childId: string; onDone: () => v
       toast.success(
         res.delivered ? t("children.claim.invite_sent") : t("children.claim.invite_send_failed"),
       );
-      onDone();
+      setClaimUrl(res.claimUrl);
     },
     onError: (e) => {
       toast.error(
@@ -244,6 +248,36 @@ function ClaimInviteForm({ childId, onDone }: { childId: string; onDone: () => v
       );
     },
   });
+
+  if (claimUrl) {
+    return (
+      <div className="mt-4 space-y-3">
+        <p className="text-sm text-muted-foreground">{t("children.claim.link_hint")}</p>
+        <div className="flex items-center gap-2">
+          <Input readOnly value={claimUrl} className="font-mono text-xs" />
+          <Button
+            type="button"
+            variant="outline"
+            onClick={async () => {
+              try {
+                await navigator.clipboard.writeText(claimUrl);
+                setCopied(true);
+              } catch {
+                setCopied(false);
+              }
+            }}
+          >
+            {copied ? t("children.claim.link_copied") : t("children.claim.link_copy")}
+          </Button>
+        </div>
+        <div className="flex justify-end">
+          <Button type="button" variant="ghost" onClick={onDone}>
+            {t("children.cancel")}
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <form
