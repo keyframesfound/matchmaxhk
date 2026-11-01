@@ -39,6 +39,7 @@ import { Route as GuideReferRouteImport } from './routes/guide.refer'
 import { Route as GuideTutorsRouteImport } from './routes/guide.tutors'
 import { Route as GuideVerificationRouteImport } from './routes/guide.verification'
 import { Route as HelpIndexRouteImport } from './routes/help.index'
+import { Route as HelpCategoryRouteImport } from './routes/help.$category'
 import { Route as LegalNotesTermsRouteImport } from './routes/legal.notes-terms'
 import { Route as NotesSlugRouteImport } from './routes/notes.$slug'
 import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
@@ -236,6 +237,11 @@ const HelpIndexRoute = HelpIndexRouteImport.update({
   path: '/help/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HelpCategoryRoute = HelpCategoryRouteImport.update({
+  id: '/help/$category',
+  path: '/help/$category',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LegalNotesTermsRoute = LegalNotesTermsRouteImport.update({
   id: '/legal/notes-terms',
   path: '/legal/notes-terms',
@@ -419,9 +425,9 @@ const AuthenticatedTutorRequestsCaseCodeRoute =
     getParentRoute: () => AuthenticatedRoute,
   } as any)
 const HelpCategorySlugRoute = HelpCategorySlugRouteImport.update({
-  id: '/help/$category/$slug',
-  path: '/help/$category/$slug',
-  getParentRoute: () => rootRouteImport,
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => HelpCategoryRoute,
 } as any)
 const AuthenticatedAccountCasesCaseIdRoute =
   AuthenticatedAccountCasesCaseIdRouteImport.update({
@@ -527,6 +533,7 @@ export interface FileRoutesByFullPath {
   '/guide/refer': typeof GuideReferRoute
   '/guide/tutors': typeof GuideTutorsRoute
   '/guide/verification': typeof GuideVerificationRoute
+  '/help/$category': typeof HelpCategoryRouteWithChildren
   '/legal/notes-terms': typeof LegalNotesTermsRoute
   '/notes/$slug': typeof NotesSlugRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
@@ -603,6 +610,7 @@ export interface FileRoutesByTo {
   '/guide/refer': typeof GuideReferRoute
   '/guide/tutors': typeof GuideTutorsRoute
   '/guide/verification': typeof GuideVerificationRoute
+  '/help/$category': typeof HelpCategoryRouteWithChildren
   '/legal/notes-terms': typeof LegalNotesTermsRoute
   '/notes/$slug': typeof NotesSlugRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
@@ -682,6 +690,7 @@ export interface FileRoutesById {
   '/guide/refer': typeof GuideReferRoute
   '/guide/tutors': typeof GuideTutorsRoute
   '/guide/verification': typeof GuideVerificationRoute
+  '/help/$category': typeof HelpCategoryRouteWithChildren
   '/legal/notes-terms': typeof LegalNotesTermsRoute
   '/notes/$slug': typeof NotesSlugRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
@@ -761,6 +770,7 @@ export interface FileRouteTypes {
     | '/guide/refer'
     | '/guide/tutors'
     | '/guide/verification'
+    | '/help/$category'
     | '/legal/notes-terms'
     | '/notes/$slug'
     | '/orders/$orderId'
@@ -837,6 +847,7 @@ export interface FileRouteTypes {
     | '/guide/refer'
     | '/guide/tutors'
     | '/guide/verification'
+    | '/help/$category'
     | '/legal/notes-terms'
     | '/notes/$slug'
     | '/orders/$orderId'
@@ -915,6 +926,7 @@ export interface FileRouteTypes {
     | '/guide/refer'
     | '/guide/tutors'
     | '/guide/verification'
+    | '/help/$category'
     | '/legal/notes-terms'
     | '/notes/$slug'
     | '/orders/$orderId'
@@ -988,6 +1000,7 @@ export interface RootRouteChildren {
   GuideReferRoute: typeof GuideReferRoute
   GuideTutorsRoute: typeof GuideTutorsRoute
   GuideVerificationRoute: typeof GuideVerificationRoute
+  HelpCategoryRoute: typeof HelpCategoryRouteWithChildren
   LegalNotesTermsRoute: typeof LegalNotesTermsRoute
   NotesSlugRoute: typeof NotesSlugRoute
   OrdersOrderIdRoute: typeof OrdersOrderIdRoute
@@ -997,7 +1010,6 @@ export interface RootRouteChildren {
   GuideIndexRoute: typeof GuideIndexRoute
   HelpIndexRoute: typeof HelpIndexRoute
   TutorsIndexRoute: typeof TutorsIndexRoute
-  HelpCategorySlugRoute: typeof HelpCategorySlugRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -1213,6 +1225,13 @@ declare module '@tanstack/react-router' {
       path: '/help'
       fullPath: '/help/'
       preLoaderRoute: typeof HelpIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/help/$category': {
+      id: '/help/$category'
+      path: '/help/$category'
+      fullPath: '/help/$category'
+      preLoaderRoute: typeof HelpCategoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal/notes-terms': {
@@ -1441,10 +1460,10 @@ declare module '@tanstack/react-router' {
     }
     '/help/$category/$slug': {
       id: '/help/$category/$slug'
-      path: '/help/$category/$slug'
+      path: '/$slug'
       fullPath: '/help/$category/$slug'
       preLoaderRoute: typeof HelpCategorySlugRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof HelpCategoryRoute
     }
     '/_authenticated/account/cases/$caseId': {
       id: '/_authenticated/account/cases/$caseId'
@@ -1669,6 +1688,18 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
+interface HelpCategoryRouteChildren {
+  HelpCategorySlugRoute: typeof HelpCategorySlugRoute
+}
+
+const HelpCategoryRouteChildren: HelpCategoryRouteChildren = {
+  HelpCategorySlugRoute: HelpCategorySlugRoute,
+}
+
+const HelpCategoryRouteWithChildren = HelpCategoryRoute._addFileChildren(
+  HelpCategoryRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
@@ -1691,6 +1722,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuideReferRoute: GuideReferRoute,
   GuideTutorsRoute: GuideTutorsRoute,
   GuideVerificationRoute: GuideVerificationRoute,
+  HelpCategoryRoute: HelpCategoryRouteWithChildren,
   LegalNotesTermsRoute: LegalNotesTermsRoute,
   NotesSlugRoute: NotesSlugRoute,
   OrdersOrderIdRoute: OrdersOrderIdRoute,
@@ -1700,7 +1732,6 @@ const rootRouteChildren: RootRouteChildren = {
   GuideIndexRoute: GuideIndexRoute,
   HelpIndexRoute: HelpIndexRoute,
   TutorsIndexRoute: TutorsIndexRoute,
-  HelpCategorySlugRoute: HelpCategorySlugRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
