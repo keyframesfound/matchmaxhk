@@ -331,6 +331,43 @@ export const requestAffiliation = createServerFn({ method: "POST" })
       { onConflict: "user_id,centre_id" },
     );
     if (error) throw new Error(error.message);
+
+    // #561 AR-8: pending affiliated-tutor requests become an Action Required
+    // item for the centre's admins; decideAffiliation resolves it.
+    if (status === "pending") {
+      try {
+        const { emitDirectAction } = await import("@/features/cases/action-required.functions");
+        const admins = await db
+          .from<{ created_by: string }>("organizations")
+          .select("created_by")
+          .eq("id", centre.id)
+          .limit(1);
+        const recipients = new Set<string>();
+        if (admins.data?.[0]?.created_by) recipients.add(admins.data[0].created_by);
+        const { data: members } = await db
+          .from<{ user_id: string | null }>("organization_members")
+          .select("user_id")
+          .eq("organization_id", centre.id)
+          .in("status", ["active", "pending"]);
+        for (const m of members ?? []) if (m.user_id) recipients.add(m.user_id);
+        for (const recipient of recipients) {
+          if (recipient === context.userId) continue;
+          await emitDirectAction(db, "action.admin_task", recipient, {
+            context: "system",
+            entity_id: `affil:${centre.id}`,
+            admin_title: "Centre affiliation request",
+            admin_title_zh: "補習中心關聯申請",
+            admin_body: "A tutor requested affiliation with your centre. Review it in the workspace.",
+            urgency: "medium",
+            link: "/business",
+            cta_label: "Review request",
+            cta_label_zh: "查看申請",
+          });
+        }
+      } catch (arError) {
+        console.warn("[affiliations] review action failed:", arError);
+      }
+    }
     return { ok: true, status };
   });
 
@@ -362,6 +399,13 @@ export const decideAffiliation = createServerFn({ method: "POST" })
       })
       .eq("id", affil.id);
     if (error) throw new Error(error.message);
+    // #561 AR-8: the decision resolves the centre's review actions.
+    try {
+      const { completeActionsFor } = await import("@/features/cases/action-required.functions");
+      await completeActionsFor(db, "admin_task", `affil:${affil.centre_id}`);
+    } catch (arError) {
+      console.warn("[affiliations] action completion failed:", arError);
+    }
     return { ok: true };
   });
 
