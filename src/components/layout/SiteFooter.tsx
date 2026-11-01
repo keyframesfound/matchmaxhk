@@ -142,7 +142,7 @@ export function SiteFooter({
         </div>
 
         <div
-          className={`mt-12 flex flex-col items-center justify-between gap-4 pt-8 text-center sm:flex-row ${hideDivider ? "" : "border-t border-border"}`}
+          className={`mt-12 flex flex-col items-center justify-between gap-4 pt-8 text-center sm:flex-row sm:pr-20 lg:pr-24 ${hideDivider ? "" : "border-t border-border"}`}
         >
           <p className="text-sm text-muted-foreground">
             © {year} MatchMax. {t("footer.rights")}

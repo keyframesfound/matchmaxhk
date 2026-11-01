@@ -234,18 +234,34 @@ export function GuidePage({ current, children }: { current: GuideTab; children: 
   // the announcement banner while it is undismissed, and the mobile header
   // is 56px. Measure the header's live height so the bar never hides under
   // it (or under a banner that appears later in the session).
+  //
+  // The banner mounts one effect after the header (sessionStorage read), so
+  // the one-shot measure used to capture the 72px pre-banner height and the
+  // bar then slid under the banner on scroll. The announcement banner is an
+  // in-flow child of the desktop <header>, so a ResizeObserver on the header
+  // catches banner mount, dismissal, and rotation. Both breakpoint headers
+  // exist in the DOM at all widths; measure whichever is actually rendered
+  // (the hidden one reports offsetHeight 0) so mobile no longer falls back
+  // to the display:none desktop header.
   const [topOffset, setTopOffset] = useState(0);
   useEffect(() => {
     function measure() {
-      const header = document.querySelector<HTMLElement>("[data-site-header]");
-      // Mobile header renders as a sticky div (SiteHeader renders one header
-      // per breakpoint, desktop <header> with data-site-header, mobile <div>).
-      const mobileHeader = header ?? document.querySelector<HTMLElement>("div.sticky.top-0.z-50");
-      setTopOffset((mobileHeader ?? header)?.offsetHeight ?? 0);
+      const desktopHeader = document.querySelector<HTMLElement>("[data-site-header]");
+      const mobileHeader = document.querySelector<HTMLElement>("[data-site-header-mobile]");
+      const visibleHeader =
+        [desktopHeader, mobileHeader].find((el) => el && el.offsetHeight > 0) ?? desktopHeader;
+      setTopOffset(visibleHeader?.offsetHeight ?? 0);
     }
     measure();
     window.addEventListener("resize", measure);
-    return () => window.removeEventListener("resize", measure);
+    const observer = new ResizeObserver(measure);
+    document
+      .querySelectorAll<HTMLElement>("[data-site-header], [data-site-header-mobile]")
+      .forEach((el) => observer.observe(el));
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("resize", measure);
+    };
   }, []);
 
   // Issue #492: old ContentsRow hashes fall back gracefully — the tab still
