@@ -186,6 +186,8 @@ export function StudyMaterialCard({
   verifiedTutor = false,
   detailHref,
   includes,
+  rating,
+  footer,
 }: {
   material: StudyMaterial;
   tutorName: string;
@@ -202,6 +204,10 @@ export function StudyMaterialCard({
   detailHref?: string;
   /** #392: folder children / course lessons for the Details accordion. */
   includes?: ShopListingIncludes | null;
+  /** #556: verified-buyer rating summary (shown as ★ 4.9 (18)). */
+  rating?: { average: number | null; count: number } | null;
+  /** #556: card action bar (Compare · Share · Save). */
+  footer?: ReactNode;
 }) {
   const { t } = useTranslation();
   const [previewOpen, setPreviewOpen] = useState(false);
@@ -303,7 +309,17 @@ export function StudyMaterialCard({
               ) : null}
             </p>
           </div>
-          <p className="shrink-0 text-lg font-bold text-[color:var(--ink)]">{price}</p>
+          <div className="shrink-0 text-right">
+            <p className="text-lg font-bold text-[color:var(--ink)]">{price}</p>
+            {rating && rating.count > 0 && rating.average != null ? (
+              <p
+                className="text-xs font-semibold text-muted-foreground"
+                aria-label={t("notes.reviews.count", { count: rating.count })}
+              >
+                ★ {rating.average.toFixed(1)} ({rating.count})
+              </p>
+            ) : null}
+          </div>
         </div>
 
         {material.admin_marketing_summary || material.description ? (
@@ -455,6 +471,7 @@ export function StudyMaterialCard({
             </Button>
           ) : null}
         </div>
+        {footer ? <div className="border-t border-border pt-3">{footer}</div> : null}
       </div>
 
       {material.watermarked_preview_url ? (

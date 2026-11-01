@@ -2115,7 +2115,9 @@
       "compare_rating": "Rating",
       "compare_sold": "Sold",
       "compare_tutor": "Tutor",
-      "get_free": "Download free"
+      "get_free": "Download free",
+      "compare_clear": "Clear",
+      "compare_shop_description": "Up to three listings side by side."
     },
     "cta": {
       "sell_title": "Sell your own notes",

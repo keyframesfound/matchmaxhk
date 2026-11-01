@@ -16,11 +16,18 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   fetchMarketplaceMaterials,
+  fetchMaterialRatings,
   collectSchoolTags,
   type MarketplaceMaterial,
 } from "@/features/materials/queries";
 import { StudyMaterialCard } from "@/features/materials/material-card";
 import { cn } from "@/lib/utils";
+import { AuthGateDialog } from "@/features/auth/AuthGateDialog";
+import {
+  MAX_COMPARE,
+  ShopCardActions,
+  ShopCompareDialog,
+} from "@/features/materials/shop-card-actions";
 import { useAuth } from "@/features/auth/useAuth";
 import { rankBySearch } from "@/features/materials/note-search";
 import {
@@ -110,6 +117,24 @@ export function MaterialsDirectory() {
     staleTime: 60_000,
   });
   const savedIds = useMemo(() => new Set(savedQuery.data ?? []), [savedQuery.data]);
+  // #556 card actions: ratings on cards, compare tray (up to 3), save gate.
+  const ratingsQuery = useQuery({
+    queryKey: ["materials", "ratings"],
+    queryFn: fetchMaterialRatings,
+    staleTime: 5 * 60_000,
+  });
+  const ratings = ratingsQuery.data ?? new Map<string, { average: number | null; count: number }>();
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [authGateOpen, setAuthGateOpen] = useState(false);
+  const toggleCompare = (id: string) =>
+    setCompareIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : prev.length >= MAX_COMPARE
+          ? prev
+          : [...prev, id],
+    );
 
   const schools = useMemo(() => collectSchoolTags(materials), [materials]);
   const subjects = useMemo(
@@ -436,12 +461,49 @@ export function MaterialsDirectory() {
                 tutorCode={material.tutor_code}
                 showTutorLink={!material.tutor_community}
                 verifiedTutor={material.tutor_verified}
+                rating={ratings.get(material.id) ?? null}
+                footer={
+                  <ShopCardActions
+                    material={material}
+                    compared={compareIds.includes(material.id)}
+                    onToggleCompare={() => toggleCompare(material.id)}
+                    onRequireAuth={() => setAuthGateOpen(true)}
+                  />
+                }
                 detailHref={`/notes/${material.slug ?? material.id}`}
               />
             ))}
           </div>
         )}
       </div>
+      {compareIds.length > 0 ? (
+        <div className="mm-overlay-lift fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-card px-3 py-2 lg:bottom-6">
+          <Button
+            type="button"
+            size="sm"
+            variant="solid"
+            color="neutral"
+            onClick={() => setCompareOpen(true)}
+          >
+            {t("notes.engage.compare_button", { count: compareIds.length })}
+          </Button>
+          <Button type="button" size="sm" variant="ghost" onClick={() => setCompareIds([])}>
+            {t("notes.engage.compare_clear")}
+          </Button>
+        </div>
+      ) : null}
+      <ShopCompareDialog
+        open={compareOpen}
+        onOpenChange={setCompareOpen}
+        items={materials.filter((m) => compareIds.includes(m.id))}
+        ratings={ratings}
+      />
+      <AuthGateDialog
+        open={authGateOpen}
+        onOpenChange={setAuthGateOpen}
+        title={t("notes.gate_title")}
+        description={t("notes.gate_description")}
+      />
       {/* #557: "Recommended for you" seeded by the viewer's saved notes. */}
       {savedOnly && savedIds.size > 0 ? (
         <div className="mx-auto max-w-[1536px] px-4 sm:px-6">

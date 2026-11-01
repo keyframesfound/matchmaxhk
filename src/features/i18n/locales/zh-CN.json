@@ -2115,7 +2115,9 @@
       "compare_rating": "评分",
       "compare_sold": "已售",
       "compare_tutor": "导师",
-      "get_free": "免费下载"
+      "get_free": "免费下载",
+      "compare_clear": "清除",
+      "compare_shop_description": "最多三件商品并排比较。"
     },
     "cta": {
       "sell_title": "出售你的笔记",
