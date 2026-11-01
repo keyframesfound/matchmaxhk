@@ -2099,7 +2099,7 @@
       "included_after_purchase": "附加档案及链接会在付款后于你的账户内提供。",
       "your_files": "你的附加档案",
       "your_files_hint": "下载链接一小时后失效，重新载入页面即可取得新链接。",
-      "similar_title": "相似笔记",
+      "similar_title": "为您推荐的教材",
       "add_to_compare": "比较",
       "compare_button": "比较（{{count}}）",
       "compare_title": "比较笔记",
@@ -2174,6 +2174,13 @@
     },
     "seller": {
       "community_badge": "社群卖家"
+    },
+    "category": {
+      "notes": "温习笔记",
+      "mocks": "模拟试卷及题解",
+      "coursework": "IA / EE / SBA",
+      "services": "批改及服务",
+      "free": "免费"
     }
   },
   "orders": {

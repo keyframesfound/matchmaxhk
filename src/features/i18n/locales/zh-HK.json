@@ -2099,7 +2099,7 @@
       "included_after_purchase": "附加檔案及連結會在付款後於你的帳戶內提供。",
       "your_files": "你的附加檔案",
       "your_files_hint": "下載連結一小時後失效，重新載入頁面即可取得新連結。",
-      "similar_title": "相似筆記",
+      "similar_title": "為您推薦的教材",
       "add_to_compare": "比較",
       "compare_button": "比較（{{count}}）",
       "compare_title": "比較筆記",
@@ -2174,6 +2174,13 @@
     },
     "seller": {
       "community_badge": "社群賣家"
+    },
+    "category": {
+      "notes": "溫習筆記",
+      "mocks": "模擬試卷及題解",
+      "coursework": "IA / EE / SBA",
+      "services": "批改及服務",
+      "free": "免費"
     }
   },
   "orders": {
