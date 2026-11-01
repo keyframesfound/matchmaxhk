@@ -11,6 +11,7 @@ import {
   Settings,
   ShieldCheck,
   Sun,
+  Upload,
   UserRound,
 } from "lucide-react";
 import { motion, useMotionValueEvent, useTransform } from "motion/react";
@@ -215,6 +216,8 @@ export function SiteHeader({
       ? [{ label: t("nav.courses"), ariaLabel: t("nav.courses"), to: "/courses" }]
       : []),
     { label: t("nav.saved_posts"), ariaLabel: t("nav.saved_posts"), to: "/saved-posts" },
+    // Notes upload v2: the upload entry is one tap away on mobile too.
+    { label: t("nav.upload_notes"), ariaLabel: t("nav.upload_notes"), to: "/account/notes/new" },
     // #459 §B: tutors switch modes instead of seeing Become a Tutor.
     ...(isTutor
       ? [activeRole === "tutor" ? { ...modeSwitchItem("parent") } : { ...modeSwitchItem("tutor") }]
@@ -290,6 +293,15 @@ export function SiteHeader({
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+            {/* Notes upload v2: a visible "Upload notes" entry on desktop. */}
+            <Link
+              to="/account/notes/new"
+              aria-current={isActive("/account/notes/new") ? "page" : undefined}
+              className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-[color:var(--ink)]/15 px-3 py-2 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.05] lg:inline-flex"
+            >
+              <Upload className="h-4 w-4" aria-hidden />
+              {t("nav.upload_notes")}
+            </Link>
             {/* #459 §B: once Teaching is activated the Become a Tutor link
                 becomes the Learning/Teaching mode switcher. */}
             {isTutor ? (

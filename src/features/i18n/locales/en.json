@@ -1832,7 +1832,8 @@
     "mode_switched_learning": "Switched to Learning.",
     "mode_switched_teaching": "Switched to Teaching.",
     "mode_switch_error": "Could not switch mode. Please try again.",
-    "workspaces": "Workspaces"
+    "workspaces": "Workspaces",
+    "upload_notes": "Upload notes"
   },
   "nav_mobile": {
     "case": "Case",
@@ -2586,10 +2587,10 @@
       "not_linked": "Your tutor profile isn't linked to this account yet. After your application is accepted, our team will connect your profile and your referral link will appear here."
     },
     "general": {
-    "dob_title": "Birthday",
-    "dob_desc": "Strictly private (PDPO). Used for age-appropriate features; the optional public badge shows month & day only, never the year.",
-    "dob_label": "Date of birth",
-    "dob_saved": "Birthday saved",
+      "dob_title": "Birthday",
+      "dob_desc": "Strictly private (PDPO). Used for age-appropriate features; the optional public badge shows month & day only, never the year.",
+      "dob_label": "Date of birth",
+      "dob_saved": "Birthday saved",
       "appearance_title": "Appearance",
       "appearance_desc": "Choose how MatchMax looks on this account.",
       "color_mode": "Color mode",
@@ -2751,12 +2752,12 @@
       "status_inactive_hint": "Your card stays visible but shows “Inactive” and hides the request button until you reactivate it."
     },
     "my_tutor": {
-    "probono_title": "Impact & Pro-Bono Preferences",
-    "probono_hint": "These appear on your public channel. Only counts show — never student identities.",
-    "probono_free": "Accept Pro-Bono ($0 free tuition) for financial-need students",
-    "probono_reduced": "Accept concessionary / reduced rate at HK$/hr:",
-    "probono_slots": "Max concurrent pro-bono slots (0–10):",
-    "probono_save": "Save preferences",
+      "probono_title": "Impact & Pro-Bono Preferences",
+      "probono_hint": "These appear on your public channel. Only counts show — never student identities.",
+      "probono_free": "Accept Pro-Bono ($0 free tuition) for financial-need students",
+      "probono_reduced": "Accept concessionary / reduced rate at HK$/hr:",
+      "probono_slots": "Max concurrent pro-bono slots (0–10):",
+      "probono_save": "Save preferences",
       "title": "My tutor profile",
       "description": "Edit the tutor profile assigned to your account by the MatchMax team. Changes go live immediately.",
       "not_linked": "No tutor profile is linked to your account yet. The MatchMax team assigns profiles, check back after they confirm your assignment.",
@@ -3029,7 +3030,7 @@
     "admin_preset_offplatform": "Off-platform advertising in listing or videos"
   },
   "sor": {
-"lead_probono_badge": "Pro-Bono / Access Request",
+    "lead_probono_badge": "Pro-Bono / Access Request",
     "bell_aria": "Notifications, {{count}} unread",
     "bell_empty": "No notifications yet",
     "bell_view_all": "View all notifications",
@@ -3304,7 +3305,7 @@
     "bell_lesson_cancelled_parent": "A lesson was cancelled by the parent",
     "bell_lesson_cancelled_tutor": "Your tutor cancelled a lesson",
     "bell_lesson_scheduled_parent": "A lesson slot was requested by the parent",
-        "bell_lesson_scheduled_tutor": "Your tutor scheduled a lesson",
+    "bell_lesson_scheduled_tutor": "Your tutor scheduled a lesson",
     "bell_lead_new": "New Case Lead",
     "bell_intro_parent": "Tutor Introduced",
     "bell_intro_tutor": "Case Connected",
@@ -3662,10 +3663,10 @@
     "picker_hint": "Picking a child keeps siblings' cases separate.",
     "picker_add_placeholder": "Child's nickname",
     "claim": {
-    "link_hint": "Email sent. You can also copy the one-time claim link and send it yourself (WhatsApp, printed, etc.). The link expires in 7 days and works once.",
-    "link_copy": "Copy link",
-    "link_copied": "Copied",
-    "err_CLAIM_NOT_FRESH": "You can only claim a profile using a brand new account (no existing cases, children, or CV records).",
+      "link_hint": "Email sent. You can also copy the one-time claim link and send it yourself (WhatsApp, printed, etc.). The link expires in 7 days and works once.",
+      "link_copy": "Copy link",
+      "link_copied": "Copied",
+      "err_CLAIM_NOT_FRESH": "You can only claim a profile using a brand new account (no existing cases, children, or CV records).",
       "invite_cta": "Invite to claim",
       "invite_title": "Invite {{name}} to claim their profile",
       "invite_desc": "They get a one-time email link, valid for 7 days. Claiming moves the profile to their own account; you keep view access.",
