@@ -19,10 +19,14 @@ import {
   bellLinkFor,
   DELIVERY_MAX_ATTEMPTS,
   planDeliveriesForEvent,
+  prefsKeyForEmail,
   redactBellPayload,
+  resolveDeliveryContext,
   type BusChannel,
+  type BusContext,
   type BusRole,
 } from "@/features/cases/bus";
+import { ACTION_PLAN, firstReminderAt } from "@/features/cases/action-required";
 import {
   eventKey,
   shouldCreateConciergeDigest,
@@ -341,10 +345,16 @@ async function resolveRecipients(
     conciergeId = admins[0]?.user_id ?? null;
   }
 
+  // #542/#561: payload-addressed events (reports, content rejections, admin
+  // tasks, profile scans) name their single recipient directly.
+  const directId =
+    typeof payload.recipient_account_id === "string" ? payload.recipient_account_id : null;
+
   const byRole: Partial<Record<BusRole, string | null>> = {
     parent: buyerId ?? caseCtx?.parent_id ?? null,
     tutor: tutorAccountId,
     concierge: conciergeId,
+    recipient: directId,
   };
   const out: { role: BusRole; accountId: string }[] = [];
   for (const role of roles) {
@@ -364,6 +374,19 @@ const EMAIL_TEMPLATE_BY_EVENT: Record<string, string> = {
   "lesson.cancelled_by_tutor": "lesson-update",
   "lesson.scheduled_by_parent": "lesson-update",
   "lesson.scheduled_by_tutor": "lesson-update",
+  // #542 triggers + #561 action items share the flexible action template;
+  // the bilingual strings come from action-email.server.ts.
+  "case.lead_new": "action-required",
+  "intro.shared_parent": "action-required",
+  "intro.shared_tutor": "action-required",
+  "verification.approved": "action-required",
+  "verification.rejected": "action-required",
+  "material.rejected": "action-required",
+  "content.rejected": "action-required",
+  "report.filed": "action-required",
+  "action.profile_fields": "action-required",
+  "action.onboarding": "action-required",
+  "action.admin_task": "action-required",
 };
 
 function fmtHkd(n: unknown): string {
@@ -435,10 +458,15 @@ async function deliverOne(
   db: Db,
   eventId: string,
   channel: BusChannel,
+  role: BusRole,
   accountId: string,
   eventType: string,
   payload: Record<string, unknown>,
 ): Promise<void> {
+  // #542 mode tag + #561 action metadata, computed once per delivery.
+  const context: BusContext = resolveDeliveryContext(eventType, role, payload);
+  const plan = ACTION_PLAN[eventType];
+
   // Insert-if-absent (the unique index backstops races).
   const existing = await selectRows<{ id: string; status: string; attempts: number }>(
     db,
@@ -452,9 +480,39 @@ async function deliverOne(
   );
   let deliveryId: string | undefined = existing[0]?.id;
   if (!deliveryId) {
+    const insert: Record<string, unknown> = {
+      event_id: eventId,
+      channel,
+      recipient_account_id: accountId,
+      status: "pending",
+      target_context: context,
+    };
+    if (channel === "in_app" && plan) {
+      const entityId =
+        plan.entity_from === "case_id"
+          ? payload.case_id
+          : plan.entity_from === "tutor_id"
+            ? payload.tutor_id
+            : plan.entity_from === "material_id"
+              ? payload.material_id
+              : plan.entity_from === "recipient"
+                ? accountId
+                : null;
+      insert.action_required = true;
+      insert.action_type = plan.action_type;
+      insert.action_urgency = plan.urgency;
+      insert.action_status = "open";
+      insert.action_next_reminder_at = firstReminderAt(plan.urgency, new Date()).toISOString();
+      if (payload.expires_at) insert.action_expires_at = payload.expires_at;
+      insert.action_meta = {
+        entity_id: typeof entityId === "string" ? entityId : accountId,
+        user_dismissable: plan.user_dismissable,
+        user_completable: plan.user_completable,
+      };
+    }
     const { data, error } = await db
       .from<Row>("event_deliveries")
-      .insert({ event_id: eventId, channel, recipient_account_id: accountId, status: "pending" })
+      .insert(insert)
       .select("id")
       .single();
     if (error) return; // unique race or FK issue, another drain owns it
@@ -468,17 +526,31 @@ async function deliverOne(
   if (channel === "email") {
     const template = EMAIL_TEMPLATE_BY_EVENT[eventType];
     if (!template) return;
-    const profiles = await selectRows<{ email: string | null }>(db, "profiles", "email", [
+    const profiles = await selectRows<{
+      email: string | null;
+      locale: string | null;
+      notification_preferences: unknown;
+    }>(db, "profiles", "email, locale, notification_preferences", [
       { col: "id", op: "eq", value: accountId },
     ]);
     const email = profiles[0]?.email;
     if (!email) return;
 
+    // #542 opt-out rule: in-app is always created; email (and WA) skip when
+    // the mapped preference key is off. `moderation` is always-on by default.
+    const prefs = (profiles[0]?.notification_preferences ?? {}) as Record<string, unknown>;
+    if (prefs[prefsKeyForEmail(eventType, payload, accountId)] === false) return;
+
     let templateData: Record<string, unknown>;
-    try {
-      templateData = await buildEmailTemplateData(db, eventType, payload, accountId);
-    } catch {
-      templateData = { ...payload };
+    if (template === "action-required") {
+      const { actionEmailCopy } = await import("@/features/cases/action-email.server");
+      templateData = actionEmailCopy(eventType, payload, profiles[0]?.locale ?? "en");
+    } else {
+      try {
+        templateData = await buildEmailTemplateData(db, eventType, payload, accountId);
+      } catch {
+        templateData = { ...payload };
+      }
     }
 
     let ok = false;
@@ -564,7 +636,15 @@ async function processPendingEvents(db: Db, now: Date): Promise<void> {
           continue;
         }
         try {
-          await deliverOne(db, ev.id, d.channel, accountId, ev.event_type, ev.payload ?? {});
+          await deliverOne(
+            db,
+            ev.id,
+            d.channel,
+            d.role,
+            accountId,
+            ev.event_type,
+            ev.payload ?? {},
+          );
           anySent = true;
         } catch {
           // delivery failure recorded on the row; fall through to the event update
@@ -607,6 +687,13 @@ export async function drainInternal(db: Db, now: Date = new Date()): Promise<voi
   } catch (err) {
     console.error("[bus] fee event generation failed", err);
   }
+  // #561 AR-4/AR-10: open/resolve profile-gap actions (idempotent).
+  try {
+    const { scanProfileGaps } = await import("@/features/cases/action-required.functions");
+    await scanProfileGaps(db, now);
+  } catch (err) {
+    console.error("[bus] profile gap scan failed", err);
+  }
   try {
     await processPendingEvents(db, now);
   } catch (err) {
@@ -630,108 +717,213 @@ export type BellItem = {
   link: string | null;
   /** Which side of the event the recipient is on, drives the label (#292). */
   role_hint: "tutor" | "parent" | "concierge" | "unknown";
+  /** #542 mode tag; the bell filters by the active mode, `system` always shows. */
+  target_context: BusContext;
+  /** #561 Action Required surface. */
+  action_required: boolean;
+  action_status: "open" | "resolved" | "dismissed" | null;
+  action_urgency: "high" | "medium" | "low" | null;
+  cta_key: string | null;
+  user_dismissable: boolean;
+  user_completable: boolean;
 };
 
 export const getMyBell = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<{ unread: number; items: BellItem[] }> => {
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const db = asAdminDb(supabaseAdmin);
-    await drainInternal(db);
+  .handler(
+    async ({ context }): Promise<{ unread: number; openActions: number; items: BellItem[] }> => {
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      const db = asAdminDb(supabaseAdmin);
+      await drainInternal(db);
 
-    const rows = await selectRows<{
-      id: string;
-      read_at: string | null;
-      created_at: string;
-      case_events: { event_type: string; payload: Record<string, unknown> } | null;
-    }>(
-      db,
-      "event_deliveries",
-      "id, read_at, created_at, case_events(event_type, payload)",
-      [
+      // #542: the active mode decides which mode-tagged rows are visible.
+      // parent → Learning, tutor → Teaching; system/moderation always shows.
+      const profileRows = await selectRows<{ active_role: string | null }>(
+        db,
+        "profiles",
+        "active_role",
+        [{ col: "id", op: "eq", value: context.userId }],
+      );
+      const activeRole = profileRows[0]?.active_role ?? null;
+      const modeContext: BusContext | null =
+        activeRole === "tutor" ? "teaching" : activeRole === "parent" ? "learning" : null;
+
+      const baseCols =
+        "id, read_at, created_at, target_context, action_required, action_status, action_urgency, action_meta, case_events(event_type, payload)";
+      const inboxMatch: { col: string; op: "eq" | "in"; value: unknown }[] = [
         { col: "recipient_account_id", op: "eq", value: context.userId },
         { col: "channel", op: "eq", value: "in_app" },
         { col: "status", op: "eq", value: "sent" },
-      ],
-      { col: "created_at", asc: false, limit: 15 },
-    );
+      ];
 
-    // lesson.reminder_due reaches both sides of a case; the delivery row carries
-    // no role, so derive it from the case owner (one batched query, only when a
-    // reminder is actually in the inbox).
-    const reminderCaseIds = [
-      ...new Set(
-        rows
-          .filter((r) => r.case_events?.event_type === "lesson.reminder_due")
-          .map((r) => r.case_events?.payload?.case_id)
-          .filter((v): v is string => typeof v === "string"),
-      ),
-    ];
-    const reminderOwnerByCase = new Map<string, string>();
-    if (reminderCaseIds.length > 0) {
-      const reminderCases = await selectRows<{ id: string; parent_id: string | null }>(
-        db,
-        "tutoring_cases",
-        "id, parent_id",
-        [{ col: "id", op: "in", value: reminderCaseIds }],
-      );
-      for (const c of reminderCases) {
-        if (c.parent_id) reminderOwnerByCase.set(c.id, c.parent_id);
-      }
-    }
+      // Recent rows feed the list; open actions always ride along even when
+      // buried under newer informational items (they are pinned, never lost).
+      const rows = await selectRows<{
+        id: string;
+        read_at: string | null;
+        created_at: string;
+        target_context: string | null;
+        action_required: boolean;
+        action_status: string | null;
+        action_urgency: string | null;
+        action_meta: Record<string, unknown> | null;
+        case_events: { event_type: string; payload: Record<string, unknown> } | null;
+      }>(db, "event_deliveries", baseCols, inboxMatch, {
+        col: "created_at",
+        asc: false,
+        limit: 15,
+      });
 
-    const items: BellItem[] = rows.map((r) => {
-      const eventType = r.case_events?.event_type ?? "unknown";
-      const payload = r.case_events?.payload ?? {};
-      let roleHint: BellItem["role_hint"] = "unknown";
-      if (eventType === "note_order.delivered") {
-        roleHint = payload.buyer_account_id === context.userId ? "parent" : "tutor";
-      } else if (eventType.startsWith("admin_fee")) {
-        roleHint = eventType === "admin_fee.digest" ? "concierge" : "parent";
-      } else if (eventType === "review.published" || eventType === "lesson.review_prompt") {
-        roleHint = eventType === "review.published" ? "tutor" : "parent";
-      } else if (eventType === "experience.session_logged") {
-        // The log is parent-facing by design (#387): only the parent gets the
-        // delivery, so the hint is statically theirs.
-        roleHint = "parent";
-      } else if (eventType === "case.end_requested_by_parent") {
-        // #503 soft prompt: the event type names the ACTOR, the delivery goes
-        // to the other party only, so the hint is statically the recipient's.
-        roleHint = "tutor";
-      } else if (eventType === "case.end_requested_by_tutor") {
-        roleHint = "parent";
-      } else if (eventType === "lesson.reminder_due") {
-        const caseId = typeof payload.case_id === "string" ? payload.case_id : null;
-        roleHint =
-          caseId && reminderOwnerByCase.get(caseId) === context.userId ? "parent" : "tutor";
-      }
-      return {
-        id: r.id,
-        event_type: eventType,
-        payload: redactBellPayload(eventType, payload ?? {}, roleHint) as EventPayload,
-        created_at: r.created_at,
-        read: r.read_at !== null,
-        link: bellLinkFor(eventType, payload ?? {}, roleHint),
-        role_hint: roleHint,
-      };
-    });
-    const unread = items.filter((i) => !i.read).length;
-    // Unread count may exceed the 15 shown; count precisely.
-    if (rows.length === 15) {
-      const all = await selectRows<{ id: string; read_at: string | null }>(
+      const openRows = await selectRows<{
+        id: string;
+        read_at: string | null;
+        created_at: string;
+        target_context: string | null;
+        action_required: boolean;
+        action_status: string | null;
+        action_urgency: string | null;
+        action_meta: Record<string, unknown> | null;
+        case_events: { event_type: string; payload: Record<string, unknown> } | null;
+      }>(
         db,
         "event_deliveries",
-        "id, read_at",
-        [
+        baseCols,
+        [...inboxMatch, { col: "action_status", op: "eq", value: "open" }],
+        { col: "created_at", asc: false, limit: 50 },
+      );
+      const seen = new Set<string>();
+      const merged = [...openRows, ...rows].filter((r) =>
+        seen.has(r.id) ? false : (seen.add(r.id), true),
+      );
+
+      // lesson.reminder_due reaches both sides of a case; the delivery row carries
+      // no role, so derive it from the case owner (one batched query, only when a
+      // reminder is actually in the inbox).
+      const reminderCaseIds = [
+        ...new Set(
+          merged
+            .filter((r) => r.case_events?.event_type === "lesson.reminder_due")
+            .map((r) => r.case_events?.payload?.case_id)
+            .filter((v): v is string => typeof v === "string"),
+        ),
+      ];
+      const reminderOwnerByCase = new Map<string, string>();
+      if (reminderCaseIds.length > 0) {
+        const reminderCases = await selectRows<{ id: string; parent_id: string | null }>(
+          db,
+          "tutoring_cases",
+          "id, parent_id",
+          [{ col: "id", op: "in", value: reminderCaseIds }],
+        );
+        for (const c of reminderCases) {
+          if (c.parent_id) reminderOwnerByCase.set(c.id, c.parent_id);
+        }
+      }
+
+      const items: BellItem[] = merged
+        .map((r) => {
+          const eventType = r.case_events?.event_type ?? "unknown";
+          const payload = r.case_events?.payload ?? {};
+          const itemContext: BusContext =
+            r.target_context === "learning" || r.target_context === "teaching"
+              ? r.target_context
+              : resolveDeliveryContext(eventType, "recipient", payload);
+          let roleHint: BellItem["role_hint"] = "unknown";
+          if (itemContext === "teaching") roleHint = "tutor";
+          else if (itemContext === "learning") roleHint = "parent";
+          if (eventType === "note_order.delivered") {
+            roleHint = payload.buyer_account_id === context.userId ? "parent" : "tutor";
+          } else if (eventType.startsWith("admin_fee")) {
+            roleHint = eventType === "admin_fee.digest" ? "concierge" : "parent";
+          } else if (eventType === "review.published" || eventType === "lesson.review_prompt") {
+            roleHint = eventType === "review.published" ? "tutor" : "parent";
+          } else if (eventType === "experience.session_logged") {
+            // The log is parent-facing by design (#387): only the parent gets the
+            // delivery, so the hint is statically theirs.
+            roleHint = "parent";
+          } else if (eventType === "case.end_requested_by_parent") {
+            // #503 soft prompt: the event type names the ACTOR, the delivery goes
+            // to the other party only, so the hint is statically the recipient's.
+            roleHint = "tutor";
+          } else if (eventType === "case.end_requested_by_tutor") {
+            roleHint = "parent";
+          } else if (eventType === "lesson.reminder_due") {
+            const caseId = typeof payload.case_id === "string" ? payload.case_id : null;
+            roleHint =
+              caseId && reminderOwnerByCase.get(caseId) === context.userId ? "parent" : "tutor";
+          }
+          const actionRequired = r.action_required === true;
+          const meta = (r.action_meta ?? {}) as Record<string, unknown>;
+          const actionStatus: BellItem["action_status"] =
+            r.action_status === "open"
+              ? "open"
+              : r.action_status === "resolved"
+                ? "resolved"
+                : r.action_status === "dismissed"
+                  ? "dismissed"
+                  : null;
+          const actionUrgency: BellItem["action_urgency"] =
+            r.action_urgency === "high"
+              ? "high"
+              : r.action_urgency === "medium"
+                ? "medium"
+                : r.action_urgency === "low"
+                  ? "low"
+                  : null;
+          return {
+            id: r.id,
+            event_type: eventType,
+            payload: redactBellPayload(eventType, payload ?? {}, roleHint) as EventPayload,
+            created_at: r.created_at,
+            read: r.read_at !== null,
+            link: bellLinkFor(eventType, payload ?? {}, roleHint),
+            role_hint: roleHint,
+            target_context: itemContext,
+            action_required: actionRequired,
+            action_status: actionStatus,
+            action_urgency: actionUrgency,
+            cta_key: actionRequired ? (ACTION_PLAN[eventType]?.cta_key ?? null) : null,
+            user_dismissable: meta.user_dismissable === true,
+            user_completable: meta.user_completable === true,
+          };
+        })
+        // #542: the bell filters by the active mode; system items always show.
+        .filter(
+          (i) => !modeContext || i.target_context === "system" || i.target_context === modeContext,
+        )
+        // #561: open actions pin to the top, newest first within each group.
+        .sort((a, b) => {
+          const aOpen = a.action_required && a.action_status === "open" ? 1 : 0;
+          const bOpen = b.action_required && b.action_status === "open" ? 1 : 0;
+          if (aOpen !== bOpen) return bOpen - aOpen;
+          return Date.parse(b.created_at) - Date.parse(a.created_at);
+        });
+      const unread = items.filter((i) => !i.read).length;
+      const openActions = items.filter((i) => i.action_status === "open").length;
+      // Unread count may exceed the 15 shown; count precisely (mode-filtered).
+      if (rows.length === 15) {
+        const all = await selectRows<{
+          id: string;
+          read_at: string | null;
+          target_context: string | null;
+        }>(db, "event_deliveries", "id, read_at, target_context", [
           { col: "recipient_account_id", op: "eq", value: context.userId },
           { col: "channel", op: "eq", value: "in_app" },
           { col: "status", op: "eq", value: "sent" },
-        ],
-      );
-      return { unread: all.filter((r) => r.read_at === null).length, items };
-    }
-    return { unread, items };
-  });
+        ]);
+        const visible = all.filter((r) => {
+          if (!modeContext) return true;
+          return r.target_context === "system" || r.target_context === modeContext;
+        });
+        return {
+          unread: visible.filter((r) => r.read_at === null).length,
+          openActions,
+          items,
+        };
+      }
+      return { unread, openActions, items };
+    },
+  );
 
 export const markNotificationsRead = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

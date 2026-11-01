@@ -41,6 +41,8 @@ export default defineConfig({
         "0 22 * * *": "fx-refresh",
         // #543: hourly materials checkout hold release (72h cut-off).
         "15 * * * *": "materials-release",
+        // #561: daily Action Required reminder sweep, 09:00 HKT.
+        "0 1 * * *": "action-reminders",
       },
     }),
   ],

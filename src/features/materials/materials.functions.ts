@@ -738,6 +738,52 @@ export const reviewGigListing = createServerFn({ method: "POST" })
       .update(patch)
       .eq("id", data.materialId);
     if (error) throw new Error(error.message);
+
+    // #542 Trigger 6 / #561 AR-7: the seller learns the listing was rejected
+    // (action item until resubmit+approve) or that approval closed the loop.
+    try {
+      const { asAdminDb } = await import("@/features/materials/storage-helpers");
+      const { emitActionEvent, completeActionsFor } =
+        await import("@/features/cases/action-required.functions");
+      const owner = (
+        await db
+          .from<{ tutor_id: string | null }>("digital_materials")
+          .select("tutor_id")
+          .eq("id", data.materialId)
+          .maybeSingle()
+      ).data;
+      if (owner?.tutor_id) {
+        if (data.approve) {
+          await completeActionsFor(asAdminDb(supabaseAdmin), "materials_fix", data.materialId);
+        } else {
+          const sellerUser = (
+            await asAdminDb(supabaseAdmin)
+              .from<{ user_id: string | null }>("tutors")
+              .select("user_id")
+              .eq("id", owner.tutor_id)
+              .maybeSingle()
+          ).data;
+          if (sellerUser?.user_id) {
+            await emitActionEvent(
+              asAdminDb(supabaseAdmin),
+              "material.rejected",
+              {
+                material_id: data.materialId,
+                tutor_id: owner.tutor_id,
+                recipient_account_id: sellerUser.user_id,
+                reason: data.reason ?? null,
+                content_type: "Material listing",
+                content_type_zh: "教材",
+                link: "/dashboard#materials",
+              },
+              data.materialId,
+            );
+          }
+        }
+      }
+    } catch (arError) {
+      console.warn("[materials] rejection notice failed:", arError);
+    }
     return { ok: true, status: next };
   });
 

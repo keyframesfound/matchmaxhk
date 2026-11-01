@@ -2,6 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { asAdminDb } from "@/features/materials/storage-helpers";
 import {
   GRADE_LABEL_MAX,
   MAX_GRADE_FILE_BYTES,
@@ -146,6 +147,15 @@ export const uploadTutorGradeSlip = createServerFn({ method: "POST" })
       } as never)
       .eq("id", grade.id);
     if (updateError) throw new Error(updateError.message);
+    // #561 AR-1: a fresh document upload resolves the re-upload action and
+    // stops its reminder schedule.
+    try {
+      const { supabaseAdmin: admin2 } = await import("@/integrations/supabase/client.server");
+      const { completeActionsFor } = await import("@/features/cases/action-required.functions");
+      await completeActionsFor(asAdminDb(admin2), "verify_reupload", tutorId);
+    } catch (arError) {
+      console.warn("[grade] verify_reupload completion failed:", arError);
+    }
     return { ok: true as const, status: nextStatus };
   });
 

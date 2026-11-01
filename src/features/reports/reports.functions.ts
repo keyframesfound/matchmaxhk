@@ -221,6 +221,58 @@ export const submitReport = createServerFn({ method: "POST" })
       }
       throw new Error(error.message || "Failed to submit report");
     }
+
+    // #542 Trigger 7 / #561: the reported owner learns their item is under
+    // review. Strict anonymity — no reporter id, handle or count in the
+    // payload; uq_ar_open dedupes repeat reports while one is open.
+    try {
+      const { asAdminDb } = await import("@/features/materials/storage-helpers");
+      const { emitDirectAction } = await import("@/features/cases/action-required.functions");
+      const dbAdmin = asAdminDb(supabaseAdmin);
+      const kindLabels: Record<string, { en: string; zh: string }> = {
+        tutor_card: { en: "tutor card", zh: "導師檔案" },
+        tutor_photo: { en: "photo", zh: "照片" },
+        tutor_introduction: { en: "self-introduction", zh: "自我介紹" },
+        material: { en: "material listing", zh: "教材" },
+      };
+      let ownerAccount: string | null = null;
+      let link = "/notifications";
+      if (tutorId) {
+        const t = (await admin
+          .from("tutors")
+          .select("user_id, tutor_code")
+          .eq("id", tutorId)
+          .maybeSingle()) as { data: { user_id: string | null; tutor_code: string | null } | null };
+        ownerAccount = t.data?.user_id ?? null;
+        if (t.data?.tutor_code) link = `/tutors/${t.data.tutor_code}`;
+      } else if (data.targetType === "material") {
+        const { data: m } = await admin
+          .from("digital_materials")
+          .select("tutor_id")
+          .eq("id", data.targetId)
+          .maybeSingle();
+        if (m?.tutor_id) {
+          const t = (await admin
+            .from("tutors")
+            .select("user_id")
+            .eq("id", m.tutor_id)
+            .maybeSingle()) as { data: { user_id: string | null } | null };
+          ownerAccount = t.data?.user_id ?? null;
+          link = "/dashboard#materials";
+        }
+      }
+      if (ownerAccount) {
+        await emitDirectAction(dbAdmin, "report.filed", ownerAccount, {
+          context: "system",
+          entity_id: data.targetId,
+          content_type: kindLabels[data.targetType]?.en ?? "item",
+          content_type_zh: kindLabels[data.targetType]?.zh ?? "內容",
+          link,
+        });
+      }
+    } catch (arError) {
+      console.warn("[reports] owner notice failed:", arError);
+    }
     return { ok: true };
   });
 

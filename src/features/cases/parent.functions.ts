@@ -620,6 +620,15 @@ export const requestSlot = createServerFn({ method: "POST" })
         },
         String(lessonRow.id),
       );
+      // #561 AR-11/AR-3: a scheduled lesson resolves any open reschedule or
+      // intro-confirmation action on the case.
+      try {
+        const { completeActionsFor } = await import("@/features/cases/action-required.functions");
+        await completeActionsFor(db, "lesson_reschedule", c.id);
+        await completeActionsFor(db, "intro_confirm", c.id);
+      } catch (arError) {
+        console.warn("[parent] action completion failed:", arError);
+      }
     }
     return { ok: true };
   });

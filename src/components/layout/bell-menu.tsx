@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { formatPostedAgo } from "@/lib/relative-time";
 import {
+  AlertCircle,
   Bell,
   CalendarClock,
   CheckCheck,
@@ -20,6 +21,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { getMyBell, markNotificationsRead, type BellItem } from "@/features/cases/bus.functions";
+import { completeMyAction, dismissMyAction } from "@/features/cases/action-required.functions";
 import { cn } from "@/lib/utils";
 
 function bellIcon(eventType: string) {
@@ -30,6 +32,17 @@ function bellIcon(eventType: string) {
   if (eventType === "case.end_requested_by_parent" || eventType === "case.end_requested_by_tutor")
     return CheckCheck;
   if (eventType.startsWith("admin_fee")) return Wallet;
+  // #561/#542 action-class items carry the attention icon.
+  if (
+    eventType.startsWith("action.") ||
+    eventType.startsWith("verification.") ||
+    eventType === "case.lead_new" ||
+    eventType.startsWith("intro.shared") ||
+    eventType === "material.rejected" ||
+    eventType === "content.rejected" ||
+    eventType === "report.filed"
+  )
+    return AlertCircle;
   return Bell;
 }
 
@@ -55,6 +68,29 @@ function bellLabelKey(item: BellItem): string {
       return "sor.bell_fee_unpaid";
     case "admin_fee.digest":
       return "sor.bell_unpaid_digest";
+    // #542 V1 triggers + #561 action scenarios.
+    case "case.lead_new":
+      return "sor.bell_lead_new";
+    case "intro.shared_parent":
+      return "sor.bell_intro_parent";
+    case "intro.shared_tutor":
+      return "sor.bell_intro_tutor";
+    case "verification.approved":
+      return "sor.bell_verify_approved";
+    case "verification.rejected":
+      return "sor.bell_verify_rejected";
+    case "material.rejected":
+      return "sor.bell_material_rejected";
+    case "content.rejected":
+      return "sor.bell_content_rejected";
+    case "report.filed":
+      return "sor.bell_report_filed";
+    case "action.profile_fields":
+      return "sor.bell_profile_fields";
+    case "action.onboarding":
+      return "sor.bell_onboarding";
+    case "action.admin_task":
+      return "sor.bell_admin_task";
     default:
       return "sor.bell_update";
   }
@@ -82,7 +118,19 @@ export function BellMenu() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["bell"] }),
   });
 
+  // #561: "Mark complete" resolves an admin-appointed task from the bell.
+  const completeAction = useMutation({
+    mutationFn: (deliveryId: string) => completeMyAction({ data: { deliveryId } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["bell"] }),
+  });
+  // #561: "Not now" dismisses a low-urgency item without completing it.
+  const dismissAction = useMutation({
+    mutationFn: (deliveryId: string) => dismissMyAction({ data: { deliveryId } }),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["bell"] }),
+  });
+
   const unread = data?.unread ?? 0;
+  const openActions = data?.openActions ?? 0;
   const items = data?.items ?? [];
 
   return (
@@ -101,9 +149,12 @@ export function BellMenu() {
           className="relative flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-[color:var(--foreground)]/[0.05]"
         >
           <Bell className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
-          {unread > 0 && (
+          {(unread > 0 || openActions > 0) && (
             <span
-              className="absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full bg-red-500"
+              className={cn(
+                "absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full",
+                openActions > 0 ? "bg-amber-500" : "bg-red-500",
+              )}
               aria-hidden="true"
             />
           )}
@@ -119,6 +170,68 @@ export function BellMenu() {
           ) : (
             items.map((item) => {
               const Icon = bellIcon(item.event_type);
+              const isOpenAction = item.action_required && item.action_status === "open";
+              if (isOpenAction) {
+                // #561: open actions render as pinned cards with a primary
+                // CTA (and "Not now" for dismissable items), not plain rows.
+                const title =
+                  item.event_type === "action.admin_task" &&
+                  typeof item.payload.admin_title === "string" &&
+                  item.payload.admin_title
+                    ? i18n.language.startsWith("zh")
+                      ? String(item.payload.admin_title_zh ?? item.payload.admin_title)
+                      : String(item.payload.admin_title)
+                    : t(bellLabelKey(item));
+                return (
+                  <div
+                    key={item.id}
+                    className="mb-1 rounded-xl border border-amber-500/40 bg-amber-500/[0.06] p-2.5"
+                  >
+                    <div className="flex items-start gap-2">
+                      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-amber-600" aria-hidden="true" />
+                      <div className="min-w-0 flex-1">
+                        <span className="block text-sm font-semibold text-[color:var(--ink)]">
+                          {title}
+                        </span>
+                        <span className="mt-0.5 inline-flex items-center rounded-full bg-amber-500/15 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
+                          {t("sor.ar_badge")}
+                        </span>
+                      </div>
+                    </div>
+                    <div className="mt-2 flex items-center gap-1.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          markRead.mutate([item.id]);
+                          if (item.user_completable) {
+                            completeAction.mutate(item.id);
+                          } else if (item.link) {
+                            navigate({ to: item.link });
+                          }
+                        }}
+                        className="rounded-lg bg-[color:var(--ink)] px-2.5 py-1 text-xs font-semibold text-[color:var(--background)] transition-opacity hover:opacity-90"
+                      >
+                        {item.user_completable
+                          ? t("sor.ar_cta_mark_complete")
+                          : item.cta_key
+                            ? t(item.cta_key)
+                            : t("sor.bell_view_all")}
+                      </button>
+                      {item.user_dismissable && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            dismissAction.mutate(item.id);
+                          }}
+                          className="rounded-lg border border-[color:var(--ink)]/15 px-2.5 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-[color:var(--foreground)]/[0.04]"
+                        >
+                          {t("sor.ar_not_now")}
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                );
+              }
               return (
                 <DropdownMenuItem
                   key={item.id}

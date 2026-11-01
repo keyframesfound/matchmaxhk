@@ -3,6 +3,7 @@ import { useRouterState } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  BellRing,
   BookOpen,
   Building2,
   ClipboardList,
@@ -40,6 +41,7 @@ const ADMIN_TITLES: { prefix: string; title: string }[] = [
   { prefix: "/admin/referrals", title: "Referrals & bounties" },
   { prefix: "/admin/materials", title: "Study materials" },
   { prefix: "/admin/reports", title: "Reports" },
+  { prefix: "/admin/action-required", title: "Appoint Action" },
   { prefix: "/admin/trust-safety", title: "Trust & safety" },
   { prefix: "/admin/academy", title: "Academy calendar" },
   { prefix: "/admin/users", title: "Users" },
@@ -73,6 +75,7 @@ function useAdminNavGroups(pendingJoinRequests: number | undefined): ConsoleNavG
         { label: "Referrals", to: "/admin/referrals", icon: Gift },
         { label: "Study Materials", to: "/admin/materials", icon: BookOpen },
         { label: "Reports", to: "/admin/reports", icon: Flag },
+        { label: "Appoint Action", to: "/admin/action-required", icon: BellRing },
         { label: "Trust & Safety", to: "/admin/trust-safety", icon: ShieldAlert },
         { label: "Academy Calendar", to: "/admin/academy", icon: CalendarDays },
       ],

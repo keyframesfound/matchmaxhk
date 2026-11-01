@@ -270,10 +270,17 @@ export const matchCaseTutor = createServerFn({ method: "POST" })
     const db = asAdminDb(supabaseAdmin);
     await requireAdmin(db, context.userId);
 
-    const cases = await selectRows<CaseParty>(
+    const cases = await selectRows<
+      CaseParty & {
+        subjects: string[] | null;
+        student_level: string | null;
+        district: string | null;
+        who_for: string | null;
+      }
+    >(
       db,
       "tutoring_cases",
-      "id, case_code, status, matched_tutor_id, organisation_id, parent_id",
+      "id, case_code, status, matched_tutor_id, organisation_id, parent_id, subjects, student_level, district, who_for",
       [{ col: "id", op: "eq", value: data.caseId }],
     );
     const c = cases[0];
@@ -329,6 +336,30 @@ export const matchCaseTutor = createServerFn({ method: "POST" })
       await ensureEngagementSummaryRow(c.id);
     } catch (summaryError) {
       console.error("[engagement] failed to ensure summary on match:", summaryError);
+    }
+
+    // #542 Trigger 1 / #561 AR-2: the matched tutor receives the case lead
+    // (bell + email) as an Action Required item until they claim or decline.
+    try {
+      const { emitActionEvent } = await import("@/features/cases/action-required.functions");
+      const isParent = c.who_for !== "independent_student";
+      await emitActionEvent(
+        db,
+        "case.lead_new",
+        {
+          case_id: c.id,
+          case_code: c.case_code,
+          tutor_id: tutor.id,
+          subject: (c.subjects ?? [])[0] ?? "",
+          curriculum: c.student_level ?? "",
+          station: c.district ?? "",
+          badge: isParent ? "Parent Account" : "Independent Student",
+          badge_zh: isParent ? "家長帳戶" : "獨立學生帳戶",
+        },
+        c.id,
+      );
+    } catch (leadError) {
+      console.warn("[match-dispatch] lead notification failed:", leadError);
     }
     return { outcome: "matched" };
   });

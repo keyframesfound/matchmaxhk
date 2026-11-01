@@ -22,6 +22,20 @@ export const BUS_EVENT_TYPES = [
   "lesson.cancelled_by_tutor",
   "lesson.scheduled_by_parent",
   "lesson.scheduled_by_tutor",
+  // #542 V1 triggers 1/2/4/6/7 + #561 Action Required scenarios. The
+  // action-required half is decided by ACTION_PLAN (action-required.ts);
+  // these entries only control recipients, channels and mode context.
+  "case.lead_new",
+  "intro.shared_parent",
+  "intro.shared_tutor",
+  "verification.approved",
+  "verification.rejected",
+  "material.rejected",
+  "content.rejected",
+  "report.filed",
+  "action.profile_fields",
+  "action.onboarding",
+  "action.admin_task",
   // Accepted but unconsumed (#205): stored as skipped, no message.
   "listing.viewed",
   "listing.saved",
@@ -55,6 +69,20 @@ export const BELL_EVENT_TYPES: readonly string[] = [
   "lesson.cancelled_by_tutor",
   "lesson.scheduled_by_parent",
   "lesson.scheduled_by_tutor",
+  // #542 V1 triggers + #561 action items reach the bell. report.filed is
+  // bell-visible for the reported owner (anonymous by design — the payload
+  // never carries the reporter identity).
+  "case.lead_new",
+  "intro.shared_parent",
+  "intro.shared_tutor",
+  "verification.approved",
+  "verification.rejected",
+  "material.rejected",
+  "content.rejected",
+  "report.filed",
+  "action.profile_fields",
+  "action.onboarding",
+  "action.admin_task",
 ];
 
 /**
@@ -68,8 +96,68 @@ export const REVIEW_PROMPT_DELAY_MS = 2 * 60 * 60 * 1000;
 /** #205: retries 3, then failed. */
 export const DELIVERY_MAX_ATTEMPTS = 3;
 
-export type BusRole = "parent" | "tutor" | "concierge";
+/** `recipient`: the event payload names its single account directly (#561). */
+export type BusRole = "parent" | "tutor" | "concierge" | "recipient";
 export type BusChannel = "in_app" | "email";
+
+/**
+ * #542 mode context stamped on every delivery row. The bell filters by the
+ * user's active mode (parent = Learning, tutor = Teaching); `system` items
+ * (moderation, admin tasks) are always visible in both modes.
+ */
+export type BusContext = "learning" | "teaching" | "system";
+
+/** Events delivered straight to a payload-named account (role `recipient`). */
+const RECIPIENT_ROLE_EVENTS: readonly string[] = [
+  "report.filed",
+  "content.rejected",
+  "action.profile_fields",
+  "action.onboarding",
+  "action.admin_task",
+];
+
+/**
+ * #542: mode context for one delivery. Case/class events follow the
+ * recipient's side (parent → Learning, tutor → Teaching, concierge → system);
+ * payload-addressed events carry their context in `payload.context`
+ * (moderation flows use `system` so they stay visible in both modes).
+ */
+export function resolveDeliveryContext(
+  eventType: string,
+  role: BusRole | "recipient",
+  payload: Record<string, unknown>,
+): BusContext {
+  if (RECIPIENT_ROLE_EVENTS.includes(eventType) || role === "recipient") {
+    const ctx = payload.context;
+    return ctx === "learning" || ctx === "teaching" ? ctx : "system";
+  }
+  if (role === "tutor") return "teaching";
+  if (role === "parent") return "learning";
+  return "system";
+}
+
+/**
+ * #542 preference gate for the email channel (in-app is never gated). Keys
+ * mirror profiles.notification_preferences; `moderation` is always-on and
+ * only listed so rejection/report mail respects nothing but the send itself.
+ * Per-recipient: the materials buyer is a Learning purchase confirm
+ * (`case_updates`), the seller a Teaching sale (`tutor_leads`).
+ */
+export function prefsKeyForEmail(
+  eventType: string,
+  payload: Record<string, unknown>,
+  recipientAccountId: string,
+): "case_updates" | "tutor_leads" | "moderation" {
+  if (eventType === "case.lead_new" || eventType === "intro.shared_tutor") return "tutor_leads";
+  if (eventType === "verification.approved" || eventType === "verification.rejected")
+    return "tutor_leads";
+  if (eventType === "material.rejected") return "tutor_leads";
+  if (eventType === "content.rejected" || eventType === "report.filed") return "moderation";
+  if (eventType === "note_order.delivered") {
+    return payload.buyer_account_id === recipientAccountId ? "case_updates" : "tutor_leads";
+  }
+  return "case_updates";
+}
 
 /**
  * Which recipients a consumed event reaches, and on which channels.
@@ -131,6 +219,58 @@ export const DELIVERY_PLAN: Readonly<
   "admin_fee.digest": [
     { channel: "in_app", role: "concierge" },
     { channel: "email", role: "concierge" },
+  ],
+  // ---- #542 V1 triggers + #561 Action Required scenarios -------------------
+  // Trigger 1 / AR-2: a case is matched to a tutor — a lead to claim.
+  "case.lead_new": [
+    { channel: "in_app", role: "tutor" },
+    { channel: "email", role: "tutor" },
+  ],
+  // Trigger 2 / AR-3: admin marked the fee paid and contact is shared.
+  "intro.shared_parent": [
+    { channel: "in_app", role: "parent" },
+    { channel: "email", role: "parent" },
+  ],
+  "intro.shared_tutor": [
+    { channel: "in_app", role: "tutor" },
+    { channel: "email", role: "tutor" },
+  ],
+  // Trigger 4: Blue Tick review outcome.
+  "verification.approved": [
+    { channel: "in_app", role: "tutor" },
+    { channel: "email", role: "tutor" },
+  ],
+  "verification.rejected": [
+    { channel: "in_app", role: "tutor" },
+    { channel: "email", role: "tutor" },
+  ],
+  // Trigger 6 / AR-7: admin rejected a submitted listing (materials first).
+  "material.rejected": [
+    { channel: "in_app", role: "tutor" },
+    { channel: "email", role: "tutor" },
+  ],
+  // Trigger 6 (generic submitter) + Trigger 7 (reported owner, anonymous):
+  // moderation mail is preference-gated on the always-on `moderation` key.
+  "content.rejected": [
+    { channel: "in_app", role: "recipient" },
+    { channel: "email", role: "recipient" },
+  ],
+  "report.filed": [
+    { channel: "in_app", role: "recipient" },
+    { channel: "email", role: "recipient" },
+  ],
+  // AR-4 / AR-10 daily scans + AR-5 admin-appointed tasks: recipient-addressed.
+  "action.profile_fields": [
+    { channel: "in_app", role: "recipient" },
+    { channel: "email", role: "recipient" },
+  ],
+  "action.onboarding": [
+    { channel: "in_app", role: "recipient" },
+    { channel: "email", role: "recipient" },
+  ],
+  "action.admin_task": [
+    { channel: "in_app", role: "recipient" },
+    { channel: "email", role: "recipient" },
   ],
 };
 
@@ -201,6 +341,29 @@ export function bellLinkFor(
     case "admin_fee.unpaid":
     case "experience.session_logged":
       return caseId ? `/account/cases/${caseId}` : "/account";
+    // #542 V1 triggers + #561 action items. Payload-deep links win when the
+    // emitter or the admin tool supplied one (admin free-form tasks land on
+    // any route the admin picked).
+    case "case.lead_new":
+    case "intro.shared_tutor":
+      if (role === "tutor") return tutorHome;
+      return caseId ? `/account/cases/${caseId}` : "/account";
+    case "intro.shared_parent":
+      return caseId ? `/account/cases/${caseId}` : "/account";
+    case "verification.approved":
+    case "verification.rejected":
+    case "action.onboarding":
+    case "action.profile_fields":
+      return typeof payload.link === "string" && payload.link.startsWith("/")
+        ? payload.link
+        : "/dashboard#my-tutor";
+    case "material.rejected":
+    case "content.rejected":
+    case "report.filed":
+    case "action.admin_task":
+      return typeof payload.link === "string" && payload.link.startsWith("/")
+        ? payload.link
+        : "/notifications";
     default:
       return null;
   }

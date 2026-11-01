@@ -50,6 +50,7 @@ import { Route as AuthenticatedAccountClaimChildRouteImport } from './routes/_au
 import { Route as AuthenticatedAccountPreviewRouteImport } from './routes/_authenticated.account.preview'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as AuthenticatedAdminAcademyRouteImport } from './routes/_authenticated.admin.academy'
+import { Route as AuthenticatedAdminActionRequiredRouteImport } from './routes/_authenticated.admin.action-required'
 import { Route as AuthenticatedAdminCasesRouteImport } from './routes/_authenticated.admin.cases'
 import { Route as AuthenticatedAdminGradesRouteImport } from './routes/_authenticated.admin.grades'
 import { Route as AuthenticatedAdminJoinRequestsRouteImport } from './routes/_authenticated.admin.join-requests'
@@ -294,6 +295,12 @@ const AuthenticatedAdminAcademyRoute =
     path: '/academy',
     getParentRoute: () => AuthenticatedAdminRoute,
   } as any)
+const AuthenticatedAdminActionRequiredRoute =
+  AuthenticatedAdminActionRequiredRouteImport.update({
+    id: '/action-required',
+    path: '/action-required',
+    getParentRoute: () => AuthenticatedAdminRoute,
+  } as any)
 const AuthenticatedAdminCasesRoute = AuthenticatedAdminCasesRouteImport.update({
   id: '/cases',
   path: '/cases',
@@ -527,6 +534,7 @@ export interface FileRoutesByFullPath {
   '/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
   '/account/preview': typeof AuthenticatedAccountPreviewRoute
   '/admin/academy': typeof AuthenticatedAdminAcademyRoute
+  '/admin/action-required': typeof AuthenticatedAdminActionRequiredRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
   '/admin/grades': typeof AuthenticatedAdminGradesRoute
   '/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
@@ -601,6 +609,7 @@ export interface FileRoutesByTo {
   '/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
   '/account/preview': typeof AuthenticatedAccountPreviewRoute
   '/admin/academy': typeof AuthenticatedAdminAcademyRoute
+  '/admin/action-required': typeof AuthenticatedAdminActionRequiredRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
   '/admin/grades': typeof AuthenticatedAdminGradesRoute
   '/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
@@ -678,6 +687,7 @@ export interface FileRoutesById {
   '/_authenticated/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
   '/_authenticated/account/preview': typeof AuthenticatedAccountPreviewRoute
   '/_authenticated/admin/academy': typeof AuthenticatedAdminAcademyRoute
+  '/_authenticated/admin/action-required': typeof AuthenticatedAdminActionRequiredRoute
   '/_authenticated/admin/cases': typeof AuthenticatedAdminCasesRoute
   '/_authenticated/admin/grades': typeof AuthenticatedAdminGradesRoute
   '/_authenticated/admin/join-requests': typeof AuthenticatedAdminJoinRequestsRoute
@@ -755,6 +765,7 @@ export interface FileRouteTypes {
     | '/account/claim-child'
     | '/account/preview'
     | '/admin/academy'
+    | '/admin/action-required'
     | '/admin/cases'
     | '/admin/grades'
     | '/admin/join-requests'
@@ -829,6 +840,7 @@ export interface FileRouteTypes {
     | '/account/claim-child'
     | '/account/preview'
     | '/admin/academy'
+    | '/admin/action-required'
     | '/admin/cases'
     | '/admin/grades'
     | '/admin/join-requests'
@@ -905,6 +917,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account/claim-child'
     | '/_authenticated/account/preview'
     | '/_authenticated/admin/academy'
+    | '/_authenticated/admin/action-required'
     | '/_authenticated/admin/cases'
     | '/_authenticated/admin/grades'
     | '/_authenticated/admin/join-requests'
@@ -1266,6 +1279,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAdminAcademyRouteImport
       parentRoute: typeof AuthenticatedAdminRoute
     }
+    '/_authenticated/admin/action-required': {
+      id: '/_authenticated/admin/action-required'
+      path: '/action-required'
+      fullPath: '/admin/action-required'
+      preLoaderRoute: typeof AuthenticatedAdminActionRequiredRouteImport
+      parentRoute: typeof AuthenticatedAdminRoute
+    }
     '/_authenticated/admin/cases': {
       id: '/_authenticated/admin/cases'
       path: '/cases'
@@ -1553,6 +1573,7 @@ const AuthenticatedAccountRouteWithChildren =
 
 interface AuthenticatedAdminRouteChildren {
   AuthenticatedAdminAcademyRoute: typeof AuthenticatedAdminAcademyRoute
+  AuthenticatedAdminActionRequiredRoute: typeof AuthenticatedAdminActionRequiredRoute
   AuthenticatedAdminCasesRoute: typeof AuthenticatedAdminCasesRoute
   AuthenticatedAdminGradesRoute: typeof AuthenticatedAdminGradesRoute
   AuthenticatedAdminJoinRequestsRoute: typeof AuthenticatedAdminJoinRequestsRoute
@@ -1570,6 +1591,7 @@ interface AuthenticatedAdminRouteChildren {
 
 const AuthenticatedAdminRouteChildren: AuthenticatedAdminRouteChildren = {
   AuthenticatedAdminAcademyRoute: AuthenticatedAdminAcademyRoute,
+  AuthenticatedAdminActionRequiredRoute: AuthenticatedAdminActionRequiredRoute,
   AuthenticatedAdminCasesRoute: AuthenticatedAdminCasesRoute,
   AuthenticatedAdminGradesRoute: AuthenticatedAdminGradesRoute,
   AuthenticatedAdminJoinRequestsRoute: AuthenticatedAdminJoinRequestsRoute,

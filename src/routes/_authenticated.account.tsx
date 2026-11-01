@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { getMyBell } from "@/features/cases/bus.functions";
+import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
@@ -159,6 +161,14 @@ function AccountPage() {
     enabled: Boolean(user),
   });
 
+  // #561: open Action Required count, deep-links to the filtered list.
+  const bellQuery = useQuery({
+    queryKey: ["bell", "account"],
+    queryFn: getMyBell,
+    staleTime: 30_000,
+  });
+  const openActionCount = bellQuery.data?.openActions ?? 0;
+
   const gigOrdersQuery = useQuery({
     queryKey: ["account", "my-gig-orders", user?.id],
     queryFn: () => getMyGigOrders(),
@@ -291,7 +301,18 @@ function AccountPage() {
     <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
       <SiteHeader />
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6">
-        <h1 className="text-2xl font-bold tracking-normal">{t("account.title")}</h1>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <h1 className="text-2xl font-bold tracking-normal">{t("account.title")}</h1>
+          {openActionCount > 0 && (
+            <Link
+              to="/notifications"
+              className="inline-flex items-center gap-2 rounded-full border border-amber-500/40 bg-amber-500/[0.08] px-3.5 py-1.5 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-500/[0.14]"
+            >
+              <AlertCircle className="h-4 w-4" aria-hidden="true" />
+              {t("sor.account_actions_needed", { count: openActionCount })}
+            </Link>
+          )}
+        </div>
 
         {/* #141: post-signup checklist, first block, dismissible, hidden once done */}
         <SignupChecklistCard />

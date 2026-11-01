@@ -385,6 +385,15 @@ export const confirmLessonTutor = createServerFn({ method: "POST" })
       .update({ confirmed_by_tutor_at: new Date().toISOString(), status: nextStatus })
       .eq("id", lesson.id);
     if (error) throw new Error(error.message);
+    // #561 AR-2/AR-3: confirming Lesson 1 claims the lead and confirms the
+    // introduction — resolve both open actions for this case.
+    try {
+      const { completeActionsFor } = await import("@/features/cases/action-required.functions");
+      await completeActionsFor(db, "lead_respond", lesson.case_id);
+      await completeActionsFor(db, "intro_confirm", lesson.case_id);
+    } catch (arError) {
+      console.warn("[tutor] lead completion failed:", arError);
+    }
     return { status: nextStatus };
   });
 
@@ -412,6 +421,13 @@ export const declineLessonTutor = createServerFn({ method: "POST" })
       "lesson_cancelled",
       data.reason ?? "Tutor declined",
     );
+    // #561 AR-2: declining the lead is itself a resolution.
+    try {
+      const { completeActionsFor } = await import("@/features/cases/action-required.functions");
+      await completeActionsFor(db, "lead_respond", lesson.case_id);
+    } catch (arError) {
+      console.warn("[tutor] lead decline completion failed:", arError);
+    }
     return { ok: true };
   });
 

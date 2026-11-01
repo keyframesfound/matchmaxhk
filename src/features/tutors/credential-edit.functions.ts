@@ -432,5 +432,26 @@ export const reviewCredentialEdit = createServerFn({ method: "POST" })
       console.error("[credential-edits] notice insert failed:", noticeError.message);
     }
 
+    // #542 Trigger 4 / #561 AR-1: the review outcome reaches the bus as an
+    // Action Required item on rejection (re-upload) and a plain notification
+    // on approval. Best-effort, never fails the review action.
+    try {
+      const { asAdminDb } = await import("@/features/materials/storage-helpers");
+      const { emitActionEvent } = await import("@/features/cases/action-required.functions");
+      await emitActionEvent(
+        asAdminDb(supabaseAdmin),
+        decision.status === "approved" ? "verification.approved" : "verification.rejected",
+        {
+          tutor_id: edit.tutor_id,
+          field: edit.field,
+          reason: data.decision === "reject" ? staffReason : null,
+          link: "/dashboard#my-tutor",
+        },
+        edit.id,
+      );
+    } catch (arError) {
+      console.warn("[credential-edits] verification notification failed:", arError);
+    }
+
     return { ok: true as const, status: decision.status };
   });

@@ -486,6 +486,56 @@ export const feeMarkPaid = createServerFn({ method: "POST" })
       // QA (#375): the fee action must also advance the SoR machine, a case
       // stuck on fee_invoiced keeps parent slot requests locked.
       await advanceSorCaseStatus(db, context.userId, feeCase[0].case_id, "fee_paid");
+
+      // #542 Trigger 2 / #561 AR-3: contact is now shared — both sides get the
+      // introduction notification as an Action Required item until Lesson 1
+      // is scheduled/confirmed on the case. Best-effort, never fails the fee.
+      try {
+        const introCase = (
+          await selectRows<{
+            id: string;
+            case_code: string;
+            contact_name: string | null;
+            subjects: string[] | null;
+            who_for: string | null;
+            matched_tutor_id: string | null;
+          }>(
+            db,
+            "tutoring_cases",
+            "id, case_code, contact_name, subjects, who_for, matched_tutor_id",
+            [{ col: "id", op: "eq", value: feeCase[0].case_id }],
+          )
+        )[0];
+        if (introCase) {
+          const introTutorId = introCase.matched_tutor_id;
+          const tutorRow = introTutorId
+            ? (
+                await selectRows<{ id: string; display_name: string }>(
+                  db,
+                  "tutors",
+                  "id, display_name",
+                  [{ col: "id", op: "eq", value: introTutorId }],
+                )
+              )[0]
+            : undefined;
+          const isParent = introCase.who_for !== "independent_student";
+          const sharedPayload = {
+            case_id: introCase.id,
+            case_code: introCase.case_code,
+            tutor_id: introTutorId,
+            tutor_name: tutorRow?.display_name ?? "",
+            contact_name: introCase.contact_name ?? "",
+            subject: (introCase.subjects ?? [])[0] ?? "",
+            badge: isParent ? "Parent Account" : "Independent Student",
+            badge_zh: isParent ? "家長帳戶" : "獨立學生帳戶",
+          };
+          const { emitActionEvent } = await import("@/features/cases/action-required.functions");
+          await emitActionEvent(db, "intro.shared_parent", sharedPayload, introCase.id);
+          await emitActionEvent(db, "intro.shared_tutor", sharedPayload, introCase.id);
+        }
+      } catch (introError) {
+        console.warn("[admin-desk] intro notification failed:", introError);
+      }
     }
     return { ok: true };
   });

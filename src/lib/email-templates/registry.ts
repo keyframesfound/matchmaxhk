@@ -1,6 +1,7 @@
 import type { ComponentType } from "react";
 
 import { AccountStatusEmail } from "./account-status";
+import { ActionRequiredEmail } from "./action-required";
 import { ConciergeUnpaidDigestEmail } from "./concierge-unpaid-digest";
 import { FeeReminderEmail } from "./fee-reminder";
 import { LessonUpdateEmail } from "./lesson-update";
@@ -66,5 +67,12 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
       `${String(data?.heading ?? "Lesson update")}${
         data?.caseCode ? `, case ${String(data.caseCode)}` : ""
       }`,
+  },
+  // #542 triggers + #561 Action Required: one flexible template; the copy
+  // module (features/cases/action-email.server.ts) builds heading/body/CTA
+  // in the recipient's locale and deliverOne passes them as templateData.
+  "action-required": {
+    component: ActionRequiredEmail as unknown as ComponentType<Record<string, unknown>>,
+    subject: (data: Record<string, unknown>) => String(data?.heading ?? "MatchMax action needed"),
   },
 };
