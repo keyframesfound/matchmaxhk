@@ -52,6 +52,7 @@ import {
   createNoteUploadTargets,
   getNoteExtrasForOwner,
   getNoteOriginalUrlForOwner,
+  saveNoteGallery,
   importNotePdfFromLink,
   saveNoteExtras,
   updateNotePreviewPages,
@@ -69,6 +70,11 @@ import {
   MAX_LINKS,
   MAX_MAIN_PDF_BYTES,
   toDirectImportUrl,
+  MAX_GALLERY_IMAGE_BYTES,
+  MAX_GALLERY_IMAGES,
+  MAX_WHATS_INCLUDED,
+  SYLLABUS_MAX,
+  trailerEmbedUrl,
   UPLOAD_ACCEPT,
   type UploadFormat,
 } from "@/features/materials/note-taxonomy";
@@ -80,7 +86,9 @@ import {
   openPdf,
   renderPage,
   uploadToSignedUrl,
+  watermarkImageFile,
 } from "@/features/materials/note-file-tools";
+import { materialCoverUrl } from "@/features/materials/material-card";
 import { NotePreviewPicker } from "@/features/materials/note-preview-picker";
 import { NotePriceGuidePanel } from "@/features/materials/note-price-guide-panel";
 import {
@@ -208,6 +216,18 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   );
   const [language, setLanguage] = useState<string>(existing?.contentLanguage ?? "");
   const [tagsText, setTagsText] = useState((existing?.searchTags ?? []).join(", "));
+  // #556 rich listing.
+  const [trailerUrl, setTrailerUrl] = useState(existing?.trailerVideoUrl ?? "");
+  const [includedText, setIncludedText] = useState((existing?.whatsIncluded ?? []).join(", "));
+  const [syllabus, setSyllabus] = useState(existing?.syllabusOutline ?? "");
+  const [galleryKept, setGalleryKept] = useState<string[]>(existing?.previewImagePaths ?? []);
+  const [galleryNew, setGalleryNew] = useState<File[]>([]);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const hadRich = Boolean(
+    existing?.trailerVideoUrl ||
+    existing?.syllabusOutline ||
+    (existing?.whatsIncluded ?? []).length > 0,
+  );
 
   // --- Files -----------------------------------------------------------------
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -505,6 +525,14 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
         ].filter((f): f is UploadFormat => Boolean(f)),
       ),
     ),
+    // #556: only sent when used, so older schemas keep saving.
+    ...(hadRich || trailerUrl.trim() || includedText.trim() || syllabus.trim()
+      ? {
+          trailerVideoUrl: trailerUrl.trim() || null,
+          whatsIncluded: parseTags(includedText).slice(0, MAX_WHATS_INCLUDED),
+          syllabusOutline: syllabus.trim() || null,
+        }
+      : {}),
   });
 
   /** Make sure a row exists (draft) and return its id. */
@@ -772,6 +800,33 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     // 4. Re-picked preview pages on an already stored PDF.
     if (!uploadMain && !isLive && picksDirty && previewPicks && previewPicks.length > 0) {
       await updateNotePreviewPages({ data: { materialId: id, previewPageIndices: previewPicks } });
+    }
+
+    // 4b. #556 gallery: stamp + upload new images, then save the order.
+    const galleryChanged =
+      galleryNew.length > 0 || galleryKept.length !== (existing?.previewImagePaths ?? []).length;
+    if (galleryChanged) {
+      const stamped = await Promise.all(galleryNew.map((f) => watermarkImageFile(f)));
+      let newPaths: string[] = [];
+      if (stamped.length > 0) {
+        const targets = await createNoteUploadTargets({
+          data: {
+            materialId: id,
+            files: stamped.map((f) => ({
+              role: "gallery" as const,
+              fileName: f.name,
+              sizeBytes: f.size,
+            })),
+          },
+        });
+        for (let i = 0; i < targets.length; i += 1) {
+          await uploadToSignedUrl(targets[i].signedUrl, stamped[i]);
+        }
+        newPaths = targets.map((tg) => tg.path);
+      }
+      await saveNoteGallery({
+        data: { materialId: id, paths: [...galleryKept, ...newPaths].slice(0, MAX_GALLERY_IMAGES) },
+      });
     }
 
     // 5. Submit for staff review.
@@ -1173,6 +1228,113 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
           />
           {violationNote(copyViolations.descV)}
+        </div>
+
+        {/* #556 rich listing: trailer, highlights, syllabus, gallery. */}
+        <div className="space-y-1.5">
+          <Label htmlFor="note-trailer">{t("notes.rich.field_trailer")}</Label>
+          <Input
+            id="note-trailer"
+            value={trailerUrl}
+            onChange={(e) => setTrailerUrl(e.target.value)}
+            placeholder={t("notes.rich.trailer_placeholder")}
+            className="h-11"
+          />
+          {trailerUrl.trim() && !trailerEmbedUrl(trailerUrl) ? (
+            <p className="text-xs text-destructive">{t("notes.rich.trailer_invalid")}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">{t("notes.rich.trailer_hint")}</p>
+          )}
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="note-included">{t("notes.rich.field_included")}</Label>
+          <Input
+            id="note-included"
+            value={includedText}
+            onChange={(e) => setIncludedText(e.target.value)}
+            placeholder={t("notes.rich.included_placeholder")}
+            className="h-11"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="note-syllabus">{t("notes.rich.field_syllabus")}</Label>
+          <textarea
+            id="note-syllabus"
+            value={syllabus}
+            maxLength={SYLLABUS_MAX}
+            onChange={(e) => setSyllabus(e.target.value)}
+            rows={4}
+            placeholder={t("notes.rich.syllabus_placeholder")}
+            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>{t("notes.rich.field_gallery")}</Label>
+          <div className="flex flex-wrap gap-2">
+            {galleryKept.map((path) => (
+              <div
+                key={path}
+                className="relative h-20 w-28 overflow-hidden rounded-md border border-border"
+              >
+                <img
+                  src={materialCoverUrl(path) ?? ""}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+                <button
+                  type="button"
+                  aria-label={t("notes.upload.remove")}
+                  onClick={() => setGalleryKept((prev) => prev.filter((p) => p !== path))}
+                  className="absolute right-1 top-1 rounded bg-black/60 p-0.5 text-white"
+                >
+                  <X className="h-3 w-3" aria-hidden />
+                </button>
+              </div>
+            ))}
+            {galleryNew.map((file, index) => (
+              <div
+                key={`${file.name}-${index}`}
+                className="relative flex h-20 w-28 items-center justify-center overflow-hidden rounded-md border border-dashed border-border px-1 text-center text-[11px]"
+              >
+                {file.name}
+                <button
+                  type="button"
+                  aria-label={t("notes.upload.remove")}
+                  onClick={() => setGalleryNew((prev) => prev.filter((_, i) => i !== index))}
+                  className="absolute right-1 top-1 rounded bg-black/60 p-0.5 text-white"
+                >
+                  <X className="h-3 w-3" aria-hidden />
+                </button>
+              </div>
+            ))}
+            {galleryKept.length + galleryNew.length < MAX_GALLERY_IMAGES ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-20"
+                onClick={() => galleryInputRef.current?.click()}
+              >
+                <ImageIcon className="mr-2 h-4 w-4" aria-hidden />
+                {t("notes.rich.gallery_add")}
+              </Button>
+            ) : null}
+          </div>
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            className="sr-only"
+            onChange={(e) => {
+              const picked = Array.from(e.target.files ?? []).filter(
+                (f) => f.size <= MAX_GALLERY_IMAGE_BYTES,
+              );
+              const room = MAX_GALLERY_IMAGES - galleryKept.length - galleryNew.length;
+              setGalleryNew((prev) => [...prev, ...picked.slice(0, Math.max(0, room))]);
+              e.target.value = "";
+            }}
+          />
+          <p className="text-xs text-muted-foreground">{t("notes.rich.gallery_hint")}</p>
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">

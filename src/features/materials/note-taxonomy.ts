@@ -352,3 +352,45 @@ export function publicExtraLabel(text: string | null): string | null {
   if (!text) return null;
   return findContactViolations(text).length > 0 ? null : text;
 }
+
+// ---------------------------------------------------------------------------
+// #556 rich listing: trailer video + gallery
+// ---------------------------------------------------------------------------
+
+export const MAX_GALLERY_IMAGES = 5;
+export const MAX_GALLERY_IMAGE_BYTES = 5 * 1024 * 1024;
+export const MAX_WHATS_INCLUDED = 12;
+export const SYLLABUS_MAX = 3000;
+
+/**
+ * Embed URL for a public YouTube / Vimeo trailer, or null when the link is
+ * not one of those (only these two hosts are embedded).
+ */
+export function trailerEmbedUrl(rawUrl: string | null | undefined): string | null {
+  if (!rawUrl) return null;
+  let url: URL;
+  try {
+    url = new URL(rawUrl.trim());
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "https:") return null;
+  const host = url.hostname
+    .toLowerCase()
+    .replace(/^www\./, "")
+    .replace(/^m\./, "");
+  const id = /^[A-Za-z0-9_-]{6,20}$/;
+  if (host === "youtube.com") {
+    const v = url.searchParams.get("v") ?? /^\/(?:shorts|embed)\/([^/]+)/.exec(url.pathname)?.[1];
+    return v && id.test(v) ? `https://www.youtube-nocookie.com/embed/${v}` : null;
+  }
+  if (host === "youtu.be") {
+    const v = url.pathname.slice(1);
+    return id.test(v) ? `https://www.youtube-nocookie.com/embed/${v}` : null;
+  }
+  if (host === "vimeo.com" || host === "player.vimeo.com") {
+    const v = /(\d{6,12})/.exec(url.pathname)?.[1];
+    return v ? `https://player.vimeo.com/video/${v}` : null;
+  }
+  return null;
+}

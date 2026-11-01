@@ -143,3 +143,20 @@ describe("AI result normalisation", () => {
     expect(() => normalizeNoteAiResult("sorry")).toThrow();
   });
 });
+
+describe("#556 trailer embeds", async () => {
+  const { trailerEmbedUrl } = await import("../../src/features/materials/note-taxonomy");
+  it("accepts YouTube and Vimeo only", () => {
+    expect(trailerEmbedUrl("https://www.youtube.com/watch?v=dQw4w9WgXcQ")).toBe(
+      "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
+    );
+    expect(trailerEmbedUrl("https://youtu.be/dQw4w9WgXcQ")).toBe(
+      "https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ",
+    );
+    expect(trailerEmbedUrl("https://vimeo.com/123456789")).toBe(
+      "https://player.vimeo.com/video/123456789",
+    );
+    expect(trailerEmbedUrl("https://evil.example.com/watch?v=dQw4w9WgXcQ")).toBeNull();
+    expect(trailerEmbedUrl("http://youtube.com/watch?v=dQw4w9WgXcQ")).toBeNull();
+  });
+});

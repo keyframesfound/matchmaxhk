@@ -18,6 +18,8 @@ import {
   MAX_EXTRA_FILE_BYTES,
   MAX_EXTRA_FILES,
   MAX_LINKS,
+  MAX_GALLERY_IMAGE_BYTES,
+  MAX_GALLERY_IMAGES,
   MAX_MAIN_PDF_BYTES,
   publicExtraLabel,
   safeStorageSegment,
@@ -118,7 +120,7 @@ const UploadTargetInput = z.object({
   files: z
     .array(
       z.object({
-        role: z.enum(["main", "extra"]),
+        role: z.enum(["main", "extra", "gallery"]),
         fileName: z.string().trim().min(1).max(200),
         sizeBytes: z.number().int().min(1),
       }),
@@ -128,7 +130,7 @@ const UploadTargetInput = z.object({
 });
 
 export type UploadTarget = {
-  role: "main" | "extra";
+  role: "main" | "extra" | "gallery";
   fileName: string;
   bucket: string;
   path: string;
@@ -147,6 +149,26 @@ export const createNoteUploadTargets = createServerFn({ method: "POST" })
     const targets: UploadTarget[] = [];
     for (const file of data.files) {
       const format = classifyUploadFile(file.fileName);
+      if (file.role === "gallery") {
+        // #556 gallery: public watermarked preview images, 5 MB each.
+        if (format !== "image") throw new Error("Gallery images must be JPG, PNG or WebP.");
+        if (file.sizeBytes > MAX_GALLERY_IMAGE_BYTES) {
+          throw new Error(`"${file.fileName}" is larger than 5 MB.`);
+        }
+        const path = `gallery/${material.id}/${stamp()}-${safeStorageSegment(file.fileName)}`;
+        const { data: signed, error } = await storage.storage
+          .from(PREVIEWS_BUCKET)
+          .createSignedUploadUrl(path);
+        if (error || !signed) throw new Error(error?.message || "Could not prepare the upload.");
+        targets.push({
+          role: "gallery",
+          fileName: file.fileName,
+          bucket: PREVIEWS_BUCKET,
+          ...signed,
+          path,
+        });
+        continue;
+      }
       if (file.role === "main") {
         if (format !== "pdf") throw new Error("The main file must be a PDF.");
         if (file.sizeBytes > MAX_MAIN_PDF_BYTES) {
@@ -679,4 +701,46 @@ export const getNoteOriginalUrlForOwner = createServerFn({ method: "POST" })
       .from(ORIGINALS_BUCKET)
       .createSignedUrl(path, 15 * 60);
     return { url: signed?.signedUrl ?? null };
+  });
+
+/** #556: set the listing's gallery (1-5 public preview images, in order). */
+export const saveNoteGallery = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth, requireAccountActive])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        materialId: z.string().uuid(),
+        paths: z.array(z.string().trim().min(5).max(400)).max(MAX_GALLERY_IMAGES),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    const { db, storage, material } = await ownerContext(context.userId, data.materialId);
+    const prefix = `gallery/${material.id}/`;
+    for (const path of data.paths) {
+      if (!path.startsWith(prefix) || path.includes("..")) {
+        throw new Error("Image path does not belong to this note.");
+      }
+    }
+    const { data: current } = await db
+      .from<{ preview_image_paths: string[] | null }>("digital_materials")
+      .select("preview_image_paths")
+      .eq("id", material.id)
+      .maybeSingle();
+    const { error } = await db
+      .from<never>("digital_materials")
+      .update({ preview_image_paths: data.paths })
+      .eq("id", material.id);
+    if (error) {
+      if (error.code === "42703") throw new Error("Gallery images open after the next update.");
+      throw new Error(error.message);
+    }
+    const removed = (current?.preview_image_paths ?? []).filter((p) => !data.paths.includes(p));
+    if (removed.length > 0) {
+      await storage.storage
+        .from(PREVIEWS_BUCKET)
+        .remove(removed)
+        .catch(() => undefined);
+    }
+    return { count: data.paths.length };
   });

@@ -26,6 +26,7 @@ import { CourseDetailPage } from "@/features/courses/course-detail";
 import { ReportMenuButton } from "@/features/reports/report-button";
 import { canonicalUrl } from "@/features/i18n/seo";
 import { NOTES_OPTION_A_LIVE } from "@/features/materials/marketplace-policy";
+import { NoteGallery, NoteIncludedAndSyllabus } from "@/features/materials/note-rich-listing";
 import {
   NoteDeliverablesPanel,
   NoteIncludedFiles,
@@ -264,6 +265,8 @@ function NotePage() {
               </div>
             </header>
 
+            <NoteGallery note={note} />
+
             {isApkgDeck ? (
               <div className="flex items-start gap-4 rounded-xl border border-border bg-card p-6">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent">
@@ -294,6 +297,8 @@ function NotePage() {
                 </p>
               </section>
             )}
+
+            <NoteIncludedAndSyllabus note={note} />
 
             <NoteIncludedFiles materialId={note.id} />
 
