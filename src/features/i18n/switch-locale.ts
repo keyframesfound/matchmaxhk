@@ -3,7 +3,7 @@ import { useRouter } from "@tanstack/react-router";
 
 import { setLocale } from "./config";
 import { buildLocalePath, segmentOfLocale } from "./routing";
-import type { SeoLocale } from "./seo";
+import { normalizeLocale, type SeoLocale } from "./seo";
 
 /**
  * Switch language end-to-end: change the i18n language, persist the choice,
@@ -15,7 +15,7 @@ export function useSwitchLocale() {
 
   return useCallback(
     (lng: string) => {
-      const next: SeoLocale = lng?.startsWith("zh") ? "zh-HK" : "en";
+      const next: SeoLocale = normalizeLocale(lng);
       setLocale(next);
       const { pathname, searchStr, hash } = router.state.location;
       const target = buildLocalePath(segmentOfLocale(next), pathname);

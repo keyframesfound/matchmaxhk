@@ -13,17 +13,35 @@
 
 import { getActiveUrlLocale, segmentOfLocale } from "./routing";
 
-export type SeoLocale = "en" | "zh-HK";
+export type SeoLocale = "en" | "zh-HK" | "zh-CN";
 
 export const LOCALE_STORAGE_KEY = "matchmax.locale";
 export const LOCALE_COOKIE_KEY = "matchmax.locale";
 
-const SUPPORTED_LOCALES: readonly SeoLocale[] = ["en", "zh-HK"];
+const SUPPORTED_LOCALES: readonly SeoLocale[] = ["en", "zh-HK", "zh-CN"];
 
 export const SITE_URL = "https://matchmax.hk";
 
 export function isSupportedLocale(value: string | null | undefined): value is SeoLocale {
-  return value === "en" || value === "zh-HK";
+  return value === "en" || value === "zh-HK" || value === "zh-CN";
+}
+
+/**
+ * Map any i18next / browser language tag onto a supported locale. zh-CN,
+ * zh-SG and zh-Hans are Simplified; every other zh tag is Traditional (HK).
+ */
+export function normalizeLocale(lng: string | null | undefined): SeoLocale {
+  const tag = (lng ?? "").toLowerCase();
+  if (!tag.startsWith("zh")) return "en";
+  if (tag.startsWith("zh-cn") || tag.startsWith("zh-sg") || tag.startsWith("zh-hans")) {
+    return "zh-CN";
+  }
+  return "zh-HK";
+}
+
+/** Header toggle order: English (default) → 繁 → 简 → English. */
+export function nextLocaleInCycle(current: SeoLocale): SeoLocale {
+  return current === "en" ? "zh-HK" : current === "zh-HK" ? "zh-CN" : "en";
 }
 
 export function readLocaleCookie(): string | null {
@@ -93,12 +111,14 @@ export function currentSeoLocale(): SeoLocale {
 }
 
 export function seoLocaleFromLanguage(language: string | undefined): SeoLocale {
-  return language?.startsWith("zh") ? "zh-HK" : "en";
+  return normalizeLocale(language);
 }
 
-type LocaleCopy = { en: string; "zh-HK": string };
+/** zh-CN copy is optional: meta falls back to the Traditional rendition. */
+type LocaleCopy = { en: string; "zh-HK": string; "zh-CN"?: string };
 
 export function pickCopy(copy: LocaleCopy, locale: SeoLocale): string {
+  if (locale === "zh-CN") return copy["zh-CN"] ?? copy["zh-HK"];
   return copy[locale];
 }
 
@@ -129,13 +149,15 @@ export function localizedMeta(
  * og:locale for the active language, with the alternate listed so scrapers
  * see both renditions. zh-HK uses the `zh_HK` Facebook locale code.
  */
+const OG_LOCALE: Record<SeoLocale, string> = { en: "en_HK", "zh-HK": "zh_HK", "zh-CN": "zh_CN" };
+
 export function ogLocaleMeta(locale: SeoLocale): { property: string; content: string }[] {
   return [
-    { property: "og:locale", content: locale === "zh-HK" ? "zh_HK" : "en_HK" },
-    {
+    { property: "og:locale", content: OG_LOCALE[locale] },
+    ...SUPPORTED_LOCALES.filter((l) => l !== locale).map((l) => ({
       property: "og:locale:alternate",
-      content: locale === "zh-HK" ? "en_HK" : "zh_HK",
-    },
+      content: OG_LOCALE[l],
+    })),
   ];
 }
 
@@ -160,6 +182,7 @@ export function hreflangLinks(
   return [
     { rel: "alternate", hrefLang: "en", href: canonicalUrl(path, "en") },
     { rel: "alternate", hrefLang: "zh-HK", href: canonicalUrl(path, "zh-HK") },
+    { rel: "alternate", hrefLang: "zh-CN", href: canonicalUrl(path, "zh-CN") },
     { rel: "alternate", hrefLang: "x-default", href: canonicalUrl(path, "en") },
   ];
 }

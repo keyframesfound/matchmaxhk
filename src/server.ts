@@ -135,13 +135,18 @@ function getLocaleRedirect(request: Request): Response | null {
     url.pathname = `/zh${pathname.slice("/zh-HK".length) || ""}`;
     return localeRedirectResponse(url);
   }
+  // Full-tag Simplified prefix: /zh-CN/... → /cn/...
+  if (pathname === "/zh-CN" || pathname.startsWith("/zh-CN/")) {
+    url.pathname = `/cn${pathname.slice("/zh-CN".length) || ""}`;
+    return localeRedirectResponse(url);
+  }
 
   const parsed = parseLocalePath(pathname);
   if (parsed) {
     // Doubled prefix (/en/en/tutors, /zh/EN/x from a bad share or a
     // case-normalized prepend): the router strips one segment, so the rest
     // would 404. Collapse to the single lowercased head.
-    const dup = /^\/(en|zh)(?=\/|$)/i.exec(parsed.rest);
+    const dup = /^\/(en|zh|cn)(?=\/|$)/i.exec(parsed.rest);
     if (dup) {
       url.pathname = `/${parsed.segment}${parsed.rest.slice(dup[0].length) || "/"}`;
       return localeRedirectResponse(url);
@@ -152,7 +157,7 @@ function getLocaleRedirect(request: Request): Response | null {
   // Case-variant head (/EN/tutors, /Zh): the case-sensitive parse misses it,
   // so without this the gate would prepend its own segment and 404
   // (/en/EN/tutors). Normalize to the lowercase segment.
-  const upper = /^\/(en|zh)(?=\/|$)/i.exec(pathname);
+  const upper = /^\/(en|zh|cn)(?=\/|$)/i.exec(pathname);
   if (upper) {
     url.pathname = `/${upper[1].toLowerCase()}${pathname.slice(upper[0].length) || ""}`;
     return localeRedirectResponse(url);

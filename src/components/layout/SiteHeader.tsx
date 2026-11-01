@@ -19,6 +19,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useSwitchLocale } from "@/features/i18n/switch-locale";
+import { nextLocaleInCycle, normalizeLocale } from "@/features/i18n/seo";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
 import { CurrencyMenuSub, CurrencyToggle } from "@/components/brand/CurrencyToggle";
@@ -202,8 +203,8 @@ export function SiteHeader({
   const accountName =
     user?.user_metadata.display_name?.trim() || user?.email?.split("@")[0] || "Account";
   const useDarkTheme = theme !== "dark";
-  const currentLang = i18n.language?.startsWith("zh") ? "zh-HK" : "en";
-  const nextLang = currentLang === "en" ? "zh-HK" : "en";
+  const currentLang = normalizeLocale(i18n.language);
+  const nextLang = nextLocaleInCycle(currentLang);
   const brandLabelClassName =
     "font-wordmark-nav text-lg font-bold tracking-tight text-brand-gradient sm:text-xl";
 
@@ -496,7 +497,7 @@ export function SiteHeader({
                     </MenuIcon>
                     {t("nav.account_language")}
                     <span className="ml-auto text-xs font-bold text-[color:var(--ink)]/55">
-                      {currentLang === "en" ? "EN" : "繁"}
+                      {currentLang === "en" ? "EN" : currentLang === "zh-HK" ? "繁" : "简"}
                     </span>
                   </DropdownMenuItem>
                   <CurrencyMenuSub />

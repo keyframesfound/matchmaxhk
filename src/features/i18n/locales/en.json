@@ -2606,7 +2606,9 @@
       "language_en_desc": "Browse MatchMax in English.",
       "language_zh": "繁體中文",
       "language_zh_desc": "以繁體中文瀏覽 MatchMax。",
-      "language_saved": "Language updated."
+      "language_saved": "Language updated.",
+      "language_zh_cn": "Simplified Chinese",
+      "language_zh_cn_desc": "Use Simplified Chinese across MatchMax."
     },
     "account": {
       "overview_title": "Account overview",
