@@ -175,3 +175,48 @@ export async function fileToBase64(file: File): Promise<string> {
     reader.readAsDataURL(file);
   });
 }
+
+/**
+ * #556 gallery: stamp a tiled "MatchMax Preview" watermark onto an image in
+ * the browser before it is uploaded to the public previews bucket (the note
+ * page adds the floating watermark on top). Output: JPEG, long edge 1600px.
+ */
+export async function watermarkImageFile(file: File, label = "MatchMax Preview"): Promise<File> {
+  const url = URL.createObjectURL(file);
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const el = new Image();
+      el.onload = () => resolve(el);
+      el.onerror = () => reject(new Error(`"${file.name}" could not be read.`));
+      el.src = url;
+    });
+    const scale = Math.min(1, 1600 / Math.max(img.naturalWidth, img.naturalHeight));
+    const w = Math.max(1, Math.round(img.naturalWidth * scale));
+    const h = Math.max(1, Math.round(img.naturalHeight * scale));
+    const canvas = document.createElement("canvas");
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas unavailable");
+    ctx.fillStyle = "#ffffff";
+    ctx.fillRect(0, 0, w, h);
+    ctx.drawImage(img, 0, 0, w, h);
+    const size = Math.max(16, Math.round(w / 28));
+    ctx.font = `700 ${size}px Inter, Arial, sans-serif`;
+    ctx.fillStyle = "rgba(70, 90, 120, 0.22)";
+    ctx.save();
+    ctx.translate(w / 2, h / 2);
+    ctx.rotate(-Math.PI / 7);
+    for (let y = -h; y < h; y += size * 5) {
+      for (let x = -w; x < w; x += size * 14) ctx.fillText(label, x, y);
+    }
+    ctx.restore();
+    const blob = await new Promise<Blob | null>((resolve) =>
+      canvas.toBlob(resolve, "image/jpeg", 0.85),
+    );
+    if (!blob) throw new Error(`"${file.name}" could not be converted.`);
+    return new File([blob], file.name.replace(/\.[^.]+$/, "") + ".jpg", { type: "image/jpeg" });
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}

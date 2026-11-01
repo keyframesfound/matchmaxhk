@@ -35,7 +35,13 @@ import {
   validateListingPrice,
   type ScanFlag,
 } from "@/features/materials/marketplace-policy";
-import { CONTENT_LANGUAGES, isValidSubcategory } from "@/features/materials/note-taxonomy";
+import {
+  CONTENT_LANGUAGES,
+  isValidSubcategory,
+  MAX_WHATS_INCLUDED,
+  SYLLABUS_MAX,
+  trailerEmbedUrl,
+} from "@/features/materials/note-taxonomy";
 
 /**
  * P8 (#288) / P9 (#289): the tutor-side notes lifecycle server functions.
@@ -92,6 +98,15 @@ const DraftMetaInput = z.object({
   searchTags: z.array(z.string().trim().min(1).max(30)).max(20).optional(),
   contentLanguage: z.enum(CONTENT_LANGUAGES).nullish(),
   sourceFormats: z.array(z.string().trim().min(1).max(20)).max(12).optional(),
+  // #556 rich listing.
+  trailerVideoUrl: z
+    .string()
+    .trim()
+    .max(300)
+    .refine((v) => v === "" || trailerEmbedUrl(v) !== null, "Use a public YouTube or Vimeo link.")
+    .nullish(),
+  whatsIncluded: z.array(z.string().trim().min(1).max(60)).max(MAX_WHATS_INCLUDED).optional(),
+  syllabusOutline: z.string().trim().max(SYLLABUS_MAX).nullish(),
 });
 
 /**
@@ -105,6 +120,9 @@ export function v2ListingPatch(data: {
   searchTags?: string[];
   contentLanguage?: string | null;
   sourceFormats?: string[];
+  trailerVideoUrl?: string | null;
+  whatsIncluded?: string[];
+  syllabusOutline?: string | null;
 }): Record<string, unknown> {
   const patch: Record<string, unknown> = {};
   if (data.summary !== undefined) patch.summary = data.summary || null;
@@ -114,6 +132,9 @@ export function v2ListingPatch(data: {
   }
   if (data.contentLanguage !== undefined) patch.content_language = data.contentLanguage || null;
   if (data.sourceFormats !== undefined) patch.source_formats = data.sourceFormats;
+  if (data.trailerVideoUrl !== undefined) patch.trailer_video_url = data.trailerVideoUrl || null;
+  if (data.whatsIncluded !== undefined) patch.whats_included = data.whatsIncluded;
+  if (data.syllabusOutline !== undefined) patch.syllabus_outline = data.syllabusOutline || null;
   return patch;
 }
 
@@ -168,6 +189,11 @@ export type MyMaterialsRow = {
   pageCount: number | null;
   yearTag: string | null;
   slug: string | null;
+  // #556 rich listing.
+  previewImagePaths: string[];
+  trailerVideoUrl: string | null;
+  whatsIncluded: string[];
+  syllabusOutline: string | null;
 };
 
 export async function myTutorRow(
@@ -253,6 +279,8 @@ function assertCleanCopy(fields: {
   gradeAchieved?: string;
   summary?: string;
   searchTags?: string[];
+  whatsIncluded?: string[];
+  syllabusOutline?: string;
 }) {
   const labels: Record<string, string> = {
     title: "Title",
@@ -261,10 +289,16 @@ function assertCleanCopy(fields: {
     topic: "Topic",
     gradeAchieved: "Grade achieved",
     searchTags: "Tags",
+    whatsIncluded: "What's included",
+    syllabusOutline: "Syllabus",
   };
   for (const [field, value] of Object.entries(fields)) {
     const texts =
-      field === "searchTags" ? (Array.isArray(value) ? value : []) : [value as string | undefined];
+      field === "searchTags" || field === "whatsIncluded"
+        ? Array.isArray(value)
+          ? value
+          : []
+        : [value as string | undefined];
     for (const text of texts) {
       if (!text) continue;
       const violations = findContactViolations(text);
@@ -599,6 +633,8 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
       topic: data.topic ?? undefined,
       gradeAchieved: data.gradeAchieved ?? undefined,
       searchTags: data.searchTags,
+      whatsIncluded: data.whatsIncluded,
+      syllabusOutline: data.syllabusOutline ?? undefined,
     });
     // #346: the stored row loads first so the partial subject check can
     // exempt the note's own legacy subjectTag (the form's legacy option).
@@ -787,6 +823,8 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       topic: data.topic ?? undefined,
       gradeAchieved: data.gradeAchieved ?? undefined,
       searchTags: data.searchTags,
+      whatsIncluded: data.whatsIncluded,
+      syllabusOutline: data.syllabusOutline ?? undefined,
     });
 
     const existing = data.materialId
@@ -998,6 +1036,8 @@ export const editLiveNote = createServerFn({ method: "POST" })
       description: data.description,
       summary: data.summary ?? undefined,
       searchTags: data.searchTags,
+      whatsIncluded: data.whatsIncluded,
+      syllabusOutline: data.syllabusOutline ?? undefined,
     });
     assertValidSubcategory(material.curriculum_tag, data.subcategory);
     if (data.priceHkd != null) {
@@ -1082,7 +1122,9 @@ export const getMyMaterials = createServerFn({ method: "POST" })
         .order("updated_at", { ascending: false });
     // Notes upload v2: fall back to the pre-v2 column list when the v2
     // migration is not applied yet (42703 = undefined column).
-    let result = await run(`${baseColumns}, ${v2Columns}`);
+    const richColumns = "preview_image_paths, trailer_video_url, whats_included, syllabus_outline";
+    let result = await run(`${baseColumns}, ${v2Columns}, ${richColumns}`);
+    if (result.error?.code === "42703") result = await run(`${baseColumns}, ${v2Columns}`);
     if (result.error?.code === "42703") result = await run(baseColumns);
     const { data, error } = result;
     if (error) throw new Error(error.message);
@@ -1119,5 +1161,13 @@ export const getMyMaterials = createServerFn({ method: "POST" })
       pageCount: typeof row.page_count === "number" ? row.page_count : null,
       yearTag: str(row.year_tag),
       slug: str(row.slug),
+      previewImagePaths: Array.isArray(row.preview_image_paths)
+        ? row.preview_image_paths.filter((p): p is string => typeof p === "string")
+        : [],
+      trailerVideoUrl: str(row.trailer_video_url),
+      whatsIncluded: Array.isArray(row.whats_included)
+        ? row.whats_included.filter((p): p is string => typeof p === "string")
+        : [],
+      syllabusOutline: str(row.syllabus_outline),
     }));
   });

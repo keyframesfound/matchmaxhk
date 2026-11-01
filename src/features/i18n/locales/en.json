@@ -2183,6 +2183,25 @@
       "coursework": "IA / EE / SBA",
       "services": "Marking & services",
       "free": "Free"
+    },
+    "rich": {
+      "gallery_aria": "Preview gallery",
+      "trailer_title": "Trailer",
+      "trailer_short": "Video",
+      "slide_aria": "Show item {{n}}",
+      "included_title": "Highlights",
+      "syllabus_title": "Syllabus and chapters",
+      "field_trailer": "Trailer video (optional)",
+      "trailer_placeholder": "https://www.youtube.com/watch?v=...",
+      "trailer_hint": "A public YouTube or Vimeo link, shown at the top of your listing.",
+      "trailer_invalid": "Use a public YouTube or Vimeo link.",
+      "field_gallery": "Preview images (up to 5)",
+      "gallery_hint": "JPG, PNG or WebP up to 5 MB each. A MatchMax watermark is added to every image.",
+      "gallery_add": "Add images",
+      "field_included": "Highlights",
+      "included_placeholder": "e.g. 42 pages, GoodNotes file, annotated exemplars",
+      "field_syllabus": "Syllabus or chapters (optional)",
+      "syllabus_placeholder": "One chapter or module per line"
     }
   },
   "orders": {

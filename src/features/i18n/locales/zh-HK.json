@@ -2183,6 +2183,25 @@
       "coursework": "IA / EE / SBA",
       "services": "批改及服務",
       "free": "免費"
+    },
+    "rich": {
+      "gallery_aria": "預覽圖片",
+      "trailer_title": "介紹影片",
+      "trailer_short": "影片",
+      "slide_aria": "顯示第 {{n}} 項",
+      "included_title": "重點內容",
+      "syllabus_title": "課程大綱及章節",
+      "field_trailer": "介紹影片（選填）",
+      "trailer_placeholder": "https://www.youtube.com/watch?v=...",
+      "trailer_hint": "公開的 YouTube 或 Vimeo 連結，會顯示在商品頁頂部。",
+      "trailer_invalid": "請使用公開的 YouTube 或 Vimeo 連結。",
+      "field_gallery": "預覽圖片（最多 5 張）",
+      "gallery_hint": "JPG、PNG 或 WebP，每張上限 5 MB。每張圖片都會加上 MatchMax 浮水印。",
+      "gallery_add": "加入圖片",
+      "field_included": "重點內容",
+      "included_placeholder": "例如：42 頁、GoodNotes 檔案、附評語範文",
+      "field_syllabus": "課程大綱或章節（選填）",
+      "syllabus_placeholder": "每行一個章節或單元"
     }
   },
   "orders": {
