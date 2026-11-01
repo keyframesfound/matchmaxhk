@@ -309,6 +309,8 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
   const [start, setStart] = useState("18:00");
   const [durationMin, setDurationMin] = useState(60);
   const [tuitionUnpaid, setTuitionUnpaid] = useState(false);
+  // #428 §1.2: optional 1-tap focus chip — never blocks the log.
+  const [sessionFocus, setSessionFocus] = useState("");
 
   const timeMatch = /^(\d{1,2}):(\d{2})$/.exec(start);
   const startMinute = timeMatch ? Number(timeMatch[1]) * 60 + Number(timeMatch[2]) : -1;
@@ -320,12 +322,26 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
   const log = useMutation({
     mutationFn: () =>
       logTutorSession({
-        data: { caseId: item.id, logDate, startMinute, durationMin, tuitionUnpaid },
+        data: {
+          caseId: item.id,
+          logDate,
+          startMinute,
+          durationMin,
+          tuitionUnpaid,
+          sessionFocus: (sessionFocus || undefined) as
+            | "Concept Building"
+            | "Past Paper"
+            | "IA/EE/SBA"
+            | "Homework"
+            | "Skill Practice"
+            | undefined,
+        },
       }),
     onSuccess: () => {
       toast.success(t("experience.log_success"));
       setOpen(false);
       setTuitionUnpaid(false);
+      setSessionFocus("");
       invalidate();
       void queryClient.invalidateQueries({ queryKey: ["sor", "earnings"] });
     },
@@ -421,6 +437,22 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
               />
               {t("experience.log_tuition_unpaid")}
             </label>
+            {/* #428 §1.2: optional 1-tap focus chip, never blocks logging. */}
+            <select
+              value={sessionFocus}
+              onChange={(e) => setSessionFocus(e.target.value)}
+              className="mt-2 h-8 rounded-lg border border-border bg-transparent px-2 text-xs"
+              aria-label={t("experience.log_focus")}
+            >
+              <option value="">{t("experience.log_focus_none")}</option>
+              {["Concept Building", "Past Paper", "IA/EE/SBA", "Homework", "Skill Practice"].map(
+                (focus) => (
+                  <option key={focus} value={focus}>
+                    {focus}
+                  </option>
+                ),
+              )}
+            </select>
             <div className="mt-2 flex justify-end gap-2">
               <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
                 {t("sor.admin_cancel")}

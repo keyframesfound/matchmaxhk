@@ -419,6 +419,17 @@ export const feeInvoiceCustom = createServerFn({ method: "POST" })
       "fee_invoiced",
       `custom ${data.multiplier}×, ${data.reason}`,
     );
+    // #428 Phase 1: invoicing milestone.
+    try {
+      const { logFunnelEvent } = await import("@/features/cases/funnel-events");
+      await logFunnelEvent(
+        db,
+        { case_id: data.caseId, event_type: "fee_invoiced" },
+        context.userId,
+      );
+    } catch (funnelError) {
+      console.warn("[admin-desk] funnel log failed:", funnelError);
+    }
     return { ok: true };
   });
 
@@ -532,6 +543,17 @@ export const feeMarkPaid = createServerFn({ method: "POST" })
           const { emitActionEvent } = await import("@/features/cases/action-required.functions");
           await emitActionEvent(db, "intro.shared_parent", sharedPayload, introCase.id);
           await emitActionEvent(db, "intro.shared_tutor", sharedPayload, introCase.id);
+          // #428 Phase 1: the master reliability gate.
+          const { logFunnelEvent } = await import("@/features/cases/funnel-events");
+          await logFunnelEvent(
+            db,
+            {
+              case_id: introCase.id,
+              tutor_id: introCase.matched_tutor_id,
+              event_type: "fee_marked_paid",
+            },
+            context.userId,
+          );
         }
       } catch (introError) {
         console.warn("[admin-desk] intro notification failed:", introError);

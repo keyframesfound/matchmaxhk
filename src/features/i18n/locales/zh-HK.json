@@ -739,6 +739,8 @@
     }
   },
   "experience": {
+    "log_focus": "課堂重點",
+    "log_focus_none": "課堂重點（可選）",
     "lessons": "{{count}} 堂課堂",
     "hours": "{{hours}} 小時",
     "range_present": "{{start}} – 現在",

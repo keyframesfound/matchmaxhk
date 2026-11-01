@@ -456,6 +456,17 @@ export const confirmLessonParent = createServerFn({ method: "POST" })
       .update({ confirmed_by_parent_at: new Date().toISOString(), status: nextStatus })
       .eq("id", lesson.id);
     if (error) throw new Error(error.message);
+    // #428 Phase 1: bilateral L1/L2 confirmation milestone.
+    try {
+      const { logFunnelEvent } = await import("@/features/cases/funnel-events");
+      await logFunnelEvent(
+        db,
+        { case_id: lesson.case_id, event_type: "lesson_1_confirmed" },
+        context.userId,
+      );
+    } catch (funnelError) {
+      console.warn("[parent] funnel log failed:", funnelError);
+    }
     return { status: nextStatus };
   });
 
@@ -734,6 +745,20 @@ export const submitParentReview = createServerFn({ method: "POST" })
       } else {
         const { error } = await db.from<Row>("case_reviews").insert(row).select("id").single();
         if (error) throw new Error(error.message);
+        // #428 Phase 1: verified review milestone (the P7 fee gate already
+        // decided `visible` upstream; held rows are not counted).
+        if (decision.status === "visible") {
+          try {
+            const { logFunnelEvent } = await import("@/features/cases/funnel-events");
+            await logFunnelEvent(
+              db,
+              { case_id: data.caseId, event_type: "verified_review_published" },
+              context.userId,
+            );
+          } catch (funnelError) {
+            console.warn("[parent] funnel log failed:", funnelError);
+          }
+        }
       }
       return { status: decision.status, heldReason: decision.heldReason ?? null };
     },

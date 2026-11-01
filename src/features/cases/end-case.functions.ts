@@ -114,6 +114,24 @@ export const endCase = createServerFn({ method: "POST" })
           })
           .select("id")
           .single();
+        // #428 Phase 1: early-stop outcome (the desk later annotates the
+        // precise stop_reason; the ledger row anchors the event now).
+        try {
+          const { logFunnelEvent } = await import("@/features/cases/funnel-events");
+          await logFunnelEvent(
+            db,
+            {
+              case_id: c.id,
+              tutor_id: c.matched_tutor_id,
+              event_type: "case_stopped_early",
+              stop_reason: "other",
+              metadata: { via: "end_case", actor_role: actorRole },
+            },
+            context.userId,
+          );
+        } catch (funnelError) {
+          console.warn("[end-case] funnel log failed:", funnelError);
+        }
         return { ended: true, myMarked: true, sorStatus: "closed" };
       }
 

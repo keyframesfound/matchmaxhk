@@ -739,6 +739,8 @@
     }
   },
   "experience": {
+    "log_focus": "Session focus",
+    "log_focus_none": "Session focus (optional)",
     "lessons": "{{count}} lessons",
     "hours": "{{hours}} hours",
     "range_present": "{{start}} – Present",

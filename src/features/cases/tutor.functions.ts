@@ -398,6 +398,21 @@ export const confirmLessonTutor = createServerFn({ method: "POST" })
     } catch (arError) {
       console.warn("[tutor] lead completion failed:", arError);
     }
+    // #428 Phase 1: L1/L2 confirmation milestones (L2 = continuation signal).
+    try {
+      const { logFunnelEvent } = await import("@/features/cases/funnel-events");
+      await logFunnelEvent(
+        db,
+        {
+          case_id: lesson.case_id,
+          tutor_id: tutorId,
+          event_type: lesson.sequence === 2 ? "lesson_2_confirmed" : "lesson_1_confirmed",
+        },
+        context.userId,
+      );
+    } catch (funnelError) {
+      console.warn("[tutor] funnel log failed:", funnelError);
+    }
     return { status: nextStatus };
   });
 

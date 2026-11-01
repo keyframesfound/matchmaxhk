@@ -200,6 +200,21 @@ export const createRematchCase = createServerFn({ method: "POST" })
       // Audit is bookkeeping, not the pivot itself — log and continue.
       console.error("[rematch] audit insert failed:", auditError.message);
     }
+    // #428 Phase 1: rematch milestone (also carries the stop context).
+    try {
+      const { logFunnelEvent } = await import("@/features/cases/funnel-events");
+      await logFunnelEvent(
+        db,
+        {
+          case_id: String(failed.id),
+          event_type: "case_rematch_requested",
+          metadata: { rematch_case_id: String(created.id) },
+        },
+        context.userId,
+      );
+    } catch (funnelError) {
+      console.warn("[rematch] funnel log failed:", funnelError);
+    }
 
     // Next ≤2 from the ORIGINAL criteria — the RPC already excludes the
     // replaced case's tutor for rematch cases (20261101020000).

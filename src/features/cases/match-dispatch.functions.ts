@@ -262,6 +262,8 @@ export const matchCaseTutor = createServerFn({ method: "POST" })
         caseId: z.string().uuid(),
         tutorId: z.string().uuid(),
         acknowledgeOutOfWindow: z.boolean().default(false),
+        // #428: desk shortlist rank when the pick came from ranked hits.
+        rankPosition: z.number().int().min(1).max(50).optional(),
       })
       .parse(input),
   )
@@ -360,6 +362,24 @@ export const matchCaseTutor = createServerFn({ method: "POST" })
       );
     } catch (leadError) {
       console.warn("[match-dispatch] lead notification failed:", leadError);
+    }
+    // #428 Phase 1: staff shortlist pick (algorithm-trust metric carries the
+    // rank position when the tutor came from the ranked desk shortlist).
+    try {
+      const { logFunnelEvent } = await import("@/features/cases/funnel-events");
+      await logFunnelEvent(
+        db,
+        {
+          case_id: c.id,
+          tutor_id: tutor.id,
+          event_type: "recommendation_used",
+          request_source: "staff_shortlist",
+          rank_position: data.rankPosition ?? null,
+        },
+        context.userId,
+      );
+    } catch (funnelError) {
+      console.warn("[match-dispatch] funnel log failed:", funnelError);
     }
     return { outcome: "matched" };
   });

@@ -114,6 +114,10 @@ export const logTutorSession = createServerFn({ method: "POST" })
         durationMin: z.number().int(),
         // #461 3b: the family has not paid this lesson's tuition yet.
         tuitionUnpaid: z.boolean().optional(),
+        // #428 §1.2: optional 1-tap focus chip — never blocks logging.
+        sessionFocus: z
+          .enum(["Concept Building", "Past Paper", "IA/EE/SBA", "Homework", "Skill Practice"])
+          .optional(),
       })
       .parse(input),
   )
@@ -184,6 +188,24 @@ export const logTutorSession = createServerFn({ method: "POST" })
       throw new Error(error.message);
     }
     await insertAudit(db, c.id, context.userId, "experience_log_pending", null);
+
+    // #428 Phase 1: session outcome row (+ the optional focus chip).
+    try {
+      const { logFunnelEvent } = await import("@/features/cases/funnel-events");
+      await logFunnelEvent(
+        db,
+        {
+          case_id: c.id,
+          tutor_id: tutorId,
+          event_type: "session_logged",
+          session_focus: data.sessionFocus ?? null,
+          metadata: { log_id: inserted?.id ?? null, log_date: data.logDate },
+        },
+        context.userId,
+      );
+    } catch (funnelError) {
+      console.warn("[experience] funnel log failed:", funnelError);
+    }
 
     // #387 notification leg (GLM round-1 MAJOR): the parent must LEARN that a
     // session was logged, without this, a parent who never visits the case
