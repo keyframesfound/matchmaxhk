@@ -1112,8 +1112,8 @@
     "notes": {
       "intro": "高分導師原創，經團隊審核先上架。",
       "how_title": "運作方式",
-      "s1_title": "導師上傳原創教材（僅限第二層）",
-      "s1_body": "每份教材必須係導師自己嘅作品，或附書面同意。",
+      "s1_title": "賣家上載原創教材",
+      "s1_body": "導師及學生都可以出售。每份教材必須是賣家本人的作品，或已取得書面許可。",
       "s2_title": "團隊審核版權同質素",
       "s2_body": "上架前，團隊會按禁售清單審核每份教材。",
       "s3_title": "買家以 FPS 付款畀 MatchMax",
@@ -1135,10 +1135,10 @@
       "enforcement_remove": "MatchMax 可隨時下架教材並向買家退款。",
       "cta_browse": "瀏覽學習教材",
       "terms_link": "閱讀筆記條款",
-      "upload_note": "導師須知：上傳即表示接受筆記條款。未接受條款前，上傳表格無法提交。",
+      "upload_note": "賣家注意：上載即表示您同意《筆記條款》。未同意條款前無法提交上載表格。",
       "h1": "溫習筆記商城",
       "upload_title": "上載筆記步驟",
-      "upload_intro": "已驗證導師可在「帳戶」內按「新增筆記」上載。提交予職員審核之前，所有內容都會儲存為草稿。",
+      "upload_intro": "任何擁有 MatchMax 帳戶的用戶都可在「帳戶」內按「新增筆記」出售：導師會以導師檔案顯示，其他用戶則以「社群賣家」顯示。提交之前，所有內容都會儲存為草稿。",
       "u1_title": "加入檔案",
       "u1_body": "拖放 PDF、相片或掃描檔（會合併成一份 PDF）、Word、簡報、ZIP 或影片，或貼上 Google Drive、Docs、Dropbox 或 OneDrive 連結。",
       "u2_title": "由 AI 填寫資料",
@@ -2170,6 +2170,9 @@
       "as_level": "AS Level",
       "a2_level": "A2 Level",
       "general": "一般"
+    },
+    "seller": {
+      "community_badge": "社群賣家"
     }
   },
   "orders": {

@@ -184,6 +184,68 @@ export async function myTutorRow(
   return data;
 }
 
+/** The caller's seller row (tutor card or #573 community seller), if any. */
+export async function findSellerRow(
+  db: AdminDb,
+  userId: string,
+): Promise<{ id: string; display_name: string } | null> {
+  const { data, error } = await db
+    .from<{ id: string; display_name: string }>("tutors")
+    .select("id, display_name")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(error.message || "Failed to look up seller account");
+  return data ?? null;
+}
+
+/**
+ * #573 open marketplace: any signed-in user can sell. The first save of a
+ * user without a tutor card creates a minimal Community Seller row
+ * (is_published = false, is_community_seller = true), so it never shows in
+ * the tutor directory while listings, orders and the manual cashier keep
+ * their tutor_id foreign key.
+ */
+export async function ensureSellerRow(
+  db: AdminDb,
+  userId: string,
+): Promise<{ id: string; display_name: string }> {
+  const existing = await findSellerRow(db, userId);
+  if (existing) return existing;
+  const { data: profile } = await db
+    .from<{ display_name: string | null; handle: string | null }>("profiles")
+    .select("display_name, handle")
+    .eq("id", userId)
+    .maybeSingle();
+  const displayName =
+    profile?.display_name?.trim() ||
+    (profile?.handle ? `@${profile.handle}` : "") ||
+    "Community Seller";
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const code = `MM-S${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+    const { data, error } = await db
+      .from<{ id: string; display_name: string }>("tutors")
+      .insert({
+        user_id: userId,
+        display_name: displayName.slice(0, 60),
+        tutor_code: code,
+        is_published: false,
+        is_community_seller: true,
+      })
+      .select("id, display_name")
+      .single();
+    if (!error && data) return data;
+    if (error?.code === "42703") {
+      throw new Error("Selling without a tutor profile opens after the next update.");
+    }
+    if (error?.code !== "23505")
+      throw new Error(error?.message || "Could not set up your seller account.");
+    // 23505: tutor_code collision (or a concurrent create): retry / re-read.
+    const again = await findSellerRow(db, userId);
+    if (again) return again;
+  }
+  throw new Error("Could not set up your seller account. Please try again.");
+}
+
 function assertCleanCopy(fields: {
   title?: string;
   description?: string;
@@ -530,7 +592,7 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    const tutor = await myTutorRow(db, context.userId);
+    const tutor = await ensureSellerRow(db, context.userId);
     assertCleanCopy({
       title: data.title,
       description: data.description,
@@ -718,7 +780,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    const tutor = await myTutorRow(db, context.userId);
+    const tutor = await ensureSellerRow(db, context.userId);
     assertCleanCopy({
       title: data.title,
       description: data.description,
@@ -1005,7 +1067,9 @@ export const getMyMaterials = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<MyMaterialsRow[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    const tutor = await myTutorRow(db, context.userId);
+    // #573: an account that never sold anything has no seller row yet.
+    const tutor = await findSellerRow(db, context.userId);
+    if (!tutor) return [];
 
     const baseColumns =
       "id, title, status, price_hkd, rejection_reason, edit_status, edit_rejection_reason, view_count, sold_count, watermarked_preview_url, updated_at, curriculum_tag, subject_tag, material_type, topic, grade_achieved, exemplar_permission, word_count, description, page_count, year_tag, slug";

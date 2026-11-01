@@ -161,6 +161,8 @@ export type MarketplaceMaterial = StudyMaterial & {
   tutor_code: string;
   /** #314: the tutor holds the Verified badge (verification_tier tier_2_verified). */
   tutor_verified: boolean;
+  /** #573: a notes-only Community Seller (no tutor profile to link to). */
+  tutor_community: boolean;
 };
 
 /**
@@ -171,14 +173,22 @@ export type MarketplaceMaterial = StudyMaterial & {
  * own note-only RPCs and queries.
  */
 export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]> {
-  const run = (columns: string) =>
+  // RLS already limits rows to published tutors + (#573) community sellers.
+  const run = (columns: string, community: boolean) =>
     materialsTable()
-      .select(`${columns}, tutors!inner(display_name, tutor_code, is_published, verification_tier)`)
+      .select(
+        `${columns}, tutors!inner(display_name, tutor_code, is_published, verification_tier${
+          community ? ", is_community_seller" : ""
+        })`,
+      )
       .eq("status", "published")
       .order("created_at", { ascending: false });
-  // Notes upload v2: 42703 = the v2 columns do not exist yet; read without them.
-  let result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}`);
-  if (result.error?.code === "42703") result = await run(MATERIAL_COLS);
+  // 42703 = a newer column does not exist yet; step back one migration.
+  let result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}`, true);
+  if (result.error?.code === "42703") {
+    result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}`, false);
+  }
+  if (result.error?.code === "42703") result = await run(MATERIAL_COLS, false);
   const { data, error } = result;
   if (error) {
     if (isMissingRelation(error)) return [];
@@ -195,6 +205,7 @@ export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]
           typeof tutor?.display_name === "string" ? tutor.display_name : "MatchMax Tutor",
         tutor_code: typeof tutor?.tutor_code === "string" ? tutor.tutor_code : "",
         tutor_verified: tutor?.verification_tier === "tier_2_verified",
+        tutor_community: tutor?.is_community_seller === true,
       };
     })
     .filter((m) => m.id && m.tutor_code);
