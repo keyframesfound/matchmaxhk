@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAccountActive } from "@/lib/account-status-enforcement";
+import { findContactViolations } from "@/lib/contact-filter";
 import { asAdminDb, previewPathFor, type AdminDb } from "@/features/materials/storage-helpers";
 import {
   loadOwnedMaterial,
@@ -18,6 +19,7 @@ import {
   MAX_EXTRA_FILES,
   MAX_LINKS,
   MAX_MAIN_PDF_BYTES,
+  publicExtraLabel,
   safeStorageSegment,
   toDirectImportUrl,
 } from "@/features/materials/note-taxonomy";
@@ -431,6 +433,19 @@ export type NoteExtra = {
   url: string | null;
 };
 
+function assertNoContactDetails(text: string | null | undefined, field: string) {
+  if (!text) return;
+  const violations = findContactViolations(text);
+  if (violations.length > 0) {
+    throw new Error(
+      `${field} contains contact details (${violations
+        .map((v) => v.match)
+        .slice(0, 2)
+        .join(", ")}). Rename it to save.`,
+    );
+  }
+}
+
 const ExtrasInput = z.object({
   materialId: z.string().uuid(),
   files: z
@@ -487,8 +502,13 @@ export const saveNoteExtras = createServerFn({ method: "POST" })
       if (!classifyUploadFile(file.fileName)) {
         throw new Error(`"${file.fileName}" is not a supported file type.`);
       }
+      // File names and labels are shown publicly under "What's included":
+      // same contact filter as every other public listing field.
+      assertNoContactDetails(file.fileName, "File name");
+      assertNoContactDetails(file.label, "File label");
     }
     for (const link of data.links) {
+      assertNoContactDetails(link.label, "Link label");
       if (!detectLinkProvider(link.url)) {
         throw new Error(
           "Links must be https Google Drive, Google Docs, Dropbox or OneDrive share links.",
@@ -584,7 +604,9 @@ export const getNoteExtrasSummary = createServerFn({ method: "GET" })
     return (await readExtras(db, data.materialId)).map((row) => ({
       kind: row.kind,
       format: row.format,
-      label: row.label ?? row.file_name ?? null,
+      // Defense in depth for rows saved before the filter: a name with
+      // contact details is never shown (the UI falls back to the format).
+      label: publicExtraLabel(row.label ?? row.file_name ?? null),
       sizeBytes: row.size_bytes == null ? null : Number(row.size_bytes),
     }));
   });

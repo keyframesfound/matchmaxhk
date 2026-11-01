@@ -91,6 +91,7 @@ CREATE INDEX IF NOT EXISTS idx_material_files_material
   ON public.material_files (material_id, position);
 
 ALTER TABLE public.material_files ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.material_files FROM anon, authenticated;
 
 -- ---------------------------------------------------------------------------
 -- 3. material_reviews: one rating (+ optional comment) per buyer per note.
@@ -200,6 +201,7 @@ CREATE TABLE IF NOT EXISTS public.ai_suggestion_events (
 );
 
 ALTER TABLE public.ai_suggestion_events ENABLE ROW LEVEL SECURITY;
+REVOKE ALL ON public.ai_suggestion_events FROM anon, authenticated;
 
 CREATE INDEX IF NOT EXISTS idx_ai_suggestion_events_account
   ON public.ai_suggestion_events (account_id, kind, created_at);

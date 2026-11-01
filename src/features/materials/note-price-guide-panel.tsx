@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { Link } from "@tanstack/react-router";
 import { ExternalLink } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -137,15 +138,16 @@ export function NotePriceGuidePanel({
           <ul className="space-y-1">
             {guide.comparables.map((item) => (
               <li key={item.id} className="flex items-center justify-between gap-3 text-sm">
-                <a
-                  href={`/notes/${item.slug ?? item.id}`}
+                <Link
+                  to="/notes/$slug"
+                  params={{ slug: item.slug ?? item.id }}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex min-w-0 items-center gap-1 text-[color:var(--brand-link)] hover:underline"
                 >
                   <span className="truncate">{item.title}</span>
                   <ExternalLink className="h-3 w-3 shrink-0" aria-hidden />
-                </a>
+                </Link>
                 <span className="shrink-0 font-semibold">HK${item.priceHkd}</span>
               </li>
             ))}

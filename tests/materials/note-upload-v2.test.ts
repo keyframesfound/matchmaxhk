@@ -5,6 +5,7 @@ import {
   detectLinkProvider,
   isImportFetchHost,
   isValidSubcategory,
+  publicExtraLabel,
   toDirectImportUrl,
 } from "../../src/features/materials/note-taxonomy";
 import {
@@ -72,6 +73,15 @@ describe("upload formats and links", () => {
     expect(isValidSubcategory("DSE", "sba")).toBe(true);
     expect(isValidSubcategory("DSE", "ia")).toBe(false);
     expect(isValidSubcategory("IB", null)).toBe(true);
+  });
+});
+
+describe("public extra labels", () => {
+  it("hides file names / labels with contact details", () => {
+    expect(publicExtraLabel("Chapter 3 slides.pptx")).toBe("Chapter 3 slides.pptx");
+    expect(publicExtraLabel("wa 9123 4567.jpg")).toBeNull();
+    expect(publicExtraLabel("WhatsApp 91234567")).toBeNull();
+    expect(publicExtraLabel(null)).toBeNull();
   });
 });
 

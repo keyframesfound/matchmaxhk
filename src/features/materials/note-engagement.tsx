@@ -155,7 +155,9 @@ export function NoteIncludedFiles({ materialId }: { materialId: string }) {
               {t(`notes.format.${item.format ?? "file"}`)}
             </span>
             <span className="min-w-0 flex-1 truncate">
-              {item.kind === "link" ? t("notes.engage.included_link") : item.label}
+              {item.kind === "link"
+                ? t("notes.engage.included_link")
+                : (item.label ?? t(`notes.format.${item.format ?? "file"}`))}
             </span>
             {item.sizeBytes ? (
               <span className="text-xs text-muted-foreground">{formatBytes(item.sizeBytes)}</span>
@@ -400,12 +402,12 @@ export function SimilarNotesSection({ note }: { note: PublicNote }) {
             key={item.id}
             className="flex flex-col gap-2 rounded-xl border border-border bg-card p-5"
           >
-            <a href={`/notes/${item.slug ?? item.id}`} className="group">
+            <Link to="/notes/$slug" params={{ slug: item.slug ?? item.id }} className="group">
               <p className="font-semibold group-hover:underline">{item.title}</p>
               {item.summary ? (
                 <p className="mt-1 line-clamp-2 text-sm text-muted-foreground">{item.summary}</p>
               ) : null}
-            </a>
+            </Link>
             <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
               <span className="font-semibold text-foreground">
                 {item.priceHkd === 0
@@ -493,12 +495,13 @@ export function SimilarNotesSection({ note }: { note: PublicNote }) {
                         className={cn("py-2 pr-3 align-top", index === 0 && "font-semibold")}
                       >
                         {key === "title_row" ? (
-                          <a
-                            href={`/notes/${n.slug ?? n.id}`}
+                          <Link
+                            to="/notes/$slug"
+                            params={{ slug: n.slug ?? n.id }}
                             className="text-[color:var(--brand-link)] hover:underline"
                           >
                             {value(n)}
-                          </a>
+                          </Link>
                         ) : (
                           value(n)
                         )}

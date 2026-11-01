@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { Link, useNavigate } from "@tanstack/react-router";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
   FileText,
@@ -144,6 +144,8 @@ function parseTags(text: string): string[] {
 
 export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null }) {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const isLive = Boolean(existing && LIVE_STATUSES.has(existing.status));
 
   // --- Listing details -----------------------------------------------------
@@ -369,6 +371,12 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
       }
       if (format === "apkg" && materialType === "flashcards" && !apkgFile) {
         setApkgFile(file);
+        continue;
+      }
+      // Extras on a live note change through staff (saveNoteExtras refuses),
+      // so the drop zone must not pretend to accept them.
+      if (isLive) {
+        toast.error(t("notes.upload.live_files_note"));
         continue;
       }
       if (file.size > MAX_EXTRA_FILE_BYTES) {
@@ -735,7 +743,9 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             ? t("notes.form.submitted")
             : t("notes.form.draft_saved"),
       );
-      window.location.assign("/account");
+      // SPA navigation keeps the /zh | /cn prefix; refresh the Account lists.
+      void queryClient.invalidateQueries({ queryKey: ["account"] });
+      void navigate({ to: "/account" });
     },
     onError: (error) =>
       toast.error(error instanceof Error ? error.message : t("notes.form.submit_failed")),

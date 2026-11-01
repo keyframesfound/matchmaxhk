@@ -1,3 +1,5 @@
+import { findContactViolations } from "@/lib/contact-filter";
+
 /**
  * Notes upload v2: the finer note categories, document languages, accepted
  * upload formats and the external-link rules. Pure data + helpers, shared by
@@ -340,4 +342,13 @@ export function toDirectImportUrl(rawUrl: string): string | null {
     return url.toString();
   }
   return null;
+}
+
+/**
+ * Public "What's included" label: a stored file name / label carrying
+ * contact details is never shown (the UI falls back to the format name).
+ */
+export function publicExtraLabel(text: string | null): string | null {
+  if (!text) return null;
+  return findContactViolations(text).length > 0 ? null : text;
 }
