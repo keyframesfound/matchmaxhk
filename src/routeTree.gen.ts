@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BecomeATutorRouteImport } from './routes/become-a-tutor'
 import { Route as CaseRequestRouteImport } from './routes/case-request'
+import { Route as CopyrightRouteImport } from './routes/copyright'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as GroupClassesRouteImport } from './routes/group-classes'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
@@ -43,6 +44,7 @@ import { Route as HelpCategoryRouteImport } from './routes/help.$category'
 import { Route as LegalNotesTermsRouteImport } from './routes/legal.notes-terms'
 import { Route as NotesSlugRouteImport } from './routes/notes.$slug'
 import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
+import { Route as TermsNotesMarketplaceRouteImport } from './routes/terms.notes-marketplace'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
@@ -109,6 +111,11 @@ const BecomeATutorRoute = BecomeATutorRouteImport.update({
 const CaseRequestRoute = CaseRequestRouteImport.update({
   id: '/case-request',
   path: '/case-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CopyrightRoute = CopyrightRouteImport.update({
+  id: '/copyright',
+  path: '/copyright',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeedbackRoute = FeedbackRouteImport.update({
@@ -255,6 +262,11 @@ const NotesSlugRoute = NotesSlugRouteImport.update({
 const OrdersOrderIdRoute = OrdersOrderIdRouteImport.update({
   id: '/orders/$orderId',
   path: '/orders/$orderId',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TermsNotesMarketplaceRoute = TermsNotesMarketplaceRouteImport.update({
+  id: '/terms/notes-marketplace',
+  path: '/terms/notes-marketplace',
   getParentRoute: () => rootRouteImport,
 } as any)
 const TutorsIndexRoute = TutorsIndexRouteImport.update({
@@ -511,6 +523,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
+  '/copyright': typeof CopyrightRoute
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -537,6 +550,7 @@ export interface FileRoutesByFullPath {
   '/legal/notes-terms': typeof LegalNotesTermsRoute
   '/notes/$slug': typeof NotesSlugRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/terms/notes-marketplace': typeof TermsNotesMarketplaceRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/u/$handle': typeof UHandleRoute
   '/courses/': typeof CoursesIndexRoute
@@ -589,6 +603,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
+  '/copyright': typeof CopyrightRoute
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -614,6 +629,7 @@ export interface FileRoutesByTo {
   '/legal/notes-terms': typeof LegalNotesTermsRoute
   '/notes/$slug': typeof NotesSlugRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/terms/notes-marketplace': typeof TermsNotesMarketplaceRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/u/$handle': typeof UHandleRoute
   '/courses': typeof CoursesIndexRoute
@@ -668,6 +684,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
+  '/copyright': typeof CopyrightRoute
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -694,6 +711,7 @@ export interface FileRoutesById {
   '/legal/notes-terms': typeof LegalNotesTermsRoute
   '/notes/$slug': typeof NotesSlugRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/terms/notes-marketplace': typeof TermsNotesMarketplaceRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/u/$handle': typeof UHandleRoute
   '/courses/': typeof CoursesIndexRoute
@@ -748,6 +766,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
+    | '/copyright'
     | '/feedback'
     | '/group-classes'
     | '/how-it-works'
@@ -774,6 +793,7 @@ export interface FileRouteTypes {
     | '/legal/notes-terms'
     | '/notes/$slug'
     | '/orders/$orderId'
+    | '/terms/notes-marketplace'
     | '/tutors/$tutorCode'
     | '/u/$handle'
     | '/courses/'
@@ -826,6 +846,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
+    | '/copyright'
     | '/feedback'
     | '/group-classes'
     | '/how-it-works'
@@ -851,6 +872,7 @@ export interface FileRouteTypes {
     | '/legal/notes-terms'
     | '/notes/$slug'
     | '/orders/$orderId'
+    | '/terms/notes-marketplace'
     | '/tutors/$tutorCode'
     | '/u/$handle'
     | '/courses'
@@ -904,6 +926,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
+    | '/copyright'
     | '/feedback'
     | '/group-classes'
     | '/how-it-works'
@@ -930,6 +953,7 @@ export interface FileRouteTypes {
     | '/legal/notes-terms'
     | '/notes/$slug'
     | '/orders/$orderId'
+    | '/terms/notes-marketplace'
     | '/tutors/$tutorCode'
     | '/u/$handle'
     | '/courses/'
@@ -984,6 +1008,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BecomeATutorRoute: typeof BecomeATutorRoute
   CaseRequestRoute: typeof CaseRequestRoute
+  CopyrightRoute: typeof CopyrightRoute
   FeedbackRoute: typeof FeedbackRoute
   GroupClassesRoute: typeof GroupClassesRoute
   HowItWorksRoute: typeof HowItWorksRoute
@@ -1004,6 +1029,7 @@ export interface RootRouteChildren {
   LegalNotesTermsRoute: typeof LegalNotesTermsRoute
   NotesSlugRoute: typeof NotesSlugRoute
   OrdersOrderIdRoute: typeof OrdersOrderIdRoute
+  TermsNotesMarketplaceRoute: typeof TermsNotesMarketplaceRoute
   TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
   UHandleRoute: typeof UHandleRoute
   CoursesIndexRoute: typeof CoursesIndexRoute
@@ -1050,6 +1076,13 @@ declare module '@tanstack/react-router' {
       path: '/case-request'
       fullPath: '/case-request'
       preLoaderRoute: typeof CaseRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/copyright': {
+      id: '/copyright'
+      path: '/copyright'
+      fullPath: '/copyright'
+      preLoaderRoute: typeof CopyrightRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feedback': {
@@ -1253,6 +1286,13 @@ declare module '@tanstack/react-router' {
       path: '/orders/$orderId'
       fullPath: '/orders/$orderId'
       preLoaderRoute: typeof OrdersOrderIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/terms/notes-marketplace': {
+      id: '/terms/notes-marketplace'
+      path: '/terms/notes-marketplace'
+      fullPath: '/terms/notes-marketplace'
+      preLoaderRoute: typeof TermsNotesMarketplaceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/tutors/': {
@@ -1706,6 +1746,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BecomeATutorRoute: BecomeATutorRoute,
   CaseRequestRoute: CaseRequestRoute,
+  CopyrightRoute: CopyrightRoute,
   FeedbackRoute: FeedbackRoute,
   GroupClassesRoute: GroupClassesRoute,
   HowItWorksRoute: HowItWorksRoute,
@@ -1726,6 +1767,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalNotesTermsRoute: LegalNotesTermsRoute,
   NotesSlugRoute: NotesSlugRoute,
   OrdersOrderIdRoute: OrdersOrderIdRoute,
+  TermsNotesMarketplaceRoute: TermsNotesMarketplaceRoute,
   TutorsTutorCodeRoute: TutorsTutorCodeRoute,
   UHandleRoute: UHandleRoute,
   CoursesIndexRoute: CoursesIndexRoute,

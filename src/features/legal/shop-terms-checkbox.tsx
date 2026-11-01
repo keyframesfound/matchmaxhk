@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { optionACopyKey } from "@/features/materials/marketplace-policy";
 
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -31,7 +32,7 @@ export function ShopTermsCheckbox({
           className={invalid ? "border-destructive" : undefined}
         />
         <span>
-          {t("notes.shop_terms_ack")}{" "}
+          {t(optionACopyKey("notes.shop_terms_ack"))}{" "}
           <Link
             className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
             to="/legal/notes-terms"

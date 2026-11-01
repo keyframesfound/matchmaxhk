@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { deliveredFooterText } from "@/features/materials/marketplace-policy";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -796,6 +797,20 @@ export const getOrderScreenshotUrl = createServerFn({ method: "POST" })
     return { signedUrl: signed.signedUrl };
   });
 
+/** The buyer's email for the masked watermark (null when unknown). */
+async function buyerEmailFor(db: AdminDb, order: { buyer_account_id: string }) {
+  try {
+    const { data } = await db
+      .from<{ email: string | null }>("profiles")
+      .select("email")
+      .eq("id", order.buyer_account_id)
+      .maybeSingle();
+    return data?.email ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Stamp the per-order footer onto a copy of the original (#203: order id +
  * buyer account id). Failure must NOT deliver, the caller parks the order
@@ -804,11 +819,17 @@ export const getOrderScreenshotUrl = createServerFn({ method: "POST" })
 export async function buildDeliveredFile(
   originalBytes: Uint8Array,
   order: { id: string; reference: string | null; buyer_account_id: string },
+  buyerEmail?: string | null,
 ): Promise<Uint8Array> {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const doc = await PDFDocument.load(originalBytes, { ignoreEncryption: false });
   const font = await doc.embedFont(StandardFonts.Helvetica);
-  const footer = `Order ${order.reference || order.id.slice(0, 8)} · Buyer ${order.buyer_account_id.slice(0, 8)} · Licensed to one student · matchmax.hk`;
+  // #573: "Licensed to [masked email] - Order #[ID]" (privacy policy §12).
+  const footer = deliveredFooterText({
+    orderRef: order.reference || order.id.slice(0, 8),
+    buyerEmail,
+    buyerAccountId: order.buyer_account_id,
+  });
   for (const page of doc.getPages()) {
     const { width } = page.getSize();
     const fontSize = 7.5;
@@ -991,7 +1012,7 @@ export const releaseOrder = createServerFn({ method: "POST" })
       const ext = isApkg ? "apkg" : "pdf";
       const deliveredBytes = isApkg
         ? originalBytes
-        : await buildDeliveredFile(originalBytes, order);
+        : await buildDeliveredFile(originalBytes, order, await buyerEmailFor(db, order));
 
       const path = `delivered/${order.id}.${ext}`;
       const { error: uploadError } = await db.storage

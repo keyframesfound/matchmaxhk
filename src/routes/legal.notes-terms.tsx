@@ -6,7 +6,13 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { PageBackButton } from "@/components/layout/page-back-button";
 
 import { canonicalUrl } from "@/features/i18n/seo";
+import { NotesMarketplaceTerms } from "@/features/legal/notes-marketplace-terms";
+import { NOTES_OPTION_A_LIVE } from "@/features/materials/marketplace-policy";
+
 export const Route = createFileRoute("/legal/notes-terms")({
+  // #573: ?preview=option-a shows the upcoming Option A terms before launch.
+  validateSearch: (search: Record<string, unknown>): { preview?: string } =>
+    typeof search.preview === "string" ? { preview: search.preview } : {},
   head: () => ({
     meta: [
       { title: "Notes Terms | MatchMax" },
@@ -40,6 +46,8 @@ function Clause({ title, children }: { title: string; children: React.ReactNode 
 
 function NotesTermsPage() {
   const { t } = useTranslation();
+  const { preview } = Route.useSearch();
+  const showOptionA = NOTES_OPTION_A_LIVE || preview === "option-a";
 
   const bannedSummary: string[] = (
     ["school_papers", "publisher", "hkeaa", "ib", "classmate", "contact"] as const
@@ -58,53 +66,59 @@ function NotesTermsPage() {
           <div className="lg:hidden">
             <PageBackButton />
           </div>
-          <h1 className="text-4xl font-medium tracking-tight sm:text-5xl">
-            {t("legal.notes_terms.title")}
-          </h1>
-          <p className="mt-3 text-sm text-[color:var(--ink)]/55">
-            {t("legal.notes_terms.updated")}
-          </p>
+          {showOptionA ? (
+            <NotesMarketplaceTerms preview={!NOTES_OPTION_A_LIVE} />
+          ) : (
+            <>
+              <h1 className="text-4xl font-medium tracking-tight sm:text-5xl">
+                {t("legal.notes_terms.title")}
+              </h1>
+              <p className="mt-3 text-sm text-[color:var(--ink)]/55">
+                {t("legal.notes_terms.updated")}
+              </p>
 
-          <div className="mt-6">
-            <Clause title={t("legal.notes_terms.role_title")}>
-              <p>{t("legal.notes_terms.role_body")}</p>
-            </Clause>
-            <Clause title={t("legal.notes_terms.warranty_title")}>
-              <p>{t("legal.notes_terms.warranty_body")}</p>
-              <ul className="list-inside list-disc space-y-1.5">
-                {bannedSummary.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </Clause>
-            <Clause title={t("legal.notes_terms.licence_title")}>
-              <p>{t("legal.notes_terms.licence_body")}</p>
-            </Clause>
-            <Clause title={t("legal.notes_terms.delivery_title")}>
-              <p>{t("legal.notes_terms.delivery_body")}</p>
-            </Clause>
-            {/* #429: the escrow hold + seller-funded refund locks. */}
-            <Clause title={t("legal.notes_terms.escrow_title")}>
-              <p>{t("legal.notes_terms.escrow_body")}</p>
-              <ul className="list-inside list-disc space-y-1.5">
-                {escrowPoints.map((item) => (
-                  <li key={item}>{item}</li>
-                ))}
-              </ul>
-            </Clause>
-            <Clause title={t("legal.notes_terms.refund_title")}>
-              <p>{t("legal.notes_terms.refund_body")}</p>
-            </Clause>
-            <Clause title={t("legal.notes_terms.takedown_title")}>
-              <p>{t("legal.notes_terms.takedown_body")}</p>
-            </Clause>
-            <Clause title={t("legal.notes_terms.affiliation_title")}>
-              <p>{t("legal.notes_terms.affiliation_body")}</p>
-            </Clause>
-            <Clause title={t("legal.notes_terms.law_title")}>
-              <p>{t("legal.notes_terms.law_body")}</p>
-            </Clause>
-          </div>
+              <div className="mt-6">
+                <Clause title={t("legal.notes_terms.role_title")}>
+                  <p>{t("legal.notes_terms.role_body")}</p>
+                </Clause>
+                <Clause title={t("legal.notes_terms.warranty_title")}>
+                  <p>{t("legal.notes_terms.warranty_body")}</p>
+                  <ul className="list-inside list-disc space-y-1.5">
+                    {bannedSummary.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </Clause>
+                <Clause title={t("legal.notes_terms.licence_title")}>
+                  <p>{t("legal.notes_terms.licence_body")}</p>
+                </Clause>
+                <Clause title={t("legal.notes_terms.delivery_title")}>
+                  <p>{t("legal.notes_terms.delivery_body")}</p>
+                </Clause>
+                {/* #429: the escrow hold + seller-funded refund locks. */}
+                <Clause title={t("legal.notes_terms.escrow_title")}>
+                  <p>{t("legal.notes_terms.escrow_body")}</p>
+                  <ul className="list-inside list-disc space-y-1.5">
+                    {escrowPoints.map((item) => (
+                      <li key={item}>{item}</li>
+                    ))}
+                  </ul>
+                </Clause>
+                <Clause title={t("legal.notes_terms.refund_title")}>
+                  <p>{t("legal.notes_terms.refund_body")}</p>
+                </Clause>
+                <Clause title={t("legal.notes_terms.takedown_title")}>
+                  <p>{t("legal.notes_terms.takedown_body")}</p>
+                </Clause>
+                <Clause title={t("legal.notes_terms.affiliation_title")}>
+                  <p>{t("legal.notes_terms.affiliation_body")}</p>
+                </Clause>
+                <Clause title={t("legal.notes_terms.law_title")}>
+                  <p>{t("legal.notes_terms.law_body")}</p>
+                </Clause>
+              </div>
+            </>
+          )}
 
           <p className="mt-10 border-t border-[color:var(--ink)]/10 pt-6 text-sm">
             <Link to="/guide/notes" className="font-bold underline underline-offset-4">

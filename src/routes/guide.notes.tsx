@@ -4,6 +4,7 @@ import { ArrowRight, CircleCheck, CircleX, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { canonicalUrl } from "@/features/i18n/seo";
+import { optionACopyKey } from "@/features/materials/marketplace-policy";
 import {
   GuideCtaRow,
   GuideHeading,
@@ -48,8 +49,8 @@ function GuideNotesPage() {
   const steps: [string, string, string][] = (["s1", "s2", "s3", "s4", "s5"] as const).map(
     (key, index) => [
       String(index + 1),
-      t(`guide.notes.${key}_title`),
-      t(`guide.notes.${key}_body`),
+      t(optionACopyKey(`guide.notes.${key}_title`)),
+      t(optionACopyKey(`guide.notes.${key}_body`)),
     ],
   );
 
