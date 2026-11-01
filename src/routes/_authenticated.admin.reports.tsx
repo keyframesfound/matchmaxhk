@@ -63,6 +63,7 @@ const TARGET_LABELS: Record<string, string> = {
   tutor_photo: "Photo",
   tutor_introduction: "Introduction",
   material: "Note",
+  material_review: "Notes review",
 };
 
 /**

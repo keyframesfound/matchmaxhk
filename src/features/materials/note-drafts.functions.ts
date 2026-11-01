@@ -981,6 +981,16 @@ export const setNoteHidden = createServerFn({ method: "POST" })
 
     const next = nextStatus(material.status, data.hidden ? "hide" : "unhide");
     if (!next) throw new Error("This note cannot be hidden or restored right now.");
+    if (!data.hidden) {
+      // #573 / SOP §4.1: a listing hidden by open P1 reports stays hidden
+      // until staff resolve them.
+      const { countOpenP1Reports } = await import("@/features/reports/reports.functions");
+      if ((await countOpenP1Reports(db, material.id)) > 0) {
+        throw new Error(
+          "This note is under review after reports. Staff will restore it if it is cleared.",
+        );
+      }
+    }
     const { error } = await db
       .from<never>("digital_materials")
       .update({ status: next })

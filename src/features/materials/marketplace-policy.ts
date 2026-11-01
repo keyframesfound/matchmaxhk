@@ -332,3 +332,20 @@ export function deliveredFooterText(input: {
   const who = masked ?? `account ${input.buyerAccountId.slice(0, 8)}`;
   return `Licensed to ${who} · Order #${input.orderRef} · One student only · matchmax.hk`;
 }
+
+// ---------------------------------------------------------------------------
+// Report triage (SOP §4.1, #573: P1 auto-hide at 3 open reports)
+// ---------------------------------------------------------------------------
+
+/** Report reasons that are P1 for notes listings (24h, interim hide). */
+export const P1_REPORT_REASONS = ["copyright", "contact_details", "impersonation"] as const;
+export const P1_AUTO_HIDE_OPEN_REPORTS = 3;
+
+export function isP1ReportReason(reason: string): boolean {
+  return (P1_REPORT_REASONS as readonly string[]).includes(reason);
+}
+
+/** Hide a published listing once it has this many open P1 reports. */
+export function shouldAutoHideListing(openP1Reports: number): boolean {
+  return openP1Reports >= P1_AUTO_HIDE_OPEN_REPORTS;
+}
