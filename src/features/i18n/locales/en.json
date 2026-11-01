@@ -2114,7 +2114,8 @@
       "compare_language": "Language",
       "compare_rating": "Rating",
       "compare_sold": "Sold",
-      "compare_tutor": "Tutor"
+      "compare_tutor": "Tutor",
+      "get_free": "Download free"
     },
     "cta": {
       "sell_title": "Sell your own notes",

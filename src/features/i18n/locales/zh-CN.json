@@ -2114,7 +2114,8 @@
       "compare_language": "语言",
       "compare_rating": "评分",
       "compare_sold": "已售",
-      "compare_tutor": "导师"
+      "compare_tutor": "导师",
+      "get_free": "免费下载"
     },
     "cta": {
       "sell_title": "出售你的笔记",

@@ -425,7 +425,11 @@ function NotePage() {
                 }}
               >
                 <ShoppingCart className="mr-2 h-4 w-4" aria-hidden />
-                {isOwner ? t("notes.own_note") : t("notes.add_to_cart")}
+                {isOwner
+                  ? t("notes.own_note")
+                  : note.priceHkd === 0
+                    ? t("notes.engage.get_free")
+                    : t("notes.add_to_cart")}
               </Button>
               {whatsappQuery.data?.requestUrl && (
                 <a
