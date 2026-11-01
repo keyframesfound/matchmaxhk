@@ -5,7 +5,8 @@ import { boughtListAction } from "@/features/materials/lifecycle";
  * unit-tested in tests/materials/note-reviews.test.ts.
  */
 
-export const REVIEW_COMMENT_MAX = 2000;
+/** #556: review text max 500 characters. */
+export const REVIEW_COMMENT_MAX = 500;
 
 export type BuyerOrderLike = {
   status: string;
@@ -15,11 +16,12 @@ export type BuyerOrderLike = {
 
 /**
  * #543 checkout statuses that grant the file: download unlocks at payment
- * (paid_held) and stays after release (completed_released). An order in
+ * (paid_held; marking orders after delivery, delivered_held) and stays after
+ * release (completed_released). An order in
  * disputed_frozen does NOT count, so a buyer cannot review (or pull extras)
  * while their own refund claim is open.
  */
-const CHECKOUT_V2_ACCESS_STATUSES = new Set(["paid_held", "completed_released"]);
+const CHECKOUT_V2_ACCESS_STATUSES = new Set(["paid_held", "delivered_held", "completed_released"]);
 
 /**
  * A buyer may review (and download extras) only while one of their orders
