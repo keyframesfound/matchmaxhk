@@ -168,7 +168,7 @@ can create a refund after funds were released.
 | Priority | Reasons | Interim action on receipt | Decision within |
 | --- | --- | --- | --- |
 | **P1** | `copyright` (official past papers, textbooks, school papers), ghostwriting offers, contact harvesting (`contact_details`), suspected fake / decoy file, `impersonation` | Staff may **hide the listing immediately**; auto-hide once a listing has **3 open P1 reports**; freeze held funds on its active orders | **24h** |
-| **P2** | `not_as_described`, fake or shill reviews, `harassment`, `inappropriate_image` | none | **3 business days** |
+| **P2** | `not_as_described`, `fake_credentials`, fake or shill reviews, `harassment`, `inappropriate_image` | none | **3 business days** |
 | **P3** | `spam`, `other` | none | **5 business days** |
 
 The reporter's identity is never shown to the reported user. The existing
@@ -184,7 +184,7 @@ limit (5 open reports per account per hour) stands.
 
 ### 4.3 Reviews
 
-- Only buyers with access can post (enforced in code: `orderGrantsNoteAccess`).
+- Only buyers with access can post (enforced in code by `orderGrantsNoteAccess` in `src/features/materials/note-reviews.ts`, shipped in PR #570; not on `main` until that merges).
 - A seller may report a review for: contact details, harassment or vulgarity, content about a different product, or evidence of shill / secondary accounts.
 - **A negative but honest review is never removed.** Staff never edit review text; they remove it or keep it.
 - "Report review" is **locked in** (#573). Spam / harassment / off-topic reviews are P2 (3 working days). Engineering: add `material_review` as a report target type so the menu sits on each review.
@@ -228,7 +228,9 @@ logged download get the same ladder on their buying privileges; any
 unwarranted chargeback after a valid download is treated as severe
 (permanent buying ban, download logs sent to Stripe as evidence).
 
-5.1 `strike_count` persists across suspensions and is always visible on
+5.1 `profiles.strike_count` (added by the #573 migration) is the marketplace
+strike counter. It is **not** `tutor_trust_state.strike_count` (#537 fee-drop
+trust), which counts something else. `profiles.strike_count` persists across suspensions and is always visible on
 the staff user record.
 
 5.2 Strikes are counted **per enforcement event**, not per file: a seller
