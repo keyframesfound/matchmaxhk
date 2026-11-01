@@ -36,6 +36,7 @@ import {
   ParentFavoriteBadge,
 } from "@/features/tutors/engagement-badges";
 import { ExperiencePill } from "@/features/tutors/experience-badge";
+import { TrophyKpiBanner } from "@/features/tutors/trophy-kpi-banner";
 import { PromoBadges } from "@/features/tutors/promo-badges";
 import { useFitText } from "@/hooks/use-fit-text";
 import { shareOrCopy } from "@/lib/share";
@@ -501,6 +502,9 @@ export function PublicTutorCard({
                 completely at 0 verified lessons (Ryan-frozen card: this is the
                 ONLY visual addition; nothing else on the card changes). */}
             <ExperiencePill tutorId={tutor.id} className="mt-1.5" />
+            {/* #462 Phase A: Trophy Wall KPI strip + ledger hour badges —
+                self-fetching, hidden at zero verified hours. */}
+            <TrophyKpiBanner tutorId={tutor.id} />
           </div>
 
           {genderLabel ? (

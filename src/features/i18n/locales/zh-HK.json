@@ -3205,6 +3205,15 @@
     "affiliation_request": "申請關聯",
     "public_cv": "學術及成就時間線"
   },
+  "trophy": {
+    "active": "{{count}} 位進行中",
+    "past": "{{count}} 位過往",
+    "avg_retention": "平均每位 {{hours}} 小時",
+    "rating": "★ {{rating}}（{{count}} 則）",
+    "badges_label": "徽章：",
+    "badge_rising": "新秀 25 小時",
+    "badge_azure": "蔚藍 100 小時"
+  },
   "subjects": {
     "title": "熱門科目",
     "math": "數學",
