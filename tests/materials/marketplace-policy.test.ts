@@ -171,3 +171,17 @@ describe("#573 buyer watermark and launch switch", async () => {
     expect(optionACopyKey("guide.notes.s1_title", true)).toBe("guide.notes.s1_title");
   });
 });
+
+describe("#573 P1 report auto-hide", async () => {
+  const { isP1ReportReason, shouldAutoHideListing } =
+    await import("../../src/features/materials/marketplace-policy");
+  it("treats copyright, contact details and impersonation as P1", () => {
+    expect(isP1ReportReason("copyright")).toBe(true);
+    expect(isP1ReportReason("contact_details")).toBe(true);
+    expect(isP1ReportReason("not_as_described")).toBe(false);
+  });
+  it("hides at 3 open P1 reports", () => {
+    expect(shouldAutoHideListing(2)).toBe(false);
+    expect(shouldAutoHideListing(3)).toBe(true);
+  });
+});

@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { StarRating } from "@/components/ui/StarRating";
+import { ReportMenuButton } from "@/features/reports/report-button";
 import { cn } from "@/lib/utils";
 import { shareOrCopy } from "@/lib/share";
 import { useAuth } from "@/features/auth/useAuth";
@@ -348,6 +349,20 @@ export function NoteReviewsSection({
                 <StarRating value={review.rating} readOnly size={14} />
                 <span className="font-semibold text-success">{t("notes.reviews.verified")}</span>
                 <span>· {dateFmt.format(new Date(review.createdAt))}</span>
+                {user && !review.isMine ? (
+                  <span className="ml-auto">
+                    <ReportMenuButton
+                      targets={[
+                        {
+                          targetType: "material_review",
+                          targetId: review.id,
+                          label: t("notes.reviews.report_target"),
+                        },
+                      ]}
+                      menuLabel={t("notes.reviews.report_menu")}
+                    />
+                  </span>
+                ) : null}
               </div>
               {review.comment ? (
                 <p className="whitespace-pre-line text-sm leading-relaxed">{review.comment}</p>

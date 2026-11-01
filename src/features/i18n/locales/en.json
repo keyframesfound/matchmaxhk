@@ -2080,7 +2080,9 @@
       "failed": "Could not post the review.",
       "buyers_only": "Only buyers who received this note can rate and review it.",
       "empty": "No reviews yet.",
-      "verified": "Verified buyer"
+      "verified": "Verified buyer",
+      "report_target": "this review",
+      "report_menu": "Report review"
     },
     "engage": {
       "save": "Save",

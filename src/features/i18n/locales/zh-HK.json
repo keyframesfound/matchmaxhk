@@ -2080,7 +2080,9 @@
       "failed": "未能發佈評論。",
       "buyers_only": "只有已收到這份筆記的買家才可以評分及評論。",
       "empty": "暫時未有評論。",
-      "verified": "已驗證買家"
+      "verified": "已驗證買家",
+      "report_target": "這則評論",
+      "report_menu": "舉報評論"
     },
     "engage": {
       "save": "收藏",

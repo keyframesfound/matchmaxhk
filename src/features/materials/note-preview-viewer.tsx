@@ -6,6 +6,7 @@ import { CRISP_PREVIEW_PAGES } from "@/features/materials/lifecycle";
 // Bundled by Vite (?url emits the hashed asset into dist/assets) — a bare
 // "pdfjs-dist/build/pdf.worker.min.mjs" path 404s on prod (#569).
 import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+import { PreviewWatermark } from "@/features/materials/preview-watermark";
 
 /**
  * Clastify-style preview viewer (Ryan, 2026-10-11): the public note page
@@ -108,11 +109,14 @@ export function NotePreviewViewer({
           user-select: none;
         }
       `}</style>
-      <div ref={containerRef} className="space-y-4" aria-label={t("notes.preview_aria")} />
+      <div className="relative">
+        <div ref={containerRef} className="space-y-4" aria-label={t("notes.preview_aria")} />
+        <PreviewWatermark />
+      </div>
       {/* Lock overlay rides at the top of the blurred region */}
       {total > crisp && (
         <div
-          className="pointer-events-none absolute inset-x-0 flex items-center justify-center"
+          className="pointer-events-none absolute inset-x-0 z-20 flex items-center justify-center"
           style={{ top: `min(90%, ${(crisp / Math.max(total, 1)) * 100}%)` }}
         >
           <div className="pointer-events-auto flex max-w-sm items-center gap-3 rounded-xl border border-border bg-[color:var(--surface)]/95 p-4 backdrop-blur-sm">

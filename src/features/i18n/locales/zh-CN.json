@@ -2080,7 +2080,9 @@
       "failed": "未能发布评论。",
       "buyers_only": "只有已收到这份笔记的买家才可以评分及评论。",
       "empty": "暂时未有评论。",
-      "verified": "已验证买家"
+      "verified": "已验证买家",
+      "report_target": "这则评论",
+      "report_menu": "举报评论"
     },
     "engage": {
       "save": "收藏",
