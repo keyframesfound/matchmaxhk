@@ -1,3 +1,4 @@
+import { NOTES_OPTION_A_LIVE } from "@/features/materials/marketplace-policy";
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
@@ -560,12 +561,25 @@ const SECTIONS: Section[] = [
       },
       {
         kind: "p",
-        text: "MatchMax keeps 20% of the file price. The tutor receives the balance by FPS on the monthly settlement run. That settlement is payment for goods (the notes) and is separate from the 1.5-lesson admin fee in section 15.",
+        // #573: Option A wording switches on with the Stripe checkout launch.
+        text: NOTES_OPTION_A_LIVE
+          ? "Sellers set the price and buyers pay exactly that price. MatchMax deducts a 2% platform fee and the actual payment processing fee from each sale; the seller receives the balance on the monthly payout run once their balance reaches HK$50. Full fee, refund and payout rules are in the Notes Marketplace Terms (/legal/notes-terms). This is separate from the 1.5-lesson admin fee in section 15."
+          : "MatchMax keeps 20% of the file price. The tutor receives the balance by FPS on the monthly settlement run. That settlement is payment for goods (the notes) and is separate from the 1.5-lesson admin fee in section 15.",
       },
       {
         kind: "p",
-        text: "Before a file is released, a buyer may request a full refund. After release, refunds are limited to a file that cannot be opened or a listing that breaches the ban list above.",
+        text: NOTES_OPTION_A_LIVE
+          ? "Payments are held for 72 hours from payment (or from delivery for marking services). Inside that window refunds cover only the objective grounds D1 to D9 in the Notes Marketplace Terms; there is no cooling-off period. After the window the sale is final."
+          : "Before a file is released, a buyer may request a full refund. After release, refunds are limited to a file that cannot be opened or a listing that breaches the ban list above.",
       },
+      ...(NOTES_OPTION_A_LIVE
+        ? [
+            {
+              kind: "p" as const,
+              text: "User-to-user marketplace and cross-balance offset: MatchMax provides an online venue connecting buyers and sellers of educational materials and is not the creator, publisher or seller of user-uploaded materials. Where a refund, a non-refundable payment fee or a bank chargeback is caused by seller fault under the Notes Marketplace Terms, MatchMax may offset and deduct that amount from any pending or future payouts owed to that user across any service on the Platform.",
+            },
+          ]
+        : []),
     ],
   },
   {

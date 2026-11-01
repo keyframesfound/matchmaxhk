@@ -25,6 +25,7 @@ import { FolderDetailPage } from "@/features/folders/folder-detail";
 import { CourseDetailPage } from "@/features/courses/course-detail";
 import { ReportMenuButton } from "@/features/reports/report-button";
 import { canonicalUrl } from "@/features/i18n/seo";
+import { NOTES_OPTION_A_LIVE } from "@/features/materials/marketplace-policy";
 import {
   NoteDeliverablesPanel,
   NoteIncludedFiles,
@@ -417,6 +418,11 @@ function NotePage() {
                   {t("notes.request_tutor")}
                 </a>
               )}
+              {NOTES_OPTION_A_LIVE ? (
+                <p className="rounded-lg border border-success/40 bg-success/5 p-3 text-xs leading-relaxed">
+                  {t("notes_option_a.escrow_badge")}
+                </p>
+              ) : null}
               <ul className="space-y-1.5 border-t border-border pt-4 text-xs text-muted-foreground">
                 <li>· {t("notes.perk_manual_review")}</li>
                 <li>· {t("notes.perk_licence")}</li>

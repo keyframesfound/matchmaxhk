@@ -281,7 +281,8 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
       {
         kind: "ul",
         items: [
-          "Each delivered file is stamped with the order identifier and the buyer account identifier so leaks can be traced.",
+          "Each delivered file is stamped with the order reference and a masked form of the buyer’s email address (for example j***@g***.com) so leaks can be traced.",
+          "Every download is logged with the order, account, file, IP address, browser and time, to prove delivery in disputes.",
           "The selling tutor sees units sold and net amounts owed. The tutor does not see the buyer’s name, phone number, or email.",
           "Staff may view a file to review it before release or to handle a complaint.",
           "Order records are kept for seven years. On request, we delete a delivered file where there is no outstanding payout or dispute relating to it.",
@@ -290,6 +291,23 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
       {
         kind: "p",
         text: "The commercial terms for notes, licences, refunds, and takedowns, are set out in the Notes Terms (/legal/notes-terms).",
+      },
+    ],
+  },
+  {
+    title: "12A. Notes sellers, moderation and retention",
+    blocks: [
+      {
+        kind: "p",
+        text: "When you register as a notes seller we collect your payout details (FPS, PayMe or AlipayHK), the account holder name, and your age and authority declaration with its time and IP address. We use them only to pay you, keep accounts and prevent fraud.",
+      },
+      {
+        kind: "ul",
+        items: [
+          "Order, payout, fee and dispute ledgers: kept for 7 years from the transaction date, as section 51C of the Inland Revenue Ordinance (Cap. 112) requires.",
+          "Moderation logs, reports and removed listings: kept for 2 years from resolution for legal defence and repeat-offender tracking, then permanently deleted in line with the Personal Data (Privacy) Ordinance (Cap. 486).",
+          "Uploaded text may be scanned automatically for banned material (such as official exam papers) and contact details; flagged uploads are reviewed by staff.",
+        ],
       },
     ],
   },

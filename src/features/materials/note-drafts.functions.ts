@@ -29,6 +29,12 @@ import {
 } from "@/features/materials/storage-helpers";
 import { watermarkPdfPreview } from "@/features/materials/watermark";
 import { sanitizePreviewIndices } from "@/features/materials/preview-pages";
+import {
+  NOTES_OPTION_A_LIVE,
+  scanListing,
+  validateListingPrice,
+  type ScanFlag,
+} from "@/features/materials/marketplace-policy";
 import { CONTENT_LANGUAGES, isValidSubcategory } from "@/features/materials/note-taxonomy";
 
 /**
@@ -640,7 +646,70 @@ const SubmitForReviewInput = SubmitInput.extend({
   // checkbox must arrive true (mirrors /legal/notes-terms), and the handler
   // records the terms_acceptances row (surface note_upload) on success.
   legalAgreed: z.literal(true),
+  // #573 seller activation: age (18+ or guardian consent) and originality /
+  // ban-list warranty, both required; stored with time + IP.
+  sellerDeclarations: z.object({ age: z.literal(true), originality: z.literal(true) }),
+  // #573 scanner: text the browser extracted from the main PDF (optional;
+  // a missing / tiny text layer routes the upload to the staff queue).
+  fileText: z.string().max(60_000).nullish(),
 });
+
+/** #573: record the seller declarations (best effort before the migration). */
+async function recordSellerDeclarations(db: AdminDb, userId: string) {
+  const { getRequest } = await import("@tanstack/react-start/server");
+  const headers = getRequest()?.headers;
+  const ip =
+    headers?.get("cf-connecting-ip") ??
+    headers?.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    null;
+  const now = new Date().toISOString();
+  const { error } = await db.from<never>("seller_declarations").upsert(
+    {
+      user_id: userId,
+      age_declared_at: now,
+      originality_declared_at: now,
+      declared_ip: ip,
+      declared_user_agent: headers?.get("user-agent")?.slice(0, 400) ?? null,
+      terms_version: "2026-11-option-a",
+      updated_at: now,
+    },
+    { onConflict: "user_id" },
+  );
+  if (error && !/42P01|does not exist/i.test(`${error.code ?? ""} ${error.message}`)) {
+    throw new Error(error.message);
+  }
+}
+
+/**
+ * #573: write the scanner result and, once Option A is live, publish clean
+ * uploads straight away (flagged ones stay in the staff queue).
+ */
+async function applyUploadScan(
+  db: AdminDb,
+  materialId: string,
+  flags: ScanFlag[],
+): Promise<"published" | "pending_review"> {
+  const publish = NOTES_OPTION_A_LIVE && flags.length === 0;
+  const scan = { scan_status: flags.length > 0 ? "flagged" : "clean", scan_flags: flags };
+  const statusPatch = publish ? { status: "published", reviewed_at: new Date().toISOString() } : {};
+  const first = await db
+    .from<never>("digital_materials")
+    .update({ ...scan, ...statusPatch })
+    .eq("id", materialId);
+  if (first.error?.code === "42703") {
+    // Scanner columns not migrated yet: still honour the publish decision.
+    if (publish) {
+      const retry = await db
+        .from<never>("digital_materials")
+        .update(statusPatch)
+        .eq("id", materialId);
+      if (retry.error) throw new Error(retry.error.message);
+    }
+  } else if (first.error) {
+    throw new Error(first.error.message);
+  }
+  return publish ? "published" : "pending_review";
+}
 
 /** P8 submit: validates required fields, then parks the note for staff review. */
 export const submitNoteForReview = createServerFn({ method: "POST" })
@@ -673,6 +742,15 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       priceHkd: data.priceHkd ?? Number(existing?.price_hkd ?? 0),
       hasPdf: Boolean(data.base64Data) || Boolean(existing?.original_file_path),
     };
+    // #543 / #573: free (HK$0) or HK$20 to HK$5,000.
+    const priceProblem = validateListingPrice(Number(merged.priceHkd ?? 0), kinds.materialType);
+    if (priceProblem) {
+      throw new Error(
+        priceProblem === "above_maximum"
+          ? "The maximum price is HK$5,000."
+          : "Paid listings start at HK$20. Set HK$0 for a free item.",
+      );
+    }
     const check = checkSubmitReadiness(merged);
     if (!check.ok) {
       throw new Error(`Missing: ${check.missing.join(", ")}`);
@@ -825,7 +903,23 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       subjectId: materialId,
     });
 
-    return { materialId };
+    await recordSellerDeclarations(db, context.userId);
+    const scanFlags = scanListing({
+      listingText: [
+        merged.title,
+        data.description,
+        data.summary,
+        kinds.topic,
+        ...(data.searchTags ?? []),
+      ]
+        .filter(Boolean)
+        .join("\n"),
+      fileText: data.fileText ?? null,
+      hasFile: merged.hasPdf,
+    });
+    const status = await applyUploadScan(db, materialId, scanFlags);
+
+    return { materialId, status, scanFlags };
   });
 
 /** P9: edit a live note's text/price, live after the contact filter. */
@@ -844,6 +938,16 @@ export const editLiveNote = createServerFn({ method: "POST" })
       searchTags: data.searchTags,
     });
     assertValidSubcategory(material.curriculum_tag, data.subcategory);
+    if (data.priceHkd != null) {
+      const priceProblem = validateListingPrice(data.priceHkd, material.material_type);
+      if (priceProblem) {
+        throw new Error(
+          priceProblem === "above_maximum"
+            ? "The maximum price is HK$5,000."
+            : "Paid listings start at HK$20. Set HK$0 for a free item.",
+        );
+      }
+    }
 
     if (data.base64Data) {
       await stageFileForMaterial(db, tutor, material, data.fileName || "note.pdf", data.base64Data);

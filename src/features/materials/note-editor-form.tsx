@@ -83,6 +83,42 @@ import {
 } from "@/features/materials/note-file-tools";
 import { NotePreviewPicker } from "@/features/materials/note-preview-picker";
 import { NotePriceGuidePanel } from "@/features/materials/note-price-guide-panel";
+import {
+  earningsEstimate,
+  NOTES_OPTION_A_LIVE,
+  validateListingPrice,
+} from "@/features/materials/marketplace-policy";
+
+/** #573 Option A live calculator; the payment fee is always an estimate. */
+function EarningsCalculator({ priceHkd }: { priceHkd: number }) {
+  const { t } = useTranslation();
+  const e = earningsEstimate(priceHkd);
+  const money = (v: number) => `HK$${v.toFixed(2)}`;
+  return (
+    <div className="space-y-2 rounded-xl border border-border p-4 text-sm">
+      <p className="font-semibold">{t("notes_option_a.fee_title")}</p>
+      <dl className="space-y-1">
+        <div className="flex justify-between">
+          <dt>{t("notes_option_a.fee_gross")}</dt>
+          <dd>{money(e.gross)}</dd>
+        </div>
+        <div className="flex justify-between text-muted-foreground">
+          <dt>{t("notes_option_a.fee_platform")}</dt>
+          <dd>- {money(e.platform)}</dd>
+        </div>
+        <div className="flex justify-between text-muted-foreground">
+          <dt>{t("notes_option_a.fee_gateway")}</dt>
+          <dd>- {money(e.gateway)}</dd>
+        </div>
+        <div className="flex justify-between border-t border-border pt-1 font-bold">
+          <dt>{t("notes_option_a.fee_net")}</dt>
+          <dd>{money(e.net)}</dd>
+        </div>
+      </dl>
+      <p className="text-xs text-muted-foreground">{t("notes_option_a.fee_note")}</p>
+    </div>
+  );
+}
 
 /**
  * P8/P9/#313/#314/#136 + notes upload v2: the draft-or-submit note form,
@@ -202,6 +238,9 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   const [aiNote, setAiNote] = useState<string | null>(null);
   const autoDetected = useRef(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  // #573 seller activation declarations (age + originality), required to submit.
+  const [declareAge, setDeclareAge] = useState(false);
+  const [declareOriginality, setDeclareOriginality] = useState(false);
 
   const subjectOptions = useMemo(
     () => getSubjectOptionsForCategory(curriculum || undefined),
@@ -338,6 +377,14 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   if (title.trim().length < 3) missing.push(t("notes.form.field_title"));
   const priceNum = price.trim() === "" ? Number.NaN : Number(price);
   if (Number.isNaN(priceNum) || priceNum < 0) missing.push(t("notes.form.field_price"));
+  // #543 / #573: free (HK$0) or HK$20 to HK$5,000.
+  const priceProblem = Number.isNaN(priceNum) ? null : validateListingPrice(priceNum, materialType);
+  if (priceProblem === "below_minimum" || priceProblem === "above_maximum") {
+    missing.push(t("notes.form.field_price"));
+  }
+  if (!isLive && !(declareAge && declareOriginality)) {
+    missing.push(t("notes_option_a.declare_missing"));
+  }
   if (!hasMainFile) missing.push(t("notes.form.field_pdf"));
   if (!curriculum) missing.push(t("notes.form.field_curriculum"));
   if (!subject.trim()) missing.push(t("notes.form.field_subject"));
@@ -729,18 +776,44 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
 
     // 5. Submit for staff review.
     if (kind === "submit" && !isLive) {
-      await submitNoteForReview({ data: { materialId: id, ...meta, legalAgreed: true } });
+      // #573 scanner: send the main PDF's text layer (none for scans).
+      let fileText: string | null = null;
+      const scanSource = mainLocal ?? remoteMainUrl;
+      if (scanSource) {
+        try {
+          const doc = await openPdf(scanSource);
+          fileText = await extractPdfText(doc, 60_000, 200);
+          await doc.destroy();
+        } catch {
+          fileText = null;
+        }
+      }
+      const result = await submitNoteForReview({
+        data: {
+          materialId: id,
+          ...meta,
+          legalAgreed: true,
+          sellerDeclarations: { age: true, originality: true },
+          fileText,
+        },
+      });
+      return result.status;
     }
+    return null;
   };
 
   const saveMutation = useMutation({
     mutationFn: persist,
-    onSuccess: (_data, kind) => {
+    onSuccess: (status, kind) => {
       toast.success(
         isLive
           ? t("notes.upload.live_saved")
           : kind === "submit"
-            ? t("notes.form.submitted")
+            ? status === "published"
+              ? t("notes_option_a.published_now")
+              : NOTES_OPTION_A_LIVE
+                ? t("notes_option_a.flagged_note")
+                : t("notes.form.submitted")
             : t("notes.form.draft_saved"),
       );
       // SPA navigation keeps the /zh | /cn prefix; refresh the Account lists.
@@ -1328,7 +1401,14 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             placeholder={t("notes.form.price_free_hint")}
             className="h-11"
           />
-          <p className="text-xs text-muted-foreground">{t("notes.form.price_free_note")}</p>
+          <p className="text-xs text-muted-foreground">
+            {t("notes.form.price_free_note")} {t("notes_option_a.price_rule")}
+          </p>
+          {priceProblem === "below_minimum" ? (
+            <p className="text-xs text-destructive">{t("notes_option_a.price_below_minimum")}</p>
+          ) : priceProblem === "above_maximum" ? (
+            <p className="text-xs text-destructive">{t("notes_option_a.price_above_maximum")}</p>
+          ) : null}
         </div>
         <NotePriceGuidePanel
           materialType={materialType}
@@ -1340,7 +1420,32 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           priceHkd={Number.isNaN(priceNum) ? null : priceNum}
           onUsePrice={(value) => setPrice(String(value))}
         />
+        {NOTES_OPTION_A_LIVE ? (
+          <EarningsCalculator priceHkd={Number.isNaN(priceNum) ? 0 : priceNum} />
+        ) : null}
       </section>
+
+      {!isLive ? (
+        <section className="space-y-3 rounded-2xl border border-border p-4">
+          <p className="text-sm font-bold">{t("notes_option_a.declare_title")}</p>
+          <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
+            <Checkbox
+              checked={declareAge}
+              onCheckedChange={(c) => setDeclareAge(c === true)}
+              className="mt-1"
+            />
+            <span>{t("notes_option_a.declare_age")}</span>
+          </label>
+          <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
+            <Checkbox
+              checked={declareOriginality}
+              onCheckedChange={(c) => setDeclareOriginality(c === true)}
+              className="mt-1"
+            />
+            <span>{t("notes_option_a.declare_originality")}</span>
+          </label>
+        </section>
+      ) : null}
 
       {!isLive ? (
         <TermsGateCheckbox
