@@ -29,6 +29,11 @@ export const PUBLIC_NOTE_V2_COLUMNS =
 export const PUBLIC_NOTE_TUTOR_JOIN =
   "tutors!inner(display_name, tutor_code, user_id, is_published, verification_tier)";
 
+/** #573 open marketplace: the join + seller gate once community sellers exist. */
+export const PUBLIC_NOTE_TUTOR_JOIN_V2 =
+  "tutors!inner(display_name, tutor_code, user_id, is_published, verification_tier, is_community_seller)";
+export const PUBLIC_SELLER_OR = "is_published.eq.true,is_community_seller.eq.true";
+
 export type PublicNote = {
   id: string;
   slug: string | null;
@@ -63,6 +68,8 @@ export type PublicNote = {
   tutorCode: string;
   /** #314 honesty: the Verified badge renders for tier_2_verified only. */
   tutorVerificationTier: string | null;
+  /** #573: notes-only seller without a tutor card (no profile link). */
+  isCommunitySeller: boolean;
   // --- Freestyle gig fields (#326): populated only when materialType ===
   // 'gig'; note rows never carry them (the DB coherence CHECK forbids it).
   gigCategory: string | null;
@@ -124,6 +131,8 @@ export function mapPublicNote(row: NoteRow): PublicNote | null {
     tutorCode,
     tutorVerificationTier:
       typeof tutor?.verification_tier === "string" ? tutor.verification_tier : null,
+    isCommunitySeller:
+      (tutor as { is_community_seller?: unknown } | null)?.is_community_seller === true,
     gigCategory: typeof row.gig_category === "string" ? row.gig_category : null,
     gigDeliveryType: typeof row.gig_delivery_type === "string" ? row.gig_delivery_type : null,
     turnaroundNote: typeof row.turnaround_note === "string" ? row.turnaround_note : null,
@@ -152,16 +161,24 @@ export async function fetchPublicNoteRows(
   db: AdminDb,
   refine: (query: PublicNoteQuery) => PublicNoteQuery,
 ): Promise<PublicNote[]> {
-  const run = (columns: string) =>
-    refine(
-      db
-        .from<NoteRow>("digital_materials")
-        .select(`${columns}, ${PUBLIC_NOTE_TUTOR_JOIN}`)
-        .eq("status", "published")
-        .eq("tutors.is_published", true),
+  const run = (columns: string, community: boolean) => {
+    const base = db
+      .from<NoteRow>("digital_materials")
+      .select(`${columns}, ${community ? PUBLIC_NOTE_TUTOR_JOIN_V2 : PUBLIC_NOTE_TUTOR_JOIN}`)
+      .eq("status", "published");
+    return refine(
+      community
+        ? base.or(PUBLIC_SELLER_OR, { referencedTable: "tutors" })
+        : base.eq("tutors.is_published", true),
     );
-  let result = await run(`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_V2_COLUMNS}`);
-  if (result.error?.code === "42703") result = await run(PUBLIC_NOTE_COLUMNS);
+  };
+  // Newest schema first; each 42703 (undefined column) steps back one
+  // migration so the public pages never break before migrations land.
+  let result = await run(`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_V2_COLUMNS}`, true);
+  if (result.error?.code === "42703") {
+    result = await run(`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_V2_COLUMNS}`, false);
+  }
+  if (result.error?.code === "42703") result = await run(PUBLIC_NOTE_COLUMNS, false);
   if (result.error) throw new Error(result.error.message);
   return (result.data ?? []).map(mapPublicNote).filter((n): n is PublicNote => n !== null);
 }

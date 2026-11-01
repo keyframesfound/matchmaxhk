@@ -403,7 +403,7 @@ export function MaterialsDirectory() {
                 material={material}
                 tutorName={material.tutor_display_name}
                 tutorCode={material.tutor_code}
-                showTutorLink
+                showTutorLink={!material.tutor_community}
                 verifiedTutor={material.tutor_verified}
                 detailHref={`/notes/${material.slug ?? material.id}`}
               />

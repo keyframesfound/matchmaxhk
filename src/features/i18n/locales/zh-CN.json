@@ -1112,8 +1112,8 @@
     "notes": {
       "intro": "高分导师原创，经团队审核先上架。",
       "how_title": "运作方式",
-      "s1_title": "导师上传原创教材（仅限第二层）",
-      "s1_body": "每份教材必须系导师自己嘅作品，或附书面同意。",
+      "s1_title": "卖家上传原创教材",
+      "s1_body": "导师及学生都可以出售。每份教材必须是卖家本人的作品，或已取得书面许可。",
       "s2_title": "团队审核版权同质素",
       "s2_body": "上架前，团队会按禁售清单审核每份教材。",
       "s3_title": "买家以 FPS 付款畀 MatchMax",
@@ -1135,10 +1135,10 @@
       "enforcement_remove": "MatchMax 可随时下架教材并向买家退款。",
       "cta_browse": "浏览学习教材",
       "terms_link": "阅读笔记条款",
-      "upload_note": "导师须知：上传即表示接受笔记条款。未接受条款前，上传表格无法提交。",
+      "upload_note": "卖家注意：上传即表示您同意《笔记条款》。未同意条款前无法提交上传表格。",
       "h1": "温习笔记商城",
       "upload_title": "上传笔记步骤",
-      "upload_intro": "已验证导师可在「账户」内按「新增笔记」上传。提交予职员审核之前，所有内容都会保存为草稿。",
+      "upload_intro": "任何拥有 MatchMax 账户的用户都可在「账户」内按「新增笔记」出售：导师会以导师档案显示，其他用户则以「社群卖家」显示。提交之前，所有内容都会保存为草稿。",
       "u1_title": "加入档案",
       "u1_body": "拖放 PDF、照片或扫描档（会合并成一份 PDF）、Word、简报、ZIP 或视频，或贴上 Google Drive、Docs、Dropbox 或 OneDrive 链接。",
       "u2_title": "由 AI 填写资料",
@@ -2170,6 +2170,9 @@
       "as_level": "AS Level",
       "a2_level": "A2 Level",
       "general": "一般"
+    },
+    "seller": {
+      "community_badge": "社群卖家"
     }
   },
   "orders": {

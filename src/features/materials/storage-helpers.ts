@@ -20,6 +20,8 @@ export type DbError = { message: string; code?: string } | null;
 export type Rows<T> = {
   eq: (col: string, value: unknown) => Rows<T>;
   neq: (col: string, value: unknown) => Rows<T>;
+  /** PostgREST or-filter; referencedTable scopes it to an embedded join. */
+  or: (filter: string, opts?: { referencedTable?: string }) => Rows<T>;
   in: (col: string, values: unknown[]) => Rows<T>;
   /** #543 release sweep: hold_expires_at <= now. */
   lte: (col: string, value: unknown) => Rows<T>;

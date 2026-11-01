@@ -1112,8 +1112,8 @@
     "notes": {
       "intro": "Original packs from verified tutors, staff-checked before they go live.",
       "how_title": "How it works",
-      "s1_title": "Tutor uploads original pack (Tier 2 only)",
-      "s1_body": "Every pack must be the tutor’s own work or carry written permission.",
+      "s1_title": "Seller uploads an original pack",
+      "s1_body": "Tutors and students alike can sell. Every pack must be the seller's own work or carry written permission.",
       "s2_title": "Staff copyright & quality check",
       "s2_body": "Staff review every pack against the ban list before it goes live.",
       "s3_title": "Buyer pays MatchMax by FPS",
@@ -1135,10 +1135,10 @@
       "enforcement_remove": "MatchMax may remove a pack and refund the buyer at any time.",
       "cta_browse": "Browse study materials",
       "terms_link": "Read the Notes Terms",
-      "upload_note": "Tutors: uploading means you accept the Notes Terms. The upload form cannot be submitted without accepting them.",
+      "upload_note": "Sellers: uploading means you accept the Notes Terms. The upload form cannot be submitted without accepting them.",
       "h1": "Study notes marketplace",
       "upload_title": "Uploading a note, step by step",
-      "upload_intro": "Verified tutors upload from Account, Add a note. Everything saves as a draft until you submit it for staff review.",
+      "upload_intro": "Anyone with a MatchMax account can sell from Account, Add a note: tutors appear under their tutor card, everyone else as a Community Seller. Everything saves as a draft until you submit it.",
       "u1_title": "Add your files",
       "u1_body": "Drop a PDF, photos or scans (joined into one PDF), Word, slides, ZIP or video files, or paste a Google Drive, Docs, Dropbox or OneDrive link.",
       "u2_title": "Let AI fill in the details",
@@ -2170,6 +2170,9 @@
       "as_level": "AS Level",
       "a2_level": "A2 Level",
       "general": "General"
+    },
+    "seller": {
+      "community_badge": "Community Seller"
     }
   },
   "orders": {

@@ -43,16 +43,22 @@ export const getNotePriceGuide = createServerFn({ method: "GET" })
     const db = asAdminDb(supabaseAdmin);
     const base =
       "id, slug, title, price_hkd, material_type, curriculum_tag, subject_tag, page_count";
-    const run = (columns: string) =>
-      db
+    const run = (columns: string, community: boolean) => {
+      const q = db
         .from<Row>("digital_materials")
-        .select(`${columns}, tutors!inner(is_published)`)
-        .eq("status", "published")
-        .eq("tutors.is_published", true)
+        .select(`${columns}, tutors!inner(is_published${community ? ", is_community_seller" : ""})`)
+        .eq("status", "published");
+      return (
+        community
+          ? q.or("is_published.eq.true,is_community_seller.eq.true", { referencedTable: "tutors" })
+          : q.eq("tutors.is_published", true)
+      )
         .eq("material_type", data.materialType)
         .limit(1000);
-    let result = await run(`${base}, subcategory`);
-    if (result.error?.code === "42703") result = await run(base);
+    };
+    let result = await run(`${base}, subcategory`, true);
+    if (result.error?.code === "42703") result = await run(`${base}, subcategory`, false);
+    if (result.error?.code === "42703") result = await run(base, false);
     const rows = result.error ? [] : (result.data ?? []);
     const pool: ComparableListing[] = rows.map((row) => ({
       id: row.id,

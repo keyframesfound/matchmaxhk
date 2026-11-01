@@ -213,14 +213,24 @@ function NotePage() {
                 <p className="text-[0.95rem] leading-relaxed text-foreground/80">{note.summary}</p>
               ) : null}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                <Link
-                  to="/tutors/$tutorCode"
-                  params={{ tutorCode: note.tutorCode }}
-                  className="inline-flex items-center gap-1.5 font-medium text-[color:var(--brand-link)] hover:underline"
-                >
-                  <GraduationCap className="h-4 w-4" aria-hidden />
-                  {note.tutorName}
-                </Link>
+                {note.isCommunitySeller ? (
+                  <span className="inline-flex items-center gap-1.5 text-sm font-medium">
+                    <GraduationCap className="h-4 w-4" aria-hidden />
+                    {note.tutorName}
+                    <span className="rounded border border-border px-1.5 text-[11px] font-semibold text-muted-foreground">
+                      {t("notes.seller.community_badge")}
+                    </span>
+                  </span>
+                ) : (
+                  <Link
+                    to="/tutors/$tutorCode"
+                    params={{ tutorCode: note.tutorCode }}
+                    className="inline-flex items-center gap-1.5 font-medium text-[color:var(--brand-link)] hover:underline"
+                  >
+                    <GraduationCap className="h-4 w-4" aria-hidden />
+                    {note.tutorName}
+                  </Link>
+                )}
                 {note.pageCount != null && (
                   <span className="inline-flex items-center gap-1.5">
                     <FileText className="h-4 w-4" aria-hidden />
@@ -351,14 +361,24 @@ function NotePage() {
                   ? t("notes.card.free")
                   : t("notes.price", { amount: note.priceHkd })}
               </p>
-              <Link
-                to="/tutors/$tutorCode"
-                params={{ tutorCode: note.tutorCode }}
-                className="flex items-center gap-1.5 text-sm font-medium text-[color:var(--brand-link)] hover:underline"
-              >
-                <GraduationCap className="h-4 w-4" aria-hidden />
-                {note.tutorName}
-              </Link>
+              {note.isCommunitySeller ? (
+                <span className="inline-flex items-center gap-1.5 text-sm font-medium">
+                  <GraduationCap className="h-4 w-4" aria-hidden />
+                  {note.tutorName}
+                  <span className="rounded border border-border px-1.5 text-[11px] font-semibold text-muted-foreground">
+                    {t("notes.seller.community_badge")}
+                  </span>
+                </span>
+              ) : (
+                <Link
+                  to="/tutors/$tutorCode"
+                  params={{ tutorCode: note.tutorCode }}
+                  className="flex items-center gap-1.5 text-sm font-medium text-[color:var(--brand-link)] hover:underline"
+                >
+                  <GraduationCap className="h-4 w-4" aria-hidden />
+                  {note.tutorName}
+                </Link>
+              )}
               {!isOwner && (
                 <TermsGateCheckbox
                   section="notes"
