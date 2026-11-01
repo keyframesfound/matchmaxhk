@@ -190,9 +190,9 @@ function GuideNotesPage() {
             color="accent"
             className="h-auto w-full rounded-xl px-6 py-3.5"
           >
-            <a href="/account/notes/new">
+            <Link to="/account/notes/new">
               <Upload /> {t("guide.notes.cta_upload")}
-            </a>
+            </Link>
           </Button>
           <Button
             asChild

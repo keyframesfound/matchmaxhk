@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { Download, Heart, Link2, Scale, Share2, Upload } from "lucide-react";
@@ -530,13 +531,13 @@ export function SellNotesCta({ className }: { className?: string }) {
       </div>
       <div className="flex shrink-0 flex-wrap gap-2">
         <Button asChild variant="solid" color="neutral" className="font-semibold">
-          <a href="/account/notes/new">
+          <Link to="/account/notes/new">
             <Upload className="mr-2 h-4 w-4" aria-hidden />
             {t("notes.cta.sell_button")}
-          </a>
+          </Link>
         </Button>
         <Button asChild variant="outline">
-          <a href="/guide/notes">{t("notes.cta.guide_button")}</a>
+          <Link to="/guide/notes">{t("notes.cta.guide_button")}</Link>
         </Button>
       </div>
     </div>

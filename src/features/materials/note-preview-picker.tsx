@@ -21,11 +21,16 @@ export function NotePreviewPicker({
   selected,
   onChange,
   onPageCount,
+  onLoadFailed,
 }: {
   source: File | string | null;
   selected: number[] | null;
   onChange: (indices: number[]) => void;
   onPageCount?: (count: number) => void;
+  /** GLM review fix: remote (signed-URL) sources expire after ~15 min; the
+   * parent refetches a fresh URL, and the new source identity re-runs this
+   * effect. Only called for string sources. */
+  onLoadFailed?: (source: string) => void;
 }) {
   const { t } = useTranslation();
   const [thumbs, setThumbs] = useState<string[]>([]);
@@ -57,7 +62,10 @@ export function NotePreviewPicker({
         }
         await doc.destroy();
       } catch {
-        if (!cancelled) setFailed(true);
+        if (!cancelled) {
+          setFailed(true);
+          if (typeof source === "string") onLoadFailed?.(source);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -65,7 +73,7 @@ export function NotePreviewPicker({
     return () => {
       cancelled = true;
     };
-    // onPageCount is a stable setter from the parent.
+    // onPageCount/onLoadFailed are stable setters from the parent.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source]);
 

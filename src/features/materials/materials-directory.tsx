@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { BookOpen, Heart, SearchX, Upload, Users } from "lucide-react";
@@ -410,14 +411,17 @@ export function MaterialsDirectory() {
           </div>
         )}
       </div>
-      {/* Notes upload v2: always-reachable upload button (floating layer). */}
-      <a
-        href="/account/notes/new"
-        className="mm-overlay-lift fixed bottom-5 right-5 z-40 inline-flex items-center gap-2 rounded-full bg-[color:var(--ink)] px-5 py-3 text-sm font-bold text-[color:var(--surface-invert-fg)] transition-colors hover:bg-[color:var(--ink)]/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]"
+      {/* Notes upload v2: always-reachable upload button (floating layer).
+          Stacks ABOVE the global float column (WhatsApp @5rem/bottom-6,
+          BackToTop @9rem/bottom-24 — both z-50) so it never hides under the
+          mobile bottom nav or under the desktop WhatsApp button. */}
+      <Link
+        to="/account/notes/new"
+        className="mm-overlay-lift fixed bottom-[calc(13rem+env(safe-area-inset-bottom))] right-4 z-40 inline-flex items-center gap-2 rounded-full bg-[color:var(--ink)] px-5 py-3 text-sm font-bold text-[color:var(--surface-invert-fg)] transition-colors hover:bg-[color:var(--ink)]/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] lg:bottom-44 lg:right-6"
       >
         <Upload className="h-4 w-4" aria-hidden />
         {t("notes.cta.upload_fab")}
-      </a>
+      </Link>
     </section>
   );
 }

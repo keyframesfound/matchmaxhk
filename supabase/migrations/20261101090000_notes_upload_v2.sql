@@ -105,7 +105,6 @@ CREATE TABLE IF NOT EXISTS public.material_reviews (
   order_id UUID REFERENCES public.material_orders(id) ON DELETE SET NULL,
   rating SMALLINT NOT NULL CHECK (rating BETWEEN 1 AND 5),
   comment TEXT CHECK (comment IS NULL OR char_length(comment) <= 2000),
-  reviewer_label TEXT CHECK (reviewer_label IS NULL OR char_length(reviewer_label) <= 60),
   created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT material_reviews_one_per_buyer UNIQUE (material_id, buyer_account_id)
@@ -186,3 +185,21 @@ CREATE POLICY "Service role manages material extras"
   TO service_role
   USING (bucket_id = 'materials-extras')
   WITH CHECK (bucket_id = 'materials-extras');
+
+-- ---------------------------------------------------------------------------
+-- 6. ai_suggestion_events: per-account rate limiting for the AI detection
+--    endpoint (GLM review fix). One row per call that reaches OpenRouter;
+--    RLS enabled with NO policies so only the service-role server function
+--    can read/write it. The cap lives in note-ai.functions.ts.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS public.ai_suggestion_events (
+  id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  account_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+  kind TEXT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+ALTER TABLE public.ai_suggestion_events ENABLE ROW LEVEL SECURITY;
+
+CREATE INDEX IF NOT EXISTS idx_ai_suggestion_events_account
+  ON public.ai_suggestion_events (account_id, kind, created_at);

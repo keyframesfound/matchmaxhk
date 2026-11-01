@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import {
@@ -249,6 +250,36 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
       cancelled = true;
     };
   }, [existing?.id, isLive]);
+
+  // GLM review fix: the owner URL is signed for ~15 min. If the seller idles
+  // longer, thumbnails / AI detection fail with a 403 — refetch a fresh URL
+  // once per served URL (the new string identity re-runs the consumers).
+  const remoteRetryRef = useRef<{ served: string | null; busy: boolean }>({
+    served: null,
+    busy: false,
+  });
+  const refreshRemoteMainUrl = useCallback(
+    async (failedUrl: string) => {
+      if (!existing?.id || isLive) return;
+      const state = remoteRetryRef.current;
+      if (state.busy || state.served === failedUrl) return;
+      state.busy = true;
+      try {
+        const { url } = await getNoteOriginalUrlForOwner({
+          data: { materialId: existing.id },
+        });
+        if (url) {
+          state.served = url;
+          setRemoteMainUrl(url);
+        }
+      } catch {
+        // Keep the old URL; the picker shows its failed state.
+      } finally {
+        state.busy = false;
+      }
+    },
+    [existing?.id, isLive],
+  );
 
   // Photos / scans merge into one PDF when there is no PDF.
   useEffect(() => {
@@ -502,6 +533,8 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
         setAiNote(t("notes.ai.applied", { count: filled }));
       } catch (error) {
         setAiNote(null);
+        // Expired signed URL: refresh it so the next attempt works.
+        if (typeof mainSource === "string") await refreshRemoteMainUrl(mainSource);
         toast.error(error instanceof Error ? error.message : t("notes.ai.failed"));
       } finally {
         setAiBusy(false);
@@ -523,6 +556,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
       language,
       tagsText,
       existing,
+      refreshRemoteMainUrl,
       t,
     ],
   );
@@ -1010,6 +1044,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
               setPicksDirty(true);
             }}
             onPageCount={setMainPageCount}
+            onLoadFailed={refreshRemoteMainUrl}
           />
         </section>
       ) : null}
@@ -1348,9 +1383,9 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
       )}
       <p className="text-xs text-muted-foreground">
         {t("notes.upload.guide_prompt")}{" "}
-        <a href="/guide/notes" className="font-semibold text-[color:var(--brand-link)] underline">
+        <Link to="/guide/notes" className="font-semibold text-[color:var(--brand-link)] underline">
           {t("notes.upload.guide_link")}
-        </a>
+        </Link>
       </p>
     </form>
   );

@@ -51,6 +51,8 @@ export type MaterialRow = {
   status: MaterialStatus;
   price_hkd: number;
   original_file_path: string | null;
+  watermarked_preview_url: string | null;
+  pending_original_file_path: string | null;
   edit_status: string | null;
   curriculum_tag: string;
   subject_tag: string | null;
@@ -182,6 +184,7 @@ function assertCleanCopy(fields: {
   topic?: string;
   gradeAchieved?: string;
   summary?: string;
+  searchTags?: string[];
 }) {
   const labels: Record<string, string> = {
     title: "Title",
@@ -189,17 +192,22 @@ function assertCleanCopy(fields: {
     summary: "Summary",
     topic: "Topic",
     gradeAchieved: "Grade achieved",
+    searchTags: "Tags",
   };
-  for (const [field, text] of Object.entries(fields)) {
-    if (!text) continue;
-    const violations = findContactViolations(text);
-    if (violations.length > 0) {
-      throw new Error(
-        `${labels[field]} contains contact details (${violations
-          .map((v) => v.match)
-          .slice(0, 2)
-          .join(", ")}). Remove them to save.`,
-      );
+  for (const [field, value] of Object.entries(fields)) {
+    const texts =
+      field === "searchTags" ? (Array.isArray(value) ? value : []) : [value as string | undefined];
+    for (const text of texts) {
+      if (!text) continue;
+      const violations = findContactViolations(text);
+      if (violations.length > 0) {
+        throw new Error(
+          `${labels[field]} contains contact details (${violations
+            .map((v) => v.match)
+            .slice(0, 2)
+            .join(", ")}). Remove them to save.`,
+        );
+      }
     }
   }
 }
@@ -213,7 +221,7 @@ export async function loadOwnedMaterial(
   const { data, error } = await db
     .from<MaterialRow>("digital_materials")
     .select(
-      "id, tutor_id, title, slug, status, price_hkd, original_file_path, edit_status, curriculum_tag, subject_tag, material_type, topic, grade_achieved, exemplar_permission",
+      "id, tutor_id, title, slug, status, price_hkd, original_file_path, watermarked_preview_url, pending_original_file_path, edit_status, curriculum_tag, subject_tag, material_type, topic, grade_achieved, exemplar_permission",
     )
     .eq("id", materialId)
     .maybeSingle();
@@ -300,10 +308,31 @@ export async function stageFileBytesForMaterial(
       .upload(path, bytes as unknown as BlobPart, { contentType: materialFileContentType(kind) });
     if (error) throw new Error(error.message);
   }
+  // GLM review fix (notes upload v2): a replaced file must not orphan the old
+  // storage objects. Capture what this staging run overwrites so the old
+  // original / pending original / watermarked preview can be removed
+  // best-effort once the row update succeeds.
+  const staleOriginal =
+    material.original_file_path && material.original_file_path !== path
+      ? material.original_file_path
+      : null;
+  const stalePending =
+    material.pending_original_file_path && material.pending_original_file_path !== path
+      ? material.pending_original_file_path
+      : null;
+  const previewMarker = `/${PUBLIC_BUCKET}/`;
+  const stalePreviewPath = (material.watermarked_preview_url ?? "").includes(previewMarker)
+    ? decodeURIComponent((material.watermarked_preview_url ?? "").split(previewMarker)[1] ?? "")
+    : "";
   const pickColumn =
     options.previewPageIndices !== undefined && preview
       ? { preview_page_indices: preview.indices }
       : {};
+
+  // The old watermarked preview is only orphaned in the branches that
+  // actually overwrite/clear watermarked_preview_url — a live-doc staging
+  // run keeps the live preview in place.
+  let oldPreviewOrphaned = false;
 
   if (preview) {
     const previewPath = previewPathFor(path);
@@ -331,6 +360,7 @@ export async function stageFileBytesForMaterial(
       await db.storage.from(PRIVATE_BUCKET).remove([path]);
       throw new Error(updateError.message);
     }
+    oldPreviewOrphaned = true;
   } else if (isLiveDoc) {
     const { error: updateError } = await db
       .from<never>("digital_materials")
@@ -357,6 +387,25 @@ export async function stageFileBytesForMaterial(
       await db.storage.from(PRIVATE_BUCKET).remove([path]);
       throw new Error(updateError.message);
     }
+    oldPreviewOrphaned = true;
+  }
+  // Best-effort cleanup of the replaced objects (original + pending original
+  // from the private bucket, old watermarked preview from the public one).
+  // Runs only after a successful row update; failures never block staging.
+  const stalePrivate = [staleOriginal, stalePending].filter(
+    (p): p is string => Boolean(p) && p !== path,
+  );
+  if (stalePrivate.length > 0) {
+    await db.storage
+      .from(PRIVATE_BUCKET)
+      .remove(stalePrivate)
+      .catch(() => undefined);
+  }
+  if (oldPreviewOrphaned && stalePreviewPath && stalePreviewPath !== previewPathFor(path)) {
+    await db.storage
+      .from(PUBLIC_BUCKET)
+      .remove([stalePreviewPath])
+      .catch(() => undefined);
   }
   return {
     staged: isLiveDoc,
@@ -481,6 +530,7 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
       description: data.description,
       topic: data.topic ?? undefined,
       gradeAchieved: data.gradeAchieved ?? undefined,
+      searchTags: data.searchTags,
     });
     // #346: the stored row loads first so the partial subject check can
     // exempt the note's own legacy subjectTag (the form's legacy option).
@@ -605,6 +655,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       description: data.description,
       topic: data.topic ?? undefined,
       gradeAchieved: data.gradeAchieved ?? undefined,
+      searchTags: data.searchTags,
     });
 
     const existing = data.materialId
@@ -790,6 +841,7 @@ export const editLiveNote = createServerFn({ method: "POST" })
       title: data.title,
       description: data.description,
       summary: data.summary ?? undefined,
+      searchTags: data.searchTags,
     });
     assertValidSubcategory(material.curriculum_tag, data.subcategory);
 

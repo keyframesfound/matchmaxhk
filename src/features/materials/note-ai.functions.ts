@@ -27,6 +27,16 @@ import {
 
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
+/**
+ * GLM review fix: per-account abuse cap on the AI endpoint (up to 4 x 2 MB
+ * images per call at a 90 s timeout). One row per call that reaches
+ * OpenRouter, recorded in ai_suggestion_events (service-role only). The
+ * guard fails OPEN when the table is missing (pre-migration environments)
+ * so detection keeps working exactly as before the migration lands.
+ */
+const NOTE_AI_DAILY_LIMIT = 50;
+const NOTE_AI_EVENT_KIND = "note_detect";
+
 const Input = z.object({
   fileName: z.string().trim().max(200).nullish(),
   pageCount: z.number().int().min(0).max(10_000).nullish(),
@@ -49,7 +59,7 @@ const Input = z.object({
 export const suggestNoteDetails = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => Input.parse(data))
-  .handler(async ({ data }): Promise<NoteAiSuggestion> => {
+  .handler(async ({ data, context }): Promise<NoteAiSuggestion> => {
     const apiKey = getRuntimeEnv("OPENROUTER_API_KEY");
     if (!apiKey) {
       throw new Error("AI detection is not configured yet (OPENROUTER_API_KEY is missing).");
@@ -60,6 +70,32 @@ export const suggestNoteDetails = createServerFn({ method: "POST" })
     const useVision = text.length < 200 && images.length > 0;
     if (!useVision && text.length < 20 && !data.fileName) {
       throw new Error("Not enough content to detect. Fill in the details by hand.");
+    }
+
+    // Per-account rolling-24h cap. Fails open when the events table is not
+    // there yet (pre-migration), never blocking detection on bookkeeping.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { asAdminDb } = await import("@/features/materials/storage-helpers");
+    const aiDb = asAdminDb(supabaseAdmin);
+    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+    try {
+      const recent = await aiDb
+        .from<{ created_at: string }>("ai_suggestion_events")
+        .select("created_at")
+        .eq("account_id", context.userId)
+        .eq("kind", NOTE_AI_EVENT_KIND)
+        .gte("created_at", since)
+        .limit(NOTE_AI_DAILY_LIMIT);
+      if ((recent.data?.length ?? 0) >= NOTE_AI_DAILY_LIMIT) {
+        throw new Error(
+          "AI detection limit reached for today. Fill in the details by hand and try again tomorrow.",
+        );
+      }
+      await aiDb
+        .from<never>("ai_suggestion_events")
+        .insert({ account_id: context.userId, kind: NOTE_AI_EVENT_KIND });
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("limit reached")) throw error;
     }
 
     const userText = buildNoteAiUserText({
