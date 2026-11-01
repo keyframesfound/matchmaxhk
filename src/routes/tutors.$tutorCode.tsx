@@ -124,9 +124,16 @@ function buildTutorSeoMeta(tutor: Tutor, url: string) {
         ? "online or in-person"
         : "in-person";
   // Issue #502: prefer the display name in the SEO/og title when set, keeping
-  // the tutor code in brackets so parents can still quote it.
-  const displayName = tutor.display_name.trim();
-  const identity = displayName ? `${displayName} (${tutor.tutor_code})` : tutor.tutor_code;
+  // the tutor code in brackets so parents can still quote it. Issue #568: the
+  // code itself can be stored as the display_name when no public name was set
+  // (same guard as the header's isNamedProfile) — treat that as unnamed so the
+  // title renders the code once, not "MM-T129 (MM-T129)".
+  const rawName = tutor.display_name.trim();
+  const hasRealDisplayName =
+    Boolean(rawName) &&
+    rawName !== tutor.tutor_code &&
+    rawName !== formatTutorCode(tutor.tutor_code);
+  const identity = hasRealDisplayName ? `${rawName} (${tutor.tutor_code})` : tutor.tutor_code;
   const title = `${identity} | ${subjectText || "Tutor"} ${lessonModeText} ${locationText} | MatchMax`;
   const description = `Tutor ${identity} offers ${subjectText || "subject"} support${locationText}. Browse profile details, lesson mode, rates and availability on MatchMax.`;
 
