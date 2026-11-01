@@ -254,9 +254,12 @@ export function NoteReviewsSection({
   const state = stateQuery.data;
   const mine = state?.myReview ?? null;
   const showForm = Boolean(state?.canReview) && (!mine || editing);
-  const dateFmt = new Intl.DateTimeFormat(i18n.language === "zh-HK" ? "zh-HK" : "en-GB", {
-    dateStyle: "medium",
-  });
+  const dateFmt = new Intl.DateTimeFormat(
+    i18n.language?.startsWith("zh") ? i18n.language : "en-GB",
+    {
+      dateStyle: "medium",
+    },
+  );
 
   return (
     <section className="space-y-4" id="reviews">

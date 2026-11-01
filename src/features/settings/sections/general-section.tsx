@@ -3,6 +3,7 @@ import { toast } from "sonner";
 
 import { SettingsCard, OptionCard, OptionCardGroup } from "@/features/settings/option-card";
 import { useSwitchLocale } from "@/features/i18n/switch-locale";
+import { normalizeLocale } from "@/features/i18n/seo";
 import { ThemeModeCards } from "@/features/settings/theme-mode-cards";
 import type { SettingsSectionProps } from "@/features/settings/types";
 import { useTheme, type ThemePreference } from "@/features/theme/ThemeProvider";
@@ -18,13 +19,18 @@ const LOCALE_OPTIONS = [
     labelKey: "settings.general.language_zh",
     descKey: "settings.general.language_zh_desc",
   },
+  {
+    value: "zh-CN",
+    labelKey: "settings.general.language_zh_cn",
+    descKey: "settings.general.language_zh_cn_desc",
+  },
 ] as const;
 
 export function GeneralSection({ profile, updateProfile }: SettingsSectionProps) {
   const { t, i18n } = useTranslation();
   const { theme, setTheme } = useTheme();
   const switchLocale = useSwitchLocale();
-  const currentLocale = i18n.language?.startsWith("zh") ? "zh-HK" : "en";
+  const currentLocale = normalizeLocale(i18n.language);
 
   function pickLocale(locale: string) {
     if (locale === currentLocale) return;
@@ -50,7 +56,7 @@ export function GeneralSection({ profile, updateProfile }: SettingsSectionProps)
         title={t("settings.general.language_title")}
         description={t("settings.general.language_desc")}
       >
-        <OptionCardGroup label={t("settings.general.language_title")} columns={2}>
+        <OptionCardGroup label={t("settings.general.language_title")} columns={3}>
           {LOCALE_OPTIONS.map((option) => (
             <OptionCard
               key={option.value}
@@ -60,7 +66,7 @@ export function GeneralSection({ profile, updateProfile }: SettingsSectionProps)
               description={t(option.descKey)}
               preview={
                 <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--primary)]/10 text-base font-bold text-[color:var(--primary)]">
-                  {option.value === "en" ? "En" : "繁"}
+                  {option.value === "en" ? "En" : option.value === "zh-HK" ? "繁" : "简"}
                 </span>
               }
             />

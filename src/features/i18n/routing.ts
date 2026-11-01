@@ -10,9 +10,9 @@
 
 import type { SeoLocale } from "./seo";
 
-export type LocaleSegment = "en" | "zh";
+export type LocaleSegment = "en" | "zh" | "cn";
 
-export const LOCALE_SEGMENTS: readonly LocaleSegment[] = ["en", "zh"];
+export const LOCALE_SEGMENTS: readonly LocaleSegment[] = ["en", "zh", "cn"];
 
 // Mirror of LOCALE_COOKIE_KEY in seo.ts (importing the value would create a
 // runtime cycle seo.ts → routing.ts → seo.ts; the type-only import above is
@@ -20,11 +20,21 @@ export const LOCALE_SEGMENTS: readonly LocaleSegment[] = ["en", "zh"];
 const LOCALE_COOKIE_KEY = "matchmax.locale";
 
 function isSupportedLocaleValue(value: string | null | undefined): value is SeoLocale {
-  return value === "en" || value === "zh-HK";
+  return value === "en" || value === "zh-HK" || value === "zh-CN";
 }
 
-const SEGMENT_BY_LOCALE: Record<SeoLocale, LocaleSegment> = { en: "en", "zh-HK": "zh" };
-const LOCALE_BY_SEGMENT: Record<LocaleSegment, SeoLocale> = { en: "en", zh: "zh-HK" };
+// 2026-11-01 (owner-approved): Simplified Chinese UI lives under /cn. English
+// stays the source language and the default; 繁 / 简 are opt-in choices.
+const SEGMENT_BY_LOCALE: Record<SeoLocale, LocaleSegment> = {
+  en: "en",
+  "zh-HK": "zh",
+  "zh-CN": "cn",
+};
+const LOCALE_BY_SEGMENT: Record<LocaleSegment, SeoLocale> = {
+  en: "en",
+  zh: "zh-HK",
+  cn: "zh-CN",
+};
 
 export function segmentOfLocale(locale: SeoLocale): LocaleSegment {
   return SEGMENT_BY_LOCALE[locale];
@@ -34,9 +44,9 @@ export function localeOfSegment(segment: LocaleSegment): SeoLocale {
   return LOCALE_BY_SEGMENT[segment];
 }
 
-const LOCALE_PATH_RE = /^\/(en|zh)(?=\/|$)/;
+const LOCALE_PATH_RE = /^\/(en|zh|cn)(?=\/|$)/;
 
-/** `/en`, `/zh`, `/en/...`, `/zh/...` → { segment, rest } (rest always starts with /). */
+/** `/en`, `/zh`, `/cn` (+ `/...`) → { segment, rest } (rest always starts with /). */
 export function parseLocalePath(pathname: string): { segment: LocaleSegment; rest: string } | null {
   const match = LOCALE_PATH_RE.exec(pathname);
   if (!match) return null;

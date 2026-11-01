@@ -42,12 +42,13 @@ function renderUrl(entry: SitemapEntry): string {
   // Locale-prefix structure (2026-10-25): every route exists at /en and /zh,
   // each self-canonical <url> carries hreflang alternates for both plus
   // x-default → English.
-  const locales = ["en", "zh"] as const;
+  const locales = ["en", "zh", "cn"] as const;
   return locales
     .map((segment) => {
       const alternates = [
         { hreflang: "en", href: `${BASE_URL}/en${entry.path === "/" ? "" : entry.path}` },
         { hreflang: "zh-HK", href: `${BASE_URL}/zh${entry.path === "/" ? "" : entry.path}` },
+        { hreflang: "zh-CN", href: `${BASE_URL}/cn${entry.path === "/" ? "" : entry.path}` },
         { hreflang: "x-default", href: `${BASE_URL}/en${entry.path === "/" ? "" : entry.path}` },
       ]
         .map(

@@ -177,7 +177,7 @@ function RootShell({ children }: { children: ReactNode }) {
   // the right lang for /zh pages; HtmlLangSync keeps it in step client-side.
   const locale = getActiveUrlLocale();
   return (
-    <html lang={locale === "zh-HK" ? "zh-HK" : "en"} suppressHydrationWarning>
+    <html lang={locale} suppressHydrationWarning>
       <head>
         <HeadContent />
         <meta name="theme-color" content="#ffffff" />

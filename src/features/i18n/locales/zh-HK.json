@@ -1832,7 +1832,8 @@
     "mode_switched_learning": "已切換到學習模式。",
     "mode_switched_teaching": "已切換到教學模式。",
     "mode_switch_error": "無法切換模式，請再試一次。",
-    "workspaces": "工作區"
+    "workspaces": "工作區",
+    "upload_notes": "上載筆記"
   },
   "nav_mobile": {
     "case": "個案",
@@ -2586,10 +2587,10 @@
       "not_linked": "你嘅導師檔案仍未連結到此帳戶。你嘅申請獲接納後，我哋嘅團隊會替你連結，屆時你嘅推薦連結就會喺呢度出現。"
     },
     "general": {
-    "dob_title": "生日",
-    "dob_desc": "嚴格保密（個人資料私隱專員公署第 486 章）。僅用於年齡相關功能；可選的公開徽章只顯示月及日，絕不顯示年份。",
-    "dob_label": "出生日期",
-    "dob_saved": "已儲存生日",
+      "dob_title": "生日",
+      "dob_desc": "嚴格保密（個人資料私隱專員公署第 486 章）。僅用於年齡相關功能；可選的公開徽章只顯示月及日，絕不顯示年份。",
+      "dob_label": "出生日期",
+      "dob_saved": "已儲存生日",
       "appearance_title": "外觀",
       "appearance_desc": "選擇 MatchMax 喺呢個帳戶嘅顯示方式。",
       "color_mode": "色彩模式",
@@ -2605,7 +2606,9 @@
       "language_en_desc": "以英文瀏覽 MatchMax。",
       "language_zh": "繁體中文",
       "language_zh_desc": "以繁體中文瀏覽 MatchMax。",
-      "language_saved": "語言已更新。"
+      "language_saved": "語言已更新。",
+      "language_zh_cn": "簡體中文",
+      "language_zh_cn_desc": "以簡體中文顯示 MatchMax。"
     },
     "account": {
       "overview_title": "帳戶概覽",
@@ -2751,12 +2754,12 @@
       "status_inactive_hint": "你張卡仍然可見，但會顯示「暫停」並隱藏申請按鈕，直至你重新啟用。"
     },
     "my_tutor": {
-    "probono_title": "義教與支援設定",
-    "probono_hint": "這些設定會顯示於您的公開頻道，只顯示名額數目，絕不顯示學生身份。",
-    "probono_free": "接受義教（$0）供有經濟需要的學生",
-    "probono_reduced": "接受減免學費（HK$／小時）：",
-    "probono_slots": "同時義教名額上限（0–10）：",
-    "probono_save": "儲存設定",
+      "probono_title": "義教與支援設定",
+      "probono_hint": "這些設定會顯示於您的公開頻道，只顯示名額數目，絕不顯示學生身份。",
+      "probono_free": "接受義教（$0）供有經濟需要的學生",
+      "probono_reduced": "接受減免學費（HK$／小時）：",
+      "probono_slots": "同時義教名額上限（0–10）：",
+      "probono_save": "儲存設定",
       "title": "我的導師檔案",
       "description": "編輯 MatchMax 團隊指派到你帳戶的導師檔案。變更會即時生效。",
       "not_linked": "你的帳戶尚未連結導師檔案。檔案由 MatchMax 團隊指派——待他們確認後再回來查看。",
@@ -3029,7 +3032,7 @@
     "admin_preset_offplatform": "列表或影片中有平台外宣傳"
   },
   "sor": {
-"lead_probono_badge": "義教／減免申請",
+    "lead_probono_badge": "義教／減免申請",
     "bell_aria": "通知，{{count}} 則未讀",
     "bell_empty": "暫時沒有通知",
     "bell_view_all": "查看所有通知",
@@ -3304,7 +3307,7 @@
     "bell_lesson_cancelled_parent": "家長已取消一節課堂",
     "bell_lesson_cancelled_tutor": "你的導師已取消一節課堂",
     "bell_lesson_scheduled_parent": "家長已要求一個課堂時段",
-        "bell_lesson_scheduled_tutor": "你的導師已安排一節課堂",
+    "bell_lesson_scheduled_tutor": "你的導師已安排一節課堂",
     "bell_lead_new": "新補習個案配對",
     "bell_intro_parent": "已為您配對導師",
     "bell_intro_tutor": "個案已成功配對",
@@ -3662,10 +3665,10 @@
     "picker_hint": "揀返子女，兄弟姊妹嘅個案就唔會混埋一齊。",
     "picker_add_placeholder": "子女暱稱",
     "claim": {
-    "link_hint": "電郵已發送。您亦可複製一次性轉讓連結自行發送（WhatsApp、列印等）。連結 7 天後失效，且只能使用一次。",
-    "link_copy": "複製連結",
-    "link_copied": "已複製",
-    "err_CLAIM_NOT_FRESH": "只能以全新帳戶接收檔案（不可有任何現有個案、子女檔案或學習履歷）。",
+      "link_hint": "電郵已發送。您亦可複製一次性轉讓連結自行發送（WhatsApp、列印等）。連結 7 天後失效，且只能使用一次。",
+      "link_copy": "複製連結",
+      "link_copied": "已複製",
+      "err_CLAIM_NOT_FRESH": "只能以全新帳戶接收檔案（不可有任何現有個案、子女檔案或學習履歷）。",
       "invite_cta": "邀請認領",
       "invite_title": "邀請 {{name}} 認領自己嘅檔案",
       "invite_desc": "佢會收到一條一次性電郵連結，7 日內有效。認領後檔案會轉到佢自己嘅帳戶，你仍然可以查看。",

@@ -168,7 +168,7 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
         {
           property: "og:description",
           content:
-            locale === "zh-HK"
+            locale !== "en"
               ? "真實香港家長補習需求。申請適合你嘅個案，或者自己出需求——家長完全免費。"
               : "Real tutoring requests from Hong Kong parents. Apply for a case that fits you, or post your own, free for parents.",
         },
