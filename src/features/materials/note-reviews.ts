@@ -14,11 +14,21 @@ export type BuyerOrderLike = {
 };
 
 /**
+ * #543 checkout statuses that grant the file: download unlocks at payment
+ * (paid_held) and stays after release (completed_released). An order in
+ * disputed_frozen does NOT count, so a buyer cannot review (or pull extras)
+ * while their own refund claim is open.
+ */
+const CHECKOUT_V2_ACCESS_STATUSES = new Set(["paid_held", "completed_released"]);
+
+/**
  * A buyer may review (and download extras) only while one of their orders
  * for the note grants file access: the same rule as the Bought list's
- * Download button (delivered / held / released, or a PARTIAL refund).
+ * Download button (delivered / held / released, or a PARTIAL refund), plus
+ * the #543 Stripe-checkout statuses above.
  */
 export function orderGrantsNoteAccess(order: BuyerOrderLike): boolean {
+  if (CHECKOUT_V2_ACCESS_STATUSES.has(order.status)) return true;
   const refund = order.refund_amount == null ? null : Number(order.refund_amount);
   const gross = order.gross_hkd == null ? undefined : Number(order.gross_hkd);
   return boughtListAction(order.status, refund, gross) === "download";

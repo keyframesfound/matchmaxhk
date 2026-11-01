@@ -81,6 +81,10 @@ describe("reviews", () => {
     expect(orderGrantsNoteAccess({ status: "released" })).toBe(true);
     expect(orderGrantsNoteAccess({ status: "awaiting_payment" })).toBe(false);
     expect(orderGrantsNoteAccess({ status: "refunded" })).toBe(false);
+    // #543 checkout: access from payment, none while the buyer's dispute is open.
+    expect(orderGrantsNoteAccess({ status: "paid_held" })).toBe(true);
+    expect(orderGrantsNoteAccess({ status: "completed_released" })).toBe(true);
+    expect(orderGrantsNoteAccess({ status: "disputed_frozen" })).toBe(false);
     expect(
       orderGrantsNoteAccess({ status: "refunded_from_hold", refund_amount: 10, gross_hkd: 100 }),
     ).toBe(true);
