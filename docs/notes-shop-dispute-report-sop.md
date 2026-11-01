@@ -3,8 +3,9 @@
 Status: **locked by #573** (Notes Marketplace Master SoT, 2026-11-01).
 Consolidates #573 with #543 (checkout + 72h hold), #556 (marking
 dual-timer, ratings), #559 (rubric, strikes) and #544 (public copy). The
-former proposed items are now signed off (see §8). If this document and
-#573 disagree, **#573 wins** and this file is wrong.
+former proposed items are now signed off (see §8). Rule of precedence:
+**Hauzton's latest update wins** (today #573), then #543 / #556 / #559 /
+#544. If this document disagrees, it is wrong and must be updated.
 
 Code: the numbers and money rules live in
 `src/features/materials/marketplace-policy.ts` (unit-tested); staff tools
@@ -200,16 +201,32 @@ work and the listing), notify the seller, and allow a counter-notice within
 
 ## 5. Banned content and the strike ladder
 
-The full table is locked in #559 §D. Summary:
+One ladder for every category: the #573 three-strike policy (Notes
+Marketplace Terms §4.2). Where the older #559 §D table differs (for
+example a 30-day suspension for a second fee-avoidance offence), **#573
+wins**: Hauzton's latest update is the source of truth.
 
-| Category | Example | 1st | 2nd | 3rd |
-| --- | --- | --- | --- | --- |
-| 1 Copyright / exam authority | HKEAA, IBO, CIE, Pearson papers or markschemes; school confidential papers; textbook scans | Remove listing + Strike 1 | Permanent selling ban | |
-| 2 Ghostwriting | Writing an IA / EE / SBA / TOK / personal statement for a student | Permanent ban (seller and buyer) | | |
-| 3 Fee avoidance | Phone numbers, WhatsApp, WeChat QR, payment links in files, previews or bios | Hide + Strike 1 | 30-day suspension | Permanent ban |
-| 4 Bait and switch / blank file fraud | Decoy, blank or locked file | 100% refund to buyer (gateway fee offset on seller) + permanent ban + freeze held payouts | | |
-| 5 Buyer refund abuse | False "corrupt / not received" claims after download; chargebacks on valid files | Dispute rejected + Strike 1 | Permanent buying ban + evidence to Stripe Radar | |
-| 6 Harassment / fake reviews | Doxxing, vulgarity after warnings, shill reviews | Remove + Strike 1 | 14-day suspension + manipulated ratings removed | Permanent ban |
+| Strike | Penalty (#573 §4.2) |
+| --- | --- |
+| 1 | Remove the violating listing(s), refund every still-held order on them in full, written warning |
+| 2 | Remove, **14-day** upload suspension, extended escrow holds on the seller's new sales |
+| 3, or severe fraud / piracy | Immediate permanent removal of seller privileges; freeze pending escrow to cover buyer refunds and fee recoveries |
+
+What counts as **severe** (straight to strike 3, no warning):
+
+| Category | Example | Treatment |
+| --- | --- | --- |
+| Ghostwriting / contract cheating | Writing an IA / EE / SBA / TOK / personal statement for a student | Severe: permanent ban for the seller (and the buyer who commissioned it) |
+| Bait and switch / blank file fraud | Decoy, blank or locked file sold to collect payouts | Severe: 100% refunds (gateway fee offset on the seller) + permanent ban + freeze held payouts |
+| Bulk or repeat piracy | Systematic uploads of official HKEAA / IBO / CIE / Pearson papers or marking schemes | Severe at staff discretion; a one-off upload is strike 1 |
+
+Other categories follow the ladder above: copyright / exam-authority
+uploads, fee avoidance (contact details, QR codes, payment links),
+harassment and fake or shill reviews (also remove the manipulated
+ratings). **Buyers** who file false "corrupt / not received" claims after a
+logged download get the same ladder on their buying privileges; any
+unwarranted chargeback after a valid download is treated as severe
+(permanent buying ban, download logs sent to Stripe as evidence).
 
 5.1 `strike_count` persists across suspensions and is always visible on
 the staff user record.
@@ -219,11 +236,7 @@ who uploads five official past papers in one session gets **one** strike
 (and all five listings removed). Severe P1 fraud or piracy can go straight
 to a permanent ban (#573).
 
-5.3 Ladder in the public Notes Marketplace Terms (#573 §4.2): Strike 1
-removal + held orders refunded + written warning; Strike 2 removal +
-14-day upload suspension + extended holds; Strike 3 (or severe fraud)
-permanent seller ban + freeze of pending escrow to cover refunds and fee
-recoveries. Strikes do not expire in V1.
+5.3 Strikes do not expire in V1.
 
 5.4 **Contraband found on a live listing:** unpublish; every order on it
 still in `paid_held` / `delivered_held` / `disputed_frozen` is refunded
