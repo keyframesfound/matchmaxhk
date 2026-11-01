@@ -7,7 +7,8 @@
  * rewrite pair — with English as the source of truth.
  *
  * 2026-10-25: locale subpaths shipped (user decision), superseding the old
- * CEO lock of "no locale subpaths". zh-CN UI strings remain deferred, so
+ * CEO lock of "no locale subpaths". 2026-11-01: Simplified Chinese ships under
+ * /cn as an OPT-IN choice (owner rule: English first, 繁 / 简 options), so
  * mainland browsers still soft-default to English at the / gate.
  */
 
@@ -56,7 +57,7 @@ export function readLocaleCookie(): string | null {
 
 /**
  * Soft navigator mapping: HK/TW/MO/generic-zh browsers → zh-HK; mainland
- * (zh-CN / zh-SG) stays English until zh-CN UI ships. Never a hard redirect.
+ * (zh-CN / zh-SG) stays English by design (Simplified is opt-in only). Never a hard redirect.
  */
 export function navigatorLocale(): SeoLocale {
   if (typeof navigator === "undefined") return "en";

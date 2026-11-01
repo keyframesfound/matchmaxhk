@@ -142,14 +142,14 @@ export const Route = createFileRoute("/")({
         {
           name: "twitter:title",
           content:
-            locale === "zh-HK"
+            locale !== "en"
               ? "MatchMax | 香港最透明的補習配對平台"
               : "Tutoring Made Convenient in Hong Kong | MatchMax",
         },
         {
           name: "twitter:description",
           content:
-            locale === "zh-HK"
+            locale !== "en"
               ? "極速專人配對、透明紙面成績，家長全免手續費。"
               : "Find elite IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
         },

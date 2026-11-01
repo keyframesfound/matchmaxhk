@@ -131,12 +131,12 @@ function getLocaleRedirect(request: Request): Response | null {
   const pathname = url.pathname;
 
   // Legacy full-tag prefix: /zh-HK/... → /zh/...
-  if (pathname === "/zh-HK" || pathname.startsWith("/zh-HK/")) {
+  if (/^\/zh-hk(?=\/|$)/i.test(pathname)) {
     url.pathname = `/zh${pathname.slice("/zh-HK".length) || ""}`;
     return localeRedirectResponse(url);
   }
   // Full-tag Simplified prefix: /zh-CN/... → /cn/...
-  if (pathname === "/zh-CN" || pathname.startsWith("/zh-CN/")) {
+  if (/^\/zh-cn(?=\/|$)/i.test(pathname)) {
     url.pathname = `/cn${pathname.slice("/zh-CN".length) || ""}`;
     return localeRedirectResponse(url);
   }

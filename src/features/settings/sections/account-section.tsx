@@ -17,7 +17,7 @@ import { HANDLE_MAX, HANDLE_MIN, normalizeHandle } from "@/features/auth/handle"
 
 function formatDate(value: string | null, locale: string) {
   if (!value) return null;
-  return new Date(value).toLocaleDateString(locale === "zh-HK" ? "zh-HK" : "en-HK", {
+  return new Date(value).toLocaleDateString(locale.startsWith("zh") ? locale : "en-HK", {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -41,7 +41,7 @@ export function AccountSection({ user, profile, updateProfile }: SettingsSection
   const [newEmail, setNewEmail] = useState("");
   const [changingEmail, setChangingEmail] = useState(false);
 
-  const dateLocale = i18n.language?.startsWith("zh") ? "zh-HK" : "en-HK";
+  const dateLocale = i18n.language?.startsWith("zh") ? i18n.language : "en-HK";
   const provider =
     typeof user.app_metadata?.provider === "string" ? user.app_metadata.provider : "email";
   const memberSince = formatDate(user.created_at ?? null, dateLocale);

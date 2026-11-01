@@ -25,7 +25,7 @@ export const Route = createFileRoute("/group-classes")({
         {
           property: "og:description",
           content:
-            locale === "zh-HK"
+            locale !== "en"
               ? "瀏覽開放招生嘅小組班——2至6人、每位學生費率更低、同一個按每位學生計嘅 1.5 課管理費。"
               : "Browse open group cohorts, 2 to 6 students, lower per-student rates, the same per-student 1.5-lesson admin fee.",
         },
