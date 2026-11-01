@@ -29,7 +29,11 @@ import {
   NOTE_SUBCATEGORIES,
 } from "@/features/materials/note-taxonomy";
 import { getMySavedNoteIds } from "@/features/materials/note-engagement.functions";
-import { SAVED_NOTES_QUERY_KEY, SellNotesCta } from "@/features/materials/note-engagement";
+import {
+  SAVED_NOTES_QUERY_KEY,
+  SellNotesCta,
+  SimilarNotesSection,
+} from "@/features/materials/note-engagement";
 import { formatMaterialTypeLabel } from "@/features/materials/queries";
 
 /**
@@ -46,18 +50,42 @@ import { formatMaterialTypeLabel } from "@/features/materials/queries";
  * links are no longer needed here.
  */
 
-type KindFilter = "all" | "notes" | "courses" | "folders" | "services";
+/**
+ * #557 Carousell-style category bar: All · Study notes · Mocks & solutions ·
+ * IA / EE / SBA · Video courses · Topic folders · Marking & services · Free.
+ */
+type KindFilter =
+  "all" | "notes" | "mocks" | "coursework" | "courses" | "folders" | "services" | "free";
+
+const COURSEWORK_SUBCATEGORIES = new Set(["ia", "ee", "tok", "sba", "coursework"]);
 
 /* Radix Select items can't hold an empty value, so each filter's "all"
  * choice rides this sentinel and maps back to "". */
 const MATERIALS_ALL_VALUE = "__all__";
 
-const KIND_FILTER_TYPES: Record<Exclude<KindFilter, "all">, string[]> = {
-  notes: ["notes", "mock", "exemplar", "flashcards"],
-  courses: ["video_course", "general_course"],
-  folders: ["topic_folder"],
-  services: ["gig"],
-};
+function matchesKind(m: MarketplaceMaterial, kind: KindFilter): boolean {
+  switch (kind) {
+    case "all":
+      return true;
+    case "notes":
+      return m.material_type === "notes" || m.material_type === "flashcards";
+    case "mocks":
+      return m.material_type === "mock";
+    case "coursework":
+      return (
+        m.material_type === "exemplar" ||
+        (m.subcategory != null && COURSEWORK_SUBCATEGORIES.has(m.subcategory))
+      );
+    case "courses":
+      return m.material_type === "video_course" || m.material_type === "general_course";
+    case "folders":
+      return m.material_type === "topic_folder";
+    case "services":
+      return m.material_type === "gig";
+    case "free":
+      return Number(m.price_hkd) === 0;
+  }
+}
 
 export function MaterialsDirectory() {
   const { t } = useTranslation();
@@ -111,9 +139,8 @@ export function MaterialsDirectory() {
   }, [curriculum, materials]);
 
   const filtered = useMemo(() => {
-    const kindTypes = kind === "all" ? null : KIND_FILTER_TYPES[kind];
     const narrowed = materials.filter((m) => {
-      if (kindTypes && !kindTypes.includes(m.material_type)) return false;
+      if (!matchesKind(m, kind)) return false;
       if (school && (m.school_tag ?? "").trim().toLowerCase() !== school.toLowerCase())
         return false;
       if (subject && (m.subject_tag ?? "").trim().toLowerCase() !== subject.toLowerCase())
@@ -188,10 +215,13 @@ export function MaterialsDirectory() {
 
   const kindChips: { value: KindFilter; label: string }[] = [
     { value: "all", label: t("shop.filter_all") },
-    { value: "notes", label: t("shop.filter_notes") },
+    { value: "notes", label: t("notes.category.notes") },
+    { value: "mocks", label: t("notes.category.mocks") },
+    { value: "coursework", label: t("notes.category.coursework") },
     { value: "courses", label: t("shop.filter_courses") },
     { value: "folders", label: t("shop.filter_folders") },
-    { value: "services", label: t("shop.filter_services") },
+    { value: "services", label: t("notes.category.services") },
+    { value: "free", label: t("notes.category.free") },
   ];
 
   return (
@@ -236,7 +266,8 @@ export function MaterialsDirectory() {
         </div>
 
         {/* Notes upload v2: finer categories (IA / EE / Paper 1 / SBA ...). */}
-        {(kind === "all" || kind === "notes") && subcategoryOptions.length > 0 ? (
+        {(kind === "all" || kind === "notes" || kind === "mocks" || kind === "coursework") &&
+        subcategoryOptions.length > 0 ? (
           <div className="mb-4 flex flex-wrap items-center gap-2" role="group">
             {subcategoryOptions.map((option) => (
               <button
@@ -411,6 +442,12 @@ export function MaterialsDirectory() {
           </div>
         )}
       </div>
+      {/* #557: "Recommended for you" seeded by the viewer's saved notes. */}
+      {savedOnly && savedIds.size > 0 ? (
+        <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
+          <SimilarNotesSection seedIds={Array.from(savedIds).slice(0, 50)} className="mt-12" />
+        </div>
+      ) : null}
       {/* Notes upload v2: always-reachable upload button (floating layer).
           Stacks ABOVE the global float column (WhatsApp @5rem/bottom-6,
           BackToTop @9rem/bottom-24 — both z-50) so it never hides under the

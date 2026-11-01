@@ -2099,7 +2099,7 @@
       "included_after_purchase": "Extra files and links are delivered in your account after purchase.",
       "your_files": "Your extra files",
       "your_files_hint": "Download links expire after an hour. Reload the page for fresh links.",
-      "similar_title": "Similar notes",
+      "similar_title": "Recommended for you",
       "add_to_compare": "Compare",
       "compare_button": "Compare ({{count}})",
       "compare_title": "Compare notes",
@@ -2174,6 +2174,13 @@
     },
     "seller": {
       "community_badge": "Community Seller"
+    },
+    "category": {
+      "notes": "Study notes",
+      "mocks": "Mocks & solutions",
+      "coursework": "IA / EE / SBA",
+      "services": "Marking & services",
+      "free": "Free"
     }
   },
   "orders": {
