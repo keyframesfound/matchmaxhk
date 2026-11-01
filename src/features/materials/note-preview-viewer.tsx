@@ -3,6 +3,9 @@ import { useTranslation } from "react-i18next";
 import { Lock } from "lucide-react";
 
 import { CRISP_PREVIEW_PAGES } from "@/features/materials/lifecycle";
+// Bundled by Vite (?url emits the hashed asset into dist/assets) — a bare
+// "pdfjs-dist/build/pdf.worker.min.mjs" path 404s on prod (#569).
+import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 /**
  * Clastify-style preview viewer (Ryan, 2026-10-11): the public note page
@@ -15,8 +18,6 @@ import { CRISP_PREVIEW_PAGES } from "@/features/materials/lifecycle";
  * app) and renders at a fixed 900px-width scale, pages are laid out in a
  * single column like the reference site.
  */
-
-const FALLBACK_WORKER = "pdfjs-dist/build/pdf.worker.min.mjs";
 
 export function NotePreviewViewer({
   previewUrl,
@@ -45,8 +46,7 @@ export function NotePreviewViewer({
     (async () => {
       try {
         const pdfjs = await import("pdfjs-dist");
-        const workerUrl = new URL(FALLBACK_WORKER, import.meta.url).href;
-        pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
+        pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
         const doc = await pdfjs.getDocument({ url: previewUrl }).promise;
         if (cancelled) return;
         setPageCountState(doc.numPages);
