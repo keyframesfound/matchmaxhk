@@ -298,10 +298,13 @@ export function SiteHeader({
             <Link
               to="/account/notes/new"
               aria-current={isActive("/account/notes/new") ? "page" : undefined}
-              className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-[color:var(--ink)]/15 px-3 py-2 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.05] lg:inline-flex"
+              aria-label={t("nav.upload_notes")}
+              title={t("nav.upload_notes")}
+              className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-[color:var(--ink)]/15 px-2.5 py-2 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.05] xl:inline-flex 2xl:px-3"
             >
               <Upload className="h-4 w-4" aria-hidden />
-              {t("nav.upload_notes")}
+              {/* Icon-only until 2xl so it never crowds the centred tabs. */}
+              <span className="hidden 2xl:inline">{t("nav.upload_notes")}</span>
             </Link>
             {/* #459 §B: once Teaching is activated the Become a Tutor link
                 becomes the Learning/Teaching mode switcher. */}
