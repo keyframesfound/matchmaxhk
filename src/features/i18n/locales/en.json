@@ -1204,7 +1204,11 @@
       "h1": "Students & Parents: how it works",
       "account_callout_title": "Booking for yourself vs your child",
       "account_callout_body": "A single MatchMax account lets you book lessons directly as an independent student, or add Child Profiles under Account to manage multiple children's tutors in one place. Tutors automatically see whether they are speaking with a parent or directly with a student, so communication is tailored from day one.",
-      "cta_account": "Open Account settings"
+      "cta_account": "Open Account settings",
+      "fact_early_stop_label": "Stopping after Lesson 1",
+      "fact_early_stop_body": "If you stop after Lesson 1, you only pay the tutor for that one lesson (1.0×), and we rematch you with another tutor for free. Parents never pay MatchMax a matching fee.",
+      "fact_desk_hours_label": "Shortlist within a few desk hours",
+      "fact_desk_hours_body": "Complete requests (curriculum, subject, district or online, budget) usually get a shortlist within a few desk hours."
     },
     "partners": {
       "title": "Partnering with MatchMax: Guide for Tuition Centres & Educational Consultancies",
@@ -3887,5 +3891,39 @@
     "upload_failed": "Upload failed. Please try again.",
     "err_FPS_REFERENCE_USED": "This FPS reference already closed another case.",
     "view_screenshot": "View payment screenshot"
+  },
+  "cockpit": {
+    "title": "Matching cockpit",
+    "fee_title": "Platform fee (tutor pays)",
+    "fee_standard": "Standard 1.5 lessons: HK${{amount}}",
+    "fee_short": "Short case 20% of package: HK${{amount}}",
+    "fee_rate_missing": "Set hourly_rate_hkd on the case to show the fee.",
+    "fee_short_missing": "Short case needs session length and lesson count.",
+    "copy_fps": "Copy /fps",
+    "copied": "Copied, paste into WhatsApp",
+    "case_title": "Case setup",
+    "group_one": "1-on-1",
+    "group_group": "Group 2-3",
+    "market_band": "Market band HK$/hr",
+    "market_min": "Min",
+    "market_max": "Max",
+    "market_low": "Budget is more than 20% below the market band. Send /ratecheck.",
+    "save": "Save",
+    "macros_title": "Macros (copy only)",
+    "pins_title": "Fast-tutor pins · {{subject}}",
+    "pins_empty": "No pinned tutors for this subject yet.",
+    "pins_unknown": "Unknown tutor codes: {{codes}}",
+    "edit_pins": "Edit pins",
+    "waves_left": "Waves left {{n}}/{{max}}",
+    "max_two": "Parallel ping is max 2 tutors.",
+    "send_both": "Send both (/dispatch)",
+    "dispatch_copied": "Dispatch messages copied",
+    "declined": "declined",
+    "decline_schedule": "Schedule",
+    "decline_rate": "Rate",
+    "decline_other": "Other",
+    "decline_logged": "Decline logged",
+    "pivot": "Failed-trial pivot",
+    "pivot_done": "Rematch {{code}} ready. Next: {{next}}"
   }
 }

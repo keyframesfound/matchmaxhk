@@ -111,6 +111,8 @@ const CASE_CLOSED_STATUSES = new Set([
   // #449: the failed match enters the desk-driven rematch pivot; the
   // rematch itself is a NEW case.
   "failed_trial_pivot",
+  // #454: released after a silent 24h chase; the parent can restart it.
+  "released",
 ]);
 
 /**

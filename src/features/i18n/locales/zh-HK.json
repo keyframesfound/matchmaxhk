@@ -1204,7 +1204,11 @@
       "h1": "學生與家長：點樣運作",
       "account_callout_title": "幫自己定幫仔女報名？",
       "account_callout_body": "一個 MatchMax 帳戶可以直接以獨立學生身分報名，亦可以喺「帳戶」加入子女子檔案，一次過管理多個小朋友嘅導師。導師會自動知道對面係家長定係學生本人，由第一日起溝通就啱渠道。",
-      "cta_account": "開啟帳戶設定"
+      "cta_account": "開啟帳戶設定",
+      "fact_early_stop_label": "首堂後停止",
+      "fact_early_stop_body": "如首堂後決定停止，您只需向導師支付該一堂（1.0倍），我們會免費為您重新配對導師。家長毋須向 MatchMax 支付配對費。",
+      "fact_desk_hours_label": "數小時內提供導師名單",
+      "fact_desk_hours_body": "資料齊全的查詢（學制、科目、地區或網上、預算）通常會於辦公時間內數小時提供導師名單。"
     },
     "partners": {
       "title": "同 MatchMax 合作：補習中心及教育顧問指南",
@@ -3887,5 +3891,39 @@
     "upload_failed": "上載失敗，請再試一次。",
     "err_FPS_REFERENCE_USED": "此轉數快參考編號已用於另一個個案。",
     "view_screenshot": "查看付款截圖"
+  },
+  "cockpit": {
+    "title": "配對控制台",
+    "fee_title": "平台費（導師支付）",
+    "fee_standard": "標準 1.5 堂：HK${{amount}}",
+    "fee_short": "短期個案 20% 套票：HK${{amount}}",
+    "fee_rate_missing": "請先設定個案時薪 hourly_rate_hkd。",
+    "fee_short_missing": "短期個案需要每堂時長及堂數。",
+    "copy_fps": "複製 /fps",
+    "copied": "已複製，請貼上 WhatsApp",
+    "case_title": "個案設定",
+    "group_one": "一對一",
+    "group_group": "2-3人小組",
+    "market_band": "市場價 HK$/小時",
+    "market_min": "最低",
+    "market_max": "最高",
+    "market_low": "預算低於市場價超過 20%，請發送 /ratecheck。",
+    "save": "儲存",
+    "macros_title": "快捷訊息（只複製）",
+    "pins_title": "快速導師 · {{subject}}",
+    "pins_empty": "此科目暫未有快速導師。",
+    "pins_unknown": "未知導師編號：{{codes}}",
+    "edit_pins": "編輯快速導師",
+    "waves_left": "剩餘輪次 {{n}}/{{max}}",
+    "max_two": "同時聯絡最多 2 位導師。",
+    "send_both": "同時發送（/dispatch）",
+    "dispatch_copied": "已複製派單訊息",
+    "declined": "已拒絕",
+    "decline_schedule": "時間",
+    "decline_rate": "價錢",
+    "decline_other": "其他",
+    "decline_logged": "已記錄拒絕原因",
+    "pivot": "首堂失敗轉配",
+    "pivot_done": "已建立重配個案 {{code}}。下一批：{{next}}"
   }
 }

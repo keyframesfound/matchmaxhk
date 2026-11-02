@@ -1721,6 +1721,7 @@ export type Database = {
         | "compliance_hold"
         | "matched"
         | "failed_trial_pivot"
+        | "released"
         | "closed"
         | "rejected";
       case_urgency: "low" | "normal" | "high";
@@ -1862,6 +1863,7 @@ export const Constants = {
         "compliance_hold",
         "matched",
         "failed_trial_pivot",
+        "released",
         "closed",
         "rejected",
       ],

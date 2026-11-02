@@ -1204,7 +1204,11 @@
       "h1": "学生与家长：点样运作",
       "account_callout_title": "帮自己定帮仔女报名？",
       "account_callout_body": "一个 MatchMax 账户可以直接以独立学生身分报名，亦可以喺「账户」加入子女子档案，一次过管理多个小朋友嘅导师。导师会自动知道对面系家长定系学生本人，由第一日起沟通就啱渠道。",
-      "cta_account": "开启账户设定"
+      "cta_account": "开启账户设定",
+      "fact_early_stop_label": "首堂后停止",
+      "fact_early_stop_body": "如首堂后决定停止，您只需向导师支付该一堂（1.0倍），我们会免费为您重新配对导师。家长毋须向 MatchMax 支付配对费。",
+      "fact_desk_hours_label": "数小时内提供导师名单",
+      "fact_desk_hours_body": "资料齐全的查询（学制、科目、地区或在线、预算）通常会于办公时间内数小时提供导师名单。"
     },
     "partners": {
       "title": "同 MatchMax 合作：补习中心及教育顾问指南",
@@ -3887,5 +3891,39 @@
     "upload_failed": "上传失败，请再试一次。",
     "err_FPS_REFERENCE_USED": "此转数快参考编号已用于另一个个案。",
     "view_screenshot": "查看付款截图"
+  },
+  "cockpit": {
+    "title": "配对控制台",
+    "fee_title": "平台费（导师支付）",
+    "fee_standard": "标准 1.5 堂：HK${{amount}}",
+    "fee_short": "短期个案 20% 套票：HK${{amount}}",
+    "fee_rate_missing": "请先设定个案时薪 hourly_rate_hkd。",
+    "fee_short_missing": "短期个案需要每堂时长及堂数。",
+    "copy_fps": "复制 /fps",
+    "copied": "已复制，请贴上 WhatsApp",
+    "case_title": "个案设定",
+    "group_one": "一对一",
+    "group_group": "2-3人小组",
+    "market_band": "市场价 HK$/小时",
+    "market_min": "最低",
+    "market_max": "最高",
+    "market_low": "预算低于市场价超过 20%，请发送 /ratecheck。",
+    "save": "保存",
+    "macros_title": "快捷消息（只复制）",
+    "pins_title": "快速导师 · {{subject}}",
+    "pins_empty": "此科目暂未有快速导师。",
+    "pins_unknown": "未知导师编号：{{codes}}",
+    "edit_pins": "编辑快速导师",
+    "waves_left": "剩余轮次 {{n}}/{{max}}",
+    "max_two": "同时联络最多 2 位导师。",
+    "send_both": "同时发送（/dispatch）",
+    "dispatch_copied": "已复制派单消息",
+    "declined": "已拒绝",
+    "decline_schedule": "时间",
+    "decline_rate": "价钱",
+    "decline_other": "其他",
+    "decline_logged": "已记录拒绝原因",
+    "pivot": "首堂失败转配",
+    "pivot_done": "已建立重配个案 {{code}}。下一批：{{next}}"
   }
 }

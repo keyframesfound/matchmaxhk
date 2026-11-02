@@ -51,6 +51,7 @@ import { TagInput } from "@/components/ui/tag-input";
 import { CaseEditDialog } from "@/features/cases/admin/CaseEditDialog";
 import { CaseApplicationsCard } from "@/features/cases/admin/CaseApplicationsCard";
 import { MatchFeePanel } from "@/features/cases/admin/MatchFeePanel";
+import { DeskCockpitPanel } from "@/features/cases/admin/DeskCockpitPanel";
 import { ShortCasePanel } from "@/features/cases/admin/ShortCasePanel";
 import { DropProtectionPanel } from "@/features/cases/admin/DropProtectionPanel";
 import { CaseFitPanel } from "@/features/cases/admin/CaseFitPanel";
@@ -812,6 +813,8 @@ export function CaseDetailView({
           <ShortCasePanel caseId={caseRow.id} />
 
           <MatchFeePanel caseRow={caseRow} onPatched={invalidateCase} />
+          {/* #454: matching cockpit (fee/FPS, macros, pins, Parallel Ping). */}
+          <DeskCockpitPanel caseId={caseRow.id} />
 
           {/* Epic #537: Drop-Protection, ownership window, trust flags (#536 engine). */}
           <DropProtectionPanel caseId={caseRow.id} />

@@ -182,7 +182,9 @@ function AdminCases() {
     for (const row of cases) {
       // Terminal rows are not waiting work: counting them made the tab
       // badges show queue sizes that never drain.
-      if (row.status === "closed" || row.status === "rejected") continue;
+      if (row.status === "closed" || row.status === "rejected" || row.status === "released") {
+        continue;
+      }
       counts[deskBucketForTier(row.priority_tier)] += 1;
     }
     return counts;

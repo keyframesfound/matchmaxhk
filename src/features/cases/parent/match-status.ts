@@ -27,7 +27,7 @@ export function getMatchStage(input: {
   sorStatus: SorStatus | null;
 }): ParentMatchStage {
   const { status, matchedTutorId, sorStatus } = input;
-  if (status === "closed" || status === "rejected") return "closed";
+  if (status === "closed" || status === "rejected" || status === "released") return "closed";
   // #449 instant rematch: the parent sees shortlisting again while the desk
   // pivots to the next two tutors (matched_tutor_id may still be set).
   if (status === "failed_trial_pivot") return "matching";
