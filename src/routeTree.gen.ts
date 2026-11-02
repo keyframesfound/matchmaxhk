@@ -75,6 +75,7 @@ import { Route as AuthenticatedBusinessSettingsRouteImport } from './routes/_aut
 import { Route as AuthenticatedBusinessTeamRouteImport } from './routes/_authenticated.business.team'
 import { Route as AuthenticatedTutorRequestsIndexRouteImport } from './routes/_authenticated.tutor-requests.index'
 import { Route as AuthenticatedTutorRequestsCaseCodeRouteImport } from './routes/_authenticated.tutor-requests.$caseCode'
+import { Route as ApiTrustWaIngestRouteImport } from './routes/api/trust/wa-ingest'
 import { Route as HelpCategorySlugRouteImport } from './routes/help.$category.$slug'
 import { Route as AuthenticatedAccountCasesCaseIdRouteImport } from './routes/_authenticated.account.cases.$caseId'
 import { Route as AuthenticatedAccountCoursesNewRouteImport } from './routes/_authenticated.account.courses.new'
@@ -442,6 +443,11 @@ const AuthenticatedTutorRequestsCaseCodeRoute =
     path: '/tutor-requests/$caseCode',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const ApiTrustWaIngestRoute = ApiTrustWaIngestRouteImport.update({
+  id: '/api/trust/wa-ingest',
+  path: '/api/trust/wa-ingest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HelpCategorySlugRoute = HelpCategorySlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -587,6 +593,7 @@ export interface FileRoutesByFullPath {
   '/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/business/team': typeof AuthenticatedBusinessTeamRoute
   '/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
+  '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/business/': typeof AuthenticatedBusinessIndexRoute
@@ -667,6 +674,7 @@ export interface FileRoutesByTo {
   '/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/business/team': typeof AuthenticatedBusinessTeamRoute
   '/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
+  '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/business': typeof AuthenticatedBusinessIndexRoute
@@ -750,6 +758,7 @@ export interface FileRoutesById {
   '/_authenticated/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/_authenticated/business/team': typeof AuthenticatedBusinessTeamRoute
   '/_authenticated/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
+  '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/business/': typeof AuthenticatedBusinessIndexRoute
@@ -833,6 +842,7 @@ export interface FileRouteTypes {
     | '/business/settings'
     | '/business/team'
     | '/tutor-requests/$caseCode'
+    | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
     | '/admin/'
     | '/business/'
@@ -913,6 +923,7 @@ export interface FileRouteTypes {
     | '/business/settings'
     | '/business/team'
     | '/tutor-requests/$caseCode'
+    | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
     | '/admin'
     | '/business'
@@ -995,6 +1006,7 @@ export interface FileRouteTypes {
     | '/_authenticated/business/settings'
     | '/_authenticated/business/team'
     | '/_authenticated/tutor-requests/$caseCode'
+    | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
     | '/_authenticated/admin/'
     | '/_authenticated/business/'
@@ -1048,6 +1060,7 @@ export interface RootRouteChildren {
   GuideIndexRoute: typeof GuideIndexRoute
   HelpIndexRoute: typeof HelpIndexRoute
   TutorsIndexRoute: typeof TutorsIndexRoute
+  ApiTrustWaIngestRoute: typeof ApiTrustWaIngestRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -1517,6 +1530,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTutorRequestsCaseCodeRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/trust/wa-ingest': {
+      id: '/api/trust/wa-ingest'
+      path: '/api/trust/wa-ingest'
+      fullPath: '/api/trust/wa-ingest'
+      preLoaderRoute: typeof ApiTrustWaIngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/help/$category/$slug': {
       id: '/help/$category/$slug'
       path: '/$slug'
@@ -1795,6 +1815,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuideIndexRoute: GuideIndexRoute,
   HelpIndexRoute: HelpIndexRoute,
   TutorsIndexRoute: TutorsIndexRoute,
+  ApiTrustWaIngestRoute: ApiTrustWaIngestRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,
