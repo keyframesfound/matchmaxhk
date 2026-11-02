@@ -389,7 +389,7 @@ export const getPublicCaseBoard = createServerFn({ method: "GET" }).handler(asyn
       .from("tutoring_cases")
       .select(PUBLIC_CASE_COLUMNS)
       .not("board_published_at", "is", null)
-      .not("status", "in", "(matched,closed,rejected,compliance_hold)")
+      .not("status", "in", "(matched,closed,rejected,compliance_hold,released)")
       .order("board_published_at", { ascending: false })
       .limit(60),
     supabaseAdmin.from("app_settings").select("value").eq("key", "whatsapp_number").maybeSingle(),
@@ -416,7 +416,7 @@ export const getPublicCaseByCode = createServerFn({ method: "GET" })
         .select(PUBLIC_CASE_COLUMNS)
         .eq("case_code", data.caseCode)
         .not("board_published_at", "is", null)
-        .not("status", "in", "(matched,closed,rejected,compliance_hold)")
+        .not("status", "in", "(matched,closed,rejected,compliance_hold,released)")
         .maybeSingle(),
       supabaseAdmin.from("app_settings").select("value").eq("key", "whatsapp_number").maybeSingle(),
     ]);
