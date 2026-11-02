@@ -50,8 +50,11 @@ export async function openPdf(source: PdfSource): Promise<PdfDoc> {
     typeof source === "string"
       ? { url: source }
       : { data: new Uint8Array(await source.arrayBuffer()) };
-  return (await pdfjs.getDocument({ ...pdfjsAssetOptions(), ...params })
-    .promise) as unknown as PdfDoc;
+  // pdfjs v6 moved destroy() off the document onto the loading task (the
+  // document only has cleanup()); callers keep using doc.destroy().
+  const task = pdfjs.getDocument({ ...pdfjsAssetOptions(), ...params });
+  const doc = (await task.promise) as unknown as Omit<PdfDoc, "destroy">;
+  return Object.assign(doc, { destroy: () => task.destroy() }) as PdfDoc;
 }
 
 /** Plain text of the first pages (stops at maxChars). */
