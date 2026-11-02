@@ -1,3 +1,4 @@
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { nitro } from "nitro/vite";
@@ -21,6 +22,18 @@ import tsConfigPaths from "vite-tsconfig-paths";
 // see https://nitro.build for explicit preset configuration if auto-detection doesn't
 // pick the right one.
 export default defineConfig({
+  resolve: {
+    alias: [
+      // pdf-lib (server-side note watermark / stamping) imports tslib. Its
+      // CJS/UMD entry bundles to an undefined default in the Worker, so every
+      // server function that loads pdf-lib crashed with "Cannot destructure
+      // property '__extends'". The pure ESM build has named exports only.
+      {
+        find: /^tslib$/,
+        replacement: fileURLToPath(new URL("./node_modules/tslib/tslib.es6.mjs", import.meta.url)),
+      },
+    ],
+  },
   plugins: [
     tanstackStart({
       server: { entry: "server" },
