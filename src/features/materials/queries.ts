@@ -37,6 +37,8 @@ export type StudyMaterial = {
   slug: string | null;
   /** #392 big-cover shop card: public materials-previews path. */
   cover_image_path: string | null;
+  /** #556 gallery (public materials-previews paths); first one doubles as the browse-card photo. */
+  preview_image_paths?: string[];
   /** #392: delivered orders only, incremented at delivery. */
   sold_count: number;
   // Notes upload v2 (empty until the v2 migration is applied).
@@ -106,6 +108,9 @@ function mapMaterial(row: Record<string, unknown>): StudyMaterial {
       ? row.search_tags.filter((t): t is string => typeof t === "string")
       : [],
     content_language: typeof row.content_language === "string" ? row.content_language : null,
+    preview_image_paths: Array.isArray(row.preview_image_paths)
+      ? row.preview_image_paths.filter((p): p is string => typeof p === "string")
+      : [],
   };
 }
 
@@ -184,7 +189,11 @@ export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]
       .eq("status", "published")
       .order("created_at", { ascending: false });
   // 42703 = a newer column does not exist yet; step back one migration.
-  let result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}`, true);
+  // #557 browse cards: the gallery supplies the card photo.
+  let result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}, preview_image_paths`, true);
+  if (result.error?.code === "42703") {
+    result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}`, true);
+  }
   if (result.error?.code === "42703") {
     result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}`, false);
   }

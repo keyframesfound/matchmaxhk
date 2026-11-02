@@ -817,10 +817,25 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     }
 
     // 4b. #556 gallery: stamp + upload new images, then save the order.
+    // #557 browse cards are photo-first: with no picture at all, the first
+    // preview page (already public to buyers) becomes the card photo.
+    let galleryFiles = galleryNew;
+    if (galleryFiles.length === 0 && galleryKept.length === 0 && mainLocal && !isLive) {
+      try {
+        const doc = await openPdf(mainLocal);
+        const firstPreviewPage = Math.min(doc.numPages, (previewPicks?.[0] ?? 0) + 1);
+        const dataUrl = await renderPage(doc, firstPreviewPage, 800, "image/jpeg", 0.82);
+        await doc.destroy();
+        const blob = await (await fetch(dataUrl)).blob();
+        galleryFiles = [new File([blob], "cover.jpg", { type: "image/jpeg" })];
+      } catch {
+        // No cover photo: the card shows its placeholder.
+      }
+    }
     const galleryChanged =
-      galleryNew.length > 0 || galleryKept.length !== (existing?.previewImagePaths ?? []).length;
+      galleryFiles.length > 0 || galleryKept.length !== (existing?.previewImagePaths ?? []).length;
     if (galleryChanged) {
-      const stamped = await Promise.all(galleryNew.map((f) => watermarkImageFile(f)));
+      const stamped = await Promise.all(galleryFiles.map((f) => watermarkImageFile(f)));
       let newPaths: string[] = [];
       if (stamped.length > 0) {
         const targets = await createNoteUploadTargets({

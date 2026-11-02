@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { BookOpen, Heart, SearchX, Upload, Users } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
@@ -20,14 +21,9 @@ import {
   collectSchoolTags,
   type MarketplaceMaterial,
 } from "@/features/materials/queries";
-import { StudyMaterialCard } from "@/features/materials/material-card";
+import { NoteBrowseCard } from "@/features/materials/note-browse-card";
 import { cn } from "@/lib/utils";
 import { AuthGateDialog } from "@/features/auth/AuthGateDialog";
-import {
-  MAX_COMPARE,
-  ShopCardActions,
-  ShopCompareDialog,
-} from "@/features/materials/shop-card-actions";
 import { useAuth } from "@/features/auth/useAuth";
 import { rankBySearch } from "@/features/materials/note-search";
 import {
@@ -35,12 +31,8 @@ import {
   getSubcategoriesForCurriculum,
   NOTE_SUBCATEGORIES,
 } from "@/features/materials/note-taxonomy";
-import { getMySavedNoteIds } from "@/features/materials/note-engagement.functions";
-import {
-  SAVED_NOTES_QUERY_KEY,
-  SellNotesCta,
-  SimilarNotesSection,
-} from "@/features/materials/note-engagement";
+import { getMySavedNoteIds, setNoteSaved } from "@/features/materials/note-engagement.functions";
+import { SAVED_NOTES_QUERY_KEY, SimilarNotesSection } from "@/features/materials/note-engagement";
 import { formatMaterialTypeLabel } from "@/features/materials/queries";
 
 /**
@@ -124,17 +116,23 @@ export function MaterialsDirectory() {
     staleTime: 5 * 60_000,
   });
   const ratings = ratingsQuery.data ?? new Map<string, { average: number | null; count: number }>();
-  const [compareIds, setCompareIds] = useState<string[]>([]);
-  const [compareOpen, setCompareOpen] = useState(false);
   const [authGateOpen, setAuthGateOpen] = useState(false);
-  const toggleCompare = (id: string) =>
-    setCompareIds((prev) =>
-      prev.includes(id)
-        ? prev.filter((x) => x !== id)
-        : prev.length >= MAX_COMPARE
-          ? prev
-          : [...prev, id],
-    );
+  const queryClient = useQueryClient();
+  // Card heart: signed-out viewers get the sign-in gate.
+  const toggleSave = async (id: string) => {
+    if (!user) {
+      setAuthGateOpen(true);
+      return;
+    }
+    const next = !savedIds.has(id);
+    try {
+      await setNoteSaved({ data: { materialId: id, saved: next } });
+      await queryClient.invalidateQueries({ queryKey: SAVED_NOTES_QUERY_KEY });
+      toast.success(next ? t("notes.engage.saved") : t("notes.engage.unsaved"));
+    } catch {
+      toast.error(t("notes.engage.save_failed"));
+    }
+  };
 
   const schools = useMemo(() => collectSchoolTags(materials), [materials]);
   const subjects = useMemo(
@@ -252,8 +250,21 @@ export function MaterialsDirectory() {
   return (
     <section className="pt-6 pb-12 sm:pt-8">
       <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
-        {/* Notes upload v2: the upload entry sits at the top of the shop. */}
-        <SellNotesCta className="mb-5" />
+        {/* #557 CEO lock: seller Upload / How it works live on the Notes
+            market header (not on Explore). */}
+        <div className="mb-5 flex flex-wrap items-center justify-end gap-2">
+          <div className="flex shrink-0 items-center gap-2">
+            <Button asChild variant="outline" size="sm">
+              <Link to="/guide/notes">{t("notes.market.how_it_works")}</Link>
+            </Button>
+            <Button asChild variant="solid" color="neutral" size="sm">
+              <Link to="/account/notes/new">
+                <Upload className="mr-1.5 h-4 w-4" aria-hidden />
+                {t("nav.upload_notes")}
+              </Link>
+            </Button>
+          </div>
+        </div>
         {/* Kind chips, #392 unified shop grid. */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
           {kindChips.map((chip) => (
@@ -452,52 +463,21 @@ export function MaterialsDirectory() {
         )}
 
         {!isLoading && filtered.length > 0 && (
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          // #557 / #543 CEO lock: Carousell-style 2-column grid of compact
+          // photo-first cards (photo, title, price, seller name).
+          <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 lg:grid-cols-4 xl:grid-cols-5">
             {filtered.map((material: MarketplaceMaterial) => (
-              <StudyMaterialCard
+              <NoteBrowseCard
                 key={material.id}
                 material={material}
-                tutorName={material.tutor_display_name}
-                tutorCode={material.tutor_code}
-                showTutorLink={!material.tutor_community}
-                verifiedTutor={material.tutor_verified}
                 rating={ratings.get(material.id) ?? null}
-                footer={
-                  <ShopCardActions
-                    material={material}
-                    compared={compareIds.includes(material.id)}
-                    onToggleCompare={() => toggleCompare(material.id)}
-                    onRequireAuth={() => setAuthGateOpen(true)}
-                  />
-                }
-                detailHref={`/notes/${material.slug ?? material.id}`}
+                saved={savedIds.has(material.id)}
+                onToggleSave={() => void toggleSave(material.id)}
               />
             ))}
           </div>
         )}
       </div>
-      {compareIds.length > 0 ? (
-        <div className="mm-overlay-lift fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-card px-3 py-2 lg:bottom-6">
-          <Button
-            type="button"
-            size="sm"
-            variant="solid"
-            color="neutral"
-            onClick={() => setCompareOpen(true)}
-          >
-            {t("notes.engage.compare_button", { count: compareIds.length })}
-          </Button>
-          <Button type="button" size="sm" variant="ghost" onClick={() => setCompareIds([])}>
-            {t("notes.engage.compare_clear")}
-          </Button>
-        </div>
-      ) : null}
-      <ShopCompareDialog
-        open={compareOpen}
-        onOpenChange={setCompareOpen}
-        items={materials.filter((m) => compareIds.includes(m.id))}
-        ratings={ratings}
-      />
       <AuthGateDialog
         open={authGateOpen}
         onOpenChange={setAuthGateOpen}
@@ -510,17 +490,6 @@ export function MaterialsDirectory() {
           <SimilarNotesSection seedIds={Array.from(savedIds).slice(0, 50)} className="mt-12" />
         </div>
       ) : null}
-      {/* Notes upload v2: always-reachable upload button (floating layer).
-          Stacks ABOVE the global float column (WhatsApp @5rem/bottom-6,
-          BackToTop @9rem/bottom-24 — both z-50) so it never hides under the
-          mobile bottom nav or under the desktop WhatsApp button. */}
-      <Link
-        to="/account/notes/new"
-        className="mm-overlay-lift fixed bottom-[calc(13rem+env(safe-area-inset-bottom))] right-4 z-40 inline-flex items-center gap-2 rounded-full bg-[color:var(--ink)] px-5 py-3 text-sm font-bold text-[color:var(--surface-invert-fg)] transition-colors hover:bg-[color:var(--ink)]/90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] lg:bottom-44 lg:right-6"
-      >
-        <Upload className="h-4 w-4" aria-hidden />
-        {t("notes.cta.upload_fab")}
-      </Link>
     </section>
   );
 }
