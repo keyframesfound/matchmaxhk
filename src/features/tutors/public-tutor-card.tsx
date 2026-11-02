@@ -1,5 +1,6 @@
 import { type MouseEvent, type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Link } from "@tanstack/react-router";
 import {
   Award,
   BadgeCheck,
@@ -354,28 +355,19 @@ export function PublicTutorCard({
   };
 
   return (
+    // Issue #565: the card keeps click-anywhere navigation, but the semantic
+    // link is now the real headline <Link> below (keyboard focusable,
+    // crawlatable, middle-clickable) — the article itself is no longer a
+    // role="link" container with nested interactive controls inside it.
     <article
       data-tour={tourId}
       className={cn(
-        "@container relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card transition-[transform,border-color] duration-200 hover:-translate-y-1 hover:border-[color:var(--foreground)]/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:min-h-[23rem]",
+        "@container relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card transition-[transform,border-color] duration-200 hover:-translate-y-1 hover:border-[color:var(--foreground)]/25 motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:min-h-[23rem]",
         interactive && "cursor-pointer",
         compareSelected && "border-[color:var(--ring)] ring-2 ring-[color:var(--ring)]",
         className,
       )}
-      role={interactive ? "link" : undefined}
-      tabIndex={interactive ? 0 : undefined}
       onClick={interactive ? () => onOpen(tutor.tutor_code) : undefined}
-      onKeyDown={
-        interactive
-          ? (event) => {
-              if ((event.target as HTMLElement).closest("a, button")) return;
-              if (event.key === "Enter" || event.key === " ") {
-                event.preventDefault();
-                onOpen(tutor.tutor_code);
-              }
-            }
-          : undefined
-      }
     >
       <header className="relative border-b border-border px-3 py-2.5 md:px-4 md:py-3">
         <div className="flex items-start gap-2.5 md:gap-3.5">
@@ -467,18 +459,38 @@ export function PublicTutorCard({
           </div>
 
           <div className="min-w-0 flex-1 pt-0.5">
-            <FitText
-              as="p"
-              maxLines={2}
-              contentKey={primaryCredential}
-              className={cn(
-                "break-words text-sm font-bold leading-tight text-[color:var(--ink)] md:text-base @max-sm:text-xs!",
-                // Keep the headline clear of the absolutely-positioned gender badge.
-                genderLabel && "pr-16 md:pr-[4.5rem]",
-              )}
-            >
-              {primaryCredential}
-            </FitText>
+            {/* Issue #565: the headline truncates with an ellipsis on one line
+                (min-w-0 flex child), consistent with the school lines below,
+                instead of the old fit-to-shrink clip that ran under the gender
+                pill; the padding clears the pill's full footprint so the
+                ellipsis never lands under it. When the card is interactive the
+                headline is a real link to the profile. */}
+            {interactive ? (
+              <Link
+                to="/tutors/$tutorCode"
+                params={{ tutorCode: tutor.tutor_code }}
+                onClick={(event: MouseEvent<HTMLAnchorElement>) => event.stopPropagation()}
+                title={primaryCredential}
+                className={cn(
+                  "block min-w-0 truncate text-sm font-bold leading-tight text-[color:var(--ink)] md:text-base @max-sm:text-xs! focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]",
+                  // Keep the headline clear of the absolutely-positioned gender badge.
+                  genderLabel && "pr-20 md:pr-24",
+                )}
+              >
+                {primaryCredential}
+              </Link>
+            ) : (
+              <p
+                title={primaryCredential}
+                className={cn(
+                  "min-w-0 truncate text-sm font-bold leading-tight text-[color:var(--ink)] md:text-base @max-sm:text-xs!",
+                  // Keep the headline clear of the absolutely-positioned gender badge.
+                  genderLabel && "pr-20 md:pr-24",
+                )}
+              >
+                {primaryCredential}
+              </p>
+            )}
             {educationLines.map((line, index) => (
               <p
                 key={`${line.icon}-${index}`}
