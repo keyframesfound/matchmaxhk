@@ -14,7 +14,7 @@ import { defaultPreviewIndices, maxPreviewPagesFor } from "@/features/materials/
  * visible tiled watermark on every preview page.
  */
 
-const MAX_THUMBS = 80;
+const MAX_THUMBS = 300;
 
 export function NotePreviewPicker({
   source,

@@ -2050,8 +2050,8 @@
     },
     "preview_pick": {
       "title": "Preview pages",
-      "hint": "Pick the pages buyers can see before they buy. The full document is never shown.",
-      "counter": "{{count}} of max {{max}} pages selected ({{total}} pages in total)",
+      "hint": "Pick any pages buyers can see before they buy. Every preview page gets a visible MatchMax watermark.",
+      "counter": "{{count}} of {{total}} pages selected",
       "reset": "Use default pages",
       "failed": "Could not show page thumbnails. The first pages are used for the preview.",
       "more_pages": "Only the first {{count}} pages are shown here.",

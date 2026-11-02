@@ -89,6 +89,7 @@ import {
 } from "@/features/materials/note-file-tools";
 import { materialCoverUrl } from "@/features/materials/material-card";
 import { TAG_SUGGESTIONS, TagChipsInput } from "@/features/materials/tag-chips-input";
+import { detectDocumentLanguage } from "@/features/materials/note-ai";
 import { NotePreviewPicker } from "@/features/materials/note-preview-picker";
 import { NotePriceGuidePanel } from "@/features/materials/note-price-guide-panel";
 import {
@@ -589,6 +590,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             fileName,
             pageCount: doc.numPages,
             text,
+            documentLanguage: detectDocumentLanguage(text),
             images: pageImages,
           },
         });
