@@ -6,7 +6,9 @@
  * Every heavy dependency is imported lazily so the shop pages stay light.
  */
 
-const PDF_WORKER = "pdfjs-dist/build/pdf.worker.min.mjs";
+// Bundled by Vite (?url emits the hashed asset), same as note-preview-viewer:
+// a bare "pdfjs-dist/build/pdf.worker.min.mjs" path 404s on prod (#569).
+import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
 type PdfSource = File | Blob | string;
 
@@ -22,7 +24,7 @@ type PdfDoc = {
 
 export async function openPdf(source: PdfSource): Promise<PdfDoc> {
   const pdfjs = await import("pdfjs-dist");
-  pdfjs.GlobalWorkerOptions.workerSrc = new URL(PDF_WORKER, import.meta.url).href;
+  pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
   const params =
     typeof source === "string"
       ? { url: source }
