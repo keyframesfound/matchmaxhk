@@ -22,7 +22,7 @@ import { fileURLToPath } from "node:url";
 const root = fileURLToPath(new URL("..", import.meta.url));
 const SRC = join(root, "src");
 const LOCALES_DIR = join(root, "src", "features", "i18n", "locales");
-const LOCALE_FILES = ["en.json", "zh-HK.json"];
+const LOCALE_FILES = ["en.json", "zh-HK.json", "zh-CN.json"];
 const SKIP_DIRS = new Set(["node_modules", "dist", ".output", ".vinxi", ".zcode"]);
 
 const problems = [];
@@ -76,15 +76,19 @@ for (const name of LOCALE_FILES) {
 
 // --- 2. Locale parity: both files define the exact same key set -----------
 
-const [enName, zhName] = LOCALE_FILES;
-for (const key of flattened[enName].keys()) {
-  if (!flattened[zhName].has(key)) {
-    problems.push(`"${key}" exists in ${enName} but is missing from ${zhName}.`);
+// zh-CN.json is generated from zh-HK.json (scripts/generate-zh-cn.py); a
+// parity failure on it means "re-run the generator".
+const [enName, ...otherNames] = LOCALE_FILES;
+for (const zhName of otherNames) {
+  for (const key of flattened[enName].keys()) {
+    if (!flattened[zhName].has(key)) {
+      problems.push(`"${key}" exists in ${enName} but is missing from ${zhName}.`);
+    }
   }
-}
-for (const key of flattened[zhName].keys()) {
-  if (!flattened[enName].has(key)) {
-    problems.push(`"${key}" exists in ${zhName} but is missing from ${enName}.`);
+  for (const key of flattened[zhName].keys()) {
+    if (!flattened[enName].has(key)) {
+      problems.push(`"${key}" exists in ${zhName} but is missing from ${enName}.`);
+    }
   }
 }
 
@@ -128,6 +132,6 @@ if (problems.length > 0) {
 }
 
 console.log(
-  `i18n check OK: ${flattened[enName].size} keys in ${enName} and ${flattened[zhName].size} in ${zhName}, ` +
+  `i18n check OK: ${LOCALE_FILES.map((name) => `${flattened[name].size} keys in ${name}`).join(", ")}, ` +
     `all source t() keys resolve, no namespace args.`,
 );

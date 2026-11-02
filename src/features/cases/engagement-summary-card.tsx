@@ -139,7 +139,7 @@ export function EngagementSummaryCard({
             <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
             {t("engagement.summary.confirmed_customer")}
             {summary.customerConfirmedAt
-              ? ` · ${new Date(summary.customerConfirmedAt).toLocaleDateString(i18n.language === "zh-HK" ? "zh-HK" : "en-HK")}`
+              ? ` · ${new Date(summary.customerConfirmedAt).toLocaleDateString(i18n.language?.startsWith("zh") ? i18n.language : "en-HK")}`
               : ` · ${t("engagement.summary.not_yet")}`}
           </span>
           <span
@@ -152,7 +152,7 @@ export function EngagementSummaryCard({
             <ShieldCheck className="h-3.5 w-3.5" aria-hidden="true" />
             {t("engagement.summary.confirmed_tutor")}
             {summary.tutorConfirmedAt
-              ? ` · ${new Date(summary.tutorConfirmedAt).toLocaleDateString(i18n.language === "zh-HK" ? "zh-HK" : "en-HK")}`
+              ? ` · ${new Date(summary.tutorConfirmedAt).toLocaleDateString(i18n.language?.startsWith("zh") ? i18n.language : "en-HK")}`
               : ` · ${t("engagement.summary.not_yet")}`}
           </span>
         </div>

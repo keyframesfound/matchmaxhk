@@ -2,7 +2,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
-import { asAdminDb } from "@/features/materials/storage-helpers";
+import { asAdminDb, type AdminDb, type Rows } from "@/features/materials/storage-helpers";
 import { buildBuyWhatsAppUrl, buildBookLessonsWhatsAppUrl } from "@/features/materials/whatsapp";
 
 /**
@@ -22,6 +22,10 @@ export const PUBLIC_NOTE_COLUMNS =
  * (material status='published' AND tutors.is_published=true) is repeated
  * here explicitly on every public query.
  */
+/** Notes upload v2 columns (absent until the v2 migration is applied). */
+export const PUBLIC_NOTE_V2_COLUMNS =
+  "summary, subcategory, search_tags, content_language, source_formats, preview_page_indices";
+
 export const PUBLIC_NOTE_TUTOR_JOIN =
   "tutors!inner(display_name, tutor_code, user_id, is_published, verification_tier)";
 
@@ -66,6 +70,12 @@ export type PublicNote = {
   turnaroundNote: string | null;
   turnaroundHours: number | null;
   coverImagePath: string | null;
+  // --- Notes upload v2 (empty when the v2 migration is not applied).
+  summary: string | null;
+  subcategory: string | null;
+  searchTags: string[];
+  contentLanguage: string | null;
+  sourceFormats: string[];
 };
 
 type NoteRow = Record<string, unknown> & {
@@ -119,7 +129,41 @@ export function mapPublicNote(row: NoteRow): PublicNote | null {
     turnaroundNote: typeof row.turnaround_note === "string" ? row.turnaround_note : null,
     turnaroundHours: typeof row.turnaround_hours === "number" ? row.turnaround_hours : null,
     coverImagePath: typeof row.cover_image_path === "string" ? row.cover_image_path : null,
+    summary: typeof row.summary === "string" ? row.summary : null,
+    subcategory: typeof row.subcategory === "string" ? row.subcategory : null,
+    searchTags: Array.isArray(row.search_tags)
+      ? row.search_tags.filter((t): t is string => typeof t === "string")
+      : [],
+    contentLanguage: typeof row.content_language === "string" ? row.content_language : null,
+    sourceFormats: Array.isArray(row.source_formats)
+      ? row.source_formats.filter((t): t is string => typeof t === "string")
+      : [],
   };
+}
+
+type PublicNoteQuery = Rows<NoteRow>;
+
+/**
+ * Notes upload v2: run a public-note query with the v2 columns, falling
+ * back to the pre-v2 column list when the migration is not applied yet
+ * (42703 = undefined column), so the public pages never break.
+ */
+export async function fetchPublicNoteRows(
+  db: AdminDb,
+  refine: (query: PublicNoteQuery) => PublicNoteQuery,
+): Promise<PublicNote[]> {
+  const run = (columns: string) =>
+    refine(
+      db
+        .from<NoteRow>("digital_materials")
+        .select(`${columns}, ${PUBLIC_NOTE_TUTOR_JOIN}`)
+        .eq("status", "published")
+        .eq("tutors.is_published", true),
+    );
+  let result = await run(`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_V2_COLUMNS}`);
+  if (result.error?.code === "42703") result = await run(PUBLIC_NOTE_COLUMNS);
+  if (result.error) throw new Error(result.error.message);
+  return (result.data ?? []).map(mapPublicNote).filter((n): n is PublicNote => n !== null);
 }
 
 /** The public note page by slug (or id fallback for legacy shares). */
@@ -132,17 +176,10 @@ export const getPublicNote = createServerFn({ method: "GET" })
     const db = asAdminDb(supabaseAdmin);
 
     const isUuid = /^[0-9a-f-]{36}$/i.test(data.slug);
-    const { data: rows, error } = await db
-      .from<NoteRow>("digital_materials")
-      .select(`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_TUTOR_JOIN}`)
-      .eq("status", "published")
-      .eq("tutors.is_published", true)
-      .eq(isUuid ? "id" : "slug", data.slug)
-      .limit(1);
-    if (error) throw new Error(error.message);
-    const row = rows?.[0];
-    if (!row) return null;
-    return mapPublicNote(row);
+    const rows = await fetchPublicNoteRows(db, (q) =>
+      q.eq(isUuid ? "id" : "slug", data.slug).limit(1),
+    );
+    return rows[0] ?? null;
   });
 
 /** Other published notes by the same tutor (note-page bottom rail). */
@@ -156,16 +193,12 @@ export const getPublicNotesByTutor = createServerFn({ method: "GET" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
 
-    let query = db
-      .from<NoteRow>("digital_materials")
-      .select(`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_TUTOR_JOIN}`)
-      .eq("status", "published")
-      .eq("tutors.is_published", true)
-      .eq("tutor_id", data.tutorId);
-    query = data.excludeMaterialId ? query.neq("id", data.excludeMaterialId) : query;
-    const { data: rows, error } = await query.order("created_at", { ascending: false }).limit(8);
-    if (error) throw new Error(error.message);
-    return (rows ?? []).map(mapPublicNote).filter((n): n is PublicNote => n !== null);
+    return fetchPublicNoteRows(db, (q) => {
+      const scoped = q.eq("tutor_id", data.tutorId);
+      return (data.excludeMaterialId ? scoped.neq("id", data.excludeMaterialId) : scoped)
+        .order("created_at", { ascending: false })
+        .limit(8);
+    });
   });
 
 /**

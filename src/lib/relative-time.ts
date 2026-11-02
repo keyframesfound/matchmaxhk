@@ -1,5 +1,5 @@
 import { formatDistanceToNow, type Locale } from "date-fns";
-import { zhHK } from "date-fns/locale";
+import { zhCN, zhHK } from "date-fns/locale";
 
 /**
  * Locale-aware "x ago" for public case surfaces (#384-class zh gap, GLM
@@ -23,5 +23,6 @@ export function formatPostedAgo(date: string | number | Date, locale?: string): 
  * options so day/month names follow the app locale (tutor-facing surfaces).
  */
 export function dateFnsLocale(language: string | null | undefined): Locale | undefined {
+  if (language === "zh-CN") return zhCN;
   return language === "zh-HK" ? zhHK : undefined;
 }

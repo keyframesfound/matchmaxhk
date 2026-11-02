@@ -11,6 +11,7 @@ import {
   Settings,
   ShieldCheck,
   Sun,
+  Upload,
   UserRound,
 } from "lucide-react";
 import { motion, useMotionValueEvent, useTransform } from "motion/react";
@@ -18,6 +19,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { useSwitchLocale } from "@/features/i18n/switch-locale";
+import { nextLocaleInCycle, normalizeLocale } from "@/features/i18n/seo";
 
 import { LanguageToggle } from "@/components/brand/LanguageToggle";
 import { CurrencyMenuSub, CurrencyToggle } from "@/components/brand/CurrencyToggle";
@@ -201,8 +203,8 @@ export function SiteHeader({
   const accountName =
     user?.user_metadata.display_name?.trim() || user?.email?.split("@")[0] || "Account";
   const useDarkTheme = theme !== "dark";
-  const currentLang = i18n.language?.startsWith("zh") ? "zh-HK" : "en";
-  const nextLang = currentLang === "en" ? "zh-HK" : "en";
+  const currentLang = normalizeLocale(i18n.language);
+  const nextLang = nextLocaleInCycle(currentLang);
   const brandLabelClassName =
     "font-wordmark-nav text-lg font-bold tracking-tight text-brand-gradient sm:text-xl";
 
@@ -215,6 +217,8 @@ export function SiteHeader({
       ? [{ label: t("nav.courses"), ariaLabel: t("nav.courses"), to: "/courses" }]
       : []),
     { label: t("nav.saved_posts"), ariaLabel: t("nav.saved_posts"), to: "/saved-posts" },
+    // Notes upload v2: the upload entry is one tap away on mobile too.
+    { label: t("nav.upload_notes"), ariaLabel: t("nav.upload_notes"), to: "/account/notes/new" },
     // #459 §B: tutors switch modes instead of seeing Become a Tutor.
     ...(isTutor
       ? [activeRole === "tutor" ? { ...modeSwitchItem("parent") } : { ...modeSwitchItem("tutor") }]
@@ -290,6 +294,18 @@ export function SiteHeader({
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+            {/* Notes upload v2: a visible "Upload notes" entry on desktop. */}
+            <Link
+              to="/account/notes/new"
+              aria-current={isActive("/account/notes/new") ? "page" : undefined}
+              aria-label={t("nav.upload_notes")}
+              title={t("nav.upload_notes")}
+              className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-[color:var(--ink)]/15 px-2.5 py-2 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.05] xl:inline-flex 2xl:px-3"
+            >
+              <Upload className="h-4 w-4" aria-hidden />
+              {/* Icon-only until 2xl so it never crowds the centred tabs. */}
+              <span className="hidden 2xl:inline">{t("nav.upload_notes")}</span>
+            </Link>
             {/* #459 §B: once Teaching is activated the Become a Tutor link
                 becomes the Learning/Teaching mode switcher. */}
             {isTutor ? (
@@ -484,7 +500,7 @@ export function SiteHeader({
                     </MenuIcon>
                     {t("nav.account_language")}
                     <span className="ml-auto text-xs font-bold text-[color:var(--ink)]/55">
-                      {currentLang === "en" ? "EN" : "繁"}
+                      {currentLang === "en" ? "EN" : currentLang === "zh-HK" ? "繁" : "简"}
                     </span>
                   </DropdownMenuItem>
                   <CurrencyMenuSub />

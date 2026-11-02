@@ -30,13 +30,20 @@ export type WatermarkResult = {
  */
 export async function watermarkPdfPreview(
   pdfBytes: Uint8Array | ArrayBuffer,
-  options: { pageLimit?: number } = {},
+  options: { pageLimit?: number; pageIndices?: readonly number[] } = {},
 ): Promise<WatermarkResult> {
   const pageLimit = options.pageLimit ?? PREVIEW_PAGE_LIMIT;
 
   const source = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
   const preview = await PDFDocument.create();
-  const copiedIndices = source.getPageIndices().slice(0, pageLimit);
+  // Notes upload v2: a seller-picked page set (already sanitized by
+  // preview-pages.ts, never the whole document) wins over "first N pages".
+  const total = source.getPageCount();
+  const picked = (options.pageIndices ?? []).filter(
+    (i) => Number.isInteger(i) && i >= 0 && i < total,
+  );
+  const copiedIndices =
+    picked.length > 0 ? picked.slice(0, pageLimit) : source.getPageIndices().slice(0, pageLimit);
   const copiedPages = await preview.copyPages(source, copiedIndices);
 
   const font = await preview.embedFont(StandardFonts.HelveticaBold);
