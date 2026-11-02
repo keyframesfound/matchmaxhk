@@ -29,6 +29,7 @@ import {
 } from "@/features/materials/storage-helpers";
 import { watermarkPdfPreview } from "@/features/materials/watermark";
 import { sanitizePreviewIndices } from "@/features/materials/preview-pages";
+import { decideModeration, type ModerationDecision } from "@/features/materials/note-moderation";
 import {
   NOTES_OPTION_A_LIVE,
   scanListing,
@@ -750,6 +751,17 @@ const SubmitForReviewInput = SubmitInput.extend({
   // #573 scanner: text the browser extracted from the main PDF (optional;
   // a missing / tiny text layer routes the upload to the staff queue).
   fileText: z.string().max(60_000).nullish(),
+  // Auto-publish review: up to 4 rendered pages (JPEG data URLs) when the
+  // file has little or no text layer (scans, photos).
+  pageImages: z
+    .array(
+      z
+        .string()
+        .max(1_500_000)
+        .regex(/^data:image\/(jpeg|png|webp);base64,/),
+    )
+    .max(4)
+    .optional(),
 });
 
 /** #573: record the seller declarations (best effort before the migration). */
@@ -779,24 +791,40 @@ async function recordSellerDeclarations(db: AdminDb, userId: string) {
 }
 
 /**
- * #573: write the scanner result and, once Option A is live, publish clean
- * uploads straight away (flagged ones stay in the staff queue).
+ * Owner request (2026-11-02): write the automatic review result. Clean
+ * notes go live straight away, clear violations are rejected with a reason
+ * the seller sees, anything unsure stays in the staff queue.
  */
 async function applyUploadScan(
   db: AdminDb,
   materialId: string,
-  flags: ScanFlag[],
-): Promise<"published" | "pending_review"> {
-  const publish = NOTES_OPTION_A_LIVE && flags.length === 0;
-  const scan = { scan_status: flags.length > 0 ? "flagged" : "clean", scan_flags: flags };
-  const statusPatch = publish ? { status: "published", reviewed_at: new Date().toISOString() } : {};
+  flags: string[],
+  decision: ModerationDecision,
+): Promise<ModerationDecision["status"]> {
+  const scan = {
+    scan_status: decision.status === "published" ? "clean" : "flagged",
+    scan_flags:
+      decision.status === "pending_review" && decision.reason
+        ? [...flags, decision.reason].slice(0, 12)
+        : flags,
+  };
+  const statusPatch =
+    decision.status === "published"
+      ? { status: "published", reviewed_at: new Date().toISOString() }
+      : decision.status === "rejected"
+        ? {
+            status: "rejected",
+            rejection_reason: decision.reason,
+            reviewed_at: new Date().toISOString(),
+          }
+        : {};
   const first = await db
     .from<never>("digital_materials")
     .update({ ...scan, ...statusPatch })
     .eq("id", materialId);
   if (first.error?.code === "42703") {
     // Scanner columns not migrated yet: still honour the publish decision.
-    if (publish) {
+    if (decision.status !== "pending_review") {
       const retry = await db
         .from<never>("digital_materials")
         .update(statusPatch)
@@ -806,10 +834,26 @@ async function applyUploadScan(
   } else if (first.error) {
     throw new Error(first.error.message);
   }
-  return publish ? "published" : "pending_review";
+  return decision.status;
 }
 
-/** P8 submit: validates required fields, then parks the note for staff review. */
+/** Public URLs of the seller's gallery pictures (checked by the AI review). */
+async function publicGalleryUrls(db: AdminDb, materialId: string): Promise<string[]> {
+  const { data, error } = await db
+    .from<{ preview_image_paths: string[] | null }>("digital_materials")
+    .select("preview_image_paths")
+    .eq("id", materialId)
+    .maybeSingle();
+  if (error || !data?.preview_image_paths?.length) return [];
+  const { resolveSupabaseEnv } = await import("@/integrations/supabase/env");
+  const base = resolveSupabaseEnv(process.env).url;
+  if (!base) return [];
+  return data.preview_image_paths
+    .slice(0, 2)
+    .map((path) => `${base}/storage/v1/object/public/materials-previews/${path}`);
+}
+
+/** P8 submit: validates required fields, then the automatic check publishes, rejects or queues it. */
 export const submitNoteForReview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => SubmitForReviewInput.parse(data))
@@ -1017,9 +1061,38 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       fileText: data.fileText ?? null,
       hasFile: merged.hasPdf,
     });
-    const status = await applyUploadScan(db, materialId, scanFlags);
+    // Automatic review (regex + AI) decides publish / reject / staff queue.
+    const listingText = [
+      merged.title,
+      data.description,
+      data.summary,
+      kinds.topic,
+      ...(data.searchTags ?? []),
+      ...(data.whatsIncluded ?? []),
+      data.syllabusOutline,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    const fileTextLength = (data.fileText ?? "").replace(/\s+/g, "").length;
+    const pageImages = data.pageImages ?? [];
+    const galleryUrls = await publicGalleryUrls(db, materialId);
+    const images = [...pageImages, ...galleryUrls].slice(0, 4);
+    const regexHints = scanFlags.filter((f) => f !== "no_text_layer");
+    const { moderateNoteContent } = await import("@/features/materials/note-moderation.server");
+    const ai = await moderateNoteContent({
+      listingText,
+      fileText: data.fileText ?? null,
+      images,
+      regexHints,
+    });
+    const decision = decideModeration({
+      regexFlags: scanFlags,
+      ai,
+      uncheckable: merged.hasPdf && fileTextLength < 200 && pageImages.length === 0,
+    });
+    const status = await applyUploadScan(db, materialId, scanFlags, decision);
 
-    return { materialId, status, scanFlags };
+    return { materialId, status, scanFlags, reason: decision.reason };
   });
 
 /** P9: edit a live note's text/price, live after the contact filter. */

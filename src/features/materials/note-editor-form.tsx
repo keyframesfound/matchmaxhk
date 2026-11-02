@@ -873,18 +873,25 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
       });
     }
 
-    // 5. Submit for staff review.
+    // 5. Publish: the automatic check publishes, rejects or queues for staff.
     if (kind === "submit" && !isLive) {
       // #573 scanner: send the main PDF's text layer (none for scans).
       let fileText: string | null = null;
+      const pageImages: string[] = [];
       const scanSource = mainLocal ?? remoteMainUrl;
       if (scanSource) {
         try {
           const doc = await openPdf(scanSource);
           fileText = await extractPdfText(doc, 60_000, 200);
+          // Scans / photos: the automatic review reads a few page images.
+          if (fileText.replace(/\s+/g, "").length < 200) {
+            for (let i = 1; i <= Math.min(4, doc.numPages); i += 1) {
+              pageImages.push(await renderPage(doc, i, 900, "image/jpeg", 0.7));
+            }
+          }
           await doc.destroy();
         } catch {
-          fileText = null;
+          fileText = fileText ?? null;
         }
       }
       const result = await submitNoteForReview({
@@ -894,8 +901,13 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           legalAgreed: true,
           sellerDeclarations: { age: true, originality: true },
           fileText,
+          pageImages,
         },
       });
+      if (result.status === "rejected") {
+        // Shown on the Account page too (rejection reason); edit and resubmit.
+        throw new Error(t("notes.auto.rejected", { reason: result.reason ?? "" }));
+      }
       return result.status;
     }
     return null;
@@ -910,9 +922,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           : kind === "submit"
             ? status === "published"
               ? t("notes_option_a.published_now")
-              : NOTES_OPTION_A_LIVE
-                ? t("notes_option_a.flagged_note")
-                : t("notes.form.submitted")
+              : t("notes_option_a.flagged_note")
             : t("notes.form.draft_saved"),
       );
       // SPA navigation keeps the /zh | /cn prefix; refresh the Account lists.
@@ -1721,6 +1731,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           {t("notes.form.missing_note", { fields: missing.join(", ") })}
         </p>
       )}
+      {!isLive ? <p className="text-xs text-muted-foreground">{t("notes.auto.hint")}</p> : null}
       <p className="text-xs text-muted-foreground">
         {t("notes.upload.guide_prompt")}{" "}
         <Link to="/guide/notes" className="font-semibold text-[color:var(--brand-link)] underline">
