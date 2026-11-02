@@ -31,7 +31,7 @@ describe("automatic publish decision", () => {
     });
     expect(d).toEqual({ status: "rejected", reason: "Sexual images. 色情圖片。" });
   });
-  it("sends unsure verdicts, AI outages and unreadable scans to staff", () => {
+  it("sends unsure verdicts to staff", () => {
     const unsure = {
       categories: ["copyright" as const],
       confidence: 0.5,
@@ -41,12 +41,18 @@ describe("automatic publish decision", () => {
     expect(decideModeration({ regexFlags: [], ai: unsure, uncheckable: false }).status).toBe(
       "pending_review",
     );
-    expect(decideModeration({ regexFlags: [], ai: null, uncheckable: false }).status).toBe(
-      "pending_review",
-    );
-    expect(decideModeration({ regexFlags: [], ai: clean, uncheckable: true }).status).toBe(
-      "pending_review",
-    );
+  });
+  it("still publishes (with a staff note) when the AI cannot run or the file is unreadable", () => {
+    expect(decideModeration({ regexFlags: [], ai: null, uncheckable: false })).toEqual({
+      status: "published",
+      reason: null,
+      note: "ai_check_unavailable",
+    });
+    expect(decideModeration({ regexFlags: [], ai: clean, uncheckable: true })).toEqual({
+      status: "published",
+      reason: null,
+      note: "file_not_machine_readable",
+    });
   });
   it("does not block notes that only mention an exam board or past papers", () => {
     expect(

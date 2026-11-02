@@ -801,12 +801,15 @@ async function applyUploadScan(
   flags: string[],
   decision: ModerationDecision,
 ): Promise<ModerationDecision["status"]> {
+  const note =
+    decision.status === "pending_review"
+      ? decision.reason
+      : decision.status === "published"
+        ? (decision.note ?? null)
+        : null;
   const scan = {
-    scan_status: decision.status === "published" ? "clean" : "flagged",
-    scan_flags:
-      decision.status === "pending_review" && decision.reason
-        ? [...flags, decision.reason].slice(0, 12)
-        : flags,
+    scan_status: decision.status === "published" && !note ? "clean" : "flagged",
+    scan_flags: note ? [...flags, note].slice(0, 12) : flags,
   };
   const statusPatch =
     decision.status === "published"
