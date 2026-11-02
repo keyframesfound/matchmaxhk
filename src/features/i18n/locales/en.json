@@ -1944,7 +1944,7 @@
       "exemplar_permission": "I have written permission from the student. Names are removed. This is an exemplar, not for submission.",
       "exemplar_permission_short": "exemplar permission confirmation",
       "field_year": "Year",
-      "field_pdf": "PDF file",
+      "field_pdf": "a PDF or photos (export Word / PPT as PDF)",
       "replace_pdf": "Replace PDF",
       "pdf_hint": "Max 20MB. Password-protected files can't be accepted, upload an unlocked file.",
       "save_draft": "Save draft",
@@ -2023,7 +2023,10 @@
       "save_live": "Save changes",
       "live_saved": "Changes saved.",
       "guide_prompt": "New to selling notes?",
-      "guide_link": "Read the notes guide"
+      "guide_link": "Read the notes guide",
+      "choose_files": "Choose files",
+      "files_added": "{{count}} file(s) added.",
+      "need_pdf_hint": "Also add a PDF or photos for the preview page. Word or PowerPoint files are delivered to buyers, but please export one copy as PDF for the preview."
     },
     "ai": {
       "title": "2. Detect with AI",

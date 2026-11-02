@@ -1944,7 +1944,7 @@
       "exemplar_permission": "我已取得該學生的書面同意。姓名已移除。此為範本，僅供參考，不可用於提交。",
       "exemplar_permission_short": "範本書面同意確認",
       "field_year": "年份",
-      "field_pdf": "PDF 檔案",
+      "field_pdf": "PDF 或相片（Word / PPT 請另存為 PDF）",
       "replace_pdf": "更換 PDF",
       "pdf_hint": "最大 20MB。不接受加密檔案——請上傳已解鎖的檔案。",
       "save_draft": "儲存草稿",
@@ -2023,7 +2023,10 @@
       "save_live": "儲存更改",
       "live_saved": "已儲存更改。",
       "guide_prompt": "第一次出售筆記？",
-      "guide_link": "閱讀筆記指南"
+      "guide_link": "閱讀筆記指南",
+      "choose_files": "選擇檔案",
+      "files_added": "已加入 {{count}} 個檔案。",
+      "need_pdf_hint": "請另外加入一份 PDF 或相片作預覽之用。Word 或 PowerPoint 檔案會交付給買家，但請先另存一份 PDF 作預覽。"
     },
     "ai": {
       "title": "2. AI 自動識別",

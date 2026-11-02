@@ -1944,7 +1944,7 @@
       "exemplar_permission": "我已取得该学生的书面同意。姓名已移除。此为范本，仅供参考，不可用于提交。",
       "exemplar_permission_short": "范本书面同意确认",
       "field_year": "年份",
-      "field_pdf": "PDF 档案",
+      "field_pdf": "PDF 或照片（Word / PPT 请另存为 PDF）",
       "replace_pdf": "更换 PDF",
       "pdf_hint": "最大 20MB。不接受加密档案——请上传已解锁的档案。",
       "save_draft": "保存草稿",
@@ -2023,7 +2023,10 @@
       "save_live": "保存更改",
       "live_saved": "已保存更改。",
       "guide_prompt": "第一次出售笔记？",
-      "guide_link": "阅读笔记指南"
+      "guide_link": "阅读笔记指南",
+      "choose_files": "选择档案",
+      "files_added": "已加入 {{count}} 个档案。",
+      "need_pdf_hint": "请另外加入一份 PDF 或照片作预览之用。Word 或 PowerPoint 档案会交付给买家，但请先另存一份 PDF 作预览。"
     },
     "ai": {
       "title": "2. AI 自动识别",
