@@ -33,12 +33,22 @@ export function markTourSeen(key: string): void {
  * Resolve a data-tour name to the first *visible* element. Targets often
  * exist twice (desktop sidebar vs mobile pill row); hidden duplicates must
  * win nothing, and fully missing targets become ghost steps.
+ *
+ * Issue #567: a wrapper whose children are all breakpoint-hidden still
+ * reports a client rect — a zero-box strip of nothing. Anchoring there parks
+ * the spotlight and popover over whatever happens to render below it (on
+ * /tutors the empty hero twin of the search bar beat the real sticky filter
+ * bar, dropping the tooltip onto the curriculum chips). Candidates must
+ * occupy actual layout space, not merely be non-`display:none`.
  */
 export function visibleTourElement(name: string): Element | null {
   if (typeof document === "undefined") return null;
   const candidates = document.querySelectorAll<HTMLElement>(`[data-tour="${name}"]`);
   for (const el of candidates) {
-    if (el.getClientRects().length > 0) return el;
+    if (el.getClientRects().length === 0) continue;
+    const rect = el.getBoundingClientRect();
+    if (rect.width <= 0 || rect.height <= 0) continue;
+    return el;
   }
   return null;
 }
@@ -69,6 +79,27 @@ export function runCoachTour(
     onDismissed();
     return;
   }
+
+  // Issue #567: driver.js repositions only on window scroll/resize — a layout
+  // shift under a live tour (a chip click re-rendering the filter bar,
+  // webfonts landing after the popover was placed) leaves the popover parked
+  // at the stale geometry. Watch the highlighted anchor and re-measure via
+  // refresh() whenever its box changes, so the stage and popover stay glued
+  // to the element they describe.
+  let anchorObserver: ResizeObserver | null = null;
+  const unwatchAnchor = () => {
+    anchorObserver?.disconnect();
+    anchorObserver = null;
+  };
+  const watchAnchor = (element: Element | undefined) => {
+    unwatchAnchor();
+    if (!element || typeof ResizeObserver === "undefined") return;
+    anchorObserver = new ResizeObserver(() => activeDriver?.refresh());
+    // border-box: re-anchor on any box growth (a wrapping chip row, a taller
+    // panel row), not just inner-content changes.
+    anchorObserver.observe(element, { box: "border-box" });
+  };
+
   const driverObj = driver({
     steps,
     overlayColor: "rgba(0, 0, 0, 0.6)",
@@ -81,7 +112,9 @@ export function runCoachTour(
     prevBtnText: texts.back,
     doneBtnText: texts.done,
     closeBtnLabel: texts.skip,
+    onHighlightStarted: (element) => watchAnchor(element),
     onDestroyed: () => {
+      unwatchAnchor();
       if (activeDriver === driverObj) activeDriver = null;
       onDismissed();
     },
