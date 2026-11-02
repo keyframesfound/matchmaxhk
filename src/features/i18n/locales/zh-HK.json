@@ -697,7 +697,11 @@
     "empty_university_title": "此篩選條件下暫時沒有大學導師",
     "empty_university_desc": "試試其他領域、大學或課程編號——或在 WhatsApp 查詢，我們會為你找出合適的導師。",
     "empty_primary_secondary_title": "沒有符合篩選條件的導師",
-    "empty_primary_secondary_desc": "放寬或清除篩選條件——或在 WhatsApp 查詢，團隊會為你配對。"
+    "empty_primary_secondary_desc": "放寬或清除篩選條件——或在 WhatsApp 查詢，團隊會為你配對。",
+    "hero_title": "搵精英導師",
+    "hero_subtitle": "由科目或導師編號開始搵，再逐步收窄至最合適嘅導師。",
+    "result_count": "找到 {{count}} 位導師",
+    "result_count_other": "找到 {{count}} 位導師"
   },
   "engagement": {
     "badge": {
@@ -3333,6 +3337,33 @@
     "trial_badge": "⚡ 免費 15–20 分鐘網上試堂",
     "discount_badge": "🎁 首堂 {{pct}}% 折扣",
     "promo_tooltip": "只限簡短網上介紹。正式課堂按全額收費。如家長確認上完第一堂付費課後停止，Drop-Protection 適用。"
+  },
+  "tutor_compare": {
+    "bar_selected": "已揀 {{count}} / {{max}} 位",
+    "bar_pick_more": "，至少揀 2 位先可以比較",
+    "bar_compare": "比較",
+    "bar_clear": "清除",
+    "title": "比較導師",
+    "subtitle": "並排比較你嘅心儀導師。",
+    "label_rate": "收費",
+    "label_academic": "學術背景",
+    "label_subjects": "科目",
+    "label_mode": "授課模式",
+    "label_location": "地區",
+    "label_gender": "性別",
+    "label_languages": "語言",
+    "label_experience": "經驗",
+    "label_achievements": "成就",
+    "experience_years": "{{count}} 年",
+    "experience_years_other": "{{count}} 年",
+    "system_other": "其他",
+    "limit_toast": "最多可以比較 {{max}} 位導師。"
+  },
+  "tutor_save": {
+    "save": "儲存導師",
+    "remove": "移出已儲存導師",
+    "gate_title": "儲存呢位導師",
+    "gate_desc": "註冊或登入即可儲存導師，之後隨時搵返。"
   },
   "tutors": {
     "tier_aria": "學術程度",

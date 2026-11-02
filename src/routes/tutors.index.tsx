@@ -504,12 +504,12 @@ function TutorsDirectory() {
                   <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
                     {directoryView === "materials"
                       ? t("materials.directory_title")
-                      : "Find elite tutors"}
+                      : t("directory.hero_title")}
                   </h1>
                   <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
                     {directoryView === "materials"
                       ? t("materials.directory_subtitle")
-                      : "Start with a subject or tutor code, then narrow the list to the right fit."}
+                      : t("directory.hero_subtitle")}
                   </p>
                 </div>
                 <div data-tour="parent-shop" className="pt-2">
@@ -563,8 +563,7 @@ function TutorsDirectory() {
                     <Skeleton className="h-4 w-28" />
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      <span className="font-bold text-foreground">{filtered.length}</span>{" "}
-                      {filtered.length === 1 ? "tutor" : "tutors"} found
+                      {t("directory.result_count", { count: filtered.length })}
                     </p>
                   )}
                   {/* Issue #217: popular-tag suggestions (3+ tutors) and the

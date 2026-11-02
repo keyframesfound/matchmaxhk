@@ -1,4 +1,5 @@
 import { type MouseEvent, useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Bookmark } from "lucide-react";
 import { toast } from "sonner";
@@ -105,6 +106,7 @@ export function TutorSaveButton({
   dataTour?: string;
 }) {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [dialogOpen, setDialogOpen] = useState(false);
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -163,8 +165,8 @@ export function TutorSaveButton({
           variant="ghost"
           size="icon"
           data-tour={dataTour}
-          aria-label={saved ? "Remove tutor from saved posts" : "Save tutor"}
-          title={saved ? "Remove from saved posts" : "Save tutor"}
+          aria-label={saved ? t("tutor_save.remove") : t("tutor_save.save")}
+          title={saved ? t("tutor_save.remove") : t("tutor_save.save")}
           disabled={mutation.isPending}
           onClick={handleClick}
           onKeyDown={(event) => event.stopPropagation()}
@@ -197,8 +199,8 @@ export function TutorSaveButton({
       <AuthGateDialog
         open={dialogOpen}
         onOpenChange={setDialogOpen}
-        title="Save this tutor"
-        description="Sign up or log in to bookmark tutors and find them again later."
+        title={t("tutor_save.gate_title")}
+        description={t("tutor_save.gate_desc")}
         pendingSave={saved ? undefined : { type: "tutor", id: tutorId }}
       />
     </>
