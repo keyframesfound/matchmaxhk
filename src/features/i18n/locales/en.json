@@ -1805,7 +1805,7 @@
     "promotional_note_fallback": "Note: I provide all premium digital materials for free to my active students after the 3rd lesson.",
     "empty_state": "Study materials from this tutor are coming soon.",
     "directory_title": "Marketplace",
-    "directory_subtitle": "Notes, past-paper solutions, exemplars and gigs from students and tutors. Staff check every listing before it goes on sale.",
+    "directory_subtitle": "Notes, past-paper solutions, exemplars and gigs from students and tutors. Every listing is checked automatically before it goes live.",
     "filter_school_all": "All schools",
     "filter_subject_all": "All subjects",
     "filter_curriculum_all": "All curricula",
@@ -1953,7 +1953,7 @@
       "replace_pdf": "Replace PDF",
       "pdf_hint": "Max 20MB. Password-protected files can't be accepted, upload an unlocked file.",
       "save_draft": "Save draft",
-      "submit_review": "Submit for review",
+      "submit_review": "Publish",
       "draft_saved": "Draft saved.",
       "submitted": "Submitted, the MatchMax team will review it shortly.",
       "save_failed": "Could not save the draft.",
@@ -2219,6 +2219,10 @@
     },
     "market": {
       "how_it_works": "How it works"
+    },
+    "auto": {
+      "rejected": "Not published: {{reason}} Edit the note and submit again.",
+      "hint": "Every upload is checked automatically for copied official papers or textbooks, contact details, violence and sexual content. Clean notes go live straight away; anything unclear gets a quick staff review."
     }
   },
   "orders": {

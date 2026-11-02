@@ -1805,7 +1805,7 @@
     "promotional_note_fallback": "備註：我嘅現屆學生上滿第 3 堂課後，可免費獲得所有高階電子教材。",
     "empty_state": "此導師嘅溫習教材即將上架。",
     "directory_title": "市集",
-    "directory_subtitle": "由學生及導師分享的筆記、試題題解、範文及服務，每份上架前均經職員審核。",
+    "directory_subtitle": "由學生及導師分享的筆記、試題題解、範文及服務，每份上架前均經系統自動檢查。",
     "filter_school_all": "所有學校",
     "filter_subject_all": "所有科目",
     "filter_curriculum_all": "所有課程體系",
@@ -1953,7 +1953,7 @@
       "replace_pdf": "更換 PDF",
       "pdf_hint": "最大 20MB。不接受加密檔案——請上傳已解鎖的檔案。",
       "save_draft": "儲存草稿",
-      "submit_review": "提交審核",
+      "submit_review": "發佈",
       "draft_saved": "草稿已儲存。",
       "submitted": "已提交——MatchMax 團隊會盡快審核。",
       "save_failed": "無法儲存草稿。",
@@ -2219,6 +2219,10 @@
     },
     "market": {
       "how_it_works": "運作方式"
+    },
+    "auto": {
+      "rejected": "未能上架：{{reason}} 請修改筆記後再提交。",
+      "hint": "系統會自動檢查每份上載，包括抄襲的官方試卷或課本、聯絡資料、暴力及色情內容。沒有問題的筆記會即時上架；有疑問的會交由職員快速審核。"
     }
   },
   "orders": {
