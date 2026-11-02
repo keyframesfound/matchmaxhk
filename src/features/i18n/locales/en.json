@@ -1884,7 +1884,8 @@
     "mode_switched_teaching": "Switched to Teaching.",
     "mode_switch_error": "Could not switch mode. Please try again.",
     "workspaces": "Workspaces",
-    "upload_notes": "Upload notes"
+    "upload_notes": "Upload notes",
+    "tab_calendar": "Calendar"
   },
   "nav_mobile": {
     "case": "Case",
@@ -3925,5 +3926,25 @@
     "decline_logged": "Decline logged",
     "pivot": "Failed-trial pivot",
     "pivot_done": "Rematch {{code}} ready. Next: {{next}}"
+  },
+  "calendar_hub": {
+    "title": "Calendar",
+    "tutor_title": "Lessons you teach",
+    "parent_title": "Your lessons",
+    "counts": "{{upcoming}} upcoming · {{month}} this month",
+    "empty": "No upcoming lessons.",
+    "minutes": "{{n}} min",
+    "with_student": "with {{name}}",
+    "with_tutor": "with tutor {{name}}",
+    "confirm_both": "Both confirmed",
+    "confirm_tutor_only": "Waiting for parent",
+    "confirm_parent_only": "Waiting for tutor",
+    "confirm_none": "Not confirmed",
+    "history_title": "Previous months",
+    "history_line": "{{lessons}} lessons · {{hours}}h",
+    "open_tutor": "Open lessons and cases",
+    "open_parent": "Open your cases",
+    "error": "Could not load your calendar. Please try again.",
+    "no_cases": "No matched cases yet. Your lessons appear here once a tutor is matched."
   }
 }

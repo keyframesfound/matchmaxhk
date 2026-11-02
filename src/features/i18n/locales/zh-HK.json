@@ -1884,7 +1884,8 @@
     "mode_switched_teaching": "已切換到教學模式。",
     "mode_switch_error": "無法切換模式，請再試一次。",
     "workspaces": "工作區",
-    "upload_notes": "上載筆記"
+    "upload_notes": "上載筆記",
+    "tab_calendar": "日曆"
   },
   "nav_mobile": {
     "case": "個案",
@@ -3925,5 +3926,25 @@
     "decline_logged": "已記錄拒絕原因",
     "pivot": "首堂失敗轉配",
     "pivot_done": "已建立重配個案 {{code}}。下一批：{{next}}"
+  },
+  "calendar_hub": {
+    "title": "日曆",
+    "tutor_title": "你教授的課堂",
+    "parent_title": "你的課堂",
+    "counts": "即將上課 {{upcoming}} 堂 · 本月 {{month}} 堂",
+    "empty": "暫無即將上的課堂。",
+    "minutes": "{{n}} 分鐘",
+    "with_student": "學生：{{name}}",
+    "with_tutor": "導師：{{name}}",
+    "confirm_both": "雙方已確認",
+    "confirm_tutor_only": "等待家長確認",
+    "confirm_parent_only": "等待導師確認",
+    "confirm_none": "未確認",
+    "history_title": "過去數月",
+    "history_line": "{{lessons}} 堂 · {{hours}} 小時",
+    "open_tutor": "查看課堂及個案",
+    "open_parent": "查看你的個案",
+    "error": "未能載入日曆，請再試一次。",
+    "no_cases": "暫未有已配對個案。配對導師後，課堂會顯示在這裡。"
   }
 }
