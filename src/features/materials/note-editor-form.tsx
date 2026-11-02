@@ -923,10 +923,11 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           <p className="text-sm text-muted-foreground">{t("notes.upload.step_files_hint")}</p>
         </div>
 
-        <div
-          role="button"
+        {/* A native <label> opens the picker in every browser (Safari ignores
+            a scripted input.click() fired from the input's own ancestor). */}
+        <label
+          htmlFor="note-files"
           tabIndex={0}
-          onClick={() => fileInputRef.current?.click()}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
@@ -965,7 +966,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
               e.target.value = "";
             }}
           />
-        </div>
+        </label>
 
         {/* Cloud link: import as the main PDF, or attach as a download link. */}
         <div className="space-y-1.5">
