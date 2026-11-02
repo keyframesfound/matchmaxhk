@@ -25,7 +25,11 @@ export const NOTE_AI_TEXT_FALLBACKS = [
   "qwen/qwen-2.5-72b-instruct",
   "qwen/qwen3-30b-a3b-instruct-2507",
 ];
-export const NOTE_AI_VISION_FALLBACKS = ["qwen/qwen2.5-vl-32b-instruct", "qwen/qwen-vl-max"];
+export const NOTE_AI_VISION_FALLBACKS = [
+  "qwen/qwen3-vl-235b-a22b-instruct",
+  "qwen/qwen2.5-vl-32b-instruct",
+  "qwen/qwen-vl-max",
+];
 
 /** Max characters of extracted text sent to the model. */
 export const NOTE_AI_MAX_TEXT = 24_000;

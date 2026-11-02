@@ -33,7 +33,8 @@ export type ModerationResult = {
 };
 
 export type ModerationDecision =
-  | { status: "published"; reason: null }
+  /** `note` = published without the AI check (kept in scan_flags for staff). */
+  | { status: "published"; reason: null; note?: string }
   | { status: "pending_review"; reason: string | null }
   | { status: "rejected"; reason: string };
 
@@ -129,7 +130,9 @@ export function decideModeration(input: {
     return { status: "rejected", reason: hard.map((f) => REGEX_REASON[f]).join(" ") };
   }
   if (!input.ai) {
-    return { status: "pending_review", reason: "automatic check unavailable" };
+    // Owner (2026-11-02): no manual wait when the keyword scan is clean and
+    // the AI could not run; reports + staff spot checks are the backstop.
+    return { status: "published", reason: null, note: "ai_check_unavailable" };
   }
   const { categories, confidence } = input.ai;
   if (categories.length > 0 && confidence >= REJECT_CONFIDENCE) {
@@ -142,7 +145,7 @@ export function decideModeration(input: {
     return { status: "pending_review", reason: `possible: ${categories.join(", ")}` };
   }
   if (input.uncheckable) {
-    return { status: "pending_review", reason: "file could not be checked automatically" };
+    return { status: "published", reason: null, note: "file_not_machine_readable" };
   }
   return { status: "published", reason: null };
 }
