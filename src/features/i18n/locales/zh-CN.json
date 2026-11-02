@@ -1800,8 +1800,8 @@
     "disclaimer": "免责声明：电子教材属用户自制内容，经 MatchMax 发售。家长以 FPS 付款畀 MatchMax，款项于档案交付前由 MatchMax 安全代管，导师于扣除 20% 平台费后收取余额。购买前请先细阅浮水印预览。",
     "promotional_note_fallback": "备注：我嘅现届学生上满第 3 堂课后，可免费获得所有高阶电子教材。",
     "empty_state": "此导师嘅温习教材即将上架。",
-    "directory_title": "温习教材",
-    "directory_subtitle": "由 MatchMax 已核实导师撰写的模拟试卷、示例题解及原创笔记——每份教材上架前均经职员审核。",
+    "directory_title": "市集",
+    "directory_subtitle": "由学生及导师分享的笔记、试题题解、范文及服务，每份上架前均经职员审核。",
     "filter_school_all": "所有学校",
     "filter_subject_all": "所有科目",
     "filter_curriculum_all": "所有课程体系",
@@ -1810,7 +1810,7 @@
     "result_count_other": "找到 {{count}} 个商品",
     "empty_results": "暂时冇符合筛选条件嘅温习教材。",
     "toggle_tutors": "导师",
-    "toggle_materials": "温习教材",
+    "toggle_materials": "市集",
     "upload_title": "上传温习教材",
     "upload_description": "同 MatchMax 家庭分享你嘅原创笔记、示例题解同模拟试卷。上传权限只限已核实（Tier 2）导师。",
     "redirect_description": "笔记上传功能已迁移。请喺账户页面建立、编辑同提交你嘅笔记——草稿、已提交同已上架嘅笔记都可以喺𠮶度睇到。",
@@ -1884,7 +1884,7 @@
     "saved_posts": "已保存",
     "account": "账户",
     "quick_links": "快速链接",
-    "notes": "笔记"
+    "marketplace": "市集"
   },
   "notes": {
     "page_count": "{{count}} 页",
@@ -1966,7 +1966,9 @@
       "file_hint_flashcards": "PDF 或 Anki .apkg，最大 20MB。买家会下载档案——浏览器内不提供预览。",
       "file_too_large": "档案太大。上限为 20MB。",
       "still_processing": "照片仍在处理中，请稍后再试。",
-      "fix_errors": "请先修正以红色标示的栏位。"
+      "fix_errors": "请先修正以红色标示的栏位。",
+      "more_details": "更多资料",
+      "more_details_hint": "（选填：主题、年份、字数、介绍视频、重点内容、大纲、预览图片）"
     },
     "home": {
       "heading": "学习笔记",
@@ -2029,7 +2031,9 @@
       "guide_link": "阅读笔记指南",
       "choose_files": "选择档案",
       "files_added": "已加入 {{count}} 个档案。",
-      "need_pdf_hint": "请另外加入一份 PDF 或照片作预览之用。Word 或 PowerPoint 档案会交付给买家，但请先另存一份 PDF 作预览。"
+      "need_pdf_hint": "请另外加入一份 PDF 或照片作预览之用。Word 或 PowerPoint 档案会交付给买家，但请先另存一份 PDF 作预览。",
+      "tags_chip_placeholder": "输入标签后按 Enter，例如 IA",
+      "tag_remove": "移除 #{{tag}}"
     },
     "ai": {
       "title": "2. AI 自动识别",
@@ -3832,5 +3836,9 @@
     "legal_checkbox": "我确认本人拥有此教材或已获书面许可出售，教材不在禁售清单之内，并同意《笔记及学习教材市集条款》（每宗销售会扣除 2% 平台服务费及付款手续费）。",
     "billing_notes_a": "学习教材可于平台内以信用卡、Apple Pay、AlipayHK 或微信支付购买。您只需支付标示售价，档案即时解锁，MatchMax 会托管款项 72 小时。其后所有交易即属最终，72 小时内之退款只限客观缺失或重复购买，购买前请先查看免费浮水印预览。",
     "tour_shop": "在此上传学习笔记、视频课程或服务。您可收取售价扣除 2% 平台服务费及付款手续费后之金额。"
+  },
+  "marketplace": {
+    "tab_notes": "笔记",
+    "tab_gigs": "服务"
   }
 }

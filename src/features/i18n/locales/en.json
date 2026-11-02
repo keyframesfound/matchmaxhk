@@ -1800,8 +1800,8 @@
     "disclaimer": "Disclaimer: Digital materials are user-generated and sold through MatchMax. Parents pay MatchMax by FPS, payment is held securely until your file is delivered, and the tutor receives the balance after our 20% platform fee. Please review the watermarked preview before purchasing.",
     "promotional_note_fallback": "Note: I provide all premium digital materials for free to my active students after the 3rd lesson.",
     "empty_state": "Study materials from this tutor are coming soon.",
-    "directory_title": "Study Materials",
-    "directory_subtitle": "Mock exams, worked examples and original notes written by verified MatchMax tutors, every pack checked before it goes on sale.",
+    "directory_title": "Marketplace",
+    "directory_subtitle": "Notes, past-paper solutions, exemplars and gigs from students and tutors. Staff check every listing before it goes on sale.",
     "filter_school_all": "All schools",
     "filter_subject_all": "All subjects",
     "filter_curriculum_all": "All curricula",
@@ -1810,7 +1810,7 @@
     "result_count_other": "{{count}} listings found",
     "empty_results": "No study materials match those filters yet.",
     "toggle_tutors": "Tutors",
-    "toggle_materials": "Study Materials",
+    "toggle_materials": "Marketplace",
     "upload_title": "Upload Study Materials",
     "upload_description": "Share your original notes, worked examples and mock exams with MatchMax families. Uploads are restricted to Verified tutors (Tier 2).",
     "redirect_description": "Note uploads have moved. Create, edit and submit your notes from your account, drafts, submissions and live listings all live there.",
@@ -1884,7 +1884,7 @@
     "saved_posts": "Saved",
     "account": "Account",
     "quick_links": "Quick links",
-    "notes": "Notes"
+    "marketplace": "Marketplace"
   },
   "notes": {
     "page_count": "{{count}} pages",
@@ -1966,7 +1966,9 @@
       "file_hint_flashcards": "PDF or Anki .apkg, max 20MB. Buyers download the file, there is no in-browser preview.",
       "file_too_large": "File is too large. Maximum is 20MB.",
       "still_processing": "Still preparing your photos, try again in a moment.",
-      "fix_errors": "Fix the fields marked in red first."
+      "fix_errors": "Fix the fields marked in red first.",
+      "more_details": "More details",
+      "more_details_hint": "(optional: topic, year, word count, video, highlights, outline, pictures)"
     },
     "home": {
       "heading": "Study notes",
@@ -2029,7 +2031,9 @@
       "guide_link": "Read the notes guide",
       "choose_files": "Choose files",
       "files_added": "{{count}} file(s) added.",
-      "need_pdf_hint": "Also add a PDF or photos for the preview page. Word or PowerPoint files are delivered to buyers, but please export one copy as PDF for the preview."
+      "need_pdf_hint": "Also add a PDF or photos for the preview page. Word or PowerPoint files are delivered to buyers, but please export one copy as PDF for the preview.",
+      "tags_chip_placeholder": "Type a tag and press Enter, e.g. IA",
+      "tag_remove": "Remove #{{tag}}"
     },
     "ai": {
       "title": "2. Detect with AI",
@@ -3832,5 +3836,9 @@
     "legal_checkbox": "I confirm I own this material or hold written permission to sell it, that it is not on the ban list, and I agree to the Notes Marketplace Terms (2% platform fee plus the payment fee are deducted from each sale).",
     "billing_notes_a": "Study materials are bought in-app by card, Apple Pay, AlipayHK or WeChat Pay. You pay exactly the listed price; the file unlocks immediately and MatchMax holds the payment for 72 hours. All sales are final after that, and refunds inside the 72 hours cover only objective defects or duplicate purchases, so check the free watermarked preview first.",
     "tour_shop": "Upload study notes, video courses or services here. You keep the price minus a 2% platform fee and the payment fee."
+  },
+  "marketplace": {
+    "tab_notes": "Notes",
+    "tab_gigs": "Gigs"
   }
 }

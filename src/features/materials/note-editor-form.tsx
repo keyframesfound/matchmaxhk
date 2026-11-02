@@ -88,6 +88,7 @@ import {
   watermarkImageFile,
 } from "@/features/materials/note-file-tools";
 import { materialCoverUrl } from "@/features/materials/material-card";
+import { TAG_SUGGESTIONS, TagChipsInput } from "@/features/materials/tag-chips-input";
 import { NotePreviewPicker } from "@/features/materials/note-preview-picker";
 import { NotePriceGuidePanel } from "@/features/materials/note-price-guide-panel";
 import {
@@ -1294,113 +1295,6 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           {violationNote(copyViolations.descV)}
         </div>
 
-        {/* #556 rich listing: trailer, highlights, syllabus, gallery. */}
-        <div className="space-y-1.5">
-          <Label htmlFor="note-trailer">{t("notes.rich.field_trailer")}</Label>
-          <Input
-            id="note-trailer"
-            value={trailerUrl}
-            onChange={(e) => setTrailerUrl(e.target.value)}
-            placeholder={t("notes.rich.trailer_placeholder")}
-            className="h-11"
-          />
-          {trailerUrl.trim() && !trailerEmbedUrl(trailerUrl) ? (
-            <p className="text-xs text-destructive">{t("notes.rich.trailer_invalid")}</p>
-          ) : (
-            <p className="text-xs text-muted-foreground">{t("notes.rich.trailer_hint")}</p>
-          )}
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="note-included">{t("notes.rich.field_included")}</Label>
-          <Input
-            id="note-included"
-            value={includedText}
-            onChange={(e) => setIncludedText(e.target.value)}
-            placeholder={t("notes.rich.included_placeholder")}
-            className="h-11"
-          />
-        </div>
-        <div className="space-y-1.5">
-          <Label htmlFor="note-syllabus">{t("notes.rich.field_syllabus")}</Label>
-          <textarea
-            id="note-syllabus"
-            value={syllabus}
-            maxLength={SYLLABUS_MAX}
-            onChange={(e) => setSyllabus(e.target.value)}
-            rows={4}
-            placeholder={t("notes.rich.syllabus_placeholder")}
-            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
-          />
-        </div>
-        <div className="space-y-2">
-          <Label>{t("notes.rich.field_gallery")}</Label>
-          <div className="flex flex-wrap gap-2">
-            {galleryKept.map((path) => (
-              <div
-                key={path}
-                className="relative h-20 w-28 overflow-hidden rounded-md border border-border"
-              >
-                <img
-                  src={materialCoverUrl(path) ?? ""}
-                  alt=""
-                  className="h-full w-full object-cover"
-                />
-                <button
-                  type="button"
-                  aria-label={t("notes.upload.remove")}
-                  onClick={() => setGalleryKept((prev) => prev.filter((p) => p !== path))}
-                  className="absolute right-1 top-1 rounded bg-black/60 p-0.5 text-white"
-                >
-                  <X className="h-3 w-3" aria-hidden />
-                </button>
-              </div>
-            ))}
-            {galleryNew.map((file, index) => (
-              <div
-                key={`${file.name}-${index}`}
-                className="relative flex h-20 w-28 items-center justify-center overflow-hidden rounded-md border border-dashed border-border px-1 text-center text-[11px]"
-              >
-                {file.name}
-                <button
-                  type="button"
-                  aria-label={t("notes.upload.remove")}
-                  onClick={() => setGalleryNew((prev) => prev.filter((_, i) => i !== index))}
-                  className="absolute right-1 top-1 rounded bg-black/60 p-0.5 text-white"
-                >
-                  <X className="h-3 w-3" aria-hidden />
-                </button>
-              </div>
-            ))}
-            {galleryKept.length + galleryNew.length < MAX_GALLERY_IMAGES ? (
-              <Button
-                type="button"
-                variant="outline"
-                className="h-20"
-                onClick={() => galleryInputRef.current?.click()}
-              >
-                <ImageIcon className="mr-2 h-4 w-4" aria-hidden />
-                {t("notes.rich.gallery_add")}
-              </Button>
-            ) : null}
-          </div>
-          <input
-            ref={galleryInputRef}
-            type="file"
-            accept="image/jpeg,image/png,image/webp"
-            multiple
-            className="sr-only"
-            onChange={(e) => {
-              const picked = Array.from(e.target.files ?? []).filter(
-                (f) => f.size <= MAX_GALLERY_IMAGE_BYTES,
-              );
-              const room = MAX_GALLERY_IMAGES - galleryKept.length - galleryNew.length;
-              setGalleryNew((prev) => [...prev, ...picked.slice(0, Math.max(0, room))]);
-              e.target.value = "";
-            }}
-          />
-          <p className="text-xs text-muted-foreground">{t("notes.rich.gallery_hint")}</p>
-        </div>
-
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="note-curriculum">{t("notes.form.field_curriculum")}</Label>
@@ -1505,19 +1399,6 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             </Select>
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="note-topic">{t("notes.form.field_topic")}</Label>
-            <Input
-              id="note-topic"
-              value={topic}
-              maxLength={NOTE_TOPIC_MAX_LEN}
-              disabled={isLive}
-              onChange={(e) => setTopic(e.target.value)}
-              placeholder={t("notes.form.topic_placeholder")}
-              className="h-11"
-            />
-            {violationNote(copyViolations.topicV)}
-          </div>
-          <div className="space-y-1.5">
             <Label htmlFor="note-language">{t("notes.upload.field_language")}</Label>
             <Select value={language} onValueChange={setLanguage}>
               <SelectTrigger id="note-language" className="w-full">
@@ -1532,56 +1413,16 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="note-year">{t("notes.form.field_year")}</Label>
-            <Input
-              id="note-year"
-              value={year}
-              maxLength={20}
-              onChange={(e) => setYear(e.target.value)}
-              placeholder="2026"
-              className="h-11"
-            />
-          </div>
-          <div className="space-y-1.5">
-            <Label htmlFor="note-word-count">{t("notes.form.field_word_count")}</Label>
-            <Input
-              id="note-word-count"
-              type="number"
-              min={1}
-              step="1"
-              value={wordCount}
-              disabled={isLive}
-              onChange={(e) => setWordCount(e.target.value)}
-              placeholder="12000"
-              className="h-11"
-            />
-            <p className="text-xs text-muted-foreground">{t("notes.form.word_count_hint")}</p>
-            {wordCountError ? (
-              <p className="text-xs text-destructive">{t("notes.form.word_count_invalid")}</p>
-            ) : null}
-          </div>
-          <div className="space-y-1.5">
+          <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="note-tags">{t("notes.upload.field_tags")}</Label>
-            <Input
+            {/* #553 / #543: freestyle # tag chips with suggestions. */}
+            <TagChipsInput
               id="note-tags"
-              value={tagsText}
-              onChange={(e) => setTagsText(e.target.value)}
-              placeholder={t("notes.upload.tags_placeholder")}
-              className="h-11"
+              tags={tags}
+              onChange={(next) => setTagsText(next.join(", "))}
+              placeholder={t("notes.upload.tags_chip_placeholder")}
+              suggestions={TAG_SUGGESTIONS}
             />
-            {tags.length > 0 ? (
-              <div className="flex flex-wrap gap-1">
-                {tags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="rounded-full border border-border px-2 py-0.5 text-[11px] text-muted-foreground"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            ) : null}
           </div>
         </div>
 
@@ -1610,6 +1451,169 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             </label>
           </div>
         ) : null}
+        {/* #543 CEO lock: short first paint; the extras live under More details. */}
+        <details className="group rounded-2xl border border-border p-4 sm:p-5">
+          <summary className="cursor-pointer list-none text-sm font-bold text-[color:var(--ink)] [&::-webkit-details-marker]:hidden">
+            <span className="group-open:hidden">+ </span>
+            <span className="hidden group-open:inline">− </span>
+            {t("notes.form.more_details")}
+            <span className="ml-1 font-normal text-muted-foreground">
+              {t("notes.form.more_details_hint")}
+            </span>
+          </summary>
+          <div className="mt-4 space-y-5">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="note-topic">{t("notes.form.field_topic")}</Label>
+                <Input
+                  id="note-topic"
+                  value={topic}
+                  maxLength={NOTE_TOPIC_MAX_LEN}
+                  disabled={isLive}
+                  onChange={(e) => setTopic(e.target.value)}
+                  placeholder={t("notes.form.topic_placeholder")}
+                  className="h-11"
+                />
+                {violationNote(copyViolations.topicV)}
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="note-year">{t("notes.form.field_year")}</Label>
+                <Input
+                  id="note-year"
+                  value={year}
+                  maxLength={20}
+                  onChange={(e) => setYear(e.target.value)}
+                  placeholder="2026"
+                  className="h-11"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="note-word-count">{t("notes.form.field_word_count")}</Label>
+                <Input
+                  id="note-word-count"
+                  type="number"
+                  min={1}
+                  step="1"
+                  value={wordCount}
+                  disabled={isLive}
+                  onChange={(e) => setWordCount(e.target.value)}
+                  placeholder="12000"
+                  className="h-11"
+                />
+                <p className="text-xs text-muted-foreground">{t("notes.form.word_count_hint")}</p>
+                {wordCountError ? (
+                  <p className="text-xs text-destructive">{t("notes.form.word_count_invalid")}</p>
+                ) : null}
+              </div>
+            </div>
+            {/* #556 rich listing: trailer, highlights, syllabus, gallery. */}
+            <div className="space-y-1.5">
+              <Label htmlFor="note-trailer">{t("notes.rich.field_trailer")}</Label>
+              <Input
+                id="note-trailer"
+                value={trailerUrl}
+                onChange={(e) => setTrailerUrl(e.target.value)}
+                placeholder={t("notes.rich.trailer_placeholder")}
+                className="h-11"
+              />
+              {trailerUrl.trim() && !trailerEmbedUrl(trailerUrl) ? (
+                <p className="text-xs text-destructive">{t("notes.rich.trailer_invalid")}</p>
+              ) : (
+                <p className="text-xs text-muted-foreground">{t("notes.rich.trailer_hint")}</p>
+              )}
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="note-included">{t("notes.rich.field_included")}</Label>
+              <Input
+                id="note-included"
+                value={includedText}
+                onChange={(e) => setIncludedText(e.target.value)}
+                placeholder={t("notes.rich.included_placeholder")}
+                className="h-11"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label htmlFor="note-syllabus">{t("notes.rich.field_syllabus")}</Label>
+              <textarea
+                id="note-syllabus"
+                value={syllabus}
+                maxLength={SYLLABUS_MAX}
+                onChange={(e) => setSyllabus(e.target.value)}
+                rows={4}
+                placeholder={t("notes.rich.syllabus_placeholder")}
+                className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>{t("notes.rich.field_gallery")}</Label>
+              <div className="flex flex-wrap gap-2">
+                {galleryKept.map((path) => (
+                  <div
+                    key={path}
+                    className="relative h-20 w-28 overflow-hidden rounded-md border border-border"
+                  >
+                    <img
+                      src={materialCoverUrl(path) ?? ""}
+                      alt=""
+                      className="h-full w-full object-cover"
+                    />
+                    <button
+                      type="button"
+                      aria-label={t("notes.upload.remove")}
+                      onClick={() => setGalleryKept((prev) => prev.filter((p) => p !== path))}
+                      className="absolute right-1 top-1 rounded bg-black/60 p-0.5 text-white"
+                    >
+                      <X className="h-3 w-3" aria-hidden />
+                    </button>
+                  </div>
+                ))}
+                {galleryNew.map((file, index) => (
+                  <div
+                    key={`${file.name}-${index}`}
+                    className="relative flex h-20 w-28 items-center justify-center overflow-hidden rounded-md border border-dashed border-border px-1 text-center text-[11px]"
+                  >
+                    {file.name}
+                    <button
+                      type="button"
+                      aria-label={t("notes.upload.remove")}
+                      onClick={() => setGalleryNew((prev) => prev.filter((_, i) => i !== index))}
+                      className="absolute right-1 top-1 rounded bg-black/60 p-0.5 text-white"
+                    >
+                      <X className="h-3 w-3" aria-hidden />
+                    </button>
+                  </div>
+                ))}
+                {galleryKept.length + galleryNew.length < MAX_GALLERY_IMAGES ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-20"
+                    onClick={() => galleryInputRef.current?.click()}
+                  >
+                    <ImageIcon className="mr-2 h-4 w-4" aria-hidden />
+                    {t("notes.rich.gallery_add")}
+                  </Button>
+                ) : null}
+              </div>
+              <input
+                ref={galleryInputRef}
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                className="sr-only"
+                onChange={(e) => {
+                  const picked = Array.from(e.target.files ?? []).filter(
+                    (f) => f.size <= MAX_GALLERY_IMAGE_BYTES,
+                  );
+                  const room = MAX_GALLERY_IMAGES - galleryKept.length - galleryNew.length;
+                  setGalleryNew((prev) => [...prev, ...picked.slice(0, Math.max(0, room))]);
+                  e.target.value = "";
+                }}
+              />
+              <p className="text-xs text-muted-foreground">{t("notes.rich.gallery_hint")}</p>
+            </div>
+          </div>
+        </details>
       </section>
 
       {/* 5. Price ---------------------------------------------------------------------- */}
