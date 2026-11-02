@@ -1,4 +1,4 @@
-import { NotebookText, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Mobile Airbnb-style search entry: a shadow-elevated "Start your search"
- * bar above the quick-nav pills row (Case / Guide / Become tutor)
+ * bar above the quick-nav pills row (Case / Guide / Marketplace)
  * that doubles as the mobile top navigation. The block bleeds to the true
  * screen edges (canceling the parent px-4/px-6 container) and the pills row
  * scrolls with cut-off pills touching the screen edge, like Airbnb. The
@@ -40,14 +40,10 @@ export function MobileSearchTrigger({
       to: "/guide" as const,
       icon: "/nav-how-it-works.png",
     },
-    {
-      key: "join",
-      label: t("nav.become_tutor"),
-      to: "/join" as const,
-      icon: "/nav-become-tutor.png",
-    },
+    // #594: Become a Tutor is supply onboarding, not a browse mode; it
+    // lives in the Account menu only.
   ];
-  // #557 CEO lock: 4th pill, Notes -> the materials market.
+  // #557 / #594 CEO lock: Marketplace (Notes | Gigs) is the 3rd pill.
   const notesActive = pathname === "/tutors" && search.includes("view=materials");
 
   return (
@@ -105,8 +101,14 @@ export function MobileSearchTrigger({
           )}
         >
           <span className="flex items-center justify-center gap-2">
-            <NotebookText className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
-            <span>{t("nav_mobile.notes")}</span>
+            <img
+              src="/nav-marketplace.png"
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              className="h-[18px] w-[18px] shrink-0"
+            />
+            <span>{t("nav_mobile.marketplace")}</span>
           </span>
         </Link>
       </nav>

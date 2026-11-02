@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { BookOpen, Heart, SearchX, Upload, Users } from "lucide-react";
+import { Heart, SearchX, Store, Upload, Users } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
@@ -93,6 +93,8 @@ export function MaterialsDirectory() {
   const [subject, setSubject] = useState("");
   const [curriculum, setCurriculum] = useState("");
   const [kind, setKind] = useState<KindFilter>("all");
+  // #557 / #594 Marketplace shell: Notes | Gigs tabs (Notes is the default).
+  const [shopTab, setShopTab] = useState<"notes" | "gigs">("notes");
   // Notes upload v2: finer category, document language and saved-only.
   const [subcategory, setSubcategory] = useState("");
   const [language, setLanguage] = useState("");
@@ -163,6 +165,7 @@ export function MaterialsDirectory() {
 
   const filtered = useMemo(() => {
     const narrowed = materials.filter((m) => {
+      if (shopTab === "gigs" ? m.material_type !== "gig" : m.material_type === "gig") return false;
       if (!matchesKind(m, kind)) return false;
       if (school && (m.school_tag ?? "").trim().toLowerCase() !== school.toLowerCase())
         return false;
@@ -205,6 +208,7 @@ export function MaterialsDirectory() {
     subject,
     curriculum,
     kind,
+    shopTab,
     subcategory,
     language,
     savedOnly,
@@ -243,7 +247,6 @@ export function MaterialsDirectory() {
     { value: "coursework", label: t("notes.category.coursework") },
     { value: "courses", label: t("shop.filter_courses") },
     { value: "folders", label: t("shop.filter_folders") },
-    { value: "services", label: t("notes.category.services") },
     { value: "free", label: t("notes.category.free") },
   ];
 
@@ -265,9 +268,36 @@ export function MaterialsDirectory() {
             </Button>
           </div>
         </div>
+        {/* #557 / #594: Marketplace tabs, Notes | Gigs. */}
+        <div role="tablist" className="mb-4 flex gap-6 border-b border-border">
+          {(["notes", "gigs"] as const).map((tab) => (
+            <button
+              key={tab}
+              type="button"
+              role="tab"
+              aria-selected={shopTab === tab}
+              onClick={() => {
+                setShopTab(tab);
+                setKind("all");
+                setSubcategory("");
+              }}
+              className={cn(
+                "-mb-px border-b-2 px-1 pb-2.5 text-base font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+                shopTab === tab
+                  ? "border-[color:var(--ink)] text-[color:var(--ink)]"
+                  : "border-transparent text-[color:var(--ink)]/55 hover:text-[color:var(--ink)]",
+              )}
+            >
+              {tab === "notes" ? t("marketplace.tab_notes") : t("marketplace.tab_gigs")}
+            </button>
+          ))}
+        </div>
         {/* Kind chips, #392 unified shop grid. */}
         <div className="mb-4 flex flex-wrap items-center gap-2">
-          {kindChips.map((chip) => (
+          {(shopTab === "notes"
+            ? kindChips
+            : kindChips.filter((c) => c.value === "all" || c.value === "free")
+          ).map((chip) => (
             <button
               key={chip.value}
               type="button"
@@ -506,7 +536,7 @@ export function DirectoryToggle({
   const prefersReducedMotion = useReducedMotion();
   const options = [
     { key: "tutors" as const, label: t("materials.toggle_tutors"), icon: Users },
-    { key: "materials" as const, label: t("materials.toggle_materials"), icon: BookOpen },
+    { key: "materials" as const, label: t("materials.toggle_materials"), icon: Store },
   ];
   return (
     <div

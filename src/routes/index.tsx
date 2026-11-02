@@ -735,7 +735,9 @@ function Landing() {
 
         {/* #307: grey band behind the mobile search pill, mirroring the
             desktop StickySearchBar band -- full-bleed, hairline bottom. */}
-        <div className="relative z-20 border-b border-border bg-[color:var(--surface-header)] lg:hidden">
+        {/* #594: Airbnb-style, the search pill + quick pills stay pinned
+            under the mobile header while the tutor feed scrolls. */}
+        <div className="sticky top-14 z-40 border-b border-border bg-[color:var(--surface-header)]/95 backdrop-blur-sm lg:hidden">
           <div className="mx-auto max-w-[1600px] px-4 md:px-6">
             <div className="py-2.5 sm:p-5">
               <TutorsSearchMobile
