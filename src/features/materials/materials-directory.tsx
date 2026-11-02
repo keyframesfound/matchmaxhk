@@ -452,12 +452,14 @@ export function MaterialsDirectory() {
           </div>
         </div>
 
+        {/* Issue #566 follow-up: the bold count span duplicated the {{count}}
+            inside the translation ("1 1 listing found"). Translation-owned,
+            matching the tutors directory count (#600). */}
         <div className="mb-6 flex items-baseline justify-between">
           {isLoading ? (
             <Skeleton className="h-4 w-28" />
           ) : (
             <p className="text-sm text-muted-foreground">
-              <span className="font-bold text-foreground">{filtered.length}</span>{" "}
               {t("materials.result_count", { count: filtered.length })}
             </p>
           )}
