@@ -117,6 +117,24 @@ async function myTutorRow(
   return data;
 }
 
+/**
+ * #562: null-returning variant for DESK READS — an account that never sold
+ * anything has no tutors row yet, and that is an empty desk, not an error.
+ * Mutations keep the throwing myTutorRow gate.
+ */
+async function findMyTutorRow(
+  db: AdminDb,
+  userId: string,
+): Promise<{ id: string; display_name: string } | null> {
+  const { data, error } = await db
+    .from<{ id: string; display_name: string }>("tutors")
+    .select("id, display_name")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(error.message || "Failed to look up tutor account");
+  return data ?? null;
+}
+
 /** Owner-only load that works for every status (drafts included). */
 async function loadOwnedGig(db: AdminDb, gigId: string, tutorId: string): Promise<GigRow> {
   const { data, error } = await db
@@ -467,7 +485,10 @@ export const getMyGigs = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<MyGigRow[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    const tutor = await myTutorRow(db, context.userId);
+    // #562: an account without a tutor card has no services — the /account
+    // desk renders the no-services empty state instead of a thrown 500.
+    const tutor = await findMyTutorRow(db, context.userId);
+    if (!tutor) return [];
 
     const { data, error } = await db
       .from<{

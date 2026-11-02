@@ -84,6 +84,24 @@ async function myTutorRow(
   return data;
 }
 
+/**
+ * #562: null-returning variant for the DESK READ — an account that never sold
+ * anything has no tutors row yet, and that is an empty desk, not an error.
+ * deliverGigOrder / getGigBuyerSourceUrl keep the throwing myTutorRow gate.
+ */
+async function findMyTutorRow(
+  db: AdminDb,
+  userId: string,
+): Promise<{ id: string; display_name: string } | null> {
+  const { data, error } = await db
+    .from<{ id: string; display_name: string }>("tutors")
+    .select("id, display_name")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(error.message || "Failed to look up tutor account");
+  return data ?? null;
+}
+
 /** #328 lazy sweep: flips in_fulfillment gig orders past due + grace. */
 async function sweepPastDueOrders(db: AdminDb): Promise<void> {
   const { error } = await db.rpc("sweep_past_due_gig_orders", {});
@@ -99,7 +117,10 @@ export const getMyGigOrders = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<MyGigOrderRow[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    const tutor = await myTutorRow(db, context.userId);
+    // #562: an account without a tutor card has no fulfillment desk — the
+    // /account desk renders nothing instead of a thrown 500.
+    const tutor = await findMyTutorRow(db, context.userId);
+    if (!tutor) return [];
     await sweepPastDueOrders(db);
 
     const { data: orders, error } = await db
