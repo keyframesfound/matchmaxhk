@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, ChevronLeft, ChevronRight, FileText } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, FileText, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -191,7 +191,47 @@ export function HomeNotesRow() {
     );
   }
 
-  if (visible.length < MIN_HOME_NOTES) return null;
+  // Owner request (2026-11-02): the notes section is ALWAYS visible on the
+  // home page (previously hidden below 3 public notes), with Browse and
+  // Upload entries even when the shop is still empty.
+  if (visible.length < MIN_HOME_NOTES) {
+    return (
+      <section className="mx-auto max-w-[1536px]">
+        <div className="mb-4 flex flex-wrap items-center gap-2 sm:gap-3">
+          <h2 className="min-w-0 truncate text-xl font-bold tracking-tight text-[color:var(--ink)] md:text-2xl">
+            {t("notes.home.heading")}
+          </h2>
+          <Button
+            asChild
+            variant="ghost"
+            className="h-8 shrink-0 rounded-full px-2.5 text-[13px] font-bold text-[color:var(--brand-link)] sm:h-9 sm:px-3 sm:text-sm"
+          >
+            <Link to="/tutors" search={{ view: "materials" }}>
+              {t("notes.home.view_all")}
+              <ArrowRight className="ml-1 h-4 w-4" aria-hidden="true" />
+            </Link>
+          </Button>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          {visible.map((note) => renderNoteCard(note))}
+          <SeeAllTile className="min-h-48" />
+          <Link
+            to="/account/notes/new"
+            className="flex min-h-48 flex-col items-center justify-center gap-3 rounded-[var(--radius-panel)] border border-dashed border-border bg-[color:var(--surface-subtle)]/40 text-center transition-colors hover:bg-[color:var(--surface-subtle)]"
+          >
+            <Upload
+              className="h-6 w-6 text-[color:var(--brand-link)]"
+              strokeWidth={1.75}
+              aria-hidden="true"
+            />
+            <span className="text-sm font-bold text-[color:var(--ink)]">
+              {t("notes.cta.sell_button")}
+            </span>
+          </Link>
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="mx-auto max-w-[1536px]">
