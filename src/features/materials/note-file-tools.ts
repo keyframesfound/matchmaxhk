@@ -10,6 +10,26 @@
 // a bare "pdfjs-dist/build/pdf.worker.min.mjs" path 404s on prod (#569).
 import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 
+import { LOGO_WATERMARK_DATA_URL } from "@/features/materials/logo-watermark";
+
+/**
+ * pdfjs needs its font, CMap (CJK text), ICC and wasm (JPEG 2000 / colour
+ * profiles) data to render many real-world PDFs; without them rendering
+ * throws and the page thumbnails fail. vite.config.ts copies them from the
+ * installed pdfjs-dist into /pdfjs on our own origin at build time, so they
+ * always match the bundled pdfjs version.
+ */
+export function pdfjsAssetOptions() {
+  const base = "/pdfjs";
+  return {
+    cMapUrl: `${base}/cmaps/`,
+    cMapPacked: true,
+    standardFontDataUrl: `${base}/standard_fonts/`,
+    wasmUrl: `${base}/wasm/`,
+    iccUrl: `${base}/iccs/`,
+  };
+}
+
 type PdfSource = File | Blob | string;
 
 type PdfDoc = {
@@ -18,6 +38,7 @@ type PdfDoc = {
     getViewport: (o: { scale: number }) => { width: number; height: number };
     render: (o: unknown) => { promise: Promise<void> };
     getTextContent: () => Promise<{ items: Array<{ str?: string }> }>;
+    cleanup?: () => void;
   }>;
   destroy: () => Promise<void>;
 };
@@ -29,7 +50,8 @@ export async function openPdf(source: PdfSource): Promise<PdfDoc> {
     typeof source === "string"
       ? { url: source }
       : { data: new Uint8Array(await source.arrayBuffer()) };
-  return (await pdfjs.getDocument(params).promise) as unknown as PdfDoc;
+  return (await pdfjs.getDocument({ ...pdfjsAssetOptions(), ...params })
+    .promise) as unknown as PdfDoc;
 }
 
 /** Plain text of the first pages (stops at maxChars). */
@@ -63,6 +85,7 @@ export async function renderPage(
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   await page.render({ canvas, canvasContext: ctx, viewport }).promise;
+  page.cleanup?.();
   return canvas.toDataURL(type, quality);
 }
 
@@ -213,6 +236,7 @@ export async function watermarkImageFile(file: File, label = "MatchMax Preview")
       for (let x = -w; x < w; x += size * 14) ctx.fillText(label, x, y);
     }
     ctx.restore();
+    await drawLogoOnCanvas(ctx, w, h, 0.15);
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob(resolve, "image/jpeg", 0.85),
     );
@@ -221,4 +245,26 @@ export async function watermarkImageFile(file: File, label = "MatchMax Preview")
   } finally {
     URL.revokeObjectURL(url);
   }
+}
+
+/** Owner request: the greyscale MatchMax logo, centred, on gallery images. */
+async function drawLogoOnCanvas(
+  ctx: CanvasRenderingContext2D,
+  w: number,
+  h: number,
+  alpha: number,
+) {
+  const logo = await new Promise<HTMLImageElement | null>((resolve) => {
+    const el = new Image();
+    el.onload = () => resolve(el);
+    el.onerror = () => resolve(null);
+    el.src = LOGO_WATERMARK_DATA_URL;
+  });
+  if (!logo) return;
+  const logoWidth = Math.min(w * 0.55, 900);
+  const logoHeight = (logoWidth * logo.naturalHeight) / logo.naturalWidth;
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.drawImage(logo, (w - logoWidth) / 2, (h - logoHeight) / 2, logoWidth, logoHeight);
+  ctx.restore();
 }

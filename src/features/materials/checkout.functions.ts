@@ -846,6 +846,11 @@ export async function buildDeliveredFile(
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const doc = await PDFDocument.load(originalBytes, { ignoreEncryption: false });
   const font = await doc.embedFont(StandardFonts.Helvetica);
+  // Owner request: faint greyscale MatchMax logo on every delivered page.
+  const { logoWatermarkBytes, LOGO_OPACITY_DELIVERED } =
+    await import("@/features/materials/logo-watermark");
+  const { drawLogoWatermark } = await import("@/features/materials/watermark");
+  const logo = await doc.embedPng(logoWatermarkBytes());
   // #573: "Licensed to [masked email] - Order #[ID]" (privacy policy §12).
   const footer = deliveredFooterText({
     orderRef: order.reference || order.id.slice(0, 8),
@@ -853,6 +858,7 @@ export async function buildDeliveredFile(
     buyerAccountId: order.buyer_account_id,
   });
   for (const page of doc.getPages()) {
+    drawLogoWatermark(page, logo, LOGO_OPACITY_DELIVERED);
     const { width } = page.getSize();
     const fontSize = 7.5;
     const textWidth = font.widthOfTextAtSize(footer, fontSize);

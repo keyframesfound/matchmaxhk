@@ -572,8 +572,14 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
         const text = await extractPdfText(doc);
         const pageImages: string[] = [];
         if (text.replace(/\s+/g, "").length < 200) {
-          for (let i = 1; i <= Math.min(3, doc.numPages); i += 1) {
-            pageImages.push(await renderPage(doc, i, 900, "image/jpeg", 0.7));
+          // A page that will not render must not stop detection: the server
+          // still has the file name and any text to work from.
+          try {
+            for (let i = 1; i <= Math.min(3, doc.numPages); i += 1) {
+              pageImages.push(await renderPage(doc, i, 900, "image/jpeg", 0.7));
+            }
+          } catch {
+            // keep whatever rendered
           }
         }
         const fileName = pdfFile?.name ?? (mergedPdf ? "photos.pdf" : null);
@@ -630,6 +636,12 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
         setAiNote(t("notes.ai.applied", { count: filled }));
       } catch (error) {
         setAiNote(null);
+        // Fallback: a readable title from the file name, so the seller is not
+        // left with an empty form.
+        const baseName = (pdfFile?.name ?? "").replace(/\.[^.]+$/, "");
+        if (!title.trim() && baseName) {
+          setTitle(baseName.replace(/[_-]+/g, " ").replace(/\s+/g, " ").trim().slice(0, 120));
+        }
         // Expired signed URL: refresh it so the next attempt works.
         if (typeof mainSource === "string") await refreshRemoteMainUrl(mainSource);
         toast.error(error instanceof Error ? error.message : t("notes.ai.failed"));

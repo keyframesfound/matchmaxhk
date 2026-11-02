@@ -2,6 +2,7 @@ import { useMemo } from "react";
 
 import { useAuth } from "@/features/auth/useAuth";
 import { maskEmail } from "@/features/materials/marketplace-policy";
+import { LOGO_WATERMARK_DATA_URL } from "@/features/materials/logo-watermark";
 
 /**
  * Owner request (2026-11-02): a visible, FLOATING watermark over every
@@ -50,6 +51,11 @@ export function PreviewWatermark({ label }: { label?: string }) {
           .mm-watermark-drift { animation: none; transform: translate(30%, 40%) rotate(-18deg); }
         }
       `}</style>
+      <img
+        src={LOGO_WATERMARK_DATA_URL}
+        alt=""
+        className="absolute left-1/2 top-1/2 w-[55%] max-w-[420px] -translate-x-1/2 -translate-y-1/2 opacity-[0.14]"
+      />
       <span className="mm-watermark-drift absolute left-0 top-0 whitespace-nowrap rounded-md px-2 py-1 text-sm font-bold text-[rgb(70,90,120)]/40">
         MatchMax · {viewer}
       </span>

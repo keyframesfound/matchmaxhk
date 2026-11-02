@@ -11,6 +11,8 @@ import {
   NOTE_AI_MAX_IMAGES,
   NOTE_AI_MAX_TEXT,
   NOTE_AI_TEXT_MODEL,
+  NOTE_AI_TEXT_FALLBACKS,
+  NOTE_AI_VISION_FALLBACKS,
   NOTE_AI_VISION_MODEL,
   type NoteAiSuggestion,
 } from "@/features/materials/note-ai";
@@ -110,43 +112,60 @@ export const suggestNoteDetails = createServerFn({ method: "POST" })
         ]
       : userText;
 
-    const response = await fetch(OPENROUTER_URL, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://matchmax.hk",
-        "X-Title": "MatchMax Notes Upload Assistant",
-      },
-      signal: AbortSignal.timeout(90_000),
-      body: JSON.stringify({
-        model: useVision ? NOTE_AI_VISION_MODEL : NOTE_AI_TEXT_MODEL,
-        temperature: 0.2,
-        max_tokens: 1_200,
-        ...(useVision ? {} : { response_format: { type: "json_object" } }),
-        messages: [
-          { role: "system", content: buildNoteAiSystemPrompt() },
-          { role: "user", content: userContent },
-        ],
-      }),
-    });
-
-    if (!response.ok) {
-      const body = await response.text().catch(() => "");
-      let detail = "";
+    // Try the configured model first, then fallbacks: one provider outage or
+    // an unsupported option must not make detection fail outright.
+    const models = useVision
+      ? [NOTE_AI_VISION_MODEL, ...NOTE_AI_VISION_FALLBACKS]
+      : [NOTE_AI_TEXT_MODEL, ...NOTE_AI_TEXT_FALLBACKS];
+    let lastError = "AI detection failed.";
+    for (const model of models) {
       try {
-        detail = (JSON.parse(body) as { error?: { message?: string } }).error?.message ?? "";
-      } catch {
-        detail = body;
+        const response = await fetch(OPENROUTER_URL, {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            "HTTP-Referer": "https://matchmax.hk",
+            "X-Title": "MatchMax Notes Upload Assistant",
+          },
+          signal: AbortSignal.timeout(45_000),
+          body: JSON.stringify({
+            model,
+            temperature: 0.2,
+            max_tokens: 1_200,
+            messages: [
+              { role: "system", content: buildNoteAiSystemPrompt() },
+              { role: "user", content: userContent },
+            ],
+          }),
+        });
+        if (!response.ok) {
+          const body = await response.text().catch(() => "");
+          let detail = "";
+          try {
+            detail = (JSON.parse(body) as { error?: { message?: string } }).error?.message ?? "";
+          } catch {
+            detail = body;
+          }
+          lastError = `AI detection failed (OpenRouter ${response.status})${detail ? `: ${detail.slice(0, 200)}` : ""}`;
+          console.error(`[note-ai] ${model}: ${lastError}`);
+          // A bad or out-of-credit key fails the same way on every model.
+          if (response.status === 401 || response.status === 402) break;
+          continue;
+        }
+        const payload = (await response.json()) as {
+          choices?: Array<{ message?: { content?: string } }>;
+        };
+        const content = payload.choices?.[0]?.message?.content;
+        if (!content) {
+          lastError = "AI detection returned an empty reply.";
+          continue;
+        }
+        return normalizeNoteAiResult(content);
+      } catch (error) {
+        lastError = error instanceof Error ? error.message : String(error);
+        console.error(`[note-ai] ${model}: ${lastError}`);
       }
-      throw new Error(
-        `AI detection failed (OpenRouter ${response.status})${detail ? `: ${detail.slice(0, 200)}` : ""}`,
-      );
     }
-    const payload = (await response.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const content = payload.choices?.[0]?.message?.content;
-    if (!content) throw new Error("AI detection returned an empty reply.");
-    return normalizeNoteAiResult(content);
+    throw new Error(lastError);
   });

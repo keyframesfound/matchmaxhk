@@ -20,6 +20,12 @@ import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 export const NOTE_AI_TEXT_MODEL = "qwen/qwen3-235b-a22b-instruct-2507";
 /** Vision model for scanned PDFs / photos (page images instead of text). */
 export const NOTE_AI_VISION_MODEL = "qwen/qwen2.5-vl-72b-instruct";
+/** Tried in order when the primary model errors or is unavailable. */
+export const NOTE_AI_TEXT_FALLBACKS = [
+  "qwen/qwen-2.5-72b-instruct",
+  "qwen/qwen3-30b-a3b-instruct-2507",
+];
+export const NOTE_AI_VISION_FALLBACKS = ["qwen/qwen2.5-vl-32b-instruct", "qwen/qwen-vl-max"];
 
 /** Max characters of extracted text sent to the model. */
 export const NOTE_AI_MAX_TEXT = 24_000;
