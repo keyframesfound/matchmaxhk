@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { NotebookText, Search } from "lucide-react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
@@ -24,6 +24,7 @@ export function MobileSearchTrigger({
 }) {
   const { t } = useTranslation();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const search = useRouterState({ select: (state) => state.location.searchStr ?? "" });
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
 
   const navPills = [
@@ -46,6 +47,8 @@ export function MobileSearchTrigger({
       icon: "/nav-become-tutor.png",
     },
   ];
+  // #557 CEO lock: 4th pill, Notes -> the materials market.
+  const notesActive = pathname === "/tutors" && search.includes("view=materials");
 
   return (
     <div className={cn("-mx-4 px-3 md:-mx-6 lg:hidden", className)}>
@@ -89,6 +92,23 @@ export function MobileSearchTrigger({
             </Link>
           );
         })}
+        <Link
+          to="/tutors"
+          search={{ view: "materials" }}
+          aria-current={notesActive ? "page" : undefined}
+          className={cn(
+            "pill-elevate flex shrink-0 items-center justify-center rounded-full border px-3.5 py-2.5 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            notesActive &&
+              "pill-elevate-strong border-transparent bg-muted font-bold text-[color:var(--ink)] dark:border-[color:var(--foreground)] dark:bg-card",
+            !notesActive &&
+              "border-transparent bg-card font-medium text-[color:var(--ink)]/75 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] dark:border-border",
+          )}
+        >
+          <span className="flex items-center justify-center gap-2">
+            <NotebookText className="h-[18px] w-[18px] shrink-0" aria-hidden="true" />
+            <span>{t("nav_mobile.notes")}</span>
+          </span>
+        </Link>
       </nav>
     </div>
   );

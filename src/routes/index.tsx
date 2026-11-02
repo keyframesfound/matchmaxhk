@@ -22,7 +22,6 @@ import {
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { HomeNotesRow } from "@/features/materials/home-notes-row";
-import { SellNotesCta } from "@/features/materials/note-engagement";
 import { HomeGigsRow } from "@/features/gigs/home-gigs-row";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
 import { getTutorInquiryAction } from "@/features/tutors/tutor-display";
@@ -753,14 +752,6 @@ function Landing() {
         <section className="relative pb-10 md:pt-6 md:pb-16">
           <div className="mx-auto max-w-[1600px] px-4 md:px-6">
             <div className="mt-4 space-y-10 md:mt-10 md:space-y-12">
-              {/* Issue #312: approved notes under the search bar, above the
-                  IB rail; renders nothing below three public notes. The
-                  null guards live INSIDE the row so a hidden row leaves no
-                  empty wrapper in the space-y stack. */}
-              {/* Notes upload v2 (owner-approved): the notes upload entry
-                  sits right under the search bar, above the notes row. */}
-              <SellNotesCta />
-              <HomeNotesRow />
               {/* Issue #329: Tutor services row, ORDER IS SEMANTIC: the
                   notes row (#312) stays first, gigs sit immediately below it.
                   Same ≥3-listings guardrail; renders nothing when the gigs
@@ -800,6 +791,10 @@ function Landing() {
                   />
                 );
               })}
+              {/* #557 CEO lock (2026-11-02): tutors first; the thin Study
+                  notes row (compact photo cards) sits BELOW the tutor rails
+                  and renders nothing until a note is published. */}
+              <HomeNotesRow />
             </div>
           </div>
         </section>

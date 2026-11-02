@@ -1883,7 +1883,8 @@
     "explore": "Explore",
     "saved_posts": "Saved",
     "account": "Account",
-    "quick_links": "Quick links"
+    "quick_links": "Quick links",
+    "notes": "Notes"
   },
   "notes": {
     "page_count": "{{count}} pages",
@@ -2207,6 +2208,9 @@
       "included_placeholder": "e.g. 42 pages, GoodNotes file, annotated exemplars",
       "field_syllabus": "Syllabus or chapters (optional)",
       "syllabus_placeholder": "One chapter or module per line"
+    },
+    "market": {
+      "how_it_works": "How it works"
     }
   },
   "orders": {

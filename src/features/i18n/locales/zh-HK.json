@@ -1883,7 +1883,8 @@
     "explore": "探索",
     "saved_posts": "已儲存",
     "account": "帳戶",
-    "quick_links": "快速連結"
+    "quick_links": "快速連結",
+    "notes": "筆記"
   },
   "notes": {
     "page_count": "{{count}} 頁",
@@ -2207,6 +2208,9 @@
       "included_placeholder": "例如：42 頁、GoodNotes 檔案、附評語範文",
       "field_syllabus": "課程大綱或章節（選填）",
       "syllabus_placeholder": "每行一個章節或單元"
+    },
+    "market": {
+      "how_it_works": "運作方式"
     }
   },
   "orders": {

@@ -1883,7 +1883,8 @@
     "explore": "探索",
     "saved_posts": "已保存",
     "account": "账户",
-    "quick_links": "快速链接"
+    "quick_links": "快速链接",
+    "notes": "笔记"
   },
   "notes": {
     "page_count": "{{count}} 页",
@@ -2207,6 +2208,9 @@
       "included_placeholder": "例如：42 页、GoodNotes 档案、附评语范文",
       "field_syllabus": "课程大纲或章节（选填）",
       "syllabus_placeholder": "每行一个章节或单元"
+    },
+    "market": {
+      "how_it_works": "运作方式"
     }
   },
   "orders": {
