@@ -1963,7 +1963,9 @@
       "price_free_note": "HK$0 is allowed, free packs still go through staff review.",
       "field_file_flashcards": "Deck file (PDF or Anki .apkg)",
       "file_hint_flashcards": "PDF or Anki .apkg, max 20MB. Buyers download the file, there is no in-browser preview.",
-      "file_too_large": "File is too large. Maximum is 20MB."
+      "file_too_large": "File is too large. Maximum is 20MB.",
+      "still_processing": "Still preparing your photos, try again in a moment.",
+      "fix_errors": "Fix the fields marked in red first."
     },
     "home": {
       "heading": "Study notes",
