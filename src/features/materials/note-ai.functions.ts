@@ -32,13 +32,9 @@ import {
 const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 /**
- * GLM review fix: per-account abuse cap on the AI endpoint (up to 4 x 2 MB
- * images per call at a 90 s timeout). One row per call that reaches
- * OpenRouter, recorded in ai_suggestion_events (service-role only). The
- * guard fails OPEN when the table is missing (pre-migration environments)
- * so detection keeps working exactly as before the migration lands.
+ * Owner request (2026-11-03): no per-account cap on AI detection. Every
+ * call is still logged in ai_suggestion_events (usage tracking only).
  */
-const NOTE_AI_DAILY_LIMIT = 50;
 const NOTE_AI_EVENT_KIND = "note_detect";
 
 const Input = z.object({
@@ -77,31 +73,17 @@ export const suggestNoteDetails = createServerFn({ method: "POST" })
       throw new Error("Not enough content to detect. Fill in the details by hand.");
     }
 
-    // Per-account rolling-24h cap. Fails open when the events table is not
-    // there yet (pre-migration), never blocking detection on bookkeeping.
+    // Usage log only (no cap); bookkeeping never blocks detection.
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { asAdminDb } = await import("@/features/materials/storage-helpers");
     const aiDb = asAdminDb(supabaseAdmin);
-    const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-    try {
-      const recent = await aiDb
-        .from<{ created_at: string }>("ai_suggestion_events")
-        .select("created_at")
-        .eq("account_id", context.userId)
-        .eq("kind", NOTE_AI_EVENT_KIND)
-        .gte("created_at", since)
-        .limit(NOTE_AI_DAILY_LIMIT);
-      if ((recent.data?.length ?? 0) >= NOTE_AI_DAILY_LIMIT) {
-        throw new Error(
-          "AI detection limit reached for today. Fill in the details by hand and try again tomorrow.",
-        );
-      }
-      await aiDb
-        .from<never>("ai_suggestion_events")
-        .insert({ account_id: context.userId, kind: NOTE_AI_EVENT_KIND });
-    } catch (error) {
-      if (error instanceof Error && error.message.includes("limit reached")) throw error;
-    }
+    await aiDb
+      .from<never>("ai_suggestion_events")
+      .insert({ account_id: context.userId, kind: NOTE_AI_EVENT_KIND })
+      .then(
+        () => undefined,
+        () => undefined,
+      );
 
     // Follow the document's language: the client's guess, else detect here.
     const language = data.documentLanguage ?? detectDocumentLanguage(text);
@@ -154,6 +136,14 @@ export const suggestNoteDetails = createServerFn({ method: "POST" })
           }
           lastError = `AI detection failed (OpenRouter ${response.status})${detail ? `: ${detail.slice(0, 200)}` : ""}`;
           console.error(`[note-ai] ${model}: ${lastError}`);
+          // Provider-side limits (not a MatchMax cap): say so plainly.
+          if (response.status === 402) {
+            lastError =
+              "AI detection is paused: the AI provider (OpenRouter) account is out of credit. Fill in the details by hand for now. AI 服務額度已用完，請先手動填寫。";
+          } else if (response.status === 429) {
+            lastError =
+              "The AI provider is busy right now (rate limit). Try Detect again in a minute. AI 服務暫時繁忙，請稍後再試。";
+          }
           // A bad or out-of-credit key fails the same way on every model.
           if (response.status === 401 || response.status === 402) break;
           continue;
