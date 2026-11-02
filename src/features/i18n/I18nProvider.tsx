@@ -1,13 +1,14 @@
 import { type ReactNode, useEffect } from "react";
 import { I18nextProvider, useTranslation } from "react-i18next";
 import i18n from "./config";
+import { normalizeLocale } from "./seo";
 
 /** Issue #401: keep <html lang> in step with the active locale. */
 function HtmlLangSync() {
   const { i18n } = useTranslation();
   useEffect(() => {
     const apply = () => {
-      document.documentElement.lang = i18n.language?.startsWith("zh") ? "zh-HK" : "en";
+      document.documentElement.lang = normalizeLocale(i18n.language);
     };
     apply();
     i18n.on("languageChanged", apply);

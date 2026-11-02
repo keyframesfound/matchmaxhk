@@ -240,7 +240,7 @@ function CaseDetailPage() {
   // mixed-language page. Every visible string now routes through the
   // case_board.* keys; the structured value slots use the zh label maps in
   // display.ts when the active locale is zh-HK.
-  const zh = i18n.language === "zh-HK";
+  const zh = i18n.language?.startsWith("zh") ?? false;
   const { item, whatsappNumber } = Route.useLoaderData() as CaseDetailData;
   // Issue #113: convert the budget for tutors quoting in another currency.
   const tutorCurrency = useTutorDisplayCurrency();

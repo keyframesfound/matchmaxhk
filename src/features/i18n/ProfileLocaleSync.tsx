@@ -6,7 +6,7 @@ import i18n from "@/features/i18n/config";
 import { readPreferredLocale } from "@/features/i18n/seo";
 import { useSwitchLocale } from "@/features/i18n/switch-locale";
 
-const SUPPORTED_LOCALES = ["en", "zh-HK"] as const;
+const SUPPORTED_LOCALES = ["en", "zh-HK", "zh-CN"] as const;
 
 /**
  * Adopts the account-level language once per signed-in user, mirroring how

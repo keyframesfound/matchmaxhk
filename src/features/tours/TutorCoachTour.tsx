@@ -1,6 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { optionACopyKey } from "@/features/materials/marketplace-policy";
 
 import { useGateOverlayPending } from "@/features/auth/gate-overlay";
 import "driver.js/dist/driver.css";
@@ -79,7 +80,11 @@ export function TutorCoachTour({ enabled }: { enabled: boolean }) {
           t("tour.tutor.verification_title"),
           t("tour.tutor.verification_body"),
         ),
-        tourStep("tutor-materials", t("tour.tutor.shop_title"), t("tour.tutor.shop_body")),
+        tourStep(
+          "tutor-materials",
+          t("tour.tutor.shop_title"),
+          t(optionACopyKey("tour.tutor.shop_body")),
+        ),
         tourStep("tutor-cases", t("tour.tutor.cases_title"), t("tour.tutor.cases_body")),
         tourStep(null, t("tour.tutor.final_title"), t("tour.tutor.final_body")),
       ].filter((step): step is NonNullable<typeof step> => step !== null);

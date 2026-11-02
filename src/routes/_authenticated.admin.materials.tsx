@@ -2,6 +2,7 @@ import { useRef, useState } from "react";
 import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { optionACopyKey } from "@/features/materials/marketplace-policy";
 import {
   BookOpen,
   Check,
@@ -720,7 +721,7 @@ function AdminMaterials() {
                 htmlFor="admin-material-legal"
                 className="text-xs font-medium leading-relaxed text-muted-foreground"
               >
-                {t("materials.legal_checkbox")}
+                {t(optionACopyKey("materials.legal_checkbox"))}
               </Label>
             </div>
             <DialogFooter>

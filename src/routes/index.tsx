@@ -141,14 +141,14 @@ export const Route = createFileRoute("/")({
         {
           name: "twitter:title",
           content:
-            locale === "zh-HK"
+            locale !== "en"
               ? "MatchMax | 香港最透明的補習配對平台"
               : "Tutoring Made Convenient in Hong Kong | MatchMax",
         },
         {
           name: "twitter:description",
           content:
-            locale === "zh-HK"
+            locale !== "en"
               ? "極速專人配對、透明紙面成績，家長全免手續費。"
               : "Find elite IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
         },
@@ -735,7 +735,9 @@ function Landing() {
 
         {/* #307: grey band behind the mobile search pill, mirroring the
             desktop StickySearchBar band -- full-bleed, hairline bottom. */}
-        <div className="relative z-20 border-b border-border bg-[color:var(--surface-header)] lg:hidden">
+        {/* #594: Airbnb-style, the search pill + quick pills stay pinned
+            under the mobile header while the tutor feed scrolls. */}
+        <div className="sticky top-14 z-40 border-b border-border bg-[color:var(--surface-header)]/95 backdrop-blur-sm lg:hidden">
           <div className="mx-auto max-w-[1600px] px-4 md:px-6">
             <div className="py-2.5 sm:p-5">
               <TutorsSearchMobile
@@ -752,11 +754,6 @@ function Landing() {
         <section className="relative pb-10 md:pt-6 md:pb-16">
           <div className="mx-auto max-w-[1600px] px-4 md:px-6">
             <div className="mt-4 space-y-10 md:mt-10 md:space-y-12">
-              {/* Issue #312: approved notes under the search bar, above the
-                  IB rail; renders nothing below three public notes. The
-                  null guards live INSIDE the row so a hidden row leaves no
-                  empty wrapper in the space-y stack. */}
-              <HomeNotesRow />
               {/* Issue #329: Tutor services row, ORDER IS SEMANTIC: the
                   notes row (#312) stays first, gigs sit immediately below it.
                   Same ≥3-listings guardrail; renders nothing when the gigs
@@ -796,6 +793,10 @@ function Landing() {
                   />
                 );
               })}
+              {/* #557 CEO lock (2026-11-02): tutors first; the thin Study
+                  notes row (compact photo cards) sits BELOW the tutor rails
+                  and renders nothing until a note is published. */}
+              <HomeNotesRow />
             </div>
           </div>
         </section>

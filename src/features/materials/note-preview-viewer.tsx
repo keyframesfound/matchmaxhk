@@ -3,6 +3,11 @@ import { useTranslation } from "react-i18next";
 import { Lock } from "lucide-react";
 
 import { CRISP_PREVIEW_PAGES } from "@/features/materials/lifecycle";
+// Bundled by Vite (?url emits the hashed asset into dist/assets) — a bare
+// "pdfjs-dist/build/pdf.worker.min.mjs" path 404s on prod (#569).
+import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+import { pdfjsAssetOptions } from "@/features/materials/note-file-tools";
+import { PreviewWatermark } from "@/features/materials/preview-watermark";
 
 /**
  * Clastify-style preview viewer (Ryan, 2026-10-11): the public note page
@@ -15,8 +20,6 @@ import { CRISP_PREVIEW_PAGES } from "@/features/materials/lifecycle";
  * app) and renders at a fixed 900px-width scale, pages are laid out in a
  * single column like the reference site.
  */
-
-const FALLBACK_WORKER = "pdfjs-dist/build/pdf.worker.min.mjs";
 
 export function NotePreviewViewer({
   previewUrl,
@@ -45,9 +48,11 @@ export function NotePreviewViewer({
     (async () => {
       try {
         const pdfjs = await import("pdfjs-dist");
-        const workerUrl = new URL(FALLBACK_WORKER, import.meta.url).href;
-        pdfjs.GlobalWorkerOptions.workerSrc = workerUrl;
-        const doc = await pdfjs.getDocument({ url: previewUrl }).promise;
+        pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
+        const doc = await pdfjs.getDocument({
+          ...pdfjsAssetOptions(),
+          url: previewUrl,
+        }).promise;
         if (cancelled) return;
         setPageCountState(doc.numPages);
         const total = doc.numPages;
@@ -108,11 +113,14 @@ export function NotePreviewViewer({
           user-select: none;
         }
       `}</style>
-      <div ref={containerRef} className="space-y-4" aria-label={t("notes.preview_aria")} />
+      <div className="relative">
+        <div ref={containerRef} className="space-y-4" aria-label={t("notes.preview_aria")} />
+        <PreviewWatermark />
+      </div>
       {/* Lock overlay rides at the top of the blurred region */}
       {total > crisp && (
         <div
-          className="pointer-events-none absolute inset-x-0 flex items-center justify-center"
+          className="pointer-events-none absolute inset-x-0 z-20 flex items-center justify-center"
           style={{ top: `min(90%, ${(crisp / Math.max(total, 1)) * 100}%)` }}
         >
           <div className="pointer-events-auto flex max-w-sm items-center gap-3 rounded-xl border border-border bg-[color:var(--surface)]/95 p-4 backdrop-blur-sm">

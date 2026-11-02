@@ -1,3 +1,5 @@
+import { cpSync, existsSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 import { nitro } from "nitro/vite";
@@ -20,8 +22,39 @@ import tsConfigPaths from "vite-tsconfig-paths";
 // elsewhere (Vercel, Node, Netlify), Nitro auto-detects most platforms at build time;
 // see https://nitro.build for explicit preset configuration if auto-detection doesn't
 // pick the right one.
+// Notes: pdfjs renders many real PDFs only with its CMap (CJK), standard
+// font, ICC and wasm (JPEG 2000 / colour profile) data. Copy them from the
+// installed pdfjs-dist into public/pdfjs (gitignored) so they are served
+// from our own origin and always match the bundled pdfjs version.
+function copyPdfjsAssets() {
+  return {
+    name: "matchmax-copy-pdfjs-assets",
+    buildStart() {
+      const from = fileURLToPath(new URL("./node_modules/pdfjs-dist/", import.meta.url));
+      const to = fileURLToPath(new URL("./public/pdfjs/", import.meta.url));
+      for (const dir of ["cmaps", "standard_fonts", "wasm", "iccs"]) {
+        if (existsSync(`${from}${dir}`))
+          cpSync(`${from}${dir}`, `${to}${dir}`, { recursive: true });
+      }
+    },
+  };
+}
+
 export default defineConfig({
+  resolve: {
+    alias: [
+      // pdf-lib (server-side note watermark / stamping) imports tslib. Its
+      // CJS/UMD entry bundles to an undefined default in the Worker, so every
+      // server function that loads pdf-lib crashed with "Cannot destructure
+      // property '__extends'". The pure ESM build has named exports only.
+      {
+        find: /^tslib$/,
+        replacement: fileURLToPath(new URL("./node_modules/tslib/tslib.es6.mjs", import.meta.url)),
+      },
+    ],
+  },
   plugins: [
+    copyPdfjsAssets(),
     tanstackStart({
       server: { entry: "server" },
     }),

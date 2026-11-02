@@ -30,7 +30,7 @@ import type { MyOrder } from "@/features/materials/checkout.functions";
  */
 
 function formatDue(datetime: string): string {
-  return new Intl.DateTimeFormat(i18n.language === "zh-HK" ? "zh-HK" : "en-HK", {
+  return new Intl.DateTimeFormat(i18n.language?.startsWith("zh") ? i18n.language : "en-HK", {
     dateStyle: "medium",
     timeStyle: "short",
   }).format(new Date(datetime));

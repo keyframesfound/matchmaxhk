@@ -8,6 +8,8 @@ import {
   mapPublicNote,
   PUBLIC_NOTE_COLUMNS,
   PUBLIC_NOTE_TUTOR_JOIN,
+  PUBLIC_NOTE_TUTOR_JOIN_V2,
+  PUBLIC_SELLER_OR,
   type PublicNote,
 } from "@/features/materials/notes.functions";
 
@@ -87,13 +89,24 @@ export const getPublicListing = createServerFn({ method: "GET" })
     const db = asAdminDb(supabaseAdmin);
 
     const isUuid = /^[0-9a-f-]{36}$/i.test(data.slug);
-    const { data: rows, error } = await db
-      .from<Record<string, unknown>>("digital_materials")
-      .select(`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_TUTOR_JOIN}`)
-      .eq("status", "published")
-      .eq("tutors.is_published", true)
-      .eq(isUuid ? "id" : "slug", data.slug)
-      .limit(1);
+    const run = (community: boolean) => {
+      const base = db
+        .from<Record<string, unknown>>("digital_materials")
+        .select(
+          `${PUBLIC_NOTE_COLUMNS}, ${community ? PUBLIC_NOTE_TUTOR_JOIN_V2 : PUBLIC_NOTE_TUTOR_JOIN}`,
+        )
+        .eq("status", "published");
+      return (
+        community
+          ? base.or(PUBLIC_SELLER_OR, { referencedTable: "tutors" })
+          : base.eq("tutors.is_published", true)
+      )
+        .eq(isUuid ? "id" : "slug", data.slug)
+        .limit(1);
+    };
+    let result = await run(true);
+    if (result.error?.code === "42703") result = await run(false);
+    const { data: rows, error } = result;
     if (error) throw new Error(error.message);
     const row = rows?.[0];
     if (!row) return null;

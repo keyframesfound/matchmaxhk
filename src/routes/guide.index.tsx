@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { optionACopyKey } from "@/features/materials/marketplace-policy";
 import {
   ArrowRight,
   BookOpen,
@@ -79,7 +80,7 @@ function useGuideContent() {
   ): FaqItem[] =>
     keys.map((key) => ({
       title: t(`hiw.${group}.${key}.q`),
-      content: t(`hiw.${group}.${key}.a`),
+      content: t(optionACopyKey(`hiw.${group}.${key}.a`)),
     }));
 
   const tutorFaqItems = faqItems("tutor_faq", [

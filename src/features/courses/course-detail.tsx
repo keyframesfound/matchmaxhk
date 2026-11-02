@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { PreviewWatermark } from "@/features/materials/preview-watermark";
 import { useNavigate } from "@tanstack/react-router";
 import {
   Download,
@@ -204,7 +205,8 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
                           </span>
                         </div>
                         {accessLesson?.embedUrl ? (
-                          <div className="aspect-video w-full overflow-hidden rounded-md border border-border bg-muted/20">
+                          <div className="relative aspect-video w-full overflow-hidden rounded-md border border-border bg-muted/20">
+                            <PreviewWatermark label="MatchMax · licensed to one student" />
                             <iframe
                               src={accessLesson.embedUrl}
                               title={lesson.title}

@@ -37,8 +37,15 @@ export type StudyMaterial = {
   slug: string | null;
   /** #392 big-cover shop card: public materials-previews path. */
   cover_image_path: string | null;
+  /** #556 gallery (public materials-previews paths); first one doubles as the browse-card photo. */
+  preview_image_paths?: string[];
   /** #392: delivered orders only, incremented at delivery. */
   sold_count: number;
+  // Notes upload v2 (empty until the v2 migration is applied).
+  summary: string | null;
+  subcategory: string | null;
+  search_tags: string[];
+  content_language: string | null;
 };
 
 export const MATERIALS_PREVIEW_DISCLAIMER_KEY = "materials.disclaimer";
@@ -46,6 +53,9 @@ export const MATERIALS_PREVIEW_DISCLAIMER_KEY = "materials.disclaimer";
 function isMissingRelation(error: unknown): boolean {
   return (error as { code?: string })?.code === "42P01";
 }
+
+/** Notes upload v2 columns, read with a fallback when the migration is missing. */
+const MATERIAL_V2_COLS = "summary, subcategory, search_tags, content_language";
 
 const MATERIAL_COLS =
   "id, tutor_id, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, word_count, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, admin_marketing_summary, created_at, slug, cover_image_path, sold_count";
@@ -92,6 +102,15 @@ function mapMaterial(row: Record<string, unknown>): StudyMaterial {
     slug: typeof row.slug === "string" ? row.slug : null,
     cover_image_path: typeof row.cover_image_path === "string" ? row.cover_image_path : null,
     sold_count: Number(row.sold_count ?? 0),
+    summary: typeof row.summary === "string" ? row.summary : null,
+    subcategory: typeof row.subcategory === "string" ? row.subcategory : null,
+    search_tags: Array.isArray(row.search_tags)
+      ? row.search_tags.filter((t): t is string => typeof t === "string")
+      : [],
+    content_language: typeof row.content_language === "string" ? row.content_language : null,
+    preview_image_paths: Array.isArray(row.preview_image_paths)
+      ? row.preview_image_paths.filter((p): p is string => typeof p === "string")
+      : [],
   };
 }
 
@@ -147,6 +166,8 @@ export type MarketplaceMaterial = StudyMaterial & {
   tutor_code: string;
   /** #314: the tutor holds the Verified badge (verification_tier tier_2_verified). */
   tutor_verified: boolean;
+  /** #573: a notes-only Community Seller (no tutor profile to link to). */
+  tutor_community: boolean;
 };
 
 /**
@@ -157,12 +178,27 @@ export type MarketplaceMaterial = StudyMaterial & {
  * own note-only RPCs and queries.
  */
 export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]> {
-  const { data, error } = await materialsTable()
-    .select(
-      `${MATERIAL_COLS}, tutors!inner(display_name, tutor_code, is_published, verification_tier)`,
-    )
-    .eq("status", "published")
-    .order("created_at", { ascending: false });
+  // RLS already limits rows to published tutors + (#573) community sellers.
+  const run = (columns: string, community: boolean) =>
+    materialsTable()
+      .select(
+        `${columns}, tutors!inner(display_name, tutor_code, is_published, verification_tier${
+          community ? ", is_community_seller" : ""
+        })`,
+      )
+      .eq("status", "published")
+      .order("created_at", { ascending: false });
+  // 42703 = a newer column does not exist yet; step back one migration.
+  // #557 browse cards: the gallery supplies the card photo.
+  let result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}, preview_image_paths`, true);
+  if (result.error?.code === "42703") {
+    result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}`, true);
+  }
+  if (result.error?.code === "42703") {
+    result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}`, false);
+  }
+  if (result.error?.code === "42703") result = await run(MATERIAL_COLS, false);
+  const { data, error } = result;
   if (error) {
     if (isMissingRelation(error)) return [];
     throw error;
@@ -178,6 +214,7 @@ export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]
           typeof tutor?.display_name === "string" ? tutor.display_name : "MatchMax Tutor",
         tutor_code: typeof tutor?.tutor_code === "string" ? tutor.tutor_code : "",
         tutor_verified: tutor?.verification_tier === "tier_2_verified",
+        tutor_community: tutor?.is_community_seller === true,
       };
     })
     .filter((m) => m.id && m.tutor_code);
@@ -207,4 +244,42 @@ export function formatMaterialTypeLabel(type: string, t: (key: string) => string
   const key = `materials.type_${type}`;
   const label = t(key);
   return label === key ? type.replace(/_/g, " ") : label;
+}
+
+/**
+ * #556: verified-buyer rating summaries for the shop cards (★ 4.9 (18)).
+ * Public RLS read of published notes' reviews; an empty map when the
+ * reviews table is not migrated yet.
+ */
+export async function fetchMaterialRatings(): Promise<
+  Map<string, { average: number | null; count: number }>
+> {
+  const client = supabase as unknown as {
+    from: (t: string) => {
+      select: (c: string) => {
+        limit: (n: number) => Promise<{
+          data: { material_id: string; rating: number }[] | null;
+          error?: { code?: string } | null;
+        }>;
+      };
+    };
+  };
+  const { data, error } = await client
+    .from("material_reviews")
+    .select("material_id, rating")
+    .limit(10000);
+  const sums = new Map<string, { sum: number; count: number }>();
+  if (error || !data) return new Map();
+  for (const row of data) {
+    const entry = sums.get(row.material_id) ?? { sum: 0, count: 0 };
+    entry.sum += Number(row.rating);
+    entry.count += 1;
+    sums.set(row.material_id, entry);
+  }
+  return new Map(
+    Array.from(sums.entries()).map(([id, { sum, count }]) => [
+      id,
+      { average: Math.round((sum / count) * 10) / 10, count },
+    ]),
+  );
 }

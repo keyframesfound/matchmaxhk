@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Mobile Airbnb-style search entry: a shadow-elevated "Start your search"
- * bar above the quick-nav pills row (Case / Guide / Become tutor)
+ * bar above the quick-nav pills row (Case / Guide / Marketplace)
  * that doubles as the mobile top navigation. The block bleeds to the true
  * screen edges (canceling the parent px-4/px-6 container) and the pills row
  * scrolls with cut-off pills touching the screen edge, like Airbnb. The
@@ -24,6 +24,7 @@ export function MobileSearchTrigger({
 }) {
   const { t } = useTranslation();
   const pathname = useRouterState({ select: (state) => state.location.pathname });
+  const search = useRouterState({ select: (state) => state.location.searchStr ?? "" });
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
 
   const navPills = [
@@ -39,13 +40,11 @@ export function MobileSearchTrigger({
       to: "/guide" as const,
       icon: "/nav-how-it-works.png",
     },
-    {
-      key: "join",
-      label: t("nav.become_tutor"),
-      to: "/join" as const,
-      icon: "/nav-become-tutor.png",
-    },
+    // #594: Become a Tutor is supply onboarding, not a browse mode; it
+    // lives in the Account menu only.
   ];
+  // #557 / #594 CEO lock: Marketplace (Notes | Gigs) is the 3rd pill.
+  const notesActive = pathname === "/tutors" && search.includes("view=materials");
 
   return (
     <div className={cn("-mx-4 px-3 md:-mx-6 lg:hidden", className)}>
@@ -89,6 +88,29 @@ export function MobileSearchTrigger({
             </Link>
           );
         })}
+        <Link
+          to="/tutors"
+          search={{ view: "materials" }}
+          aria-current={notesActive ? "page" : undefined}
+          className={cn(
+            "pill-elevate flex shrink-0 items-center justify-center rounded-full border px-3.5 py-2.5 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            notesActive &&
+              "pill-elevate-strong border-transparent bg-muted font-bold text-[color:var(--ink)] dark:border-[color:var(--foreground)] dark:bg-card",
+            !notesActive &&
+              "border-transparent bg-card font-medium text-[color:var(--ink)]/75 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] dark:border-border",
+          )}
+        >
+          <span className="flex items-center justify-center gap-2">
+            <img
+              src="/nav-marketplace.png"
+              alt=""
+              aria-hidden="true"
+              draggable={false}
+              className="h-[18px] w-[18px] shrink-0"
+            />
+            <span>{t("nav_mobile.marketplace")}</span>
+          </span>
+        </Link>
       </nav>
     </div>
   );

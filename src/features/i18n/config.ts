@@ -3,10 +3,12 @@ import { initReactI18next } from "react-i18next";
 
 import en from "./locales/en.json";
 import zh from "./locales/zh-HK.json";
+import zhCN from "./locales/zh-CN.json";
 import {
   LOCALE_COOKIE_KEY,
   LOCALE_STORAGE_KEY,
   navigatorLocale,
+  normalizeLocale,
   readPreferredLocale,
   type SeoLocale,
 } from "./seo";
@@ -15,7 +17,7 @@ import { urlLocaleFromWindow } from "./routing";
 /** Persist the choice to localStorage + cookie (issue #401 acceptance). */
 function persistLocale(lng: string) {
   if (typeof window === "undefined") return;
-  const normalized = lng?.startsWith("zh") ? "zh-HK" : "en";
+  const normalized = normalizeLocale(lng);
   try {
     window.localStorage.setItem(LOCALE_STORAGE_KEY, normalized);
   } catch {
@@ -92,9 +94,10 @@ if (!i18n.isInitialized) {
       resources: {
         en: { translation: en },
         "zh-HK": { translation: zh },
+        "zh-CN": { translation: zhCN },
       },
       fallbackLng: "en",
-      supportedLngs: ["en", "zh-HK"],
+      supportedLngs: ["en", "zh-HK", "zh-CN"],
       interpolation: { escapeValue: false },
     });
 }

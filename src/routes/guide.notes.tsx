@@ -1,9 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { ArrowRight, CircleCheck, CircleX } from "lucide-react";
+import { ArrowRight, CircleCheck, CircleX, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { canonicalUrl } from "@/features/i18n/seo";
+import { optionACopyKey } from "@/features/materials/marketplace-policy";
 import {
   GuideCtaRow,
   GuideHeading,
@@ -48,9 +49,24 @@ function GuideNotesPage() {
   const steps: [string, string, string][] = (["s1", "s2", "s3", "s4", "s5"] as const).map(
     (key, index) => [
       String(index + 1),
-      t(`guide.notes.${key}_title`),
-      t(`guide.notes.${key}_body`),
+      t(optionACopyKey(`guide.notes.${key}_title`)),
+      t(optionACopyKey(`guide.notes.${key}_body`)),
     ],
+  );
+
+  // Notes upload v2: the seller's upload walkthrough + buyer tips.
+  const uploadSteps: [string, string, string][] = (
+    ["u1", "u2", "u3", "u4", "u5", "u6"] as const
+  ).map((key, index) => [
+    String(index + 1),
+    t(`guide.notes.${key}_title`),
+    t(`guide.notes.${key}_body`),
+  ]);
+  const formats: string[] = (["pdf", "photos", "office", "large", "links"] as const).map((key) =>
+    t(`guide.notes.format_${key}`),
+  );
+  const buyerTips: string[] = (["search", "preview", "save", "compare", "reviews"] as const).map(
+    (key) => t(`guide.notes.buyer_${key}`),
   );
 
   const banned: string[] = (
@@ -78,6 +94,53 @@ function GuideNotesPage() {
           <GuideHeading>{t("guide.notes.how_title")}</GuideHeading>
           <div className="mt-6">
             <GuideSteps steps={steps} />
+          </div>
+        </div>
+
+        <div className="mx-auto mt-14 max-w-4xl">
+          <GuideHeading>{t("guide.notes.upload_title")}</GuideHeading>
+          <p className="mt-3 text-sm leading-relaxed text-[color:var(--ink)]/65">
+            {t("guide.notes.upload_intro")}
+          </p>
+          <div className="mt-6">
+            <GuideSteps steps={uploadSteps} />
+          </div>
+        </div>
+
+        <div className="mx-auto mt-14 grid max-w-4xl gap-6 lg:grid-cols-2">
+          <div>
+            <GuideHeading>{t("guide.notes.formats_title")}</GuideHeading>
+            <ul className="mt-6 space-y-3 rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6">
+              {formats.map((text) => (
+                <li
+                  key={text}
+                  className="flex gap-3 text-sm leading-relaxed text-[color:var(--ink)]/80"
+                >
+                  <CircleCheck
+                    className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                    aria-hidden="true"
+                  />
+                  <span>{text}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <GuideHeading>{t("guide.notes.buyer_title")}</GuideHeading>
+            <ul className="mt-6 space-y-3 rounded-2xl border border-[color:var(--ink)]/12 p-5 sm:p-6">
+              {buyerTips.map((text) => (
+                <li
+                  key={text}
+                  className="flex gap-3 text-sm leading-relaxed text-[color:var(--ink)]/80"
+                >
+                  <CircleCheck
+                    className="mt-1 h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                    aria-hidden="true"
+                  />
+                  <span>{text}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
 
@@ -121,6 +184,17 @@ function GuideNotesPage() {
         </div>
 
         <GuideCtaRow>
+          <Button
+            asChild
+            size="lg"
+            variant="solid"
+            color="accent"
+            className="h-auto w-full rounded-xl px-6 py-3.5"
+          >
+            <Link to="/account/notes/new">
+              <Upload /> {t("guide.notes.cta_upload")}
+            </Link>
+          </Button>
           <Button
             asChild
             size="lg"
