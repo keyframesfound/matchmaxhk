@@ -75,7 +75,6 @@ import {
   MAX_WHATS_INCLUDED,
   SYLLABUS_MAX,
   trailerEmbedUrl,
-  UPLOAD_ACCEPT,
   type UploadFormat,
 } from "@/features/materials/note-taxonomy";
 import {
@@ -474,6 +473,21 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     if (nextExtras.length !== extras.length) {
       setExtras(nextExtras);
       setExtrasDirty(true);
+    }
+    // Visible confirmation: without it a picked file can look ignored.
+    const added =
+      (nextPdf !== pdfFile ? 1 : 0) +
+      (nextImages.length - images.length) +
+      (nextExtras.length - extras.length);
+    if (added > 0) toast.success(t("notes.upload.files_added", { count: added }));
+    if (
+      !nextPdf &&
+      nextImages.length === 0 &&
+      !remoteMainUrl &&
+      !existing &&
+      nextExtras.length > 0
+    ) {
+      toast.message(t("notes.upload.need_pdf_hint"));
     }
   };
 
@@ -954,12 +968,14 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           <Upload className="h-6 w-6 text-[color:var(--brand-link)]" aria-hidden />
           <p className="text-sm font-semibold">{t("notes.upload.drop_title")}</p>
           <p className="text-xs text-muted-foreground">{t("notes.upload.drop_formats")}</p>
+          <span className="mt-1 inline-flex h-10 items-center rounded-full bg-[color:var(--brand-link)] px-5 text-sm font-semibold text-white">
+            {t("notes.upload.choose_files")}
+          </span>
           <input
             ref={fileInputRef}
             id="note-files"
             type="file"
             multiple
-            accept={UPLOAD_ACCEPT}
             className="sr-only"
             onChange={(e) => {
               if (e.target.files) addFiles(e.target.files);
@@ -1655,7 +1671,10 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
         </Button>
       </div>
       {missing.length > 0 && !blockedByContact && (
-        <p className="text-xs text-muted-foreground">
+        <p
+          role="status"
+          className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100"
+        >
           {t("notes.form.missing_note", { fields: missing.join(", ") })}
         </p>
       )}
