@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { ListChecks } from "lucide-react";
 
@@ -25,13 +26,14 @@ import {
   getTutorPriceDisplay,
   getTutorSubjectGroups,
 } from "@/features/tutors/tutor-display";
+import type { TFunction } from "i18next";
 import { setCompareBarVisible } from "@/lib/compare-bar";
 
 export const MAX_COMPARE = 4;
 
-function formatSubjectGroups(tutor: Tutor): string[] {
+function formatSubjectGroups(tutor: Tutor, t: TFunction): string[] {
   return getTutorSubjectGroups(tutor).map((group) => {
-    const systemLabel = getCurriculumGroupLabel(group.systemId) || "Other";
+    const systemLabel = getCurriculumGroupLabel(group.systemId) || t("tutor_compare.system_other");
     return `${systemLabel}: ${group.subjects.join(", ")}`;
   });
 }
@@ -45,6 +47,7 @@ function CompareBar({
   onOpenCompare: () => void;
   onClear: () => void;
 }) {
+  const { t } = useTranslation();
   const count = selectedTutors.length;
   return (
     <div className="fixed bottom-20 left-1/2 z-40 w-[min(92vw,30rem)] -translate-x-1/2 sm:bottom-6">
@@ -55,8 +58,8 @@ function CompareBar({
             aria-hidden="true"
           />
           <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
-            {count} of {MAX_COMPARE} selected
-            {count === 1 ? ", pick at least 2" : ""}
+            {t("tutor_compare.bar_selected", { count, max: MAX_COMPARE })}
+            {count === 1 ? t("tutor_compare.bar_pick_more") : ""}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-2">
@@ -66,7 +69,7 @@ function CompareBar({
             disabled={count < 2}
             onClick={onOpenCompare}
           >
-            Compare
+            {t("tutor_compare.bar_compare")}
           </Button>
           <Button
             size="sm"
@@ -74,7 +77,7 @@ function CompareBar({
             className="h-9 rounded-full px-3 text-[13px] font-bold text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)]"
             onClick={onClear}
           >
-            Clear
+            {t("tutor_compare.bar_clear")}
           </Button>
         </div>
       </div>
@@ -94,9 +97,12 @@ function CompareDialog({
   whatsappNumber: string;
 }) {
   const columns = `minmax(7.5rem, 0.9fr) repeat(${tutors.length}, minmax(10.5rem, 1.4fr))`;
+  const { t } = useTranslation();
+  // Row render callbacks shadow `t` with the tutor row param — keep an alias.
+  const translate = t;
   const rows: { label: string; render: (t: Tutor) => React.ReactNode }[] = [
     {
-      label: "Rate",
+      label: t("tutor_compare.label_rate"),
       render: (t) => {
         const price = getTutorPriceDisplay(t);
         // Issue #125: flagged pricing strips the rate, show a dash.
@@ -107,15 +113,19 @@ function CompareDialog({
           <p className="text-lg font-bold text-[color:var(--ink)]">
             HK${price.baseRate}
             {price.isRange ? (
-              <span className="ml-0.5 text-xs font-semibold text-muted-foreground">up</span>
+              <span className="ml-0.5 text-xs font-semibold text-muted-foreground">
+                {translate("tutor_card.price_up")}
+              </span>
             ) : null}
-            <span className="ml-1 text-xs font-semibold text-muted-foreground">/hr</span>
+            <span className="ml-1 text-xs font-semibold text-muted-foreground">
+              {translate("featured.per_hour")}
+            </span>
           </p>
         );
       },
     },
     {
-      label: "Academic background",
+      label: t("tutor_compare.label_academic"),
       render: (t) => {
         const educationLines = getTutorEducationLines(t);
         return (
@@ -141,9 +151,9 @@ function CompareDialog({
       },
     },
     {
-      label: "Subjects",
+      label: t("tutor_compare.label_subjects"),
       render: (t) => {
-        const groups = formatSubjectGroups(t);
+        const groups = formatSubjectGroups(t, translate);
         if (groups.length === 0) return <span className="text-sm text-muted-foreground">—</span>;
         return (
           <div className="space-y-1">
@@ -160,7 +170,7 @@ function CompareDialog({
       },
     },
     {
-      label: "Lesson mode",
+      label: t("tutor_compare.label_mode"),
       render: (t) => (
         <p className="text-[13px] font-bold text-[color:var(--ink)]">
           {(getTutorLessonModeLabel(t.lesson_mode) ?? "—").replace(/ tutoring$/, "")}
@@ -168,7 +178,7 @@ function CompareDialog({
       ),
     },
     {
-      label: "Location",
+      label: t("tutor_compare.label_location"),
       render: (t) => (
         <p className="text-[13px] font-bold text-[color:var(--ink)]">
           {t.stations.length > 0 ? t.stations.slice(0, 3).join(", ") : (t.district ?? "—")}
@@ -176,14 +186,14 @@ function CompareDialog({
       ),
     },
     {
-      label: "Gender",
+      label: t("tutor_compare.label_gender"),
       render: (t) => {
         const label = getTutorGenderLabel(t.gender);
         return <p className="text-[13px] font-semibold text-[color:var(--ink)]">{label || "—"}</p>;
       },
     },
     {
-      label: "Languages",
+      label: t("tutor_compare.label_languages"),
       render: (t) => (
         <p className="text-[13px] font-bold text-[color:var(--ink)]">
           {t.languages.length > 0 ? t.languages.join(", ") : "—"}
@@ -191,15 +201,17 @@ function CompareDialog({
       ),
     },
     {
-      label: "Experience",
+      label: t("tutor_compare.label_experience"),
       render: (t) => (
         <p className="text-[13px] font-bold text-[color:var(--ink)]">
-          {t.experience_years != null ? `${t.experience_years} yrs` : "—"}
+          {t.experience_years != null
+            ? translate("tutor_compare.experience_years", { count: t.experience_years })
+            : "—"}
         </p>
       ),
     },
     {
-      label: "Achievements",
+      label: t("tutor_compare.label_achievements"),
       render: (t) =>
         t.achievements.length > 0 ? (
           <ul className="space-y-1">
@@ -233,10 +245,10 @@ function CompareDialog({
       <DialogContent className="max-h-[90vh] w-[95vw] max-w-6xl overflow-y-auto rounded-sm p-0 sm:rounded-sm">
         <DialogHeader className="border-b border-border px-5 py-4 text-left sm:px-6">
           <DialogTitle className="text-lg font-bold tracking-tight text-[color:var(--ink)]">
-            Compare tutors
+            {t("tutor_compare.title")}
           </DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
-            Side-by-side comparison of your shortlisted profiles.
+            {t("tutor_compare.subtitle")}
           </DialogDescription>
         </DialogHeader>
         <div className="overflow-x-auto px-5 pb-6 sm:px-6">
@@ -286,6 +298,7 @@ function CompareDialog({
 }
 
 export function useTutorCompare(tutors: Tutor[]) {
+  const { t } = useTranslation();
   const [compareIds, setCompareIds] = useState<string[]>([]);
   const [compareOpen, setCompareOpen] = useState(false);
 
@@ -301,7 +314,7 @@ export function useTutorCompare(tutors: Tutor[]) {
     setCompareIds((prev) => {
       if (prev.includes(tutor.id)) return prev.filter((id) => id !== tutor.id);
       if (prev.length >= MAX_COMPARE) {
-        toast.error(`You can compare up to ${MAX_COMPARE} tutors.`);
+        toast.error(t("tutor_compare.limit_toast", { max: MAX_COMPARE }));
         return prev;
       }
       return [...prev, tutor.id];

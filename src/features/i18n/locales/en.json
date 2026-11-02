@@ -697,7 +697,11 @@
     "empty_university_title": "No university tutors listed for this filter yet",
     "empty_university_desc": "Try a different field, university or course code, or ask on WhatsApp and we will find the right tutor.",
     "empty_primary_secondary_title": "No tutors match these filters",
-    "empty_primary_secondary_desc": "Loosen a filter or clear them all, or ask on WhatsApp and the team will match you."
+    "empty_primary_secondary_desc": "Loosen a filter or clear them all, or ask on WhatsApp and the team will match you.",
+    "hero_title": "Find elite tutors",
+    "hero_subtitle": "Start with a subject or tutor code, then narrow the list to the right fit.",
+    "result_count": "{{count}} tutor found",
+    "result_count_other": "{{count}} tutors found"
   },
   "engagement": {
     "badge": {
@@ -3638,6 +3642,33 @@
     "trial_badge": "⚡ Free 15–20m Online Trial",
     "discount_badge": "🎁 {{pct}}% Off 1st Lesson",
     "promo_tooltip": "Free short online intro only. Regular lessons start at the full rate. Drop-Protection applies after the first paid lesson if parent confirms they stopped."
+  },
+  "tutor_compare": {
+    "bar_selected": "{{count}} of {{max}} selected",
+    "bar_pick_more": ", pick at least 2",
+    "bar_compare": "Compare",
+    "bar_clear": "Clear",
+    "title": "Compare tutors",
+    "subtitle": "Side-by-side comparison of your shortlisted profiles.",
+    "label_rate": "Rate",
+    "label_academic": "Academic background",
+    "label_subjects": "Subjects",
+    "label_mode": "Lesson mode",
+    "label_location": "Location",
+    "label_gender": "Gender",
+    "label_languages": "Languages",
+    "label_experience": "Experience",
+    "label_achievements": "Achievements",
+    "experience_years": "{{count}} yr",
+    "experience_years_other": "{{count}} yrs",
+    "system_other": "Other",
+    "limit_toast": "You can compare up to {{max}} tutors."
+  },
+  "tutor_save": {
+    "save": "Save tutor",
+    "remove": "Remove from saved posts",
+    "gate_title": "Save this tutor",
+    "gate_desc": "Sign up or log in to bookmark tutors and find them again later."
   },
   "tutors": {
     "tier_aria": "Academic tier",
