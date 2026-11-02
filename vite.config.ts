@@ -1,3 +1,4 @@
+import { cpSync, existsSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import { tanstackStart } from "@tanstack/react-start/plugin/vite";
@@ -21,6 +22,24 @@ import tsConfigPaths from "vite-tsconfig-paths";
 // elsewhere (Vercel, Node, Netlify), Nitro auto-detects most platforms at build time;
 // see https://nitro.build for explicit preset configuration if auto-detection doesn't
 // pick the right one.
+// Notes: pdfjs renders many real PDFs only with its CMap (CJK), standard
+// font, ICC and wasm (JPEG 2000 / colour profile) data. Copy them from the
+// installed pdfjs-dist into public/pdfjs (gitignored) so they are served
+// from our own origin and always match the bundled pdfjs version.
+function copyPdfjsAssets() {
+  return {
+    name: "matchmax-copy-pdfjs-assets",
+    buildStart() {
+      const from = fileURLToPath(new URL("./node_modules/pdfjs-dist/", import.meta.url));
+      const to = fileURLToPath(new URL("./public/pdfjs/", import.meta.url));
+      for (const dir of ["cmaps", "standard_fonts", "wasm", "iccs"]) {
+        if (existsSync(`${from}${dir}`))
+          cpSync(`${from}${dir}`, `${to}${dir}`, { recursive: true });
+      }
+    },
+  };
+}
+
 export default defineConfig({
   resolve: {
     alias: [
@@ -35,6 +54,7 @@ export default defineConfig({
     ],
   },
   plugins: [
+    copyPdfjsAssets(),
     tanstackStart({
       server: { entry: "server" },
     }),

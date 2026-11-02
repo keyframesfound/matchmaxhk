@@ -6,6 +6,7 @@ import { CRISP_PREVIEW_PAGES } from "@/features/materials/lifecycle";
 // Bundled by Vite (?url emits the hashed asset into dist/assets) — a bare
 // "pdfjs-dist/build/pdf.worker.min.mjs" path 404s on prod (#569).
 import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+import { pdfjsAssetOptions } from "@/features/materials/note-file-tools";
 import { PreviewWatermark } from "@/features/materials/preview-watermark";
 
 /**
@@ -48,7 +49,10 @@ export function NotePreviewViewer({
       try {
         const pdfjs = await import("pdfjs-dist");
         pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
-        const doc = await pdfjs.getDocument({ url: previewUrl }).promise;
+        const doc = await pdfjs.getDocument({
+          ...pdfjsAssetOptions(),
+          url: previewUrl,
+        }).promise;
         if (cancelled) return;
         setPageCountState(doc.numPages);
         const total = doc.numPages;

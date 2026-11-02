@@ -33,3 +33,6 @@ dist-ssr
 
 # git worktrees
 .worktrees/
+
+# Copied from pdfjs-dist at build time (vite.config.ts)
+public/pdfjs/

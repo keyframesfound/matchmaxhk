@@ -1,4 +1,24 @@
-import { PDFDocument, rgb, StandardFonts, degrees } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts, degrees, type PDFImage, type PDFPage } from "pdf-lib";
+
+import {
+  LOGO_OPACITY_PREVIEW,
+  LOGO_WATERMARK_ASPECT,
+  logoWatermarkBytes,
+} from "@/features/materials/logo-watermark";
+
+/** Owner request: the greyscale MatchMax logo, centred and faint. */
+export function drawLogoWatermark(page: PDFPage, logo: PDFImage, opacity: number) {
+  const { width, height } = page.getSize();
+  const logoWidth = Math.min(width * 0.55, 420);
+  const logoHeight = logoWidth / LOGO_WATERMARK_ASPECT;
+  page.drawImage(logo, {
+    x: (width - logoWidth) / 2,
+    y: (height - logoHeight) / 2,
+    width: logoWidth,
+    height: logoHeight,
+    opacity,
+  });
+}
 
 /**
  * Issues #131/#133: backend watermarking for the study-materials marketplace.
@@ -47,9 +67,11 @@ export async function watermarkPdfPreview(
   const copiedPages = await preview.copyPages(source, copiedIndices);
 
   const font = await preview.embedFont(StandardFonts.HelveticaBold);
+  const logo = await preview.embedPng(logoWatermarkBytes());
 
   for (const page of copiedPages) {
     preview.addPage(page);
+    drawLogoWatermark(page, logo, LOGO_OPACITY_PREVIEW);
     const { width, height } = page.getSize();
     const fontSize = Math.max(18, Math.min(36, width / 18));
 
