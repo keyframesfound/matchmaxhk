@@ -3946,5 +3946,43 @@
     "open_parent": "Open your cases",
     "error": "Could not load your calendar. Please try again.",
     "no_cases": "No matched cases yet. Your lessons appear here once a tutor is matched."
+  },
+  "global_search": {
+    "title": "Search",
+    "open": "Search",
+    "placeholder": "Search tutors, cases, notes, centres, users…",
+    "submit": "Search",
+    "hint": "Search by subject, tutor code, centre name or #tag.",
+    "error": "Search is temporarily unavailable. Please try again.",
+    "empty": "No results for “{{query}}”. Try a subject, tutor code, or centre name.",
+    "matched_on": "Matched on: {{fields}}",
+    "remove_tag": "Remove #{{tag}}",
+    "refine_tutors": "Refine tutors with curriculum, subject, lesson mode and district filters",
+    "scope_all": "All",
+    "scope_tutors": "Tutors",
+    "scope_notes": "Notes",
+    "group_tutors": "Tutors",
+    "group_cases": "Cases",
+    "group_notes": "Notes",
+    "group_centres": "Centres",
+    "group_users": "Users",
+    "badge_tutors": "Tutor",
+    "badge_cases": "Case",
+    "badge_notes": "Notes",
+    "badge_centres": "Centre",
+    "badge_users": "User"
+  },
+  "search_tags_admin": {
+    "title": "Search tags",
+    "subtitle": "Hide a tag from typeahead and public chips, or merge an alias into a canonical tag. Content keeps its tags.",
+    "uses": "{{n}} uses",
+    "hidden": "Hidden",
+    "merge_into": "Merge into tag",
+    "save_merge": "Save merge",
+    "hide": "Hide",
+    "unhide": "Unhide",
+    "saved": "Tag updated",
+    "error": "Could not load tags.",
+    "empty": "No public tags yet."
   }
 }

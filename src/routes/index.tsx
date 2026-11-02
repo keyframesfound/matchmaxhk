@@ -660,6 +660,15 @@ function Landing() {
     if (next.mode === "in_person") {
       params.station = next.station;
     }
+    // #553 landing lock: a free-text keyword returns mixed Tutors + Notes
+    // with type badges (mode applies to tutors only, so it never drops
+    // notes); filter-only searches keep the deeper /tutors grid.
+    const keyword = (next.q ?? "").trim();
+    if (keyword) {
+      const words = [keyword, next.subject].filter(Boolean).join(" ");
+      navigate({ to: "/search", search: { q: words, scope: "all" } });
+      return;
+    }
     navigate({ to: "/tutors", search: params });
   };
 

@@ -8,6 +8,7 @@ import {
   Menu,
   Moon,
   Repeat,
+  Search,
   Settings,
   ShieldCheck,
   Sun,
@@ -301,6 +302,16 @@ export function SiteHeader({
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+            {/* #553: global search entry (desktop + mobile); the full bar,
+                #tag typeahead and grouped results live on /search. */}
+            <Link
+              to="/search"
+              aria-label={t("global_search.open")}
+              title={t("global_search.open")}
+              className={headerCircleClassName}
+            >
+              <Search className="h-5 w-5 text-[color:var(--ink)]" aria-hidden />
+            </Link>
             {/* Notes upload v2: a visible "Upload notes" entry on desktop. */}
             <Link
               to="/account/notes/new"

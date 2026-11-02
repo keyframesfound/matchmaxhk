@@ -20,6 +20,7 @@ import { Route as GroupClassesRouteImport } from './routes/group-classes'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TosRouteImport } from './routes/tos'
 import { Route as TutorPlaybookRouteImport } from './routes/tutor-playbook'
@@ -143,6 +144,11 @@ const PricingRoute = PricingRouteImport.update({
 const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   id: '/privacy-policy',
   path: '/privacy-policy',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
@@ -541,6 +547,7 @@ export interface FileRoutesByFullPath {
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
@@ -623,6 +630,7 @@ export interface FileRoutesByTo {
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
@@ -706,6 +714,7 @@ export interface FileRoutesById {
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
@@ -790,6 +799,7 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/pricing'
     | '/privacy-policy'
+    | '/search'
     | '/sitemap.xml'
     | '/tos'
     | '/tutor-playbook'
@@ -872,6 +882,7 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/pricing'
     | '/privacy-policy'
+    | '/search'
     | '/sitemap.xml'
     | '/tos'
     | '/tutor-playbook'
@@ -954,6 +965,7 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/pricing'
     | '/privacy-policy'
+    | '/search'
     | '/sitemap.xml'
     | '/tos'
     | '/tutor-playbook'
@@ -1038,6 +1050,7 @@ export interface RootRouteChildren {
   HowItWorksRoute: typeof HowItWorksRoute
   PricingRoute: typeof PricingRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
+  SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TosRoute: typeof TosRoute
   TutorPlaybookRoute: typeof TutorPlaybookRoute
@@ -1143,6 +1156,13 @@ declare module '@tanstack/react-router' {
       path: '/privacy-policy'
       fullPath: '/privacy-policy'
       preLoaderRoute: typeof PrivacyPolicyRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/sitemap.xml': {
@@ -1793,6 +1813,7 @@ const rootRouteChildren: RootRouteChildren = {
   HowItWorksRoute: HowItWorksRoute,
   PricingRoute: PricingRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
+  SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TosRoute: TosRoute,
   TutorPlaybookRoute: TutorPlaybookRoute,

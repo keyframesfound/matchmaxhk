@@ -3946,5 +3946,43 @@
     "open_parent": "查看你的個案",
     "error": "未能載入日曆，請再試一次。",
     "no_cases": "暫未有已配對個案。配對導師後，課堂會顯示在這裡。"
+  },
+  "global_search": {
+    "title": "搜尋",
+    "open": "搜尋",
+    "placeholder": "搜尋導師、個案、筆記、中心、用戶…",
+    "submit": "搜尋",
+    "hint": "可按科目、導師代號、中心名稱或 #標籤 搜尋。",
+    "error": "搜尋暫時無法使用，請稍後再試。",
+    "empty": "沒有找到「{{query}}」的結果。請嘗試科目、導師代號或中心名稱。",
+    "matched_on": "符合：{{fields}}",
+    "remove_tag": "移除 #{{tag}}",
+    "refine_tutors": "用學制、科目、上課模式及地區篩選導師",
+    "scope_all": "全部",
+    "scope_tutors": "導師",
+    "scope_notes": "筆記",
+    "group_tutors": "導師",
+    "group_cases": "個案",
+    "group_notes": "筆記",
+    "group_centres": "中心",
+    "group_users": "用戶",
+    "badge_tutors": "導師",
+    "badge_cases": "個案",
+    "badge_notes": "筆記",
+    "badge_centres": "中心",
+    "badge_users": "用戶"
+  },
+  "search_tags_admin": {
+    "title": "搜尋標籤",
+    "subtitle": "隱藏標籤（不在建議及公開標籤顯示），或將別名合併至主要標籤。內容本身的標籤不變。",
+    "uses": "使用 {{n}} 次",
+    "hidden": "已隱藏",
+    "merge_into": "合併至標籤",
+    "save_merge": "儲存合併",
+    "hide": "隱藏",
+    "unhide": "取消隱藏",
+    "saved": "已更新標籤",
+    "error": "未能載入標籤。",
+    "empty": "暫未有公開標籤。"
   }
 }
