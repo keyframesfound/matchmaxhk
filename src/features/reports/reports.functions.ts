@@ -1,5 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import {
+  isP1ReportReason,
+  P1_REPORT_REASONS,
+  shouldAutoHideListing,
+} from "@/features/materials/marketplace-policy";
+import type { AdminDb } from "@/features/materials/storage-helpers";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAccountActive } from "@/lib/account-status-enforcement";
@@ -35,6 +41,8 @@ export const REPORT_TARGET_TYPES = [
   "tutor_photo",
   "tutor_introduction",
   "material",
+  // #573 / SOP §4.3: "Report review" on a notes review.
+  "material_review",
 ] as const;
 
 export const REPORT_REASONS = [
@@ -152,7 +160,34 @@ export const submitReport = createServerFn({ method: "POST" })
     let tutorId: string | null = null;
     let targetLabel: string | null = null;
 
-    if (data.targetType === "material") {
+    if (data.targetType === "material_review") {
+      // The reviewer is the "owner" of a review; a review is anonymous to
+      // the public, so the queue label is a short excerpt.
+      const { supabaseAdmin: reviewClient } = await import("@/integrations/supabase/client.server");
+      const { data: review } = await (
+        reviewClient as unknown as {
+          from: (t: string) => {
+            select: (c: string) => {
+              eq: (
+                c: string,
+                v: string,
+              ) => {
+                maybeSingle: () => Promise<{
+                  data: { buyer_account_id: string; comment: string | null; rating: number } | null;
+                }>;
+              };
+            };
+          };
+        }
+      )
+        .from("material_reviews")
+        .select("buyer_account_id, comment, rating")
+        .eq("id", data.targetId)
+        .maybeSingle();
+      if (!review) throw new Error("Reported review not found.");
+      if (review.buyer_account_id === context.userId) throw new Error("SELF_REPORT");
+      targetLabel = `Review (${review.rating}★): ${(review.comment ?? "").slice(0, 80)}`;
+    } else if (data.targetType === "material") {
       const { data: material, error } = await admin
         .from("digital_materials")
         .select("tutor_id, title")
@@ -220,6 +255,26 @@ export const submitReport = createServerFn({ method: "POST" })
         throw new Error("DUPLICATE_REPORT");
       }
       throw new Error(error.message || "Failed to submit report");
+    }
+
+    // #573 / SOP §4.1: a published listing with 3 open P1 reports (copyright,
+    // contact details, impersonation) hides itself until staff review. The
+    // owner cannot unhide while a P1 report is open (setNoteHidden).
+    if (data.targetType === "material" && isP1ReportReason(data.reason)) {
+      try {
+        const { asAdminDb } = await import("@/features/materials/storage-helpers");
+        const db = asAdminDb(supabaseAdmin);
+        const openP1 = await countOpenP1Reports(db, data.targetId);
+        if (shouldAutoHideListing(openP1)) {
+          await db
+            .from<never>("digital_materials")
+            .update({ status: "hidden" })
+            .eq("id", data.targetId)
+            .eq("status", "published");
+        }
+      } catch (hideError) {
+        console.warn("[reports] P1 auto-hide failed:", hideError);
+      }
     }
 
     // #542 Trigger 7 / #561: the reported owner learns their item is under
@@ -348,7 +403,11 @@ export const listReportsAdmin = createServerFn({ method: "POST" })
     // Resolve human-readable labels for the queue (cards, photos and
     // introductions all live on the tutors row; materials carry a title).
     const tutorIds = [
-      ...new Set(rows.filter((row) => row.target_type !== "material").map((row) => row.target_id)),
+      ...new Set(
+        rows
+          .filter((row) => row.target_type !== "material" && row.target_type !== "material_review")
+          .map((row) => row.target_id),
+      ),
     ];
     const materialIds = [
       ...new Set(rows.filter((row) => row.target_type === "material").map((row) => row.target_id)),
@@ -390,7 +449,9 @@ export const listReportsAdmin = createServerFn({ method: "POST" })
 
     return rows.map((row) => ({
       ...row,
-      target_label: labels.get(row.target_id) ?? null,
+      target_label:
+        labels.get(row.target_id) ??
+        (row.target_type === "material_review" ? "Notes review" : null),
       reporter_email: emails.get(row.reporter_id) ?? null,
     })) satisfies AdminReportRow[];
   });
@@ -479,7 +540,16 @@ export const resolveReport = createServerFn({ method: "POST" })
       // the #203 status machine), the real unpublish transition is
       // status -> "hidden" (lifecycle "hide": published|hidden -> hidden,
       // staff can unhide back to published).
-      if (report.target_type === "material") {
+      if (report.target_type === "material_review") {
+        // Upheld review report: remove the review (staff never edit text;
+        // honest negative reviews are rejected, not removed).
+        const { asAdminDb } = await import("@/features/materials/storage-helpers");
+        const { error } = await asAdminDb(admin)
+          .from<never>("material_reviews")
+          .delete()
+          .eq("id", report.target_id);
+        if (error) throw new Error(error.message || "Failed to remove the review");
+      } else if (report.target_type === "material") {
         const { error } = (await admin
           .from("digital_materials")
           .update({ status: "hidden" })
@@ -560,4 +630,16 @@ async function assertAdminClient(context: { userId: string; supabase: unknown })
     if (!error && data === true) return;
   }
   throw new Error("Forbidden");
+}
+
+/** Open P1 reports on one notes listing (one per reporter by unique index). */
+export async function countOpenP1Reports(db: AdminDb, materialId: string): Promise<number> {
+  const { data } = await db
+    .from<{ id: string }>("reports")
+    .select("id")
+    .eq("target_type", "material")
+    .eq("target_id", materialId)
+    .eq("status", "open")
+    .in("reason", [...P1_REPORT_REASONS]);
+  return data?.length ?? 0;
 }

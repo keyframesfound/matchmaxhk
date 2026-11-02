@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { StarRating } from "@/components/ui/StarRating";
+import { ReportMenuButton } from "@/features/reports/report-button";
 import { cn } from "@/lib/utils";
 import { shareOrCopy } from "@/lib/share";
 import { useAuth } from "@/features/auth/useAuth";
@@ -33,6 +34,7 @@ import {
 import { REVIEW_COMMENT_MAX } from "@/features/materials/note-reviews";
 import { formatBytes } from "@/features/materials/note-file-tools";
 import { formatMaterialTypeLabel } from "@/features/materials/queries";
+import { getBoughtMaterials } from "@/features/materials/checkout.functions";
 import type { PublicNote } from "@/features/materials/notes.functions";
 
 /**
@@ -348,6 +350,20 @@ export function NoteReviewsSection({
                 <StarRating value={review.rating} readOnly size={14} />
                 <span className="font-semibold text-success">{t("notes.reviews.verified")}</span>
                 <span>· {dateFmt.format(new Date(review.createdAt))}</span>
+                {user && !review.isMine ? (
+                  <span className="ml-auto">
+                    <ReportMenuButton
+                      targets={[
+                        {
+                          targetType: "material_review",
+                          targetId: review.id,
+                          label: t("notes.reviews.report_target"),
+                        },
+                      ]}
+                      menuLabel={t("notes.reviews.report_menu")}
+                    />
+                  </span>
+                ) : null}
               </div>
               {review.comment ? (
                 <p className="whitespace-pre-line text-sm leading-relaxed">{review.comment}</p>
@@ -364,13 +380,38 @@ export function NoteReviewsSection({
 // Similar notes + compare
 // ---------------------------------------------------------------------------
 
-export function SimilarNotesSection({ note }: { note: PublicNote }) {
+/**
+ * #557 "Recommended for you" (為您推薦的教材): seeded by the viewed note on a
+ * detail page, or by the viewer's saved notes in the shop's Saved view.
+ * Already-bought notes are excluded for signed-in viewers.
+ */
+export function SimilarNotesSection({
+  note,
+  seedIds,
+  className = "mt-14",
+}: {
+  note?: PublicNote;
+  seedIds?: string[];
+  className?: string;
+}) {
   const { t } = useTranslation();
+  const { user } = useAuth();
   const [picked, setPicked] = useState<string[]>([]);
   const [open, setOpen] = useState(false);
+  const boughtQuery = useQuery({
+    queryKey: ["account", "bought", user?.id],
+    queryFn: () => getBoughtMaterials(),
+    enabled: Boolean(user),
+    staleTime: 5 * 60_000,
+  });
+  const excludeIds = (boughtQuery.data ?? []).map((b) => b.materialId);
   const query = useQuery({
-    queryKey: ["notes", "similar", note.id],
-    queryFn: () => getSimilarNotes({ data: { materialId: note.id } }),
+    queryKey: ["notes", "recommended", note?.id ?? null, seedIds ?? [], excludeIds],
+    queryFn: () =>
+      getSimilarNotes({
+        data: { materialId: note?.id, seedIds, excludeIds: excludeIds.slice(0, 300) },
+      }),
+    enabled: Boolean(note || (seedIds && seedIds.length > 0)) && (!user || !boughtQuery.isLoading),
   });
   const similar = query.data ?? [];
   if (similar.length === 0) return null;
@@ -380,12 +421,12 @@ export function SimilarNotesSection({ note }: { note: PublicNote }) {
       prev.includes(id) ? prev.filter((x) => x !== id) : prev.length >= 3 ? prev : [...prev, id],
     );
   const compared: (PublicNote & { rating?: SimilarNote["rating"] })[] = [
-    note,
+    ...(note ? [note] : []),
     ...similar.filter((s) => picked.includes(s.id)),
   ];
 
   return (
-    <section className="mt-14 space-y-4">
+    <section className={cn("space-y-4", className)}>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-lg font-bold">{t("notes.engage.similar_title")}</h2>
         <Button

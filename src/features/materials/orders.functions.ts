@@ -342,19 +342,34 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
     // must never block the buyer's download. (Loose cast: the generated
     // types don't know the new table yet.)
     try {
-      await (
+      const logs = (
         supabaseAdmin as unknown as {
           from: (t: string) => {
-            insert: (row: unknown) => Promise<{ error: { message: string } | null }>;
+            insert: (row: unknown) => Promise<{ error: { message: string; code?: string } | null }>;
           };
         }
-      )
-        .from("material_download_logs")
-        .insert({
-          order_id: (order as { id: string }).id,
-          buyer_account_id: context.userId,
-          material_id: data.materialId,
-        });
+      ).from("material_download_logs");
+      const base = {
+        order_id: (order as { id: string }).id,
+        buyer_account_id: context.userId,
+        material_id: data.materialId,
+      };
+      // #573: order, user, file, IP, UA, time and status for every grant.
+      const { getRequest } = await import("@tanstack/react-start/server");
+      const headers = getRequest()?.headers;
+      const ip =
+        headers?.get("cf-connecting-ip") ??
+        headers?.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+        null;
+      const detailed = await logs.insert({
+        ...base,
+        file_id: pathToSign,
+        ip_address: ip,
+        user_agent: headers?.get("user-agent")?.slice(0, 400) ?? null,
+        http_status: 200,
+      });
+      // 42703: the #573 columns are not migrated yet; keep the #543 row.
+      if (detailed.error?.code === "42703") await logs.insert(base);
     } catch {
       // Advisory only.
     }

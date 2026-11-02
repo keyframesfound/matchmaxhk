@@ -25,6 +25,8 @@ import { FolderDetailPage } from "@/features/folders/folder-detail";
 import { CourseDetailPage } from "@/features/courses/course-detail";
 import { ReportMenuButton } from "@/features/reports/report-button";
 import { canonicalUrl } from "@/features/i18n/seo";
+import { NOTES_OPTION_A_LIVE } from "@/features/materials/marketplace-policy";
+import { NoteGallery, NoteIncludedAndSyllabus } from "@/features/materials/note-rich-listing";
 import {
   NoteDeliverablesPanel,
   NoteIncludedFiles,
@@ -212,14 +214,24 @@ function NotePage() {
                 <p className="text-[0.95rem] leading-relaxed text-foreground/80">{note.summary}</p>
               ) : null}
               <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-muted-foreground">
-                <Link
-                  to="/tutors/$tutorCode"
-                  params={{ tutorCode: note.tutorCode }}
-                  className="inline-flex items-center gap-1.5 font-medium text-[color:var(--brand-link)] hover:underline"
-                >
-                  <GraduationCap className="h-4 w-4" aria-hidden />
-                  {note.tutorName}
-                </Link>
+                {note.isCommunitySeller ? (
+                  <span className="inline-flex items-center gap-1.5 text-sm font-medium">
+                    <GraduationCap className="h-4 w-4" aria-hidden />
+                    {note.tutorName}
+                    <span className="rounded border border-border px-1.5 text-[11px] font-semibold text-muted-foreground">
+                      {t("notes.seller.community_badge")}
+                    </span>
+                  </span>
+                ) : (
+                  <Link
+                    to="/tutors/$tutorCode"
+                    params={{ tutorCode: note.tutorCode }}
+                    className="inline-flex items-center gap-1.5 font-medium text-[color:var(--brand-link)] hover:underline"
+                  >
+                    <GraduationCap className="h-4 w-4" aria-hidden />
+                    {note.tutorName}
+                  </Link>
+                )}
                 {note.pageCount != null && (
                   <span className="inline-flex items-center gap-1.5">
                     <FileText className="h-4 w-4" aria-hidden />
@@ -253,6 +265,8 @@ function NotePage() {
               </div>
             </header>
 
+            <NoteGallery note={note} />
+
             {isApkgDeck ? (
               <div className="flex items-start gap-4 rounded-xl border border-border bg-card p-6">
                 <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent">
@@ -283,6 +297,8 @@ function NotePage() {
                 </p>
               </section>
             )}
+
+            <NoteIncludedAndSyllabus note={note} />
 
             <NoteIncludedFiles materialId={note.id} />
 
@@ -350,14 +366,24 @@ function NotePage() {
                   ? t("notes.card.free")
                   : t("notes.price", { amount: note.priceHkd })}
               </p>
-              <Link
-                to="/tutors/$tutorCode"
-                params={{ tutorCode: note.tutorCode }}
-                className="flex items-center gap-1.5 text-sm font-medium text-[color:var(--brand-link)] hover:underline"
-              >
-                <GraduationCap className="h-4 w-4" aria-hidden />
-                {note.tutorName}
-              </Link>
+              {note.isCommunitySeller ? (
+                <span className="inline-flex items-center gap-1.5 text-sm font-medium">
+                  <GraduationCap className="h-4 w-4" aria-hidden />
+                  {note.tutorName}
+                  <span className="rounded border border-border px-1.5 text-[11px] font-semibold text-muted-foreground">
+                    {t("notes.seller.community_badge")}
+                  </span>
+                </span>
+              ) : (
+                <Link
+                  to="/tutors/$tutorCode"
+                  params={{ tutorCode: note.tutorCode }}
+                  className="flex items-center gap-1.5 text-sm font-medium text-[color:var(--brand-link)] hover:underline"
+                >
+                  <GraduationCap className="h-4 w-4" aria-hidden />
+                  {note.tutorName}
+                </Link>
+              )}
               {!isOwner && (
                 <TermsGateCheckbox
                   section="notes"
@@ -404,7 +430,11 @@ function NotePage() {
                 }}
               >
                 <ShoppingCart className="mr-2 h-4 w-4" aria-hidden />
-                {isOwner ? t("notes.own_note") : t("notes.add_to_cart")}
+                {isOwner
+                  ? t("notes.own_note")
+                  : note.priceHkd === 0
+                    ? t("notes.engage.get_free")
+                    : t("notes.add_to_cart")}
               </Button>
               {whatsappQuery.data?.requestUrl && (
                 <a
@@ -417,6 +447,11 @@ function NotePage() {
                   {t("notes.request_tutor")}
                 </a>
               )}
+              {NOTES_OPTION_A_LIVE ? (
+                <p className="rounded-lg border border-success/40 bg-success/5 p-3 text-xs leading-relaxed">
+                  {t("notes_option_a.escrow_badge")}
+                </p>
+              ) : null}
               <ul className="space-y-1.5 border-t border-border pt-4 text-xs text-muted-foreground">
                 <li>· {t("notes.perk_manual_review")}</li>
                 <li>· {t("notes.perk_licence")}</li>

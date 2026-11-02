@@ -52,6 +52,7 @@ import {
   createNoteUploadTargets,
   getNoteExtrasForOwner,
   getNoteOriginalUrlForOwner,
+  saveNoteGallery,
   importNotePdfFromLink,
   saveNoteExtras,
   updateNotePreviewPages,
@@ -69,6 +70,11 @@ import {
   MAX_LINKS,
   MAX_MAIN_PDF_BYTES,
   toDirectImportUrl,
+  MAX_GALLERY_IMAGE_BYTES,
+  MAX_GALLERY_IMAGES,
+  MAX_WHATS_INCLUDED,
+  SYLLABUS_MAX,
+  trailerEmbedUrl,
   UPLOAD_ACCEPT,
   type UploadFormat,
 } from "@/features/materials/note-taxonomy";
@@ -80,9 +86,47 @@ import {
   openPdf,
   renderPage,
   uploadToSignedUrl,
+  watermarkImageFile,
 } from "@/features/materials/note-file-tools";
+import { materialCoverUrl } from "@/features/materials/material-card";
 import { NotePreviewPicker } from "@/features/materials/note-preview-picker";
 import { NotePriceGuidePanel } from "@/features/materials/note-price-guide-panel";
+import {
+  earningsEstimate,
+  NOTES_OPTION_A_LIVE,
+  validateListingPrice,
+} from "@/features/materials/marketplace-policy";
+
+/** #573 Option A live calculator; the payment fee is always an estimate. */
+function EarningsCalculator({ priceHkd }: { priceHkd: number }) {
+  const { t } = useTranslation();
+  const e = earningsEstimate(priceHkd);
+  const money = (v: number) => `HK$${v.toFixed(2)}`;
+  return (
+    <div className="space-y-2 rounded-xl border border-border p-4 text-sm">
+      <p className="font-semibold">{t("notes_option_a.fee_title")}</p>
+      <dl className="space-y-1">
+        <div className="flex justify-between">
+          <dt>{t("notes_option_a.fee_gross")}</dt>
+          <dd>{money(e.gross)}</dd>
+        </div>
+        <div className="flex justify-between text-muted-foreground">
+          <dt>{t("notes_option_a.fee_platform")}</dt>
+          <dd>- {money(e.platform)}</dd>
+        </div>
+        <div className="flex justify-between text-muted-foreground">
+          <dt>{t("notes_option_a.fee_gateway")}</dt>
+          <dd>- {money(e.gateway)}</dd>
+        </div>
+        <div className="flex justify-between border-t border-border pt-1 font-bold">
+          <dt>{t("notes_option_a.fee_net")}</dt>
+          <dd>{money(e.net)}</dd>
+        </div>
+      </dl>
+      <p className="text-xs text-muted-foreground">{t("notes_option_a.fee_note")}</p>
+    </div>
+  );
+}
 
 /**
  * P8/P9/#313/#314/#136 + notes upload v2: the draft-or-submit note form,
@@ -172,6 +216,18 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   );
   const [language, setLanguage] = useState<string>(existing?.contentLanguage ?? "");
   const [tagsText, setTagsText] = useState((existing?.searchTags ?? []).join(", "));
+  // #556 rich listing.
+  const [trailerUrl, setTrailerUrl] = useState(existing?.trailerVideoUrl ?? "");
+  const [includedText, setIncludedText] = useState((existing?.whatsIncluded ?? []).join(", "));
+  const [syllabus, setSyllabus] = useState(existing?.syllabusOutline ?? "");
+  const [galleryKept, setGalleryKept] = useState<string[]>(existing?.previewImagePaths ?? []);
+  const [galleryNew, setGalleryNew] = useState<File[]>([]);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
+  const hadRich = Boolean(
+    existing?.trailerVideoUrl ||
+    existing?.syllabusOutline ||
+    (existing?.whatsIncluded ?? []).length > 0,
+  );
 
   // --- Files -----------------------------------------------------------------
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -202,6 +258,9 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   const [aiNote, setAiNote] = useState<string | null>(null);
   const autoDetected = useRef(false);
   const [termsAccepted, setTermsAccepted] = useState(false);
+  // #573 seller activation declarations (age + originality), required to submit.
+  const [declareAge, setDeclareAge] = useState(false);
+  const [declareOriginality, setDeclareOriginality] = useState(false);
 
   const subjectOptions = useMemo(
     () => getSubjectOptionsForCategory(curriculum || undefined),
@@ -338,6 +397,14 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   if (title.trim().length < 3) missing.push(t("notes.form.field_title"));
   const priceNum = price.trim() === "" ? Number.NaN : Number(price);
   if (Number.isNaN(priceNum) || priceNum < 0) missing.push(t("notes.form.field_price"));
+  // #543 / #573: free (HK$0) or HK$20 to HK$5,000.
+  const priceProblem = Number.isNaN(priceNum) ? null : validateListingPrice(priceNum, materialType);
+  if (priceProblem === "below_minimum" || priceProblem === "above_maximum") {
+    missing.push(t("notes.form.field_price"));
+  }
+  if (!isLive && !(declareAge && declareOriginality)) {
+    missing.push(t("notes_option_a.declare_missing"));
+  }
   if (!hasMainFile) missing.push(t("notes.form.field_pdf"));
   if (!curriculum) missing.push(t("notes.form.field_curriculum"));
   if (!subject.trim()) missing.push(t("notes.form.field_subject"));
@@ -458,6 +525,14 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
         ].filter((f): f is UploadFormat => Boolean(f)),
       ),
     ),
+    // #556: only sent when used, so older schemas keep saving.
+    ...(hadRich || trailerUrl.trim() || includedText.trim() || syllabus.trim()
+      ? {
+          trailerVideoUrl: trailerUrl.trim() || null,
+          whatsIncluded: parseTags(includedText).slice(0, MAX_WHATS_INCLUDED),
+          syllabusOutline: syllabus.trim() || null,
+        }
+      : {}),
   });
 
   /** Make sure a row exists (draft) and return its id. */
@@ -727,20 +802,73 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
       await updateNotePreviewPages({ data: { materialId: id, previewPageIndices: previewPicks } });
     }
 
+    // 4b. #556 gallery: stamp + upload new images, then save the order.
+    const galleryChanged =
+      galleryNew.length > 0 || galleryKept.length !== (existing?.previewImagePaths ?? []).length;
+    if (galleryChanged) {
+      const stamped = await Promise.all(galleryNew.map((f) => watermarkImageFile(f)));
+      let newPaths: string[] = [];
+      if (stamped.length > 0) {
+        const targets = await createNoteUploadTargets({
+          data: {
+            materialId: id,
+            files: stamped.map((f) => ({
+              role: "gallery" as const,
+              fileName: f.name,
+              sizeBytes: f.size,
+            })),
+          },
+        });
+        for (let i = 0; i < targets.length; i += 1) {
+          await uploadToSignedUrl(targets[i].signedUrl, stamped[i]);
+        }
+        newPaths = targets.map((tg) => tg.path);
+      }
+      await saveNoteGallery({
+        data: { materialId: id, paths: [...galleryKept, ...newPaths].slice(0, MAX_GALLERY_IMAGES) },
+      });
+    }
+
     // 5. Submit for staff review.
     if (kind === "submit" && !isLive) {
-      await submitNoteForReview({ data: { materialId: id, ...meta, legalAgreed: true } });
+      // #573 scanner: send the main PDF's text layer (none for scans).
+      let fileText: string | null = null;
+      const scanSource = mainLocal ?? remoteMainUrl;
+      if (scanSource) {
+        try {
+          const doc = await openPdf(scanSource);
+          fileText = await extractPdfText(doc, 60_000, 200);
+          await doc.destroy();
+        } catch {
+          fileText = null;
+        }
+      }
+      const result = await submitNoteForReview({
+        data: {
+          materialId: id,
+          ...meta,
+          legalAgreed: true,
+          sellerDeclarations: { age: true, originality: true },
+          fileText,
+        },
+      });
+      return result.status;
     }
+    return null;
   };
 
   const saveMutation = useMutation({
     mutationFn: persist,
-    onSuccess: (_data, kind) => {
+    onSuccess: (status, kind) => {
       toast.success(
         isLive
           ? t("notes.upload.live_saved")
           : kind === "submit"
-            ? t("notes.form.submitted")
+            ? status === "published"
+              ? t("notes_option_a.published_now")
+              : NOTES_OPTION_A_LIVE
+                ? t("notes_option_a.flagged_note")
+                : t("notes.form.submitted")
             : t("notes.form.draft_saved"),
       );
       // SPA navigation keeps the /zh | /cn prefix; refresh the Account lists.
@@ -795,10 +923,11 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           <p className="text-sm text-muted-foreground">{t("notes.upload.step_files_hint")}</p>
         </div>
 
-        <div
-          role="button"
+        {/* A native <label> opens the picker in every browser (Safari ignores
+            a scripted input.click() fired from the input's own ancestor). */}
+        <label
+          htmlFor="note-files"
           tabIndex={0}
-          onClick={() => fileInputRef.current?.click()}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault();
@@ -837,7 +966,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
               e.target.value = "";
             }}
           />
-        </div>
+        </label>
 
         {/* Cloud link: import as the main PDF, or attach as a download link. */}
         <div className="space-y-1.5">
@@ -1102,6 +1231,113 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           {violationNote(copyViolations.descV)}
         </div>
 
+        {/* #556 rich listing: trailer, highlights, syllabus, gallery. */}
+        <div className="space-y-1.5">
+          <Label htmlFor="note-trailer">{t("notes.rich.field_trailer")}</Label>
+          <Input
+            id="note-trailer"
+            value={trailerUrl}
+            onChange={(e) => setTrailerUrl(e.target.value)}
+            placeholder={t("notes.rich.trailer_placeholder")}
+            className="h-11"
+          />
+          {trailerUrl.trim() && !trailerEmbedUrl(trailerUrl) ? (
+            <p className="text-xs text-destructive">{t("notes.rich.trailer_invalid")}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">{t("notes.rich.trailer_hint")}</p>
+          )}
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="note-included">{t("notes.rich.field_included")}</Label>
+          <Input
+            id="note-included"
+            value={includedText}
+            onChange={(e) => setIncludedText(e.target.value)}
+            placeholder={t("notes.rich.included_placeholder")}
+            className="h-11"
+          />
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="note-syllabus">{t("notes.rich.field_syllabus")}</Label>
+          <textarea
+            id="note-syllabus"
+            value={syllabus}
+            maxLength={SYLLABUS_MAX}
+            onChange={(e) => setSyllabus(e.target.value)}
+            rows={4}
+            placeholder={t("notes.rich.syllabus_placeholder")}
+            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
+          />
+        </div>
+        <div className="space-y-2">
+          <Label>{t("notes.rich.field_gallery")}</Label>
+          <div className="flex flex-wrap gap-2">
+            {galleryKept.map((path) => (
+              <div
+                key={path}
+                className="relative h-20 w-28 overflow-hidden rounded-md border border-border"
+              >
+                <img
+                  src={materialCoverUrl(path) ?? ""}
+                  alt=""
+                  className="h-full w-full object-cover"
+                />
+                <button
+                  type="button"
+                  aria-label={t("notes.upload.remove")}
+                  onClick={() => setGalleryKept((prev) => prev.filter((p) => p !== path))}
+                  className="absolute right-1 top-1 rounded bg-black/60 p-0.5 text-white"
+                >
+                  <X className="h-3 w-3" aria-hidden />
+                </button>
+              </div>
+            ))}
+            {galleryNew.map((file, index) => (
+              <div
+                key={`${file.name}-${index}`}
+                className="relative flex h-20 w-28 items-center justify-center overflow-hidden rounded-md border border-dashed border-border px-1 text-center text-[11px]"
+              >
+                {file.name}
+                <button
+                  type="button"
+                  aria-label={t("notes.upload.remove")}
+                  onClick={() => setGalleryNew((prev) => prev.filter((_, i) => i !== index))}
+                  className="absolute right-1 top-1 rounded bg-black/60 p-0.5 text-white"
+                >
+                  <X className="h-3 w-3" aria-hidden />
+                </button>
+              </div>
+            ))}
+            {galleryKept.length + galleryNew.length < MAX_GALLERY_IMAGES ? (
+              <Button
+                type="button"
+                variant="outline"
+                className="h-20"
+                onClick={() => galleryInputRef.current?.click()}
+              >
+                <ImageIcon className="mr-2 h-4 w-4" aria-hidden />
+                {t("notes.rich.gallery_add")}
+              </Button>
+            ) : null}
+          </div>
+          <input
+            ref={galleryInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            multiple
+            className="sr-only"
+            onChange={(e) => {
+              const picked = Array.from(e.target.files ?? []).filter(
+                (f) => f.size <= MAX_GALLERY_IMAGE_BYTES,
+              );
+              const room = MAX_GALLERY_IMAGES - galleryKept.length - galleryNew.length;
+              setGalleryNew((prev) => [...prev, ...picked.slice(0, Math.max(0, room))]);
+              e.target.value = "";
+            }}
+          />
+          <p className="text-xs text-muted-foreground">{t("notes.rich.gallery_hint")}</p>
+        </div>
+
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="note-curriculum">{t("notes.form.field_curriculum")}</Label>
@@ -1328,7 +1564,14 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             placeholder={t("notes.form.price_free_hint")}
             className="h-11"
           />
-          <p className="text-xs text-muted-foreground">{t("notes.form.price_free_note")}</p>
+          <p className="text-xs text-muted-foreground">
+            {t("notes.form.price_free_note")} {t("notes_option_a.price_rule")}
+          </p>
+          {priceProblem === "below_minimum" ? (
+            <p className="text-xs text-destructive">{t("notes_option_a.price_below_minimum")}</p>
+          ) : priceProblem === "above_maximum" ? (
+            <p className="text-xs text-destructive">{t("notes_option_a.price_above_maximum")}</p>
+          ) : null}
         </div>
         <NotePriceGuidePanel
           materialType={materialType}
@@ -1340,7 +1583,32 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           priceHkd={Number.isNaN(priceNum) ? null : priceNum}
           onUsePrice={(value) => setPrice(String(value))}
         />
+        {NOTES_OPTION_A_LIVE ? (
+          <EarningsCalculator priceHkd={Number.isNaN(priceNum) ? 0 : priceNum} />
+        ) : null}
       </section>
+
+      {!isLive ? (
+        <section className="space-y-3 rounded-2xl border border-border p-4">
+          <p className="text-sm font-bold">{t("notes_option_a.declare_title")}</p>
+          <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
+            <Checkbox
+              checked={declareAge}
+              onCheckedChange={(c) => setDeclareAge(c === true)}
+              className="mt-1"
+            />
+            <span>{t("notes_option_a.declare_age")}</span>
+          </label>
+          <label className="flex cursor-pointer items-start gap-3 text-sm leading-6">
+            <Checkbox
+              checked={declareOriginality}
+              onCheckedChange={(c) => setDeclareOriginality(c === true)}
+              className="mt-1"
+            />
+            <span>{t("notes_option_a.declare_originality")}</span>
+          </label>
+        </section>
+      ) : null}
 
       {!isLive ? (
         <TermsGateCheckbox

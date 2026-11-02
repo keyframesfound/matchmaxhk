@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { deliveredFooterText } from "@/features/materials/marketplace-policy";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -514,6 +515,11 @@ export const startCheckout = createServerFn({ method: "POST" })
     }
 
     const { platformFeeHkd, tutorNetHkd } = splitMaterialMoney(Number(material.price_hkd));
+    // #556: a FREE (HK$0) file listing needs no payment round-trip: the
+    // order is born paid and released (stamped) right away below.
+    const isFreeFile =
+      Number(material.price_hkd) === 0 &&
+      (FILE_BEARING_MATERIAL_TYPES as readonly string[]).includes(material.material_type);
     const insert = await db
       .from<{ id: string }>("material_orders")
       .insert({
@@ -523,7 +529,8 @@ export const startCheckout = createServerFn({ method: "POST" })
         gross_hkd: material.price_hkd,
         platform_fee_hkd: platformFeeHkd,
         tutor_net_hkd: tutorNetHkd,
-        status: "awaiting_payment",
+        status: isFreeFile ? "paid" : "awaiting_payment",
+        ...(isFreeFile ? { paid_at: new Date().toISOString() } : {}),
         reference,
         // #429: shop acknowledgment lives on the order row.
         shop_terms_version: SHOP_TERMS_VERSION,
@@ -557,6 +564,22 @@ export const startCheckout = createServerFn({ method: "POST" })
     // the whole checkout, so no order is ever placed without a recorded
     // acceptance.
     await recordCheckoutAcceptance(context.userId, insert.data.id);
+    if (isFreeFile) {
+      // Best effort: if stamping fails the order stays "paid" and staff
+      // can release it from the desk as before.
+      try {
+        const { data: freeOrder } = await db
+          .from<OrderWithMaterial>("material_orders")
+          .select(
+            "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id)",
+          )
+          .eq("id", insert.data.id)
+          .maybeSingle();
+        if (freeOrder) await performOrderRelease(db, freeOrder, null);
+      } catch (releaseError) {
+        console.warn("[checkout] free instant release failed:", releaseError);
+      }
+    }
     return { orderId: insert.data.id, reference };
   });
 
@@ -796,6 +819,20 @@ export const getOrderScreenshotUrl = createServerFn({ method: "POST" })
     return { signedUrl: signed.signedUrl };
   });
 
+/** The buyer's email for the masked watermark (null when unknown). */
+async function buyerEmailFor(db: AdminDb, order: { buyer_account_id: string }) {
+  try {
+    const { data } = await db
+      .from<{ email: string | null }>("profiles")
+      .select("email")
+      .eq("id", order.buyer_account_id)
+      .maybeSingle();
+    return data?.email ?? null;
+  } catch {
+    return null;
+  }
+}
+
 /**
  * Stamp the per-order footer onto a copy of the original (#203: order id +
  * buyer account id). Failure must NOT deliver, the caller parks the order
@@ -804,11 +841,17 @@ export const getOrderScreenshotUrl = createServerFn({ method: "POST" })
 export async function buildDeliveredFile(
   originalBytes: Uint8Array,
   order: { id: string; reference: string | null; buyer_account_id: string },
+  buyerEmail?: string | null,
 ): Promise<Uint8Array> {
   const { PDFDocument, StandardFonts, rgb } = await import("pdf-lib");
   const doc = await PDFDocument.load(originalBytes, { ignoreEncryption: false });
   const font = await doc.embedFont(StandardFonts.Helvetica);
-  const footer = `Order ${order.reference || order.id.slice(0, 8)} · Buyer ${order.buyer_account_id.slice(0, 8)} · Licensed to one student · matchmax.hk`;
+  // #573: "Licensed to [masked email] - Order #[ID]" (privacy policy §12).
+  const footer = deliveredFooterText({
+    orderRef: order.reference || order.id.slice(0, 8),
+    buyerEmail,
+    buyerAccountId: order.buyer_account_id,
+  });
   for (const page of doc.getPages()) {
     const { width } = page.getSize();
     const fontSize = 7.5;
@@ -898,112 +941,35 @@ export const releaseOrder = createServerFn({ method: "POST" })
     if (order.status !== "paid" && order.status !== "stamp_failed") {
       throw new Error("Only paid orders can be released.");
     }
-    const material = order.digital_materials;
-    if (!material) throw new Error("The note file is missing.");
+    return performOrderRelease(db, order, context.userId);
+  });
 
-    // #392: folder and course orders carry NO listing-level file, there is
-    // nothing to stamp. They flip straight to delivered: courses unlock
-    // per-lesson embeds + PDFs via getCourseAccess, folders grant their
-    // children here. Notes/gigs keep the stamp pipeline below untouched.
-    if (
-      material.material_type === "topic_folder" ||
-      material.material_type === "video_course" ||
-      material.material_type === "general_course"
-    ) {
-      try {
-        const deliveredAt = new Date().toISOString();
-        // #429: real money enters the escrow hold (48/72h by the seller's
-        // track record); HK$0 orders/grants deliver straight as before.
-        const holdHours = await getTutorHoldWindowHours(db, order.tutor_id);
-        const escrow = buildEscrowReleaseFields({
-          grossHkd: Number(order.gross_hkd),
-          holdHours,
-          deliveredAtIso: deliveredAt,
-        });
-        const { error: deliveredError } = await db
-          .from<never>("material_orders")
-          .update({
-            status: escrow.status,
-            delivered_at: deliveredAt,
-            delivered_by: context.userId,
-            ...(escrow.status === "held" ? { hold_until: escrow.holdUntilIso } : {}),
-          })
-          .eq("id", order.id);
-        if (deliveredError) throw new Error(deliveredError.message);
+/**
+ * The release pipeline (stamp + deliver / unlock), shared by the staff
+ * release action and (#556) the instant HK$0 free download. `releasedBy` is
+ * the staff user, or null for an automatic free delivery.
+ */
+async function performOrderRelease(
+  db: AdminDb,
+  order: OrderWithMaterial,
+  releasedBy: string | null,
+): Promise<{ ok: true; status: "delivered" }> {
+  const material = order.digital_materials;
+  if (!material) throw new Error("The note file is missing.");
 
-        if (material.material_type === "topic_folder") {
-          // One delivered is_grant row per child (already-held children are
-          // skipped by ON CONFLICT). granted_by = the releasing staff user.
-          const { data: items } = await db
-            .from<{ child_material_id: string }>("topic_folder_items")
-            .select("child_material_id")
-            .eq("folder_id", order.material_id);
-          await insertFolderChildGrants(
-            db,
-            buildFolderChildGrantRows({
-              folderId: order.material_id,
-              childIds: (items ?? []).map((item) => item.child_material_id),
-              buyerAccountId: order.buyer_account_id,
-              tutorId: order.tutor_id,
-              grantedBy: context.userId,
-            }),
-          );
-        }
-
-        // Sold count moves for the LISTING only, never for the children.
-        await db.rpc("increment_material_sold_count", { p_material_id: order.material_id });
-
-        // P12 marketplace bell v1: receipt email (order id, title, amount —
-        // no file, no tutor contact). Best-effort; delivery already succeeded.
-        void sendOrderReceipt(order.id).catch(() => undefined);
-        return { ok: true, status: "delivered" as const };
-      } catch (err) {
-        await db
-          .from<never>("material_orders")
-          .update({ status: "stamp_failed" })
-          .eq("id", order.id);
-        throw err;
-      }
-    }
-
-    if (!material.original_file_path) throw new Error("The note file is missing.");
-
-    const { error: stampingError } = await db
-      .from<never>("material_orders")
-      .update({ status: "stamping" })
-      .eq("id", order.id);
-    if (stampingError) throw new Error(stampingError.message);
-
+  // #392: folder and course orders carry NO listing-level file, there is
+  // nothing to stamp. They flip straight to delivered: courses unlock
+  // per-lesson embeds + PDFs via getCourseAccess, folders grant their
+  // children here. Notes/gigs keep the stamp pipeline below untouched.
+  if (
+    material.material_type === "topic_folder" ||
+    material.material_type === "video_course" ||
+    material.material_type === "general_course"
+  ) {
     try {
-      const { data: signed, error: signError } = await db.storage
-        .from(ORIGINALS_BUCKET)
-        .createSignedUrl(material.original_file_path, 60);
-      if (signError || !signed) throw new Error(signError?.message || "Could not read original");
-      const res = await fetch(signed.signedUrl);
-      if (!res.ok) throw new Error("Could not read original");
-      const originalBytes = new Uint8Array(await res.arrayBuffer());
-
-      // #314: a PDF gets the per-order stamp; an .apkg deck has no pages to
-      // stamp (and pdf-lib cannot read it), so the deck itself is released
-      // as the per-order copy. Either way delivery stays in-account and the
-      // tutor never sees the buyer.
-      const isApkg = /\.apkg$/i.test(material.original_file_path);
-      const ext = isApkg ? "apkg" : "pdf";
-      const deliveredBytes = isApkg
-        ? originalBytes
-        : await buildDeliveredFile(originalBytes, order);
-
-      const path = `delivered/${order.id}.${ext}`;
-      const { error: uploadError } = await db.storage
-        .from(ORIGINALS_BUCKET)
-        .upload(path, deliveredBytes as unknown as BlobPart, {
-          contentType: isApkg ? "application/octet-stream" : "application/pdf",
-          upsert: true,
-        });
-      if (uploadError) throw new Error(uploadError.message);
-
       const deliveredAt = new Date().toISOString();
-      // #429: the stamped delivery enters the escrow hold the same way.
+      // #429: real money enters the escrow hold (48/72h by the seller's
+      // track record); HK$0 orders/grants deliver straight as before.
       const holdHours = await getTutorHoldWindowHours(db, order.tutor_id);
       const escrow = buildEscrowReleaseFields({
         grossHkd: Number(order.gross_hkd),
@@ -1014,15 +980,33 @@ export const releaseOrder = createServerFn({ method: "POST" })
         .from<never>("material_orders")
         .update({
           status: escrow.status,
-          delivered_file_path: path,
           delivered_at: deliveredAt,
-          delivered_by: context.userId,
+          delivered_by: releasedBy,
           ...(escrow.status === "held" ? { hold_until: escrow.holdUntilIso } : {}),
         })
         .eq("id", order.id);
       if (deliveredError) throw new Error(deliveredError.message);
 
-      // Keep sold_count on the listing in sync (#203 owner stats, P9).
+      if (material.material_type === "topic_folder") {
+        // One delivered is_grant row per child (already-held children are
+        // skipped by ON CONFLICT). granted_by = the releasing staff user.
+        const { data: items } = await db
+          .from<{ child_material_id: string }>("topic_folder_items")
+          .select("child_material_id")
+          .eq("folder_id", order.material_id);
+        await insertFolderChildGrants(
+          db,
+          buildFolderChildGrantRows({
+            folderId: order.material_id,
+            childIds: (items ?? []).map((item) => item.child_material_id),
+            buyerAccountId: order.buyer_account_id,
+            tutorId: order.tutor_id,
+            grantedBy: releasedBy,
+          }),
+        );
+      }
+
+      // Sold count moves for the LISTING only, never for the children.
       await db.rpc("increment_material_sold_count", { p_material_id: order.material_id });
 
       // P12 marketplace bell v1: receipt email (order id, title, amount —
@@ -1033,9 +1017,77 @@ export const releaseOrder = createServerFn({ method: "POST" })
       await db.from<never>("material_orders").update({ status: "stamp_failed" }).eq("id", order.id);
       throw err;
     }
-  });
+  }
 
-/** Staff rejects a payment (bad screenshot / wrong amount). Buyer re-pays. */
+  if (!material.original_file_path) throw new Error("The note file is missing.");
+
+  const { error: stampingError } = await db
+    .from<never>("material_orders")
+    .update({ status: "stamping" })
+    .eq("id", order.id);
+  if (stampingError) throw new Error(stampingError.message);
+
+  try {
+    const { data: signed, error: signError } = await db.storage
+      .from(ORIGINALS_BUCKET)
+      .createSignedUrl(material.original_file_path, 60);
+    if (signError || !signed) throw new Error(signError?.message || "Could not read original");
+    const res = await fetch(signed.signedUrl);
+    if (!res.ok) throw new Error("Could not read original");
+    const originalBytes = new Uint8Array(await res.arrayBuffer());
+
+    // #314: a PDF gets the per-order stamp; an .apkg deck has no pages to
+    // stamp (and pdf-lib cannot read it), so the deck itself is released
+    // as the per-order copy. Either way delivery stays in-account and the
+    // tutor never sees the buyer.
+    const isApkg = /\.apkg$/i.test(material.original_file_path);
+    const ext = isApkg ? "apkg" : "pdf";
+    const deliveredBytes = isApkg
+      ? originalBytes
+      : await buildDeliveredFile(originalBytes, order, await buyerEmailFor(db, order));
+
+    const path = `delivered/${order.id}.${ext}`;
+    const { error: uploadError } = await db.storage
+      .from(ORIGINALS_BUCKET)
+      .upload(path, deliveredBytes as unknown as BlobPart, {
+        contentType: isApkg ? "application/octet-stream" : "application/pdf",
+        upsert: true,
+      });
+    if (uploadError) throw new Error(uploadError.message);
+
+    const deliveredAt = new Date().toISOString();
+    // #429: the stamped delivery enters the escrow hold the same way.
+    const holdHours = await getTutorHoldWindowHours(db, order.tutor_id);
+    const escrow = buildEscrowReleaseFields({
+      grossHkd: Number(order.gross_hkd),
+      holdHours,
+      deliveredAtIso: deliveredAt,
+    });
+    const { error: deliveredError } = await db
+      .from<never>("material_orders")
+      .update({
+        status: escrow.status,
+        delivered_file_path: path,
+        delivered_at: deliveredAt,
+        delivered_by: releasedBy,
+        ...(escrow.status === "held" ? { hold_until: escrow.holdUntilIso } : {}),
+      })
+      .eq("id", order.id);
+    if (deliveredError) throw new Error(deliveredError.message);
+
+    // Keep sold_count on the listing in sync (#203 owner stats, P9).
+    await db.rpc("increment_material_sold_count", { p_material_id: order.material_id });
+
+    // P12 marketplace bell v1: receipt email (order id, title, amount —
+    // no file, no tutor contact). Best-effort; delivery already succeeded.
+    void sendOrderReceipt(order.id).catch(() => undefined);
+    return { ok: true, status: "delivered" as const };
+  } catch (err) {
+    await db.from<never>("material_orders").update({ status: "stamp_failed" }).eq("id", order.id);
+    throw err;
+  }
+}
+
 export const rejectOrder = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>

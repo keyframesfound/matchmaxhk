@@ -161,6 +161,8 @@ export type MarketplaceMaterial = StudyMaterial & {
   tutor_code: string;
   /** #314: the tutor holds the Verified badge (verification_tier tier_2_verified). */
   tutor_verified: boolean;
+  /** #573: a notes-only Community Seller (no tutor profile to link to). */
+  tutor_community: boolean;
 };
 
 /**
@@ -171,14 +173,22 @@ export type MarketplaceMaterial = StudyMaterial & {
  * own note-only RPCs and queries.
  */
 export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]> {
-  const run = (columns: string) =>
+  // RLS already limits rows to published tutors + (#573) community sellers.
+  const run = (columns: string, community: boolean) =>
     materialsTable()
-      .select(`${columns}, tutors!inner(display_name, tutor_code, is_published, verification_tier)`)
+      .select(
+        `${columns}, tutors!inner(display_name, tutor_code, is_published, verification_tier${
+          community ? ", is_community_seller" : ""
+        })`,
+      )
       .eq("status", "published")
       .order("created_at", { ascending: false });
-  // Notes upload v2: 42703 = the v2 columns do not exist yet; read without them.
-  let result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}`);
-  if (result.error?.code === "42703") result = await run(MATERIAL_COLS);
+  // 42703 = a newer column does not exist yet; step back one migration.
+  let result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}`, true);
+  if (result.error?.code === "42703") {
+    result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}`, false);
+  }
+  if (result.error?.code === "42703") result = await run(MATERIAL_COLS, false);
   const { data, error } = result;
   if (error) {
     if (isMissingRelation(error)) return [];
@@ -195,6 +205,7 @@ export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]
           typeof tutor?.display_name === "string" ? tutor.display_name : "MatchMax Tutor",
         tutor_code: typeof tutor?.tutor_code === "string" ? tutor.tutor_code : "",
         tutor_verified: tutor?.verification_tier === "tier_2_verified",
+        tutor_community: tutor?.is_community_seller === true,
       };
     })
     .filter((m) => m.id && m.tutor_code);
@@ -224,4 +235,42 @@ export function formatMaterialTypeLabel(type: string, t: (key: string) => string
   const key = `materials.type_${type}`;
   const label = t(key);
   return label === key ? type.replace(/_/g, " ") : label;
+}
+
+/**
+ * #556: verified-buyer rating summaries for the shop cards (★ 4.9 (18)).
+ * Public RLS read of published notes' reviews; an empty map when the
+ * reviews table is not migrated yet.
+ */
+export async function fetchMaterialRatings(): Promise<
+  Map<string, { average: number | null; count: number }>
+> {
+  const client = supabase as unknown as {
+    from: (t: string) => {
+      select: (c: string) => {
+        limit: (n: number) => Promise<{
+          data: { material_id: string; rating: number }[] | null;
+          error?: { code?: string } | null;
+        }>;
+      };
+    };
+  };
+  const { data, error } = await client
+    .from("material_reviews")
+    .select("material_id, rating")
+    .limit(10000);
+  const sums = new Map<string, { sum: number; count: number }>();
+  if (error || !data) return new Map();
+  for (const row of data) {
+    const entry = sums.get(row.material_id) ?? { sum: 0, count: 0 };
+    entry.sum += Number(row.rating);
+    entry.count += 1;
+    sums.set(row.material_id, entry);
+  }
+  return new Map(
+    Array.from(sums.entries()).map(([id, { sum, count }]) => [
+      id,
+      { average: Math.round((sum / count) * 10) / 10, count },
+    ]),
+  );
 }

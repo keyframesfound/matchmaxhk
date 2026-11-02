@@ -29,7 +29,19 @@ import {
 } from "@/features/materials/storage-helpers";
 import { watermarkPdfPreview } from "@/features/materials/watermark";
 import { sanitizePreviewIndices } from "@/features/materials/preview-pages";
-import { CONTENT_LANGUAGES, isValidSubcategory } from "@/features/materials/note-taxonomy";
+import {
+  NOTES_OPTION_A_LIVE,
+  scanListing,
+  validateListingPrice,
+  type ScanFlag,
+} from "@/features/materials/marketplace-policy";
+import {
+  CONTENT_LANGUAGES,
+  isValidSubcategory,
+  MAX_WHATS_INCLUDED,
+  SYLLABUS_MAX,
+  trailerEmbedUrl,
+} from "@/features/materials/note-taxonomy";
 
 /**
  * P8 (#288) / P9 (#289): the tutor-side notes lifecycle server functions.
@@ -86,6 +98,15 @@ const DraftMetaInput = z.object({
   searchTags: z.array(z.string().trim().min(1).max(30)).max(20).optional(),
   contentLanguage: z.enum(CONTENT_LANGUAGES).nullish(),
   sourceFormats: z.array(z.string().trim().min(1).max(20)).max(12).optional(),
+  // #556 rich listing.
+  trailerVideoUrl: z
+    .string()
+    .trim()
+    .max(300)
+    .refine((v) => v === "" || trailerEmbedUrl(v) !== null, "Use a public YouTube or Vimeo link.")
+    .nullish(),
+  whatsIncluded: z.array(z.string().trim().min(1).max(60)).max(MAX_WHATS_INCLUDED).optional(),
+  syllabusOutline: z.string().trim().max(SYLLABUS_MAX).nullish(),
 });
 
 /**
@@ -99,6 +120,9 @@ export function v2ListingPatch(data: {
   searchTags?: string[];
   contentLanguage?: string | null;
   sourceFormats?: string[];
+  trailerVideoUrl?: string | null;
+  whatsIncluded?: string[];
+  syllabusOutline?: string | null;
 }): Record<string, unknown> {
   const patch: Record<string, unknown> = {};
   if (data.summary !== undefined) patch.summary = data.summary || null;
@@ -108,6 +132,9 @@ export function v2ListingPatch(data: {
   }
   if (data.contentLanguage !== undefined) patch.content_language = data.contentLanguage || null;
   if (data.sourceFormats !== undefined) patch.source_formats = data.sourceFormats;
+  if (data.trailerVideoUrl !== undefined) patch.trailer_video_url = data.trailerVideoUrl || null;
+  if (data.whatsIncluded !== undefined) patch.whats_included = data.whatsIncluded;
+  if (data.syllabusOutline !== undefined) patch.syllabus_outline = data.syllabusOutline || null;
   return patch;
 }
 
@@ -162,6 +189,11 @@ export type MyMaterialsRow = {
   pageCount: number | null;
   yearTag: string | null;
   slug: string | null;
+  // #556 rich listing.
+  previewImagePaths: string[];
+  trailerVideoUrl: string | null;
+  whatsIncluded: string[];
+  syllabusOutline: string | null;
 };
 
 export async function myTutorRow(
@@ -178,6 +210,68 @@ export async function myTutorRow(
   return data;
 }
 
+/** The caller's seller row (tutor card or #573 community seller), if any. */
+export async function findSellerRow(
+  db: AdminDb,
+  userId: string,
+): Promise<{ id: string; display_name: string } | null> {
+  const { data, error } = await db
+    .from<{ id: string; display_name: string }>("tutors")
+    .select("id, display_name")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error) throw new Error(error.message || "Failed to look up seller account");
+  return data ?? null;
+}
+
+/**
+ * #573 open marketplace: any signed-in user can sell. The first save of a
+ * user without a tutor card creates a minimal Community Seller row
+ * (is_published = false, is_community_seller = true), so it never shows in
+ * the tutor directory while listings, orders and the manual cashier keep
+ * their tutor_id foreign key.
+ */
+export async function ensureSellerRow(
+  db: AdminDb,
+  userId: string,
+): Promise<{ id: string; display_name: string }> {
+  const existing = await findSellerRow(db, userId);
+  if (existing) return existing;
+  const { data: profile } = await db
+    .from<{ display_name: string | null; handle: string | null }>("profiles")
+    .select("display_name, handle")
+    .eq("id", userId)
+    .maybeSingle();
+  const displayName =
+    profile?.display_name?.trim() ||
+    (profile?.handle ? `@${profile.handle}` : "") ||
+    "Community Seller";
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const code = `MM-S${Math.random().toString(36).slice(2, 8).toUpperCase()}`;
+    const { data, error } = await db
+      .from<{ id: string; display_name: string }>("tutors")
+      .insert({
+        user_id: userId,
+        display_name: displayName.slice(0, 60),
+        tutor_code: code,
+        is_published: false,
+        is_community_seller: true,
+      })
+      .select("id, display_name")
+      .single();
+    if (!error && data) return data;
+    if (error?.code === "42703") {
+      throw new Error("Selling without a tutor profile opens after the next update.");
+    }
+    if (error?.code !== "23505")
+      throw new Error(error?.message || "Could not set up your seller account.");
+    // 23505: tutor_code collision (or a concurrent create): retry / re-read.
+    const again = await findSellerRow(db, userId);
+    if (again) return again;
+  }
+  throw new Error("Could not set up your seller account. Please try again.");
+}
+
 function assertCleanCopy(fields: {
   title?: string;
   description?: string;
@@ -185,6 +279,8 @@ function assertCleanCopy(fields: {
   gradeAchieved?: string;
   summary?: string;
   searchTags?: string[];
+  whatsIncluded?: string[];
+  syllabusOutline?: string;
 }) {
   const labels: Record<string, string> = {
     title: "Title",
@@ -193,10 +289,16 @@ function assertCleanCopy(fields: {
     topic: "Topic",
     gradeAchieved: "Grade achieved",
     searchTags: "Tags",
+    whatsIncluded: "What's included",
+    syllabusOutline: "Syllabus",
   };
   for (const [field, value] of Object.entries(fields)) {
     const texts =
-      field === "searchTags" ? (Array.isArray(value) ? value : []) : [value as string | undefined];
+      field === "searchTags" || field === "whatsIncluded"
+        ? Array.isArray(value)
+          ? value
+          : []
+        : [value as string | undefined];
     for (const text of texts) {
       if (!text) continue;
       const violations = findContactViolations(text);
@@ -524,13 +626,15 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    const tutor = await myTutorRow(db, context.userId);
+    const tutor = await ensureSellerRow(db, context.userId);
     assertCleanCopy({
       title: data.title,
       description: data.description,
       topic: data.topic ?? undefined,
       gradeAchieved: data.gradeAchieved ?? undefined,
       searchTags: data.searchTags,
+      whatsIncluded: data.whatsIncluded,
+      syllabusOutline: data.syllabusOutline ?? undefined,
     });
     // #346: the stored row loads first so the partial subject check can
     // exempt the note's own legacy subjectTag (the form's legacy option).
@@ -640,7 +744,70 @@ const SubmitForReviewInput = SubmitInput.extend({
   // checkbox must arrive true (mirrors /legal/notes-terms), and the handler
   // records the terms_acceptances row (surface note_upload) on success.
   legalAgreed: z.literal(true),
+  // #573 seller activation: age (18+ or guardian consent) and originality /
+  // ban-list warranty, both required; stored with time + IP.
+  sellerDeclarations: z.object({ age: z.literal(true), originality: z.literal(true) }),
+  // #573 scanner: text the browser extracted from the main PDF (optional;
+  // a missing / tiny text layer routes the upload to the staff queue).
+  fileText: z.string().max(60_000).nullish(),
 });
+
+/** #573: record the seller declarations (best effort before the migration). */
+async function recordSellerDeclarations(db: AdminDb, userId: string) {
+  const { getRequest } = await import("@tanstack/react-start/server");
+  const headers = getRequest()?.headers;
+  const ip =
+    headers?.get("cf-connecting-ip") ??
+    headers?.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+    null;
+  const now = new Date().toISOString();
+  const { error } = await db.from<never>("seller_declarations").upsert(
+    {
+      user_id: userId,
+      age_declared_at: now,
+      originality_declared_at: now,
+      declared_ip: ip,
+      declared_user_agent: headers?.get("user-agent")?.slice(0, 400) ?? null,
+      terms_version: "2026-11-option-a",
+      updated_at: now,
+    },
+    { onConflict: "user_id" },
+  );
+  if (error && !/42P01|does not exist/i.test(`${error.code ?? ""} ${error.message}`)) {
+    throw new Error(error.message);
+  }
+}
+
+/**
+ * #573: write the scanner result and, once Option A is live, publish clean
+ * uploads straight away (flagged ones stay in the staff queue).
+ */
+async function applyUploadScan(
+  db: AdminDb,
+  materialId: string,
+  flags: ScanFlag[],
+): Promise<"published" | "pending_review"> {
+  const publish = NOTES_OPTION_A_LIVE && flags.length === 0;
+  const scan = { scan_status: flags.length > 0 ? "flagged" : "clean", scan_flags: flags };
+  const statusPatch = publish ? { status: "published", reviewed_at: new Date().toISOString() } : {};
+  const first = await db
+    .from<never>("digital_materials")
+    .update({ ...scan, ...statusPatch })
+    .eq("id", materialId);
+  if (first.error?.code === "42703") {
+    // Scanner columns not migrated yet: still honour the publish decision.
+    if (publish) {
+      const retry = await db
+        .from<never>("digital_materials")
+        .update(statusPatch)
+        .eq("id", materialId);
+      if (retry.error) throw new Error(retry.error.message);
+    }
+  } else if (first.error) {
+    throw new Error(first.error.message);
+  }
+  return publish ? "published" : "pending_review";
+}
 
 /** P8 submit: validates required fields, then parks the note for staff review. */
 export const submitNoteForReview = createServerFn({ method: "POST" })
@@ -649,13 +816,15 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    const tutor = await myTutorRow(db, context.userId);
+    const tutor = await ensureSellerRow(db, context.userId);
     assertCleanCopy({
       title: data.title,
       description: data.description,
       topic: data.topic ?? undefined,
       gradeAchieved: data.gradeAchieved ?? undefined,
       searchTags: data.searchTags,
+      whatsIncluded: data.whatsIncluded,
+      syllabusOutline: data.syllabusOutline ?? undefined,
     });
 
     const existing = data.materialId
@@ -673,6 +842,15 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       priceHkd: data.priceHkd ?? Number(existing?.price_hkd ?? 0),
       hasPdf: Boolean(data.base64Data) || Boolean(existing?.original_file_path),
     };
+    // #543 / #573: free (HK$0) or HK$20 to HK$5,000.
+    const priceProblem = validateListingPrice(Number(merged.priceHkd ?? 0), kinds.materialType);
+    if (priceProblem) {
+      throw new Error(
+        priceProblem === "above_maximum"
+          ? "The maximum price is HK$5,000."
+          : "Paid listings start at HK$20. Set HK$0 for a free item.",
+      );
+    }
     const check = checkSubmitReadiness(merged);
     if (!check.ok) {
       throw new Error(`Missing: ${check.missing.join(", ")}`);
@@ -825,7 +1003,23 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       subjectId: materialId,
     });
 
-    return { materialId };
+    await recordSellerDeclarations(db, context.userId);
+    const scanFlags = scanListing({
+      listingText: [
+        merged.title,
+        data.description,
+        data.summary,
+        kinds.topic,
+        ...(data.searchTags ?? []),
+      ]
+        .filter(Boolean)
+        .join("\n"),
+      fileText: data.fileText ?? null,
+      hasFile: merged.hasPdf,
+    });
+    const status = await applyUploadScan(db, materialId, scanFlags);
+
+    return { materialId, status, scanFlags };
   });
 
 /** P9: edit a live note's text/price, live after the contact filter. */
@@ -842,8 +1036,20 @@ export const editLiveNote = createServerFn({ method: "POST" })
       description: data.description,
       summary: data.summary ?? undefined,
       searchTags: data.searchTags,
+      whatsIncluded: data.whatsIncluded,
+      syllabusOutline: data.syllabusOutline ?? undefined,
     });
     assertValidSubcategory(material.curriculum_tag, data.subcategory);
+    if (data.priceHkd != null) {
+      const priceProblem = validateListingPrice(data.priceHkd, material.material_type);
+      if (priceProblem) {
+        throw new Error(
+          priceProblem === "above_maximum"
+            ? "The maximum price is HK$5,000."
+            : "Paid listings start at HK$20. Set HK$0 for a free item.",
+        );
+      }
+    }
 
     if (data.base64Data) {
       await stageFileForMaterial(db, tutor, material, data.fileName || "note.pdf", data.base64Data);
@@ -877,6 +1083,16 @@ export const setNoteHidden = createServerFn({ method: "POST" })
 
     const next = nextStatus(material.status, data.hidden ? "hide" : "unhide");
     if (!next) throw new Error("This note cannot be hidden or restored right now.");
+    if (!data.hidden) {
+      // #573 / SOP §4.1: a listing hidden by open P1 reports stays hidden
+      // until staff resolve them.
+      const { countOpenP1Reports } = await import("@/features/reports/reports.functions");
+      if ((await countOpenP1Reports(db, material.id)) > 0) {
+        throw new Error(
+          "This note is under review after reports. Staff will restore it if it is cleared.",
+        );
+      }
+    }
     const { error } = await db
       .from<never>("digital_materials")
       .update({ status: next })
@@ -891,7 +1107,9 @@ export const getMyMaterials = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<MyMaterialsRow[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    const tutor = await myTutorRow(db, context.userId);
+    // #573: an account that never sold anything has no seller row yet.
+    const tutor = await findSellerRow(db, context.userId);
+    if (!tutor) return [];
 
     const baseColumns =
       "id, title, status, price_hkd, rejection_reason, edit_status, edit_rejection_reason, view_count, sold_count, watermarked_preview_url, updated_at, curriculum_tag, subject_tag, material_type, topic, grade_achieved, exemplar_permission, word_count, description, page_count, year_tag, slug";
@@ -904,7 +1122,9 @@ export const getMyMaterials = createServerFn({ method: "POST" })
         .order("updated_at", { ascending: false });
     // Notes upload v2: fall back to the pre-v2 column list when the v2
     // migration is not applied yet (42703 = undefined column).
-    let result = await run(`${baseColumns}, ${v2Columns}`);
+    const richColumns = "preview_image_paths, trailer_video_url, whats_included, syllabus_outline";
+    let result = await run(`${baseColumns}, ${v2Columns}, ${richColumns}`);
+    if (result.error?.code === "42703") result = await run(`${baseColumns}, ${v2Columns}`);
     if (result.error?.code === "42703") result = await run(baseColumns);
     const { data, error } = result;
     if (error) throw new Error(error.message);
@@ -941,5 +1161,13 @@ export const getMyMaterials = createServerFn({ method: "POST" })
       pageCount: typeof row.page_count === "number" ? row.page_count : null,
       yearTag: str(row.year_tag),
       slug: str(row.slug),
+      previewImagePaths: Array.isArray(row.preview_image_paths)
+        ? row.preview_image_paths.filter((p): p is string => typeof p === "string")
+        : [],
+      trailerVideoUrl: str(row.trailer_video_url),
+      whatsIncluded: Array.isArray(row.whats_included)
+        ? row.whats_included.filter((p): p is string => typeof p === "string")
+        : [],
+      syllabusOutline: str(row.syllabus_outline),
     }));
   });

@@ -12,6 +12,7 @@ import {
   type RatingSummary,
 } from "@/features/materials/note-reviews";
 import { fetchPublicNoteRows, type PublicNote } from "@/features/materials/notes.functions";
+import { recommend } from "@/features/materials/note-recommend";
 
 /**
  * Notes upload v2: verified-buyer reviews, saved notes and similar notes.
@@ -242,48 +243,39 @@ export const setNoteSaved = createServerFn({ method: "POST" })
 
 export type SimilarNote = PublicNote & { rating: RatingSummary };
 
-export function similarityScore(base: PublicNote, other: PublicNote): number {
-  const same = (a: string | null | undefined, b: string | null | undefined) =>
-    Boolean(a && b && a.trim().toLowerCase() === b.trim().toLowerCase());
-  let score = 0;
-  if (same(base.subjectTag, other.subjectTag)) score += 4;
-  if (same(base.curriculumTag, other.curriculumTag)) score += 2;
-  if (same(base.subcategory, other.subcategory)) score += 2;
-  if (same(base.materialType, other.materialType)) score += 1;
-  if (same(base.topic, other.topic)) score += 1;
-  const baseTags = new Set(base.searchTags.map((t) => t.toLowerCase()));
-  score += Math.min(2, other.searchTags.filter((t) => baseTags.has(t.toLowerCase())).length * 0.5);
-  return score;
-}
-
-export const getSimilarNotes = createServerFn({ method: "GET" })
-  .inputValidator((data: unknown) => z.object({ materialId: z.string().uuid() }).parse(data))
+/**
+ * #557 "Recommended For You": seeds = the viewed note (detail page) or the
+ * viewer's saved / bought notes (saved view). Scored by note-recommend.ts;
+ * the caller passes the ids to exclude (already bought).
+ */
+export const getSimilarNotes = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        materialId: z.string().uuid().optional(),
+        seedIds: z.array(z.string().uuid()).max(50).optional(),
+        excludeIds: z.array(z.string().uuid()).max(300).optional(),
+      })
+      .parse(data),
+  )
   .handler(async ({ data }): Promise<SimilarNote[]> => {
     const db = await admin();
-    const baseRows = await fetchPublicNoteRows(db, (q) => q.eq("id", data.materialId).limit(1));
-    const base = baseRows[0];
-    if (!base) return [];
-    const pool = await fetchPublicNoteRows(db, (q) =>
-      q
-        .in("material_type", NOTE_KINDS)
-        .eq("curriculum_tag", base.curriculumTag)
-        .neq("id", base.id)
-        .order("created_at", { ascending: false })
-        .limit(120),
+    const seedIds = Array.from(
+      new Set([...(data.materialId ? [data.materialId] : []), ...(data.seedIds ?? [])]),
     );
-    const ranked = pool
-      .map((note) => ({ note, score: similarityScore(base, note) }))
-      .filter((r) => r.score >= 3)
-      .sort((a, b) => b.score - a.score || b.note.soldCount - a.note.soldCount)
-      .slice(0, 6)
-      .map((r) => r.note);
-
+    if (seedIds.length === 0) return [];
+    const pool = await fetchPublicNoteRows(db, (q) =>
+      q.in("material_type", NOTE_KINDS).order("created_at", { ascending: false }).limit(300),
+    );
     const ratings = new Map<string, number[]>();
-    if (ranked.length > 0) {
+    if (pool.length > 0) {
       const { data: rows, error } = await db
         .from<{ material_id: string; rating: number }>("material_reviews")
         .select("material_id, rating")
-        .in("material_id", [base.id, ...ranked.map((n) => n.id)]);
+        .in(
+          "material_id",
+          pool.map((n) => n.id),
+        );
       if (!error) {
         for (const row of rows ?? []) {
           const list = ratings.get(row.material_id) ?? [];
@@ -292,8 +284,12 @@ export const getSimilarNotes = createServerFn({ method: "GET" })
         }
       }
     }
-    return ranked.map((note) => ({
-      ...note,
-      rating: summarizeRatings(ratings.get(note.id) ?? []),
-    }));
+    const items = pool.map((note) => {
+      const rating = summarizeRatings(ratings.get(note.id) ?? []);
+      return { ...note, rating, ratingAverage: rating.average };
+    });
+    const seeds = items.filter((n) => seedIds.includes(n.id));
+    return recommend(seeds, items, { exclude: data.excludeIds ?? [], limit: 8 }).map(
+      ({ ratingAverage: _ratingAverage, ...note }) => note,
+    );
   });

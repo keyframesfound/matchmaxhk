@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { BookOpen } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { optionACopyKey } from "@/features/materials/marketplace-policy";
 
 import { fetchMaterialsForTutor, type StudyMaterial } from "@/features/materials/queries";
 import { StudyMaterialCard } from "@/features/materials/material-card";
@@ -59,7 +60,9 @@ export function TutorMaterialsSection({
           />
         ))}
       </div>
-      <p className="text-xs leading-relaxed text-muted-foreground">{t("materials.disclaimer")}</p>
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        {t(optionACopyKey("materials.disclaimer"))}
+      </p>
     </div>
   );
 }

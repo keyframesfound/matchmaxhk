@@ -16,11 +16,18 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   fetchMarketplaceMaterials,
+  fetchMaterialRatings,
   collectSchoolTags,
   type MarketplaceMaterial,
 } from "@/features/materials/queries";
 import { StudyMaterialCard } from "@/features/materials/material-card";
 import { cn } from "@/lib/utils";
+import { AuthGateDialog } from "@/features/auth/AuthGateDialog";
+import {
+  MAX_COMPARE,
+  ShopCardActions,
+  ShopCompareDialog,
+} from "@/features/materials/shop-card-actions";
 import { useAuth } from "@/features/auth/useAuth";
 import { rankBySearch } from "@/features/materials/note-search";
 import {
@@ -29,7 +36,11 @@ import {
   NOTE_SUBCATEGORIES,
 } from "@/features/materials/note-taxonomy";
 import { getMySavedNoteIds } from "@/features/materials/note-engagement.functions";
-import { SAVED_NOTES_QUERY_KEY, SellNotesCta } from "@/features/materials/note-engagement";
+import {
+  SAVED_NOTES_QUERY_KEY,
+  SellNotesCta,
+  SimilarNotesSection,
+} from "@/features/materials/note-engagement";
 import { formatMaterialTypeLabel } from "@/features/materials/queries";
 
 /**
@@ -46,18 +57,42 @@ import { formatMaterialTypeLabel } from "@/features/materials/queries";
  * links are no longer needed here.
  */
 
-type KindFilter = "all" | "notes" | "courses" | "folders" | "services";
+/**
+ * #557 Carousell-style category bar: All · Study notes · Mocks & solutions ·
+ * IA / EE / SBA · Video courses · Topic folders · Marking & services · Free.
+ */
+type KindFilter =
+  "all" | "notes" | "mocks" | "coursework" | "courses" | "folders" | "services" | "free";
+
+const COURSEWORK_SUBCATEGORIES = new Set(["ia", "ee", "tok", "sba", "coursework"]);
 
 /* Radix Select items can't hold an empty value, so each filter's "all"
  * choice rides this sentinel and maps back to "". */
 const MATERIALS_ALL_VALUE = "__all__";
 
-const KIND_FILTER_TYPES: Record<Exclude<KindFilter, "all">, string[]> = {
-  notes: ["notes", "mock", "exemplar", "flashcards"],
-  courses: ["video_course", "general_course"],
-  folders: ["topic_folder"],
-  services: ["gig"],
-};
+function matchesKind(m: MarketplaceMaterial, kind: KindFilter): boolean {
+  switch (kind) {
+    case "all":
+      return true;
+    case "notes":
+      return m.material_type === "notes" || m.material_type === "flashcards";
+    case "mocks":
+      return m.material_type === "mock";
+    case "coursework":
+      return (
+        m.material_type === "exemplar" ||
+        (m.subcategory != null && COURSEWORK_SUBCATEGORIES.has(m.subcategory))
+      );
+    case "courses":
+      return m.material_type === "video_course" || m.material_type === "general_course";
+    case "folders":
+      return m.material_type === "topic_folder";
+    case "services":
+      return m.material_type === "gig";
+    case "free":
+      return Number(m.price_hkd) === 0;
+  }
+}
 
 export function MaterialsDirectory() {
   const { t } = useTranslation();
@@ -82,6 +117,24 @@ export function MaterialsDirectory() {
     staleTime: 60_000,
   });
   const savedIds = useMemo(() => new Set(savedQuery.data ?? []), [savedQuery.data]);
+  // #556 card actions: ratings on cards, compare tray (up to 3), save gate.
+  const ratingsQuery = useQuery({
+    queryKey: ["materials", "ratings"],
+    queryFn: fetchMaterialRatings,
+    staleTime: 5 * 60_000,
+  });
+  const ratings = ratingsQuery.data ?? new Map<string, { average: number | null; count: number }>();
+  const [compareIds, setCompareIds] = useState<string[]>([]);
+  const [compareOpen, setCompareOpen] = useState(false);
+  const [authGateOpen, setAuthGateOpen] = useState(false);
+  const toggleCompare = (id: string) =>
+    setCompareIds((prev) =>
+      prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : prev.length >= MAX_COMPARE
+          ? prev
+          : [...prev, id],
+    );
 
   const schools = useMemo(() => collectSchoolTags(materials), [materials]);
   const subjects = useMemo(
@@ -111,9 +164,8 @@ export function MaterialsDirectory() {
   }, [curriculum, materials]);
 
   const filtered = useMemo(() => {
-    const kindTypes = kind === "all" ? null : KIND_FILTER_TYPES[kind];
     const narrowed = materials.filter((m) => {
-      if (kindTypes && !kindTypes.includes(m.material_type)) return false;
+      if (!matchesKind(m, kind)) return false;
       if (school && (m.school_tag ?? "").trim().toLowerCase() !== school.toLowerCase())
         return false;
       if (subject && (m.subject_tag ?? "").trim().toLowerCase() !== subject.toLowerCase())
@@ -188,10 +240,13 @@ export function MaterialsDirectory() {
 
   const kindChips: { value: KindFilter; label: string }[] = [
     { value: "all", label: t("shop.filter_all") },
-    { value: "notes", label: t("shop.filter_notes") },
+    { value: "notes", label: t("notes.category.notes") },
+    { value: "mocks", label: t("notes.category.mocks") },
+    { value: "coursework", label: t("notes.category.coursework") },
     { value: "courses", label: t("shop.filter_courses") },
     { value: "folders", label: t("shop.filter_folders") },
-    { value: "services", label: t("shop.filter_services") },
+    { value: "services", label: t("notes.category.services") },
+    { value: "free", label: t("notes.category.free") },
   ];
 
   return (
@@ -236,7 +291,8 @@ export function MaterialsDirectory() {
         </div>
 
         {/* Notes upload v2: finer categories (IA / EE / Paper 1 / SBA ...). */}
-        {(kind === "all" || kind === "notes") && subcategoryOptions.length > 0 ? (
+        {(kind === "all" || kind === "notes" || kind === "mocks" || kind === "coursework") &&
+        subcategoryOptions.length > 0 ? (
           <div className="mb-4 flex flex-wrap items-center gap-2" role="group">
             {subcategoryOptions.map((option) => (
               <button
@@ -403,14 +459,57 @@ export function MaterialsDirectory() {
                 material={material}
                 tutorName={material.tutor_display_name}
                 tutorCode={material.tutor_code}
-                showTutorLink
+                showTutorLink={!material.tutor_community}
                 verifiedTutor={material.tutor_verified}
+                rating={ratings.get(material.id) ?? null}
+                footer={
+                  <ShopCardActions
+                    material={material}
+                    compared={compareIds.includes(material.id)}
+                    onToggleCompare={() => toggleCompare(material.id)}
+                    onRequireAuth={() => setAuthGateOpen(true)}
+                  />
+                }
                 detailHref={`/notes/${material.slug ?? material.id}`}
               />
             ))}
           </div>
         )}
       </div>
+      {compareIds.length > 0 ? (
+        <div className="mm-overlay-lift fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-1/2 z-40 flex -translate-x-1/2 items-center gap-2 rounded-full border border-border bg-card px-3 py-2 lg:bottom-6">
+          <Button
+            type="button"
+            size="sm"
+            variant="solid"
+            color="neutral"
+            onClick={() => setCompareOpen(true)}
+          >
+            {t("notes.engage.compare_button", { count: compareIds.length })}
+          </Button>
+          <Button type="button" size="sm" variant="ghost" onClick={() => setCompareIds([])}>
+            {t("notes.engage.compare_clear")}
+          </Button>
+        </div>
+      ) : null}
+      <ShopCompareDialog
+        open={compareOpen}
+        onOpenChange={setCompareOpen}
+        items={materials.filter((m) => compareIds.includes(m.id))}
+        ratings={ratings}
+      />
+      <AuthGateDialog
+        open={authGateOpen}
+        onOpenChange={setAuthGateOpen}
+        title={t("notes.gate_title")}
+        description={t("notes.gate_description")}
+      />
+      {/* #557: "Recommended for you" seeded by the viewer's saved notes. */}
+      {savedOnly && savedIds.size > 0 ? (
+        <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
+          <SimilarNotesSection seedIds={Array.from(savedIds).slice(0, 50)} className="mt-12" />
+        </div>
+      ) : null}
       {/* Notes upload v2: always-reachable upload button (floating layer).
           Stacks ABOVE the global float column (WhatsApp @5rem/bottom-6,
           BackToTop @9rem/bottom-24 — both z-50) so it never hides under the

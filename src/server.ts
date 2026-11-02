@@ -12,7 +12,15 @@ import {
 
 const CANONICAL_ORIGIN = "https://matchmax.hk";
 const CANONICAL_HOST = new URL(CANONICAL_ORIGIN).hostname;
-const CANONICAL_BYPASS_HOST_SUFFIXES = [".vercel.app", ".localhost", ".local"];
+// Cloudflare Workers preview URLs (<version>-matchmaxhk / <branch>-matchmaxhk
+// .keyframesfound.workers.dev) must render the PREVIEWED build instead of
+// bouncing to production; canonical <link> tags still point at matchmax.hk.
+const CANONICAL_BYPASS_HOST_SUFFIXES = [
+  ".vercel.app",
+  ".localhost",
+  ".local",
+  ".keyframesfound.workers.dev",
+];
 const CANONICAL_BYPASS_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]);
 
 type ServerEntry = {

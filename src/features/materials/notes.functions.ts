@@ -26,8 +26,17 @@ export const PUBLIC_NOTE_COLUMNS =
 export const PUBLIC_NOTE_V2_COLUMNS =
   "summary, subcategory, search_tags, content_language, source_formats, preview_page_indices";
 
+/** #556 rich listing columns (gallery, trailer, what's included, syllabus). */
+export const PUBLIC_NOTE_RICH_COLUMNS =
+  "preview_image_paths, trailer_video_url, whats_included, syllabus_outline";
+
 export const PUBLIC_NOTE_TUTOR_JOIN =
   "tutors!inner(display_name, tutor_code, user_id, is_published, verification_tier)";
+
+/** #573 open marketplace: the join + seller gate once community sellers exist. */
+export const PUBLIC_NOTE_TUTOR_JOIN_V2 =
+  "tutors!inner(display_name, tutor_code, user_id, is_published, verification_tier, is_community_seller)";
+export const PUBLIC_SELLER_OR = "is_published.eq.true,is_community_seller.eq.true";
 
 export type PublicNote = {
   id: string;
@@ -63,6 +72,13 @@ export type PublicNote = {
   tutorCode: string;
   /** #314 honesty: the Verified badge renders for tier_2_verified only. */
   tutorVerificationTier: string | null;
+  /** #573: notes-only seller without a tutor card (no profile link). */
+  isCommunitySeller: boolean;
+  // --- #556 rich listing (empty before the migration).
+  previewImagePaths: string[];
+  trailerVideoUrl: string | null;
+  whatsIncluded: string[];
+  syllabusOutline: string | null;
   // --- Freestyle gig fields (#326): populated only when materialType ===
   // 'gig'; note rows never carry them (the DB coherence CHECK forbids it).
   gigCategory: string | null;
@@ -124,6 +140,16 @@ export function mapPublicNote(row: NoteRow): PublicNote | null {
     tutorCode,
     tutorVerificationTier:
       typeof tutor?.verification_tier === "string" ? tutor.verification_tier : null,
+    isCommunitySeller:
+      (tutor as { is_community_seller?: unknown } | null)?.is_community_seller === true,
+    previewImagePaths: Array.isArray(row.preview_image_paths)
+      ? row.preview_image_paths.filter((p): p is string => typeof p === "string")
+      : [],
+    trailerVideoUrl: typeof row.trailer_video_url === "string" ? row.trailer_video_url : null,
+    whatsIncluded: Array.isArray(row.whats_included)
+      ? row.whats_included.filter((p): p is string => typeof p === "string")
+      : [],
+    syllabusOutline: typeof row.syllabus_outline === "string" ? row.syllabus_outline : null,
     gigCategory: typeof row.gig_category === "string" ? row.gig_category : null,
     gigDeliveryType: typeof row.gig_delivery_type === "string" ? row.gig_delivery_type : null,
     turnaroundNote: typeof row.turnaround_note === "string" ? row.turnaround_note : null,
@@ -152,16 +178,30 @@ export async function fetchPublicNoteRows(
   db: AdminDb,
   refine: (query: PublicNoteQuery) => PublicNoteQuery,
 ): Promise<PublicNote[]> {
-  const run = (columns: string) =>
-    refine(
-      db
-        .from<NoteRow>("digital_materials")
-        .select(`${columns}, ${PUBLIC_NOTE_TUTOR_JOIN}`)
-        .eq("status", "published")
-        .eq("tutors.is_published", true),
+  const run = (columns: string, community: boolean) => {
+    const base = db
+      .from<NoteRow>("digital_materials")
+      .select(`${columns}, ${community ? PUBLIC_NOTE_TUTOR_JOIN_V2 : PUBLIC_NOTE_TUTOR_JOIN}`)
+      .eq("status", "published");
+    return refine(
+      community
+        ? base.or(PUBLIC_SELLER_OR, { referencedTable: "tutors" })
+        : base.eq("tutors.is_published", true),
     );
-  let result = await run(`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_V2_COLUMNS}`);
-  if (result.error?.code === "42703") result = await run(PUBLIC_NOTE_COLUMNS);
+  };
+  // Newest schema first; each 42703 (undefined column) steps back one
+  // migration so the public pages never break before migrations land.
+  const variants: [string, boolean][] = [
+    [`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_V2_COLUMNS}, ${PUBLIC_NOTE_RICH_COLUMNS}`, true],
+    [`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_V2_COLUMNS}`, true],
+    [`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_V2_COLUMNS}`, false],
+    [PUBLIC_NOTE_COLUMNS, false],
+  ];
+  let result = await run(...variants[0]);
+  for (const variant of variants.slice(1)) {
+    if (result.error?.code !== "42703") break;
+    result = await run(...variant);
+  }
   if (result.error) throw new Error(result.error.message);
   return (result.data ?? []).map(mapPublicNote).filter((n): n is PublicNote => n !== null);
 }
