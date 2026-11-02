@@ -897,8 +897,28 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     },
   });
 
+  // Every click answers: a silent disabled button read as "Upload does nothing".
+  const blockerMessage = (kind: "draft" | "submit"): string | null => {
+    if (merging) return t("notes.form.still_processing");
+    if (wordCountError || apkgTooLarge || (kind === "submit" && blockedByContact)) {
+      return t("notes.form.fix_errors");
+    }
+    if (kind === "submit" && missing.length > 0) {
+      return t("notes.form.missing_note", { fields: missing.join(", ") });
+    }
+    return null;
+  };
+
   const run = (kind: "draft" | "submit") => {
-    if (wordCountError || apkgTooLarge || merging) return;
+    if (saving) return;
+    const blocker = blockerMessage(kind);
+    if (blocker) {
+      toast.error(blocker);
+      document
+        .getElementById("note-missing-box")
+        ?.scrollIntoView({ behavior: "smooth", block: "center" });
+      return;
+    }
     setSaving(true);
     saveMutation.mutate(kind);
   };
@@ -927,7 +947,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
       className="space-y-8"
       onSubmit={(event) => {
         event.preventDefault();
-        if (!blockedByContact && missing.length === 0) run("submit");
+        run("submit");
       }}
     >
       {/* 1. Files ------------------------------------------------------------- */}
@@ -1636,12 +1656,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
 
       <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-5">
         {!isLive ? (
-          <Button
-            type="button"
-            variant="outline"
-            disabled={saving || Boolean(wordCountError) || apkgTooLarge || merging}
-            onClick={() => run("draft")}
-          >
+          <Button type="button" variant="outline" disabled={saving} onClick={() => run("draft")}>
             {saving && saveMutation.variables === "draft" ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
             ) : null}
@@ -1654,15 +1669,9 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           type="submit"
           variant="solid"
           color="accent"
-          className="font-bold"
-          disabled={
-            saving ||
-            merging ||
-            blockedByContact ||
-            missing.length > 0 ||
-            Boolean(wordCountError) ||
-            apkgTooLarge
-          }
+          disabled={saving}
+          aria-disabled={missing.length > 0 || blockedByContact || undefined}
+          className={cn("font-bold", (missing.length > 0 || blockedByContact) && "opacity-70")}
         >
           {saving && saveMutation.variables === "submit" ? (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
@@ -1672,6 +1681,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
       </div>
       {missing.length > 0 && !blockedByContact && (
         <p
+          id="note-missing-box"
           role="status"
           className="rounded-xl border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950/40 dark:text-amber-100"
         >

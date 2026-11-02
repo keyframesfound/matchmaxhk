@@ -1963,7 +1963,9 @@
       "price_free_note": "允許 HK$0——免費組合同樣需要職員審核。",
       "field_file_flashcards": "檔案（PDF 或 Anki .apkg）",
       "file_hint_flashcards": "PDF 或 Anki .apkg，最大 20MB。買家會下載檔案——瀏覽器內不提供預覽。",
-      "file_too_large": "檔案太大。上限為 20MB。"
+      "file_too_large": "檔案太大。上限為 20MB。",
+      "still_processing": "相片仍在處理中，請稍後再試。",
+      "fix_errors": "請先修正以紅色標示的欄位。"
     },
     "home": {
       "heading": "學習筆記",
