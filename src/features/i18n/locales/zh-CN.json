@@ -698,8 +698,8 @@
     "empty_university_desc": "试试其他领域、大学或课程编号——或在 WhatsApp 查询，我们会为你找出合适的导师。",
     "empty_primary_secondary_title": "没有符合筛选条件的导师",
     "empty_primary_secondary_desc": "放宽或清除筛选条件——或在 WhatsApp 查询，团队会为你配对。",
-    "hero_title": "寻找精英导师",
-    "hero_subtitle": "从科目或导师编号开始搜索，再逐步缩小范围，找到最合适的导师。",
+    "hero_title": "找精英导师",
+    "hero_subtitle": "由科目或导师编号开始找，再逐步收窄至最合适嘅导师。",
     "result_count": "找到 {{count}} 位导师",
     "result_count_other": "找到 {{count}} 位导师"
   },
@@ -1805,7 +1805,7 @@
     "promotional_note_fallback": "备注：我嘅现届学生上满第 3 堂课后，可免费获得所有高阶电子教材。",
     "empty_state": "此导师嘅温习教材即将上架。",
     "directory_title": "市集",
-    "directory_subtitle": "由学生及导师分享的笔记、试题题解、范文及服务，每份上架前均经职员审核。",
+    "directory_subtitle": "由学生及导师分享的笔记、试题题解、范文及服务，每份上架前均经系统自动检查。",
     "filter_school_all": "所有学校",
     "filter_subject_all": "所有科目",
     "filter_curriculum_all": "所有课程体系",
@@ -1953,7 +1953,7 @@
       "replace_pdf": "更换 PDF",
       "pdf_hint": "最大 20MB。不接受加密档案——请上传已解锁的档案。",
       "save_draft": "保存草稿",
-      "submit_review": "提交审核",
+      "submit_review": "发布",
       "draft_saved": "草稿已保存。",
       "submitted": "已提交——MatchMax 团队会尽快审核。",
       "save_failed": "无法保存草稿。",
@@ -2219,6 +2219,10 @@
     },
     "market": {
       "how_it_works": "运作方式"
+    },
+    "auto": {
+      "rejected": "未能上架：{{reason}} 请修改笔记后再提交。",
+      "hint": "系统会自动检查每份上传，包括抄袭的官方试卷或课本、联络资料、暴力及色情内容。没有问题的笔记会即时上架；有疑问的会交由职员快速审核。"
     }
   },
   "orders": {
@@ -3643,6 +3647,33 @@
     "discount_badge": "🎁 首堂 {{pct}}% 折扣",
     "promo_tooltip": "只限简短在线介绍。正式课堂按全额收费。如家长确认上完第一堂付费课后停止，Drop-Protection 适用。"
   },
+  "tutor_compare": {
+    "bar_selected": "已拣 {{count}} / {{max}} 位",
+    "bar_pick_more": "，至少拣 2 位先可以比较",
+    "bar_compare": "比较",
+    "bar_clear": "清除",
+    "title": "比较导师",
+    "subtitle": "并排比较你嘅心仪导师。",
+    "label_rate": "收费",
+    "label_academic": "学术背景",
+    "label_subjects": "科目",
+    "label_mode": "授课模式",
+    "label_location": "地区",
+    "label_gender": "性别",
+    "label_languages": "语言",
+    "label_experience": "经验",
+    "label_achievements": "成就",
+    "experience_years": "{{count}} 年",
+    "experience_years_other": "{{count}} 年",
+    "system_other": "其他",
+    "limit_toast": "最多可以比较 {{max}} 位导师。"
+  },
+  "tutor_save": {
+    "save": "保存导师",
+    "remove": "移出已保存导师",
+    "gate_title": "保存呢位导师",
+    "gate_desc": "注册或登录即可保存导师，之后随时找返。"
+  },
   "tutors": {
     "tier_aria": "学术程度",
     "tier_kindergarten": "幼稚园",
@@ -3844,32 +3875,5 @@
   "marketplace": {
     "tab_notes": "笔记",
     "tab_gigs": "服务"
-  },
-  "tutor_save": {
-    "save": "收藏导师",
-    "remove": "取消收藏",
-    "gate_title": "收藏这位导师",
-    "gate_desc": "注册或登录即可收藏导师，之后随时找回。"
-  },
-  "tutor_compare": {
-    "bar_selected": "已选 {{count}} / {{max}} 位",
-    "bar_pick_more": "，至少选择 2 位才能比较",
-    "bar_compare": "比较",
-    "bar_clear": "清除",
-    "title": "比较导师",
-    "subtitle": "并排比较你心仪的导师。",
-    "label_rate": "收费",
-    "label_academic": "学术背景",
-    "label_subjects": "科目",
-    "label_mode": "授课模式",
-    "label_location": "地区",
-    "label_gender": "性别",
-    "label_languages": "语言",
-    "label_experience": "经验",
-    "label_achievements": "成就",
-    "experience_years": "{{count}} 年",
-    "experience_years_other": "{{count}} 年",
-    "system_other": "其他",
-    "limit_toast": "最多可以比较 {{max}} 位导师。"
   }
 }
