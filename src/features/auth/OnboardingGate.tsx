@@ -27,11 +27,16 @@ export function OnboardingGate({ children }: { children: ReactNode }) {
   const [onboardedFor, setOnboardedFor] = useState<string | null>(null);
   const [displayName, setDisplayName] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  // The user id whose profile check has FINISHED. Until it matches, the
+  // dialog stays closed: otherwise it flashes open for one frame on every
+  // page load (user known, check not started yet) and then disappears.
+  const [checkedFor, setCheckedFor] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
       setOnboardedFor(null);
       setDisplayName(null);
+      setCheckedFor(null);
       return;
     }
     if (onboardedFor === user.id) return;
@@ -49,6 +54,7 @@ export function OnboardingGate({ children }: { children: ReactNode }) {
         setOnboardedFor(data?.onboarding_completed_at ? user.id : null);
         setDisplayName(data?.display_name ?? null);
         setChecking(false);
+        setCheckedFor(user.id);
       });
     return () => {
       active = false;
@@ -58,10 +64,11 @@ export function OnboardingGate({ children }: { children: ReactNode }) {
   // Report the blocking-dialog state so page popups (coach tours) can
   // hold off. Internal roles skip onboarding entirely, hence the !isInternal.
   const isInternal = hasAnyRole(["admin", "staff", "super_admin"]);
+  const checkDone = Boolean(user && (onboardedFor === user.id || checkedFor === user.id));
   const onboardingPending =
-    loading || Boolean(user && !isInternal && (checking || onboardedFor !== user.id));
+    loading || Boolean(user && !isInternal && (checking || !checkDone || onboardedFor !== user.id));
   const showOnboarding = Boolean(
-    user && !loading && !checking && !isInternal && onboardedFor !== user.id,
+    user && !loading && !checking && checkDone && !isInternal && onboardedFor !== user.id,
   );
 
   return (

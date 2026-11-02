@@ -209,7 +209,7 @@ export async function fileToBase64(file: File): Promise<string> {
  * the browser before it is uploaded to the public previews bucket (the note
  * page adds the floating watermark on top). Output: JPEG, long edge 1600px.
  */
-export async function watermarkImageFile(file: File, label = "MatchMax Preview"): Promise<File> {
+export async function watermarkImageFile(file: File): Promise<File> {
   const url = URL.createObjectURL(file);
   try {
     const img = await new Promise<HTMLImageElement>((resolve, reject) => {
@@ -229,17 +229,7 @@ export async function watermarkImageFile(file: File, label = "MatchMax Preview")
     ctx.fillStyle = "#ffffff";
     ctx.fillRect(0, 0, w, h);
     ctx.drawImage(img, 0, 0, w, h);
-    const size = Math.max(16, Math.round(w / 28));
-    ctx.font = `700 ${size}px Inter, Arial, sans-serif`;
-    ctx.fillStyle = "rgba(70, 90, 120, 0.22)";
-    ctx.save();
-    ctx.translate(w / 2, h / 2);
-    ctx.rotate(-Math.PI / 7);
-    for (let y = -h; y < h; y += size * 5) {
-      for (let x = -w; x < w; x += size * 14) ctx.fillText(label, x, y);
-    }
-    ctx.restore();
-    await drawLogoOnCanvas(ctx, w, h, 0.15);
+    await drawLogoOnCanvas(ctx, w, h, 0.16);
     const blob = await new Promise<Blob | null>((resolve) =>
       canvas.toBlob(resolve, "image/jpeg", 0.85),
     );
@@ -250,7 +240,10 @@ export async function watermarkImageFile(file: File, label = "MatchMax Preview")
   }
 }
 
-/** Owner request: the greyscale MatchMax logo, centred, on gallery images. */
+/**
+ * Owner request: the one watermark style, the greyscale MatchMax logo
+ * repeated on a diagonal grid (same as the preview PDFs).
+ */
 async function drawLogoOnCanvas(
   ctx: CanvasRenderingContext2D,
   w: number,
@@ -264,10 +257,20 @@ async function drawLogoOnCanvas(
     el.src = LOGO_WATERMARK_DATA_URL;
   });
   if (!logo) return;
-  const logoWidth = Math.min(w * 0.55, 900);
+  const logoWidth = Math.max(110, Math.min(260, w * 0.24));
   const logoHeight = (logoWidth * logo.naturalHeight) / logo.naturalWidth;
+  const stepX = logoWidth * 1.7;
+  const stepY = logoHeight * 4.2;
   ctx.save();
   ctx.globalAlpha = alpha;
-  ctx.drawImage(logo, (w - logoWidth) / 2, (h - logoHeight) / 2, logoWidth, logoHeight);
+  ctx.translate(w / 2, h / 2);
+  ctx.rotate(-Math.PI / 6);
+  const span = Math.hypot(w, h);
+  for (let y = -span, row = 0; y < span; y += stepY, row += 1) {
+    const offset = (row % 2) * (stepX / 2);
+    for (let x = -span + offset; x < span; x += stepX) {
+      ctx.drawImage(logo, x, y, logoWidth, logoHeight);
+    }
+  }
   ctx.restore();
 }

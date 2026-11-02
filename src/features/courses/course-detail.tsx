@@ -206,7 +206,7 @@ export function CourseDetailPage({ note }: { note: PublicNote }) {
                         </div>
                         {accessLesson?.embedUrl ? (
                           <div className="relative aspect-video w-full overflow-hidden rounded-md border border-border bg-muted/20">
-                            <PreviewWatermark label="MatchMax · licensed to one student" />
+                            <PreviewWatermark />
                             <iframe
                               src={accessLesson.embedUrl}
                               title={lesson.title}

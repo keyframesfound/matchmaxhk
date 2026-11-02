@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { materialCoverUrl } from "@/features/materials/material-card";
-import { PreviewWatermark } from "@/features/materials/preview-watermark";
 import { trailerEmbedUrl } from "@/features/materials/note-taxonomy";
 import type { PublicNote } from "@/features/materials/notes.functions";
 
@@ -42,7 +41,6 @@ export function NoteGallery({ note }: { note: PublicNote }) {
         ) : (
           <>
             <img src={current.src} alt="" className="h-full w-full object-contain" />
-            <PreviewWatermark />
           </>
         )}
       </div>
