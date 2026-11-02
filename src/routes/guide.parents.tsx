@@ -65,6 +65,9 @@ function GuideParentsPage() {
     { key: "rates", icon: CircleDollarSign },
     { key: "names", icon: EyeOff },
     { key: "fit", icon: RefreshCcw },
+    // #454 §1: two soft lines, no hard SLA.
+    { key: "early_stop", icon: RefreshCcw },
+    { key: "desk_hours", icon: CalendarClock },
     { key: "sickness", icon: CalendarClock },
     { key: "account", icon: LogIn },
     { key: "group", icon: Users },

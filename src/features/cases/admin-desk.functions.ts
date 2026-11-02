@@ -199,10 +199,11 @@ export const getDeskCase = createServerFn({ method: "POST" })
         paid_at: string | null;
         fps_reference: string | null;
         waive_reason: string | null;
+        payment_screenshot_path: string | null;
       }>(
         db,
         "case_fees",
-        "id, status, amount_hkd, rate_hkd, multiplier, due_at, paid_at, fps_reference, waive_reason",
+        "id, status, amount_hkd, rate_hkd, multiplier, due_at, paid_at, fps_reference, waive_reason, payment_screenshot_path",
         [{ col: "case_id", op: "eq", value: c.id }],
         { col: "created_at", asc: false },
       ),
@@ -472,6 +473,14 @@ export const feeMarkPaid = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     await requireAdmin(db, context.userId);
+    const feeCase = await selectRows<{ case_id: string }>(db, "case_fees", "case_id", [
+      { col: "id", op: "eq", value: data.feeId },
+    ]);
+    const { assertReferenceFree, sendFeeReceipt } =
+      await import("@/features/cases/fee-desk.functions");
+    // #259: a bank reference that already closed another case is rejected
+    // (the DB trigger backstops races with the same FPS_REFERENCE_USED code).
+    if (feeCase[0]) await assertReferenceFree(db, feeCase[0].case_id, data.fpsReference);
     const { error } = await db
       .from<Row>("case_fees")
       .update({
@@ -481,11 +490,13 @@ export const feeMarkPaid = createServerFn({ method: "POST" })
         fps_reference: data.fpsReference ?? null,
       })
       .eq("id", data.feeId);
-    if (error) throw new Error(error.message);
-    const feeCase = await selectRows<{ case_id: string }>(db, "case_fees", "case_id", [
-      { col: "id", op: "eq", value: data.feeId },
-    ]);
+    if (error) {
+      throw new Error(
+        error.message.includes("FPS_REFERENCE_USED") ? "FPS_REFERENCE_USED" : error.message,
+      );
+    }
     if (feeCase[0]) {
+      await sendFeeReceipt(db, data.feeId);
       await insertAudit(
         db,
         feeCase[0].case_id,

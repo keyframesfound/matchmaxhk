@@ -13,6 +13,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import { fetchPublishedTutors } from "@/features/tutors/queries";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
+import { SearchTagAdminPanel } from "@/features/search/search-tag-admin-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/settings")({
   head: () => ({
@@ -407,6 +408,8 @@ function AdminSettings() {
               </Button>
             </form>
           )}
+          {/* #553: hide / merge public search tags. */}
+          <SearchTagAdminPanel />
         </div>
       </main>
     </div>

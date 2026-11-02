@@ -834,7 +834,7 @@ export const getMyBell = createServerFn({ method: "POST" })
           if (eventType === "note_order.delivered") {
             roleHint = payload.buyer_account_id === context.userId ? "parent" : "tutor";
           } else if (eventType.startsWith("admin_fee")) {
-            roleHint = eventType === "admin_fee.digest" ? "concierge" : "parent";
+            roleHint = eventType === "admin_fee.digest" ? "concierge" : "tutor";
           } else if (eventType === "review.published" || eventType === "lesson.review_prompt") {
             roleHint = eventType === "review.published" ? "tutor" : "parent";
           } else if (eventType === "experience.session_logged") {

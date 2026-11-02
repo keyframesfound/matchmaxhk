@@ -8,6 +8,7 @@ import {
   Menu,
   Moon,
   Repeat,
+  Search,
   Settings,
   ShieldCheck,
   Sun,
@@ -55,6 +56,7 @@ type NavDestination =
   | "/join"
   | "/pricing"
   | "/tutor-requests"
+  | "/calendar"
   | "/help";
 
 /** Shared item styling for the Airbnb-style header popovers. */
@@ -230,6 +232,7 @@ export function SiteHeader({
       ? [{ label: t("nav.my_business"), ariaLabel: t("nav.my_business"), to: "/business" }]
       : []),
     { label: t("nav.request_tutor"), ariaLabel: t("nav.request_tutor"), to: "/tutor-requests" },
+    { label: t("nav.tab_calendar"), ariaLabel: t("nav.tab_calendar"), to: "/calendar" },
     { label: t("nav.help"), ariaLabel: t("nav.help"), to: "/help" },
     ...(user ? [{ label: t("nav.settings"), ariaLabel: t("nav.settings"), to: "/dashboard" }] : []),
     ...(isAdmin ? [{ label: t("nav.admin"), ariaLabel: t("nav.admin"), to: "/admin" }] : []),
@@ -290,10 +293,25 @@ export function SiteHeader({
               >
                 {t("nav.tab_cases")}
               </DesktopTab>
+              {/* #461 amendment: Calendar immediately after Cases; signed-out
+                  taps go through the _authenticated gate to Google sign-in. */}
+              <DesktopTab to="/calendar" active={isActive("/calendar")} icon="/nav-calendar.png">
+                {t("nav.tab_calendar")}
+              </DesktopTab>
             </motion.nav>
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
+            {/* #553: global search entry (desktop + mobile); the full bar,
+                #tag typeahead and grouped results live on /search. */}
+            <Link
+              to="/search"
+              aria-label={t("global_search.open")}
+              title={t("global_search.open")}
+              className={headerCircleClassName}
+            >
+              <Search className="h-5 w-5 text-[color:var(--ink)]" aria-hidden />
+            </Link>
             {/* Notes upload v2: a visible "Upload notes" entry on desktop. */}
             <Link
               to="/account/notes/new"

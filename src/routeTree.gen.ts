@@ -20,11 +20,13 @@ import { Route as GroupClassesRouteImport } from './routes/group-classes'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
+import { Route as SearchRouteImport } from './routes/search'
 import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TosRouteImport } from './routes/tos'
 import { Route as TutorPlaybookRouteImport } from './routes/tutor-playbook'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated.account'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
+import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated.calendar'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
 import { Route as AuthenticatedJoinRouteImport } from './routes/_authenticated.join'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
@@ -74,6 +76,7 @@ import { Route as AuthenticatedBusinessSettingsRouteImport } from './routes/_aut
 import { Route as AuthenticatedBusinessTeamRouteImport } from './routes/_authenticated.business.team'
 import { Route as AuthenticatedTutorRequestsIndexRouteImport } from './routes/_authenticated.tutor-requests.index'
 import { Route as AuthenticatedTutorRequestsCaseCodeRouteImport } from './routes/_authenticated.tutor-requests.$caseCode'
+import { Route as ApiTrustWaIngestRouteImport } from './routes/api/trust/wa-ingest'
 import { Route as HelpCategorySlugRouteImport } from './routes/help.$category.$slug'
 import { Route as AuthenticatedAccountCasesCaseIdRouteImport } from './routes/_authenticated.account.cases.$caseId'
 import { Route as AuthenticatedAccountCoursesNewRouteImport } from './routes/_authenticated.account.courses.new'
@@ -143,6 +146,11 @@ const PrivacyPolicyRoute = PrivacyPolicyRouteImport.update({
   path: '/privacy-policy',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
   id: '/sitemap.xml',
   path: '/sitemap.xml',
@@ -166,6 +174,11 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
+  id: '/calendar',
+  path: '/calendar',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
@@ -436,6 +449,11 @@ const AuthenticatedTutorRequestsCaseCodeRoute =
     path: '/tutor-requests/$caseCode',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const ApiTrustWaIngestRoute = ApiTrustWaIngestRouteImport.update({
+  id: '/api/trust/wa-ingest',
+  path: '/api/trust/wa-ingest',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HelpCategorySlugRoute = HelpCategorySlugRouteImport.update({
   id: '/$slug',
   path: '/$slug',
@@ -529,11 +547,13 @@ export interface FileRoutesByFullPath {
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
   '/account': typeof AuthenticatedAccountRouteWithChildren
   '/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/join': typeof AuthenticatedJoinRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -580,6 +600,7 @@ export interface FileRoutesByFullPath {
   '/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/business/team': typeof AuthenticatedBusinessTeamRoute
   '/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
+  '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/business/': typeof AuthenticatedBusinessIndexRoute
@@ -609,10 +630,12 @@ export interface FileRoutesByTo {
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
   '/account': typeof AuthenticatedAccountRouteWithChildren
+  '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/join': typeof AuthenticatedJoinRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
@@ -659,6 +682,7 @@ export interface FileRoutesByTo {
   '/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/business/team': typeof AuthenticatedBusinessTeamRoute
   '/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
+  '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/business': typeof AuthenticatedBusinessIndexRoute
@@ -690,11 +714,13 @@ export interface FileRoutesById {
   '/how-it-works': typeof HowItWorksRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
+  '/search': typeof SearchRoute
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
   '/_authenticated/account': typeof AuthenticatedAccountRouteWithChildren
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
+  '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/join': typeof AuthenticatedJoinRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
@@ -741,6 +767,7 @@ export interface FileRoutesById {
   '/_authenticated/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/_authenticated/business/team': typeof AuthenticatedBusinessTeamRoute
   '/_authenticated/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
+  '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/business/': typeof AuthenticatedBusinessIndexRoute
@@ -772,11 +799,13 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/pricing'
     | '/privacy-policy'
+    | '/search'
     | '/sitemap.xml'
     | '/tos'
     | '/tutor-playbook'
     | '/account'
     | '/admin'
+    | '/calendar'
     | '/dashboard'
     | '/join'
     | '/notifications'
@@ -823,6 +852,7 @@ export interface FileRouteTypes {
     | '/business/settings'
     | '/business/team'
     | '/tutor-requests/$caseCode'
+    | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
     | '/admin/'
     | '/business/'
@@ -852,10 +882,12 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/pricing'
     | '/privacy-policy'
+    | '/search'
     | '/sitemap.xml'
     | '/tos'
     | '/tutor-playbook'
     | '/account'
+    | '/calendar'
     | '/dashboard'
     | '/join'
     | '/notifications'
@@ -902,6 +934,7 @@ export interface FileRouteTypes {
     | '/business/settings'
     | '/business/team'
     | '/tutor-requests/$caseCode'
+    | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
     | '/admin'
     | '/business'
@@ -932,11 +965,13 @@ export interface FileRouteTypes {
     | '/how-it-works'
     | '/pricing'
     | '/privacy-policy'
+    | '/search'
     | '/sitemap.xml'
     | '/tos'
     | '/tutor-playbook'
     | '/_authenticated/account'
     | '/_authenticated/admin'
+    | '/_authenticated/calendar'
     | '/_authenticated/dashboard'
     | '/_authenticated/join'
     | '/_authenticated/notifications'
@@ -983,6 +1018,7 @@ export interface FileRouteTypes {
     | '/_authenticated/business/settings'
     | '/_authenticated/business/team'
     | '/_authenticated/tutor-requests/$caseCode'
+    | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
     | '/_authenticated/admin/'
     | '/_authenticated/business/'
@@ -1014,6 +1050,7 @@ export interface RootRouteChildren {
   HowItWorksRoute: typeof HowItWorksRoute
   PricingRoute: typeof PricingRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
+  SearchRoute: typeof SearchRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   TosRoute: typeof TosRoute
   TutorPlaybookRoute: typeof TutorPlaybookRoute
@@ -1036,6 +1073,7 @@ export interface RootRouteChildren {
   GuideIndexRoute: typeof GuideIndexRoute
   HelpIndexRoute: typeof HelpIndexRoute
   TutorsIndexRoute: typeof TutorsIndexRoute
+  ApiTrustWaIngestRoute: typeof ApiTrustWaIngestRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -1120,6 +1158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacyPolicyRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/sitemap.xml': {
       id: '/sitemap.xml'
       path: '/sitemap.xml'
@@ -1153,6 +1198,13 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/calendar': {
+      id: '/_authenticated/calendar'
+      path: '/calendar'
+      fullPath: '/calendar'
+      preLoaderRoute: typeof AuthenticatedCalendarRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/dashboard': {
@@ -1498,6 +1550,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTutorRequestsCaseCodeRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/trust/wa-ingest': {
+      id: '/api/trust/wa-ingest'
+      path: '/api/trust/wa-ingest'
+      fullPath: '/api/trust/wa-ingest'
+      preLoaderRoute: typeof ApiTrustWaIngestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/help/$category/$slug': {
       id: '/help/$category/$slug'
       path: '/$slug'
@@ -1687,6 +1746,7 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRouteWithChildren
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
+  AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
   AuthenticatedJoinRoute: typeof AuthenticatedJoinRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
@@ -1706,6 +1766,7 @@ interface AuthenticatedRouteChildren {
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRouteWithChildren,
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
+  AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
   AuthenticatedJoinRoute: AuthenticatedJoinRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
@@ -1752,6 +1813,7 @@ const rootRouteChildren: RootRouteChildren = {
   HowItWorksRoute: HowItWorksRoute,
   PricingRoute: PricingRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
+  SearchRoute: SearchRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   TosRoute: TosRoute,
   TutorPlaybookRoute: TutorPlaybookRoute,
@@ -1774,6 +1836,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuideIndexRoute: GuideIndexRoute,
   HelpIndexRoute: HelpIndexRoute,
   TutorsIndexRoute: TutorsIndexRoute,
+  ApiTrustWaIngestRoute: ApiTrustWaIngestRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,

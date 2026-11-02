@@ -32,6 +32,7 @@ import {
   transitionCase,
   unpaidQueue,
 } from "@/features/cases/admin-desk.functions";
+import { getCaseFeeScreenshotUrl } from "@/features/cases/fee-desk.functions";
 import { CASE_FLAG_REASONS, type CaseFlagReason } from "@/features/cases/case-flags";
 import { listCaseSessionLogs, revokeSession } from "@/features/cases/experience.functions";
 import {
@@ -104,6 +105,12 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
       setFpsRef("");
       invalidate();
     },
+    onError: (e) => toast.error(e.message),
+  });
+  // #259: staff-only view of the payer's FPS screenshot (signed, 10 min).
+  const viewScreenshot = useMutation({
+    mutationFn: (feeId: string) => getCaseFeeScreenshotUrl({ data: { feeId } }),
+    onSuccess: (res) => window.open(res.signedUrl, "_blank", "noopener,noreferrer"),
     onError: (e) => toast.error(e.message),
   });
   const waive = useMutation({
@@ -265,6 +272,16 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
                   >
                     {t("sor.admin_mark_paid")}
                   </Button>
+                  {openFee.payment_screenshot_path && (
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      disabled={viewScreenshot.isPending}
+                      onClick={() => viewScreenshot.mutate(openFee.id)}
+                    >
+                      {t("fee_desk.view_screenshot")}
+                    </Button>
+                  )}
                   <Button
                     size="sm"
                     variant="ghost"

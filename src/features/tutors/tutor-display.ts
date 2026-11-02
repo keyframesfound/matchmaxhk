@@ -94,11 +94,41 @@ export function getTutorStatusLabelKey(tutorStatus: string | null | undefined): 
   }
 }
 
-export function buildTutorWhatsAppUrl(whatsappNumber: string | undefined, tutorCode: string) {
+/**
+ * #454 §1: structured wa.me pre-fill so parents send a matchable lead in one
+ * message. Blanks stay in [brackets] for the parent to overwrite; a tutor
+ * card adds the tutor name + code, the general CTA (float / hotline) omits
+ * them. 繁中 is the default (HK parents); English when the UI is English.
+ */
+export function buildWhatsAppPrefill(input: {
+  tutorName?: string | null;
+  tutorCode?: string | null;
+  language?: string | null;
+}): string {
+  const isEnglish = (input.language ?? "").toLowerCase().startsWith("en");
+  const code = input.tutorCode ? formatTutorCode(input.tutorCode) : "";
+  const name = (input.tutorName ?? "").trim();
+  if (isEnglish) {
+    const who = code ? ` about tutor ${name || code} (#${code})` : " about a tutor";
+    return `Hi MatchMax! I'd like to ask${who}. Student: [curriculum & grade] / [subject] / [district or online] / budget about $[X]/hr.`;
+  }
+  const who = code ? `導師 ${name || code} (#${code})` : "導師";
+  return `您好！我想查詢${who}。學生資料：[學制及年級] / [科目] / [面授地區或網上] / 預算約 $[X]/hr。`;
+}
+
+export function buildTutorWhatsAppUrl(
+  whatsappNumber: string | undefined,
+  tutorCode: string,
+  options: { tutorName?: string | null; language?: string | null } = {},
+) {
   const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
   if (!digits) return "";
 
-  const message = `Hi MatchMax! I'd like to request tutor ${formatTutorCode(tutorCode)}.`;
+  const message = buildWhatsAppPrefill({
+    tutorName: options.tutorName,
+    tutorCode: tutorCode || null,
+    language: options.language,
+  });
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
 
@@ -215,7 +245,8 @@ export function getTutorInquiryAction(
     | "is_accepting_students"
     | "remaining_student_slots"
     | "owner_account_status"
-  >,
+  > &
+    Partial<Pick<Tutor, "display_name">>,
   whatsappNumber: string | undefined,
   language: string,
 ): TutorInquiryAction {
@@ -259,7 +290,10 @@ export function getTutorInquiryAction(
   }
   return {
     kind: "request",
-    href: buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code),
+    href: buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code, {
+      tutorName: tutor.display_name,
+      language,
+    }),
     label: i18n.t("tutor_card.request_cta"),
   };
 }

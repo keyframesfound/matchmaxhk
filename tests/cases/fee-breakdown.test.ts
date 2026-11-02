@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  quotePlatformAdminFee,
   derivePaidState,
   fullAdminFeeAmount,
   lesson1Amount,
@@ -82,5 +83,25 @@ describe("fee breakdown (#385)", () => {
         count,
       ),
     ).toBe("full");
+  });
+});
+
+describe("platform admin fee quote with #468 rebate (#461 §12.8)", () => {
+  it("base quote is 1.0R + 0.5R", () => {
+    expect(quotePlatformAdminFee({ rateHkd: 900 })).toEqual({
+      l1Hkd: 900,
+      l2Hkd: 450,
+      totalHkd: 1350,
+      multiplier: 1.5,
+    });
+  });
+
+  it("rebate quote is 1.0R + 0.25R with Math.round (450 → 450 + 113)", () => {
+    expect(quotePlatformAdminFee({ rateHkd: 450, applyFeeRebate0_25: true })).toEqual({
+      l1Hkd: 450,
+      l2Hkd: 113,
+      totalHkd: 563,
+      multiplier: 1.25,
+    });
   });
 });

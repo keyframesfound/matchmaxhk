@@ -38,6 +38,7 @@ import { caseHasVerifiedLesson } from "@/features/cases/case-reviews";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { ShortCaseChip } from "@/features/cases/tutor/short-case-chip";
 import { ScheduleNextLessonDialog } from "@/features/cases/tutor/schedule-next-lesson-dialog";
+import { FeePayPanel } from "@/features/cases/tutor/fee-pay-panel";
 import { LearnerSnapshotCard } from "@/features/cases/tutor/learner-snapshot-card";
 import { lessonActionsFor } from "@/features/cases/tutor/week-model";
 import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
@@ -566,6 +567,16 @@ export function TutorCasesSection() {
                     </span>
                   )}
                 </div>
+                {/* #259: invoice + company FPS details + one payment screenshot. */}
+                {c.fee_status === "invoiced" && c.fee_id && c.fee_amount_hkd !== null && (
+                  <FeePayPanel
+                    feeId={c.fee_id}
+                    caseCode={c.case_code}
+                    amountHkd={c.fee_amount_hkd}
+                    dueAt={c.fee_due_at}
+                    hasScreenshot={c.fee_has_screenshot}
+                  />
+                )}
                 {c.lessons.length > 0 && (
                   <ul className="mt-3 space-y-2">
                     {c.lessons.map((l) => (

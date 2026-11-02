@@ -6,6 +6,7 @@ export type CaseStatus =
   | "compliance_hold"
   | "matched"
   | "failed_trial_pivot"
+  | "released"
   | "closed"
   | "rejected";
 
@@ -90,6 +91,8 @@ export const CASE_STATUSES: CaseStatus[] = [
   "compliance_hold",
   "matched",
   "failed_trial_pivot",
+  // #454: 24h silent chase after shortlist → RELEASED (hidden from Active).
+  "released",
   "closed",
   "rejected",
 ];
@@ -100,6 +103,7 @@ export const STATUS_LABEL: Record<CaseStatus, string> = {
   compliance_hold: "Compliance hold",
   matched: "Matched",
   failed_trial_pivot: "Failed-trial pivot",
+  released: "Released",
   closed: "Closed",
   rejected: "Rejected",
 };
@@ -110,6 +114,7 @@ export const STATUS_PILL_CLASS: Record<CaseStatus, string> = {
   compliance_hold: "bg-purple-500/15 text-purple-700 dark:text-purple-400",
   matched: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
   failed_trial_pivot: "bg-orange-500/15 text-orange-700 dark:text-orange-400",
+  released: "bg-slate-500/15 text-slate-700 dark:text-slate-300",
   closed: "bg-muted text-muted-foreground",
   rejected: "bg-red-500/15 text-red-700 dark:text-red-400",
 };

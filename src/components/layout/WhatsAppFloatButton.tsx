@@ -3,6 +3,8 @@ import { motion, useReducedMotion } from "motion/react";
 
 import { useCompareBarVisible } from "@/lib/compare-bar";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
+import { buildWhatsAppPrefill } from "@/features/tutors/tutor-display";
+import i18n from "@/features/i18n/config";
 
 // Custom SVG since Lucide doesn't include brand icons
 export function WhatsAppIcon(props: React.SVGProps<SVGSVGElement>) {
@@ -33,7 +35,8 @@ export function WhatsAppFloatButton() {
   const digits = useWhatsAppNumber(!isHelpRoute && pathname !== "/join");
   if (isHelpRoute || pathname === "/join" || compareBarVisible || !digits) return null;
 
-  const message = "Hi MatchMax, I need support.";
+  // #454 §1: general CTA = structured blanks without tutor identity.
+  const message = buildWhatsAppPrefill({ language: i18n.language });
   const href = `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 
   return (

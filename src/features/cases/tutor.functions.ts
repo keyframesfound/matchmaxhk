@@ -121,6 +121,10 @@ export type TutorCaseItem = {
   sor_status: SorStatus | null;
   fee_status: FeeStatus | null;
   fee_amount_hkd: number | null;
+  /** #259 fee desk: the open invoice the tutor (payer) settles by FPS. */
+  fee_id: string | null;
+  fee_due_at: string | null;
+  fee_has_screenshot: boolean;
   /** #533: MatchMax Managed (#530 Hybrid) — attendance note gate + credits. */
   managed: boolean;
   lessons: {
@@ -214,12 +218,16 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         [{ col: "case_id", op: "in", value: caseIds }],
         { col: "starts_at", asc: true },
       ),
-      selectRows<{ case_id: string; amount_hkd: number; status: FeeStatus }>(
-        db,
-        "case_fees",
-        "case_id, amount_hkd, status",
-        [{ col: "case_id", op: "in", value: caseIds }],
-      ),
+      selectRows<{
+        id: string;
+        case_id: string;
+        amount_hkd: number;
+        status: FeeStatus;
+        due_at: string | null;
+        payment_screenshot_path?: string | null;
+      }>(db, "case_fees", "id, case_id, amount_hkd, status, due_at, payment_screenshot_path", [
+        { col: "case_id", op: "in", value: caseIds },
+      ]),
       selectRows<SessionLogRowT>(
         db,
         "tutor_session_logs",
@@ -257,7 +265,16 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
       }
     }
 
-    const openFeeByCase = new Map<string, { status: FeeStatus; amount_hkd: number }>();
+    const openFeeByCase = new Map<
+      string,
+      {
+        id: string;
+        status: FeeStatus;
+        amount_hkd: number;
+        due_at: string | null;
+        has_screenshot: boolean;
+      }
+    >();
     for (const f of fees) {
       const existing = openFeeByCase.get(f.case_id);
       // #202: waived joins the visible set (invoiced, paid, waived) so the
@@ -269,7 +286,13 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         f.status === "paid" ||
         f.status === "waived";
       if (open && (!existing || rankFee(f.status) > rankFee(existing.status))) {
-        openFeeByCase.set(f.case_id, { status: f.status, amount_hkd: f.amount_hkd });
+        openFeeByCase.set(f.case_id, {
+          id: f.id,
+          status: f.status,
+          amount_hkd: f.amount_hkd,
+          due_at: f.due_at,
+          has_screenshot: Boolean(f.payment_screenshot_path),
+        });
       }
     }
 
@@ -302,6 +325,9 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         ended_by_tutor_at: c.ended_by_tutor_at,
         fee_status: openFeeByCase.get(c.id)?.status ?? null,
         fee_amount_hkd: openFeeByCase.get(c.id)?.amount_hkd ?? null,
+        fee_id: openFeeByCase.get(c.id)?.id ?? null,
+        fee_due_at: openFeeByCase.get(c.id)?.due_at ?? null,
+        fee_has_screenshot: openFeeByCase.get(c.id)?.has_screenshot ?? false,
         managed: c.managed === true,
         lessons: lessons
           .filter((l) => l.case_id === c.id)

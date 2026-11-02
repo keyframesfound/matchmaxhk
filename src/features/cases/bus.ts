@@ -174,10 +174,12 @@ export const DELIVERY_PLAN: Readonly<
     { channel: "in_app", role: "parent" },
     { channel: "in_app", role: "tutor" },
   ],
-  "admin_fee.invoiced": [{ channel: "in_app", role: "parent" }],
+  // #259 / #444 tutor-pays: the payer of the admin fee is the matched tutor,
+  // so invoice + due-date reminders reach the tutor, never the parent.
+  "admin_fee.invoiced": [{ channel: "in_app", role: "tutor" }],
   "admin_fee.unpaid": [
-    { channel: "in_app", role: "parent" },
-    { channel: "email", role: "parent" },
+    { channel: "in_app", role: "tutor" },
+    { channel: "email", role: "tutor" },
     { channel: "email", role: "concierge" },
   ],
   "note_order.delivered": [
@@ -339,6 +341,8 @@ export function bellLinkFor(
       return caseId ? `/account/cases/${caseId}` : "/account";
     case "admin_fee.invoiced":
     case "admin_fee.unpaid":
+      // #259: the payer (tutor) settles on their case card.
+      return tutorHome;
     case "experience.session_logged":
       return caseId ? `/account/cases/${caseId}` : "/account";
     // #542 V1 triggers + #561 action items. Payload-deep links win when the

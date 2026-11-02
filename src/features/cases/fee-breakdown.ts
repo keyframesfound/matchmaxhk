@@ -43,6 +43,48 @@ export function fullAdminFeeAmount(rateHkd: number, studentCount?: number): numb
   return Math.round(rateHkd * normalizeStudentCount(studentCount) * FULL_ADMIN_MULTIPLIER);
 }
 
+/**
+ * #461 §12.8 / #468 rebate: the L2 tranche becomes 0.25R, L1 stays 1.0R, so
+ * the full admin fee is 1.25R. Same whole-HKD Math.round as the base helpers.
+ */
+export const LESSON2_REBATE_MULTIPLIER = 0.25;
+export const FULL_ADMIN_WITH_REBATE_MULTIPLIER = 1.25;
+
+export function lesson2BalanceAmountWithRebate(rateHkd: number, studentCount?: number): number {
+  return Math.round(rateHkd * normalizeStudentCount(studentCount) * LESSON2_REBATE_MULTIPLIER);
+}
+
+export function fullAdminFeeAmountWithRebate(rateHkd: number, studentCount?: number): number {
+  return Math.round(
+    rateHkd * normalizeStudentCount(studentCount) * FULL_ADMIN_WITH_REBATE_MULTIPLIER,
+  );
+}
+
+export type AdminFeeQuoteInput = {
+  rateHkd: number;
+  studentCount?: number;
+  /** When true, this PLATFORM_MATCH_1_5 case uses the 1.25R split (#468). */
+  applyFeeRebate0_25?: boolean;
+};
+
+export type AdminFeeQuote = { l1Hkd: number; l2Hkd: number; totalHkd: number; multiplier: number };
+
+/** The single call site #468 uses to invoice a platform match with or without the rebate. */
+export function quotePlatformAdminFee(input: AdminFeeQuoteInput): AdminFeeQuote {
+  const l1 = lesson1Amount(input.rateHkd, input.studentCount);
+  const l2 = input.applyFeeRebate0_25
+    ? lesson2BalanceAmountWithRebate(input.rateHkd, input.studentCount)
+    : lesson2BalanceAmount(input.rateHkd, input.studentCount);
+  return {
+    l1Hkd: l1,
+    l2Hkd: l2,
+    totalHkd: l1 + l2,
+    multiplier: input.applyFeeRebate0_25
+      ? FULL_ADMIN_WITH_REBATE_MULTIPLIER
+      : FULL_ADMIN_MULTIPLIER,
+  };
+}
+
 export type FeePaidState = "none" | "partial_l1" | "full";
 
 /**
