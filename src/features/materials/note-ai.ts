@@ -32,7 +32,34 @@ export const NOTE_AI_MAX_TEXT = 24_000;
 /** Max page images sent to the vision model. */
 export const NOTE_AI_MAX_IMAGES = 4;
 
-export function buildNoteAiSystemPrompt(): string {
+const LANGUAGE_NAMES: Record<string, string> = {
+  en: "English",
+  "zh-Hant": "Traditional Chinese (繁體中文, Hong Kong usage)",
+  "zh-Hans": "Simplified Chinese (简体中文)",
+  mixed: "the document's main language",
+};
+
+/** Characters that only appear in Simplified Chinese (cheap, high-signal). */
+const SIMPLIFIED_ONLY = /[这们来时为说国过发会还进对个从动问关点经学习题试卷笔记复练]/g;
+const TRADITIONAL_ONLY = /[這們來時為說國過發會還進對個從動問關點經學習題試卷筆記複練]/g;
+
+/**
+ * Detect the document's language from its text layer: Han vs Latin share,
+ * then Simplified vs Traditional by script-only characters. Used to force
+ * the AI to write every autofilled field in the document's own language.
+ */
+export function detectDocumentLanguage(text: string): (typeof CONTENT_LANGUAGES)[number] | null {
+  const han = (text.match(/\p{Script=Han}/gu) ?? []).length;
+  const latin = (text.match(/[A-Za-z]/g) ?? []).length;
+  if (han + latin < 20) return null;
+  // One Han character carries about as much as a short English word.
+  if (han * 3 < latin) return "en";
+  const simp = (text.match(SIMPLIFIED_ONLY) ?? []).length;
+  const trad = (text.match(TRADITIONAL_ONLY) ?? []).length;
+  return simp > trad ? "zh-Hans" : "zh-Hant";
+}
+
+export function buildNoteAiSystemPrompt(documentLanguage?: string | null): string {
   const subjectsByCurriculum = NOTE_CURRICULA.map(
     (c) => `${c}: ${getSubjectOptionsForCategory(c === "Other" ? undefined : c).join(" | ")}`,
   ).join("\n");
@@ -42,8 +69,10 @@ export function buildNoteAiSystemPrompt(): string {
   return [
     "You classify study materials uploaded to MatchMax, a Hong Kong tutoring marketplace.",
     "Read the document excerpt (or page images) and return ONE JSON object, no prose.",
-    "Write title, summary and description in the SAME language as the document",
-    "(Traditional Chinese stays Traditional, Simplified stays Simplified, English stays English).",
+    documentLanguage && LANGUAGE_NAMES[documentLanguage]
+      ? `The document is written in ${LANGUAGE_NAMES[documentLanguage]}. Write title, summary, description and topic ONLY in ${LANGUAGE_NAMES[documentLanguage]}, even if the file name is English.`
+      : "Write title, summary, description and topic in the SAME language as the document text (not the file name).",
+    "Traditional Chinese stays Traditional, Simplified stays Simplified, English stays English.",
     "Never invent facts the document does not support. Never include phone numbers, emails,",
     "social handles, school names of other students or any contact details.",
     "",
@@ -58,7 +87,7 @@ export function buildNoteAiSystemPrompt(): string {
     '- "topic": the main topic, max 40 chars, or "".',
     '- "year": exam year / session if stated (e.g. "2025" or "May 2025"), or "".',
     `- "language": one of ${CONTENT_LANGUAGES.join(", ")}.`,
-    '- "tags": 3-10 short search keywords; mix English and Chinese synonyms buyers might type.',
+    '- "tags": 6-12 short search keywords. Give every key concept in BOTH English and Traditional Chinese (e.g. "trading", "交易", "cheat sheet", "速查表") so buyers searching in either language find it.',
     '- "confidence": 0 to 1.',
     "",
     "Subjects by curriculum:",
@@ -165,7 +194,7 @@ export function normalizeNoteAiResult(content: string): NoteAiSuggestion {
   const language = matchFromList(raw.language, CONTENT_LANGUAGES);
   const tags = Array.from(
     new Set(raw.tags.map((t) => scrub(String(t)).slice(0, 30)).filter((t) => t.length >= 2)),
-  ).slice(0, 10);
+  ).slice(0, 12);
 
   return {
     title: scrub(raw.title).slice(0, 120),

@@ -1,11 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { CONTENT_LANGUAGES } from "@/features/materials/note-taxonomy";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { getRuntimeEnv } from "@/lib/runtime-env";
 import {
   buildNoteAiSystemPrompt,
+  detectDocumentLanguage,
   buildNoteAiUserText,
   normalizeNoteAiResult,
   NOTE_AI_MAX_IMAGES,
@@ -42,6 +44,7 @@ const NOTE_AI_EVENT_KIND = "note_detect";
 const Input = z.object({
   fileName: z.string().trim().max(200).nullish(),
   pageCount: z.number().int().min(0).max(10_000).nullish(),
+  documentLanguage: z.enum(CONTENT_LANGUAGES).nullish(),
   text: z
     .string()
     .max(NOTE_AI_MAX_TEXT + 1000)
@@ -100,6 +103,8 @@ export const suggestNoteDetails = createServerFn({ method: "POST" })
       if (error instanceof Error && error.message.includes("limit reached")) throw error;
     }
 
+    // Follow the document's language: the client's guess, else detect here.
+    const language = data.documentLanguage ?? detectDocumentLanguage(text);
     const userText = buildNoteAiUserText({
       fileName: data.fileName,
       pageCount: data.pageCount,
@@ -134,7 +139,7 @@ export const suggestNoteDetails = createServerFn({ method: "POST" })
             temperature: 0.2,
             max_tokens: 1_200,
             messages: [
-              { role: "system", content: buildNoteAiSystemPrompt() },
+              { role: "system", content: buildNoteAiSystemPrompt(language) },
               { role: "user", content: userContent },
             ],
           }),

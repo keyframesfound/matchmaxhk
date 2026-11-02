@@ -17,7 +17,7 @@ import { orderGrantsNoteAccess, summarizeRatings } from "../../src/features/mate
 import { normalizeNoteAiResult } from "../../src/features/materials/note-ai";
 import { createSamplePdf, watermarkPdfPreview } from "../../src/features/materials/watermark";
 
-describe("preview pages never expose the whole document", () => {
+describe("preview pages: seller picks any pages, default is the first ~30%", () => {
   it("defaults to ~30%, capped at 12 and below the page count", () => {
     expect(defaultPreviewIndices(40)).toHaveLength(12);
     expect(defaultPreviewIndices(10)).toEqual([0, 1, 2, 3, 4]);
@@ -26,7 +26,9 @@ describe("preview pages never expose the whole document", () => {
   });
   it("sanitises a seller pick", () => {
     expect(sanitizePreviewIndices([5, 2, 2, 99, -1], 10)).toEqual([2, 5]);
-    expect(sanitizePreviewIndices([0, 1, 2, 3], 4)).toHaveLength(maxPreviewPagesFor(4));
+    // Owner request 2026-11-02: no cap, every page may be picked.
+    expect(maxPreviewPagesFor(4)).toBe(4);
+    expect(sanitizePreviewIndices([0, 1, 2, 3], 4)).toEqual([0, 1, 2, 3]);
     expect(sanitizePreviewIndices([], 10)).toEqual(defaultPreviewIndices(10));
   });
   it("watermarks exactly the picked pages", async () => {
@@ -158,5 +160,32 @@ describe("#556 trailer embeds", async () => {
     );
     expect(trailerEmbedUrl("https://evil.example.com/watch?v=dQw4w9WgXcQ")).toBeNull();
     expect(trailerEmbedUrl("http://youtube.com/watch?v=dQw4w9WgXcQ")).toBeNull();
+  });
+});
+
+describe("AI detection follows the document language", () => {
+  it("detects Traditional, Simplified and English text", async () => {
+    const { detectDocumentLanguage } = await import("../../src/features/materials/note-ai");
+    expect(
+      detectDocumentLanguage("日內交易速查表：這是一份關於股票交易的筆記，包括進場和出場的時機。"),
+    ).toBe("zh-Hant");
+    expect(
+      detectDocumentLanguage("日内交易速查表：这是一份关于股票交易的笔记，包括进场和出场的时机。"),
+    ).toBe("zh-Hans");
+    expect(
+      detectDocumentLanguage("Day trading cheat sheet: entries, exits and risk management rules."),
+    ).toBe("en");
+    expect(detectDocumentLanguage("hi")).toBeNull();
+  });
+});
+
+describe("cross-language search", () => {
+  it("finds English notes for a Chinese query and vice versa", async () => {
+    const { rankBySearch } = await import("../../src/features/materials/note-search");
+    const items = [{ t: "IB English Notes" }, { t: "日內交易速查表" }, { t: "DSE Chemistry" }];
+    const titles = (q: string) =>
+      rankBySearch(items, q, (i) => ({ primary: [i.t], secondary: [] })).map((i) => i.t);
+    expect(titles("IB 英文 Notes")).toEqual(["IB English Notes"]);
+    expect(titles("trading cheat sheet")).toEqual(["日內交易速查表"]);
   });
 });
