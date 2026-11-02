@@ -98,7 +98,7 @@ describe("bus planning (#205/#292)", () => {
   it("bell links open the related page", () => {
     expect(bellLinkFor("note_order.delivered", { order_id: "o1" })).toBe("/orders/o1");
     expect(bellLinkFor("lesson.review_prompt", { case_id: "c1" })).toBe("/account/cases/c1#review");
-    expect(bellLinkFor("admin_fee.unpaid", { case_id: "c1" })).toBe("/account/cases/c1");
+    expect(bellLinkFor("admin_fee.unpaid", { case_id: "c1" })).toBe("/dashboard#lessons");
     expect(bellLinkFor("review.published", { tutor_slug: "someone" })).toBe("/tutors/someone");
     expect(bellLinkFor("listing.saved", {})).toBeNull();
   });

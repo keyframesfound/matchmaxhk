@@ -698,8 +698,8 @@
     "empty_university_desc": "试试其他领域、大学或课程编号——或在 WhatsApp 查询，我们会为你找出合适的导师。",
     "empty_primary_secondary_title": "没有符合筛选条件的导师",
     "empty_primary_secondary_desc": "放宽或清除筛选条件——或在 WhatsApp 查询，团队会为你配对。",
-    "hero_title": "寻找精英导师",
-    "hero_subtitle": "从科目或导师编号开始搜索，再逐步缩小范围，找到最合适的导师。",
+    "hero_title": "找精英导师",
+    "hero_subtitle": "由科目或导师编号开始找，再逐步收窄至最合适嘅导师。",
     "result_count": "找到 {{count}} 位导师",
     "result_count_other": "找到 {{count}} 位导师"
   },
@@ -3643,6 +3643,33 @@
     "discount_badge": "🎁 首堂 {{pct}}% 折扣",
     "promo_tooltip": "只限简短在线介绍。正式课堂按全额收费。如家长确认上完第一堂付费课后停止，Drop-Protection 适用。"
   },
+  "tutor_compare": {
+    "bar_selected": "已拣 {{count}} / {{max}} 位",
+    "bar_pick_more": "，至少拣 2 位先可以比较",
+    "bar_compare": "比较",
+    "bar_clear": "清除",
+    "title": "比较导师",
+    "subtitle": "并排比较你嘅心仪导师。",
+    "label_rate": "收费",
+    "label_academic": "学术背景",
+    "label_subjects": "科目",
+    "label_mode": "授课模式",
+    "label_location": "地区",
+    "label_gender": "性别",
+    "label_languages": "语言",
+    "label_experience": "经验",
+    "label_achievements": "成就",
+    "experience_years": "{{count}} 年",
+    "experience_years_other": "{{count}} 年",
+    "system_other": "其他",
+    "limit_toast": "最多可以比较 {{max}} 位导师。"
+  },
+  "tutor_save": {
+    "save": "保存导师",
+    "remove": "移出已保存导师",
+    "gate_title": "保存呢位导师",
+    "gate_desc": "注册或登录即可保存导师，之后随时找返。"
+  },
   "tutors": {
     "tier_aria": "学术程度",
     "tier_kindergarten": "幼稚园",
@@ -3845,31 +3872,20 @@
     "tab_notes": "笔记",
     "tab_gigs": "服务"
   },
-  "tutor_save": {
-    "save": "收藏导师",
-    "remove": "取消收藏",
-    "gate_title": "收藏这位导师",
-    "gate_desc": "注册或登录即可收藏导师，之后随时找回。"
-  },
-  "tutor_compare": {
-    "bar_selected": "已选 {{count}} / {{max}} 位",
-    "bar_pick_more": "，至少选择 2 位才能比较",
-    "bar_compare": "比较",
-    "bar_clear": "清除",
-    "title": "比较导师",
-    "subtitle": "并排比较你心仪的导师。",
-    "label_rate": "收费",
-    "label_academic": "学术背景",
-    "label_subjects": "科目",
-    "label_mode": "授课模式",
-    "label_location": "地区",
-    "label_gender": "性别",
-    "label_languages": "语言",
-    "label_experience": "经验",
-    "label_achievements": "成就",
-    "experience_years": "{{count}} 年",
-    "experience_years_other": "{{count}} 年",
-    "system_other": "其他",
-    "limit_toast": "最多可以比较 {{max}} 位导师。"
+  "fee_desk": {
+    "title": "平台行政费",
+    "amount": "金额",
+    "due": "到期日",
+    "payee": "收款人",
+    "bank": "银行户口",
+    "reference": "转数快备注",
+    "hours_note": "请在转数快转帐时填写以上备注。付款于工作天处理；下午6时后提交的截图将于下一个工作天处理。费用确认后即可查看联络资料。",
+    "screenshot_label": "付款截图（选填，JPEG 或 PNG，最大 5 MB）",
+    "screenshot_received": "已收到截图，我们的团队会确认付款。",
+    "screenshot_invalid": "请上传少于 {{mb}} MB 的 JPEG 或 PNG。",
+    "uploaded": "已收到截图，预计于 {{date}} 确认付款。",
+    "upload_failed": "上传失败，请再试一次。",
+    "err_FPS_REFERENCE_USED": "此转数快参考编号已用于另一个个案。",
+    "view_screenshot": "查看付款截图"
   }
 }

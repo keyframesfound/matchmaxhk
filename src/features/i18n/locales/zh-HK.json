@@ -3871,5 +3871,21 @@
   "marketplace": {
     "tab_notes": "筆記",
     "tab_gigs": "服務"
+  },
+  "fee_desk": {
+    "title": "平台行政費",
+    "amount": "金額",
+    "due": "到期日",
+    "payee": "收款人",
+    "bank": "銀行戶口",
+    "reference": "轉數快備註",
+    "hours_note": "請在轉數快轉帳時填寫以上備註。付款於工作天處理；下午6時後提交的截圖將於下一個工作天處理。費用確認後即可查看聯絡資料。",
+    "screenshot_label": "付款截圖（選填，JPEG 或 PNG，最大 5 MB）",
+    "screenshot_received": "已收到截圖，我們的團隊會確認付款。",
+    "screenshot_invalid": "請上載少於 {{mb}} MB 的 JPEG 或 PNG。",
+    "uploaded": "已收到截圖，預計於 {{date}} 確認付款。",
+    "upload_failed": "上載失敗，請再試一次。",
+    "err_FPS_REFERENCE_USED": "此轉數快參考編號已用於另一個個案。",
+    "view_screenshot": "查看付款截圖"
   }
 }

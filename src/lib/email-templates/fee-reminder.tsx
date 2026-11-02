@@ -9,7 +9,7 @@ interface FeeReminderEmailProps {
 }
 
 /**
- * Issue #205, parent reminder for an unpaid 1.5-lesson admin fee (day 3 and
+ * Issue #205 (#259: tutor-pays), payer reminder for an unpaid 1.5-lesson admin fee (day 3 and
  * day 7 after invoice). Sent by the lazy bus drain via the fee-reminder
  * template; the payment itself stays concierge-run FPS.
  */
@@ -24,8 +24,8 @@ export const FeeReminderEmail = ({ caseCode, amountHkd, dueDate }: FeeReminderEm
           Case {caseCode} has an outstanding admin fee of {amountHkd}, due {dueDate}.
         </Text>
         <Text style={text}>
-          Pay by FPS using the details your MatchMax concierge sent you, then reply with the
-          reference. Your case becomes active once the fee is marked paid.
+          The FPS details and memo are on the case card in your MatchMax dashboard. You can attach a
+          payment screenshot there; the case becomes active once the fee is marked paid.
         </Text>
         <Hr style={hr} />
         <Text style={footer}>Questions? Contact the MatchMax team, we're happy to help.</Text>

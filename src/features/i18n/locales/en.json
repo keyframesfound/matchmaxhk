@@ -3871,5 +3871,21 @@
   "marketplace": {
     "tab_notes": "Notes",
     "tab_gigs": "Gigs"
+  },
+  "fee_desk": {
+    "title": "Platform administrative fee",
+    "amount": "Amount",
+    "due": "Due",
+    "payee": "Pay to",
+    "bank": "Bank account",
+    "reference": "FPS memo",
+    "hours_note": "Put the memo above in your FPS transfer. Payments are marked on working days; a screenshot sent after 6pm is marked the next working day. Contact details unlock once the fee is marked paid.",
+    "screenshot_label": "Payment screenshot (optional, JPEG or PNG, max 5 MB)",
+    "screenshot_received": "Screenshot received. Our team will mark the fee paid.",
+    "screenshot_invalid": "Use a JPEG or PNG under {{mb}} MB.",
+    "uploaded": "Screenshot received. Expected to be marked paid on {{date}}.",
+    "upload_failed": "Upload failed. Please try again.",
+    "err_FPS_REFERENCE_USED": "This FPS reference already closed another case.",
+    "view_screenshot": "View payment screenshot"
   }
 }

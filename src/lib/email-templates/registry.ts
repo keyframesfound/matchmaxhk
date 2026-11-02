@@ -3,6 +3,7 @@ import type { ComponentType } from "react";
 import { AccountStatusEmail } from "./account-status";
 import { ActionRequiredEmail } from "./action-required";
 import { ConciergeUnpaidDigestEmail } from "./concierge-unpaid-digest";
+import { FeeReceiptEmail } from "./fee-receipt";
 import { FeeReminderEmail } from "./fee-reminder";
 import { LessonUpdateEmail } from "./lesson-update";
 import { OrderDeliveredEmail } from "./order-delivered";
@@ -48,6 +49,12 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
     component: FeeReminderEmail as unknown as ComponentType<Record<string, unknown>>,
     subject: (data: Record<string, unknown>) =>
       `Admin fee reminder${data?.case_code ? `, case ${String(data.case_code)}` : ""}`,
+  },
+  // #259: one receipt per paid admin fee (case id, amount, paid time).
+  "fee-receipt": {
+    component: FeeReceiptEmail as unknown as ComponentType<Record<string, unknown>>,
+    subject: (data: Record<string, unknown>) =>
+      `Payment received${data?.caseCode ? `, case ${String(data.caseCode)}` : ""}`,
   },
   "order-delivered": {
     component: OrderDeliveredEmail as unknown as ComponentType<Record<string, unknown>>,
