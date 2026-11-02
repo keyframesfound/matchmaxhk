@@ -99,6 +99,9 @@ export const applyToCase = createServerFn({ method: "POST" })
 
     const tutor = await findMyTutor(db, context.userId);
     if (!tutor) throw new Error("JOIN_AS_TUTOR");
+    // #529: tutor sensitive action — verified +852 phone when the OTP gate is on.
+    const { assertPhoneGate } = await import("@/features/trust/phone-otp.functions");
+    await assertPhoneGate(context.userId);
 
     const cases = await selectRows<{
       id: string;

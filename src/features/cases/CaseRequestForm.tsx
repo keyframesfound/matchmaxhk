@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { submitCaseRequest } from "@/lib/cases.functions";
+import { PhoneVerifyCard } from "@/features/trust/phone-verify-card";
 import { ChildPicker } from "@/features/children/child-picker";
 import {
   ADMISSIONS_CATEGORY_OPTIONS,
@@ -757,7 +758,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         toast.error(first?.message ?? "Please check the highlighted fields.");
         return;
       }
-      toast.error(e.message);
+      // #529: OTP gate codes map to locked copy.
+      toast.error(e.message.startsWith("PHONE_") ? t(`phone_otp.err_${e.message}`) : e.message);
     },
   });
 
@@ -2067,6 +2069,12 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         </div>
       ) : null}
 
+      {/* #529: +852 OTP on the final step (renders nothing while the gate is off). */}
+      {step === 3 && (
+        <div className="mt-6">
+          <PhoneVerifyCard defaultPhone={form.contactPhone} />
+        </div>
+      )}
       <div className="mt-6 flex flex-col gap-3 border-t border-border pt-6">
         <div className="flex items-center justify-between gap-3">
           <Button

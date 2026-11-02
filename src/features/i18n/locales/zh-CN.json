@@ -3988,5 +3988,22 @@
     "saved": "已更新标签",
     "error": "未能载入标签。",
     "empty": "暂未有公开标签。"
+  },
+  "phone_otp": {
+    "title": "验证你的手机号码",
+    "body": "请输入你的香港手机号码，我们会以短讯传送 6 位数验证码。",
+    "phone_label": "香港手机号码",
+    "code_label": "验证码",
+    "send": "传送验证码",
+    "resend": "重新传送",
+    "verify": "验证",
+    "sent": "已以短讯传送验证码",
+    "verified": "手机号码已验证",
+    "verified_as": "已验证手机：{{phone}}",
+    "invalid_phone": "请输入 8 位数香港手机号码。",
+    "invalid_code": "验证码不正确，请检查后再试。",
+    "err_PHONE_NOT_VERIFIED": "请先验证你的香港手机号码。",
+    "err_PHONE_NOT_HK": "请验证香港（+852）手机号码。",
+    "err_PHONE_MISMATCH": "此查询的 WhatsApp 号码必须与已验证的手机号码相同。"
   }
 }
