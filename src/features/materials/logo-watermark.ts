@@ -13,8 +13,8 @@ export const LOGO_WATERMARK_PNG_BASE64 =
 export const LOGO_WATERMARK_DATA_URL = `data:image/png;base64,${LOGO_WATERMARK_PNG_BASE64}`;
 
 /** Opacity on preview pages / gallery images vs. the buyer's full copy. */
-export const LOGO_OPACITY_PREVIEW = 0.14;
-export const LOGO_OPACITY_DELIVERED = 0.07;
+export const LOGO_OPACITY_PREVIEW = 0.16;
+export const LOGO_OPACITY_DELIVERED = 0.08;
 
 export function logoWatermarkBytes(): Uint8Array {
   const binary = atob(LOGO_WATERMARK_PNG_BASE64);

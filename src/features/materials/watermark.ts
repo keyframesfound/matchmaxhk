@@ -1,23 +1,31 @@
 import { PDFDocument, rgb, StandardFonts, degrees, type PDFImage, type PDFPage } from "pdf-lib";
 
 import {
+  LOGO_OPACITY_DELIVERED,
   LOGO_OPACITY_PREVIEW,
   LOGO_WATERMARK_ASPECT,
   logoWatermarkBytes,
 } from "@/features/materials/logo-watermark";
 
-/** Owner request: the greyscale MatchMax logo, centred and faint. */
+/**
+ * Owner request (2026-11-02): ONE watermark style everywhere, the MatchMax
+ * logo (icon + name, greyscale) repeated on a diagonal grid. Light enough
+ * to keep the page readable.
+ */
 export function drawLogoWatermark(page: PDFPage, logo: PDFImage, opacity: number) {
   const { width, height } = page.getSize();
-  const logoWidth = Math.min(width * 0.55, 420);
+  const logoWidth = Math.max(90, Math.min(160, width * 0.24));
   const logoHeight = logoWidth / LOGO_WATERMARK_ASPECT;
-  page.drawImage(logo, {
-    x: (width - logoWidth) / 2,
-    y: (height - logoHeight) / 2,
-    width: logoWidth,
-    height: logoHeight,
-    opacity,
-  });
+  const stepX = logoWidth * 1.7;
+  const stepY = logoHeight * 4.2;
+  const angle = degrees(30);
+  // Overscan so the rotated rows still cover the corners.
+  for (let y = -height * 0.5, row = 0; y < height * 1.2; y += stepY, row += 1) {
+    const offset = (row % 2) * (stepX / 2);
+    for (let x = -width * 0.5 + offset; x < width * 1.1; x += stepX) {
+      page.drawImage(logo, { x, y, width: logoWidth, height: logoHeight, opacity, rotate: angle });
+    }
+  }
 }
 
 /**
@@ -66,33 +74,11 @@ export async function watermarkPdfPreview(
     picked.length > 0 ? picked.slice(0, pageLimit) : source.getPageIndices().slice(0, pageLimit);
   const copiedPages = await preview.copyPages(source, copiedIndices);
 
-  const font = await preview.embedFont(StandardFonts.HelveticaBold);
   const logo = await preview.embedPng(logoWatermarkBytes());
 
   for (const page of copiedPages) {
     preview.addPage(page);
     drawLogoWatermark(page, logo, LOGO_OPACITY_PREVIEW);
-    const { width, height } = page.getSize();
-    const fontSize = Math.max(18, Math.min(36, width / 18));
-
-    // Tile the watermark across the page on a diagonal grid.
-    const stepX = width / 2;
-    const stepY = height / 4;
-    for (let row = 0; row < 4; row += 1) {
-      for (let col = 0; col < 3; col += 1) {
-        const x = col * stepX + stepX / 2 - fontSize * 2;
-        const y = row * stepY + stepY / 2;
-        page.drawText(WATERMARK_TEXT, {
-          x,
-          y,
-          size: fontSize,
-          font,
-          color: rgb(0.35, 0.45, 0.6),
-          opacity: 0.22,
-          rotate: degrees(30),
-        });
-      }
-    }
   }
 
   const bytes = await preview.save();
@@ -107,31 +93,8 @@ export async function watermarkPdfPreview(
  */
 export async function watermarkFullPdf(pdfBytes: Uint8Array | ArrayBuffer): Promise<Uint8Array> {
   const doc = await PDFDocument.load(pdfBytes, { ignoreEncryption: true });
-  const font = await doc.embedFont(StandardFonts.HelveticaBold);
-
-  for (const page of doc.getPages()) {
-    const { width, height } = page.getSize();
-    const fontSize = Math.max(18, Math.min(36, width / 18));
-
-    const stepX = width / 2;
-    const stepY = height / 4;
-    for (let row = 0; row < 4; row += 1) {
-      for (let col = 0; col < 3; col += 1) {
-        const x = col * stepX + stepX / 2 - fontSize * 2;
-        const y = row * stepY + stepY / 2;
-        page.drawText(FULL_WATERMARK_TEXT, {
-          x,
-          y,
-          size: fontSize,
-          font,
-          color: rgb(0.35, 0.45, 0.6),
-          opacity: 0.22,
-          rotate: degrees(30),
-        });
-      }
-    }
-  }
-
+  const logo = await doc.embedPng(logoWatermarkBytes());
+  for (const page of doc.getPages()) drawLogoWatermark(page, logo, LOGO_OPACITY_DELIVERED);
   return doc.save();
 }
 
