@@ -38,8 +38,9 @@ export type ModerationDecision =
   | { status: "rejected"; reason: string };
 
 /** Above this the AI verdict auto-rejects; between UNSURE and this, staff decide. */
-export const REJECT_CONFIDENCE = 0.75;
-export const UNSURE_CONFIDENCE = 0.4;
+// Owner (2026-11-02): lowered from 0.75 / 0.4, most uploads are expected to be fine.
+export const REJECT_CONFIDENCE = 0.6;
+export const UNSURE_CONFIDENCE = 0.45;
 
 export function buildModerationPrompt(): string {
   return [

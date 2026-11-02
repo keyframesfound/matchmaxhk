@@ -853,7 +853,7 @@ async function publicGalleryUrls(db: AdminDb, materialId: string): Promise<strin
     .map((path) => `${base}/storage/v1/object/public/materials-previews/${path}`);
 }
 
-/** P8 submit: validates required fields, then parks the note for staff review. */
+/** P8 submit: validates required fields, then the automatic check publishes, rejects or queues it. */
 export const submitNoteForReview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => SubmitForReviewInput.parse(data))

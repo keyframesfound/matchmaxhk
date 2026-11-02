@@ -306,7 +306,7 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
         items: [
           "Order, payout, fee and dispute ledgers: kept for 7 years from the transaction date, as section 51C of the Inland Revenue Ordinance (Cap. 112) requires.",
           "Moderation logs, reports and removed listings: kept for 2 years from resolution for legal defence and repeat-offender tracking, then permanently deleted in line with the Personal Data (Privacy) Ordinance (Cap. 486).",
-          "Uploaded text may be scanned automatically for banned material (such as official exam papers) and contact details; flagged uploads are reviewed by staff.",
+          "Uploaded listings, file text and preview images are checked automatically, including by an AI content review run by a third-party AI provider, for banned material (such as copied official exam papers or textbooks), contact details and violent or sexual content; unclear uploads are reviewed by staff.",
         ],
       },
     ],

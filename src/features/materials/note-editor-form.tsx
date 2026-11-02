@@ -873,7 +873,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
       });
     }
 
-    // 5. Submit for staff review.
+    // 5. Publish: the automatic check publishes, rejects or queues for staff.
     if (kind === "submit" && !isLive) {
       // #573 scanner: send the main PDF's text layer (none for scans).
       let fileText: string | null = null;
