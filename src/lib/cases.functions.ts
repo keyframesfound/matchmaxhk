@@ -513,6 +513,10 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       throw new Error("Submission could not be accepted.");
     }
 
+    // #529: +852 SMS OTP gate (off until app_settings.trust_phone_otp_required).
+    const { assertPhoneGate } = await import("@/features/trust/phone-otp.functions");
+    await assertPhoneGate(context.userId, data.contactPhone);
+
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     // Every submission creates a new case, no duplicate collapsing by phone number.

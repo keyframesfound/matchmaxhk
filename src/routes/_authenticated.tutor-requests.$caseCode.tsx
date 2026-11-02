@@ -1,4 +1,5 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { PhoneVerifyCard } from "@/features/trust/phone-verify-card";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 // Locale-aware relative times (zh-HK, GLM round-3 minor on #430). The
@@ -331,7 +332,11 @@ function CaseDetailPage() {
     },
     onError: (e: Error) =>
       toast.error(
-        e.message === "NEW_TUTOR_CAP_REACHED" ? t("caseApplications.new_tutor_cap") : e.message,
+        e.message === "NEW_TUTOR_CAP_REACHED"
+          ? t("caseApplications.new_tutor_cap")
+          : e.message.startsWith("PHONE_")
+            ? t(`phone_otp.err_${e.message}`)
+            : e.message,
       ),
   });
   const handleInAppApply = () => {
@@ -665,6 +670,8 @@ function CaseDetailPage() {
                   <AlertTriangle className="h-5 w-5" aria-hidden="true" />
                 </span>
               ) : null}
+              {/* #529: +852 OTP before Apply (renders nothing while the gate is off). */}
+              {viewerTutor ? <PhoneVerifyCard /> : null}
               {/* Issue #81: in-app Apply is the primary CTA; the WhatsApp
                   link stays as the concierge-intro secondary action. */}
               <CaseApplyControl

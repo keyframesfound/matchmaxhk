@@ -3988,5 +3988,22 @@
     "saved": "Tag updated",
     "error": "Could not load tags.",
     "empty": "No public tags yet."
+  },
+  "phone_otp": {
+    "title": "Verify your mobile number",
+    "body": "Enter your Hong Kong mobile number. We'll text you a 6-digit code.",
+    "phone_label": "Hong Kong mobile number",
+    "code_label": "Verification code",
+    "send": "Send code",
+    "resend": "Resend code",
+    "verify": "Verify",
+    "sent": "Code sent by SMS",
+    "verified": "Mobile number verified",
+    "verified_as": "Verified mobile: {{phone}}",
+    "invalid_phone": "Enter an 8-digit Hong Kong mobile number.",
+    "invalid_code": "That code didn't work. Check it and try again.",
+    "err_PHONE_NOT_VERIFIED": "Please verify your Hong Kong mobile number first.",
+    "err_PHONE_NOT_HK": "Please verify a Hong Kong (+852) mobile number.",
+    "err_PHONE_MISMATCH": "The WhatsApp number on this request must match your verified mobile."
   }
 }
