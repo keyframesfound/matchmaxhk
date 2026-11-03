@@ -1871,7 +1871,7 @@
     "back": "Back",
     "help": "Help",
     "tab_saved": "Saved",
-    "tab_cases": "Cases",
+    "tab_cases": "Case",
     "site_menu": "Main menu",
     "become_tutor_subtitle": "It's easy to start tutoring and earn extra income.",
     "post_case": "Post a case",
@@ -1885,7 +1885,8 @@
     "mode_switch_error": "Could not switch mode. Please try again.",
     "workspaces": "Workspaces",
     "upload_notes": "Upload notes",
-    "tab_calendar": "Calendar"
+    "tab_calendar": "Calendar",
+    "tab_marketplace": "Marketplace"
   },
   "nav_mobile": {
     "case": "Case",
@@ -4026,5 +4027,14 @@
     "err_PHONE_NOT_VERIFIED": "Please verify your Hong Kong mobile number first.",
     "err_PHONE_NOT_HK": "Please verify a Hong Kong (+852) mobile number.",
     "err_PHONE_MISMATCH": "The WhatsApp number on this request must match your verified mobile."
+  },
+  "home_promo": {
+    "aria": "Get more from MatchMax",
+    "referral_title": "Refer a tutor, earn 15% cash",
+    "referral_cta": "See how",
+    "impact_title": "Pro-bono tutoring for students in need",
+    "impact_cta": "Learn how",
+    "upload_title": "Sell your study notes",
+    "upload_cta": "Upload"
   }
 }

@@ -1885,7 +1885,8 @@
     "mode_switch_error": "无法切换模式，请再试一次。",
     "workspaces": "工作区",
     "upload_notes": "上传笔记",
-    "tab_calendar": "日历"
+    "tab_calendar": "日历",
+    "tab_marketplace": "市集"
   },
   "nav_mobile": {
     "case": "个案",
@@ -4008,6 +4009,15 @@
     "err_PHONE_NOT_VERIFIED": "请先验证你的香港手机号码。",
     "err_PHONE_NOT_HK": "请验证香港（+852）手机号码。",
     "err_PHONE_MISMATCH": "此查询的 WhatsApp 号码必须与已验证的手机号码相同。"
+  },
+  "home_promo": {
+    "aria": "MatchMax 更多功能",
+    "referral_title": "推荐导师，赚 15% 现金",
+    "referral_cta": "了解详情",
+    "impact_title": "为有需要的学生提供义务补习",
+    "impact_cta": "了解详情",
+    "upload_title": "出售你的温习笔记",
+    "upload_cta": "上传"
   },
   "saved": {
     "eyebrow": "你的收藏",
