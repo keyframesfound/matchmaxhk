@@ -17,3 +17,9 @@ export function getRuntimeEnv(name: string): string | undefined {
   const processValue = typeof process !== "undefined" ? process.env?.[name] : undefined;
   return typeof processValue === "string" && processValue.trim() ? processValue : undefined;
 }
+
+/** A non-string Worker binding (e.g. the Workers AI binding `AI`). */
+export function getRuntimeBinding<T = unknown>(name: string): T | undefined {
+  const value = runtimeBindings?.[name];
+  return value && typeof value === "object" ? (value as T) : undefined;
+}
