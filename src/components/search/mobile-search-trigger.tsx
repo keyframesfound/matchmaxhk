@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Mobile Airbnb-style search entry: a shadow-elevated "Start your search"
- * bar above the quick-nav pills row (Case / Guide / Marketplace)
+ * bar above the quick-nav pills row (Marketplace / Case / Become a Tutor / Calendar)
  * that doubles as the mobile top navigation. The block bleeds to the true
  * screen edges (canceling the parent px-4/px-6 container) and the pills row
  * scrolls with cut-off pills touching the screen edge, like Airbnb. The
@@ -27,24 +27,47 @@ export function MobileSearchTrigger({
   const search = useRouterState({ select: (state) => state.location.searchStr ?? "" });
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
 
-  const navPills = [
+  // #594 CEO lock (2026-11-03): phone pills L→R Marketplace · Case ·
+  // Become a Tutor · Calendar. Guide lives in the menu / Help (as on Mac).
+  const notesActive = pathname === "/tutors" && search.includes("view=materials");
+  const navPills: {
+    key: string;
+    label: string;
+    to: "/tutors" | "/tutor-requests" | "/join" | "/calendar";
+    search?: { view: "materials" };
+    icon: string;
+    active: boolean;
+  }[] = [
+    {
+      key: "marketplace",
+      label: t("nav_mobile.marketplace"),
+      to: "/tutors",
+      search: { view: "materials" },
+      icon: "/nav-marketplace.png",
+      active: notesActive,
+    },
     {
       key: "case",
       label: t("nav_mobile.case"),
-      to: "/tutor-requests" as const,
+      to: "/tutor-requests",
       icon: "/nav-case-board.png",
+      active: isActive("/tutor-requests"),
     },
     {
-      key: "how",
-      label: t("nav.how"),
-      to: "/guide" as const,
-      icon: "/nav-how-it-works.png",
+      key: "join",
+      label: t("nav.become_tutor"),
+      to: "/join",
+      icon: "/nav-become-tutor.png",
+      active: isActive("/join"),
     },
-    // #594: Become a Tutor is supply onboarding, not a browse mode; it
-    // lives in the Account menu only.
+    {
+      key: "calendar",
+      label: t("nav.tab_calendar"),
+      to: "/calendar",
+      icon: "/nav-calendar.png",
+      active: isActive("/calendar"),
+    },
   ];
-  // #557 / #594 CEO lock: Marketplace (Notes | Gigs) is the 3rd pill.
-  const notesActive = pathname === "/tutors" && search.includes("view=materials");
 
   return (
     <div className={cn("-mx-4 px-3 md:-mx-6 lg:hidden", className)}>
@@ -61,11 +84,12 @@ export function MobileSearchTrigger({
         className="-mx-3 mt-3 flex items-stretch gap-2 overflow-x-auto px-3 pb-0.5 [scrollbar-width:none] [scroll-padding-left:12px] [&::-webkit-scrollbar]:hidden"
       >
         {navPills.map((pill) => {
-          const active = isActive(pill.to);
+          const active = pill.active;
           return (
             <Link
               key={pill.key}
               to={pill.to}
+              {...(pill.search ? { search: pill.search } : {})}
               aria-current={active ? "page" : undefined}
               className={cn(
                 "pill-elevate flex shrink-0 items-center justify-center rounded-full border px-3.5 py-2.5 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
@@ -88,29 +112,6 @@ export function MobileSearchTrigger({
             </Link>
           );
         })}
-        <Link
-          to="/tutors"
-          search={{ view: "materials" }}
-          aria-current={notesActive ? "page" : undefined}
-          className={cn(
-            "pill-elevate flex shrink-0 items-center justify-center rounded-full border px-3.5 py-2.5 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-            notesActive &&
-              "pill-elevate-strong border-transparent bg-muted font-bold text-[color:var(--ink)] dark:border-[color:var(--foreground)] dark:bg-card",
-            !notesActive &&
-              "border-transparent bg-card font-medium text-[color:var(--ink)]/75 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)] dark:border-border",
-          )}
-        >
-          <span className="flex items-center justify-center gap-2">
-            <img
-              src="/nav-marketplace.png"
-              alt=""
-              aria-hidden="true"
-              draggable={false}
-              className="h-[18px] w-[18px] shrink-0"
-            />
-            <span>{t("nav_mobile.marketplace")}</span>
-          </span>
-        </Link>
       </nav>
     </div>
   );
