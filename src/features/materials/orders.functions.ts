@@ -302,7 +302,11 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
                 v: string,
               ) => {
                 maybeSingle: () => Promise<{
-                  data: { material_type: string } | null;
+                  data: {
+                    material_type: string;
+                    original_file_path: string | null;
+                    slug: string | null;
+                  } | null;
                   error?: { message: string } | null;
                 }>;
               };
@@ -311,7 +315,7 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
         }
       )
         .from("digital_materials")
-        .select("material_type")
+        .select("material_type, original_file_path, slug")
         // assertOwnedDeliveredOrder above guarantees a non-null order.
         .eq("id", (order as { material_id: string }).material_id)
         .maybeSingle();
@@ -323,6 +327,12 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
         throw new Error(
           "This purchase opens on its product page, there is no file download. Open the listing from Account → Bought.",
         );
+      }
+      // Owner (2026-11-03): notes without a PDF (Word / PPT / other files)
+      // deliver their files on the note page, opened instead of a download.
+      if (mat && !mat.original_file_path) {
+        const materialId = (order as { material_id: string }).material_id;
+        return { signedUrl: `/notes/${mat.slug ?? materialId}` };
       }
       throw new Error(
         "The stamped copy is not ready yet, the download unlocks once staff release the file.",
