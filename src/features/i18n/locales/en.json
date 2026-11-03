@@ -2042,7 +2042,9 @@
       "files_added": "{{count}} file(s) added.",
       "need_pdf_hint": "Added. Without a PDF, buyers see your cover picture as the preview, so add a clear cover picture (we make one from the title if you skip it).",
       "tags_chip_placeholder": "Type a tag and press Enter, e.g. IA",
-      "tag_remove": "Remove #{{tag}}"
+      "tag_remove": "Remove #{{tag}}",
+      "office_preview_made": "Made a PDF version of your Word / PowerPoint file for the preview pages. Buyers get it with the original file.",
+      "office_preview_footer": "Text preview made from the original file. Layout and pictures are in the original."
     },
     "ai": {
       "title": "2. Detect with AI",

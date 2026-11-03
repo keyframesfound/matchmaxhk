@@ -75,6 +75,39 @@ function slideOrder(name: string): number {
   return match ? Number(match[1]) : 0;
 }
 
+/**
+ * Text blocks for preview pages: one block per slide (pptx / odp) or one per
+ * paragraph (docx / odt / text). Empty list when the file cannot be read.
+ */
+export async function extractOfficeBlocks(
+  file: File,
+): Promise<{ slides: boolean; blocks: string[] }> {
+  const ext = fileExtension(file.name);
+  const slides = ext === "pptx" || ext === "odp";
+  try {
+    if (ext === "pptx" && file.size <= 40 * 1024 * 1024) {
+      const bytes = new Uint8Array(await file.arrayBuffer());
+      const parts = readEntries(bytes)
+        .filter((e) => /^ppt\/slides\/slide\d+\.xml$/.test(e.name))
+        .sort((a, b) => slideOrder(a.name) - slideOrder(b.name))
+        .slice(0, 200);
+      const blocks: string[] = [];
+      for (const entry of parts) {
+        blocks.push(xmlToText(await readEntry(bytes, entry)).trim());
+      }
+      return { slides: true, blocks };
+    }
+    const text = await extractOfficeText(file);
+    const blocks = text
+      .split(/\n+/)
+      .map((line) => line.trim())
+      .filter(Boolean);
+    return { slides, blocks };
+  } catch {
+    return { slides, blocks: [] };
+  }
+}
+
 /** Plain text of a Word / PowerPoint / OpenDocument / text file ("" if unreadable). */
 export async function extractOfficeText(file: File): Promise<string> {
   const ext = fileExtension(file.name);

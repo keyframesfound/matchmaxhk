@@ -2042,7 +2042,9 @@
       "files_added": "已加入 {{count}} 个档案。",
       "need_pdf_hint": "已加入。没有 PDF 时，买家会以封面图片作预览，建议加入清晰的封面图片（如未加入，系统会按标题自动制作）。",
       "tags_chip_placeholder": "输入标签后按 Enter，例如 IA",
-      "tag_remove": "移除 #{{tag}}"
+      "tag_remove": "移除 #{{tag}}",
+      "office_preview_made": "已按你的 Word／PowerPoint 档案制作 PDF 版本作预览页，买家会同时收到原档及此 PDF。",
+      "office_preview_footer": "此预览由原档文字制作，排版及图片以原档为准。"
     },
     "ai": {
       "title": "2. AI 自动识别",
