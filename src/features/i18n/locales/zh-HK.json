@@ -1885,7 +1885,8 @@
     "mode_switch_error": "無法切換模式，請再試一次。",
     "workspaces": "工作區",
     "upload_notes": "上載筆記",
-    "tab_calendar": "日曆"
+    "tab_calendar": "日曆",
+    "tab_marketplace": "市集"
   },
   "nav_mobile": {
     "case": "個案",
@@ -4008,5 +4009,14 @@
     "err_PHONE_NOT_VERIFIED": "請先驗證你的香港手機號碼。",
     "err_PHONE_NOT_HK": "請驗證香港（+852）手機號碼。",
     "err_PHONE_MISMATCH": "此查詢的 WhatsApp 號碼必須與已驗證的手機號碼相同。"
+  },
+  "home_promo": {
+    "aria": "MatchMax 更多功能",
+    "referral_title": "推薦導師，賺 15% 現金",
+    "referral_cta": "了解詳情",
+    "impact_title": "為有需要的學生提供義務補習",
+    "impact_cta": "了解詳情",
+    "upload_title": "出售你的溫習筆記",
+    "upload_cta": "上載"
   }
 }
