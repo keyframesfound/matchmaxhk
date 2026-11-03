@@ -1954,7 +1954,7 @@
       "exemplar_permission": "我已取得該學生的書面同意。姓名已移除。此為範本，僅供參考，不可用於提交。",
       "exemplar_permission_short": "範本書面同意確認",
       "field_year": "年份",
-      "field_pdf": "PDF 或相片（Word / PPT 請另存為 PDF）",
+      "field_pdf": "檔案（PDF、Word、PowerPoint、相片或任何其他格式）",
       "replace_pdf": "更換 PDF",
       "pdf_hint": "最大 20MB。不接受加密檔案——請上傳已解鎖的檔案。",
       "save_draft": "儲存草稿",
@@ -2000,9 +2000,9 @@
     "shop_terms_read": "閱讀筆記條款",
     "upload": {
       "step_files": "1. 加入檔案",
-      "step_files_hint": "可加入 PDF、相片或掃描檔、Word、PowerPoint、ZIP 或影片。相片會合併成一份 PDF 作預覽之用。",
+      "step_files_hint": "可加入任何檔案：PDF、相片或掃描檔、Word、PowerPoint、Excel、ZIP、影片等。相片會合併成一份 PDF 作預覽；其他格式會以封面圖片作預覽。",
       "drop_title": "將檔案拖放到此處，或按此選擇",
-      "drop_formats": "預覽用 PDF 上限 50 MB；相片、Word、PPT、Excel、ZIP、影片及音訊每個上限 2 GB",
+      "drop_formats": "接受任何格式：PDF、Word、PowerPoint、Excel、相片、ZIP、影片、音訊等（每個上限 2 GB；預覽用 PDF 上限 50 MB）",
       "link_label": "或貼上雲端連結",
       "link_hint": "「匯入 PDF」可讀取公開的 Google Drive、Google Docs 或 Dropbox 檔案。「加入連結」會在買家付款後提供連結（Drive、Docs、Dropbox、OneDrive）。",
       "import_pdf": "匯入 PDF",
@@ -2014,7 +2014,7 @@
       "too_many_links": "每份筆記最多 {{count}} 條連結。",
       "too_many_files": "每份筆記最多 {{count}} 個附加檔案。",
       "too_large_2gb": "{{name}} 超過 2 GB。",
-      "unsupported": "不支援 {{name}} 的檔案類型。",
+      "unsupported": "無法上載 {{name}}：不接受程式或腳本檔案。",
       "pdf_too_big_for_preview": "{{name}} 超過 50 MB，因此會作為買家下載檔案。請另加一份較小的 PDF 或相片作預覽。",
       "merged_too_large": "合併後的相片 PDF 超過 50 MB，請減少相片數量或使用較小的相片。",
       "merge_failed": "未能將相片合併成 PDF。",
@@ -2040,7 +2040,7 @@
       "guide_link": "閱讀筆記指南",
       "choose_files": "選擇檔案",
       "files_added": "已加入 {{count}} 個檔案。",
-      "need_pdf_hint": "請另外加入一份 PDF 或相片作預覽之用。Word 或 PowerPoint 檔案會交付給買家，但請先另存一份 PDF 作預覽。",
+      "need_pdf_hint": "已加入。沒有 PDF 時，買家會以封面圖片作預覽，建議加入清晰的封面圖片（如未加入，系統會按標題自動製作）。",
       "tags_chip_placeholder": "輸入標籤後按 Enter，例如 IA",
       "tag_remove": "移除 #{{tag}}"
     },
@@ -2172,7 +2172,8 @@
       "google_drive": "Google Drive",
       "google_docs": "Google Docs",
       "dropbox": "Dropbox",
-      "onedrive": "OneDrive"
+      "onedrive": "OneDrive",
+      "other": "檔案"
     },
     "subcategory": {
       "ia": "IA 內部評估",

@@ -840,6 +840,17 @@ async function applyUploadScan(
   return decision.status;
 }
 
+/** True when the note has uploaded files or links (material_files). */
+async function materialHasFiles(db: AdminDb, materialId: string): Promise<boolean> {
+  const { data, error } = await db
+    .from<{ id: string }>("material_files")
+    .select("id")
+    .eq("material_id", materialId)
+    .limit(1);
+  if (error) return false;
+  return (data ?? []).length > 0;
+}
+
 /** Public URLs of the seller's gallery pictures (checked by the AI review). */
 async function publicGalleryUrls(db: AdminDb, materialId: string): Promise<string[]> {
   const { data, error } = await db
@@ -889,6 +900,9 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       priceHkd: data.priceHkd ?? Number(existing?.price_hkd ?? 0),
       hasPdf: Boolean(data.base64Data) || Boolean(existing?.original_file_path),
     };
+    // Owner (2026-11-03): any format is fine; uploaded files / links count
+    // as the note's file when there is no PDF.
+    const hasExtras = existing ? await materialHasFiles(db, existing.id) : false;
     // #543 / #573: free (HK$0) or HK$20 to HK$5,000.
     const priceProblem = validateListingPrice(Number(merged.priceHkd ?? 0), kinds.materialType);
     if (priceProblem) {
@@ -898,7 +912,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
           : "Paid listings start at HK$20. Set HK$0 for a free item.",
       );
     }
-    const check = checkSubmitReadiness(merged);
+    const check = checkSubmitReadiness({ ...merged, hasPdf: merged.hasPdf || hasExtras });
     if (!check.ok) {
       throw new Error(`Missing: ${check.missing.join(", ")}`);
     }

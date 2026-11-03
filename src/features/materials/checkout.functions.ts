@@ -339,7 +339,8 @@ export const startCheckout = createServerFn({ method: "POST" })
     // notes kinds run the "original must exist" gate.
     if (
       (FILE_BEARING_MATERIAL_TYPES as readonly string[]).includes(material.material_type) &&
-      !material.original_file_path
+      !material.original_file_path &&
+      !(await materialHasExtraFiles(db, material.id))
     ) {
       throw new Error("This note is not available right now.");
     }
@@ -950,6 +951,17 @@ export const releaseOrder = createServerFn({ method: "POST" })
     return performOrderRelease(db, order, context.userId);
   });
 
+/** True when the listing has uploaded files or links (material_files). */
+async function materialHasExtraFiles(db: AdminDb, materialId: string): Promise<boolean> {
+  const { data, error } = await db
+    .from<{ id: string }>("material_files")
+    .select("id")
+    .eq("material_id", materialId)
+    .limit(1);
+  if (error) return false;
+  return (data ?? []).length > 0;
+}
+
 /**
  * The release pipeline (stamp + deliver / unlock), shared by the staff
  * release action and (#556) the instant HK$0 free download. `releasedBy` is
@@ -1025,7 +1037,34 @@ async function performOrderRelease(
     }
   }
 
-  if (!material.original_file_path) throw new Error("The note file is missing.");
+  // Owner (2026-11-03): a note may be Word / PPT / other files only (no
+  // PDF to stamp). Those files are delivered on the note page
+  // (getNoteDeliverables), so the order is released without a stamped copy.
+  if (!material.original_file_path) {
+    if (!(await materialHasExtraFiles(db, material.id))) {
+      throw new Error("The note file is missing.");
+    }
+    const deliveredAt = new Date().toISOString();
+    const holdHours = await getTutorHoldWindowHours(db, order.tutor_id);
+    const escrow = buildEscrowReleaseFields({
+      grossHkd: Number(order.gross_hkd),
+      holdHours,
+      deliveredAtIso: deliveredAt,
+    });
+    const { error: deliveredError } = await db
+      .from<never>("material_orders")
+      .update({
+        status: escrow.status,
+        delivered_at: deliveredAt,
+        delivered_by: releasedBy,
+        ...(escrow.status === "held" ? { hold_until: escrow.holdUntilIso } : {}),
+      })
+      .eq("id", order.id);
+    if (deliveredError) throw new Error(deliveredError.message);
+    await db.rpc("increment_material_sold_count", { p_material_id: order.material_id });
+    void sendOrderReceipt(order.id).catch(() => undefined);
+    return { ok: true, status: "delivered" as const };
+  }
 
   const { error: stampingError } = await db
     .from<never>("material_orders")

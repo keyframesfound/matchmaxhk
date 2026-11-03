@@ -1954,7 +1954,7 @@
       "exemplar_permission": "I have written permission from the student. Names are removed. This is an exemplar, not for submission.",
       "exemplar_permission_short": "exemplar permission confirmation",
       "field_year": "Year",
-      "field_pdf": "a PDF or photos (export Word / PPT as PDF)",
+      "field_pdf": "a file (PDF, Word, PowerPoint, photos or any other format)",
       "replace_pdf": "Replace PDF",
       "pdf_hint": "Max 20MB. Password-protected files can't be accepted, upload an unlocked file.",
       "save_draft": "Save draft",
@@ -2000,9 +2000,9 @@
     "shop_terms_read": "Read the notes terms",
     "upload": {
       "step_files": "1. Add your files",
-      "step_files_hint": "Drop a PDF, photos or scans, Word, PowerPoint, ZIP or video files. Photos are joined into one PDF for the preview.",
+      "step_files_hint": "Drop any files: PDF, photos or scans, Word, PowerPoint, Excel, ZIP, video and more. Photos are joined into one PDF for the preview; for other formats the cover picture is the preview.",
       "drop_title": "Drop files here or click to choose",
-      "drop_formats": "PDF up to 50 MB for the preview, photos, Word, PPT, Excel, ZIP, video and audio up to 2 GB each",
+      "drop_formats": "Any format: PDF, Word, PowerPoint, Excel, photos, ZIP, video, audio and more (up to 2 GB each; PDF previews up to 50 MB)",
       "link_label": "Or paste a cloud link",
       "link_hint": "Import PDF reads a public Google Drive, Google Docs or Dropbox file. Add as link gives buyers the link after purchase (Drive, Docs, Dropbox, OneDrive).",
       "import_pdf": "Import PDF",
@@ -2014,7 +2014,7 @@
       "too_many_links": "Up to {{count}} links per note.",
       "too_many_files": "Up to {{count}} extra files per note.",
       "too_large_2gb": "{{name}} is larger than 2 GB.",
-      "unsupported": "{{name}} is not a supported file type.",
+      "unsupported": "{{name}} cannot be uploaded: programs and scripts are not allowed.",
       "pdf_too_big_for_preview": "{{name}} is over 50 MB, so it is added as a download for buyers. Add a smaller PDF or photos for the preview.",
       "merged_too_large": "The joined photo PDF is over 50 MB. Use fewer or smaller photos.",
       "merge_failed": "Could not join the photos into a PDF.",
@@ -2040,7 +2040,7 @@
       "guide_link": "Read the notes guide",
       "choose_files": "Choose files",
       "files_added": "{{count}} file(s) added.",
-      "need_pdf_hint": "Also add a PDF or photos for the preview page. Word or PowerPoint files are delivered to buyers, but please export one copy as PDF for the preview.",
+      "need_pdf_hint": "Added. Without a PDF, buyers see your cover picture as the preview, so add a clear cover picture (we make one from the title if you skip it).",
       "tags_chip_placeholder": "Type a tag and press Enter, e.g. IA",
       "tag_remove": "Remove #{{tag}}"
     },
@@ -2172,7 +2172,8 @@
       "google_drive": "Google Drive",
       "google_docs": "Google Docs",
       "dropbox": "Dropbox",
-      "onedrive": "OneDrive"
+      "onedrive": "OneDrive",
+      "other": "File"
     },
     "subcategory": {
       "ia": "IA",

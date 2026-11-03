@@ -75,6 +75,7 @@ import {
   MAX_WHATS_INCLUDED,
   SYLLABUS_MAX,
   trailerEmbedUrl,
+  isTextExtractable,
   type UploadFormat,
 } from "@/features/materials/note-taxonomy";
 import {
@@ -89,6 +90,8 @@ import {
 } from "@/features/materials/note-file-tools";
 import { materialCoverUrl } from "@/features/materials/material-card";
 import { TAG_SUGGESTIONS, TagChipsInput } from "@/features/materials/tag-chips-input";
+import { extractOfficeText } from "@/features/materials/office-text";
+import { renderCoverCard } from "@/features/materials/note-cover-card";
 import { detectDocumentLanguage } from "@/features/materials/note-ai";
 import { NotePreviewPicker } from "@/features/materials/note-preview-picker";
 import { NotePriceGuidePanel } from "@/features/materials/note-price-guide-panel";
@@ -389,8 +392,13 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   const blockedByContact = Object.values(copyViolations).some((v) => v.length > 0);
   const wordCountError = validateWordCount(wordCount.trim() === "" ? null : Number(wordCount));
   const apkgTooLarge = apkgFile != null && apkgFile.size > MAX_APKG_BYTES;
+  // Owner (2026-11-03): any format counts as the note's file (Word, PPT,
+  // images, ZIP...), a PDF is no longer required.
+  const firstDocExtra = extras.find((e) => e.file) ?? null;
   const hasMainFile =
     Boolean(mainLocal || apkgFile || remoteMainUrl) ||
+    extras.length > 0 ||
+    links.length > 0 ||
     Boolean(existing?.previewUrl) ||
     Boolean(existing && existing.pageCount != null);
 
@@ -561,16 +569,81 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   };
 
   // --- AI detection -----------------------------------------------------------------
+  // Fill the form from an AI suggestion (empty fields only unless overwrite).
+  const applySuggestion = (
+    suggestion: Awaited<ReturnType<typeof suggestNoteDetails>>,
+    overwrite: boolean,
+  ) => {
+    let filled = 0;
+    const apply = (current: string, next: string, set: (v: string) => void) => {
+      if (!next) return;
+      if (overwrite || !current.trim()) {
+        set(next);
+        filled += 1;
+      }
+    };
+    apply(title, suggestion.title, setTitle);
+    apply(summary, suggestion.summary, setSummary);
+    apply(description, suggestion.description, setDescription);
+    if (suggestion.curriculum && (overwrite || !curriculum)) {
+      setCurriculum(suggestion.curriculum);
+      filled += 1;
+      if (suggestion.subject) {
+        setSubject(suggestion.subject);
+        filled += 1;
+      }
+      if (suggestion.subcategory) {
+        setSubcategory(suggestion.subcategory);
+        filled += 1;
+      }
+    } else {
+      apply(subject, suggestion.subject, setSubject);
+      apply(subcategory, suggestion.subcategory, setSubcategory);
+    }
+    if (
+      suggestion.materialType &&
+      (overwrite || (!existing && materialType === "notes")) &&
+      suggestion.materialType !== materialType
+    ) {
+      setMaterialType(suggestion.materialType);
+      filled += 1;
+    }
+    apply(topic, suggestion.topic, setTopic);
+    apply(year, suggestion.year, setYear);
+    apply(language, suggestion.language, setLanguage);
+    if (suggestion.tags.length > 0 && (overwrite || !tagsText.trim())) {
+      setTagsText(suggestion.tags.join(", "));
+      filled += 1;
+    }
+    setAiNote(t("notes.ai.applied", { count: filled }));
+  };
+
   const runDetect = useCallback(
     async (overwrite: boolean) => {
-      if (!mainSource) {
+      if (!mainSource && !firstDocExtra?.file) {
         toast.error(t("notes.ai.need_file"));
         return;
       }
       setAiBusy(true);
       setAiNote(null);
       try {
-        const doc = await openPdf(mainSource);
+        // No PDF: read the text of the first Word / PPT / text file instead.
+        if (!mainSource && firstDocExtra?.file) {
+          const docFile = firstDocExtra.file;
+          const docText = isTextExtractable(docFile.name) ? await extractOfficeText(docFile) : "";
+          const suggestion = await suggestNoteDetails({
+            data: {
+              fileName: docFile.name,
+              pageCount: null,
+              text: docText,
+              documentLanguage: detectDocumentLanguage(docText),
+              images: [],
+            },
+          });
+          applySuggestion(suggestion, overwrite);
+          return;
+        }
+        const doc = await openPdf(mainSource as File | string);
         const text = await extractPdfText(doc);
         const pageImages: string[] = [];
         if (text.replace(/\s+/g, "").length < 200) {
@@ -595,48 +668,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           },
         });
         await doc.destroy();
-        let filled = 0;
-        const apply = (current: string, next: string, set: (v: string) => void) => {
-          if (!next) return;
-          if (overwrite || !current.trim()) {
-            set(next);
-            filled += 1;
-          }
-        };
-        apply(title, suggestion.title, setTitle);
-        apply(summary, suggestion.summary, setSummary);
-        apply(description, suggestion.description, setDescription);
-        if (suggestion.curriculum && (overwrite || !curriculum)) {
-          setCurriculum(suggestion.curriculum);
-          filled += 1;
-          if (suggestion.subject) {
-            setSubject(suggestion.subject);
-            filled += 1;
-          }
-          if (suggestion.subcategory) {
-            setSubcategory(suggestion.subcategory);
-            filled += 1;
-          }
-        } else {
-          apply(subject, suggestion.subject, setSubject);
-          apply(subcategory, suggestion.subcategory, setSubcategory);
-        }
-        if (
-          suggestion.materialType &&
-          (overwrite || (!existing && materialType === "notes")) &&
-          suggestion.materialType !== materialType
-        ) {
-          setMaterialType(suggestion.materialType);
-          filled += 1;
-        }
-        apply(topic, suggestion.topic, setTopic);
-        apply(year, suggestion.year, setYear);
-        apply(language, suggestion.language, setLanguage);
-        if (suggestion.tags.length > 0 && (overwrite || !tagsText.trim())) {
-          setTagsText(suggestion.tags.join(", "));
-          filled += 1;
-        }
-        setAiNote(t("notes.ai.applied", { count: filled }));
+        applySuggestion(suggestion, overwrite);
       } catch (error) {
         setAiNote(null);
         // Fallback: a readable title from the file name, so the seller is not
@@ -669,6 +701,8 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
       tagsText,
       existing,
       refreshRemoteMainUrl,
+      firstDocExtra,
+      applySuggestion,
       t,
     ],
   );
@@ -676,10 +710,10 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   // Auto-detect once per newly added (or imported) main file while the
   // title is still empty; edit mode never auto-runs (the title is set).
   useEffect(() => {
-    if (!mainSource || autoDetected.current || title.trim() || aiBusy) return;
+    if ((!mainSource && !firstDocExtra) || autoDetected.current || title.trim() || aiBusy) return;
     autoDetected.current = true;
     void runDetect(false);
-  }, [mainSource, title, aiBusy, runDetect]);
+  }, [mainSource, firstDocExtra, title, aiBusy, runDetect]);
 
   // --- Import a public link as the main PDF -------------------------------------------
   const importLink = async () => {
@@ -847,6 +881,23 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
         // No cover photo: the card shows its placeholder.
       }
     }
+    // No PDF and no picture (Word / PPT / other files only): a clean cover
+    // card from the title, so the listing and browse card still show a photo.
+    if (galleryFiles.length === 0 && galleryKept.length === 0 && !mainLocal && !isLive) {
+      try {
+        galleryFiles = [
+          await renderCoverCard({
+            title: meta.title || t("notes.form.new_title"),
+            subtitle: [meta.curriculumTag, meta.subjectTag].filter(Boolean).join(" · "),
+            formats: Array.from(
+              new Set(extras.map((e) => t(`notes.format.${e.format ?? "other"}`))),
+            ),
+          }),
+        ];
+      } catch {
+        // keep the placeholder
+      }
+    }
     const galleryChanged =
       galleryFiles.length > 0 || galleryKept.length !== (existing?.previewImagePaths ?? []).length;
     if (galleryChanged) {
@@ -879,6 +930,12 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
       let fileText: string | null = null;
       const pageImages: string[] = [];
       const scanSource = mainLocal ?? remoteMainUrl;
+      if (!scanSource) {
+        // Word / PPT / text files: read their text for the content check.
+        const readable = extras.filter((e) => e.file && isTextExtractable(e.name)).slice(0, 3);
+        const texts = await Promise.all(readable.map((e) => extractOfficeText(e.file as File)));
+        fileText = texts.join("\n").slice(0, 60_000) || null;
+      }
       if (scanSource) {
         try {
           const doc = await openPdf(scanSource);
