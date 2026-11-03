@@ -6,7 +6,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Mobile Airbnb-style search entry: a shadow-elevated "Start your search"
- * bar above the quick-nav pills row (Marketplace / Case / Become a Tutor / Calendar)
+ * bar above the quick-nav pills row (Marketplace / Case / Calendar / Become a Tutor)
  * that doubles as the mobile top navigation. The block bleeds to the true
  * screen edges (canceling the parent px-4/px-6 container) and the pills row
  * scrolls with cut-off pills touching the screen edge, like Airbnb. The
@@ -27,8 +27,8 @@ export function MobileSearchTrigger({
   const search = useRouterState({ select: (state) => state.location.searchStr ?? "" });
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
 
-  // #594 CEO lock (2026-11-03): phone pills L→R Marketplace · Case ·
-  // Become a Tutor · Calendar. Guide lives in the menu / Help (as on Mac).
+  // #594 CEO lock (2026-11-03), owner order: phone pills L→R Marketplace ·
+  // Case · Calendar · Become a Tutor. Guide lives in the menu / Help (as on Mac).
   const notesActive = pathname === "/tutors" && search.includes("view=materials");
   const navPills: {
     key: string;
@@ -54,18 +54,18 @@ export function MobileSearchTrigger({
       active: isActive("/tutor-requests"),
     },
     {
-      key: "join",
-      label: t("nav.become_tutor"),
-      to: "/join",
-      icon: "/nav-become-tutor.png",
-      active: isActive("/join"),
-    },
-    {
       key: "calendar",
       label: t("nav.tab_calendar"),
       to: "/calendar",
       icon: "/nav-calendar.png",
       active: isActive("/calendar"),
+    },
+    {
+      key: "join",
+      label: t("nav.become_tutor"),
+      to: "/join",
+      icon: "/nav-become-tutor.png",
+      active: isActive("/join"),
     },
   ];
 
