@@ -12,7 +12,7 @@ import {
   type RatingSummary,
 } from "@/features/materials/note-reviews";
 import { fetchPublicNoteRows, type PublicNote } from "@/features/materials/notes.functions";
-import { recommend } from "@/features/materials/note-recommend";
+import { recommend, similarOnClick } from "@/features/materials/note-recommend";
 
 /**
  * Notes upload v2: verified-buyer reviews, saved notes and similar notes.
@@ -255,6 +255,13 @@ export const getSimilarNotes = createServerFn({ method: "POST" })
         materialId: z.string().uuid().optional(),
         seedIds: z.array(z.string().uuid()).max(50).optional(),
         excludeIds: z.array(z.string().uuid()).max(300).optional(),
+        // Explore / Find filters the viewer arrived with (constrain first).
+        activeFilters: z
+          .object({
+            curriculum: z.string().trim().max(40).nullish(),
+            subject: z.string().trim().max(160).nullish(),
+          })
+          .optional(),
       })
       .parse(data),
   )
@@ -289,6 +296,14 @@ export const getSimilarNotes = createServerFn({ method: "POST" })
       return { ...note, rating, ratingAverage: rating.average };
     });
     const seeds = items.filter((n) => seedIds.includes(n.id));
+    // #557 / #626 Child 2: a single viewed note (detail page) uses the
+    // similar-on-click rules (subject lock, author cap 2/6, 5 + 1 slots).
+    if (data.materialId && !data.seedIds?.length && seeds.length === 1) {
+      return similarOnClick(seeds[0], items, {
+        exclude: data.excludeIds ?? [],
+        activeFilters: data.activeFilters,
+      }).map(({ ratingAverage: _ratingAverage, ...note }) => note);
+    }
     return recommend(seeds, items, { exclude: data.excludeIds ?? [], limit: 8 }).map(
       ({ ratingAverage: _ratingAverage, ...note }) => note,
     );
