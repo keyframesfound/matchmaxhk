@@ -108,8 +108,14 @@ async function viaWorkersAi(
   userId: string | null,
 ): Promise<string | null> {
   const ai = getRuntimeBinding<AiBinding>("AI");
-  if (!ai || typeof ai.run !== "function") return null;
-  if (!(await workersAiBudgetLeft())) return null;
+  if (!ai || typeof ai.run !== "function") {
+    console.error("[free-ai] Workers AI binding AI not found");
+    return null;
+  }
+  if (!(await workersAiBudgetLeft())) {
+    console.error("[free-ai] Workers AI daily budget used up");
+    return null;
+  }
   for (const model of vision ? WORKERS_AI_VISION_MODELS : WORKERS_AI_TEXT_MODELS) {
     try {
       await recordWorkersAiCall(userId);

@@ -101,7 +101,7 @@ export const suggestNoteDetails = createServerFn({ method: "POST" })
     });
     if (!reply.text) {
       throw new Error(
-        "The free AI quota for today is used up. Fill in the details by hand, or try Detect again later. 今日的免費 AI 額度已用完，請先手動填寫，或稍後再試。",
+        `The free AI quota for today is used up. Fill in the details by hand, or try Detect again later. 今日的免費 AI 額度已用完，請先手動填寫，或稍後再試。${reply.status ? ` (code ${reply.status})` : ""}`,
       );
     }
     return normalizeNoteAiResult(reply.text);
