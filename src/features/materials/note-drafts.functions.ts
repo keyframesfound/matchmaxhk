@@ -1101,6 +1101,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       fileText: data.fileText ?? null,
       images,
       regexHints,
+      userId: context.userId,
     });
     const decision = decideModeration({
       regexFlags: scanFlags,
