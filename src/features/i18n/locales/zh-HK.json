@@ -2467,6 +2467,24 @@
     "tutor": "導師",
     "parent": "家長／學生"
   },
+  "saved": {
+    "eyebrow": "你的收藏",
+    "title": "收藏",
+    "subtitle": "收藏想再看的導師、精讀筆記及市集商品。",
+    "tab_tutors": "導師",
+    "tab_marketplace": "市集",
+    "cta_find_tutors": "尋找導師",
+    "cta_browse_marketplace": "瀏覽市集",
+    "empty_global_title": "還沒有收藏任何項目",
+    "empty_global_desc": "收藏導師及市集商品，建立你的清單。",
+    "empty_tutors_title": "還沒有收藏導師",
+    "empty_tutors_desc": "瀏覽導師目錄，收藏想再看一次的導師檔案。",
+    "empty_marketplace_title": "還沒有收藏市集商品",
+    "empty_marketplace_desc": "收藏精讀筆記及其他市集商品，它們會顯示在這裡。",
+    "loading_marketplace": "正在載入收藏的市集商品...",
+    "error_marketplace_title": "無法載入收藏的市集商品",
+    "error_marketplace_desc": "請重新整理頁面再試一次。"
+  },
   "search_panel": {
     "find_tutor": "搵導師",
     "keyword_placeholder": "搜尋導師編號、科目、關鍵字…",

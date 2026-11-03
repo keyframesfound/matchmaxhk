@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -23,7 +23,7 @@ import {
 } from "@/features/materials/queries";
 import { NoteBrowseCard } from "@/features/materials/note-browse-card";
 import { cn } from "@/lib/utils";
-import { AuthGateDialog } from "@/features/auth/AuthGateDialog";
+import { AuthGateDialog, consumePendingMaterialSaveId } from "@/features/auth/AuthGateDialog";
 import { useAuth } from "@/features/auth/useAuth";
 import { rankBySearch } from "@/features/materials/note-search";
 import {
@@ -119,10 +119,14 @@ export function MaterialsDirectory() {
   });
   const ratings = ratingsQuery.data ?? new Map<string, { average: number | null; count: number }>();
   const [authGateOpen, setAuthGateOpen] = useState(false);
+  // #610: the material whose save was interrupted by the sign-in gate, so the
+  // auth round-trip can resume it (same pattern as tutor/course saves).
+  const [gateMaterialId, setGateMaterialId] = useState<string | null>(null);
   const queryClient = useQueryClient();
   // Card heart: signed-out viewers get the sign-in gate.
   const toggleSave = async (id: string) => {
     if (!user) {
+      setGateMaterialId(id);
       setAuthGateOpen(true);
       return;
     }
@@ -135,6 +139,26 @@ export function MaterialsDirectory() {
       toast.error(t("notes.engage.save_failed"));
     }
   };
+
+  // #610: resume a save interrupted by the sign-in flow (pending-save stash
+  // or ?save= URL param from the Google OAuth round-trip). The grid cards
+  // don't own the gate, so the directory consumes the pending id itself.
+  const resumingRef = useRef(false);
+  useEffect(() => {
+    if (!user || resumingRef.current) return;
+    const pendingId = consumePendingMaterialSaveId();
+    if (!pendingId) return;
+    resumingRef.current = true;
+    (async () => {
+      try {
+        await setNoteSaved({ data: { materialId: pendingId, saved: true } });
+        await queryClient.invalidateQueries({ queryKey: SAVED_NOTES_QUERY_KEY });
+        toast.success(t("notes.engage.saved"));
+      } catch {
+        toast.error(t("notes.engage.save_failed"));
+      }
+    })();
+  }, [user, queryClient, t]);
 
   const schools = useMemo(() => collectSchoolTags(materials), [materials]);
   const subjects = useMemo(
@@ -515,6 +539,7 @@ export function MaterialsDirectory() {
         onOpenChange={setAuthGateOpen}
         title={t("notes.gate_title")}
         description={t("notes.gate_description")}
+        pendingSave={gateMaterialId ? { type: "material", id: gateMaterialId } : undefined}
       />
       {/* #557: "Recommended for you" seeded by the viewer's saved notes. */}
       {savedOnly && savedIds.size > 0 ? (

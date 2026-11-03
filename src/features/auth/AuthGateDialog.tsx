@@ -9,9 +9,12 @@ import { supabase } from "@/integrations/supabase/client";
 const PENDING_SAVE_KEY = "mm_pending_save";
 
 export type PendingSave = {
-  type: "tutor" | "case" | "course";
+  type: "tutor" | "case" | "course" | "material";
   id: string;
 };
+
+const isPendingSaveType = (type: unknown): type is PendingSave["type"] =>
+  type === "tutor" || type === "case" || type === "course" || type === "material";
 
 export function stashPendingSave(save: PendingSave) {
   try {
@@ -27,11 +30,7 @@ export function takePendingSave(): PendingSave | null {
     if (!raw) return null;
     sessionStorage.removeItem(PENDING_SAVE_KEY);
     const parsed = JSON.parse(raw) as PendingSave;
-    if (
-      parsed &&
-      (parsed.type === "tutor" || parsed.type === "case" || parsed.type === "course") &&
-      typeof parsed.id === "string"
-    ) {
+    if (parsed && isPendingSaveType(parsed.type) && typeof parsed.id === "string") {
       return parsed;
     }
   } catch {
@@ -45,15 +44,36 @@ export function peekPendingSave(): PendingSave | null {
     const raw = sessionStorage.getItem(PENDING_SAVE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as PendingSave;
-    if (
-      parsed &&
-      (parsed.type === "tutor" || parsed.type === "case" || parsed.type === "course") &&
-      typeof parsed.id === "string"
-    ) {
+    if (parsed && isPendingSaveType(parsed.type) && typeof parsed.id === "string") {
       return parsed;
     }
   } catch {
     // ignore malformed stash
+  }
+  return null;
+}
+
+/**
+ * #610 materials: resume id for a pending Marketplace material save, from the
+ * ?save= URL param (Google OAuth round-trip) or the sessionStorage stash.
+ * The consumed source is cleared (param stripped / stash removed) so the
+ * resume fires once. Grid cards don't know their own id at mount time (unlike
+ * SaveNoteButton on the note page), so the directory consumes by type alone.
+ */
+export function consumePendingMaterialSaveId(): string | null {
+  const params = new URLSearchParams(window.location.search);
+  const raw = params.get("save");
+  if (raw?.startsWith("material:")) {
+    const id = raw.slice("material:".length);
+    params.delete("save");
+    const next = `${window.location.pathname}${params.size ? `?${params}` : ""}`;
+    window.history.replaceState(null, "", next);
+    return id || null;
+  }
+  const stashed = peekPendingSave();
+  if (stashed && stashed.type === "material") {
+    takePendingSave();
+    return stashed.id;
   }
   return null;
 }

@@ -4008,5 +4008,23 @@
     "err_PHONE_NOT_VERIFIED": "请先验证你的香港手机号码。",
     "err_PHONE_NOT_HK": "请验证香港（+852）手机号码。",
     "err_PHONE_MISMATCH": "此查询的 WhatsApp 号码必须与已验证的手机号码相同。"
+  },
+  "saved": {
+    "eyebrow": "你的收藏",
+    "title": "收藏",
+    "subtitle": "收藏想再看的导师、精读笔记及市集商品。",
+    "tab_tutors": "导师",
+    "tab_marketplace": "市集",
+    "cta_find_tutors": "寻找导师",
+    "cta_browse_marketplace": "浏览市集",
+    "empty_global_title": "还没有收藏任何项目",
+    "empty_global_desc": "收藏导师及市集商品，建立你的清单。",
+    "empty_tutors_title": "还没有收藏导师",
+    "empty_tutors_desc": "浏览导师目录，收藏想再看一次的导师档案。",
+    "empty_marketplace_title": "还没有收藏市集商品",
+    "empty_marketplace_desc": "收藏精读笔记及其他市集商品，它们会显示在这里。",
+    "loading_marketplace": "正在载入收藏的市集商品...",
+    "error_marketplace_title": "无法载入收藏的市集商品",
+    "error_marketplace_desc": "请重新整理页面再试一次。"
   }
 }

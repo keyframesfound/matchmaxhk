@@ -8,7 +8,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/features/auth/useAuth";
-import { AuthGateDialog } from "@/features/auth/AuthGateDialog";
+import { AuthGateDialog, type PendingSave } from "@/features/auth/AuthGateDialog";
 import {
   getPublicNote,
   getPublicNotesByTutor,
@@ -112,6 +112,9 @@ function NotePage() {
   const router = useRouter();
   const navigate = router.navigate.bind(router);
   const [gateOpen, setGateOpen] = useState(false);
+  // #610: the save action carries its pending save through the auth gate
+  // (resumed after sign-in); the checkout gate opens without one.
+  const [pendingSave, setPendingSave] = useState<PendingSave | undefined>(undefined);
   // Issue #214: the checkout terms gate, the buy click doubles as the
   // notes-terms acceptance click. Client gate here (button refuses to place
   // the order unchecked); startCheckout re-validates server-side and records
@@ -154,7 +157,10 @@ function NotePage() {
     onSuccess: ({ orderId }) => {
       void navigate({ to: `/orders/${orderId}` });
     },
-    onError: () => setGateOpen(true),
+    onError: () => {
+      setPendingSave(undefined);
+      setGateOpen(true);
+    },
   });
 
   const othersQuery = useQuery({
@@ -257,7 +263,13 @@ function NotePage() {
               </div>
               {/* Notes upload v2: save / share / jump to reviews. */}
               <div className="flex flex-wrap items-center gap-2">
-                <SaveNoteButton materialId={note.id} onRequireAuth={() => setGateOpen(true)} />
+                <SaveNoteButton
+                  materialId={note.id}
+                  onRequireAuth={() => {
+                    setPendingSave({ type: "material", id: note.id });
+                    setGateOpen(true);
+                  }}
+                />
                 <ShareNoteButton note={note} />
                 <Button asChild variant="ghost" size="sm">
                   <a href="#reviews">{t("notes.reviews.jump")}</a>
@@ -412,6 +424,7 @@ function NotePage() {
                 disabled={checkoutMutation.isPending || isOwner}
                 onClick={() => {
                   if (!user) {
+                    setPendingSave(undefined);
                     setGateOpen(true);
                     return;
                   }
@@ -505,6 +518,7 @@ function NotePage() {
         onOpenChange={setGateOpen}
         title={t("notes.gate_title")}
         description={t("notes.gate_description")}
+        pendingSave={pendingSave}
       />
     </div>
   );

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -6,6 +6,7 @@ import { Download, Heart, Link2, Scale, Share2, Upload } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { consumePendingSave, scrollPostIntoView } from "@/features/auth/AuthGateDialog";
 import {
   Dialog,
   DialogContent,
@@ -61,6 +62,7 @@ export function SaveNoteButton({
   const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const buttonRef = useRef<HTMLButtonElement>(null);
   const savedQuery = useQuery({
     queryKey: [...SAVED_NOTES_QUERY_KEY, user?.id],
     queryFn: () => getMySavedNoteIds(),
@@ -81,8 +83,22 @@ export function SaveNoteButton({
     onError: (error) =>
       toast.error(error instanceof Error ? error.message : t("notes.engage.save_failed")),
   });
+
+  // Resume a save interrupted by the sign-in flow (#610): pending-save stash
+  // or ?save= URL param left by the Google OAuth round-trip — the same
+  // pattern as tutor/course saves.
+  useEffect(() => {
+    if (!user) return;
+    if (consumePendingSave("material", materialId)) {
+      scrollPostIntoView(buttonRef.current);
+      mutation.mutate(true);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user, materialId]);
+
   return (
     <Button
+      ref={buttonRef}
       type="button"
       variant="outline"
       size="sm"

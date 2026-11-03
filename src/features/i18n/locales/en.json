@@ -2467,6 +2467,24 @@
     "tutor": "Tutor",
     "parent": "Parent / Student"
   },
+  "saved": {
+    "eyebrow": "Your collection",
+    "title": "Saved Posts",
+    "subtitle": "Keep tutors, study notes, and Marketplace finds you want to reopen.",
+    "tab_tutors": "Tutors",
+    "tab_marketplace": "Marketplace",
+    "cta_find_tutors": "Find tutors",
+    "cta_browse_marketplace": "Browse Marketplace",
+    "empty_global_title": "Nothing saved yet",
+    "empty_global_desc": "Bookmark tutors and Marketplace finds to build your shortlist.",
+    "empty_tutors_title": "No saved tutors yet",
+    "empty_tutors_desc": "Browse the tutor directory and bookmark the profiles you want to revisit.",
+    "empty_marketplace_title": "No saved Marketplace items yet",
+    "empty_marketplace_desc": "Save notes and other Marketplace finds and they will show up here.",
+    "loading_marketplace": "Loading saved Marketplace items...",
+    "error_marketplace_title": "We couldn't load your saved Marketplace items",
+    "error_marketplace_desc": "Please refresh the page and try again."
+  },
   "search_panel": {
     "find_tutor": "Find tutor",
     "keyword_placeholder": "Search tutor code, subject, keyword…",
