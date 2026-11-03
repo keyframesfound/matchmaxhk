@@ -91,6 +91,7 @@ import {
 import { materialCoverUrl } from "@/features/materials/material-card";
 import { TAG_SUGGESTIONS, TagChipsInput } from "@/features/materials/tag-chips-input";
 import { extractOfficeText } from "@/features/materials/office-text";
+import { buildOfficePreviewPdf } from "@/features/materials/office-preview";
 import { renderCoverCard } from "@/features/materials/note-cover-card";
 import { detectDocumentLanguage } from "@/features/materials/note-ai";
 import { NotePreviewPicker } from "@/features/materials/note-preview-picker";
@@ -237,6 +238,11 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [images, setImages] = useState<File[]>([]);
   const [mergedPdf, setMergedPdf] = useState<File | null>(null);
+  // Word / PowerPoint only: a PDF version drawn from the document's text,
+  // used for preview pages (and delivered next to the original).
+  const [officePdf, setOfficePdf] = useState<File | null>(null);
+  const [officeSourceKey, setOfficeSourceKey] = useState<string | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
   const [merging, setMerging] = useState(false);
   const [apkgFile, setApkgFile] = useState<File | null>(null);
   const [extras, setExtras] = useState<ExtraItem[]>([]);
@@ -375,7 +381,46 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     };
   }, [images, pdfFile, t]);
 
-  const mainLocal = pdfFile ?? mergedPdf;
+  // Word / PowerPoint without any PDF or photo: build a PDF version from the
+  // document text so buyers get real preview pages (picker + watermark).
+  const officeCandidate =
+    !pdfFile && images.length === 0 && !remoteMainUrl && !existing?.previewUrl && !isLive
+      ? (extras.find((e) => e.file && /\.(docx|pptx|odt|odp|txt|md|rtf)$/i.test(e.name)) ?? null)
+      : null;
+  useEffect(() => {
+    if (!officeCandidate?.file) {
+      setOfficePdf(null);
+      setOfficeSourceKey(null);
+      return;
+    }
+    if (officeSourceKey === officeCandidate.key) return;
+    let cancelled = false;
+    setOfficeSourceKey(officeCandidate.key);
+    setMerging(true);
+    buildOfficePreviewPdf(officeCandidate.file, t("notes.upload.office_preview_footer"))
+      .then((file) => {
+        if (cancelled) return;
+        setOfficePdf(file);
+        if (file) {
+          setPreviewPicks(null);
+          setPicksDirty(true);
+          toast.message(t("notes.upload.office_preview_made"));
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setOfficePdf(null);
+      })
+      .finally(() => {
+        if (!cancelled) setMerging(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+    // officeSourceKey guards re-runs; t is stable.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [officeCandidate?.key]);
+
+  const mainLocal = pdfFile ?? mergedPdf ?? officePdf;
   const mainSource: File | string | null = mainLocal ?? remoteMainUrl;
 
   // --- Validation -------------------------------------------------------------
@@ -620,15 +665,18 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
 
   const runDetect = useCallback(
     async (overwrite: boolean) => {
+      // The Word / PPT PDF version has no text layer: read the original.
+      const useDocText = Boolean(firstDocExtra?.file) && !pdfFile && !mergedPdf && !remoteMainUrl;
       if (!mainSource && !firstDocExtra?.file) {
         toast.error(t("notes.ai.need_file"));
         return;
       }
       setAiBusy(true);
       setAiNote(null);
+      setAiError(null);
       try {
         // No PDF: read the text of the first Word / PPT / text file instead.
-        if (!mainSource && firstDocExtra?.file) {
+        if (useDocText && firstDocExtra?.file) {
           const docFile = firstDocExtra.file;
           const docText = isTextExtractable(docFile.name) ? await extractOfficeText(docFile) : "";
           const suggestion = await suggestNoteDetails({
@@ -679,7 +727,9 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
         }
         // Expired signed URL: refresh it so the next attempt works.
         if (typeof mainSource === "string") await refreshRemoteMainUrl(mainSource);
-        toast.error(error instanceof Error ? error.message : t("notes.ai.failed"));
+        const message = error instanceof Error ? error.message : t("notes.ai.failed");
+        setAiError(message);
+        toast.error(message);
       } finally {
         setAiBusy(false);
       }
@@ -929,7 +979,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
       // #573 scanner: send the main PDF's text layer (none for scans).
       let fileText: string | null = null;
       const pageImages: string[] = [];
-      const scanSource = mainLocal ?? remoteMainUrl;
+      const scanSource = officePdf ? null : (mainLocal ?? remoteMainUrl);
       if (!scanSource) {
         // Word / PPT / text files: read their text for the content check.
         const readable = extras.filter((e) => e.file && isTextExtractable(e.name)).slice(0, 3);
@@ -1291,7 +1341,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             type="button"
             variant="outline"
             size="sm"
-            disabled={aiBusy || !mainSource}
+            disabled={aiBusy || (!mainSource && !firstDocExtra)}
             onClick={() => void runDetect(true)}
           >
             {aiBusy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden /> : null}
@@ -1299,6 +1349,11 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           </Button>
         </div>
         {aiNote ? <p className="text-xs font-medium text-success">{aiNote}</p> : null}
+        {aiError ? (
+          <p role="alert" className="text-xs font-medium text-destructive">
+            {aiError}
+          </p>
+        ) : null}
       </section>
 
       {/* 3. Preview pages ----------------------------------------------------- */}
