@@ -1318,14 +1318,6 @@
       "disclaimer_slip": "家长如果想看成绩纸，喺介绍之后直接向导师攞。MatchMax 唔会发送任何身分证明文件。"
     }
   },
-  "promo": {
-    "referral_headline": "推荐导师 · 15% 现金奖赏",
-    "referral_cta": "立即推荐",
-    "impact_headline": "支持基层免费义务补习",
-    "impact_cta": "了解详情",
-    "upload_headline": "上传笔记 · 在市集出售",
-    "upload_cta": "上传笔记"
-  },
   "help": {
     "title": "你好，有咩可以帮到你？",
     "search_placeholder": "搜寻教学指南、沟通技巧同政策…",
@@ -1888,7 +1880,8 @@
     "mode_switch_error": "无法切换模式，请再试一次。",
     "workspaces": "工作区",
     "upload_notes": "上传笔记",
-    "tab_calendar": "日历"
+    "tab_calendar": "日历",
+    "tab_marketplace": "市集"
   },
   "nav_mobile": {
     "case": "个案",
@@ -4011,5 +4004,14 @@
     "err_PHONE_NOT_VERIFIED": "请先验证你的香港手机号码。",
     "err_PHONE_NOT_HK": "请验证香港（+852）手机号码。",
     "err_PHONE_MISMATCH": "此查询的 WhatsApp 号码必须与已验证的手机号码相同。"
+  },
+  "home_promo": {
+    "aria": "MatchMax 更多功能",
+    "referral_title": "推荐导师 · 15% 现金奖赏",
+    "referral_cta": "立即推荐",
+    "impact_title": "支持基层免费义务补习",
+    "impact_cta": "了解详情",
+    "upload_title": "上传笔记 · 在市集出售",
+    "upload_cta": "上传笔记"
   }
 }

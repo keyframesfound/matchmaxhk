@@ -1318,14 +1318,6 @@
       "disclaimer_slip": "Parents who want the slip ask the tutor after the introduction; MatchMax does not send identity documents."
     }
   },
-  "promo": {
-    "referral_headline": "Refer a tutor · 15% cash bonus",
-    "referral_cta": "Refer a friend",
-    "impact_headline": "Support free pro-bono tutoring",
-    "impact_cta": "Learn how",
-    "upload_headline": "Upload notes · sell on Marketplace",
-    "upload_cta": "Upload notes"
-  },
   "help": {
     "title": "Hi, how can we help?",
     "search_placeholder": "Search how-tos, communication tips, and policies...",
@@ -1874,7 +1866,7 @@
     "back": "Back",
     "help": "Help",
     "tab_saved": "Saved",
-    "tab_cases": "Cases",
+    "tab_cases": "Case",
     "site_menu": "Main menu",
     "become_tutor_subtitle": "It's easy to start tutoring and earn extra income.",
     "post_case": "Post a case",
@@ -1888,7 +1880,8 @@
     "mode_switch_error": "Could not switch mode. Please try again.",
     "workspaces": "Workspaces",
     "upload_notes": "Upload notes",
-    "tab_calendar": "Calendar"
+    "tab_calendar": "Calendar",
+    "tab_marketplace": "Marketplace"
   },
   "nav_mobile": {
     "case": "Case",
@@ -4011,5 +4004,14 @@
     "err_PHONE_NOT_VERIFIED": "Please verify your Hong Kong mobile number first.",
     "err_PHONE_NOT_HK": "Please verify a Hong Kong (+852) mobile number.",
     "err_PHONE_MISMATCH": "The WhatsApp number on this request must match your verified mobile."
+  },
+  "home_promo": {
+    "aria": "Get more from MatchMax",
+    "referral_title": "Refer a tutor · 15% cash bonus",
+    "referral_cta": "Refer a friend",
+    "impact_title": "Support free pro-bono tutoring",
+    "impact_cta": "Learn how",
+    "upload_title": "Upload notes · sell on Marketplace",
+    "upload_cta": "Upload notes"
   }
 }
