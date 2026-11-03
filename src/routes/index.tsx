@@ -23,6 +23,7 @@ import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { HomeNotesRow } from "@/features/materials/home-notes-row";
 import { HomeGigsRow } from "@/features/gigs/home-gigs-row";
+import { ExplorePromoRow } from "@/features/promos/explore-promo-row";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
 import { getTutorInquiryAction } from "@/features/tutors/tutor-display";
 import { cn } from "@/lib/utils";
@@ -768,6 +769,10 @@ function Landing() {
                   Same ≥3-listings guardrail; renders nothing when the gigs
                   RPC is missing or fewer than three services are published. */}
               <HomeGigsRow />
+              {/* Issue #620: ONE promo row mid-feed (Airbnb Hotels pattern) —
+                  three equal compact CTA cards; the next tutor row must stay
+                  visible below it, so this never grows into a hero. */}
+              <ExplorePromoRow />
               {/* Issue #151 Option A: trending showcase; hidden entirely
                   (existing page) until 3+ tutors clear the guardrail. */}
               {trendingEntries.length > 0 ? (

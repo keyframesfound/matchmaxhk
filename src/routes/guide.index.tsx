@@ -253,6 +253,9 @@ function GuideIndexPage() {
         id="why-us"
         className="mx-auto max-w-[1600px] scroll-mt-32 px-5 pb-16 pt-12 text-center sm:px-8 sm:pb-24 sm:pt-16 lg:px-12"
       >
+        {/* Issue #620: interim Impact anchor — the Explore Pro-bono card's
+            "Learn how" lands here until #400 ships the real /impact page. */}
+        <div id="impact" className="scroll-mt-32" aria-hidden="true" />
         <span className="inline-flex items-center gap-2 rounded-full bg-[color:var(--accent)] px-4 py-1.5 text-sm font-semibold text-[color:var(--ink)]">
           {t("guide.index_badge")}
         </span>

@@ -292,11 +292,6 @@
     "onboarding_handle_taken": "此外号已被使用。",
     "onboarding_cap57": "MatchMax 上嘅导师属自雇人士，并非 MatchMax 嘅雇员或代理人，收费同时间由你自己决定。"
   },
-  "banner": {
-    "value_prop": "家长免费，导师公平。低至 1.5 课行政费，保留更多收入。",
-    "referral_promo": "🚀 导师：推荐朋友接个案，即赚 15% 现金奖赏！",
-    "referral_cta": "揿呢度睇详情"
-  },
   "brand": "MatchMax",
   "caseApplications": {
     "new_tutor_cap": "新导师同一时间可持有的首堂个案已达上限。完成一堂首堂后即可再申请。",
@@ -1322,6 +1317,14 @@
       "disclaimer_endorsement": "只核对文件——并非获 IBO、HKEAA 或任何学校认可。",
       "disclaimer_slip": "家长如果想看成绩纸，喺介绍之后直接向导师攞。MatchMax 唔会发送任何身分证明文件。"
     }
+  },
+  "promo": {
+    "referral_headline": "推荐导师 · 15% 现金奖赏",
+    "referral_cta": "立即推荐",
+    "impact_headline": "支持基层免费义务补习",
+    "impact_cta": "了解详情",
+    "upload_headline": "上传笔记 · 在市集出售",
+    "upload_cta": "上传笔记"
   },
   "help": {
     "title": "你好，有咩可以帮到你？",

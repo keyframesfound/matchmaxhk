@@ -13,7 +13,6 @@ import { supabase } from "@/integrations/supabase/client";
 /** Keys this browser caches for MatchMax that the clear action wipes. */
 const LOCAL_STORAGE_KEYS = ["matchmax:compared-cases"];
 const SESSION_STORAGE_PREFIXES = ["matchmax.draft."];
-const SESSION_STORAGE_KEYS = ["mm_banner_dismissed_session_v1"];
 
 export function PrivacySection({ user, profile }: SettingsSectionProps) {
   const { t } = useTranslation();
@@ -64,7 +63,6 @@ export function PrivacySection({ user, profile }: SettingsSectionProps) {
     setClearing(true);
     try {
       for (const key of LOCAL_STORAGE_KEYS) window.localStorage.removeItem(key);
-      for (const key of SESSION_STORAGE_KEYS) window.sessionStorage.removeItem(key);
       for (const prefix of SESSION_STORAGE_PREFIXES) {
         for (let i = window.sessionStorage.length - 1; i >= 0; i -= 1) {
           const key = window.sessionStorage.key(i);

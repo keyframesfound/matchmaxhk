@@ -44,7 +44,6 @@ import { requestTour, TOUR_STORAGE_KEYS } from "@/features/tours/tour-requests";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 import { cn } from "@/lib/utils";
 
-import { AnnouncementBanner } from "./AnnouncementBanner";
 import { MobileBottomNav } from "./mobile-bottom-nav";
 import { StaggeredMobileMenu } from "./StaggeredMobileMenu";
 
@@ -593,7 +592,6 @@ export function SiteHeader({
             </DropdownMenu>
           </div>
         </div>
-        <AnnouncementBanner />
       </header>
       {/* #307: no hairline here -- the mobile bar and the search band below
           read as one continuous grey surface, matching the desktop header. */}

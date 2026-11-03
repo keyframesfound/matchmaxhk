@@ -230,19 +230,16 @@ export function GuidePage({ current, children }: { current: GuideTab; children: 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
   // Blocker 1 of the AI review: the bar must offset below the full sticky
-  // chrome, not a hardcoded header height, the desktop header is 72px PLUS
-  // the announcement banner while it is undismissed, and the mobile header
-  // is 56px. Measure the header's live height so the bar never hides under
-  // it (or under a banner that appears later in the session).
+  // chrome, not a hardcoded header height, the desktop header is 72px and
+  // the mobile header is 56px. Measure the header's live height so the bar
+  // never hides under it.
   //
-  // The banner mounts one effect after the header (sessionStorage read), so
-  // the one-shot measure used to capture the 72px pre-banner height and the
-  // bar then slid under the banner on scroll. The announcement banner is an
-  // in-flow child of the desktop <header>, so a ResizeObserver on the header
-  // catches banner mount, dismissal, and rotation. Both breakpoint headers
-  // exist in the DOM at all widths; measure whichever is actually rendered
-  // (the hidden one reports offsetHeight 0) so mobile no longer falls back
-  // to the display:none desktop header.
+  // The announcement banner (#620, removed) used to sit inside the desktop
+  // <header>; the live-measure + ResizeObserver here kept the bar clear of
+  // it and now tracks the header alone. Both breakpoint headers exist in
+  // the DOM at all widths; measure whichever is actually rendered (the
+  // hidden one reports offsetHeight 0) so mobile no longer falls back to
+  // the display:none desktop header.
   const [topOffset, setTopOffset] = useState(0);
   useEffect(() => {
     function measure() {

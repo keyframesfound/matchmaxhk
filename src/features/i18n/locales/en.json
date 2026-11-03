@@ -292,11 +292,6 @@
     "onboarding_handle_taken": "That handle is taken.",
     "onboarding_cap57": "Tutors on MatchMax are self-employed. You are not an employee or agent of MatchMax, and you set your own rates and schedule."
   },
-  "banner": {
-    "value_prop": "Free for parents. Fair for tutors. Keep more with a low 1.5-lesson admin fee.",
-    "referral_promo": "🚀 Tutors: Refer a friend for a case and earn a 15% cash bonus!",
-    "referral_cta": "Click here for details"
-  },
   "brand": "MatchMax",
   "caseApplications": {
     "new_tutor_cap": "You already have the most first lessons a new tutor can hold. Finish a first lesson to apply for more.",
@@ -1322,6 +1317,14 @@
       "disclaimer_endorsement": "Document check only — not endorsed by IBO, HKEAA, or any school.",
       "disclaimer_slip": "Parents who want the slip ask the tutor after the introduction; MatchMax does not send identity documents."
     }
+  },
+  "promo": {
+    "referral_headline": "Refer a tutor · 15% cash bonus",
+    "referral_cta": "Refer a friend",
+    "impact_headline": "Support free pro-bono tutoring",
+    "impact_cta": "Learn how",
+    "upload_headline": "Upload notes · sell on Marketplace",
+    "upload_cta": "Upload notes"
   },
   "help": {
     "title": "Hi, how can we help?",
