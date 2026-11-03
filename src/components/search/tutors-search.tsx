@@ -645,7 +645,10 @@ export function TutorsSearchBar({
           <TierToggleRow tier={tier} onChange={onTierChange} />
         </div>
       ) : null}
-      <div className="hidden items-stretch gap-2 lg:flex">
+      {/* Owner (2026-11-03): the search pill itself is page-centred, in line
+          with the header tabs above; from xl the Filters button hangs to
+          its right instead of pushing the pill left. */}
+      <div className="relative hidden items-stretch gap-2 lg:flex">
         <SearchPillBar
           segments={segments}
           submitLabel={t("search_panel.search")}
@@ -655,14 +658,16 @@ export function TutorsSearchBar({
           openSegmentId={pillOpenId}
           onOpenSegmentIdChange={setPillOpenId}
         />
-        <FiltersPillButton
-          label={t("search_ui.filters")}
-          count={filterCount || undefined}
-          onClick={() => {
-            setPillOpenId(null);
-            setFiltersOpen(true);
-          }}
-        />
+        <div className="flex shrink-0 xl:absolute xl:inset-y-0 xl:left-full xl:ml-2">
+          <FiltersPillButton
+            label={t("search_ui.filters")}
+            count={filterCount || undefined}
+            onClick={() => {
+              setPillOpenId(null);
+              setFiltersOpen(true);
+            }}
+          />
+        </div>
       </div>
 
       <FiltersDialog
