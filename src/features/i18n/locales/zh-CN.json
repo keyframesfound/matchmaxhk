@@ -2227,7 +2227,8 @@
       "syllabus_placeholder": "每行一个章节或单元"
     },
     "market": {
-      "how_it_works": "运作方式"
+      "how_it_works": "运作方式",
+      "upload_short": "上传"
     },
     "auto": {
       "rejected": "未能上架：{{reason}} 请修改笔记后再提交。",
@@ -4018,5 +4019,14 @@
     "impact_cta": "了解详情",
     "upload_title": "出售你的温习笔记",
     "upload_cta": "上传"
+  },
+  "saved": {
+    "title": "已收藏",
+    "subtitle": "你想再看的导师、补习个案及市集笔记。",
+    "tab_tutors": "导师",
+    "tab_marketplace": "市集",
+    "marketplace_empty_title": "未有收藏的笔记",
+    "marketplace_empty_body": "在市集按笔记上的心形，即可收藏在这里。",
+    "browse_marketplace": "浏览市集"
   }
 }

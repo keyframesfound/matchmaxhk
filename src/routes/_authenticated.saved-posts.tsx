@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { useQuery } from "@tanstack/react-query";
 import { Bookmark, BookOpen, CalendarClock, Clock, Inbox, MapPin, Wallet } from "lucide-react";
 
@@ -23,6 +24,11 @@ import { getPublicCaseBoard } from "@/lib/cases.functions";
 import { courseModeLabel, formatCoursePrice } from "@/features/courses/queries";
 import { getTutorInquiryAction } from "@/features/tutors/tutor-display";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
+import { cn } from "@/lib/utils";
+import {
+  SavedMarketplaceGrid,
+  useSavedMarketplaceItems,
+} from "@/features/materials/saved-marketplace";
 
 export const Route = createFileRoute("/_authenticated/saved-posts")({
   ssr: false,
@@ -38,6 +44,10 @@ export const Route = createFileRoute("/_authenticated/saved-posts")({
 
 function SavedPostsPage() {
   const { user } = useAuth();
+  const { t } = useTranslation();
+  // #610: one Saved surface, two tabs (Tutors | Marketplace).
+  const [tab, setTab] = useState<"tutors" | "marketplace" | null>(null);
+  const savedMarketplace = useSavedMarketplaceItems();
   const navigate = useNavigate();
   const savedTutorsQuery = useQuery({
     queryKey: ["saved-posts", user?.id],
@@ -71,6 +81,11 @@ function SavedPostsPage() {
     setCompareOpen: setCaseCompareOpen,
     clearCompare: clearCaseCompare,
   } = useCaseCompare(savedCases);
+  const activeTab =
+    tab ??
+    (!savedTutorsQuery.isLoading && savedTutors.length === 0 && savedMarketplace.items.length > 0
+      ? "marketplace"
+      : "tutors");
   const tutorBarVisible = compareTutors.length > 0 && !compareOpen;
   const caseBarVisible = compareCases.length > 0 && !caseCompareOpen;
 
@@ -85,10 +100,10 @@ function SavedPostsPage() {
                 Your collection
               </p>
               <h1 className="mt-2 text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
-                Saved Posts
+                {t("saved.title")}
               </h1>
               <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
-                Keep a shortlist of tutors and tutoring requests you would like to come back to.
+                {t("saved.subtitle")}
               </p>
             </div>
             <Button variant="outline" onClick={() => void navigate({ to: "/tutors" })}>
@@ -96,211 +111,254 @@ function SavedPostsPage() {
             </Button>
           </div>
 
-          <div className="mt-8 p-0 sm:p-2">
-            {savedTutorsQuery.isLoading ? (
-              <div className="text-sm text-muted-foreground">Loading saved tutors...</div>
-            ) : savedTutorsQuery.isError ? (
-              <div className="p-12 text-center">
-                <p className="text-lg font-bold text-[color:var(--ink)]">
-                  We couldn't load your saved tutors
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Please refresh the page and try again.
-                </p>
-              </div>
-            ) : savedTutors.length === 0 ? (
-              <div className="p-12 text-center">
-                <Bookmark
-                  className="mx-auto h-8 w-8 text-[color:var(--muted-foreground)]"
-                  aria-hidden="true"
-                />
-                <p className="mt-4 text-lg font-bold text-[color:var(--ink)]">
-                  You haven't saved any tutors yet
-                </p>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  Browse the tutor directory and bookmark the profiles you want to revisit.
-                </p>
-              </div>
-            ) : (
-              <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {savedTutors.map((tutor) => {
-                  const inquiry = getTutorInquiryAction(tutor, whatsappNumber, "en");
-                  return (
-                    <PublicTutorCard
-                      key={tutor.id}
-                      tutor={tutor}
-                      priceSuffix="/hr"
-                      onOpen={(code) =>
-                        void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
-                      }
-                      onCompareToggle={() => toggleCompare(tutor)}
-                      compareSelected={compareIds.includes(tutor.id)}
-                      saveAction={<TutorSaveButton tutorId={tutor.id} />}
-                      footerAction={
-                        inquiry.kind === "status" ? (
-                          <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)]">
-                            {inquiry.label}
-                          </span>
-                        ) : (
-                          <Button
-                            asChild
-                            className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                          >
-                            <a
-                              href={inquiry.href}
-                              target="_blank"
-                              rel="noreferrer"
-                              onClick={(event) => event.stopPropagation()}
-                            >
-                              {inquiry.label}
-                            </a>
-                          </Button>
-                        )
-                      }
-                    />
-                  );
-                })}
-              </div>
-            )}
+          <div role="tablist" className="mt-8 flex gap-6 border-b border-border">
+            {(["tutors", "marketplace"] as const).map((key) => (
+              <button
+                key={key}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === key}
+                onClick={() => setTab(key)}
+                className={cn(
+                  "-mb-px border-b-2 px-1 pb-2.5 text-base font-bold transition-colors",
+                  activeTab === key
+                    ? "border-[color:var(--ink)] text-[color:var(--ink)]"
+                    : "border-transparent text-[color:var(--ink)]/55 hover:text-[color:var(--ink)]",
+                )}
+              >
+                {key === "tutors" ? t("saved.tab_tutors") : t("saved.tab_marketplace")}
+                {key === "marketplace" && savedMarketplace.savedCount > 0
+                  ? ` (${savedMarketplace.savedCount})`
+                  : key === "tutors" && savedTutors.length > 0
+                    ? ` (${savedTutors.length})`
+                    : ""}
+              </button>
+            ))}
+          </div>
 
-            <div className="mt-14">
-              <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
-                Saved requests
-              </h2>
-              {savedCaseIdsQuery.isLoading || caseBoardQuery.isLoading ? (
-                <div className="mt-6 text-sm text-muted-foreground">Loading saved requests...</div>
-              ) : savedCases.length === 0 ? (
-                <div className="mt-6 p-10 text-center">
-                  <Inbox
-                    className="mx-auto h-8 w-8 text-[color:var(--muted-foreground)]"
-                    aria-hidden="true"
-                  />
-                  <p className="mt-4 text-base font-bold text-[color:var(--ink)]">
-                    You haven't saved any requests yet
-                  </p>
-                  <p className="mt-2 text-sm text-muted-foreground">
-                    Bookmark tutoring requests from the board to revisit them later.
-                  </p>
-                  <Button variant="outline" className="mt-5" asChild>
-                    <Link to="/tutor-requests">Browse requests</Link>
-                  </Button>
-                </div>
-              ) : (
-                <ul className="mt-6 flex flex-col overflow-hidden rounded-xl border border-border divide-y divide-border bg-[color:var(--surface)]">
-                  {savedCases.map((item) => (
-                    <li key={item.id}>
-                      <Link
-                        to="/tutor-requests/$caseCode"
-                        params={{ caseCode: item.caseCode }}
-                        className="group flex items-center justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-muted/40"
-                      >
-                        <div className="flex min-w-0 flex-col gap-1.5">
-                          <span className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]">
-                            <span className="min-w-0 truncate">
-                              {item.subjects.filter(Boolean).slice(0, 2).join(", ") || item.title}
-                            </span>
-                            {item.startTiming === "asap" ? (
-                              <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-[color:var(--warning)]/15 px-1.5 py-0.5 text-xs font-bold text-[#a16207] dark:text-[color:var(--warning)]">
-                                <CalendarClock className="h-3 w-3" aria-hidden="true" />
-                                ASAP
-                              </span>
-                            ) : null}
-                          </span>
-                          <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                            <span className="flex items-center gap-1">
-                              <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
-                              {item.district ?? CASE_MODE_LABEL[item.mode] ?? "Location flexible"}
-                            </span>
-                            <span className="flex items-center gap-1">
-                              <Clock className="h-3.5 w-3.5" aria-hidden="true" />
-                              {formatCaseSchedule(item.sessionsPerWeek, item.sessionLengthMinutes)}
-                            </span>
-                            {/* #423: empty string (both bounds blank) omits the rate. */}
-                            {formatCaseBudgetHkd(item) ? (
-                              <span className="flex items-center gap-1">
-                                <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
-                                {formatCaseBudgetHkd(item)}
-                              </span>
-                            ) : null}
-                          </div>
-                        </div>
-                        <div className="flex shrink-0 items-center gap-1">
-                          <CaseCompareToggle caseId={item.id} />
-                          <CaseSaveButton caseId={item.id} compact />
-                          <span className="text-sm font-semibold text-[color:var(--ink)]">
-                            View details
-                          </span>
-                        </div>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              )}
+          {activeTab === "marketplace" ? (
+            <div className="mt-6">
+              <SavedMarketplaceGrid />
             </div>
-
-            {CENTRE_MARKET_ENABLED && (
-              <div className="mt-14">
-                <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
-                  Saved courses
-                </h2>
-                {savedCoursesQuery.isLoading ? (
-                  <div className="mt-6 text-sm text-muted-foreground">Loading saved courses...</div>
-                ) : savedCourses.length === 0 ? (
-                  <div className="mt-6 p-10 text-center">
-                    <BookOpen
+          ) : (
+            <>
+              <div className="mt-8 p-0 sm:p-2">
+                {savedTutorsQuery.isLoading ? (
+                  <div className="text-sm text-muted-foreground">Loading saved tutors...</div>
+                ) : savedTutorsQuery.isError ? (
+                  <div className="p-12 text-center">
+                    <p className="text-lg font-bold text-[color:var(--ink)]">
+                      We couldn't load your saved tutors
+                    </p>
+                    <p className="mt-2 text-sm text-muted-foreground">
+                      Please refresh the page and try again.
+                    </p>
+                  </div>
+                ) : savedTutors.length === 0 ? (
+                  <div className="p-12 text-center">
+                    <Bookmark
                       className="mx-auto h-8 w-8 text-[color:var(--muted-foreground)]"
                       aria-hidden="true"
                     />
-                    <p className="mt-4 text-base font-bold text-[color:var(--ink)]">
-                      You haven't saved any courses yet
+                    <p className="mt-4 text-lg font-bold text-[color:var(--ink)]">
+                      You haven't saved any tutors yet
                     </p>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Bookmark courses from the directory to build your shortlist.
+                      Browse the tutor directory and bookmark the profiles you want to revisit.
                     </p>
-                    <Button variant="outline" className="mt-5" asChild>
-                      <Link to="/courses">Browse courses</Link>
-                    </Button>
                   </div>
                 ) : (
-                  <div className="mt-6 space-y-3">
-                    {savedCourses.map((course) => {
-                      const price = formatCoursePrice(course.price, course.currency);
+                  <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+                    {savedTutors.map((tutor) => {
+                      const inquiry = getTutorInquiryAction(tutor, whatsappNumber, "en");
                       return (
-                        <div key={course.id} className="flex items-center gap-4 p-4">
-                          {course.image_url ? (
-                            <img
-                              src={course.image_url}
-                              alt=""
-                              className="h-14 w-20 shrink-0 rounded-md border border-border object-cover"
-                              loading="lazy"
-                            />
-                          ) : (
-                            <span className="flex h-14 w-20 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground">
-                              <BookOpen className="h-5 w-5" />
-                            </span>
-                          )}
-                          <div className="min-w-0 flex-1">
-                            <a
-                              href={`/courses/${course.id}`}
-                              className="block truncate text-sm font-bold text-[color:var(--ink)] hover:text-[color:var(--brand-link)]"
-                            >
-                              {course.title}
-                            </a>
-                            <p className="mt-0.5 truncate text-xs text-muted-foreground">
-                              {course.organization?.name ?? "MatchMax partner"} ·{" "}
-                              {course.level ?? "General"} · {courseModeLabel(course.mode)}
-                              {price ? ` · ${price}` : ""}
-                            </p>
-                          </div>
-                          <CourseSaveButton courseId={course.id} />
-                        </div>
+                        <PublicTutorCard
+                          key={tutor.id}
+                          tutor={tutor}
+                          priceSuffix="/hr"
+                          onOpen={(code) =>
+                            void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
+                          }
+                          onCompareToggle={() => toggleCompare(tutor)}
+                          compareSelected={compareIds.includes(tutor.id)}
+                          saveAction={<TutorSaveButton tutorId={tutor.id} />}
+                          footerAction={
+                            inquiry.kind === "status" ? (
+                              <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)]">
+                                {inquiry.label}
+                              </span>
+                            ) : (
+                              <Button
+                                asChild
+                                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                              >
+                                <a
+                                  href={inquiry.href}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  {inquiry.label}
+                                </a>
+                              </Button>
+                            )
+                          }
+                        />
                       );
                     })}
                   </div>
                 )}
+
+                <div className="mt-14">
+                  <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
+                    Saved requests
+                  </h2>
+                  {savedCaseIdsQuery.isLoading || caseBoardQuery.isLoading ? (
+                    <div className="mt-6 text-sm text-muted-foreground">
+                      Loading saved requests...
+                    </div>
+                  ) : savedCases.length === 0 ? (
+                    <div className="mt-6 p-10 text-center">
+                      <Inbox
+                        className="mx-auto h-8 w-8 text-[color:var(--muted-foreground)]"
+                        aria-hidden="true"
+                      />
+                      <p className="mt-4 text-base font-bold text-[color:var(--ink)]">
+                        You haven't saved any requests yet
+                      </p>
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        Bookmark tutoring requests from the board to revisit them later.
+                      </p>
+                      <Button variant="outline" className="mt-5" asChild>
+                        <Link to="/tutor-requests">Browse requests</Link>
+                      </Button>
+                    </div>
+                  ) : (
+                    <ul className="mt-6 flex flex-col overflow-hidden rounded-xl border border-border divide-y divide-border bg-[color:var(--surface)]">
+                      {savedCases.map((item) => (
+                        <li key={item.id}>
+                          <Link
+                            to="/tutor-requests/$caseCode"
+                            params={{ caseCode: item.caseCode }}
+                            className="group flex items-center justify-between gap-4 px-4 py-3.5 transition-colors hover:bg-muted/40"
+                          >
+                            <div className="flex min-w-0 flex-col gap-1.5">
+                              <span className="flex items-center gap-2 text-sm font-bold text-[color:var(--ink)]">
+                                <span className="min-w-0 truncate">
+                                  {item.subjects.filter(Boolean).slice(0, 2).join(", ") ||
+                                    item.title}
+                                </span>
+                                {item.startTiming === "asap" ? (
+                                  <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-[color:var(--warning)]/15 px-1.5 py-0.5 text-xs font-bold text-[#a16207] dark:text-[color:var(--warning)]">
+                                    <CalendarClock className="h-3 w-3" aria-hidden="true" />
+                                    ASAP
+                                  </span>
+                                ) : null}
+                              </span>
+                              <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                                <span className="flex items-center gap-1">
+                                  <MapPin className="h-3.5 w-3.5" aria-hidden="true" />
+                                  {item.district ??
+                                    CASE_MODE_LABEL[item.mode] ??
+                                    "Location flexible"}
+                                </span>
+                                <span className="flex items-center gap-1">
+                                  <Clock className="h-3.5 w-3.5" aria-hidden="true" />
+                                  {formatCaseSchedule(
+                                    item.sessionsPerWeek,
+                                    item.sessionLengthMinutes,
+                                  )}
+                                </span>
+                                {/* #423: empty string (both bounds blank) omits the rate. */}
+                                {formatCaseBudgetHkd(item) ? (
+                                  <span className="flex items-center gap-1">
+                                    <Wallet className="h-3.5 w-3.5" aria-hidden="true" />
+                                    {formatCaseBudgetHkd(item)}
+                                  </span>
+                                ) : null}
+                              </div>
+                            </div>
+                            <div className="flex shrink-0 items-center gap-1">
+                              <CaseCompareToggle caseId={item.id} />
+                              <CaseSaveButton caseId={item.id} compact />
+                              <span className="text-sm font-semibold text-[color:var(--ink)]">
+                                View details
+                              </span>
+                            </div>
+                          </Link>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
+                </div>
+
+                {CENTRE_MARKET_ENABLED && (
+                  <div className="mt-14">
+                    <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
+                      Saved courses
+                    </h2>
+                    {savedCoursesQuery.isLoading ? (
+                      <div className="mt-6 text-sm text-muted-foreground">
+                        Loading saved courses...
+                      </div>
+                    ) : savedCourses.length === 0 ? (
+                      <div className="mt-6 p-10 text-center">
+                        <BookOpen
+                          className="mx-auto h-8 w-8 text-[color:var(--muted-foreground)]"
+                          aria-hidden="true"
+                        />
+                        <p className="mt-4 text-base font-bold text-[color:var(--ink)]">
+                          You haven't saved any courses yet
+                        </p>
+                        <p className="mt-2 text-sm text-muted-foreground">
+                          Bookmark courses from the directory to build your shortlist.
+                        </p>
+                        <Button variant="outline" className="mt-5" asChild>
+                          <Link to="/courses">Browse courses</Link>
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="mt-6 space-y-3">
+                        {savedCourses.map((course) => {
+                          const price = formatCoursePrice(course.price, course.currency);
+                          return (
+                            <div key={course.id} className="flex items-center gap-4 p-4">
+                              {course.image_url ? (
+                                <img
+                                  src={course.image_url}
+                                  alt=""
+                                  className="h-14 w-20 shrink-0 rounded-md border border-border object-cover"
+                                  loading="lazy"
+                                />
+                              ) : (
+                                <span className="flex h-14 w-20 shrink-0 items-center justify-center rounded-md border border-border bg-muted text-muted-foreground">
+                                  <BookOpen className="h-5 w-5" />
+                                </span>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <a
+                                  href={`/courses/${course.id}`}
+                                  className="block truncate text-sm font-bold text-[color:var(--ink)] hover:text-[color:var(--brand-link)]"
+                                >
+                                  {course.title}
+                                </a>
+                                <p className="mt-0.5 truncate text-xs text-muted-foreground">
+                                  {course.organization?.name ?? "MatchMax partner"} ·{" "}
+                                  {course.level ?? "General"} · {courseModeLabel(course.mode)}
+                                  {price ? ` · ${price}` : ""}
+                                </p>
+                              </div>
+                              <CourseSaveButton courseId={course.id} />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          )}
         </div>
       </main>
       <SiteFooter />
