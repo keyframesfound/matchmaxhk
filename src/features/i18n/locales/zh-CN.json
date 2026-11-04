@@ -1885,7 +1885,8 @@
     "mode_switch_error": "无法切换模式，请再试一次。",
     "workspaces": "工作区",
     "upload_notes": "上传笔记",
-    "tab_calendar": "日历"
+    "tab_calendar": "日历",
+    "tab_marketplace": "市集"
   },
   "nav_mobile": {
     "case": "个案",
@@ -1954,7 +1955,7 @@
       "exemplar_permission": "我已取得该学生的书面同意。姓名已移除。此为范本，仅供参考，不可用于提交。",
       "exemplar_permission_short": "范本书面同意确认",
       "field_year": "年份",
-      "field_pdf": "PDF 或照片（Word / PPT 请另存为 PDF）",
+      "field_pdf": "档案（PDF、Word、PowerPoint、照片或任何其他格式）",
       "replace_pdf": "更换 PDF",
       "pdf_hint": "最大 20MB。不接受加密档案——请上传已解锁的档案。",
       "save_draft": "保存草稿",
@@ -2000,9 +2001,9 @@
     "shop_terms_read": "阅读笔记条款",
     "upload": {
       "step_files": "1. 加入档案",
-      "step_files_hint": "可加入 PDF、照片或扫描档、Word、PowerPoint、ZIP 或视频。照片会合并成一份 PDF 作预览之用。",
+      "step_files_hint": "可加入任何档案：PDF、照片或扫描档、Word、PowerPoint、Excel、ZIP、视频等。照片会合并成一份 PDF 作预览；其他格式会以封面图片作预览。",
       "drop_title": "将档案拖放到此处，或按此选择",
-      "drop_formats": "预览用 PDF 上限 50 MB；照片、Word、PPT、Excel、ZIP、视频及音讯每个上限 2 GB",
+      "drop_formats": "接受任何格式：PDF、Word、PowerPoint、Excel、照片、ZIP、视频、音讯等（每个上限 2 GB；预览用 PDF 上限 50 MB）",
       "link_label": "或贴上云端链接",
       "link_hint": "「汇入 PDF」可读取公开的 Google Drive、Google Docs 或 Dropbox 档案。「加入链接」会在买家付款后提供链接（Drive、Docs、Dropbox、OneDrive）。",
       "import_pdf": "汇入 PDF",
@@ -2014,7 +2015,7 @@
       "too_many_links": "每份笔记最多 {{count}} 条链接。",
       "too_many_files": "每份笔记最多 {{count}} 个附加档案。",
       "too_large_2gb": "{{name}} 超过 2 GB。",
-      "unsupported": "不支持 {{name}} 的档案类型。",
+      "unsupported": "无法上传 {{name}}：不接受程式或脚本档案。",
       "pdf_too_big_for_preview": "{{name}} 超过 50 MB，因此会作为买家下载档案。请另加一份较小的 PDF 或照片作预览。",
       "merged_too_large": "合并后的照片 PDF 超过 50 MB，请减少照片数量或使用较小的照片。",
       "merge_failed": "未能将照片合并成 PDF。",
@@ -2040,9 +2041,11 @@
       "guide_link": "阅读笔记指南",
       "choose_files": "选择档案",
       "files_added": "已加入 {{count}} 个档案。",
-      "need_pdf_hint": "请另外加入一份 PDF 或照片作预览之用。Word 或 PowerPoint 档案会交付给买家，但请先另存一份 PDF 作预览。",
+      "need_pdf_hint": "已加入。没有 PDF 时，买家会以封面图片作预览，建议加入清晰的封面图片（如未加入，系统会按标题自动制作）。",
       "tags_chip_placeholder": "输入标签后按 Enter，例如 IA",
-      "tag_remove": "移除 #{{tag}}"
+      "tag_remove": "移除 #{{tag}}",
+      "office_preview_made": "已按你的 Word／PowerPoint 档案制作 PDF 版本作预览页，买家会同时收到原档及此 PDF。",
+      "office_preview_footer": "此预览由原档文字制作，排版及图片以原档为准。"
     },
     "ai": {
       "title": "2. AI 自动识别",
@@ -2172,7 +2175,8 @@
       "google_drive": "Google Drive",
       "google_docs": "Google Docs",
       "dropbox": "Dropbox",
-      "onedrive": "OneDrive"
+      "onedrive": "OneDrive",
+      "other": "档案"
     },
     "subcategory": {
       "ia": "IA 内部评估",
@@ -2223,7 +2227,8 @@
       "syllabus_placeholder": "每行一个章节或单元"
     },
     "market": {
-      "how_it_works": "运作方式"
+      "how_it_works": "运作方式",
+      "upload_short": "上传"
     },
     "auto": {
       "rejected": "未能上架：{{reason}} 请修改笔记后再提交。",
@@ -4005,5 +4010,23 @@
     "err_PHONE_NOT_VERIFIED": "请先验证你的香港手机号码。",
     "err_PHONE_NOT_HK": "请验证香港（+852）手机号码。",
     "err_PHONE_MISMATCH": "此查询的 WhatsApp 号码必须与已验证的手机号码相同。"
+  },
+  "home_promo": {
+    "aria": "MatchMax 更多功能",
+    "referral_title": "推荐导师，赚 15% 现金",
+    "referral_cta": "了解详情",
+    "impact_title": "为有需要的学生提供义务补习",
+    "impact_cta": "了解详情",
+    "upload_title": "出售你的温习笔记",
+    "upload_cta": "上传"
+  },
+  "saved": {
+    "title": "已收藏",
+    "subtitle": "你想再看的导师、补习个案及市集笔记。",
+    "tab_tutors": "导师",
+    "tab_marketplace": "市集",
+    "marketplace_empty_title": "未有收藏的笔记",
+    "marketplace_empty_body": "在市集按笔记上的心形，即可收藏在这里。",
+    "browse_marketplace": "浏览市集"
   }
 }

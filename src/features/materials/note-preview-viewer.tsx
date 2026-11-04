@@ -7,7 +7,6 @@ import { CRISP_PREVIEW_PAGES } from "@/features/materials/lifecycle";
 // "pdfjs-dist/build/pdf.worker.min.mjs" path 404s on prod (#569).
 import pdfWorkerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
 import { pdfjsAssetOptions } from "@/features/materials/note-file-tools";
-import { PreviewWatermark } from "@/features/materials/preview-watermark";
 
 /**
  * Clastify-style preview viewer (Ryan, 2026-10-11): the public note page
@@ -115,7 +114,6 @@ export function NotePreviewViewer({
       `}</style>
       <div className="relative">
         <div ref={containerRef} className="space-y-4" aria-label={t("notes.preview_aria")} />
-        <PreviewWatermark />
       </div>
       {/* Lock overlay rides at the top of the blurred region */}
       {total > crisp && (

@@ -125,6 +125,7 @@ export type UploadFormat =
   | "audio"
   | "apkg"
   | "text"
+  | "other"
   | "link";
 
 const EXTENSION_FORMATS: Record<string, UploadFormat> = {
@@ -174,9 +175,56 @@ export function fileExtension(fileName: string): string {
   return match ? match[1].toLowerCase() : "";
 }
 
+/**
+ * Owner request (2026-11-03): every format is accepted. Only programs and
+ * scripts that could run on a buyer's computer are refused.
+ */
+const BLOCKED_EXTENSIONS = new Set([
+  "exe",
+  "msi",
+  "bat",
+  "cmd",
+  "com",
+  "scr",
+  "pif",
+  "vbs",
+  "vbe",
+  "js",
+  "jse",
+  "ws",
+  "wsf",
+  "ps1",
+  "sh",
+  "bash",
+  "app",
+  "dmg",
+  "pkg",
+  "apk",
+  "ipa",
+  "jar",
+  "dll",
+  "so",
+  "lnk",
+  "reg",
+  "hta",
+  "cpl",
+  "msc",
+  "iso",
+  "img",
+]);
+
 /** Classify an uploaded file by extension (null = not accepted). */
 export function classifyUploadFile(fileName: string): UploadFormat | null {
-  return EXTENSION_FORMATS[fileExtension(fileName)] ?? null;
+  const ext = fileExtension(fileName);
+  if (BLOCKED_EXTENSIONS.has(ext)) return null;
+  return EXTENSION_FORMATS[ext] ?? "other";
+}
+
+/** Formats the browser can read text from (AI detect + content check). */
+export function isTextExtractable(fileName: string): boolean {
+  return ["docx", "pptx", "odt", "odp", "txt", "md", "tex", "csv", "rtf"].includes(
+    fileExtension(fileName),
+  );
 }
 
 /** Images the browser can merge into the main PDF. */

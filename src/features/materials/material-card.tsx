@@ -1,7 +1,6 @@
 import { useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { PreviewWatermark } from "@/features/materials/preview-watermark";
 import type { TFunction } from "i18next";
 import { BadgeCheck, BookOpen, Gift, Layers, ListVideo, MessageCircle, Star } from "lucide-react";
 
@@ -139,7 +138,6 @@ export function MaterialPreviewDialog({
               title={t("materials.preview_frame_aria", { title: material.title })}
               className="h-full w-full bg-muted/20"
             />
-            <PreviewWatermark />
           </div>
         ) : (
           <div className="flex flex-1 items-center justify-center p-6 text-sm text-muted-foreground">
