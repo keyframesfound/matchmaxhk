@@ -3,7 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { Heart, SearchX, Store, Upload, Users } from "lucide-react";
+import { CircleHelp, Heart, SearchX, SlidersHorizontal, Store, Upload, Users } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
@@ -99,6 +99,7 @@ export function MaterialsDirectory() {
   const [subcategory, setSubcategory] = useState("");
   const [language, setLanguage] = useState("");
   const [savedOnly, setSavedOnly] = useState(false);
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const { user } = useAuth();
   const { data: materials = [], isLoading } = useQuery({
     queryKey: ["materials", "marketplace"],
@@ -226,6 +227,7 @@ export function MaterialsDirectory() {
     setLanguage("");
     setSavedOnly(false);
   };
+  const activeFilterCount = [school, subject, curriculum, language].filter(Boolean).length;
   const hasFilters =
     query ||
     school ||
@@ -253,47 +255,53 @@ export function MaterialsDirectory() {
   return (
     <section className="pt-6 pb-12 sm:pt-8">
       <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
-        {/* #557 CEO lock: seller Upload / How it works live on the Notes
-            market header (not on Explore). */}
-        <div className="mb-5 flex flex-wrap items-center justify-end gap-2">
-          <div className="flex shrink-0 items-center gap-2">
-            <Button asChild variant="outline" size="sm">
-              <Link to="/guide/notes">{t("notes.market.how_it_works")}</Link>
-            </Button>
-            <Button asChild variant="solid" color="neutral" size="sm">
-              <Link to="/account/notes/new">
-                <Upload className="mr-1.5 h-4 w-4" aria-hidden />
-                {t("nav.upload_notes")}
-              </Link>
-            </Button>
+        {/* #557 / #594: Marketplace tabs, Notes | Gigs. */}
+        {/* #605 / #557 M3: one compact sub-row, Notes | Gigs on the left,
+            How it works + Upload on the right. */}
+        <div className="mb-3 flex items-end justify-between gap-3 border-b border-border">
+          <div role="tablist" className="flex gap-6">
+            {(["notes", "gigs"] as const).map((tab) => (
+              <button
+                key={tab}
+                type="button"
+                role="tab"
+                aria-selected={shopTab === tab}
+                onClick={() => {
+                  setShopTab(tab);
+                  setKind("all");
+                  setSubcategory("");
+                }}
+                className={cn(
+                  "-mb-px border-b-2 px-1 pb-2.5 text-base font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+                  shopTab === tab
+                    ? "border-[color:var(--ink)] text-[color:var(--ink)]"
+                    : "border-transparent text-[color:var(--ink)]/55 hover:text-[color:var(--ink)]",
+                )}
+              >
+                {tab === "notes" ? t("marketplace.tab_notes") : t("marketplace.tab_gigs")}
+              </button>
+            ))}
+          </div>
+          <div className="flex shrink-0 items-center gap-1.5 pb-1.5">
+            <Link
+              to="/guide/notes"
+              aria-label={t("notes.market.how_it_works")}
+              title={t("notes.market.how_it_works")}
+              className="flex h-8 w-8 items-center justify-center rounded-full border border-border text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)]"
+            >
+              <CircleHelp className="h-4 w-4" aria-hidden />
+            </Link>
+            <Link
+              to="/account/notes/new"
+              className="inline-flex h-8 items-center gap-1.5 rounded-full bg-[color:var(--ink)] px-3 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--ink)]/90"
+            >
+              <Upload className="h-3.5 w-3.5" aria-hidden />
+              {t("notes.market.upload_short")}
+            </Link>
           </div>
         </div>
-        {/* #557 / #594: Marketplace tabs, Notes | Gigs. */}
-        <div role="tablist" className="mb-4 flex gap-6 border-b border-border">
-          {(["notes", "gigs"] as const).map((tab) => (
-            <button
-              key={tab}
-              type="button"
-              role="tab"
-              aria-selected={shopTab === tab}
-              onClick={() => {
-                setShopTab(tab);
-                setKind("all");
-                setSubcategory("");
-              }}
-              className={cn(
-                "-mb-px border-b-2 px-1 pb-2.5 text-base font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
-                shopTab === tab
-                  ? "border-[color:var(--ink)] text-[color:var(--ink)]"
-                  : "border-transparent text-[color:var(--ink)]/55 hover:text-[color:var(--ink)]",
-              )}
-            >
-              {tab === "notes" ? t("marketplace.tab_notes") : t("marketplace.tab_gigs")}
-            </button>
-          ))}
-        </div>
-        {/* Kind chips, #392 unified shop grid. */}
-        <div className="mb-4 flex flex-wrap items-center gap-2">
+        {/* Kind chips, #392 unified shop grid. #605: ONE scrolling row. */}
+        <div className="-mx-4 mb-3 flex items-center gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden">
           {(shopTab === "notes"
             ? kindChips
             : kindChips.filter((c) => c.value === "all" || c.value === "free")
@@ -304,7 +312,7 @@ export function MaterialsDirectory() {
               aria-pressed={kind === chip.value}
               onClick={() => setKind(chip.value)}
               className={cn(
-                "rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+                "shrink-0 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
                 kind === chip.value
                   ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--surface-invert-fg)]"
                   : "border-border bg-card text-[color:var(--ink)]/70 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]",
@@ -319,7 +327,7 @@ export function MaterialsDirectory() {
               aria-pressed={savedOnly}
               onClick={() => setSavedOnly((v) => !v)}
               className={cn(
-                "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+                "inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
                 savedOnly
                   ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--surface-invert-fg)]"
                   : "border-border bg-card text-[color:var(--ink)]/70 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]",
@@ -334,7 +342,10 @@ export function MaterialsDirectory() {
         {/* Notes upload v2: finer categories (IA / EE / Paper 1 / SBA ...). */}
         {(kind === "all" || kind === "notes" || kind === "mocks" || kind === "coursework") &&
         subcategoryOptions.length > 0 ? (
-          <div className="mb-4 flex flex-wrap items-center gap-2" role="group">
+          <div
+            className="-mx-4 mb-3 flex items-center gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:px-0 [&::-webkit-scrollbar]:hidden"
+            role="group"
+          >
             {subcategoryOptions.map((option) => (
               <button
                 key={option.value}
@@ -342,7 +353,7 @@ export function MaterialsDirectory() {
                 aria-pressed={subcategory === option.value}
                 onClick={() => setSubcategory(subcategory === option.value ? "" : option.value)}
                 className={cn(
-                  "rounded-full border px-3 py-1 text-[12px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+                  "shrink-0 whitespace-nowrap rounded-full border px-3 py-1 text-[12px] font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
                   subcategory === option.value
                     ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 text-[color:var(--brand-link)]"
                     : "border-border bg-card text-[color:var(--ink)]/70 hover:bg-[color:var(--surface-subtle)]",
@@ -355,7 +366,9 @@ export function MaterialsDirectory() {
         ) : null}
 
         {/* Filter bar, flat, border-delineated, same chrome as the tutors bar. */}
-        <div className="mb-6 flex flex-col gap-3 rounded-lg border border-border bg-card p-4 sm:flex-row sm:items-center">
+        {/* #605: no always-on card of 4 stacked selects; one search field and
+            a Filters button that opens them. */}
+        <div className="mb-4 flex items-center gap-2">
           <input
             type="search"
             value={query}
@@ -364,7 +377,24 @@ export function MaterialsDirectory() {
             className="h-10 flex-1 rounded-md border border-border bg-background px-3 text-sm text-[color:var(--ink)] placeholder:text-muted-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]"
             aria-label={t("materials.search_placeholder")}
           />
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-4">
+          <button
+            type="button"
+            aria-expanded={filtersOpen}
+            onClick={() => setFiltersOpen((v) => !v)}
+            className={cn(
+              "inline-flex h-10 shrink-0 items-center gap-1.5 rounded-md border px-3 text-sm font-semibold",
+              filtersOpen || activeFilterCount > 0
+                ? "border-[color:var(--ink)] text-[color:var(--ink)]"
+                : "border-border text-[color:var(--ink)]/75",
+            )}
+          >
+            <SlidersHorizontal className="h-4 w-4" aria-hidden />
+            {t("search_ui.filters")}
+            {activeFilterCount > 0 ? ` · ${activeFilterCount}` : ""}
+          </button>
+        </div>
+        {filtersOpen ? (
+          <div className="mb-6 grid grid-cols-2 gap-2 rounded-lg border border-border bg-card p-3 sm:grid-cols-4">
             <Select
               value={school === "" ? MATERIALS_ALL_VALUE : school}
               onValueChange={(v) => setSchool(v === MATERIALS_ALL_VALUE ? "" : v)}
@@ -450,7 +480,7 @@ export function MaterialsDirectory() {
               </SelectContent>
             </Select>
           </div>
-        </div>
+        ) : null}
 
         {/* Issue #566 follow-up: the bold count span duplicated the {{count}}
             inside the translation ("1 1 listing found"). Translation-owned,

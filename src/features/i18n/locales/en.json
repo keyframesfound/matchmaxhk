@@ -2222,7 +2222,8 @@
       "syllabus_placeholder": "One chapter or module per line"
     },
     "market": {
-      "how_it_works": "How it works"
+      "how_it_works": "How it works",
+      "upload_short": "Upload"
     },
     "auto": {
       "rejected": "Not published: {{reason}} Edit the note and submit again.",
@@ -4013,5 +4014,19 @@
     "impact_cta": "Learn how",
     "upload_title": "Upload notes · sell on Marketplace",
     "upload_cta": "Upload notes"
+  },
+  "banner": {
+    "value_prop": "Free for parents. Fair for tutors. Keep more with a low 1.5-lesson admin fee.",
+    "referral_promo": "🚀 Tutors: Refer a friend for a case and earn a 15% cash bonus!",
+    "referral_cta": "Click here for details"
+  },
+  "saved": {
+    "title": "Saved",
+    "subtitle": "Your shortlist of tutors, requests and Marketplace notes to come back to.",
+    "tab_tutors": "Tutors",
+    "tab_marketplace": "Marketplace",
+    "marketplace_empty_title": "No saved notes yet",
+    "marketplace_empty_body": "Tap the heart on any Marketplace note to keep it here.",
+    "browse_marketplace": "Browse the Marketplace"
   }
 }

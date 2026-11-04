@@ -105,7 +105,7 @@ function DesktopTab({
       {...(search ? { search: search as never } : {})}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group relative flex h-full items-center gap-2 whitespace-nowrap px-3 text-base font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-4",
+        "group relative flex h-full items-center gap-1.5 whitespace-nowrap px-2 text-[15px] font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-3 2xl:gap-2 2xl:px-4 2xl:text-base",
         active
           ? "text-[color:var(--ink)]"
           : "text-[color:var(--ink)]/60 hover:text-[color:var(--ink)]",
@@ -116,14 +116,14 @@ function DesktopTab({
         alt=""
         aria-hidden="true"
         draggable={false}
-        className="h-6 w-6 shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
+        className="h-5 w-5 shrink-0 dark:invert-[0.85] dark:hue-rotate-180 2xl:h-6 2xl:w-6"
       />
       {children}
       {/* Active underline + hover sweep: 2px ink bar that scales in from the
           left (the DESIGN.md nav language), instead of a bare opacity flip. */}
       <span
         className={cn(
-          "absolute inset-x-3 bottom-0 h-[2px] origin-left rounded-full bg-[color:var(--foreground)] transition-transform duration-200 ease-out xl:inset-x-4 motion-reduce:transition-none",
+          "absolute inset-x-2 bottom-0 h-[2px] origin-left rounded-full bg-[color:var(--foreground)] transition-transform duration-200 ease-out xl:inset-x-3 2xl:inset-x-4 motion-reduce:transition-none",
           active
             ? "scale-x-100"
             : "scale-x-0 group-hover:scale-x-100 group-focus-visible:scale-x-100",
@@ -377,36 +377,33 @@ export function SiteHeader({
 
             {user && <BellMenu />}
 
-            {/* #501: the header avatar opens the Account home; Settings lives
-                in the menu below. */}
-            {user ? (
-              <Link to="/account" aria-label={t("nav.profile")} className={headerCircleClassName}>
-                {/* Issue #437: client accounts are locked to the generated
-                    branded initial avatar (no photo upload in V1). */}
-                <InitialAvatar
-                  stableId={user.id}
-                  name={accountName}
-                  className="h-8 w-8 border-0 text-sm"
-                />
-              </Link>
-            ) : (
-              <Link to="/auth" aria-label={t("nav.sign_in")} className={headerCircleClassName}>
-                <UserRound className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
-              </Link>
-            )}
-
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
+                {/* Owner (2026-11-03): one Airbnb-style menu + profile pill
+                    instead of two circles, so the right cluster is no wider
+                    than it needs to be next to the centred tabs. Account
+                    and Sign in live in this menu. */}
                 <button
                   type="button"
                   aria-label={t("nav.site_menu")}
-                  className={headerCircleClassName}
+                  className="flex h-11 shrink-0 items-center gap-2 rounded-full border border-[color:var(--ink)]/15 pl-3 pr-1.5 transition-colors hover:bg-[color:var(--foreground)]/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <Menu
-                    className="h-5 w-5 text-[color:var(--ink)]"
+                    className="h-4 w-4 text-[color:var(--ink)]"
                     strokeWidth={2.5}
                     aria-hidden="true"
                   />
+                  {user ? (
+                    <InitialAvatar
+                      stableId={user.id}
+                      name={accountName}
+                      className="h-8 w-8 border-0 text-sm"
+                    />
+                  ) : (
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--surface-subtle)]">
+                      <UserRound className="h-4 w-4 text-[color:var(--ink)]" aria-hidden="true" />
+                    </span>
+                  )}
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent

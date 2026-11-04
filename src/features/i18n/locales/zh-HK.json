@@ -2222,7 +2222,8 @@
       "syllabus_placeholder": "每行一個章節或單元"
     },
     "market": {
-      "how_it_works": "運作方式"
+      "how_it_works": "運作方式",
+      "upload_short": "上載"
     },
     "auto": {
       "rejected": "未能上架：{{reason}} 請修改筆記後再提交。",
@@ -4013,5 +4014,19 @@
     "impact_cta": "了解詳情",
     "upload_title": "上載筆記 · 在市集出售",
     "upload_cta": "上載筆記"
+  },
+  "banner": {
+    "value_prop": "家長免費，導師公平。低至 1.5 課行政費，保留更多收入。",
+    "referral_promo": "🚀 導師：推薦朋友接個案，即賺 15% 現金獎賞！",
+    "referral_cta": "撳呢度睇詳情"
+  },
+  "saved": {
+    "title": "已收藏",
+    "subtitle": "你想再看的導師、補習個案及市集筆記。",
+    "tab_tutors": "導師",
+    "tab_marketplace": "市集",
+    "marketplace_empty_title": "未有收藏的筆記",
+    "marketplace_empty_body": "在市集按筆記上的心形，即可收藏在這裏。",
+    "browse_marketplace": "瀏覽市集"
   }
 }

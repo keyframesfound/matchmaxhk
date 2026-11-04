@@ -1,3 +1,4 @@
+import { cn } from "@/lib/utils";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { type QueryClient, useQuery } from "@tanstack/react-query";
@@ -497,24 +498,48 @@ function TutorsDirectory() {
           centerSlot={<CompactSearchPill segments={compactSegments} icon="/nav-find.png" />}
         />
         <main className="flex-1">
-          <section className="border-b border-border bg-[color:var(--surface-header)] pt-10 pb-6 sm:pt-12 sm:pb-8 lg:border-b-0">
+          <section
+            className={cn(
+              "border-b border-border bg-[color:var(--surface-header)] lg:border-b-0",
+              // #605: Marketplace keeps a compact title so listings sit above the fold.
+              directoryView === "materials"
+                ? "pt-5 pb-3 sm:pt-8 sm:pb-5"
+                : "pt-10 pb-6 sm:pt-12 sm:pb-8",
+            )}
+          >
             <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h1 className="text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
+                  <h1
+                    className={cn(
+                      "font-bold tracking-tight text-[color:var(--ink)]",
+                      directoryView === "materials"
+                        ? "text-2xl sm:text-4xl"
+                        : "text-4xl sm:text-5xl",
+                    )}
+                  >
                     {directoryView === "materials"
                       ? t("materials.directory_title")
                       : t("directory.hero_title")}
                   </h1>
-                  <p className="mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  <p
+                    className={cn(
+                      "mt-3 max-w-xl text-sm leading-relaxed text-muted-foreground sm:text-base",
+                      directoryView === "materials" && "mt-1 hidden sm:block",
+                    )}
+                  >
                     {directoryView === "materials"
                       ? t("materials.directory_subtitle")
                       : t("directory.hero_subtitle")}
                   </p>
                 </div>
-                <div data-tour="parent-shop" className="pt-2">
-                  <DirectoryToggle active={directoryView} onChange={setDirectoryView} />
-                </div>
+                {/* #605 / #557 M2: no Tutors | Marketplace toggle on the
+                    Marketplace (the header tabs / Explore pill switch). */}
+                {directoryView === "tutors" ? (
+                  <div data-tour="parent-shop" className="pt-2">
+                    <DirectoryToggle active={directoryView} onChange={setDirectoryView} />
+                  </div>
+                ) : null}
               </div>
               {directoryView === "tutors" ? (
                 <div data-tour="parent-search">
