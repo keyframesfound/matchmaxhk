@@ -16,10 +16,15 @@ export function TosAcceptanceGate({ children }: { children: ReactNode }) {
   const { user, loading, signOut } = useAuth();
   const [acceptedFor, setAcceptedFor] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  // #609: the user id whose ToS check has FINISHED. Until it matches, the
+  // dialog stays closed — otherwise it flashes for one frame on every page
+  // load (user known, check not started yet) and then disappears.
+  const [checkedFor, setCheckedFor] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
       setAcceptedFor(null);
+      setCheckedFor(null);
       return;
     }
     if (acceptedFor === user.id) return;
@@ -38,6 +43,7 @@ export function TosAcceptanceGate({ children }: { children: ReactNode }) {
         // TOS_VERSION, bumping the constant re-prompts everyone once.
         setAcceptedFor(data?.tos_accepted_at && data?.tos_version === TOS_VERSION ? user.id : null);
         setChecking(false);
+        setCheckedFor(user.id);
       });
     return () => {
       active = false;
@@ -45,8 +51,13 @@ export function TosAcceptanceGate({ children }: { children: ReactNode }) {
   }, [user, acceptedFor]);
 
   const inheritedPending = useContext(GateOverlayContext);
-  const pending = loading || Boolean(user && (checking || acceptedFor !== user.id));
-  const showDialog = Boolean(user && !loading && !checking && acceptedFor !== user.id);
+  const checkDone = Boolean(user && (acceptedFor === user.id || checkedFor === user.id));
+  const pending = loading || Boolean(user && (checking || !checkDone || acceptedFor !== user.id));
+  // #609: hold off while an outer gate (onboarding) is still deciding or
+  // showing its own dialog, so the two stay strictly sequential.
+  const showDialog = Boolean(
+    user && !loading && !checking && checkDone && !inheritedPending && acceptedFor !== user.id,
+  );
 
   return (
     <GateOverlayContext.Provider value={inheritedPending || pending}>

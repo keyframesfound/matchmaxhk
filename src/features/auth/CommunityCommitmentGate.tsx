@@ -25,10 +25,15 @@ export function CommunityCommitmentGate({ children }: { children: ReactNode }) {
   const { user, loading, signOut } = useAuth();
   const [agreedFor, setAgreedFor] = useState<string | null>(null);
   const [checking, setChecking] = useState(false);
+  // #609: the user id whose commitment check has FINISHED. Until it matches,
+  // the dialog stays closed — otherwise it flashes for one frame on every
+  // page load (user known, check not started yet) and then disappears.
+  const [checkedFor, setCheckedFor] = useState<string | null>(null);
 
   useEffect(() => {
     if (!user) {
       setAgreedFor(null);
+      setCheckedFor(null);
       return;
     }
     if (agreedFor === user.id) return;
@@ -46,6 +51,7 @@ export function CommunityCommitmentGate({ children }: { children: ReactNode }) {
           committedToCurrentVersion(data?.community_commitment_version);
         setAgreedFor(agreed ? user.id : null);
         setChecking(false);
+        setCheckedFor(user.id);
       });
     return () => {
       active = false;
@@ -55,8 +61,13 @@ export function CommunityCommitmentGate({ children }: { children: ReactNode }) {
   // Report the dialog state so page popups (coach tours) hold off
   // instead of stacking on this one, same as the onboarding/TOS gates.
   const inheritedPending = useContext(GateOverlayContext);
-  const pending = loading || Boolean(user && (checking || agreedFor !== user.id));
-  const showDialog = Boolean(user && !loading && !checking && agreedFor !== user.id);
+  const checkDone = Boolean(user && (agreedFor === user.id || checkedFor === user.id));
+  const pending = loading || Boolean(user && (checking || !checkDone || agreedFor !== user.id));
+  // #609: hold off while an outer gate (onboarding / ToS) is still deciding
+  // or showing its own dialog, so the flow stays strictly sequential.
+  const showDialog = Boolean(
+    user && !loading && !checking && checkDone && !inheritedPending && agreedFor !== user.id,
+  );
 
   return (
     <GateOverlayContext.Provider value={inheritedPending || pending}>
