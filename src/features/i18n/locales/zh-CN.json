@@ -1885,7 +1885,8 @@
     "mode_switch_error": "无法切换模式，请再试一次。",
     "workspaces": "工作区",
     "upload_notes": "上传笔记",
-    "tab_calendar": "日历"
+    "tab_calendar": "日历",
+    "tab_marketplace": "市集"
   },
   "nav_mobile": {
     "case": "个案",
@@ -2042,7 +2043,9 @@
       "files_added": "已加入 {{count}} 个档案。",
       "need_pdf_hint": "已加入。没有 PDF 时，买家会以封面图片作预览，建议加入清晰的封面图片（如未加入，系统会按标题自动制作）。",
       "tags_chip_placeholder": "输入标签后按 Enter，例如 IA",
-      "tag_remove": "移除 #{{tag}}"
+      "tag_remove": "移除 #{{tag}}",
+      "office_preview_made": "已按你的 Word／PowerPoint 档案制作 PDF 版本作预览页，买家会同时收到原档及此 PDF。",
+      "office_preview_footer": "此预览由原档文字制作，排版及图片以原档为准。"
     },
     "ai": {
       "title": "2. AI 自动识别",
@@ -2224,7 +2227,8 @@
       "syllabus_placeholder": "每行一个章节或单元"
     },
     "market": {
-      "how_it_works": "运作方式"
+      "how_it_works": "运作方式",
+      "upload_short": "上传"
     },
     "auto": {
       "rejected": "未能上架：{{reason}} 请修改笔记后再提交。",
@@ -4006,5 +4010,23 @@
     "err_PHONE_NOT_VERIFIED": "请先验证你的香港手机号码。",
     "err_PHONE_NOT_HK": "请验证香港（+852）手机号码。",
     "err_PHONE_MISMATCH": "此查询的 WhatsApp 号码必须与已验证的手机号码相同。"
+  },
+  "home_promo": {
+    "aria": "MatchMax 更多功能",
+    "referral_title": "推荐导师，赚 15% 现金",
+    "referral_cta": "了解详情",
+    "impact_title": "为有需要的学生提供义务补习",
+    "impact_cta": "了解详情",
+    "upload_title": "出售你的温习笔记",
+    "upload_cta": "上传"
+  },
+  "saved": {
+    "title": "已收藏",
+    "subtitle": "你想再看的导师、补习个案及市集笔记。",
+    "tab_tutors": "导师",
+    "tab_marketplace": "市集",
+    "marketplace_empty_title": "未有收藏的笔记",
+    "marketplace_empty_body": "在市集按笔记上的心形，即可收藏在这里。",
+    "browse_marketplace": "浏览市集"
   }
 }

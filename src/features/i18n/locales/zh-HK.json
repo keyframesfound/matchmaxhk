@@ -1885,7 +1885,8 @@
     "mode_switch_error": "無法切換模式，請再試一次。",
     "workspaces": "工作區",
     "upload_notes": "上載筆記",
-    "tab_calendar": "日曆"
+    "tab_calendar": "日曆",
+    "tab_marketplace": "市集"
   },
   "nav_mobile": {
     "case": "個案",
@@ -2042,7 +2043,9 @@
       "files_added": "已加入 {{count}} 個檔案。",
       "need_pdf_hint": "已加入。沒有 PDF 時，買家會以封面圖片作預覽，建議加入清晰的封面圖片（如未加入，系統會按標題自動製作）。",
       "tags_chip_placeholder": "輸入標籤後按 Enter，例如 IA",
-      "tag_remove": "移除 #{{tag}}"
+      "tag_remove": "移除 #{{tag}}",
+      "office_preview_made": "已按你的 Word／PowerPoint 檔案製作 PDF 版本作預覽頁，買家會同時收到原檔及此 PDF。",
+      "office_preview_footer": "此預覽由原檔文字製作，排版及圖片以原檔為準。"
     },
     "ai": {
       "title": "2. AI 自動識別",
@@ -2224,7 +2227,8 @@
       "syllabus_placeholder": "每行一個章節或單元"
     },
     "market": {
-      "how_it_works": "運作方式"
+      "how_it_works": "運作方式",
+      "upload_short": "上載"
     },
     "auto": {
       "rejected": "未能上架：{{reason}} 請修改筆記後再提交。",
@@ -4006,5 +4010,23 @@
     "err_PHONE_NOT_VERIFIED": "請先驗證你的香港手機號碼。",
     "err_PHONE_NOT_HK": "請驗證香港（+852）手機號碼。",
     "err_PHONE_MISMATCH": "此查詢的 WhatsApp 號碼必須與已驗證的手機號碼相同。"
+  },
+  "home_promo": {
+    "aria": "MatchMax 更多功能",
+    "referral_title": "推薦導師，賺 15% 現金",
+    "referral_cta": "了解詳情",
+    "impact_title": "為有需要的學生提供義務補習",
+    "impact_cta": "了解詳情",
+    "upload_title": "出售你的溫習筆記",
+    "upload_cta": "上載"
+  },
+  "saved": {
+    "title": "已收藏",
+    "subtitle": "你想再看的導師、補習個案及市集筆記。",
+    "tab_tutors": "導師",
+    "tab_marketplace": "市集",
+    "marketplace_empty_title": "未有收藏的筆記",
+    "marketplace_empty_body": "在市集按筆記上的心形，即可收藏在這裏。",
+    "browse_marketplace": "瀏覽市集"
   }
 }

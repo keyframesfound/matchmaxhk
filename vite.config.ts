@@ -68,6 +68,9 @@ export default defineConfig({
       // TanStack Start leaves Nitro's scanDirs empty, so the root is added
       // explicitly for the tasks/ scan to find anything.
       experimental: { tasks: true },
+      // Free AI for notes (AI detect + content check): the Workers AI
+      // binding, used within the daily free allocation (free-ai.server.ts).
+      cloudflare: { wrangler: { ai: { binding: "AI" } } },
       scanDirs: ["."],
       scheduledTasks: {
         // 06:00 HKT — after the ECB reference-rate fix.

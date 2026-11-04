@@ -4,7 +4,6 @@ import { z } from "zod";
 import { CONTENT_LANGUAGES } from "@/features/materials/note-taxonomy";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAccountActive } from "@/lib/account-status-enforcement";
-import { getRuntimeEnv } from "@/lib/runtime-env";
 import {
   buildNoteAiSystemPrompt,
   detectDocumentLanguage,
@@ -12,10 +11,6 @@ import {
   normalizeNoteAiResult,
   NOTE_AI_MAX_IMAGES,
   NOTE_AI_MAX_TEXT,
-  NOTE_AI_TEXT_MODEL,
-  NOTE_AI_TEXT_FALLBACKS,
-  NOTE_AI_VISION_FALLBACKS,
-  NOTE_AI_VISION_MODEL,
   type NoteAiSuggestion,
 } from "@/features/materials/note-ai";
 
@@ -28,8 +23,6 @@ import {
  * profile autofill (OpenAI, Anthropic and Gemini are not licensed in HK).
  * Suggestions only: the seller reviews and edits everything.
  */
-
-const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
 
 /**
  * Owner request (2026-11-03): no per-account cap on AI detection. Every
@@ -61,11 +54,7 @@ export const suggestNoteDetails = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => Input.parse(data))
   .handler(async ({ data, context }): Promise<NoteAiSuggestion> => {
-    const apiKey = getRuntimeEnv("OPENROUTER_API_KEY");
-    if (!apiKey) {
-      throw new Error("AI detection is not configured yet (OPENROUTER_API_KEY is missing).");
-    }
-    const text = (data.text ?? "").replace(/\s+/g, " ").trim();
+    const text = (data.text ?? "").replace(/\s+/g, " ").trim().slice(0, 8_000);
     const images = data.images ?? [];
     // Scanned PDFs and photos carry little or no text layer: read the pages.
     const useVision = text.length < 200 && images.length > 0;
@@ -99,68 +88,21 @@ export const suggestNoteDetails = createServerFn({ method: "POST" })
         ]
       : userText;
 
-    // Try the configured model first, then fallbacks: one provider outage or
-    // an unsupported option must not make detection fail outright.
-    const models = useVision
-      ? [NOTE_AI_VISION_MODEL, ...NOTE_AI_VISION_FALLBACKS]
-      : [NOTE_AI_TEXT_MODEL, ...NOTE_AI_TEXT_FALLBACKS];
-    let lastError = "AI detection failed.";
-    for (const model of models) {
-      try {
-        const response = await fetch(OPENROUTER_URL, {
-          method: "POST",
-          headers: {
-            Authorization: `Bearer ${apiKey}`,
-            "Content-Type": "application/json",
-            "HTTP-Referer": "https://matchmax.hk",
-            "X-Title": "MatchMax Notes Upload Assistant",
-          },
-          signal: AbortSignal.timeout(45_000),
-          body: JSON.stringify({
-            model,
-            temperature: 0.2,
-            max_tokens: 1_200,
-            messages: [
-              { role: "system", content: buildNoteAiSystemPrompt(language) },
-              { role: "user", content: userContent },
-            ],
-          }),
-        });
-        if (!response.ok) {
-          const body = await response.text().catch(() => "");
-          let detail = "";
-          try {
-            detail = (JSON.parse(body) as { error?: { message?: string } }).error?.message ?? "";
-          } catch {
-            detail = body;
-          }
-          lastError = `AI detection failed (OpenRouter ${response.status})${detail ? `: ${detail.slice(0, 200)}` : ""}`;
-          console.error(`[note-ai] ${model}: ${lastError}`);
-          // Provider-side limits (not a MatchMax cap): say so plainly.
-          if (response.status === 402) {
-            lastError =
-              "AI detection is paused: the AI provider (OpenRouter) account is out of credit. Fill in the details by hand for now. AI 服務額度已用完，請先手動填寫。";
-          } else if (response.status === 429) {
-            lastError =
-              "The AI provider is busy right now (rate limit). Try Detect again in a minute. AI 服務暫時繁忙，請稍後再試。";
-          }
-          // A bad or out-of-credit key fails the same way on every model.
-          if (response.status === 401 || response.status === 402) break;
-          continue;
-        }
-        const payload = (await response.json()) as {
-          choices?: Array<{ message?: { content?: string } }>;
-        };
-        const content = payload.choices?.[0]?.message?.content;
-        if (!content) {
-          lastError = "AI detection returned an empty reply.";
-          continue;
-        }
-        return normalizeNoteAiResult(content);
-      } catch (error) {
-        lastError = error instanceof Error ? error.message : String(error);
-        console.error(`[note-ai] ${model}: ${lastError}`);
-      }
+    // Owner (2026-11-03): free providers only (Workers AI free allocation,
+    // then OpenRouter ":free" models).
+    const { freeChat } = await import("@/features/materials/free-ai.server");
+    const reply = await freeChat({
+      system: buildNoteAiSystemPrompt(language),
+      content: userContent as never,
+      vision: useVision,
+      maxTokens: 1_000,
+      userId: context.userId,
+      title: "MatchMax Notes Upload Assistant",
+    });
+    if (!reply.text) {
+      throw new Error(
+        `The free AI quota for today is used up. Fill in the details by hand, or try Detect again later. 今日的免費 AI 額度已用完，請先手動填寫，或稍後再試。${reply.status ? ` (code ${reply.status})` : ""}`,
+      );
     }
-    throw new Error(lastError);
+    return normalizeNoteAiResult(reply.text);
   });

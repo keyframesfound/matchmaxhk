@@ -22,6 +22,7 @@ import {
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { HomeNotesRow } from "@/features/materials/home-notes-row";
+import { HomePromoRow } from "@/features/home/home-promo-row";
 import { HomeGigsRow } from "@/features/gigs/home-gigs-row";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
 import { getTutorInquiryAction } from "@/features/tutors/tutor-display";
@@ -780,6 +781,8 @@ function Landing() {
                   onCompareToggle={toggleCompare}
                 />
               ) : null}
+              {/* #620: one compact promo row mid-feed (Referral · Impact · Upload). */}
+              <HomePromoRow />
               {CURRICULUM_CATEGORIES.map(({ label, value }) => {
                 const tutors = curriculumRails[value] ?? [];
                 // Issue #485: hide a rail whose post-exclude pool fell

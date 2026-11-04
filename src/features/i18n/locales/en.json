@@ -1871,7 +1871,7 @@
     "back": "Back",
     "help": "Help",
     "tab_saved": "Saved",
-    "tab_cases": "Cases",
+    "tab_cases": "Case",
     "site_menu": "Main menu",
     "become_tutor_subtitle": "It's easy to start tutoring and earn extra income.",
     "post_case": "Post a case",
@@ -1885,7 +1885,8 @@
     "mode_switch_error": "Could not switch mode. Please try again.",
     "workspaces": "Workspaces",
     "upload_notes": "Upload notes",
-    "tab_calendar": "Calendar"
+    "tab_calendar": "Calendar",
+    "tab_marketplace": "Marketplace"
   },
   "nav_mobile": {
     "case": "Case",
@@ -2042,7 +2043,9 @@
       "files_added": "{{count}} file(s) added.",
       "need_pdf_hint": "Added. Without a PDF, buyers see your cover picture as the preview, so add a clear cover picture (we make one from the title if you skip it).",
       "tags_chip_placeholder": "Type a tag and press Enter, e.g. IA",
-      "tag_remove": "Remove #{{tag}}"
+      "tag_remove": "Remove #{{tag}}",
+      "office_preview_made": "Made a PDF version of your Word / PowerPoint file for the preview pages. Buyers get it with the original file.",
+      "office_preview_footer": "Text preview made from the original file. Layout and pictures are in the original."
     },
     "ai": {
       "title": "2. Detect with AI",
@@ -2224,7 +2227,8 @@
       "syllabus_placeholder": "One chapter or module per line"
     },
     "market": {
-      "how_it_works": "How it works"
+      "how_it_works": "How it works",
+      "upload_short": "Upload"
     },
     "auto": {
       "rejected": "Not published: {{reason}} Edit the note and submit again.",
@@ -4006,5 +4010,23 @@
     "err_PHONE_NOT_VERIFIED": "Please verify your Hong Kong mobile number first.",
     "err_PHONE_NOT_HK": "Please verify a Hong Kong (+852) mobile number.",
     "err_PHONE_MISMATCH": "The WhatsApp number on this request must match your verified mobile."
+  },
+  "home_promo": {
+    "aria": "Get more from MatchMax",
+    "referral_title": "Refer a tutor, earn 15% cash",
+    "referral_cta": "See how",
+    "impact_title": "Pro-bono tutoring for students in need",
+    "impact_cta": "Learn how",
+    "upload_title": "Sell your study notes",
+    "upload_cta": "Upload"
+  },
+  "saved": {
+    "title": "Saved",
+    "subtitle": "Your shortlist of tutors, requests and Marketplace notes to come back to.",
+    "tab_tutors": "Tutors",
+    "tab_marketplace": "Marketplace",
+    "marketplace_empty_title": "No saved notes yet",
+    "marketplace_empty_body": "Tap the heart on any Marketplace note to keep it here.",
+    "browse_marketplace": "Browse the Marketplace"
   }
 }

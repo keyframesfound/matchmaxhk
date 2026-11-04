@@ -2,6 +2,7 @@ import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
   Bookmark,
   Building2,
+  BookOpen,
   CircleHelp,
   Compass,
   Globe,
@@ -12,7 +13,6 @@ import {
   Settings,
   ShieldCheck,
   Sun,
-  Upload,
   UserRound,
 } from "lucide-react";
 import { motion, useMotionValueEvent, useTransform } from "motion/react";
@@ -44,7 +44,6 @@ import { requestTour, TOUR_STORAGE_KEYS } from "@/features/tours/tour-requests";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 import { cn } from "@/lib/utils";
 
-import { AnnouncementBanner } from "./AnnouncementBanner";
 import { MobileBottomNav } from "./mobile-bottom-nav";
 import { StaggeredMobileMenu } from "./StaggeredMobileMenu";
 
@@ -88,11 +87,13 @@ const headerCircleClassName =
 /** Centered category tab for the lg+ nav row, Airbnb-style icon + label with an active underline. */
 function DesktopTab({
   to,
+  search,
   active,
   icon,
   children,
 }: {
   to: NavDestination;
+  search?: Record<string, string>;
   active: boolean;
   /** Icon asset (public/ path) rendered before the label. */
   icon: string;
@@ -101,9 +102,10 @@ function DesktopTab({
   return (
     <Link
       to={to}
+      {...(search ? { search: search as never } : {})}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group relative flex h-full items-center gap-2 whitespace-nowrap px-3 text-base font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-4",
+        "group relative flex h-full items-center gap-1.5 whitespace-nowrap px-2 text-[15px] font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-3 2xl:gap-2 2xl:px-4 2xl:text-base",
         active
           ? "text-[color:var(--ink)]"
           : "text-[color:var(--ink)]/60 hover:text-[color:var(--ink)]",
@@ -114,14 +116,14 @@ function DesktopTab({
         alt=""
         aria-hidden="true"
         draggable={false}
-        className="h-6 w-6 shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
+        className="h-5 w-5 shrink-0 dark:invert-[0.85] dark:hue-rotate-180 2xl:h-6 2xl:w-6"
       />
       {children}
       {/* Active underline + hover sweep: 2px ink bar that scales in from the
           left (the DESIGN.md nav language), instead of a bare opacity flip. */}
       <span
         className={cn(
-          "absolute inset-x-3 bottom-0 h-[2px] origin-left rounded-full bg-[color:var(--foreground)] transition-transform duration-200 ease-out xl:inset-x-4 motion-reduce:transition-none",
+          "absolute inset-x-2 bottom-0 h-[2px] origin-left rounded-full bg-[color:var(--foreground)] transition-transform duration-200 ease-out xl:inset-x-3 2xl:inset-x-4 motion-reduce:transition-none",
           active
             ? "scale-x-100"
             : "scale-x-0 group-hover:scale-x-100 group-focus-visible:scale-x-100",
@@ -188,6 +190,8 @@ export function SiteHeader({
   });
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
+  const searchStr = useRouterState({ select: (state) => state.location.searchStr ?? "" });
+  const onMarketplace = isActive("/tutors") && searchStr.includes("view=materials");
   const { collapseProgress } = useSearchGroup();
   const hasCenterPill = merged && !!centerSlot;
   const [pastMid, setPastMid] = useState(false);
@@ -214,13 +218,11 @@ export function SiteHeader({
   // tab bar handles account navigation and must render outside the header.
   const mobileItems = [
     { label: t("nav.how"), ariaLabel: t("nav.how"), to: "/guide" },
-    { label: t("nav.find"), ariaLabel: t("nav.find"), to: "/tutors" },
     ...(CENTRE_MARKET_ENABLED
       ? [{ label: t("nav.courses"), ariaLabel: t("nav.courses"), to: "/courses" }]
       : []),
-    { label: t("nav.saved_posts"), ariaLabel: t("nav.saved_posts"), to: "/saved-posts" },
-    // Notes upload v2: the upload entry is one tap away on mobile too.
-    { label: t("nav.upload_notes"), ariaLabel: t("nav.upload_notes"), to: "/account/notes/new" },
+    // #594 Account declutter: Find / Saved / Upload notes / Cases live on
+    // the Explore pills, bottom nav and Marketplace, not in this menu.
     // #459 §B: tutors switch modes instead of seeing Become a Tutor.
     ...(isTutor
       ? [activeRole === "tutor" ? { ...modeSwitchItem("parent") } : { ...modeSwitchItem("tutor") }]
@@ -231,7 +233,6 @@ export function SiteHeader({
     ...(hasOrg
       ? [{ label: t("nav.my_business"), ariaLabel: t("nav.my_business"), to: "/business" }]
       : []),
-    { label: t("nav.request_tutor"), ariaLabel: t("nav.request_tutor"), to: "/tutor-requests" },
     { label: t("nav.tab_calendar"), ariaLabel: t("nav.tab_calendar"), to: "/calendar" },
     { label: t("nav.help"), ariaLabel: t("nav.help"), to: "/help" },
     ...(user ? [{ label: t("nav.settings"), ariaLabel: t("nav.settings"), to: "/dashboard" }] : []),
@@ -277,14 +278,23 @@ export function SiteHeader({
                 linksVisible ? "pointer-events-auto" : "pointer-events-none",
               )}
             >
-              <DesktopTab to="/tutors" active={isActive("/tutors")} icon="/nav-find.png">
+              {/* #594 CEO lock (2026-11-03): Airbnb-style flat tabs L→R
+                  Find · Marketplace · Case · Calendar · Saved. Guide lives in
+                  the menu; Become a Tutor is the right-cluster CTA. */}
+              <DesktopTab
+                to="/tutors"
+                active={isActive("/tutors") && !onMarketplace}
+                icon="/nav-find.png"
+              >
                 {t("nav.find")}
               </DesktopTab>
-              <DesktopTab to="/guide" active={isActive("/guide")} icon="/nav-how-it-works.png">
-                {t("nav.how")}
-              </DesktopTab>
-              <DesktopTab to="/saved-posts" active={isActive("/saved-posts")} icon="/nav-saved.png">
-                {t("nav.tab_saved")}
+              <DesktopTab
+                to="/tutors"
+                search={{ view: "materials" }}
+                active={onMarketplace}
+                icon="/nav-marketplace.png"
+              >
+                {t("nav.tab_marketplace")}
               </DesktopTab>
               <DesktopTab
                 to="/tutor-requests"
@@ -293,10 +303,11 @@ export function SiteHeader({
               >
                 {t("nav.tab_cases")}
               </DesktopTab>
-              {/* #461 amendment: Calendar immediately after Cases; signed-out
-                  taps go through the _authenticated gate to Google sign-in. */}
               <DesktopTab to="/calendar" active={isActive("/calendar")} icon="/nav-calendar.png">
                 {t("nav.tab_calendar")}
+              </DesktopTab>
+              <DesktopTab to="/saved-posts" active={isActive("/saved-posts")} icon="/nav-saved.png">
+                {t("nav.tab_saved")}
               </DesktopTab>
             </motion.nav>
           </div>
@@ -311,18 +322,6 @@ export function SiteHeader({
               className={headerCircleClassName}
             >
               <Search className="h-5 w-5 text-[color:var(--ink)]" aria-hidden />
-            </Link>
-            {/* Notes upload v2: a visible "Upload notes" entry on desktop. */}
-            <Link
-              to="/account/notes/new"
-              aria-current={isActive("/account/notes/new") ? "page" : undefined}
-              aria-label={t("nav.upload_notes")}
-              title={t("nav.upload_notes")}
-              className="hidden items-center gap-1.5 whitespace-nowrap rounded-full border border-[color:var(--ink)]/15 px-2.5 py-2 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.05] xl:inline-flex 2xl:px-3"
-            >
-              <Upload className="h-4 w-4" aria-hidden />
-              {/* Icon-only until 2xl so it never crowds the centred tabs. */}
-              <span className="hidden 2xl:inline">{t("nav.upload_notes")}</span>
             </Link>
             {/* #459 §B: once Teaching is activated the Become a Tutor link
                 becomes the Learning/Teaching mode switcher. */}
@@ -378,36 +377,33 @@ export function SiteHeader({
 
             {user && <BellMenu />}
 
-            {/* #501: the header avatar opens the Account home; Settings lives
-                in the menu below. */}
-            {user ? (
-              <Link to="/account" aria-label={t("nav.profile")} className={headerCircleClassName}>
-                {/* Issue #437: client accounts are locked to the generated
-                    branded initial avatar (no photo upload in V1). */}
-                <InitialAvatar
-                  stableId={user.id}
-                  name={accountName}
-                  className="h-8 w-8 border-0 text-sm"
-                />
-              </Link>
-            ) : (
-              <Link to="/auth" aria-label={t("nav.sign_in")} className={headerCircleClassName}>
-                <UserRound className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
-              </Link>
-            )}
-
             <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
+                {/* Owner (2026-11-03): one Airbnb-style menu + profile pill
+                    instead of two circles, so the right cluster is no wider
+                    than it needs to be next to the centred tabs. Account
+                    and Sign in live in this menu. */}
                 <button
                   type="button"
                   aria-label={t("nav.site_menu")}
-                  className={headerCircleClassName}
+                  className="flex h-11 shrink-0 items-center gap-2 rounded-full border border-[color:var(--ink)]/15 pl-3 pr-1.5 transition-colors hover:bg-[color:var(--foreground)]/[0.05] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <Menu
-                    className="h-5 w-5 text-[color:var(--ink)]"
+                    className="h-4 w-4 text-[color:var(--ink)]"
                     strokeWidth={2.5}
                     aria-hidden="true"
                   />
+                  {user ? (
+                    <InitialAvatar
+                      stableId={user.id}
+                      name={accountName}
+                      className="h-8 w-8 border-0 text-sm"
+                    />
+                  ) : (
+                    <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[color:var(--surface-subtle)]">
+                      <UserRound className="h-4 w-4 text-[color:var(--ink)]" aria-hidden="true" />
+                    </span>
+                  )}
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent
@@ -532,6 +528,14 @@ export function SiteHeader({
                     {useDarkTheme ? t("nav.dark_mode") : t("nav.light_mode")}
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className={menuLinkClassName}>
+                    <Link to="/guide">
+                      <MenuIcon>
+                        <BookOpen className="size-5" />
+                      </MenuIcon>
+                      {t("nav.how")}
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild className={menuLinkClassName}>
                     <Link to="/help">
                       <MenuIcon>
                         <CircleHelp className="size-5" />
@@ -593,7 +597,7 @@ export function SiteHeader({
             </DropdownMenu>
           </div>
         </div>
-        <AnnouncementBanner />
+        {/* #620: sticky AnnouncementBanner removed (promo cards on Explore). */}
       </header>
       {/* #307: no hairline here -- the mobile bar and the search band below
           read as one continuous grey surface, matching the desktop header. */}
