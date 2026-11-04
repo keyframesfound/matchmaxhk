@@ -292,11 +292,6 @@
     "onboarding_handle_taken": "此外号已被使用。",
     "onboarding_cap57": "MatchMax 上嘅导师属自雇人士，并非 MatchMax 嘅雇员或代理人，收费同时间由你自己决定。"
   },
-  "banner": {
-    "value_prop": "家长免费，导师公平。低至 1.5 课行政费，保留更多收入。",
-    "referral_promo": "🚀 导师：推荐朋友接个案，即赚 15% 现金奖赏！",
-    "referral_cta": "揿呢度睇详情"
-  },
   "brand": "MatchMax",
   "caseApplications": {
     "new_tutor_cap": "新导师同一时间可持有的首堂个案已达上限。完成一堂首堂后即可再申请。",
@@ -4013,12 +4008,17 @@
   },
   "home_promo": {
     "aria": "MatchMax 更多功能",
-    "referral_title": "推荐导师，赚 15% 现金",
-    "referral_cta": "了解详情",
-    "impact_title": "为有需要的学生提供义务补习",
+    "referral_title": "推荐导师 · 15% 现金奖赏",
+    "referral_cta": "立即推荐",
+    "impact_title": "支持基层免费义务补习",
     "impact_cta": "了解详情",
-    "upload_title": "出售你的温习笔记",
-    "upload_cta": "上传"
+    "upload_title": "上传笔记 · 在市集出售",
+    "upload_cta": "上传笔记"
+  },
+  "banner": {
+    "value_prop": "家长免费，导师公平。低至 1.5 课行政费，保留更多收入。",
+    "referral_promo": "🚀 导师：推荐朋友接个案，即赚 15% 现金奖赏！",
+    "referral_cta": "揿呢度睇详情"
   },
   "saved": {
     "title": "已收藏",

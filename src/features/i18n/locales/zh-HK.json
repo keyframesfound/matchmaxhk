@@ -292,11 +292,6 @@
     "onboarding_handle_taken": "此外號已被使用。",
     "onboarding_cap57": "MatchMax 上嘅導師屬自僱人士，並非 MatchMax 嘅僱員或代理人，收費同時間由你自己決定。"
   },
-  "banner": {
-    "value_prop": "家長免費，導師公平。低至 1.5 課行政費，保留更多收入。",
-    "referral_promo": "🚀 導師：推薦朋友接個案，即賺 15% 現金獎賞！",
-    "referral_cta": "撳呢度睇詳情"
-  },
   "brand": "MatchMax",
   "caseApplications": {
     "new_tutor_cap": "新導師同一時間可持有的首堂個案已達上限。完成一堂首堂後即可再申請。",
@@ -4013,12 +4008,17 @@
   },
   "home_promo": {
     "aria": "MatchMax 更多功能",
-    "referral_title": "推薦導師，賺 15% 現金",
-    "referral_cta": "了解詳情",
-    "impact_title": "為有需要的學生提供義務補習",
+    "referral_title": "推薦導師 · 15% 現金獎賞",
+    "referral_cta": "立即推薦",
+    "impact_title": "支持基層免費義務補習",
     "impact_cta": "了解詳情",
-    "upload_title": "出售你的溫習筆記",
-    "upload_cta": "上載"
+    "upload_title": "上載筆記 · 在市集出售",
+    "upload_cta": "上載筆記"
+  },
+  "banner": {
+    "value_prop": "家長免費，導師公平。低至 1.5 課行政費，保留更多收入。",
+    "referral_promo": "🚀 導師：推薦朋友接個案，即賺 15% 現金獎賞！",
+    "referral_cta": "撳呢度睇詳情"
   },
   "saved": {
     "title": "已收藏",

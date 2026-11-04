@@ -1,6 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
-import { FileUp, HandHeart, UsersRound, type LucideIcon } from "lucide-react";
+import { FileUp, Heart, Rocket, type LucideIcon } from "lucide-react";
 
 /**
  * #620 CEO lock (2026-11-03): replaces the sticky AnnouncementBanner with
@@ -9,6 +9,12 @@ import { FileUp, HandHeart, UsersRound, type LucideIcon } from "lucide-react";
  * and height for all three, short copy only, and all three fit on one
  * phone screen (no sideways scroll). Kept low so the next tutor row stays
  * visible below it.
+ *
+ * #620 acceptance deltas on top of the first pass: headline + CTA copy is
+ * the issue's verbatim EN/繁中 tables; the Pro-bono card deep-links
+ * /guide#impact (interim anchor on the guide Why-us section until #400
+ * ships /impact); wireframe icons 🚀/💙/📄↑; mobile pills go full-width
+ * single-line so "Refer a friend" never wraps inside a ~111px card.
  */
 type PromoCard = {
   key: string;
@@ -16,6 +22,7 @@ type PromoCard = {
   title: string;
   cta: string;
   to: "/guide/refer" | "/guide" | "/account/notes/new";
+  hash?: "impact";
 };
 
 export function HomePromoRow() {
@@ -23,18 +30,20 @@ export function HomePromoRow() {
   const cards: PromoCard[] = [
     {
       key: "referral",
-      icon: UsersRound,
+      icon: Rocket,
       title: t("home_promo.referral_title"),
       cta: t("home_promo.referral_cta"),
       to: "/guide/refer",
     },
     {
       key: "impact",
-      icon: HandHeart,
+      icon: Heart,
       title: t("home_promo.impact_title"),
       cta: t("home_promo.impact_cta"),
-      // The public /impact page waits for the first NGO partner (#400).
+      // The public /impact page waits for the first NGO partner (#400);
+      // until then "Learn how" lands on the guide's interim Impact anchor.
       to: "/guide",
+      hash: "impact",
     },
     {
       key: "upload",
@@ -48,10 +57,11 @@ export function HomePromoRow() {
   return (
     <section aria-label={t("home_promo.aria")} className="mx-auto max-w-[1536px]">
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
-        {cards.map(({ key, icon: Icon, title, cta, to }) => (
+        {cards.map(({ key, icon: Icon, title, cta, to, hash }) => (
           <Link
             key={key}
             to={to}
+            hash={hash}
             className="group flex min-w-0 flex-col items-start gap-2 rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface-subtle)] p-3 transition-colors hover:bg-[color:var(--surface-subtle)]/70 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] sm:flex-row sm:items-center sm:gap-4 sm:p-5"
           >
             <Icon
@@ -62,7 +72,11 @@ export function HomePromoRow() {
             <span className="min-w-0 flex-1 text-[13px] font-semibold leading-snug text-[color:var(--ink)] sm:text-base">
               {title}
             </span>
-            <span className="shrink-0 rounded-full bg-[color:var(--background)] px-2.5 py-1 text-[11px] font-semibold text-[color:var(--ink)] sm:px-4 sm:py-2 sm:text-sm">
+            {/* Grey pill per the Airbnb Hotels SoT — the CTA rides the whole
+                card link, so this is a styled span, not a nested button.
+                Mobile: full-width centred pill, nowrap + 10.5px so
+                "Refer a friend" fits a ~111px card without wrapping. */}
+            <span className="inline-flex h-7 w-full shrink-0 items-center justify-center whitespace-nowrap rounded-full bg-[color:var(--background)] px-1.5 text-[10.5px] font-semibold text-[color:var(--ink)] sm:h-8 sm:w-auto sm:px-4 sm:py-0 sm:text-sm">
               {cta}
             </span>
           </Link>

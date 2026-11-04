@@ -132,8 +132,9 @@ export function SearchGroupProvider({ children }: { children: ReactNode }) {
     return () => mql.removeEventListener("change", update);
   }, []);
 
-  // The pinned bar must clear the whole sticky header, announcement banner
-  // included, measure it live instead of hardcoding 64px.
+  // The pinned bar must clear the whole sticky header; measure it live
+  // instead of hardcoding 64px (the removed #620 banner used to ride the
+  // same header, which is why this was never a constant).
   useEffect(() => {
     const header = document.querySelector<HTMLElement>("[data-site-header]");
     if (!header) return;
