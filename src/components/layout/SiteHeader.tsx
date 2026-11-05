@@ -116,7 +116,7 @@ function DesktopTab({
         alt=""
         aria-hidden="true"
         draggable={false}
-        className="h-5 w-5 shrink-0 dark:invert-[0.85] dark:hue-rotate-180 2xl:h-6 2xl:w-6"
+        className="h-7 w-7 shrink-0 dark:invert-[0.85] dark:hue-rotate-180 xl:h-8 xl:w-8"
       />
       {children}
       {/* Active underline + hover sweep: 2px ink bar that scales in from the
@@ -278,8 +278,9 @@ export function SiteHeader({
                 linksVisible ? "pointer-events-auto" : "pointer-events-none",
               )}
             >
-              {/* #594 CEO lock (2026-11-03): Airbnb-style flat tabs L→R
-                  Find · Marketplace · Case · Calendar · Saved. Guide lives in
+              {/* #594 CEO lock (2026-11-03/04): Airbnb-style flat tabs L→R
+                  Find · Case · Marketplace · Manage · Saved (Manage = the
+                  Case Manager hub, still /calendar). Guide lives in
                   the menu; Become a Tutor is the right-cluster CTA. */}
               <DesktopTab
                 to="/tutors"
@@ -289,6 +290,13 @@ export function SiteHeader({
                 {t("nav.find")}
               </DesktopTab>
               <DesktopTab
+                to="/tutor-requests"
+                active={isActive("/tutor-requests")}
+                icon="/nav-case-board.png"
+              >
+                {t("nav.tab_cases")}
+              </DesktopTab>
+              <DesktopTab
                 to="/tutors"
                 search={{ view: "materials" }}
                 active={onMarketplace}
@@ -296,14 +304,7 @@ export function SiteHeader({
               >
                 {t("nav.tab_marketplace")}
               </DesktopTab>
-              <DesktopTab
-                to="/tutor-requests"
-                active={isActive("/tutor-requests")}
-                icon="/nav-case-board.png"
-              >
-                {t("nav.tab_cases")}
-              </DesktopTab>
-              <DesktopTab to="/calendar" active={isActive("/calendar")} icon="/nav-calendar.png">
+              <DesktopTab to="/calendar" active={isActive("/calendar")} icon="/nav-manage.png">
                 {t("nav.tab_calendar")}
               </DesktopTab>
               <DesktopTab to="/saved-posts" active={isActive("/saved-posts")} icon="/nav-saved.png">

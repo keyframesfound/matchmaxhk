@@ -28,7 +28,7 @@ export function MobileSearchTrigger({
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
 
   // #594 CEO lock (2026-11-03), owner order: phone pills L→R Marketplace ·
-  // Case · Calendar · Become a Tutor. Guide lives in the menu / Help (as on Mac).
+  // Case · Manage · Become a Tutor (Manage = Case Manager, /calendar). Guide lives in the menu / Help (as on Mac).
   const notesActive = pathname === "/tutors" && search.includes("view=materials");
   const navPills: {
     key: string;
@@ -57,7 +57,7 @@ export function MobileSearchTrigger({
       key: "calendar",
       label: t("nav.tab_calendar"),
       to: "/calendar",
-      icon: "/nav-calendar.png",
+      icon: "/nav-manage.png",
       active: isActive("/calendar"),
     },
     {
@@ -105,7 +105,7 @@ export function MobileSearchTrigger({
                   alt=""
                   aria-hidden="true"
                   draggable={false}
-                  className="h-[18px] w-[18px] shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
+                  className="h-[22px] w-[22px] shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
                 />
                 <span>{pill.label}</span>
               </span>
