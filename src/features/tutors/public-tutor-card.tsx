@@ -544,7 +544,7 @@ export function PublicTutorCard({
         </p>
       ) : null}
 
-      <div className="flex flex-1 flex-col px-3 pb-2.5 pt-2.5 md:px-4 md:pb-3 md:pt-3">
+      <div className="flex flex-1 flex-col px-3 pb-3.5 pt-3 md:px-4 md:pb-4 md:pt-3.5">
         {/* Issue #190: compact vertical tier chips (Kindergarten / University). */}
         {verticalTierChips.length > 0 ? (
           <div className="mb-2 flex flex-wrap gap-1.5">
@@ -559,7 +559,7 @@ export function PublicTutorCard({
           </div>
         ) : null}
         {breakdown.length > 0 || academicChips.length > 0 ? (
-          <section className="border-b border-border pb-2.5 md:pb-3">
+          <section className="border-b border-border pb-3.5 md:pb-4">
             <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
               <LineChart
                 className="h-3.5 w-3.5 text-[color:var(--brand-link)] @max-sm:h-3 @max-sm:w-3"
@@ -657,7 +657,10 @@ export function PublicTutorCard({
         ) : null}
 
         <section
-          className={cn("flex flex-1 flex-col", academicChips.length > 0 ? "pt-2.5" : "pt-0")}
+          className={cn(
+            "flex flex-1 flex-col",
+            academicChips.length > 0 ? "pt-3.5 md:pt-4" : "pt-0",
+          )}
         >
           <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <Award
@@ -669,7 +672,7 @@ export function PublicTutorCard({
           </h3>
 
           {tutor.achievements.length > 0 ? (
-            <ul className="mt-1.5 list-disc space-y-1.5 pl-4 marker:text-[color:var(--brand-link)]">
+            <ul className="mt-2 list-disc space-y-2 pl-4 marker:text-[color:var(--brand-link)]">
               {tutor.achievements.slice(0, 3).map((achievement, index) => (
                 <FitText
                   key={`${achievement.short_text}-${index}`}
@@ -685,7 +688,7 @@ export function PublicTutorCard({
           ) : null}
 
           <ul
-            className="mt-2.5 list-disc space-y-1 pl-4 marker:text-[color:var(--brand-link)] md:mt-3"
+            className="mt-3.5 list-disc space-y-1.5 pl-4 marker:text-[color:var(--brand-link)] md:mt-4"
             aria-label={t("tutor_card.highlights_label")}
           >
             {(cardHighlights.length > 0
@@ -734,7 +737,7 @@ export function PublicTutorCard({
         </section>
       </div>
 
-      <footer className="flex min-w-0 flex-nowrap items-center justify-between gap-2 border-t border-border px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
+      <footer className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-t border-border px-3 py-2 md:gap-x-3 md:px-4 md:py-2.5">
         {price.baseRate > 0 ? (
           <FitText
             as="p"
@@ -813,8 +816,14 @@ export function PublicTutorCard({
               </Tooltip>
             </TooltipProvider>
           ) : null}
-          {footerAction}
         </div>
+        {/* #648: the Request tutor CTA is the primary action; whatever the
+            caller passes is lifted to a >=44px tap target. On narrow cards
+            it takes its own full-width row (tutor cards are narrow on
+            every screen) so the price never gets squeezed. */}
+        <span className="flex shrink-0 items-center gap-1.5 [&>:last-child]:h-11! [&>:last-child]:min-w-[7.5rem] [&>:last-child]:justify-center [&>:last-child]:px-4! [&>:last-child]:text-sm! basis-full [&>:last-child]:flex-1">
+          {footerAction}
+        </span>
       </footer>
     </article>
   );
