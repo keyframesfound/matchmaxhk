@@ -3439,7 +3439,12 @@
     "nf_filter_unread": "未读",
     "nf_empty_title": "暂时没有需要您处理的事项",
     "nf_empty_help": "有关个案、课堂与账户的待办事项及最新动态会显示在这里。",
-    "account_actions_needed": "需要处理：{{count}} 项"
+    "account_actions_needed": "需要处理：{{count}} 项",
+    "rating_prompt_title": "和 {{tutorFirstName}} 的课上得怎么样？",
+    "rating_prompt_helper": "你的评价帮助其他家庭。每个个案只计一次——课程进行期间可以更新。",
+    "rating_publish_pending_fee": "已保存。个案行政费结清后会公开。",
+    "rating_pending_lesson_state": "已保存。第 2 课完成且个案行政费结清后会公开。",
+    "rating_low_rematch": "不合适？我们可以帮你重新配对。"
   },
   "cv": {
     "title": "学习履历及成绩档案",
@@ -3650,7 +3655,10 @@
     "group_badge_title": "设有小组班，每位学生费率更低（唔会影响上面嘅一对一收费）",
     "trial_badge": "⚡ 免费 15–20 分钟在线试堂",
     "discount_badge": "🎁 首堂 {{pct}}% 折扣",
-    "promo_tooltip": "只限简短在线介绍。正式课堂按全额收费。如家长确认上完第一堂付费课后停止，Drop-Protection 适用。"
+    "promo_tooltip": "只限简短在线介绍。正式课堂按全额收费。如家长确认上完第一堂付费课后停止，Drop-Protection 适用。",
+    "rating_summary": "{{avg}} · {{count}} 则评价",
+    "rating_new": "新",
+    "rating_count_only": "{{count}} 则评价"
   },
   "tutor_compare": {
     "bar_selected": "已拣 {{count}} / {{max}} 位",

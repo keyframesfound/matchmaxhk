@@ -4,6 +4,7 @@ import { Star } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
 import { supabase } from "@/integrations/supabase/client";
+import { RATING_PUBLIC_THRESHOLD, tutorRatingBadgeState } from "@/features/cases/case-reviews";
 import { cn } from "@/lib/utils";
 
 type TutorReviewSummary = {
@@ -47,9 +48,13 @@ export function ReviewSummaryBlock({ tutorId }: { tutorId: string }) {
   }, [tutorId]);
 
   if (!summary) return null;
-  if (summary.count === 0) {
+  // #649 CEO LOCK threshold = 3: the average shows only once the published
+  // count reaches it; below that the block shows "New tutor" (zero) or a
+  // count-only line (1–2) — never a thin average and never "0.0".
+  const state = tutorRatingBadgeState(summary.count, RATING_PUBLIC_THRESHOLD);
+  if (state === "new") {
     return (
-      <p className="text-sm text-muted-foreground">
+      <p className="text-sm text-muted-foreground" data-rating-summary="new">
         <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-3 py-1 text-xs font-medium">
           {t("sor.new_tutor")}
         </span>
@@ -58,14 +63,24 @@ export function ReviewSummaryBlock({ tutorId }: { tutorId: string }) {
   }
 
   return (
-    <div className="space-y-3">
-      <p className="flex items-center gap-2 text-sm">
-        <Star className="h-4 w-4 fill-current text-amber-500" aria-hidden="true" />
-        <span className="font-semibold text-[color:var(--ink)]">{summary.average?.toFixed(1)}</span>
-        <span className="text-muted-foreground">
+    <div className="space-y-3" data-rating-summary={state}>
+      {state === "full" ? (
+        <p className="flex items-center gap-2 text-sm">
+          <Star className="h-4 w-4 fill-current text-amber-500" aria-hidden="true" />
+          <span className="font-semibold text-[color:var(--ink)]">
+            {summary.average?.toFixed(1)}
+          </span>
+          <span className="text-muted-foreground">
+            {t("sor.review_count", { count: summary.count })}
+          </span>
+        </p>
+      ) : (
+        // 1–2 published reviews: count only — no average below the threshold.
+        <p className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Star className="h-4 w-4 text-amber-500" aria-hidden="true" />
           {t("sor.review_count", { count: summary.count })}
-        </span>
-      </p>
+        </p>
+      )}
       <ul className="space-y-3">
         {summary.latest.map(
           (

@@ -22,7 +22,11 @@ import {
   decideReviewSubmit,
   parentDisplayLineFromCase,
 } from "@/features/cases/parent/review-flow";
-import { canPublishHeldReview, isCaseFeeSettled } from "@/features/cases/case-reviews";
+import {
+  canPublishHeldReview,
+  isCaseFeeSettled,
+  publicRatingLessonEligible,
+} from "@/features/cases/case-reviews";
 import type { LessonConfirmRow } from "@/features/cases/case-reviews";
 import { sweepDueSessionLogs, type SessionLogRowT } from "@/features/cases/experience.functions";
 import { insertLessonLifecycleEvent } from "@/features/cases/bus.functions";
@@ -333,12 +337,15 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
     // applicable admin fee is settled, held parent→tutor reviews that are
     // held PURELY for the fee settlement flip to visible in this request.
     // Contact-holds (phone/email/WhatsApp) never auto-publish.
+    // #649 CEO LOCK N = 2: the flip ALSO needs lesson N reached — a
+    // fee-settled short case (waived/1.0x after L1) keeps the draft held
+    // under pending_lesson_threshold until the second lesson lands.
     const mine = myReviews.find((r) => r.author_account_id === context.userId) ?? null;
     const openFee = fees.find((f) => f.status === "invoiced" || f.status === "paid") ?? null;
     let myReviewStatus = mine?.status ?? null;
     // #386 settled rule includes the fee-row proof (paid/waived), so reviews on
     // cases that closed AFTER settlement publish here too, see isCaseFeeSettled.
-    if (isCaseFeeSettled(c.sor_status, fees)) {
+    if (isCaseFeeSettled(c.sor_status, fees) && publicRatingLessonEligible(lessons)) {
       const eligible = myReviews.filter(
         (r) =>
           r.direction === "parent_to_tutor" &&

@@ -6,7 +6,9 @@
 import {
   buildParentDisplayLine,
   FEE_SETTLEMENT_HOLD_REASON,
+  PENDING_LESSON_HOLD_REASON,
   parentCanReviewCase,
+  publicRatingLessonEligible,
   validateReviewInput,
   type LessonConfirmRow,
   type ReviewDirection,
@@ -28,9 +30,12 @@ export type ReviewSubmitDecision =
  * Decide what a parent review submission does against existing rows:
  *  - #503: no bilaterally confirmed lesson on the case -> reject (both parties
  *    must have confirmed at least one lesson; tutor-only logging never unlocks)
- *  - #386: while the case's admin fee is NOT settled the review is HELD under
- *    pending_fee_settlement (plus any contact reasons); it publishes lazily
- *    on read once the fee settles
+ *  - #386 + #649: the review publishes only when the case's admin fee is
+ *    settled AND lesson N is reached (CEO LOCK N = 2). While either is
+ *    missing the row is HELD under a pure reason the lazy publish flips —
+ *    pending_fee_settlement when the fee is missing (the stronger,
+ *    primary condition), else pending_lesson_threshold (fee settled, short
+ *    case). Contact reasons combine as "+ held: …" and never auto-publish
  *  - an existing HELD review by the same parent is UPDATED (one row per
  *    case+direction per author as much as the unique allows)
  *  - an existing VISIBLE review by the same parent is REPLACED (old row stays
@@ -52,14 +57,17 @@ export function decideReviewSubmit(input: {
 
   const contactHeld =
     validity.heldReasons.length > 0 ? `held: ${validity.heldReasons.join(", ")}` : undefined;
+  // #386 + #649 public gate: visible only when the fee is settled AND lesson
+  // N (2) is reached. One PURE hold reason per missing condition keeps the
+  // lazy publish exact — it re-checks BOTH conditions before flipping.
+  const feeMissing = !input.feeSettled;
+  const lessonsMissing = !publicRatingLessonEligible(input.lessons);
   let status: "visible" | "held";
   let heldReason: string | undefined;
-  if (!input.feeSettled) {
-    // #386: every parent→tutor review waits for the fee settlement.
+  if (feeMissing || lessonsMissing) {
     status = "held";
-    heldReason = contactHeld
-      ? `${FEE_SETTLEMENT_HOLD_REASON} + ${contactHeld}`
-      : FEE_SETTLEMENT_HOLD_REASON;
+    const base = feeMissing ? FEE_SETTLEMENT_HOLD_REASON : PENDING_LESSON_HOLD_REASON;
+    heldReason = contactHeld ? `${base} + ${contactHeld}` : base;
   } else {
     status = contactHeld ? "held" : "visible";
     heldReason = contactHeld;

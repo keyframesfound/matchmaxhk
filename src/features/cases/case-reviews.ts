@@ -12,6 +12,14 @@
  * #503: reviews unlock after at least one BILATERALLY confirmed lesson (both
  * confirm columns set), stay editable while the case is ongoing, and freeze
  * once the case ends (sor_status 'closed') — enforced in the submit fns.
+ *
+ * #649 (Trust): CEO LOCK N = 2 — the post-lesson rating PROMPT fires after
+ * two eligible lessons; the L1 write unlock stays as the soft-draft path
+ * (draft rows are held, never public before N). CEO LOCK threshold = 3
+ * published parent→tutor reviews before a public average shows on the
+ * Explore TutorCard / tutor profile; below threshold the card shows
+ * "New" (zero reviews) or a count-only line (1–2) — never a fake average
+ * and never "0.0".
  */
 
 import { CONTACT_EMAIL_PATTERN } from "@/lib/contact-filter";
@@ -88,10 +96,20 @@ export function feeHoldKind(heldReason: string | null | undefined): "pure" | "co
   return "none";
 }
 
-/** Only a PURE fee-settlement hold publishes when the fee settles; a contact
- * hold (phone/email/WhatsApp) stays held regardless of fee state (#205). */
+/** Only a PURE hold publishes on the lazy read paths; a contact hold
+ * (phone/email/WhatsApp) stays held regardless (#205). #649: the
+ * lesson-threshold hold (fee settled but fewer than N eligible lessons)
+ * is also pure — the lazy publish re-checks BOTH conditions, see
+ * publicRatingLessonEligible. */
+export const PENDING_LESSON_HOLD_REASON = "pending_lesson_threshold";
+
+const PURE_PUBLISH_HOLD_REASONS: readonly string[] = [
+  FEE_SETTLEMENT_HOLD_REASON,
+  PENDING_LESSON_HOLD_REASON,
+];
+
 export function canPublishHeldReview(heldReason: string | null | undefined): boolean {
-  return heldReason === FEE_SETTLEMENT_HOLD_REASON;
+  return heldReason != null && PURE_PUBLISH_HOLD_REASONS.includes(heldReason);
 }
 
 /** WhatsApp detector: channel words + wa.me links (superset of the tutor-card filter). */
@@ -170,14 +188,69 @@ export type LessonConfirmRow = {
   confirmed_by_tutor_at: string | null;
 };
 
+/** One lesson counts toward the rating gates when it is live-or-done AND
+ * bilaterally confirmed (#503 semantics; the Attendance / desk-confirmed
+ * variant arrives with #612 — until then both gates share this predicate). */
+export function isEligibleReviewLesson(l: LessonConfirmRow): boolean {
+  return (
+    (l.status === "confirmed" || l.status === "done") &&
+    l.confirmed_by_parent_at != null &&
+    l.confirmed_by_tutor_at != null
+  );
+}
+
+/** How many lessons on the case count toward the rating gates. */
+export function eligibleReviewLessonCount(lessons: LessonConfirmRow[]): number {
+  return lessons.filter(isEligibleReviewLesson).length;
+}
+
 /** Can this parent review this case? A bilaterally confirmed lesson (#503). */
 export function parentCanReviewCase(lessons: LessonConfirmRow[]): boolean {
-  return lessons.some(
-    (l) =>
-      (l.status === "confirmed" || l.status === "done") &&
-      l.confirmed_by_parent_at != null &&
-      l.confirmed_by_tutor_at != null,
-  );
+  return eligibleReviewLessonCount(lessons) >= 1;
+}
+
+// ---------------------------------------------------------------------------
+// #649 Trust gates (CEO locks, 2026-11-04 HKT).
+// ---------------------------------------------------------------------------
+
+/** CEO LOCK N = 2: the post-lesson prompt fires after two eligible lessons;
+ * a PUBLIC-facing rating also needs two (the L1 write unlock stays as the
+ * soft-draft path — draft rows are held, never published before N). */
+export const RATING_PROMPT_LESSON_N = 2;
+
+/** CEO LOCK threshold = 3: published parent→tutor reviews before an average
+ * shows on the Explore TutorCard / tutor profile. */
+export const RATING_PUBLIC_THRESHOLD = 3;
+
+/** #649 prompt gate: has the case reached lesson N (CEO LOCK N = 2)? The
+ * write unlock (parentCanReviewCase) stays at one lesson for the soft draft. */
+export function ratingPromptDue(
+  lessons: LessonConfirmRow[],
+  n: number = RATING_PROMPT_LESSON_N,
+): boolean {
+  return eligibleReviewLessonCount(lessons) >= n;
+}
+
+/** #649 public gate: a rating may go out PUBLICLY (status 'visible') only
+ * once lesson N is reached. Pair with isCaseFeeSettled — the publish gate is
+ * fee-settled AND N lessons (see decideReviewSubmit + the lazy-publish RPC). */
+export function publicRatingLessonEligible(
+  lessons: LessonConfirmRow[],
+  n: number = RATING_PROMPT_LESSON_N,
+): boolean {
+  return eligibleReviewLessonCount(lessons) >= n;
+}
+
+/** #649 aggregate display state from a PUBLISHED-review count (held/hidden
+ * rows never count): 'new' (zero reviews → "New", never 0.0), 'count_only'
+ * (1–2 → count without an average) or 'full' (≥3 → average + count). */
+export function tutorRatingBadgeState(
+  publishedCount: number,
+  threshold: number = RATING_PUBLIC_THRESHOLD,
+): "new" | "count_only" | "full" {
+  if (publishedCount <= 0) return "new";
+  if (publishedCount < threshold) return "count_only";
+  return "full";
 }
 
 /** Direction-shared alias for the tutor submit fn (#503: same gate both ways). */

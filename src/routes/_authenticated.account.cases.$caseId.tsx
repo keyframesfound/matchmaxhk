@@ -1,4 +1,4 @@
-import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { CalendarPlus, Check, Loader2, Star, X } from "lucide-react";
@@ -38,7 +38,9 @@ function sorActionError(message: string): string {
 }
 import {
   feeHoldKind,
+  PENDING_LESSON_HOLD_REASON,
   parentCanReviewCase,
+  ratingPromptDue,
   REVIEW_COMMENT_MAX_PARENT,
   REVIEW_COMMENT_MIN,
 } from "@/features/cases/case-reviews";
@@ -384,6 +386,15 @@ function ReviewSection({
   // #503: ratings unlock after at least one BILATERALLY confirmed lesson —
   // not "tutor logged alone". Same gate the server fn enforces.
   const reviewUnlocked = parentCanReviewCase(detail.lessons);
+  // #649 CEO LOCK N = 2: the post-lesson prompt (with the tutor's first name)
+  // replaces the generic heading once lesson N is reached; the L1 soft draft
+  // keeps the generic title.
+  const promptDue = ratingPromptDue(detail.lessons);
+  const tutorFirstName =
+    detail.matched_tutor?.displayName.trim().split(/\s+/)[0] || detail.tutor_code || "";
+  const heading = promptDue
+    ? t("sor.rating_prompt_title", { tutorFirstName })
+    : t("sor.parent_review_title");
   const caseEnded = detail.sor_status === "closed";
   const myReview = detail.myReview;
   const hasVisibleOrHeld =
@@ -391,16 +402,22 @@ function ReviewSection({
   // #386: a review held ONLY for the fee settlement publishes automatically
   // once the case admin fee settles; a contact-hold does not. A COMBINED
   // reason (fee + contact filter) explains both halves in its own copy.
+  // #649: a PURE lesson-threshold hold (fee settled, lesson N not reached)
+  // waits for the second lesson instead.
   const holdKind = feeHoldKind(myReview?.held_reason);
+  const lessonHold = myReview?.held_reason === PENDING_LESSON_HOLD_REASON;
 
   const submit = useMutation({
     mutationFn: () => submitParentReview({ data: { caseId, rating, comment } }),
     onSuccess: (res) => {
       if (res.status === "visible") {
         toast.success(t("sor.parent_review_thanks"));
+      } else if (res.heldReason === PENDING_LESSON_HOLD_REASON) {
+        // #649: fee settled but lesson N not reached — draft waits for L2.
+        toast.success(t("sor.rating_pending_lesson_state"));
       } else if (feeHoldKind(res.heldReason) === "pure") {
-        // #386 confirmation copy for the fee-settlement hold.
-        toast.success(t("sor.parent_review_fee_hold"));
+        // #649 confirmation copy for the fee-settlement hold.
+        toast.success(t("sor.rating_publish_pending_fee"));
       } else if (feeHoldKind(res.heldReason) === "combined") {
         // #386: fee hold + contact filter, both halves must be explained.
         toast.success(t("sor.parent_review_fee_hold_combined"));
@@ -446,9 +463,7 @@ function ReviewSection({
   if (myReview && hasVisibleOrHeld && !editing) {
     return (
       <section id="review" className="space-y-2">
-        <h2 className="text-sm font-semibold text-muted-foreground">
-          {t("sor.parent_review_title")}
-        </h2>
+        <h2 className="text-sm font-semibold text-muted-foreground">{heading}</h2>
         <div className="space-y-2">
           <p className="text-sm text-muted-foreground">
             {myReview.status === "held"
@@ -456,9 +471,23 @@ function ReviewSection({
                 ? t("sor.parent_review_fee_pending_state")
                 : holdKind === "combined"
                   ? t("sor.parent_review_fee_pending_combined_state")
-                  : t("sor.parent_review_pending_state")
+                  : lessonHold
+                    ? t("sor.rating_pending_lesson_state")
+                    : t("sor.parent_review_pending_state")
               : t("sor.parent_review_submitted_state", { rating: myReview.rating })}
           </p>
+          {/* #649: after a low rating, the soft desk rematch/replace line
+              (Cap.57-safe — a matching promise, never an automatic refund). */}
+          {myReview.rating <= 2 ? (
+            <p className="text-xs text-muted-foreground">
+              <Link
+                to="/help"
+                className="text-[color:var(--brand-link)] underline-offset-2 hover:underline"
+              >
+                {t("sor.rating_low_rematch")}
+              </Link>
+            </p>
+          ) : null}
           {/* #386: edits update the single case review (never a second one).
               #503: editable any time while the case is still active. */}
           <Button
@@ -484,9 +513,7 @@ function ReviewSection({
 
   return (
     <section id="review" className="space-y-2">
-      <h2 className="text-sm font-semibold text-muted-foreground">
-        {t("sor.parent_review_title")}
-      </h2>
+      <h2 className="text-sm font-semibold text-muted-foreground">{heading}</h2>
       <div className="rounded-[var(--radius-panel)] border border-border bg-card p-5">
         <ReviewStepHeader labels={stepLabels} step={step} onStepClick={(s) => setStep(s)} />
 
@@ -504,6 +531,8 @@ function ReviewSection({
                 </button>
               ))}
             </div>
+            {/* #649 helper: one rating per case, editable while lessons run. */}
+            <p className="mt-3 text-xs text-muted-foreground">{t("sor.rating_prompt_helper")}</p>
             <div className="mt-4 flex justify-end">
               <Button size="sm" disabled={rating < 1} onClick={() => setStep(2)}>
                 {t("sor.review_step_next")}
