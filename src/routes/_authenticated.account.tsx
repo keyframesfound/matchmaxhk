@@ -18,6 +18,7 @@ import {
   Pencil,
   Plus,
   ScanEye,
+  ShieldCheck,
   ShoppingCart,
   Star,
 } from "lucide-react";
@@ -422,6 +423,14 @@ function AccountPage() {
             >
               <Pencil className="mr-2 h-4 w-4" aria-hidden />
               {t("account.edit_profile")}
+            </Button>
+            {/* #650: same Safety destination from the Mac Account header
+                (a link, not a separate product). */}
+            <Button variant="outline" className="font-semibold" asChild>
+              <Link to="/dashboard" hash="safety">
+                <ShieldCheck className="mr-2 h-4 w-4" aria-hidden />
+                {t("settings.nav.safety")}
+              </Link>
             </Button>
           </div>
         </section>

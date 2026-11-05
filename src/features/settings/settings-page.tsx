@@ -13,6 +13,7 @@ import {
   KeyRound,
   LogOut,
   Settings2,
+  ShieldCheck,
   Trash2,
   UserCog,
   Users,
@@ -39,6 +40,7 @@ import { MyTutorProfileSection } from "@/features/settings/sections/my-tutor-pro
 import { NotificationsSection } from "@/features/settings/sections/notifications-section";
 import { PrivacySection } from "@/features/settings/sections/privacy-section";
 import { ReferralsSection } from "@/features/settings/sections/referrals-section";
+import { SafetySection } from "@/features/safety/safety-section";
 import { StudyMaterialsSection } from "@/features/settings/sections/study-materials-section";
 import {
   categoryFromHash,
@@ -60,6 +62,7 @@ const CATEGORY_META: Record<SettingsCategory, { labelKey: string; icon: typeof S
   lessons: { labelKey: "settings.nav.lessons", icon: CalendarClock },
   materials: { labelKey: "settings.nav.materials", icon: BookOpen },
   account: { labelKey: "settings.nav.account", icon: UserCog },
+  safety: { labelKey: "settings.nav.safety", icon: ShieldCheck },
   notifications: { labelKey: "settings.nav.notifications", icon: Bell },
   referrals: { labelKey: "settings.nav.referrals", icon: Gift },
   privacy: { labelKey: "settings.nav.privacy", icon: Database },
@@ -91,6 +94,14 @@ function HomeTab(_props: SettingsSectionProps) {
 }
 
 /**
+ * Issue #650: the Safety tab — ONE optional trusted contact per account
+ * (CEO lock, max 1). The section reads the signed-in user id itself.
+ */
+function SafetyTab(props: SettingsSectionProps) {
+  return <SafetySection userId={props.user.id} />;
+}
+
+/**
  * #201/#204: the Lessons tab, SoR cases with lesson actions, the 14-day week
  * view and the Tutor Plus banner. Tutor-only (same gate as availability).
  */
@@ -112,6 +123,7 @@ const SECTION_COMPONENTS: Record<SettingsCategory, ComponentType<SettingsSection
   lessons: LessonsTab,
   materials: StudyMaterialsSection,
   account: AccountSection,
+  safety: SafetyTab,
   notifications: NotificationsSection,
   referrals: ReferralsSection,
   privacy: PrivacySection,

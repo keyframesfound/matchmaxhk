@@ -10,6 +10,9 @@ import { cn } from "@/lib/utils";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { MatchStatusCard } from "@/features/cases/parent/match-status-card";
 import { MatchedTutorSafetyCard } from "@/features/cases/parent/matched-tutor-card";
+import { ShareFirstVisitCard } from "@/features/safety/share-first-visit-card";
+import { firstLiveLesson } from "@/features/safety/safety-share";
+import { useAuth } from "@/features/auth/useAuth";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -56,6 +59,8 @@ export const Route = createFileRoute("/_authenticated/account/cases/$caseId")({
 function ParentCaseDetailPage() {
   const { caseId } = Route.useParams();
   const { t } = useTranslation();
+  const { user } = useAuth();
+  const userId = user?.id;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
@@ -130,6 +135,22 @@ function ParentCaseDetailPage() {
 
             {/* #529 bait-and-switch card: who to expect at the first lesson. */}
             {data.matched_tutor ? <MatchedTutorSafetyCard tutor={data.matched_tutor} /> : null}
+
+            {/* #650 Safety lite: share the first home-visit window with the
+                trusted contact (soft auto-prompt once per case, manual share
+                control otherwise; online/centre cases never auto-nag). */}
+            {userId ? (
+              <ShareFirstVisitCard
+                userId={userId}
+                caseId={caseId}
+                caseMode={data.mode}
+                caseDistrict={data.district}
+                matchedTutor={data.matched_tutor}
+                firstLesson={firstLiveLesson(data.lessons)}
+                parentName={data.parentDisplayName ?? data.case_code}
+                shareState={data.safetyShare}
+              />
+            ) : null}
 
             {/* Fee (amount + status only; no tutor contact) */}
             {data.fee && (
