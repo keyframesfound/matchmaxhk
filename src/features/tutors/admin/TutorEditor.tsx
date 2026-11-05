@@ -205,14 +205,40 @@ const achievementSchema = z.object({
   detail_text: z.string().trim().max(1000).optional().or(z.literal("")),
 });
 
+/**
+ * Issue #658: the canonical #658 taxonomy (6 primary + 2 More, SoT EN labels)
+ * plus the legacy stored values — staff must still be able to read/keep
+ * pre-#658 rows; the query layer maps them for display and search.
+ */
 export const TUTOR_STATUS_OPTIONS: {
-  value: "uni_student" | "full_part_time_tutor" | "examiner";
+  value:
+    | "uni_undergrad"
+    | "part_time"
+    | "full_time"
+    | "uni_grad"
+    | "school_teacher"
+    | "examiner"
+    | "sub_degree"
+    | "native_speaker"
+    | "uni_student"
+    | "full_part_time_tutor";
   label: string;
 }[] = [
-  { value: "uni_student", label: "University student" },
-  { value: "full_part_time_tutor", label: "Full/Part-Time Tutor" },
-  { value: "examiner", label: "Examiner / professional teacher" },
+  { value: "uni_undergrad", label: "Uni Student Tutor" },
+  { value: "part_time", label: "Part-Time Tutor" },
+  { value: "full_time", label: "Full-Time Tutor" },
+  { value: "uni_grad", label: "Uni Graduate" },
+  { value: "school_teacher", label: "Certified Teacher" },
+  { value: "examiner", label: "Exam Marker / Specialist" },
+  { value: "sub_degree", label: "Associate / HD Student" },
+  { value: "native_speaker", label: "NET / Native Speaker" },
+  { value: "uni_student", label: "University student (legacy)" },
+  { value: "full_part_time_tutor", label: "Full/Part-Time Tutor (legacy)" },
 ];
+
+export const TUTOR_STATUS_VALUES = TUTOR_STATUS_OPTIONS.map(
+  (option) => option.value,
+) as unknown as [string, ...string[]];
 
 // Issue #142: two-tier verification. tier_2_verified = transcripts + HKID
 // manually reviewed by admins (gold Verified Scholar Badge on public surfaces).
@@ -332,7 +358,7 @@ export const tutorFormSchema = z.object({
   }),
   languages: z.array(z.string().trim().min(1).max(60)),
   gender: z.enum(["male", "female", "other"]),
-  tutor_status: z.enum(["uni_student", "full_part_time_tutor", "examiner"]).or(z.literal("")),
+  tutor_status: z.enum(TUTOR_STATUS_VALUES).or(z.literal("")),
   // Issue #142: tier_2_verified = transcripts + HKID passed manual admin review.
   verification_tier: z.enum(["tier_1_standard", "tier_2_verified"]).or(z.literal("")),
   experience_years: z.coerce.number().int().min(0).max(80).optional().or(z.literal("")),
@@ -490,8 +516,8 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     )
       ? (t as unknown as { gender: "male" | "female" | "other" }).gender
       : "female",
-    tutor_status: ["uni_student", "full_part_time_tutor", "examiner"].includes(t.tutor_status ?? "")
-      ? (t.tutor_status as "uni_student" | "full_part_time_tutor" | "examiner")
+    tutor_status: (TUTOR_STATUS_VALUES as readonly string[]).includes(t.tutor_status ?? "")
+      ? (t.tutor_status as (typeof TUTOR_STATUS_OPTIONS)[number]["value"])
       : "",
     verification_tier:
       t.verification_tier === "tier_2_verified" || t.verification_tier === "tier_1_standard"

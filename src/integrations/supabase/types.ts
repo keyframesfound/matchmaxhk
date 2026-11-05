@@ -1616,6 +1616,10 @@ export type Database = {
       set_my_handle: { Args: { _handle: string }; Returns: undefined };
       confirm_tutor_claim: { Args: { p_tutor_id: string }; Returns: string };
       request_tutor_claim: { Args: { p_tutor_id: string }; Returns: string };
+      split_tutor_status: {
+        Args: { p_status: string };
+        Returns: { split: boolean; tutor_status: string; updated: number };
+      };
       publish_tutor_from_application: {
         Args: { p_application_id: string; p_card: Json };
         Returns: Json;

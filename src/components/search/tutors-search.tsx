@@ -3,6 +3,7 @@ import {
   BookOpen,
   Briefcase,
   ClipboardList,
+  Clock,
   Coins,
   GraduationCap,
   HeartHandshake,
@@ -10,6 +11,7 @@ import {
   Mars,
   Monitor,
   Venus,
+  type LucideIcon,
 } from "lucide-react";
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
@@ -17,6 +19,7 @@ import { useTranslation } from "react-i18next";
 
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
 import { PanelLabel, SearchBigInput, Segmented, type OptionRow } from "./search-controls";
+import { TutorStatusFilterChips } from "./tutor-status-chips";
 import {
   FilterQuickPicks,
   FiltersDialog,
@@ -45,6 +48,11 @@ import { SEN_CATEGORY_OPTIONS, type SenCategory } from "@/features/tutors/sen";
 import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
 import { kindergartenActiveToggles, kindergartenParamPatch } from "@/features/tutors/search-tiers";
 import {
+  buildStatusParamPatch,
+  parseSelectedStatuses,
+  type TutorStatusCode,
+} from "@/features/tutors/status-taxonomy";
+import {
   FIELDS_OF_STUDY,
   type AcademicTier,
   type KindergartenFilterKey,
@@ -61,7 +69,13 @@ export type TutorsSearchState = {
   station?: string;
   mode?: string;
   gender?: string;
+  /**
+   * Issue #658: multi-select tutor-status pick, OR semantics. First pick
+   * leads in `status` (legacy single-pick links keep working); the rest ride
+   * in `statuses_extra` "||"-joined (same pattern as subject/subjects_extra).
+   */
   status?: string;
+  statuses_extra?: string;
   verified?: boolean;
   university?: string;
   high_school?: string;
@@ -119,6 +133,26 @@ export function getSelectedSenCategories(draft: TutorsSearchState): string[] {
     .map((value) => value.trim())
     .filter(Boolean);
 }
+
+/**
+ * Issue #658: the draft's full multi-select tutor-status pick (OR). Unknown
+ * values (old links, hand-typed URLs) drop instead of dead-ending the filter.
+ */
+export function getSelectedTutorStatuses(draft: TutorsSearchState): string[] {
+  return parseSelectedStatuses(draft.status, draft.statuses_extra);
+}
+
+/** Toggle one status code in the draft's multi-select pick. */
+const toggleTutorStatusPick = (
+  draft: TutorsSearchState,
+  code: TutorStatusCode,
+): Partial<TutorsSearchState> => {
+  const selected = getSelectedTutorStatuses(draft);
+  const next = selected.includes(code)
+    ? selected.filter((value) => value !== code)
+    : [...selected, code];
+  return buildStatusParamPatch(next);
+};
 
 const formatPrice = (price: number) =>
   price === PRICE_MAX ? `HK$${price.toLocaleString()}+` : `HK$${price.toLocaleString()}`;
@@ -239,78 +273,69 @@ const tutorsQuickPicks = (
   draft: TutorsSearchState,
   onDraftChange: (patch: Partial<TutorsSearchState>) => void,
   t: (key: string) => string,
-) => [
-  {
-    id: "uni",
-    label: t("search_ui.pick_uni"),
-    icon: GraduationCap,
-    active: draft.status === "uni_student",
-    onToggle: () =>
-      onDraftChange({ status: draft.status === "uni_student" ? undefined : "uni_student" }),
-  },
-  {
-    id: "examiner",
-    label: t("search_ui.pick_examiner"),
-    icon: BadgeCheck,
-    active: draft.status === "examiner",
-    onToggle: () => onDraftChange({ status: draft.status === "examiner" ? undefined : "examiner" }),
-  },
-  {
-    id: "fullpart",
-    label: t("search_ui.pick_full_part"),
-    icon: Briefcase,
-    active: draft.status === "full_part_time_tutor",
-    onToggle: () =>
-      onDraftChange({
-        status: draft.status === "full_part_time_tutor" ? undefined : "full_part_time_tutor",
-      }),
-  },
-  {
-    id: "female",
-    label: t("search_ui.pick_female"),
-    icon: Venus,
-    active: draft.gender === "female",
-    onToggle: () => onDraftChange({ gender: draft.gender === "female" ? undefined : "female" }),
-  },
-  {
-    id: "male",
-    label: t("search_ui.pick_male"),
-    icon: Mars,
-    active: draft.gender === "male",
-    onToggle: () => onDraftChange({ gender: draft.gender === "male" ? undefined : "male" }),
-  },
-  {
-    id: "budget",
-    label: t("search_ui.pick_budget"),
-    icon: Coins,
-    active: draft.max_price === 300,
-    onToggle: () => onDraftChange({ max_price: draft.max_price === 300 ? undefined : 300 }),
-  },
-  {
-    id: "online",
-    label: t("search_ui.pick_online"),
-    icon: Monitor,
-    active: draft.mode === "online",
-    onToggle: () => onDraftChange({ mode: draft.mode === "online" ? undefined : "online" }),
-  },
-  {
-    id: "inperson",
-    label: t("search_ui.pick_in_person"),
-    icon: MapPin,
-    active: draft.mode === "in_person",
-    onToggle: () => onDraftChange({ mode: draft.mode === "in_person" ? undefined : "in_person" }),
-  },
-  {
-    id: "sen",
-    label: "SEN",
-    icon: HeartHandshake,
-    active: draft.sen === true,
-    onToggle: () =>
-      onDraftChange(
-        draft.sen === true ? { sen: undefined, sen_categories: undefined } : { sen: true },
-      ),
-  },
-];
+) => {
+  // Issue #658: the status picks ride the multi-select vocabulary, so any
+  // combination of these chips ORs together (legacy single-value toggles
+  // would silently overwrite each other).
+  const statusPick = (code: TutorStatusCode, label: string, icon: LucideIcon) => ({
+    id: code,
+    label,
+    icon,
+    active: getSelectedTutorStatuses(draft).includes(code),
+    onToggle: () => onDraftChange(toggleTutorStatusPick(draft, code)),
+  });
+  return [
+    statusPick("uni_undergrad", t("tutor_status.uni_undergrad"), GraduationCap),
+    statusPick("examiner", t("search_ui.pick_examiner"), BadgeCheck),
+    statusPick("full_time", t("tutor_status.full_time"), Briefcase),
+    statusPick("part_time", t("tutor_status.part_time"), Clock),
+    {
+      id: "female",
+      label: t("search_ui.pick_female"),
+      icon: Venus,
+      active: draft.gender === "female",
+      onToggle: () => onDraftChange({ gender: draft.gender === "female" ? undefined : "female" }),
+    },
+    {
+      id: "male",
+      label: t("search_ui.pick_male"),
+      icon: Mars,
+      active: draft.gender === "male",
+      onToggle: () => onDraftChange({ gender: draft.gender === "male" ? undefined : "male" }),
+    },
+    {
+      id: "budget",
+      label: t("search_ui.pick_budget"),
+      icon: Coins,
+      active: draft.max_price === 300,
+      onToggle: () => onDraftChange({ max_price: draft.max_price === 300 ? undefined : 300 }),
+    },
+    {
+      id: "online",
+      label: t("search_ui.pick_online"),
+      icon: Monitor,
+      active: draft.mode === "online",
+      onToggle: () => onDraftChange({ mode: draft.mode === "online" ? undefined : "online" }),
+    },
+    {
+      id: "inperson",
+      label: t("search_ui.pick_in_person"),
+      icon: MapPin,
+      active: draft.mode === "in_person",
+      onToggle: () => onDraftChange({ mode: draft.mode === "in_person" ? undefined : "in_person" }),
+    },
+    {
+      id: "sen",
+      label: "SEN",
+      icon: HeartHandshake,
+      active: draft.sen === true,
+      onToggle: () =>
+        onDraftChange(
+          draft.sen === true ? { sen: undefined, sen_categories: undefined } : { sen: true },
+        ),
+    },
+  ];
+};
 
 /** Bucketed rate distribution for the price slider, tinted by the active range. */
 const buildPriceHistogram = (
@@ -460,7 +485,8 @@ export function TutorsSearchBar({
 
   const filterCount = [
     draft.gender,
-    draft.status,
+    // Issue #658: the whole multi-select status pick is one filter.
+    getSelectedTutorStatuses(draft).length > 0 ? "status" : "",
     draft.verified === true ? "verified" : "",
     // Issue #199: the SEN toggle (with or without category picks) is one filter.
     draft.sen === true ? "sen" : "",
@@ -479,12 +505,8 @@ export function TutorsSearchBar({
 
   const categoryOptions: OptionRow[] = tutorsCategoryOptions(t);
 
-  const statusOptions = [
-    { value: "", label: t("search_panel.any_status") },
-    { value: "uni_student", label: t("search_panel.status_uni_student") },
-    { value: "full_part_time_tutor", label: t("search_panel.status_full_part_time") },
-    { value: "examiner", label: t("search_panel.status_examiner") },
-  ];
+  const selectedStatuses = getSelectedTutorStatuses(draft);
+  const toggleStatus = (code: TutorStatusCode) => onDraftChange(toggleTutorStatusPick(draft, code));
 
   const sortOptions = [
     { value: "", label: t("search_panel.sort_recommended") },
@@ -715,12 +737,10 @@ export function TutorsSearchBar({
           />
         </FiltersSection>
         <FiltersSection id="status" title={t("search_ui.status_title")}>
-          <SearchableSelect
-            value={draft.status ?? ""}
-            onChange={(value) => onDraftChange({ status: value || undefined })}
-            options={statusOptions}
-            placeholder={t("search_panel.any_status")}
-            className="h-11 rounded-xl"
+          <TutorStatusFilterChips
+            selected={selectedStatuses}
+            onToggle={toggleStatus}
+            onClear={() => onDraftChange({ status: undefined, statuses_extra: undefined })}
           />
         </FiltersSection>
         <FiltersSection id="verified" title={t("search_ui.verified_title")}>
@@ -889,12 +909,8 @@ export function TutorsSearchMobile({
 
   const categoryOptions: OptionRow[] = tutorsCategoryOptions(t);
 
-  const statusOptions = [
-    { value: "", label: t("search_panel.any_status") },
-    { value: "uni_student", label: t("search_panel.status_uni_student") },
-    { value: "full_part_time_tutor", label: t("search_panel.status_full_part_time") },
-    { value: "examiner", label: t("search_panel.status_examiner") },
-  ];
+  const selectedStatuses = getSelectedTutorStatuses(draft);
+  const toggleStatus = (code: TutorStatusCode) => onDraftChange(toggleTutorStatusPick(draft, code));
 
   const sortOptions = [
     { value: "", label: t("search_panel.sort_recommended") },
@@ -1086,12 +1102,10 @@ export function TutorsSearchMobile({
 
           <div className="space-y-2">
             <PanelLabel>{t("search_ui.status_title")}</PanelLabel>
-            <SearchableSelect
-              value={draft.status ?? ""}
-              onChange={(value) => onDraftChange({ status: value || undefined })}
-              options={statusOptions}
-              placeholder={t("search_panel.any_status")}
-              className="h-12 rounded-2xl"
+            <TutorStatusFilterChips
+              selected={selectedStatuses}
+              onToggle={toggleStatus}
+              onClear={() => onDraftChange({ status: undefined, statuses_extra: undefined })}
             />
           </div>
 

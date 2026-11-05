@@ -3679,6 +3679,25 @@
     "gate_title": "保存呢位导师",
     "gate_desc": "注册或登录即可保存导师，之后随时找返。"
   },
+  "tutor_status": {
+    "uni_undergrad": "大学生导师",
+    "part_time": "兼职补习导师",
+    "full_time": "全职补习导师",
+    "uni_grad": "大学毕业导师",
+    "school_teacher": "现职／注册教师",
+    "examiner": "公开试评卷员／专家",
+    "sub_degree": "大专／副学士导师",
+    "native_speaker": "外籍母语导师 (NET)",
+    "full_part_time_legacy": "全职／兼职导师",
+    "more_toggle": "更多身份",
+    "more_collapse": "收起",
+    "clear": "清除身份",
+    "banner_prompt": "请更新导师身份，方便家长更准确搜寻：",
+    "banner_cta_full_time": "我是全职补习导师",
+    "banner_cta_part_time": "我是兼职补习导师",
+    "banner_saving": "储存中…",
+    "banner_error": "储存失败，请再试一次。"
+  },
   "tutors": {
     "tier_aria": "学术程度",
     "tier_kindergarten": "幼稚园",

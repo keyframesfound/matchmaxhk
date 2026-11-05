@@ -3679,6 +3679,25 @@
     "gate_title": "儲存呢位導師",
     "gate_desc": "註冊或登入即可儲存導師，之後隨時搵返。"
   },
+  "tutor_status": {
+    "uni_undergrad": "大學生導師",
+    "part_time": "兼職補習導師",
+    "full_time": "全職補習導師",
+    "uni_grad": "大學畢業生導師",
+    "school_teacher": "現職／註冊教師",
+    "examiner": "公開試評卷員／專家",
+    "sub_degree": "大專／副學士導師",
+    "native_speaker": "外籍母語導師 (NET)",
+    "full_part_time_legacy": "全職／兼職導師",
+    "more_toggle": "更多身份",
+    "more_collapse": "收起",
+    "clear": "清除身份",
+    "banner_prompt": "請更新導師身份，方便家長更準確搜尋：",
+    "banner_cta_full_time": "我是全職補習導師",
+    "banner_cta_part_time": "我是兼職補習導師",
+    "banner_saving": "儲存中…",
+    "banner_error": "儲存失敗，請再試一次。"
+  },
   "tutors": {
     "tier_aria": "學術程度",
     "tier_kindergarten": "幼稚園",
