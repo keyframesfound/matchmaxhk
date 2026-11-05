@@ -184,13 +184,13 @@ function SavedPostsPage() {
                           saveAction={<TutorSaveButton tutorId={tutor.id} />}
                           footerAction={
                             inquiry.kind === "status" ? (
-                              <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)]">
+                              <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)] @max-md:h-11 @max-md:w-full @max-md:justify-center @max-md:text-sm">
                                 {inquiry.label}
                               </span>
                             ) : (
                               <Button
                                 asChild
-                                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-md:h-11 @max-md:w-full @max-md:text-sm"
                               >
                                 <a
                                   href={inquiry.href}

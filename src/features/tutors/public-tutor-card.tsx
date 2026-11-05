@@ -544,7 +544,7 @@ export function PublicTutorCard({
         </p>
       ) : null}
 
-      <div className="flex flex-1 flex-col px-3 pb-2.5 pt-2.5 md:px-4 md:pb-3 md:pt-3">
+      <div className="flex flex-1 flex-col px-3 pb-3 pt-2.5 md:px-4 md:pb-4 md:pt-3">
         {/* Issue #190: compact vertical tier chips (Kindergarten / University). */}
         {verticalTierChips.length > 0 ? (
           <div className="mb-2 flex flex-wrap gap-1.5">
@@ -559,7 +559,7 @@ export function PublicTutorCard({
           </div>
         ) : null}
         {breakdown.length > 0 || academicChips.length > 0 ? (
-          <section className="border-b border-border pb-2.5 md:pb-3">
+          <section className="border-b border-border pb-3 md:pb-3.5">
             <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
               <LineChart
                 className="h-3.5 w-3.5 text-[color:var(--brand-link)] @max-sm:h-3 @max-sm:w-3"
@@ -656,8 +656,16 @@ export function PublicTutorCard({
           </section>
         ) : null}
 
+        {/* Issue #655: clear breathing room between the dense academic/grades
+            block above and the Achievements & Experiences heading — the old
+            pt-2.5 only applied when result chips existed, so grade-only cards
+            sat 10px under the divider. No academic block above → pt-0 so the
+            card top padding isn't doubled. */}
         <section
-          className={cn("flex flex-1 flex-col", academicChips.length > 0 ? "pt-2.5" : "pt-0")}
+          className={cn(
+            "flex flex-1 flex-col",
+            breakdown.length > 0 || academicChips.length > 0 ? "pt-3" : "pt-0",
+          )}
         >
           <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
             <Award
@@ -734,87 +742,100 @@ export function PublicTutorCard({
         </section>
       </div>
 
-      <footer className="flex min-w-0 flex-nowrap items-center justify-between gap-2 border-t border-border px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
-        {price.baseRate > 0 ? (
-          <FitText
-            as="p"
-            maxLines={1}
-            contentKey={`${price.baseRate}-${priceSuffix}`}
-            className="min-w-0 flex-1 whitespace-nowrap text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!"
-            title={
-              displayCurrency !== DEFAULT_CURRENCY &&
-              convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) &&
-              toCurrencyCode(tutor.currency) !== displayCurrency
-                ? t("currency.base_price_tooltip", {
-                    amount: formatMoney(tutor.hourly_rate, toCurrencyCode(tutor.currency)),
-                  })
-                : undefined
-            }
-          >
-            {/* Issue #319: one "$X up/hr" figure, the base rate floor. Extra
+      {/* Issue #648: on dense listing cards (container under 28rem — every
+          phone card and every grid/rail card) the footer stacks so the
+          Request CTA owns a full-width second row with a ≥44px tap target;
+          rate + utility icons stay on the first row above it. Wide cards
+          (detail / profile hero) keep today's single row. */}
+      <footer className="flex min-w-0 flex-col items-stretch gap-2 border-t border-border px-3 py-2 @md:flex-row @md:items-center @md:justify-between md:gap-3 md:px-4 md:py-2.5">
+        <div className="flex min-w-0 flex-nowrap items-center justify-between gap-2">
+          {price.baseRate > 0 ? (
+            <FitText
+              as="p"
+              maxLines={1}
+              contentKey={`${price.baseRate}-${priceSuffix}`}
+              className="min-w-0 flex-1 whitespace-nowrap text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!"
+              title={
+                displayCurrency !== DEFAULT_CURRENCY &&
+                convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) &&
+                toCurrencyCode(tutor.currency) !== displayCurrency
+                  ? t("currency.base_price_tooltip", {
+                      amount: formatMoney(tutor.hourly_rate, toCurrencyCode(tutor.currency)),
+                    })
+                  : undefined
+              }
+            >
+              {/* Issue #319: one "$X up/hr" figure, the base rate floor. Extra
                 rate rows never appear here, so they can never lower it.
                 #114: converted figure when the visitor picked a display
                 currency; tooltip shows the tutor's own quote when it differs. */}
-            {convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) ?? `$${price.baseRate}`}
-            <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
-              {t("tutor_card.price_up")}
-              {priceSuffix}
-            </span>
-          </FitText>
-        ) : (
-          // Pricing flagged (issue #125) or unset: the card shows no rate.
-          <div className="flex-1" />
-        )}
-        <div className="ml-auto flex shrink-0 items-center gap-1.5 md:gap-2">
-          {onCompareToggle ? (
-            <TooltipProvider delayDuration={300}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    aria-pressed={compareSelected ?? false}
-                    aria-label={compareLabel(compareSelected ?? false)}
-                    onClick={handleCompareToggle}
-                    onKeyDown={(event) => event.stopPropagation()}
-                    className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8",
-                      compareSelected
-                        ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)]"
-                        : "text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06]",
-                    )}
-                  >
-                    {compareSelected ? (
-                      <Check className="h-4 w-4" strokeWidth={2.8} aria-hidden="true" />
-                    ) : (
-                      <Columns2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
-                    )}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top">{compareLabel(Boolean(compareSelected))}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ) : null}
-          {saveAction}
-          {shareable ? (
-            <TooltipProvider delayDuration={300}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    aria-label={`${t("share.share_tutor")} (${formatTutorCode(tutor.tutor_code)})`}
-                    onClick={handleShare}
-                    onKeyDown={(event) => event.stopPropagation()}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8"
-                  >
-                    <Share2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top">{t("share.share_tutor")}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ) : null}
-          {footerAction}
+              {convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) ??
+                `$${price.baseRate}`}
+              <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
+                {t("tutor_card.price_up")}
+                {priceSuffix}
+              </span>
+            </FitText>
+          ) : (
+            // Pricing flagged (issue #125) or unset: the card shows no rate.
+            <div className="flex-1" />
+          )}
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 md:gap-2">
+            {onCompareToggle ? (
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-pressed={compareSelected ?? false}
+                      aria-label={compareLabel(compareSelected ?? false)}
+                      onClick={handleCompareToggle}
+                      onKeyDown={(event) => event.stopPropagation()}
+                      className={cn(
+                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8",
+                        compareSelected
+                          ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)]"
+                          : "text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06]",
+                      )}
+                    >
+                      {compareSelected ? (
+                        <Check className="h-4 w-4" strokeWidth={2.8} aria-hidden="true" />
+                      ) : (
+                        <Columns2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    {compareLabel(Boolean(compareSelected))}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : null}
+            {saveAction}
+            {shareable ? (
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={`${t("share.share_tutor")} (${formatTutorCode(tutor.tutor_code)})`}
+                      onClick={handleShare}
+                      onKeyDown={(event) => event.stopPropagation()}
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8"
+                    >
+                      <Share2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">{t("share.share_tutor")}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : null}
+          </div>
         </div>
+        {/* Issue #648: the CTA sits alone on the second row of narrow-card
+            footers (call sites size it with @max-md classes); on wide cards
+            it flows back into the single footer row. */}
+        {footerAction}
       </footer>
     </article>
   );

@@ -149,13 +149,13 @@ function PreviewPage() {
                   onOpen={(code) =>
                     void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
                   }
+                  saveAction={<TutorSaveButton tutorId={liveTutor.id} compact />}
                   footerAction={
                     <>
-                      <TutorSaveButton tutorId={liveTutor.id} compact />
                       {inquiry && inquiry.kind !== "status" ? (
                         <Button
                           asChild
-                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
+                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-md:h-11 @max-md:w-full @max-md:text-sm"
                         >
                           <a
                             href={inquiry.href}
