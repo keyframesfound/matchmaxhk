@@ -1576,6 +1576,67 @@ export type Database = {
         };
         Relationships: [];
       };
+      // Issue #650 Safety lite (hand-added after migration 20261104120000):
+      // ONE optional trusted contact per parent; SELECT-only for clients.
+      trusted_contacts: {
+        Row: {
+          created_at: string;
+          display_name: string;
+          id: string;
+          parent_id: string;
+          phone: string;
+          updated_at: string;
+        };
+        Insert: {
+          created_at?: string;
+          display_name: string;
+          id?: string;
+          parent_id: string;
+          phone: string;
+          updated_at?: string;
+        };
+        Update: {
+          created_at?: string;
+          display_name?: string;
+          id?: string;
+          parent_id?: string;
+          phone?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      // Issue #650: per-case first-visit share lifecycle (prompt seen /
+      // dismissed / shared); SELECT-only for clients.
+      case_safety_shares: {
+        Row: {
+          case_id: string;
+          created_at: string;
+          dismissed_at: string | null;
+          parent_id: string;
+          prompt_seen_at: string | null;
+          shared_at: string | null;
+          updated_at: string;
+        };
+        Insert: {
+          case_id: string;
+          created_at?: string;
+          dismissed_at?: string | null;
+          parent_id: string;
+          prompt_seen_at?: string | null;
+          shared_at?: string | null;
+          updated_at?: string;
+        };
+        Update: {
+          case_id?: string;
+          created_at?: string;
+          dismissed_at?: string | null;
+          parent_id?: string;
+          prompt_seen_at?: string | null;
+          shared_at?: string | null;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;

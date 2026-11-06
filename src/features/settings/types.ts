@@ -57,6 +57,7 @@ export type SettingsCategory =
   | "lessons"
   | "materials"
   | "account"
+  | "safety"
   | "notifications"
   | "referrals"
   | "privacy"
@@ -71,6 +72,7 @@ export const SETTINGS_CATEGORIES: SettingsCategory[] = [
   "lessons",
   "materials",
   "account",
+  "safety",
   "notifications",
   "referrals",
   "privacy",

@@ -186,6 +186,16 @@ export type ParentCaseDetail = {
   matched_tutor_id: string | null;
   /** #529 bait-and-switch card: who was matched, on the case's locked terms. */
   matched_tutor: MatchedTutorCardView | null;
+  /** #650 share-sheet context: case mode + district-level area only. */
+  mode: string | null;
+  district: string | null;
+  parentDisplayName: string | null;
+  /** #650 per-case first-visit share lifecycle (null = table pre-migration). */
+  safetyShare: {
+    prompt_seen_at: string | null;
+    dismissed_at: string | null;
+    shared_at: string | null;
+  } | null;
   sor_status: SorStatus | null;
   /** #503 bilateral End Case: per-side markers (null until that side taps). */
   ended_by_parent_at: string | null;
@@ -232,7 +242,7 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
     // #387 lazy 72h auto-verify sweep so pending logs flip before display.
     await sweepDueSessionLogs(db);
 
-    const [full, lessons, fees, myReviews] = await Promise.all([
+    const [full, lessons, fees, myReviews, parentNameRows, safetyShareRows] = await Promise.all([
       selectRows<{
         case_code: string;
         title: string;
@@ -245,11 +255,13 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         ended_by_tutor_at: string | null;
         hourly_rate_hkd: number | null;
         student_count: number | null;
+        district: string | null;
+        mode: string | null;
         tutors: MatchedTutorRow | null;
       }>(
         db,
         "tutoring_cases",
-        "case_code, title, subjects, exam_system, student_level, status, matched_tutor_id, ended_by_parent_at, ended_by_tutor_at, hourly_rate_hkd, student_count, tutors(tutor_code, display_name, photo_url, undergrad_university)",
+        "case_code, title, subjects, exam_system, student_level, status, matched_tutor_id, ended_by_parent_at, ended_by_tutor_at, hourly_rate_hkd, student_count, district, mode, tutors(tutor_code, display_name, photo_url, undergrad_university)",
         [{ col: "id", op: "eq", value: c.id }],
       ),
       selectRows<{
@@ -285,6 +297,19 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         "id, status, rating, comment, held_reason, direction, author_account_id",
         [{ col: "case_id", op: "eq", value: c.id }],
       ),
+      // #650: the parent's display name for the share template.
+      selectRows<{ display_name: string | null }>(db, "profiles", "display_name", [
+        { col: "id", op: "eq", value: context.userId },
+      ]),
+      // #650: per-case share lifecycle; tolerant read so a pre-migration
+      // deploy renders the manual share control without the soft prompt.
+      selectRowsOrEmpty<{
+        prompt_seen_at: string | null;
+        dismissed_at: string | null;
+        shared_at: string | null;
+      }>(db, "case_safety_shares", "prompt_seen_at, dismissed_at, shared_at", [
+        { col: "case_id", op: "eq", value: c.id },
+      ]),
     ]);
     const head = full[0];
 
@@ -387,6 +412,17 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
           })
         : null,
       sor_status: c.sor_status,
+      // #650 share-sheet context (district-level area only, never an address).
+      mode: head?.mode ?? null,
+      district: head?.district ?? null,
+      parentDisplayName: parentNameRows[0]?.display_name ?? null,
+      safetyShare: safetyShareRows[0]
+        ? {
+            prompt_seen_at: safetyShareRows[0].prompt_seen_at,
+            dismissed_at: safetyShareRows[0].dismissed_at,
+            shared_at: safetyShareRows[0].shared_at,
+          }
+        : null,
       // #503 bilateral End Case state (who has tapped; the control derives
       // eligibility from sor_status via canEndCase).
       ended_by_parent_at: head?.ended_by_parent_at ?? null,
