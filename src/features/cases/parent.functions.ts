@@ -191,6 +191,11 @@ export type ParentCaseDetail = {
   ended_by_parent_at: string | null;
   ended_by_tutor_at: string | null;
   fee: { status: FeeStatus; amount_hkd: number } | null;
+  /** #649 review-hold copy: is the case's admin fee settled right now? A
+   * review still held under pending_fee_settlement while this is true is
+   * actually waiting for Lesson 2 (the lazy publish never rewrites the
+   * reason), so the UI must not show fee-pending copy. */
+  review_fee_settled: boolean;
   lessons: {
     id: string;
     sequence: number;
@@ -387,6 +392,7 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
       ended_by_parent_at: head?.ended_by_parent_at ?? null,
       ended_by_tutor_at: head?.ended_by_tutor_at ?? null,
       fee: openFee ? { status: openFee.status, amount_hkd: openFee.amount_hkd } : null,
+      review_fee_settled: isCaseFeeSettled(c.sor_status, fees),
       lessons: lessons.map((l) => ({
         id: l.id,
         sequence: l.sequence,
