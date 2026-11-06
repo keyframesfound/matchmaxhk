@@ -147,6 +147,7 @@ export const DESK_LANGUAGE_LABEL: Record<string, string> = {
 export const START_LABEL: Record<string, string> = {
   asap: "Starts ASAP",
   two_weeks: "Within 2 weeks",
+  one_month: "Within 1 month",
   flexible: "Flexible start",
 };
 

@@ -394,7 +394,10 @@ function CaseDetailPage() {
     },
     {
       icon: MapPin,
-      label: item.district ?? modeText ?? t("case_board.location_flexible"),
+      label:
+        [item.district, item.locationEstate].filter(Boolean).join(" · ") ||
+        modeText ||
+        t("case_board.location_flexible"),
     },
     {
       icon: Clock,
@@ -402,6 +405,15 @@ function CaseDetailPage() {
         per_week: item.sessionsPerWeek,
         minutes: item.sessionLengthMinutes,
       }),
+      // #656: soft preferred times (never bookings).
+      hint:
+        item.scheduleMode === "specific" && item.scheduleSlots.length > 0
+          ? item.scheduleSlots
+              .map((s) => `${t(`case_intake.day_${s.day}`)} ${t(`case_intake.period_${s.period}`)}`)
+              .join(", ")
+          : item.scheduleMode === "flexible"
+            ? t("case_intake.schedule_flexible")
+            : undefined,
     },
     {
       icon: Wallet,
