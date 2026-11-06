@@ -142,7 +142,13 @@ export function parseSelectedStatuses(
   const values = [
     (status ?? "").trim(),
     ...(statusesExtra ?? "").split("||").map((value) => value.trim()),
-  ].filter((value) => value !== "" && isKnownStatusFilterCode(value));
+  ]
+    .filter((value) => value !== "" && isKnownStatusFilterCode(value))
+    .map((value) => canonicalTutorStatus(value) ?? value);
+  // Legacy `uni_student` normalizes to its canonical rename so the matching
+  // chip highlights (an un-normalized alias stays invisible in the UI); the
+  // bundled legacy value stays as-is — it has no single canonical target and
+  // keeps its exact-match rank.
   return [...new Set(values)];
 }
 

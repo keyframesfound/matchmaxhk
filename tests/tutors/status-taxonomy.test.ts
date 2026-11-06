@@ -121,6 +121,13 @@ describe("parseSelectedStatuses", () => {
     expect(parseSelectedStatuses("", "")).toEqual([]);
     expect(parseSelectedStatuses(null, null)).toEqual([]);
   });
+
+  it("normalizes the legacy uni_student alias to its canonical rename so the chip highlights", () => {
+    expect(parseSelectedStatuses("uni_student", null)).toEqual(["uni_undergrad"]);
+    expect(parseSelectedStatuses("uni_undergrad", "uni_student")).toEqual(["uni_undergrad"]);
+    // The bundled legacy value has no canonical target — it stays itself.
+    expect(parseSelectedStatuses("full_part_time_tutor", null)).toEqual(["full_part_time_tutor"]);
+  });
 });
 
 describe("buildStatusParamPatch", () => {
