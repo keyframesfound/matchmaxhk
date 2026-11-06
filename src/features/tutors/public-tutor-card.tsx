@@ -37,6 +37,7 @@ import {
   ParentFavoriteBadge,
 } from "@/features/tutors/engagement-badges";
 import { ExperiencePill } from "@/features/tutors/experience-badge";
+import { TutorRatingBadge } from "@/features/tutors/tutor-rating-badge";
 import { TrophyKpiBanner } from "@/features/tutors/trophy-kpi-banner";
 import { PromoBadges } from "@/features/tutors/promo-badges";
 import { useFitText } from "@/hooks/use-fit-text";
@@ -517,6 +518,10 @@ export function PublicTutorCard({
             {/* #462 Phase A: Trophy Wall KPI strip + ledger hour badges —
                 self-fetching, hidden at zero verified hours. */}
             <TrophyKpiBanner tutorId={tutor.id} />
+            {/* Issue #649 Trust: compact parent→tutor rating badge — star row
+                + count at threshold (3), count-only below, "New" at zero.
+                Self-fetching like the pills above; hidden pre-migration. */}
+            <TutorRatingBadge tutorId={tutor.id} />
           </div>
 
           {genderLabel ? (

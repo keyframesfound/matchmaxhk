@@ -3236,10 +3236,11 @@
     "parent_review_pending_state": "你的評價正待審核。",
     "parent_review_submitted_state": "你給此導師的評分為 {{rating}}/5。",
     "parent_review_hold_note": "含電話／電郵／WhatsApp 的內容會被保留審核，不會公開。",
-    "parent_review_fee_hold": "你的評價已儲存，待個案行政費結清後便會公開。",
     "parent_review_fee_hold_combined": "你的評價已儲存，待個案行政費結清後便會公開；聯絡資料在結清前暫不顯示。",
     "parent_review_fee_pending_state": "你的評價將於個案行政費結清後公開。",
     "parent_review_fee_pending_combined_state": "你的評價將於個案行政費結清後公開；聯絡資料在結清前暫不顯示。",
+    "parent_review_lesson_hold_combined": "你的評價已儲存，第 2 課完成後便會公開；聯絡資料在公開前暫不顯示。",
+    "parent_review_lesson_pending_combined_state": "你的評價將於第 2 課完成後公開；聯絡資料在公開前暫不顯示。",
     "parent_review_cancel": "取消",
     "parent_review_edit": "修改評價",
     "new_tutor": "新導師",
@@ -3439,7 +3440,12 @@
     "nf_filter_unread": "未讀",
     "nf_empty_title": "暫時沒有需要您處理的事項",
     "nf_empty_help": "有關個案、課堂與帳戶的待辦事項及最新動態會顯示在這裡。",
-    "account_actions_needed": "需要處理：{{count}} 項"
+    "account_actions_needed": "需要處理：{{count}} 項",
+    "rating_prompt_title": "同 {{tutorFirstName}} 嘅課堂點呀？",
+    "rating_prompt_helper": "你嘅評價幫助其他家庭。每個個案只計一次——課堂進行期間可以更新。",
+    "rating_publish_pending_fee": "已儲存。個案行政費結清後會公開。",
+    "rating_pending_lesson_state": "已儲存。第 2 課完成且個案行政費結清後會公開。",
+    "rating_low_rematch": "唔啱？我哋可以幫你重新配對。"
   },
   "cv": {
     "title": "學習履歷及成績檔案",
@@ -3650,7 +3656,10 @@
     "group_badge_title": "設有小組班，每位學生費率更低（唔會影響上面嘅一對一收費）",
     "trial_badge": "⚡ 免費 15–20 分鐘網上試堂",
     "discount_badge": "🎁 首堂 {{pct}}% 折扣",
-    "promo_tooltip": "只限簡短網上介紹。正式課堂按全額收費。如家長確認上完第一堂付費課後停止，Drop-Protection 適用。"
+    "promo_tooltip": "只限簡短網上介紹。正式課堂按全額收費。如家長確認上完第一堂付費課後停止，Drop-Protection 適用。",
+    "rating_summary": "{{avg}} · {{count}} 則評價",
+    "rating_new": "新",
+    "rating_count_only": "{{count}} 則評價"
   },
   "tutor_compare": {
     "bar_selected": "已揀 {{count}} / {{max}} 位",
