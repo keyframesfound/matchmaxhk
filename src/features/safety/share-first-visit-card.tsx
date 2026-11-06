@@ -62,7 +62,7 @@ export type ShareFirstVisitCardProps = {
   firstLesson: { starts_at: string; duration_min: number; location_or_link: string | null } | null;
   parentName: string;
   /** Server-read lifecycle row (null = table pre-migration or not yet created). */
-  shareState: Pick<CaseSafetyShareState, "dismissed_at" | "shared_at"> | null;
+  shareState: Pick<CaseSafetyShareState, "prompt_seen_at" | "dismissed_at" | "shared_at"> | null;
 };
 
 export function ShareFirstVisitCard(props: ShareFirstVisitCardProps) {

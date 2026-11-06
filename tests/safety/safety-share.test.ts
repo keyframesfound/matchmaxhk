@@ -110,9 +110,33 @@ describe("auto-prompt eligibility (CEO lock: home visits only, once per case)", 
 
   it("stops prompting once dismissed or shared (dismissible forever per case)", () => {
     expect(shouldAutoPrompt(null)).toBe(true);
-    expect(shouldAutoPrompt({ dismissed_at: null, shared_at: null })).toBe(true);
-    expect(shouldAutoPrompt({ dismissed_at: "2026-11-05T00:00:00Z", shared_at: null })).toBe(false);
-    expect(shouldAutoPrompt({ dismissed_at: null, shared_at: "2026-11-05T00:00:00Z" })).toBe(false);
+    expect(shouldAutoPrompt({ prompt_seen_at: null, dismissed_at: null, shared_at: null })).toBe(
+      true,
+    );
+    expect(
+      shouldAutoPrompt({
+        prompt_seen_at: null,
+        dismissed_at: "2026-11-05T00:00:00Z",
+        shared_at: null,
+      }),
+    ).toBe(false);
+    expect(
+      shouldAutoPrompt({
+        prompt_seen_at: null,
+        dismissed_at: null,
+        shared_at: "2026-11-05T00:00:00Z",
+      }),
+    ).toBe(false);
+  });
+
+  it("never re-prompts once the one soft prompt rendered (prompt_seen_at CEO lock)", () => {
+    expect(
+      shouldAutoPrompt({
+        prompt_seen_at: "2026-11-05T00:00:00Z",
+        dismissed_at: null,
+        shared_at: null,
+      }),
+    ).toBe(false);
   });
 });
 

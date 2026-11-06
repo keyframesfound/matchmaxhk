@@ -142,9 +142,11 @@ export const TRUSTED_CONTACT_PHONE_MAX = 32;
 
 /** Should the soft prompt card still show for this case? */
 export function shouldAutoPrompt(
-  state: Pick<CaseSafetyShareState, "dismissed_at" | "shared_at"> | null | undefined,
+  state:
+    Pick<CaseSafetyShareState, "prompt_seen_at" | "dismissed_at" | "shared_at"> | null | undefined,
 ): boolean {
   if (!state) return true; // No lifecycle row yet: the one soft prompt is due.
+  if (state.prompt_seen_at != null) return false; // The one soft prompt already rendered once (CEO lock: once per case).
   return state.dismissed_at == null && state.shared_at == null;
 }
 
