@@ -44,6 +44,7 @@ import {
   PENDING_LESSON_HOLD_REASON,
   parentCanReviewCase,
   ratingPromptDue,
+  RATING_PROMPT_LESSON_N,
   REVIEW_COMMENT_MAX_PARENT,
   REVIEW_COMMENT_MIN,
 } from "@/features/cases/case-reviews";
@@ -411,11 +412,15 @@ function ReviewSection({
   // replaces the generic heading once lesson N is reached; the L1 soft draft
   // keeps the generic title.
   const promptDue = ratingPromptDue(detail.lessons);
+  // #649 review: the prompt names the tutor only when a real first name
+  // exists — no matched tutor / blank card name (rendered as "—") must not
+  // produce "How was your lesson with ?" or "with —?".
   const tutorFirstName =
     detail.matched_tutor?.displayName.trim().split(/\s+/)[0] || detail.tutor_code || "";
-  const heading = promptDue
-    ? t("sor.rating_prompt_title", { tutorFirstName })
-    : t("sor.parent_review_title");
+  const heading =
+    promptDue && tutorFirstName && tutorFirstName !== "—"
+      ? t("sor.rating_prompt_title", { tutorFirstName })
+      : t("sor.parent_review_title");
   const caseEnded = detail.sor_status === "closed";
   const myReview = detail.myReview;
   const hasVisibleOrHeld =
@@ -439,10 +444,10 @@ function ReviewSection({
         toast.success(t("sor.parent_review_thanks"));
       } else if (res.heldReason === PENDING_LESSON_HOLD_REASON) {
         // #649: fee settled but lesson N not reached — draft waits for L2.
-        toast.success(t("sor.rating_pending_lesson_state"));
+        toast.success(t("sor.rating_pending_lesson_state", { n: RATING_PROMPT_LESSON_N }));
       } else if (res.heldReason?.startsWith(`${PENDING_LESSON_HOLD_REASON} + `)) {
         // #649: L2 wait + contact filter, both halves explained.
-        toast.success(t("sor.parent_review_lesson_hold_combined"));
+        toast.success(t("sor.parent_review_lesson_hold_combined", { n: RATING_PROMPT_LESSON_N }));
       } else if (feeHoldKind(res.heldReason) === "pure") {
         // #649 confirmation copy for the fee-settlement hold.
         toast.success(t("sor.rating_publish_pending_fee"));
@@ -498,7 +503,7 @@ function ReviewSection({
               ? holdKind === "pure" && detail.review_fee_settled
                 ? // #649: fee already settled — the review is actually waiting
                   // for Lesson 2 (the lazy publish never rewrites the reason).
-                  t("sor.rating_pending_lesson_state")
+                  t("sor.rating_pending_lesson_state", { n: RATING_PROMPT_LESSON_N })
                 : holdKind === "pure"
                   ? t("sor.parent_review_fee_pending_state")
                   : holdKind === "combined" && detail.review_fee_settled
@@ -507,9 +512,11 @@ function ReviewSection({
                     : holdKind === "combined"
                       ? t("sor.parent_review_fee_pending_combined_state")
                       : lessonHoldCombined
-                        ? t("sor.parent_review_lesson_pending_combined_state")
+                        ? t("sor.parent_review_lesson_pending_combined_state", {
+                            n: RATING_PROMPT_LESSON_N,
+                          })
                         : lessonHold
-                          ? t("sor.rating_pending_lesson_state")
+                          ? t("sor.rating_pending_lesson_state", { n: RATING_PROMPT_LESSON_N })
                           : t("sor.parent_review_pending_state")
               : t("sor.parent_review_submitted_state", { rating: myReview.rating })}
           </p>

@@ -3240,8 +3240,8 @@
     "parent_review_fee_hold_combined": "Your review is saved and will publish as soon as the case admin fee is settled; contact details stay hidden until then.",
     "parent_review_fee_pending_state": "Your review will publish as soon as the case admin fee is settled.",
     "parent_review_fee_pending_combined_state": "Your review will publish as soon as the case admin fee is settled; contact details stay hidden until then.",
-    "parent_review_lesson_hold_combined": "Your review is saved and will publish after Lesson 2 is done; contact details stay hidden until then.",
-    "parent_review_lesson_pending_combined_state": "Your review will publish after Lesson 2 is done; contact details stay hidden until then.",
+    "parent_review_lesson_hold_combined": "Your review is saved and will publish after Lesson {{n}} is done; contact details stay hidden until then.",
+    "parent_review_lesson_pending_combined_state": "Your review will publish after Lesson {{n}} is done; contact details stay hidden until then.",
     "parent_review_cancel": "Cancel",
     "parent_review_edit": "Edit review",
     "new_tutor": "New tutor",
@@ -3445,7 +3445,7 @@
     "rating_prompt_title": "How was your lesson with {{tutorFirstName}}?",
     "rating_prompt_helper": "Your rating helps other families. One rating per case — you can update it while lessons continue.",
     "rating_publish_pending_fee": "Saved. It publishes when the case admin fee is settled.",
-    "rating_pending_lesson_state": "Saved. It publishes after Lesson 2 is done and the case admin fee is settled.",
+    "rating_pending_lesson_state": "Saved. It publishes after Lesson {{n}} is done and the case admin fee is settled.",
     "rating_low_rematch": "Not the right fit? We can help rematch."
   },
   "cv": {
