@@ -4096,5 +4096,19 @@
     "share_no_contact": "No trusted contact saved yet.",
     "share_no_contact_link": "Add one in Safety settings",
     "share_state_error": "Couldn't update — please try again."
+  },
+  "account_hub": {
+    "title": "Account",
+    "view_profile": "View profile",
+    "signed_out_title": "Sign in to MatchMax",
+    "signed_out_body": "Save tutors and notes, post a case and manage your lessons.",
+    "become_tutor_body": "Teach with MatchMax and get matched with students.",
+    "section_account": "Account",
+    "section_explore": "MatchMax",
+    "section_preferences": "Preferences",
+    "privacy": "Privacy",
+    "notifications": "Notifications",
+    "refer": "Refer a tutor",
+    "legal": "Terms and policies"
   }
 }
