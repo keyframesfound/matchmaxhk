@@ -56,11 +56,43 @@ export const ACCEPT_ATTRIBUTE = ".pdf,.jpg,.jpeg,.png,.doc,.docx";
 export const PHONE_REGEX = /^[+(\d][\d\s()./+-]{4,19}\d$/;
 export const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-export const STATUS_OPTIONS = [
+/**
+ * Issue #658 §2.3: the /join Current-Status picker uses the SoT taxonomy —
+ * the 6 primary codes + the 2 "More" codes (exact EN labels from the issue
+ * table). Legacy stored applications keep the old 3 strings; the zod schema
+ * accepts BOTH vocabularies so in-flight rows keep rendering and publishing.
+ */
+export const STATUS_FORM_OPTIONS = [
+  "Uni Student Tutor",
+  "Part-Time Tutor",
+  "Full-Time Tutor",
+  "Uni Graduate",
+  "Certified Teacher",
+  "Exam Marker / Specialist",
+  "Associate / HD Student",
+  "NET / Native Speaker",
+] as const;
+
+/** Legacy /join status strings (pre-#658 applications, still valid stored data). */
+export const LEGACY_STATUS_OPTIONS = [
   "University Student",
   "Full/Part-Time Tutor",
   "Professional Teacher/ Public Exam Examiner",
 ] as const;
+
+/** Pre-#658 export shape: the old 3-bucket vocabulary. Kept for stored-data typing. */
+export const STATUS_OPTIONS = LEGACY_STATUS_OPTIONS;
+
+/** All status strings the schema accepts (new #658 picker + legacy stored rows). */
+export const ALL_STATUS_OPTIONS = [...STATUS_FORM_OPTIONS, ...LEGACY_STATUS_OPTIONS] as const;
+
+/** #658 codes that take the professional path (credentials / boards / roles). */
+export const PROFESSIONAL_FORM_STATUSES = [
+  "Certified Teacher",
+  "Exam Marker / Specialist",
+  "Professional Teacher/ Public Exam Examiner",
+] as const;
+
 export const PROFESSIONAL_STATUS = "Professional Teacher/ Public Exam Examiner" as const;
 
 export const CURRICULUM_OPTIONS = [
@@ -157,7 +189,7 @@ export const tutorApplicationSchema = z
     // themselves from public browse automatically.
     startImmediately: z.boolean().default(true),
     startDate: z.string().trim().max(40).optional().default(""),
-    status: z.enum(STATUS_OPTIONS),
+    status: z.enum(ALL_STATUS_OPTIONS),
     statusOther: z.string().trim().max(200).optional().default(""),
     professionalRoles: z.array(z.enum(PROFESSIONAL_ROLE_OPTIONS)).default([]),
     examiningBoards: z.array(z.enum(EXAMINING_BOARD_OPTIONS)).default([]),
@@ -364,7 +396,10 @@ export const tutorApplicationSchema = z
     termsAck: z.literal(true),
   })
   .superRefine((data, context) => {
-    const isProfessional = data.status === PROFESSIONAL_STATUS;
+    // Issue #658: the professional path covers both #658 professional codes
+    // (Certified Teacher, Exam Marker / Specialist) and the legacy combined
+    // string stored by pre-#658 applications.
+    const isProfessional = (PROFESSIONAL_FORM_STATUSES as readonly string[]).includes(data.status);
 
     // Issue #319: base-rate requirements follow the lesson format. At least
     // one base rate is always required because `format` is mandatory.
@@ -565,7 +600,9 @@ export interface AnswerRow {
 }
 
 export function getApplicationPath(data: Pick<TutorApplication, "status" | "curriculum">): string {
-  return data.status === PROFESSIONAL_STATUS ? "Professional / Examiner" : data.curriculum;
+  return (PROFESSIONAL_FORM_STATUSES as readonly string[]).includes(data.status)
+    ? "Professional / Examiner"
+    : data.curriculum;
 }
 
 export function buildAnswerRows(data: TutorApplication): AnswerRow[] {

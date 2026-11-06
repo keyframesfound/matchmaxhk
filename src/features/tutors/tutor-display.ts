@@ -1,6 +1,7 @@
 import i18n from "@/features/i18n/config";
 import type { Tutor } from "@/features/tutors/queries";
 import { isTutorFullyBooked } from "@/features/tutors/queries";
+import { canonicalTutorStatus, isLegacyBundledStatus } from "@/features/tutors/status-taxonomy";
 import { EXAM_SYSTEMS } from "@/features/tutors/examSystems";
 import {
   ADMISSIONS_TEST_SUBJECTS,
@@ -80,17 +81,36 @@ export function formatTutorCode(code?: string | null) {
   return normalized;
 }
 
-/** i18n key for a tutor_status value ("" when unset/unknown). */
+/**
+ * i18n key for a stored tutor_status value ("" when unset/unknown).
+ *
+ * Issue #658 §2.5: cards render ONE compact badge from the stored primary
+ * status using the SoT labels (FT ≠ PT — never re-bundled after the split).
+ * Legacy rows keep working: `uni_student` is a pure rename of
+ * `uni_undergrad` and shows the new label; `full_part_time_tutor` (bundled)
+ * shows exactly one temporary Full/Part-Time chip until the 1-tap split.
+ */
 export function getTutorStatusLabelKey(tutorStatus: string | null | undefined): string | null {
-  switch ((tutorStatus ?? "").trim()) {
-    case "uni_student":
-      return "tutor_card.status_uni_student";
-    case "full_part_time_tutor":
-      return "tutor_card.status_full_part_time";
+  switch (canonicalTutorStatus(tutorStatus)) {
+    case "uni_undergrad":
+      return "tutor_status.uni_undergrad";
+    case "part_time":
+      return "tutor_status.part_time";
+    case "full_time":
+      return "tutor_status.full_time";
+    case "uni_grad":
+      return "tutor_status.uni_grad";
+    case "school_teacher":
+      return "tutor_status.school_teacher";
     case "examiner":
-      return "tutor_card.status_examiner";
+      return "tutor_status.examiner";
+    case "sub_degree":
+      return "tutor_status.sub_degree";
+    case "native_speaker":
+      return "tutor_status.native_speaker";
     default:
-      return null;
+      // Legacy bundled value (or anything unknown): the one temporary chip.
+      return isLegacyBundledStatus(tutorStatus) ? "tutor_status.full_part_time_legacy" : null;
   }
 }
 

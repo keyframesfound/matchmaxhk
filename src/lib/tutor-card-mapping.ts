@@ -23,13 +23,49 @@ import {
 
 export type TutorCardLessonMode = "online" | "in_person" | "either";
 
-export type TutorCardTutorStatus = "uni_student" | "full_part_time_tutor" | "examiner";
+export type TutorCardTutorStatus =
+  | "uni_undergrad"
+  | "part_time"
+  | "full_time"
+  | "uni_grad"
+  | "school_teacher"
+  | "examiner"
+  | "sub_degree"
+  | "native_speaker"
+  | "uni_student"
+  | "full_part_time_tutor";
 
-/** Application "Current status" answer → tutors.tutor_status badge code. */
+/**
+ * Application "Current status" answer → tutors.tutor_status badge code.
+ *
+ * Issue #658: new applications carry the SoT taxonomy strings and publish the
+ * canonical codes. Legacy strings (pre-#658 in-flight rows) keep their
+ * pre-#658 mapping: "University Student" → uni_student (rename of
+ * uni_undergrad, query-layer mapped) and the bundled "Full/Part-Time Tutor"
+ * → full_part_time_tutor (temporary bundled chip until the 1-tap split).
+ */
 export function mapApplicationStatusToTutorStatus(
   status: TutorApplication["status"],
 ): TutorCardTutorStatus {
   switch (status) {
+    // #658 taxonomy (STATUS_FORM_OPTIONS)
+    case "Uni Student Tutor":
+      return "uni_undergrad";
+    case "Part-Time Tutor":
+      return "part_time";
+    case "Full-Time Tutor":
+      return "full_time";
+    case "Uni Graduate":
+      return "uni_grad";
+    case "Certified Teacher":
+      return "school_teacher";
+    case "Exam Marker / Specialist":
+      return "examiner";
+    case "Associate / HD Student":
+      return "sub_degree";
+    case "NET / Native Speaker":
+      return "native_speaker";
+    // Legacy stored answers (LEGACY_STATUS_OPTIONS)
     case "University Student":
       return "uni_student";
     case "Full/Part-Time Tutor":

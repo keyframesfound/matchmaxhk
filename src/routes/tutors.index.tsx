@@ -67,6 +67,13 @@ import {
   type AcademicTier,
 } from "@/features/tutors/verticals";
 import { supabase } from "@/integrations/supabase/client";
+import {
+  parseSelectedStatuses,
+  parseStatusListParam,
+  parseStatusParam,
+  tutorMatchesStatusFilter,
+  tutorStatusFilterRank,
+} from "@/features/tutors/status-taxonomy";
 
 const searchSchema = z.object({
   // Issue #190: academic-tier tab (Kindergarten | Primary & Secondary |
@@ -84,7 +91,12 @@ const searchSchema = z.object({
   station: z.string().optional(), // nearest MTR station to the student
   mode: z.string().optional(), // online | in_person | either
   gender: z.string().optional(), // male | female | other
-  status: z.string().optional(), // uni_student | full_part_time_tutor | examiner
+  // Issue #658: multi-select tutor-status pick, OR semantics. `status` leads
+  // (legacy single-pick links keep working), `statuses_extra` is "||"-joined.
+  // Parsing is total — TanStack JSON-decodes (?status=1 arrives as NUMBER 1,
+  // absent params as null), and unknown values drop instead of dead-ending.
+  status: z.preprocess(parseStatusParam, z.string().optional()),
+  statuses_extra: z.preprocess(parseStatusListParam, z.string().optional()),
   tag: z.string().optional(), // issue #217: profile-tag search (?tag=ia review)
   verified: z.preprocess(
     (value) =>
@@ -222,7 +234,9 @@ function TutorsDirectory() {
   const stationFilter = draft.station ?? "";
   const modeFilter = draft.mode ?? "";
   const genderFilter = draft.gender ?? "";
-  const statusFilter = draft.status ?? "";
+  // Issue #658: multi-select OR over tutor-status codes (canonical + legacy
+  // equivalence, with the FT/PT backfill for bundled profiles).
+  const statusFilters = parseSelectedStatuses(draft.status, draft.statuses_extra);
   const verifiedOnly = search.verified === true;
   const universityFilter = draft.university ?? "";
   const highSchoolFilter = draft.high_school ?? "";
@@ -287,7 +301,8 @@ function TutorsDirectory() {
         const g = (tut as unknown as { gender?: string | null }).gender ?? "";
         if (g !== genderFilter) return false;
       }
-      if (statusFilter && (tut.tutor_status ?? "") !== statusFilter) return false;
+      if (statusFilters.length > 0 && !tutorMatchesStatusFilter(tut.tutor_status, statusFilters))
+        return false;
       // Issue #217: exact match on one of the tutor's profile tags.
       if (tagFilter && !(tut.profile_tags ?? []).includes(tagFilter)) return false;
       // Issue #142: Verified Tutors Only, hide everything below tier_2_verified.
@@ -359,6 +374,15 @@ function TutorsDirectory() {
     });
 
     return [...list].sort((a, b) => {
+      // Issue #658 §2.2: with a status pick active, exact matches rank ahead
+      // of legacy bundled profiles pulled in by the FT/PT backfill, before
+      // the regular experience/rate ordering.
+      if (statusFilters.length > 0) {
+        const rankDelta =
+          tutorStatusFilterRank(a.tutor_status, statusFilters) -
+          tutorStatusFilterRank(b.tutor_status, statusFilters);
+        if (rankDelta !== 0) return rankDelta;
+      }
       if (sort === "price_asc")
         return (
           getTutorBaseRate(a) - getTutorBaseRate(b) || a.tutor_code.localeCompare(b.tutor_code)
@@ -385,7 +409,7 @@ function TutorsDirectory() {
     effectiveStationFilter,
     modeFilter,
     genderFilter,
-    statusFilter,
+    statusFilters,
     verifiedOnly,
     senOnly,
     senCategoryFilters,

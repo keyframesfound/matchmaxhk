@@ -26,6 +26,7 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useAuth } from "@/features/auth/useAuth";
 import { SuggestedActionsSection } from "@/features/dashboard/action-cards";
+import { TutorStatusSplitBanner } from "@/features/tutors/split-status-banner";
 import { AccountSection } from "@/features/settings/sections/account-section";
 import { AvailabilitySection } from "@/features/settings/sections/availability-section";
 import { AvailabilityGridEditor } from "@/features/settings/sections/availability-grid-editor";
@@ -143,17 +144,18 @@ export function SettingsPage() {
 
   // The referral program is tutor-only: the tab appears once the signed-in
   // account is linked to a tutor card (tutors.user_id, set by admins).
+  // Issue #658: the query also feeds the 1-tap status-split banner.
   const tutorLinkQuery = useQuery({
     queryKey: ["settings", "tutor-link", userId],
     queryFn: async () => {
       if (!userId) throw new Error("Not signed in");
       const { data, error } = await supabase
         .from("tutors")
-        .select("id")
+        .select("id, tutor_status")
         .eq("user_id", userId)
         .maybeSingle();
       if (error) throw error;
-      return data as { id: string } | null;
+      return data as { id: string; tutor_status: string | null } | null;
     },
     enabled: Boolean(userId),
   });
@@ -310,6 +312,13 @@ export function SettingsPage() {
 
           <div className="grid gap-6 pt-8 lg:grid-cols-[210px_minmax(0,1fr)] lg:gap-14 lg:pt-10">
             <div className="min-w-0 lg:col-span-2 lg:max-w-3xl">
+              {/* Issue #658 §2.2: 1-tap split banner for legacy bundled
+                  profiles (self-disappears once the tutor picks FT or PT). */}
+              {hasLinkedTutor ? (
+                <div className="mb-6">
+                  <TutorStatusSplitBanner tutorStatus={tutorLinkQuery.data?.tutor_status ?? null} />
+                </div>
+              ) : null}
               {/* Issue #147: suggested-action cards switch on account type. */}
               <SuggestedActionsSection isTutor={hasRole("tutor") || hasLinkedTutor} />
             </div>

@@ -34,7 +34,7 @@ import {
 } from "@/features/tutor-application/admin/queries";
 import {
   buildAnswerRows,
-  PROFESSIONAL_STATUS,
+  PROFESSIONAL_FORM_STATUSES,
   type TutorApplication,
 } from "@/lib/tutor-application.schema";
 
@@ -77,7 +77,9 @@ function StatusPill({ status }: { status: TutorApplicationStatus }) {
 }
 
 function getApplicationPathLabel(row: TutorApplicationRecord): string {
-  return row.data.status === "Professional Teacher/ Public Exam Examiner"
+  // Issue #658: the #658 professional codes and the legacy combined string
+  // both label the professional path.
+  return (PROFESSIONAL_FORM_STATUSES as readonly string[]).includes(row.data.status)
     ? "Professional / Examiner"
     : (row.data.curriculum ?? "—");
 }
@@ -710,7 +712,11 @@ function DocumentStatusSummary({ application }: { application: TutorApplicationR
   const transcripts = Array.isArray(legacy.academicDocuments) ? legacy.academicDocuments : [];
   const achievements = Array.isArray(legacy.achievements) ? legacy.achievements : [];
   const studentCard = "studentCard" in legacy ? legacy.studentCard : undefined;
-  const isProfessional = application.data.status === PROFESSIONAL_STATUS;
+  // Issue #658: both #658 professional codes and the legacy combined string
+  // took/still take the professional (credential-evidence) path.
+  const isProfessional = (PROFESSIONAL_FORM_STATUSES as readonly string[]).includes(
+    application.data.status,
+  );
   if (transcripts.length === 0 && achievements.length === 0 && !studentCard) return null;
 
   return (

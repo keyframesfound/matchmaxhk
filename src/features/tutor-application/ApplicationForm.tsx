@@ -95,9 +95,9 @@ import {
   PORTFOLIO_ACCEPT_ATTRIBUTE,
   PROFILE_PHOTO_ACCEPT_ATTRIBUTE,
   PROFESSIONAL_ROLE_OPTIONS,
-  PROFESSIONAL_STATUS,
+  PROFESSIONAL_FORM_STATUSES,
   PRIVACY_TEXT,
-  STATUS_OPTIONS,
+  STATUS_FORM_OPTIONS,
   TEACHING_QUALIFICATION_OPTIONS,
   tutorApplicationSchema,
 } from "@/lib/tutor-application.schema";
@@ -1197,7 +1197,10 @@ export function ApplicationForm() {
       return [{ ...blank, scores: [] }];
     });
   }, [verticalOnly, verticalOnlyUni]);
-  const professional = base.status === PROFESSIONAL_STATUS;
+  // Issue #658: both #658 professional codes (Certified Teacher / Exam
+  // Marker / Specialist) and the legacy combined string take the
+  // professional path; the academic statuses take the academic one.
+  const professional = (PROFESSIONAL_FORM_STATUSES as readonly string[]).includes(base.status);
   const stepTitles = professional ? PROFESSIONAL_STEPS : ACADEMIC_STEPS;
   const primary = qualifications[0];
   const verticalLabels = useVerticalLabels();
@@ -2697,13 +2700,17 @@ export function ApplicationForm() {
                   error={fieldErrors.status}
                   className="sm:col-span-2"
                 >
+                  {/* Issue #658: the SoT taxonomy chip set — 6 primaries + the
+                      2 "More" codes; FT and PT are separate lanes. */}
                   <SingleChoice
-                    options={STATUS_OPTIONS}
+                    options={STATUS_FORM_OPTIONS}
                     value={base.status}
                     onChange={(status) => {
                       setBaseField("status", status);
                       setRoles(
-                        status === PROFESSIONAL_STATUS ? ["Official examiner / moderator"] : [],
+                        status === "Exam Marker / Specialist"
+                          ? ["Official examiner / moderator"]
+                          : [],
                       );
                     }}
                     invalid={Boolean(fieldErrors.status)}
@@ -2727,7 +2734,7 @@ export function ApplicationForm() {
                       ) : null}
                     </div>
                   ) : null}
-                  {base.status === PROFESSIONAL_STATUS ||
+                  {(PROFESSIONAL_FORM_STATUSES as readonly string[]).includes(base.status) ||
                   roles.includes("Official examiner / moderator") ? (
                     <div className="mt-4">
                       <label className={labelClassName}>

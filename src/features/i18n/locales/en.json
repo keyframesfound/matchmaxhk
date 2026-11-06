@@ -3689,6 +3689,25 @@
     "gate_title": "Save this tutor",
     "gate_desc": "Sign up or log in to bookmark tutors and find them again later."
   },
+  "tutor_status": {
+    "uni_undergrad": "Uni Student Tutor",
+    "part_time": "Part-Time Tutor",
+    "full_time": "Full-Time Tutor",
+    "uni_grad": "Uni Graduate",
+    "school_teacher": "Certified Teacher",
+    "examiner": "Exam Marker / Specialist",
+    "sub_degree": "Associate / HD Student",
+    "native_speaker": "NET / Native Speaker",
+    "full_part_time_legacy": "Full/Part-Time Tutor",
+    "more_toggle": "More statuses +",
+    "more_collapse": "Fewer statuses",
+    "clear": "Clear status",
+    "banner_prompt": "Split your tutor status so parents can find you faster:",
+    "banner_cta_full_time": "I am a Full-Time Tutor",
+    "banner_cta_part_time": "I am a Part-Time Tutor",
+    "banner_saving": "Saving…",
+    "banner_error": "Couldn't save that — please try again."
+  },
   "tutors": {
     "tier_aria": "Academic tier",
     "tier_kindergarten": "Kindergarten",
