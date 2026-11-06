@@ -18,6 +18,7 @@ import { Route as CopyrightRouteImport } from './routes/copyright'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as GroupClassesRouteImport } from './routes/group-classes'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as MeRouteImport } from './routes/me'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
 import { Route as SearchRouteImport } from './routes/search'
@@ -134,6 +135,11 @@ const GroupClassesRoute = GroupClassesRouteImport.update({
 const HowItWorksRoute = HowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const MeRoute = MeRouteImport.update({
+  id: '/me',
+  path: '/me',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PricingRoute = PricingRouteImport.update({
@@ -545,6 +551,7 @@ export interface FileRoutesByFullPath {
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/me': typeof MeRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/search': typeof SearchRoute
@@ -628,6 +635,7 @@ export interface FileRoutesByTo {
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/me': typeof MeRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/search': typeof SearchRoute
@@ -712,6 +720,7 @@ export interface FileRoutesById {
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/me': typeof MeRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
   '/search': typeof SearchRoute
@@ -797,6 +806,7 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/group-classes'
     | '/how-it-works'
+    | '/me'
     | '/pricing'
     | '/privacy-policy'
     | '/search'
@@ -880,6 +890,7 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/group-classes'
     | '/how-it-works'
+    | '/me'
     | '/pricing'
     | '/privacy-policy'
     | '/search'
@@ -963,6 +974,7 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/group-classes'
     | '/how-it-works'
+    | '/me'
     | '/pricing'
     | '/privacy-policy'
     | '/search'
@@ -1048,6 +1060,7 @@ export interface RootRouteChildren {
   FeedbackRoute: typeof FeedbackRoute
   GroupClassesRoute: typeof GroupClassesRoute
   HowItWorksRoute: typeof HowItWorksRoute
+  MeRoute: typeof MeRoute
   PricingRoute: typeof PricingRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
   SearchRoute: typeof SearchRoute
@@ -1142,6 +1155,13 @@ declare module '@tanstack/react-router' {
       path: '/how-it-works'
       fullPath: '/how-it-works'
       preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/me': {
+      id: '/me'
+      path: '/me'
+      fullPath: '/me'
+      preLoaderRoute: typeof MeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/pricing': {
@@ -1811,6 +1831,7 @@ const rootRouteChildren: RootRouteChildren = {
   FeedbackRoute: FeedbackRoute,
   GroupClassesRoute: GroupClassesRoute,
   HowItWorksRoute: HowItWorksRoute,
+  MeRoute: MeRoute,
   PricingRoute: PricingRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,
   SearchRoute: SearchRoute,

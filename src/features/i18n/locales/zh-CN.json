@@ -4096,5 +4096,19 @@
     "share_no_contact": "尚未保存信任联系人。",
     "share_no_contact_link": "到安全设置新增",
     "share_state_error": "无法更新——请重试。"
+  },
+  "account_hub": {
+    "title": "账户",
+    "view_profile": "查看个人档案",
+    "signed_out_title": "登录 MatchMax",
+    "signed_out_body": "收藏导师及笔记、发布补习个案及管理你的课堂。",
+    "become_tutor_body": "在 MatchMax 任教，获配对学生。",
+    "section_account": "账户",
+    "section_explore": "MatchMax",
+    "section_preferences": "偏好设定",
+    "privacy": "私隐",
+    "notifications": "通知",
+    "refer": "推荐导师",
+    "legal": "条款及政策"
   }
 }
