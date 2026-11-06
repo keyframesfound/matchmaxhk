@@ -742,7 +742,7 @@ export function PublicTutorCard({
         </section>
       </div>
 
-      <footer className="flex min-w-0 flex-wrap items-center justify-between gap-2 border-t border-border px-3 py-2 md:gap-x-3 md:px-4 md:py-2.5">
+      <footer className="flex min-w-0 flex-nowrap items-center justify-between gap-2 border-t border-border px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
         {price.baseRate > 0 ? (
           <FitText
             as="p"
@@ -821,14 +821,14 @@ export function PublicTutorCard({
               </Tooltip>
             </TooltipProvider>
           ) : null}
+          {/* #648: one footer row (owner: no second row). Only the height
+              of the caller's last action (Request tutor / status) is lifted
+              to a 44px tap target; its width stays compact so the price
+              keeps its size. */}
+          <span className="flex shrink-0 items-center gap-1.5 [&>:last-child]:h-11!">
+            {footerAction}
+          </span>
         </div>
-        {/* #648: the Request tutor CTA is the primary action; whatever the
-            caller passes is lifted to a >=44px tap target. On narrow cards
-            it takes its own full-width row (tutor cards are narrow on
-            every screen) so the price never gets squeezed. */}
-        <span className="flex shrink-0 items-center gap-1.5 [&>:last-child]:h-11! [&>:last-child]:min-w-[7.5rem] [&>:last-child]:justify-center [&>:last-child]:px-4! [&>:last-child]:text-sm! basis-full [&>:last-child]:flex-1">
-          {footerAction}
-        </span>
       </footer>
     </article>
   );
