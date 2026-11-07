@@ -19,6 +19,7 @@ import {
   isReminderDue,
   reminderDueAt,
   isUnconfirmedRequestExpired,
+  lessonRequestExpired,
 } from "../../src/features/cases/sor";
 
 describe("SoR status machine (#201)", () => {
@@ -222,6 +223,19 @@ describe("isUnconfirmedRequestExpired (#204 12h rule)", () => {
         later,
       ),
     ).toBe(false);
+  });
+
+  it("never expires a lesson placed through Case Manager (#636)", () => {
+    const row = {
+      status: "planned",
+      created_at: created,
+      confirmed_by_tutor_at: null,
+      no_request_expiry: true,
+    };
+    expect(isUnconfirmedRequestExpired(row, later)).toBe(false);
+    expect(lessonRequestExpired(row, later)).toBe(false);
+    expect(lessonRequestExpired({ created_at: created }, later)).toBe(true);
+    expect(lessonRequestExpired({ created_at: null }, later)).toBe(false);
   });
 
   it("ignores lessons that are no longer planned or still inside 12h", () => {

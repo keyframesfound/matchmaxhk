@@ -45,6 +45,7 @@ function toHomeLessons(cases: TutorCaseItem[]): HomeLesson[] {
       durationMin: l.duration_min,
       status: l.status,
       createdAt: l.created_at,
+      noRequestExpiry: l.no_request_expiry,
       confirmedByTutorAt: l.confirmed_by_tutor_at,
       locationOrLink: l.location_or_link,
       studentFirstName: c.student_first_name,

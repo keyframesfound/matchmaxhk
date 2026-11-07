@@ -12,6 +12,7 @@ import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card"
 import { MatchStatusCard } from "@/features/cases/parent/match-status-card";
 import { MatchedTutorSafetyCard } from "@/features/cases/parent/matched-tutor-card";
 import { ShareFirstVisitCard } from "@/features/safety/share-first-visit-card";
+import { NextLessonLine } from "@/features/cases/case-manager/next-lesson-line";
 import { firstLiveLesson } from "@/features/safety/safety-share";
 import { useAuth } from "@/features/auth/useAuth";
 
@@ -167,6 +168,10 @@ function ParentCaseDetailPage() {
               </p>
             )}
 
+            {/* #636: Next Lesson + deep link into Case Manager. */}
+            {data.canRequestSlot && (
+              <NextLessonLine caseCode={data.case_code} lessons={data.lessons} />
+            )}
             {/* #637: household briefing and student self-input. */}
             <DemandSidePanel caseId={caseId} />
 
