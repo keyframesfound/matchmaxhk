@@ -4242,7 +4242,8 @@
     "privacy": "Privacy",
     "notifications": "Notifications",
     "refer": "Refer a tutor",
-    "legal": "Terms and policies"
+    "legal": "Terms and policies",
+    "activity_row": "Activity"
   },
   "case_intake": {
     "remove_subject": "Remove subject",
@@ -4578,5 +4579,22 @@
     "nba_availability": "Set your weekly availability grid",
     "nba_weekly_windows": "Set your teaching windows",
     "nba_publish": "Publish your tutor profile"
+  },
+  "activity": {
+    "title": "My MatchMax",
+    "empty_all": "Nothing here yet — finish your profile or post a case to get started.",
+    "empty_nba_profile": "Finish your profile",
+    "empty_nba_case": "Post a case",
+    "pending_title": "Pending & requests",
+    "pending_all": "All ({{n}})",
+    "pending_empty": "No pending requests",
+    "upcoming_title": "Upcoming lessons",
+    "upcoming_empty": "No upcoming lessons",
+    "open_case_manager": "Case Manager",
+    "fit_title": "Schedule Fit",
+    "fit_browse_cases": "Browse matched cases",
+    "fit_browse_tutors": "Browse matched tutors",
+    "fit_tutor_body": "Open cases are ranked by how well their preferred times overlap your available windows.",
+    "fit_parent_body": "Tutors are ranked by how well their availability overlaps your open windows."
   }
 }

@@ -4242,7 +4242,8 @@
     "privacy": "私隐",
     "notifications": "通知",
     "refer": "推荐导师",
-    "legal": "条款及政策"
+    "legal": "条款及政策",
+    "activity_row": "动态"
   },
   "case_intake": {
     "remove_subject": "移除科目",
@@ -4578,5 +4579,22 @@
     "nba_availability": "设定每周可授课时间表",
     "nba_weekly_windows": "设定教学时段",
     "nba_publish": "发布你的导师档案"
+  },
+  "activity": {
+    "title": "我的 MatchMax",
+    "empty_all": "暂无动态——先完善个人档案或刊登个案。",
+    "empty_nba_profile": "完善个人档案",
+    "empty_nba_case": "刊登个案",
+    "pending_title": "待处理申请",
+    "pending_all": "全部（{{n}}）",
+    "pending_empty": "暂无待处理申请",
+    "upcoming_title": "即将开始的课堂",
+    "upcoming_empty": "暂无即将开始的课堂",
+    "open_case_manager": "个案管理",
+    "fit_title": "时间吻合",
+    "fit_browse_cases": "浏览吻合个案",
+    "fit_browse_tutors": "浏览吻合导师",
+    "fit_tutor_body": "开放个案按其偏好时段与你可授课时间的重叠度排序。",
+    "fit_parent_body": "导师按其可授课时间与你空档的重叠度排序。"
   }
 }

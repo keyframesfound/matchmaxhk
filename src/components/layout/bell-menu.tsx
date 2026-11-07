@@ -48,7 +48,7 @@ function bellIcon(eventType: string) {
   return Bell;
 }
 
-function bellLabelKey(item: BellItem): string {
+export function bellLabelKey(item: BellItem): string {
   switch (item.event_type) {
     case "note_order.delivered":
       return item.role_hint === "tutor" ? "sor.bell_note_sold" : "sor.bell_order_delivered";

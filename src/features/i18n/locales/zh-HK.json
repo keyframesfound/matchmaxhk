@@ -4242,7 +4242,8 @@
     "privacy": "私隱",
     "notifications": "通知",
     "refer": "推薦導師",
-    "legal": "條款及政策"
+    "legal": "條款及政策",
+    "activity_row": "動態"
   },
   "case_intake": {
     "remove_subject": "移除科目",
@@ -4578,5 +4579,22 @@
     "nba_availability": "設定每週可授課時間表",
     "nba_weekly_windows": "設定教學時段",
     "nba_publish": "發佈你的導師檔案"
+  },
+  "activity": {
+    "title": "我的 MatchMax",
+    "empty_all": "暫無動態——先完善個人檔案或刊登個案。",
+    "empty_nba_profile": "完善個人檔案",
+    "empty_nba_case": "刊登個案",
+    "pending_title": "待處理申請",
+    "pending_all": "全部（{{n}}）",
+    "pending_empty": "暫無待處理申請",
+    "upcoming_title": "即將開始的課堂",
+    "upcoming_empty": "暫無即將開始的課堂",
+    "open_case_manager": "個案管理",
+    "fit_title": "時間吻合",
+    "fit_browse_cases": "瀏覽吻合個案",
+    "fit_browse_tutors": "瀏覽吻合導師",
+    "fit_tutor_body": "開放個案按其偏好時段與你可授課時間的重疊度排序。",
+    "fit_parent_body": "導師按其可授課時間與你空檔的重疊度排序。"
   }
 }

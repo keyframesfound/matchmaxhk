@@ -26,6 +26,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TosRouteImport } from './routes/tos'
 import { Route as TutorPlaybookRouteImport } from './routes/tutor-playbook'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated.account'
+import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated.activity'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated.calendar'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
@@ -175,6 +176,11 @@ const TutorPlaybookRoute = TutorPlaybookRouteImport.update({
 const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   id: '/account',
   path: '/account',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedActivityRoute = AuthenticatedActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
@@ -559,6 +565,7 @@ export interface FileRoutesByFullPath {
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
   '/account': typeof AuthenticatedAccountRouteWithChildren
+  '/activity': typeof AuthenticatedActivityRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -643,6 +650,7 @@ export interface FileRoutesByTo {
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
   '/account': typeof AuthenticatedAccountRouteWithChildren
+  '/activity': typeof AuthenticatedActivityRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/join': typeof AuthenticatedJoinRoute
@@ -728,6 +736,7 @@ export interface FileRoutesById {
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
   '/_authenticated/account': typeof AuthenticatedAccountRouteWithChildren
+  '/_authenticated/activity': typeof AuthenticatedActivityRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -814,6 +823,7 @@ export interface FileRouteTypes {
     | '/tos'
     | '/tutor-playbook'
     | '/account'
+    | '/activity'
     | '/admin'
     | '/calendar'
     | '/dashboard'
@@ -898,6 +908,7 @@ export interface FileRouteTypes {
     | '/tos'
     | '/tutor-playbook'
     | '/account'
+    | '/activity'
     | '/calendar'
     | '/dashboard'
     | '/join'
@@ -982,6 +993,7 @@ export interface FileRouteTypes {
     | '/tos'
     | '/tutor-playbook'
     | '/_authenticated/account'
+    | '/_authenticated/activity'
     | '/_authenticated/admin'
     | '/_authenticated/calendar'
     | '/_authenticated/dashboard'
@@ -1211,6 +1223,13 @@ declare module '@tanstack/react-router' {
       path: '/account'
       fullPath: '/account'
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/activity': {
+      id: '/_authenticated/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof AuthenticatedActivityRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin': {
@@ -1765,6 +1784,7 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRouteWithChildren
+  AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -1785,6 +1805,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRouteWithChildren,
+  AuthenticatedActivityRoute: AuthenticatedActivityRoute,
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
