@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { z } from "zod";
 import { toast } from "sonner";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -24,15 +25,26 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { ActiveCasesSection } from "@/features/cases/active-cases/active-cases-section";
+import { CHANNEL_EDITORS, ChannelInlineEditors } from "@/features/channels/channel-inline-editors";
+import { ProfileStrengthBanner } from "@/features/profile-strength/profile-strength-banner";
 import {
+  getChannelCollections,
   getChannelMaterials,
   getChannelProfile,
   getChannelReviews,
   requestAffiliation,
 } from "@/features/channels/channel.functions";
 
+const channelSearch = z.object({
+  edit: z
+    .enum(["open", ...CHANNEL_EDITORS])
+    .optional()
+    .catch(undefined),
+});
+
 export const Route = createFileRoute("/u/$handle")({
   ssr: false,
+  validateSearch: channelSearch,
   head: ({ params }) => ({
     meta: [
       { title: `@${params.handle} | MatchMax Channel` },
@@ -54,7 +66,9 @@ function ChannelProfilePage() {
   const { handle } = Route.useParams();
   const { t, i18n } = useTranslation();
   const [tab, setTab] = useState<"overview" | "materials" | "reviews">("overview");
-  const [editMode, setEditMode] = useState(false);
+  const { edit } = Route.useSearch();
+  // #576: activation and Profile Strength deep-link straight into Edit Mode.
+  const [editMode, setEditMode] = useState(Boolean(edit));
   const [affiliationSlug, setAffiliationSlug] = useState("");
 
   const profileQuery = useQuery({
@@ -64,6 +78,12 @@ function ChannelProfilePage() {
   const materialsQuery = useQuery({
     queryKey: ["channel-materials", handle],
     queryFn: () => getChannelMaterials({ data: { handle } }),
+    enabled: tab === "materials",
+  });
+  const [activeCollection, setActiveCollection] = useState<string | null>(null);
+  const collectionsQuery = useQuery({
+    queryKey: ["channel-collections", handle],
+    queryFn: () => getChannelCollections({ data: { handle } }),
     enabled: tab === "materials",
   });
   const reviewsQuery = useQuery({
@@ -91,6 +111,7 @@ function ChannelProfilePage() {
           </p>
         ) : (
           <div className="mx-auto w-full max-w-4xl space-y-6 py-4">
+            {data.isOwner ? <ProfileStrengthBanner /> : null}
             {/* Owner bar */}
             {data.isOwner && (
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card px-4 py-2.5">
@@ -283,9 +304,34 @@ function ChannelProfilePage() {
                 requestAffil={requestAffil}
               />
             )}
+            {tab === "materials" && (collectionsQuery.data ?? []).length > 0 ? (
+              <div className="mb-3 flex flex-wrap gap-2" aria-label={t("channel.collections_aria")}>
+                {[
+                  { id: null as string | null, name: t("channel.collections_all") },
+                  ...(collectionsQuery.data ?? []),
+                ].map((collection) => (
+                  <button
+                    key={collection.id ?? "all"}
+                    type="button"
+                    aria-pressed={activeCollection === collection.id}
+                    onClick={() => setActiveCollection(collection.id)}
+                    className={cn(
+                      "inline-flex h-8 items-center rounded-full border px-3 text-xs font-semibold",
+                      activeCollection === collection.id
+                        ? "border-[color:var(--ink)] bg-[color:var(--ink)]/5 text-[color:var(--ink)]"
+                        : "border-border text-muted-foreground",
+                    )}
+                  >
+                    {collection.name}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             {tab === "materials" && (
               <ul className="space-y-2">
-                {(materialsQuery.data ?? []).map((m) => (
+                {(materialsQuery.data ?? [])
+                  .filter((m) => !activeCollection || m.collection_id === activeCollection)
+                  .map((m) => (
                   <li
                     key={m.id}
                     className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4"
@@ -397,6 +443,7 @@ function OverviewTab({
   setAffiliationSlug: (v: string) => void;
   requestAffil: { mutate: () => void; pending: boolean };
 }) {
+  const { edit } = Route.useSearch();
   const { t } = useTranslation();
   return (
     <div className="space-y-4">
@@ -427,6 +474,14 @@ function OverviewTab({
           </p>
         )}
       </div>
+
+      {/* #576 Stage 3: inline editors for everything /join no longer collects. */}
+      {editMode && data.isOwner && (
+        <ChannelInlineEditors
+          hasTutorCard={Boolean(data.tutorCode)}
+          initial={edit && edit !== "open" ? edit : undefined}
+        />
+      )}
 
       {/* #548 owner edit-mode block: affiliation request */}
       {editMode && data.isOwner && (

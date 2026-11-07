@@ -1,3 +1,4 @@
+import { parentTrustByCase, type ParentTrust, type TrustDb } from "@/features/cases/parent-trust";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
@@ -205,6 +206,8 @@ const CaseRequestInput = z
 export type CaseRequestPayload = z.infer<typeof CaseRequestInput>;
 
 export type PublicCaseBoardItem = {
+  /** #552: aggregated, threshold-gated; never carries the parent's identity. */
+  parentTrust?: ParentTrust | null;
   id: string;
   caseCode: string;
   title: string;
@@ -450,8 +453,16 @@ export const getPublicCaseBoard = createServerFn({ method: "GET" }).handler(asyn
   if (casesResult.error) throw new Error(casesResult.error.message);
   const rows = (casesResult.data ?? []) as Array<Record<string, unknown>>;
   const settingsValue = settingsResult.data?.value;
+  const items = rows.map(mapPublicCaseRow);
+  const trust = await parentTrustByCase(
+    supabaseAdmin as unknown as TrustDb,
+    items.map((item) => item.id),
+  ).catch((error: unknown) => {
+    console.warn("[case-board] parent trust unavailable:", error);
+    return new Map<string, ParentTrust>();
+  });
   return {
-    items: rows.map((r) => mapPublicCaseRow(r)),
+    items: items.map((item) => ({ ...item, parentTrust: trust.get(item.id) ?? null })),
     whatsappNumber: typeof settingsValue === "string" ? settingsValue.trim() : "",
   };
 });
@@ -507,8 +518,15 @@ export const getPublicCaseByCode = createServerFn({ method: "GET" })
       centreReveal = isMatched || hasApplication;
     }
 
+    const item = mapPublicCaseRow(row, { centreReveal });
+    const trust = await parentTrustByCase(supabaseAdmin as unknown as TrustDb, [item.id]).catch(
+      (error: unknown) => {
+        console.warn("[case-detail] parent trust unavailable:", error);
+        return new Map<string, ParentTrust>();
+      },
+    );
     return {
-      item: mapPublicCaseRow(row, { centreReveal }),
+      item: { ...item, parentTrust: trust.get(item.id) ?? null },
       whatsappNumber: typeof settingsValue === "string" ? settingsValue.trim() : "",
     };
   });

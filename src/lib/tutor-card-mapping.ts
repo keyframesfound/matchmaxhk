@@ -14,7 +14,7 @@ import {
  * Issue #310, go live on submit.
  *
  * Deterministic mapping from a stored tutor application (the jsonb `data`
- * written by submitTutorApplication) to a `tutors` INSERT payload. This is
+ * written by activateTutorCard) to a `tutors` INSERT payload. This is
  * intentionally NOT the AI autofill: no field is invented. Fields without an
  * obvious application counterpart (gender, headline, card_highlights,
  * exam_results, target_students, experience_years) are left empty so staff

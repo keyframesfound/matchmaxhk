@@ -73,6 +73,8 @@ function bellIcon(eventType: string) {
 
 function bellLabelKey(item: BellItem): string {
   switch (item.event_type) {
+    case "note_order.draft_needed":
+      return "sor.bell_draft_needed";
     case "note_order.delivered":
       return item.role_hint === "tutor" ? "sor.bell_note_sold" : "sor.bell_order_delivered";
     case "review.published":

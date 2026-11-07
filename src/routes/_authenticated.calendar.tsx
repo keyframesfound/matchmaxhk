@@ -15,6 +15,7 @@ import { CaseDrawer } from "@/features/cases/case-manager/case-drawer";
 import { BillingSamplePreview } from "@/features/cases/case-manager/billing-tab";
 import { HomeworkSamplePreview } from "@/features/cases/case-manager/homework-tab";
 import { ProgressSamplePreview } from "@/features/cases/case-manager/progress-tab";
+import { ProfileStrengthBanner } from "@/features/profile-strength/profile-strength-banner";
 import { BlockedTimes } from "@/features/cases/case-manager/blocked-times";
 import { ActiveCaseList, ProposedList } from "@/features/cases/case-manager/hub-sections";
 import { ThinCalendar } from "@/features/cases/case-manager/thin-calendar";
@@ -284,6 +285,7 @@ function CalendarPage() {
             </button>
           </div>
         ) : null}
+        <ProfileStrengthBanner />
         {schedule.data?.isTutor ? (
           <FreshnessBanner confirmedAt={schedule.data.availabilityConfirmedAt} />
         ) : null}

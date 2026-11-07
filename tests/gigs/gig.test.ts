@@ -24,6 +24,8 @@ import {
   validateCompletionNote,
   validateGigForSubmit,
   validateGigPartial,
+  isMarkingService,
+  markingHoldExpiresAt,
 } from "../../src/features/gigs/gig";
 
 const CLEAN_SUBMIT = {
@@ -64,7 +66,14 @@ describe("validateGigForSubmit", () => {
       const errors = validateGigForSubmit({ ...CLEAN_SUBMIT, priceHkd });
       expect(errors.some((e) => e.includes("whole HK$"))).toBe(true);
     }
-    expect(validateGigForSubmit({ ...CLEAN_SUBMIT, priceHkd: 1 })).toEqual([]);
+    expect(validateGigForSubmit({ ...CLEAN_SUBMIT, category: "other", priceHkd: 1 })).toEqual([]);
+  });
+
+  it("#556: Marking starts at HK$50", () => {
+    expect(validateGigForSubmit({ ...CLEAN_SUBMIT, priceHkd: 49 })).toEqual([
+      "Marking services start at HK$50.",
+    ]);
+    expect(validateGigForSubmit({ ...CLEAN_SUBMIT, priceHkd: 50 })).toEqual([]);
   });
 
   it("rejects unknown category and delivery type", () => {
@@ -298,5 +307,23 @@ describe("freestyle privilege pause (#330)", () => {
     expect(gigFreestylePrivilegePaused(1)).toBe(false);
     expect(gigFreestylePrivilegePaused(UPHELD_CONTACT_REPORTS_TO_PAUSE_GIGS)).toBe(true);
     expect(gigFreestylePrivilegePaused(5)).toBe(true);
+  });
+});
+
+describe("#556 marking service", () => {
+  it("is only a file-back document review", () => {
+    expect(
+      isMarkingService({ gig_category: "document_review", gig_delivery_type: "file_back" }),
+    ).toBe(true);
+    expect(
+      isMarkingService({ gig_category: "document_review", gig_delivery_type: "session_confirm" }),
+    ).toBe(false);
+    expect(isMarkingService({ gig_category: "other", gig_delivery_type: "file_back" })).toBe(false);
+  });
+
+  it("starts the 72h hold at delivery", () => {
+    expect(markingHoldExpiresAt(new Date("2026-11-07T00:00:00.000Z")).toISOString()).toBe(
+      "2026-11-10T00:00:00.000Z",
+    );
   });
 });

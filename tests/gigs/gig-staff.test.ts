@@ -120,3 +120,17 @@ describe("gigApprovalBlocker", () => {
     expect(blocker).toContain("not a gig");
   });
 });
+
+describe("#556 buildGigPaidPatch for marking", () => {
+  it("leaves the seller's clock unset until the draft arrives", () => {
+    const patch = buildGigPaidPatch({
+      now: new Date("2026-11-07T00:00:00.000Z"),
+      turnaroundHours: 48,
+      userId: "u",
+      fpsReference: "f",
+      waitsForDraft: true,
+    });
+    expect(patch.fulfillment_due_at).toBeNull();
+    expect(patch.status).toBe("in_fulfillment");
+  });
+});
