@@ -8,7 +8,7 @@
  * the component stays a dumb renderer.
  */
 
-import { isRequestExpired } from "@/features/cases/sor";
+import { lessonRequestExpired } from "@/features/cases/sor";
 
 /** One lesson flattened with the case context the home cards display. */
 export type HomeLesson = {
@@ -22,6 +22,8 @@ export type HomeLesson = {
   status: string;
   /** ISO timestamp from case_lessons.created_at (request time, for expiry). */
   createdAt: string;
+  /** #636: series and moved lessons wait for a confirm instead of expiring. */
+  noRequestExpiry?: boolean | null;
   confirmedByTutorAt: string | null;
   locationOrLink: string | null;
   studentFirstName: string;
@@ -73,7 +75,10 @@ export function pendingTutorConfirms(lessons: HomeLesson[], now: Date): HomeLess
       (lesson) =>
         lesson.status === "planned" &&
         lesson.confirmedByTutorAt === null &&
-        !isRequestExpired(new Date(lesson.createdAt), now) &&
+        !lessonRequestExpired(
+          { created_at: lesson.createdAt, no_request_expiry: lesson.noRequestExpiry },
+          now,
+        ) &&
         !hasEnded(lesson, now),
     )
     .sort((a, b) => new Date(a.startsAt).getTime() - new Date(b.startsAt).getTime());

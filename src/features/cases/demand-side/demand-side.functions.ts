@@ -125,6 +125,37 @@ async function parentDefaults(db: Db, parentId: string | null): Promise<Househol
   return rows[0]?.defaults ?? null;
 }
 
+/** #653: the seeded columns for a first row written outside this panel. */
+export async function seededDemandRow(db: Db, caseId: string): Promise<Record<string, unknown>> {
+  const cases = await selectRows<CaseParties>(
+    db,
+    "tutoring_cases",
+    "id, case_code, parent_id, student_id, matched_tutor_id, description, language_of_instruction, student_grade_current, created_at",
+    [{ col: "id", op: "eq", value: caseId }],
+  );
+  const c = cases[0];
+  if (!c) return {};
+  const values = seedDemandSide(
+    {
+      description: c.description,
+      languageOfInstruction: c.language_of_instruction,
+      gradeCurrent: c.student_grade_current,
+      createdAt: c.created_at,
+    },
+    await parentDefaults(db, c.parent_id),
+  );
+  return {
+    primary_goal: values.primaryGoal,
+    language_medium: values.languageMedium,
+    household_notes: values.householdNotes,
+    feedback_style: values.feedbackStyle,
+    current_level: values.currentLevel,
+    target_grade: values.targetGrade,
+    weak_topics: values.weakTopics,
+    learning_styles: values.learningStyles,
+  };
+}
+
 export const getCaseDemandSide = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) => z.object({ caseId: z.string().uuid() }).parse(input))

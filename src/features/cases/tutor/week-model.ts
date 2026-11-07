@@ -6,7 +6,7 @@
 import {
   hktDateKey,
   isActiveStudentCase,
-  isRequestExpired,
+  lessonRequestExpired,
   type LessonStatus,
 } from "@/features/cases/sor";
 
@@ -119,7 +119,12 @@ export function countActiveStudents(
 
 /** Lesson action availability for the tutor UI (mirrors the server gates). */
 export function lessonActionsFor(
-  lesson: { starts_at: string; status: string; created_at?: string | null },
+  lesson: {
+    starts_at: string;
+    status: string;
+    created_at?: string | null;
+    no_request_expiry?: boolean | null;
+  },
   now: Date,
   canMarkDone: (startsAt: Date, now: Date) => boolean,
 ): { confirm: boolean; decline: boolean; done: boolean; cancel: boolean } {
@@ -127,10 +132,7 @@ export function lessonActionsFor(
   const live = lesson.status === "planned" || lesson.status === "confirmed";
   // #204: a slot request unconfirmed for 12h has expired, hide the confirm/
   // decline affordances (the server fns refuse expired confirms regardless).
-  const requestExpired =
-    planned &&
-    typeof lesson.created_at === "string" &&
-    isRequestExpired(new Date(lesson.created_at), now);
+  const requestExpired = planned && lessonRequestExpired(lesson, now);
   return {
     confirm: planned && !requestExpired,
     decline: planned && !requestExpired,

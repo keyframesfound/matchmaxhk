@@ -374,6 +374,8 @@ const EMAIL_TEMPLATE_BY_EVENT: Record<string, string> = {
   "lesson.cancelled_by_tutor": "lesson-update",
   "lesson.scheduled_by_parent": "lesson-update",
   "lesson.scheduled_by_tutor": "lesson-update",
+  "billing.notice_by_parent": "lesson-update",
+  "billing.notice_by_tutor": "lesson-update",
   // #542 triggers + #561 action items share the flexible action template;
   // the bilingual strings come from action-email.server.ts.
   "case.lead_new": "action-required",

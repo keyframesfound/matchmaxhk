@@ -244,6 +244,8 @@ export const getDeskCase = createServerFn({ method: "POST" })
       lessons,
       fees,
       audit,
+      matched_tutor_id: c.matched_tutor_id,
+      schedule_paused_at: c.schedule_paused_at ?? null,
       allowedTransitions: c.sor_status ? (ALLOWED_TRANSITIONS[c.sor_status] ?? []) : [],
     };
   });
@@ -251,6 +253,35 @@ export const getDeskCase = createServerFn({ method: "POST" })
 // ---------------------------------------------------------------------------
 // Transitions + fees
 // ---------------------------------------------------------------------------
+
+/**
+ * #636 + #634: pausing needs the desk. Setting it cancels future lessons
+ * (trg_release_future_lessons) and refuses new ones until cleared.
+ */
+export const setCaseSchedulePaused = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ caseId: z.string().uuid(), paused: z.boolean() }).parse(input),
+  )
+  .handler(async ({ context, data }): Promise<{ paused: boolean }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    await requireAdmin(db, context.userId);
+    const { error } = await db
+      .from<Row>("tutoring_cases")
+      .update({ schedule_paused_at: data.paused ? new Date().toISOString() : null })
+      .eq("id", data.caseId);
+    if (error) throw new Error(error.message);
+    await insertAudit(
+      db,
+      data.caseId,
+      context.userId,
+      null,
+      data.paused ? "schedule_paused" : "schedule_resumed",
+      null,
+    );
+    return { paused: data.paused };
+  });
 
 export const transitionCase = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])

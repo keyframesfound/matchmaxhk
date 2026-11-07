@@ -29,6 +29,7 @@ import {
   lessonAdminLog,
   lessonAdminMark,
   listCaseFlags,
+  setCaseSchedulePaused,
   transitionCase,
   unpaidQueue,
 } from "@/features/cases/admin-desk.functions";
@@ -84,6 +85,15 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
       toast.success(t(`sor.status_${res.sor_status}`));
       setReason("");
       setFpsRef("");
+      invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  // #636 + #634: the desk confirms a pause; it releases upcoming lessons.
+  const pauseSchedule = useMutation({
+    mutationFn: (paused: boolean) => setCaseSchedulePaused({ data: { caseId, paused } }),
+    onSuccess: (res) => {
+      toast.success(t(res.paused ? "sor.admin_schedule_paused" : "sor.admin_schedule_resumed"));
       invalidate();
     },
     onError: (e) => toast.error(e.message),
@@ -198,6 +208,18 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
               </span>
             )}
           </div>
+          {data.matched_tutor_id && (
+            <div className="mt-2">
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={pauseSchedule.isPending}
+                onClick={() => pauseSchedule.mutate(!data.schedule_paused_at)}
+              >
+                {t(data.schedule_paused_at ? "sor.admin_resume_schedule" : "sor.admin_pause_schedule")}
+              </Button>
+            </div>
+          )}
           {data.allowedTransitions.length > 0 && (
             <div className="mt-2 flex flex-wrap items-center gap-2">
               {data.allowedTransitions.map((to) => (
