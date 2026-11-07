@@ -54,6 +54,7 @@ import { Route as UHandleRouteImport } from './routes/u.$handle'
 import { Route as AuthenticatedAccountCasesRouteImport } from './routes/_authenticated.account.cases'
 import { Route as AuthenticatedAccountClaimRouteImport } from './routes/_authenticated.account.claim'
 import { Route as AuthenticatedAccountClaimChildRouteImport } from './routes/_authenticated.account.claim-child'
+import { Route as AuthenticatedAccountConnectionsRouteImport } from './routes/_authenticated.account.connections'
 import { Route as AuthenticatedAccountPreviewRouteImport } from './routes/_authenticated.account.preview'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as AuthenticatedAdminAcademyRouteImport } from './routes/_authenticated.admin.academy'
@@ -319,6 +320,12 @@ const AuthenticatedAccountClaimChildRoute =
   AuthenticatedAccountClaimChildRouteImport.update({
     id: '/claim-child',
     path: '/claim-child',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
+const AuthenticatedAccountConnectionsRoute =
+  AuthenticatedAccountConnectionsRouteImport.update({
+    id: '/connections',
+    path: '/connections',
     getParentRoute: () => AuthenticatedAccountRoute,
   } as any)
 const AuthenticatedAccountPreviewRoute =
@@ -587,6 +594,7 @@ export interface FileRoutesByFullPath {
   '/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
   '/account/claim': typeof AuthenticatedAccountClaimRoute
   '/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
+  '/account/connections': typeof AuthenticatedAccountConnectionsRoute
   '/account/preview': typeof AuthenticatedAccountPreviewRoute
   '/admin/academy': typeof AuthenticatedAdminAcademyRoute
   '/admin/action-required': typeof AuthenticatedAdminActionRequiredRoute
@@ -670,6 +678,7 @@ export interface FileRoutesByTo {
   '/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
   '/account/claim': typeof AuthenticatedAccountClaimRoute
   '/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
+  '/account/connections': typeof AuthenticatedAccountConnectionsRoute
   '/account/preview': typeof AuthenticatedAccountPreviewRoute
   '/admin/academy': typeof AuthenticatedAdminAcademyRoute
   '/admin/action-required': typeof AuthenticatedAdminActionRequiredRoute
@@ -756,6 +765,7 @@ export interface FileRoutesById {
   '/_authenticated/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
   '/_authenticated/account/claim': typeof AuthenticatedAccountClaimRoute
   '/_authenticated/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
+  '/_authenticated/account/connections': typeof AuthenticatedAccountConnectionsRoute
   '/_authenticated/account/preview': typeof AuthenticatedAccountPreviewRoute
   '/_authenticated/admin/academy': typeof AuthenticatedAdminAcademyRoute
   '/_authenticated/admin/action-required': typeof AuthenticatedAdminActionRequiredRoute
@@ -842,6 +852,7 @@ export interface FileRouteTypes {
     | '/account/cases'
     | '/account/claim'
     | '/account/claim-child'
+    | '/account/connections'
     | '/account/preview'
     | '/admin/academy'
     | '/admin/action-required'
@@ -925,6 +936,7 @@ export interface FileRouteTypes {
     | '/account/cases'
     | '/account/claim'
     | '/account/claim-child'
+    | '/account/connections'
     | '/account/preview'
     | '/admin/academy'
     | '/admin/action-required'
@@ -1010,6 +1022,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account/cases'
     | '/_authenticated/account/claim'
     | '/_authenticated/account/claim-child'
+    | '/_authenticated/account/connections'
     | '/_authenticated/account/preview'
     | '/_authenticated/admin/academy'
     | '/_authenticated/admin/action-required'
@@ -1409,6 +1422,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountClaimChildRouteImport
       parentRoute: typeof AuthenticatedAccountRoute
     }
+    '/_authenticated/account/connections': {
+      id: '/_authenticated/account/connections'
+      path: '/connections'
+      fullPath: '/account/connections'
+      preLoaderRoute: typeof AuthenticatedAccountConnectionsRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
     '/_authenticated/account/preview': {
       id: '/_authenticated/account/preview'
       path: '/preview'
@@ -1696,6 +1716,7 @@ interface AuthenticatedAccountRouteChildren {
   AuthenticatedAccountCasesRoute: typeof AuthenticatedAccountCasesRouteWithChildren
   AuthenticatedAccountClaimRoute: typeof AuthenticatedAccountClaimRoute
   AuthenticatedAccountClaimChildRoute: typeof AuthenticatedAccountClaimChildRoute
+  AuthenticatedAccountConnectionsRoute: typeof AuthenticatedAccountConnectionsRoute
   AuthenticatedAccountPreviewRoute: typeof AuthenticatedAccountPreviewRoute
   AuthenticatedAccountCoursesNewRoute: typeof AuthenticatedAccountCoursesNewRoute
   AuthenticatedAccountFoldersNewRoute: typeof AuthenticatedAccountFoldersNewRoute
@@ -1709,6 +1730,7 @@ const AuthenticatedAccountRouteChildren: AuthenticatedAccountRouteChildren = {
   AuthenticatedAccountCasesRoute: AuthenticatedAccountCasesRouteWithChildren,
   AuthenticatedAccountClaimRoute: AuthenticatedAccountClaimRoute,
   AuthenticatedAccountClaimChildRoute: AuthenticatedAccountClaimChildRoute,
+  AuthenticatedAccountConnectionsRoute: AuthenticatedAccountConnectionsRoute,
   AuthenticatedAccountPreviewRoute: AuthenticatedAccountPreviewRoute,
   AuthenticatedAccountCoursesNewRoute: AuthenticatedAccountCoursesNewRoute,
   AuthenticatedAccountFoldersNewRoute: AuthenticatedAccountFoldersNewRoute,

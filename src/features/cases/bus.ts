@@ -43,6 +43,10 @@ export const BUS_EVENT_TYPES = [
   "action.profile_fields",
   "action.onboarding",
   "action.admin_task",
+  // #617 Tutor Connect graph: connect.request → the recipient tutor,
+  // connect.accepted → the original requester. In-app only.
+  "connect.request",
+  "connect.accepted",
   // Accepted but unconsumed (#205): stored as skipped, no message.
   "listing.viewed",
   "listing.saved",
@@ -97,6 +101,10 @@ export const BELL_EVENT_TYPES: readonly string[] = [
   "action.profile_fields",
   "action.onboarding",
   "action.admin_task",
+  // #617 Tutor Connect graph: request/accept reach the bell (in-app only;
+  // the payload names the counterpart and the link opens the hub tab).
+  "connect.request",
+  "connect.accepted",
 ];
 
 /**
@@ -310,6 +318,12 @@ export const DELIVERY_PLAN: Readonly<
     { channel: "in_app", role: "recipient" },
     { channel: "email", role: "recipient" },
   ],
+  // ---- #617 Tutor Connect graph -------------------------------------------
+  // Bell-only website notifications (no email): the payload's tutor_id is
+  // the RECIPIENT tutor's id (connect.request) or the original requester's
+  // (connect.accepted); the drain resolves it to the account via tutors.user_id.
+  "connect.request": [{ channel: "in_app", role: "tutor" }],
+  "connect.accepted": [{ channel: "in_app", role: "tutor" }],
 };
 
 export type PlannedDelivery = { channel: BusChannel; role: BusRole };
@@ -413,6 +427,11 @@ export function bellLinkFor(
       return typeof payload.link === "string" && payload.link.startsWith("/")
         ? payload.link
         : "/dashboard#my-tutor";
+    // #617 Tutor Connect: land on the tab where the recipient can act.
+    case "connect.request":
+      return "/account/connections?tab=pending";
+    case "connect.accepted":
+      return "/account/connections?tab=connected";
     case "material.rejected":
     case "content.rejected":
     case "report.filed":

@@ -9,6 +9,7 @@ import {
   GraduationCap,
   Package,
   Star,
+  Users,
   Wallet,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
@@ -31,6 +32,8 @@ function bellIcon(eventType: string) {
   if (eventType === "review.published" || eventType === "lesson.review_prompt") return Star;
   if (eventType === "lesson.reminder_due") return CalendarClock;
   if (eventType === "experience.session_logged") return GraduationCap;
+  // #617 Tutor Connect: requests and acceptances share the people icon.
+  if (eventType === "connect.request" || eventType === "connect.accepted") return Users;
   if (eventType === "case.end_requested_by_parent" || eventType === "case.end_requested_by_tutor")
     return CheckCheck;
   if (eventType.startsWith("admin_fee")) return Wallet;
@@ -101,6 +104,11 @@ function bellLabelKey(item: BellItem): string {
       return "sor.bell_onboarding";
     case "action.admin_task":
       return "sor.bell_admin_task";
+    // #617 Tutor Connect graph.
+    case "connect.request":
+      return "sor.bell_connect_request";
+    case "connect.accepted":
+      return "sor.bell_connect_accepted";
     default:
       return "sor.bell_update";
   }
