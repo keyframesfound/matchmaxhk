@@ -4,6 +4,7 @@ import { formatPostedAgo } from "@/lib/relative-time";
 import {
   AlertCircle,
   Bell,
+  CalendarCheck2,
   CalendarClock,
   CheckCheck,
   GraduationCap,
@@ -31,6 +32,8 @@ function bellIcon(eventType: string) {
   if (eventType === "review.published" || eventType === "lesson.review_prompt") return Star;
   if (eventType === "lesson.reminder_due") return CalendarClock;
   if (eventType === "experience.session_logged") return GraduationCap;
+  // #613 roster attendance (single commented block; inbox chrome is #614).
+  if (eventType.startsWith("attendance.")) return CalendarCheck2;
   if (eventType === "case.end_requested_by_parent" || eventType === "case.end_requested_by_tutor")
     return CheckCheck;
   if (eventType.startsWith("admin_fee")) return Wallet;
@@ -103,9 +106,29 @@ export function bellLabelKey(item: BellItem): string {
       return "sor.bell_onboarding";
     case "action.admin_task":
       return "sor.bell_admin_task";
+    // #613 roster attendance (single commented block).
+    case "attendance.recorded":
+      return "sor.bell_attendance_recorded";
+    case "attendance.updated":
+      return "sor.bell_attendance_updated";
     default:
       return "sor.bell_update";
   }
+}
+
+/**
+ * #613: attendance labels interpolate the student + status from the event
+ * payload ({{student}}, {{status}}); other events keep their static keys.
+ */
+function bellLabelParams(item: BellItem): Record<string, string> {
+  if (item.event_type !== "attendance.recorded" && item.event_type !== "attendance.updated") {
+    return {};
+  }
+  const status = typeof item.payload.status === "string" ? item.payload.status : "";
+  return {
+    student: typeof item.payload.student_name === "string" ? item.payload.student_name : "",
+    status: status ? i18n.t(`rosters.status_${status}`) : "",
+  };
 }
 
 /**
@@ -252,7 +275,9 @@ export function BellMenu() {
                       aria-hidden="true"
                     />
                     <span className="flex-1">
-                      <span className="block text-sm">{t(bellLabelKey(item))}</span>
+                      <span className="block text-sm">
+                        {t(bellLabelKey(item), bellLabelParams(item))}
+                      </span>
                       <span className="block text-xs text-muted-foreground">
                         {formatPostedAgo(item.created_at, i18n.language)}
                       </span>
