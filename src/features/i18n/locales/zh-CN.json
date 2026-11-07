@@ -3497,7 +3497,8 @@
     "bell_demand_side": "家长或学生已更新学习目标及家庭备注",
     "bell_case_match": "有新个案配合您的资料",
     "bell_case_taken": "您申请的个案已被接手",
-    "bell_waves_exhausted": "配对通知已完成，此个案需要客服跟进"
+    "bell_waves_exhausted": "配对通知已完成，此个案需要客服跟进",
+    "bell_draft_needed": "请上传草稿以开始改卷"
   },
   "cv": {
     "title": "学习履历及成绩档案",
@@ -4579,6 +4580,19 @@
     "bulk_progress": "上传中 {{done}}／{{total}}...",
     "bulk_done_pack": "已建立 {{count}} 份草稿。请先提交，批核后在此合并。",
     "bulk_done_separate": "已建立 {{count}} 份草稿，请在账户完成。",
-    "updated_on": "已于 {{date}} 更新"
+    "updated_on": "已于 {{date}} 更新",
+    "variant_label": "属于另一教材的版本（选填）",
+    "variant_none": "不是其他笔记的版本",
+    "variant_name": "版本名称，例如 GoodNotes",
+    "variants_aria": "版本",
+    "bulk_batch": "应用至全部",
+    "bulk_batch_tags": "标签，以逗号分隔",
+    "bulk_apply_price": "全部设定",
+    "move_up": "上移",
+    "move_down": "下移",
+    "sell_separately": "允许买家单独购买子项目。取消勾选则只以此组合出售。",
+    "pack_only": "只限随「{{title}}」出售",
+    "link_ack": "链接已设为「任何持有链接的人均可查看」并承诺长期有效。",
+    "link_ack_short": "链接权限确认"
   }
 }

@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Check, Loader2, X } from "lucide-react";
+import { moveItem } from "@/features/materials/bulk-notes";
+import { ArrowDown, ArrowUp, Check, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -50,6 +51,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
+  const [sellSeparately, setSellSeparately] = useState(true);
   const [cover, setCover] = useState<File | null>(null);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [saving, setSaving] = useState(false);
@@ -72,6 +74,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
       setDescription(data.folder.description ?? "");
       setPrice(data.folder.priceHkd ? String(data.folder.priceHkd) : "");
       setSelectedIds(data.children.map((child) => child.id));
+      setSellSeparately(data.folder.sellChildrenSeparately);
     }
   }, [editorQuery.data]);
 
@@ -145,6 +148,7 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
     description: description.trim() || undefined,
     priceHkd: price.trim() === "" ? undefined : Number(price),
     childIds: selectedIds,
+    sellChildrenSeparately: sellSeparately,
   });
 
   const uploadCoverIfNeeded = async (folderIdValue: string) => {
@@ -352,6 +356,14 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
       </div>
 
       {/* Selected summary with remove buttons. */}
+      <label className="flex items-start gap-2 text-sm">
+        <Checkbox
+          className="mt-0.5"
+          checked={sellSeparately}
+          onCheckedChange={(checked) => setSellSeparately(checked === true)}
+        />
+        <span>{t("materials_store.sell_separately")}</span>
+      </label>
       {selectedRows.length > 0 ? (
         <ul className="space-y-1.5">
           {selectedRows.map((row, index) => (
@@ -365,6 +377,24 @@ export function FolderEditorForm({ folderId }: { folderId?: string }) {
               <span className="shrink-0 text-sm font-bold">
                 {row.priceHkd === 0 ? t("notes.card.free") : formatMoney(row.priceHkd)}
               </span>
+              <button
+                type="button"
+                aria-label={t("materials_store.move_up")}
+                disabled={index === 0}
+                onClick={() => setSelectedIds((prev) => moveItem(prev, prev.indexOf(row.id), -1))}
+                className="rounded-md border border-border p-1 text-muted-foreground disabled:opacity-40"
+              >
+                <ArrowUp className="h-3.5 w-3.5" aria-hidden />
+              </button>
+              <button
+                type="button"
+                aria-label={t("materials_store.move_down")}
+                disabled={index === selectedRows.length - 1}
+                onClick={() => setSelectedIds((prev) => moveItem(prev, prev.indexOf(row.id), 1))}
+                className="rounded-md border border-border p-1 text-muted-foreground disabled:opacity-40"
+              >
+                <ArrowDown className="h-3.5 w-3.5" aria-hidden />
+              </button>
               <button
                 type="button"
                 aria-label={t("shop.form.remove_item")}

@@ -329,6 +329,13 @@ export const startCheckout = createServerFn({ method: "POST" })
     if (!material || material.status !== "published") {
       throw new Error("This note is not available right now.");
     }
+    // #556: a pack-only item is bought through its pack. A free preview stays open.
+    if (Number(material.price_hkd) > 0) {
+      const { packOnlyFolderFor } = await import("@/features/materials/store-context.functions");
+      if (await packOnlyFolderFor(db, material.id)) {
+        throw new Error("This item is sold only as part of its pack.");
+      }
+    }
     // #429: the SHOP acknowledgment is REQUIRED for every kind that releases
     // escrow-held money (notes kinds + folders + courses). Fail-closed.
     if (isShopAcknowledgmentKind(material.material_type) && data.shopTermsAgreed !== true) {

@@ -12,7 +12,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
-import { bulkRowProblem, toBulkRows, type BulkRow } from "@/features/materials/bulk-notes";
+import {
+  bulkRowProblem,
+  suggestBulkMode,
+  toBulkRows,
+  type BulkRow,
+} from "@/features/materials/bulk-notes";
+import { NOTE_CURRICULA } from "@/features/materials/lifecycle";
 import { CollectionPicker } from "@/features/materials/collection-picker";
 import { setMaterialCollection } from "@/features/materials/collections.functions";
 import { saveNoteDraft, type NoteDraftInput } from "@/features/materials/note-drafts.functions";
@@ -46,8 +52,16 @@ export function BulkNotesDialog({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [rows, setRows] = useState<BulkRow[]>(() => toBulkRows(files));
-  const [mode, setMode] = useState<"pack" | "separate">("pack");
+  const [mode, setMode] = useState<"pack" | "separate">(() =>
+    suggestBulkMode(files.map((file) => file.name)),
+  );
   const [collectionId, setCollectionId] = useState<string | null>(null);
+  const [batch, setBatch] = useState(() => ({
+    curriculumTag: sharedMeta().curriculumTag,
+    subjectTag: sharedMeta().subjectTag ?? "",
+    tags: "",
+    price: "",
+  }));
   const [done, setDone] = useState(0);
   const [running, setRunning] = useState(false);
   const invalid = rows.some((row) => bulkRowProblem(row));
@@ -64,6 +78,17 @@ export function BulkNotesDialog({
           data: {
             ...sharedMeta(),
             materialId: undefined,
+            curriculumTag: batch.curriculumTag,
+            subjectTag: batch.subjectTag.trim() || null,
+            searchTags: [
+              ...new Set([
+                ...(sharedMeta().searchTags ?? []),
+                ...batch.tags
+                  .split(",")
+                  .map((tag) => tag.trim())
+                  .filter(Boolean),
+              ]),
+            ],
             title: row.title.trim(),
             priceHkd: row.price.trim() === "" ? undefined : Number(row.price),
           },
@@ -126,6 +151,63 @@ export function BulkNotesDialog({
             </label>
           ))}
         </div>
+        <fieldset className="grid gap-2 sm:grid-cols-2">
+          <legend className="mb-1 text-sm font-semibold">{t("materials_store.bulk_batch")}</legend>
+          <select
+            aria-label={t("notes.form.field_curriculum")}
+            value={batch.curriculumTag ?? ""}
+            onChange={(event) =>
+              setBatch((current) => ({
+                ...current,
+                curriculumTag: (event.target.value || undefined) as NoteDraftInput["curriculumTag"],
+              }))
+            }
+            className="h-10 rounded-md border border-input bg-[color:var(--surface)] px-3 text-sm"
+          >
+            <option value="">{t("notes.form.field_curriculum")}</option>
+            {NOTE_CURRICULA.map((entry) => (
+              <option key={entry} value={entry}>
+                {entry}
+              </option>
+            ))}
+          </select>
+          <Input
+            aria-label={t("notes.form.field_subject")}
+            placeholder={t("notes.form.field_subject")}
+            value={batch.subjectTag}
+            onChange={(event) =>
+              setBatch((current) => ({ ...current, subjectTag: event.target.value }))
+            }
+          />
+          <Input
+            aria-label={t("materials_store.bulk_batch_tags")}
+            placeholder={t("materials_store.bulk_batch_tags")}
+            value={batch.tags}
+            onChange={(event) => setBatch((current) => ({ ...current, tags: event.target.value }))}
+          />
+          <div className="flex gap-2">
+            <Input
+              aria-label={t("materials_store.bulk_row_price")}
+              type="number"
+              min={0}
+              placeholder="HK$"
+              value={batch.price}
+              onChange={(event) =>
+                setBatch((current) => ({ ...current, price: event.target.value }))
+              }
+            />
+            <Button
+              type="button"
+              variant="outline"
+              disabled={batch.price.trim() === ""}
+              onClick={() =>
+                setRows((current) => current.map((row) => ({ ...row, price: batch.price })))
+              }
+            >
+              {t("materials_store.bulk_apply_price")}
+            </Button>
+          </div>
+        </fieldset>
         <ul className="space-y-2">
           {rows.map((row) => {
             const problem = bulkRowProblem(row);

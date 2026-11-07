@@ -92,6 +92,8 @@ import { materialCoverUrl } from "@/features/materials/material-card";
 import { BulkNotesDialog } from "@/features/materials/bulk-notes-dialog";
 import { CollectionPicker } from "@/features/materials/collection-picker";
 import { setMaterialCollection } from "@/features/materials/collections.functions";
+import { setMaterialVariant } from "@/features/materials/store-context.functions";
+import { VariantPicker, type VariantValue } from "@/features/materials/variant-picker";
 import { TAG_SUGGESTIONS, TagChipsInput } from "@/features/materials/tag-chips-input";
 import { extractOfficeText } from "@/features/materials/office-text";
 import { buildOfficePreviewPdf } from "@/features/materials/office-preview";
@@ -213,6 +215,8 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   const [bulkFiles, setBulkFiles] = useState<File[] | null>(null);
   const [collectionId, setCollectionId] = useState<string | null>(null);
   const [legalOriginals, setLegalOriginals] = useState(false);
+  const [variant, setVariant] = useState<VariantValue>({ variantOfId: null, label: "" });
+  const [linkAck, setLinkAck] = useState(false);
   const [materialType, setMaterialType] = useState<MaterialType>(
     existing?.materialType && isMaterialType(existing.materialType)
       ? existing.materialType
@@ -472,6 +476,9 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   if (!subject.trim()) missing.push(t("notes.form.field_subject"));
   if (materialType === "exemplar" && !exemplarPermission)
     missing.push(t("notes.form.exemplar_permission_short"));
+  if (links.length > 0 && !linkAck && !isLive) {
+    missing.push(t("materials_store.link_ack_short"));
+  }
   if (materialType === "mock" && !legalOriginals && !isLive) {
     missing.push(t("materials_store.mock_attest_short"));
   }
@@ -841,6 +848,9 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     }
     if (!id) throw new Error(t("notes.form.save_failed"));
     await setMaterialCollection({ data: { materialId: id, collectionId } });
+    await setMaterialVariant({
+      data: { materialId: id, variantOfId: variant.variantOfId, label: variant.label },
+    });
 
     // 2. Files that go straight to Storage (main PDF + new extras).
     const newExtras = isLive ? [] : extras.filter((e) => e.file);
@@ -1336,6 +1346,16 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             </li>
           ))}
         </ul>
+        {links.length > 0 && !isLive ? (
+          <label className="mt-2 flex items-start gap-2 text-xs text-[color:var(--ink)]">
+            <Checkbox
+              className="mt-0.5"
+              checked={linkAck}
+              onCheckedChange={(c) => setLinkAck(c === true)}
+            />
+            <span>{t("materials_store.link_ack")}</span>
+          </label>
+        ) : null}
         {isLive ? (
           <p className="flex items-center gap-1 text-xs text-muted-foreground">
             <Lock className="h-3 w-3" aria-hidden />
@@ -1560,6 +1580,11 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             materialId={materialId ?? null}
             value={collectionId}
             onChange={setCollectionId}
+          />
+          <VariantPicker
+            materialId={materialId ?? null}
+            value={variant}
+            onChange={setVariant}
           />
           <div className="space-y-1.5">
             <Label htmlFor="note-language">{t("notes.upload.field_language")}</Label>

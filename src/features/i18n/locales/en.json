@@ -3497,7 +3497,8 @@
     "bell_demand_side": "A family updated their learning goals and notes",
     "bell_case_match": "A new case matches your profile",
     "bell_case_taken": "A case you applied for has been taken",
-    "bell_waves_exhausted": "Match alerts finished, this case needs the desk"
+    "bell_waves_exhausted": "Match alerts finished, this case needs the desk",
+    "bell_draft_needed": "Upload your draft so the marking can start"
   },
   "cv": {
     "title": "Education CV & Academic Records",
@@ -4579,6 +4580,19 @@
     "bulk_progress": "Uploading {{done}} of {{total}}...",
     "bulk_done_pack": "{{count}} drafts created. Submit them, then bundle them here once approved.",
     "bulk_done_separate": "{{count}} drafts created. Finish them from your account.",
-    "updated_on": "Updated {{date}}"
+    "updated_on": "Updated {{date}}",
+    "variant_label": "Another format of (optional)",
+    "variant_none": "Not a format of another note",
+    "variant_name": "Format name, e.g. GoodNotes",
+    "variants_aria": "Formats",
+    "bulk_batch": "Apply to all",
+    "bulk_batch_tags": "Tags, separated by commas",
+    "bulk_apply_price": "Set all",
+    "move_up": "Move up",
+    "move_down": "Move down",
+    "sell_separately": "Allow buyers to buy individual items separately. Untick to sell these only as this pack.",
+    "pack_only": "Sold only as part of “{{title}}”",
+    "link_ack": "Link is set to 'Anyone with the link can view' and will remain active for buyers.",
+    "link_ack_short": "Link access confirmation"
   }
 }
