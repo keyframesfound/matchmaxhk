@@ -87,6 +87,42 @@ export function actionEmailCopy(
   const prefix = opts.reminder ? (zh ? "提醒：" : "Reminder: ") : "";
 
   switch (eventType) {
+    // #657: no contact details here; the case page holds Apply.
+    case "case.match_alert": {
+      const subject = str(payload, "subject");
+      const level = str(payload, "level");
+      const area = str(payload, "area");
+      const code = str(payload, "case_code");
+      return zh
+        ? {
+            heading: `${prefix}有新個案配合您的資料`,
+            body: `個案 ${code}：${level} ${subject}${area ? `，${area}` : ""}。如合適，請查看詳情並申請。`,
+            ctaLabel: "查看個案",
+            ctaUrl,
+          }
+        : {
+            heading: `${prefix}A new case matches your profile`,
+            body: `Case ${code}: ${level} ${subject}${area ? ` near ${area}` : ""}. Open it to see the details and apply if it fits.`,
+            ctaLabel: "View case",
+            ctaUrl,
+          };
+    }
+    case "case.already_taken": {
+      const code = str(payload, "case_code");
+      return zh
+        ? {
+            heading: `${prefix}個案 ${code} 已配對`,
+            body: "您申請的個案已由另一位導師接手。看看其他開放中的個案吧。",
+            ctaLabel: "瀏覽其他個案",
+            ctaUrl,
+          }
+        : {
+            heading: `${prefix}Case ${code} has been taken`,
+            body: "Another tutor was matched to the case you applied for. Have a look at the other open cases.",
+            ctaLabel: "Browse open cases",
+            ctaUrl,
+          };
+    }
     case "case.lead_new": {
       const badge = str(payload, "badge");
       const badgeZh = str(payload, "badge_zh");

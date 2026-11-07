@@ -43,11 +43,24 @@ export function optionACopyKey(key: string, live: boolean = NOTES_OPTION_A_LIVE)
  * Launch rate: 2% for the first 6 months or until cumulative materials GMV
  * reaches HK$50,000, whichever comes first; any later change needs 30 days'
  * notice to active sellers (#573).
+ *
+ * #672 supersedes the flat rate with tiered take rates (order-level snapshot
+ * in startCheckout): 5% verified tutor (Blue Tick) / 8% standard / 12%
+ * video courses & structured bundles. PLATFORM_FEE_RATE stays as the legacy
+ * default for the pre-Stripe copy switch.
  */
 export const PLATFORM_FEE_RATE = 0.02;
 export const FEE_REVIEW_GMV_HKD = 50_000;
 export const FEE_REVIEW_MONTHS = 6;
 export const FEE_CHANGE_NOTICE_DAYS = 30;
+
+/** #672 tiered marketplace take rates (percent of gross). */
+export const TAKE_RATES = { verified: 0.05, standard: 0.08, course: 0.12 } as const;
+
+export function marketplaceTakeRate(seller: { verified: boolean; isCourse: boolean }): number {
+  if (seller.isCourse) return TAKE_RATES.course;
+  return seller.verified ? TAKE_RATES.verified : TAKE_RATES.standard;
+}
 
 /** Paid listings: HK$20 to HK$5,000. HK$0 (free) is the only exception. */
 export const MIN_PAID_PRICE_HKD = 20;
@@ -116,10 +129,10 @@ export function sellerNetPayoutHkd(
   return cents(grossHkd - platformFeeHkd(grossHkd, rate) - gatewayFeeHkd);
 }
 
-/** The upload form's live calculator lines. */
-export function earningsEstimate(grossHkd: number) {
+/** The upload form's live calculator lines (takeRate = #672 tier percent). */
+export function earningsEstimate(grossHkd: number, takeRate: number = PLATFORM_FEE_RATE) {
   const gross = cents(Math.max(0, grossHkd));
-  const platform = platformFeeHkd(gross);
+  const platform = platformFeeHkd(gross, takeRate);
   const gateway = estimateGatewayFeeHkd(gross);
   return { gross, platform, gateway, net: cents(gross - platform - gateway) };
 }

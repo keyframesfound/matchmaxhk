@@ -1,3 +1,4 @@
+import { ActiveCasesSection } from "@/features/cases/active-cases/active-cases-section";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -668,6 +669,11 @@ function BusinessPublicProfile() {
                 )}
               </div>
             </section>
+
+            {/* #633: confirmed cases, read-only here. */}
+            <div className="mt-10">
+              <ActiveCasesSection subject={{ kind: "centre", slug }} isOwner={false} />
+            </div>
 
             {/* Courses */}
             <section id="courses" className="mt-10 scroll-mt-24">

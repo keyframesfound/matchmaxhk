@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
-import { selectRows, type Db } from "@/features/cases/desk-db";
+import { selectRows, type Db, selectRowsOrEmpty } from "@/features/cases/desk-db";
 
 /**
  * Issue #548: Unified Channel Profile. Public channel data for
@@ -488,10 +488,11 @@ export const getChannelMaterials = createServerFn({ method: "POST" })
       price_hkd: number | null;
       material_type: string | null;
       subject: string | null;
+      collection_id: string | null;
     }>(
       db,
       "digital_materials",
-      "id, title, price_hkd, material_type, subject",
+      "id, title, price_hkd, material_type, subject, collection_id",
       [
         { col: "tutor_id", op: "eq", value: tutors[0].id },
         { col: "status", op: "eq", value: "published" },
@@ -499,6 +500,28 @@ export const getChannelMaterials = createServerFn({ method: "POST" })
       { col: "created_at", asc: false, limit: 50 },
     );
     return rows;
+  });
+
+/** #556: the seller's collection names, for the Materials tab filter pills. */
+export const getChannelCollections = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator((input: unknown) =>
+    z.object({ handle: z.string().trim().min(1).max(60) }).parse(input),
+  )
+  .handler(async ({ data }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    const profiles = await selectRows<{ id: string }>(db, "profiles", "id", [
+      { col: "handle", op: "eq", value: data.handle.toLowerCase() },
+    ]);
+    if (!profiles[0]) return [];
+    const tutors = await selectRows<{ id: string }>(db, "tutors", "id", [
+      { col: "user_id", op: "eq", value: profiles[0].id },
+    ]);
+    if (!tutors[0]) return [];
+    return selectRowsOrEmpty<{ id: string; name: string }>(db, "material_collections", "id, name", [
+      { col: "tutor_id", op: "eq", value: tutors[0].id },
+    ]);
   });
 
 /** Reviews tab: published case reviews for the tutor. */

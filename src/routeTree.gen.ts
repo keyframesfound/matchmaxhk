@@ -26,6 +26,7 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as TosRouteImport } from './routes/tos'
 import { Route as TutorPlaybookRouteImport } from './routes/tutor-playbook'
 import { Route as AuthenticatedAccountRouteImport } from './routes/_authenticated.account'
+import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticated.activity'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated.calendar'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
@@ -47,6 +48,7 @@ import { Route as HelpCategoryRouteImport } from './routes/help.$category'
 import { Route as LegalNotesTermsRouteImport } from './routes/legal.notes-terms'
 import { Route as NotesSlugRouteImport } from './routes/notes.$slug'
 import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
+import { Route as RHandleRouteImport } from './routes/r.$handle'
 import { Route as TermsNotesMarketplaceRouteImport } from './routes/terms.notes-marketplace'
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
@@ -55,6 +57,7 @@ import { Route as AuthenticatedAccountCasesRouteImport } from './routes/_authent
 import { Route as AuthenticatedAccountClaimRouteImport } from './routes/_authenticated.account.claim'
 import { Route as AuthenticatedAccountClaimChildRouteImport } from './routes/_authenticated.account.claim-child'
 import { Route as AuthenticatedAccountPreviewRouteImport } from './routes/_authenticated.account.preview'
+import { Route as AuthenticatedAccountStudioRouteImport } from './routes/_authenticated.account.studio'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as AuthenticatedAdminAcademyRouteImport } from './routes/_authenticated.admin.academy'
 import { Route as AuthenticatedAdminActionRequiredRouteImport } from './routes/_authenticated.admin.action-required'
@@ -177,6 +180,11 @@ const AuthenticatedAccountRoute = AuthenticatedAccountRouteImport.update({
   path: '/account',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
+const AuthenticatedActivityRoute = AuthenticatedActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
@@ -283,6 +291,11 @@ const OrdersOrderIdRoute = OrdersOrderIdRouteImport.update({
   path: '/orders/$orderId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const RHandleRoute = RHandleRouteImport.update({
+  id: '/r/$handle',
+  path: '/r/$handle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TermsNotesMarketplaceRoute = TermsNotesMarketplaceRouteImport.update({
   id: '/terms/notes-marketplace',
   path: '/terms/notes-marketplace',
@@ -325,6 +338,12 @@ const AuthenticatedAccountPreviewRoute =
   AuthenticatedAccountPreviewRouteImport.update({
     id: '/preview',
     path: '/preview',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
+const AuthenticatedAccountStudioRoute =
+  AuthenticatedAccountStudioRouteImport.update({
+    id: '/studio',
+    path: '/studio',
     getParentRoute: () => AuthenticatedAccountRoute,
   } as any)
 const AuthenticatedAdminIndexRoute = AuthenticatedAdminIndexRouteImport.update({
@@ -559,6 +578,7 @@ export interface FileRoutesByFullPath {
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
   '/account': typeof AuthenticatedAccountRouteWithChildren
+  '/activity': typeof AuthenticatedActivityRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -577,6 +597,7 @@ export interface FileRoutesByFullPath {
   '/legal/notes-terms': typeof LegalNotesTermsRoute
   '/notes/$slug': typeof NotesSlugRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/r/$handle': typeof RHandleRoute
   '/terms/notes-marketplace': typeof TermsNotesMarketplaceRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/u/$handle': typeof UHandleRoute
@@ -588,6 +609,7 @@ export interface FileRoutesByFullPath {
   '/account/claim': typeof AuthenticatedAccountClaimRoute
   '/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
   '/account/preview': typeof AuthenticatedAccountPreviewRoute
+  '/account/studio': typeof AuthenticatedAccountStudioRoute
   '/admin/academy': typeof AuthenticatedAdminAcademyRoute
   '/admin/action-required': typeof AuthenticatedAdminActionRequiredRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
@@ -643,6 +665,7 @@ export interface FileRoutesByTo {
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
   '/account': typeof AuthenticatedAccountRouteWithChildren
+  '/activity': typeof AuthenticatedActivityRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/join': typeof AuthenticatedJoinRoute
@@ -660,6 +683,7 @@ export interface FileRoutesByTo {
   '/legal/notes-terms': typeof LegalNotesTermsRoute
   '/notes/$slug': typeof NotesSlugRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/r/$handle': typeof RHandleRoute
   '/terms/notes-marketplace': typeof TermsNotesMarketplaceRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/u/$handle': typeof UHandleRoute
@@ -671,6 +695,7 @@ export interface FileRoutesByTo {
   '/account/claim': typeof AuthenticatedAccountClaimRoute
   '/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
   '/account/preview': typeof AuthenticatedAccountPreviewRoute
+  '/account/studio': typeof AuthenticatedAccountStudioRoute
   '/admin/academy': typeof AuthenticatedAdminAcademyRoute
   '/admin/action-required': typeof AuthenticatedAdminActionRequiredRoute
   '/admin/cases': typeof AuthenticatedAdminCasesRoute
@@ -728,6 +753,7 @@ export interface FileRoutesById {
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
   '/_authenticated/account': typeof AuthenticatedAccountRouteWithChildren
+  '/_authenticated/activity': typeof AuthenticatedActivityRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
@@ -746,6 +772,7 @@ export interface FileRoutesById {
   '/legal/notes-terms': typeof LegalNotesTermsRoute
   '/notes/$slug': typeof NotesSlugRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
+  '/r/$handle': typeof RHandleRoute
   '/terms/notes-marketplace': typeof TermsNotesMarketplaceRoute
   '/tutors/$tutorCode': typeof TutorsTutorCodeRoute
   '/u/$handle': typeof UHandleRoute
@@ -757,6 +784,7 @@ export interface FileRoutesById {
   '/_authenticated/account/claim': typeof AuthenticatedAccountClaimRoute
   '/_authenticated/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
   '/_authenticated/account/preview': typeof AuthenticatedAccountPreviewRoute
+  '/_authenticated/account/studio': typeof AuthenticatedAccountStudioRoute
   '/_authenticated/admin/academy': typeof AuthenticatedAdminAcademyRoute
   '/_authenticated/admin/action-required': typeof AuthenticatedAdminActionRequiredRoute
   '/_authenticated/admin/cases': typeof AuthenticatedAdminCasesRoute
@@ -814,6 +842,7 @@ export interface FileRouteTypes {
     | '/tos'
     | '/tutor-playbook'
     | '/account'
+    | '/activity'
     | '/admin'
     | '/calendar'
     | '/dashboard'
@@ -832,6 +861,7 @@ export interface FileRouteTypes {
     | '/legal/notes-terms'
     | '/notes/$slug'
     | '/orders/$orderId'
+    | '/r/$handle'
     | '/terms/notes-marketplace'
     | '/tutors/$tutorCode'
     | '/u/$handle'
@@ -843,6 +873,7 @@ export interface FileRouteTypes {
     | '/account/claim'
     | '/account/claim-child'
     | '/account/preview'
+    | '/account/studio'
     | '/admin/academy'
     | '/admin/action-required'
     | '/admin/cases'
@@ -898,6 +929,7 @@ export interface FileRouteTypes {
     | '/tos'
     | '/tutor-playbook'
     | '/account'
+    | '/activity'
     | '/calendar'
     | '/dashboard'
     | '/join'
@@ -915,6 +947,7 @@ export interface FileRouteTypes {
     | '/legal/notes-terms'
     | '/notes/$slug'
     | '/orders/$orderId'
+    | '/r/$handle'
     | '/terms/notes-marketplace'
     | '/tutors/$tutorCode'
     | '/u/$handle'
@@ -926,6 +959,7 @@ export interface FileRouteTypes {
     | '/account/claim'
     | '/account/claim-child'
     | '/account/preview'
+    | '/account/studio'
     | '/admin/academy'
     | '/admin/action-required'
     | '/admin/cases'
@@ -982,6 +1016,7 @@ export interface FileRouteTypes {
     | '/tos'
     | '/tutor-playbook'
     | '/_authenticated/account'
+    | '/_authenticated/activity'
     | '/_authenticated/admin'
     | '/_authenticated/calendar'
     | '/_authenticated/dashboard'
@@ -1000,6 +1035,7 @@ export interface FileRouteTypes {
     | '/legal/notes-terms'
     | '/notes/$slug'
     | '/orders/$orderId'
+    | '/r/$handle'
     | '/terms/notes-marketplace'
     | '/tutors/$tutorCode'
     | '/u/$handle'
@@ -1011,6 +1047,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account/claim'
     | '/_authenticated/account/claim-child'
     | '/_authenticated/account/preview'
+    | '/_authenticated/account/studio'
     | '/_authenticated/admin/academy'
     | '/_authenticated/admin/action-required'
     | '/_authenticated/admin/cases'
@@ -1079,6 +1116,7 @@ export interface RootRouteChildren {
   LegalNotesTermsRoute: typeof LegalNotesTermsRoute
   NotesSlugRoute: typeof NotesSlugRoute
   OrdersOrderIdRoute: typeof OrdersOrderIdRoute
+  RHandleRoute: typeof RHandleRoute
   TermsNotesMarketplaceRoute: typeof TermsNotesMarketplaceRoute
   TutorsTutorCodeRoute: typeof TutorsTutorCodeRoute
   UHandleRoute: typeof UHandleRoute
@@ -1211,6 +1249,13 @@ declare module '@tanstack/react-router' {
       path: '/account'
       fullPath: '/account'
       preLoaderRoute: typeof AuthenticatedAccountRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/activity': {
+      id: '/_authenticated/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof AuthenticatedActivityRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/admin': {
@@ -1360,6 +1405,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof OrdersOrderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/r/$handle': {
+      id: '/r/$handle'
+      path: '/r/$handle'
+      fullPath: '/r/$handle'
+      preLoaderRoute: typeof RHandleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/terms/notes-marketplace': {
       id: '/terms/notes-marketplace'
       path: '/terms/notes-marketplace'
@@ -1414,6 +1466,13 @@ declare module '@tanstack/react-router' {
       path: '/preview'
       fullPath: '/account/preview'
       preLoaderRoute: typeof AuthenticatedAccountPreviewRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
+    '/_authenticated/account/studio': {
+      id: '/_authenticated/account/studio'
+      path: '/studio'
+      fullPath: '/account/studio'
+      preLoaderRoute: typeof AuthenticatedAccountStudioRouteImport
       parentRoute: typeof AuthenticatedAccountRoute
     }
     '/_authenticated/admin/': {
@@ -1697,6 +1756,7 @@ interface AuthenticatedAccountRouteChildren {
   AuthenticatedAccountClaimRoute: typeof AuthenticatedAccountClaimRoute
   AuthenticatedAccountClaimChildRoute: typeof AuthenticatedAccountClaimChildRoute
   AuthenticatedAccountPreviewRoute: typeof AuthenticatedAccountPreviewRoute
+  AuthenticatedAccountStudioRoute: typeof AuthenticatedAccountStudioRoute
   AuthenticatedAccountCoursesNewRoute: typeof AuthenticatedAccountCoursesNewRoute
   AuthenticatedAccountFoldersNewRoute: typeof AuthenticatedAccountFoldersNewRoute
   AuthenticatedAccountServicesNewRoute: typeof AuthenticatedAccountServicesNewRoute
@@ -1710,6 +1770,7 @@ const AuthenticatedAccountRouteChildren: AuthenticatedAccountRouteChildren = {
   AuthenticatedAccountClaimRoute: AuthenticatedAccountClaimRoute,
   AuthenticatedAccountClaimChildRoute: AuthenticatedAccountClaimChildRoute,
   AuthenticatedAccountPreviewRoute: AuthenticatedAccountPreviewRoute,
+  AuthenticatedAccountStudioRoute: AuthenticatedAccountStudioRoute,
   AuthenticatedAccountCoursesNewRoute: AuthenticatedAccountCoursesNewRoute,
   AuthenticatedAccountFoldersNewRoute: AuthenticatedAccountFoldersNewRoute,
   AuthenticatedAccountServicesNewRoute: AuthenticatedAccountServicesNewRoute,
@@ -1765,6 +1826,7 @@ const AuthenticatedAdminRouteWithChildren =
 
 interface AuthenticatedRouteChildren {
   AuthenticatedAccountRoute: typeof AuthenticatedAccountRouteWithChildren
+  AuthenticatedActivityRoute: typeof AuthenticatedActivityRoute
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
@@ -1785,6 +1847,7 @@ interface AuthenticatedRouteChildren {
 
 const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAccountRoute: AuthenticatedAccountRouteWithChildren,
+  AuthenticatedActivityRoute: AuthenticatedActivityRoute,
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
@@ -1850,6 +1913,7 @@ const rootRouteChildren: RootRouteChildren = {
   LegalNotesTermsRoute: LegalNotesTermsRoute,
   NotesSlugRoute: NotesSlugRoute,
   OrdersOrderIdRoute: OrdersOrderIdRoute,
+  RHandleRoute: RHandleRoute,
   TermsNotesMarketplaceRoute: TermsNotesMarketplaceRoute,
   TutorsTutorCodeRoute: TutorsTutorCodeRoute,
   UHandleRoute: UHandleRoute,

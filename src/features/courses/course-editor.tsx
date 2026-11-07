@@ -63,9 +63,16 @@ async function fileToBase64(file: File): Promise<string> {
   });
 }
 
-export function CourseEditorForm({ courseId }: { courseId?: string }) {
+export function CourseEditorForm({
+  courseId,
+  initialKind = "video_course",
+}: {
+  courseId?: string;
+  /** #556: Course and Video are separate pills over this one editor. */
+  initialKind?: "video_course" | "general_course";
+}) {
   const { t } = useTranslation();
-  const [kind, setKind] = useState<"video_course" | "general_course">("video_course");
+  const [kind, setKind] = useState<"video_course" | "general_course">(initialKind);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");

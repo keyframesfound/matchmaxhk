@@ -90,14 +90,36 @@ export function looksLikeEncryptedPdf(bytes: Uint8Array): boolean {
   return ascii.join("").includes(marker) || tail.join("").includes(marker);
 }
 
-/** Money model (#203): platform_fee = round(gross × 0.20), net = gross − fee. */
-export function splitMaterialMoney(grossHkd: number): {
-  platformFeeHkd: number;
-  tutorNetHkd: number;
-} {
+/**
+ * Money model (#203 legacy: 20% cashier split; #672 tiered take rates for
+ * marketplace listings): platform_fee = round(gross × pct/100), net = gross −
+ * fee. Callers pass the #672 tier percent (5 verified / 8 standard /
+ * 12 courses) for marketplace orders; gigs and legacy rows keep the default.
+ */
+export function splitMaterialMoney(
+  grossHkd: number,
+  platformFeePct = 20,
+): { platformFeeHkd: number; tutorNetHkd: number } {
   const gross = Math.round(grossHkd * 100) / 100;
-  const platformFeeHkd = Math.round(gross * 0.2 * 100) / 100;
+  const pct =
+    Number.isFinite(platformFeePct) && platformFeePct >= 0 && platformFeePct <= 100
+      ? platformFeePct
+      : 20;
+  const platformFeeHkd = Math.round(gross * (pct / 100) * 100) / 100;
   return { platformFeeHkd, tutorNetHkd: Math.round((gross - platformFeeHkd) * 100) / 100 };
+}
+
+/**
+ * #672 "Video Courses / Structured Bundles" course-tier kinds: the 12% take
+ * rate. Notes kinds (notes / mock / exemplar / flashcards) are the standard
+ * tier; gigs are not part of the #672 marketplace lock.
+ */
+export function isCourseMaterialType(materialType: string | null | undefined): boolean {
+  return (
+    materialType === "video_course" ||
+    materialType === "general_course" ||
+    materialType === "topic_folder"
+  );
 }
 
 /**

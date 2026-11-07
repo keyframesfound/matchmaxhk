@@ -1,7 +1,12 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { PhoneVerifyCard } from "@/features/trust/phone-verify-card";
 import { useEffect, useState } from "react";
+import { findClashes, type ClashLine } from "@/features/cases/schedule-fit";
+import { ScheduleClashDialog } from "@/features/cases/schedule-fit-ui";
+import { useFitSchedule } from "@/features/cases/use-schedule-fit";
 import { useTranslation } from "react-i18next";
+import { markCaseMatchOpened } from "@/features/cases/case-match-waves.functions";
+import { caseFeeNoteKey, resolveCaseType } from "@/features/cases/case-type";
 // Locale-aware relative times (zh-HK, GLM round-3 minor on #430). The
 // share/WhatsApp message templates below stay English on purpose, they are
 // outbound message copy, not on-page UI.
@@ -44,6 +49,7 @@ import {
 import {
   CaseChipLink,
   CaseFeePill,
+  CaseTypeBadge,
   caseGradeLabel,
   useCaseTitles,
 } from "@/features/cases/case-card";
@@ -195,7 +201,7 @@ function CaseApplyControl({
       variant="solid"
       color="blue"
       className={`shrink-0 ${genderMismatch ? "opacity-50" : undefined}`}
-      disabled={applyPending}
+      disabled={applyPending || genderMismatch}
       title={genderMismatch ? t("case_board.gender_mismatch_warning") : undefined}
       onClick={() => {
         if (externalBlock) {
@@ -235,6 +241,13 @@ function CaseApplyControl({
 }
 
 function CaseDetailPage() {
+  const { caseCode } = Route.useParams();
+  // #657: opening the case counts as a wave response. Never blocks the page.
+  useEffect(() => {
+    markCaseMatchOpened({ data: { caseCode } }).catch((error: unknown) =>
+      console.warn("[match-waves] open not recorded:", error),
+    );
+  }, [caseCode]);
   const { t, i18n } = useTranslation();
   // GLM round-3 minor on #430: this page's sentence lines previously rendered
   // hardcoded English inside t()-keyed headings, zh-HK visitors got a
@@ -339,9 +352,21 @@ function CaseDetailPage() {
             : e.message,
       ),
   });
+  // #660: a soft reminder on overlap. Flexible cases hold no slot, so no modal.
+  const { schedule: fitSchedule } = useFitSchedule("tutor");
+  const [clashLines, setClashLines] = useState<ClashLine[]>([]);
   const handleInAppApply = () => {
     if (applyDisabled) {
       toast.error(t("case_board.screening_confirm_required"));
+      return;
+    }
+    if (applyMutation.isPending) return;
+    const clashes =
+      fitSchedule && item.scheduleMode !== "flexible"
+        ? findClashes(item.scheduleSlots, fitSchedule, item.id)
+        : [];
+    if (clashes.length > 0) {
+      setClashLines(clashes);
       return;
     }
     applyMutation.mutate();
@@ -586,8 +611,8 @@ function CaseDetailPage() {
 
   return (
     <PublicPage>
-      <section className="flex w-full justify-center px-4 py-10 sm:px-6 sm:py-14">
-        <article className="w-full max-w-2xl">
+      <section className="w-full px-4 py-10 sm:px-6 sm:py-14">
+        <div className="mx-auto w-full max-w-6xl">
           <Link
             to="/tutor-requests"
             className="mb-6 inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
@@ -596,406 +621,423 @@ function CaseDetailPage() {
             {t("case_board.all_open_requests")}
           </Link>
 
-          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div className="flex min-w-0 flex-col gap-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="w-fit rounded-md bg-muted px-2 py-0.5 font-mono text-xs font-semibold text-muted-foreground">
-                  {item.caseCode}
-                </span>
-                <CaseFeePill packageType={item.packageType} />
-                <span className="text-xs text-muted-foreground">
-                  {t("case_board.posted_ago", {
-                    ago: formatPostedAgo(item.createdAt, i18n.language),
-                  })}
-                </span>
-              </div>
-              {/* Bilingual auto-title block (#411 pattern): locale-primary
+          {/* #552: left 7 cols spec, right sticky 5 cols Apply + net payout. */}
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-12">
+            <article className="min-w-0 lg:col-span-7">
+              <div className="flex flex-col gap-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="w-fit rounded-md bg-muted px-2 py-0.5 font-mono text-xs font-semibold text-muted-foreground">
+                      {item.caseCode}
+                    </span>
+                    <CaseTypeBadge item={item} />
+                    <span className="text-xs text-muted-foreground">
+                      {t("case_board.posted_ago", {
+                        ago: formatPostedAgo(item.createdAt, i18n.language),
+                      })}
+                    </span>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-1.5">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="h-9 w-9 shrink-0"
+                      aria-label={t("case_board.share_case")}
+                      title={t("case_board.share_case")}
+                      disabled={isSharing}
+                      onClick={handleShare}
+                    >
+                      <Share2 className="h-4 w-4" aria-hidden="true" />
+                    </Button>
+                    <CaseSaveButton caseId={item.id} />
+                  </div>
+                </div>
+                {/* Bilingual auto-title block (#411 pattern): locale-primary
                   headline, parallel locale line beneath. */}
-              <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
-                {title}
-              </h1>
-              {titleSecondary ? (
-                <p className="text-lg text-muted-foreground">{titleSecondary}</p>
-              ) : null}
-              <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
-                {meta.map(({ icon: Icon, label, hint }) => (
-                  <span key={label} className="flex items-center gap-1.5" title={hint}>
-                    <Icon className="h-4 w-4" aria-hidden="true" />
-                    {label}
-                  </span>
-                ))}
-                {item.startTiming === "asap" ? (
-                  <span className="flex items-center gap-1 text-amber-700 dark:text-amber-400">
-                    <CalendarClock className="h-4 w-4" aria-hidden="true" />
-                    {t("case_board.starts_asap")}
-                  </span>
+                <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
+                  {title}
+                </h1>
+                {titleSecondary ? (
+                  <p className="text-lg text-muted-foreground">{titleSecondary}</p>
                 ) : null}
-              </div>
-              {/* One chip system, grouped soft vs hard (#423 section 3). */}
-              {chips.length > 0 ? (
-                <div className="flex flex-col gap-2">
-                  <p className="text-xs font-medium text-muted-foreground">
-                    {t("case_board.chips_title")}
-                  </p>
-                  {hardChips.length > 0 ? (
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="mr-1 text-xs font-medium text-muted-foreground">
-                        {t("case_board.chips_hard")}:
-                      </span>
-                      {hardChips.map((chip) => (
-                        <CaseChipLink key={chip.key} chip={chip} />
-                      ))}
-                    </div>
-                  ) : null}
-                  {softChips.length > 0 ? (
-                    <div className="flex flex-wrap items-center gap-1.5">
-                      <span className="mr-1 text-xs font-medium text-muted-foreground">
-                        {t("case_board.chips_soft")}:
-                      </span>
-                      {softChips.map((chip) => (
-                        <CaseChipLink key={chip.key} chip={chip} />
-                      ))}
-                    </div>
+                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-sm text-muted-foreground">
+                  {meta.map(({ icon: Icon, label, hint }) => (
+                    <span key={label} className="flex items-center gap-1.5" title={hint}>
+                      <Icon className="h-4 w-4" aria-hidden="true" />
+                      {label}
+                    </span>
+                  ))}
+                  {item.startTiming === "asap" ? (
+                    <span className="flex items-center gap-1 text-amber-700 dark:text-amber-400">
+                      <CalendarClock className="h-4 w-4" aria-hidden="true" />
+                      {t("case_board.starts_asap")}
+                    </span>
                   ) : null}
                 </div>
-              ) : null}
-            </div>
-            <div className="flex shrink-0 flex-wrap items-center justify-end gap-1.5">
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-9 w-9 shrink-0"
-                aria-label={t("case_board.share_case")}
-                title={t("case_board.share_case")}
-                disabled={isSharing}
-                onClick={handleShare}
-              >
-                <Share2 className="h-4 w-4" aria-hidden="true" />
-              </Button>
-              <CaseSaveButton caseId={item.id} />
-              {genderMismatch ? (
-                <span
-                  className="inline-flex h-9 w-9 items-center justify-center text-[#a16207] dark:text-[color:var(--warning)]"
-                  title={t("case_board.gender_mismatch_warning")}
-                >
-                  <AlertTriangle className="h-5 w-5" aria-hidden="true" />
-                </span>
-              ) : null}
-              {/* #529: +852 OTP before Apply (renders nothing while the gate is off). */}
-              {viewerTutor ? <PhoneVerifyCard /> : null}
-              {/* Issue #81: in-app Apply is the primary CTA; the WhatsApp
-                  link stays as the concierge-intro secondary action. */}
-              <CaseApplyControl
-                item={item}
-                tutorExists={viewerTutorLoaded ? viewerTutor !== null : null}
-                tutorGender={viewerGender}
-                genderMismatch={genderMismatch}
-                alreadyApplied={alreadyApplied}
-                applyPending={applyMutation.isPending}
-                externalBlock={applyDisabled}
-                onExternalBlock={() => toast.error(t("case_board.screening_confirm_required"))}
-                onApply={handleInAppApply}
-              />
-              {item.centre ? (
-                <Button
-                  size="lg"
-                  variant="outline"
-                  disabled={applyDisabled || flagConcern.isPending}
-                  className={genderMismatch ? "opacity-50" : undefined}
-                  title={
-                    screeningLocked
-                      ? t("case_board.screening_confirm_required")
-                      : genderMismatch
-                        ? t("case_board.gender_mismatch_warning")
-                        : undefined
-                  }
-                  onClick={() => {
-                    if (applyDisabled) {
-                      toast.error(t("case_board.screening_confirm_required"));
-                      return;
-                    }
-                    window.open(applyUrl, "_blank", "noreferrer");
-                  }}
-                >
-                  <WhatsAppIcon aria-hidden="true" />
-                  {t("case_board.apply_now")}
-                </Button>
-              ) : (
-                <Button
-                  asChild
-                  size="lg"
-                  variant="outline"
-                  className={genderMismatch ? "opacity-50" : undefined}
-                >
-                  <a
-                    href={applyUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    title={genderMismatch ? t("case_board.gender_mismatch_warning") : undefined}
-                  >
-                    <WhatsAppIcon aria-hidden="true" />
-                    {t("case_board.apply_now")}
-                  </a>
-                </Button>
-              )}
-            </div>
-          </div>
-
-          {/* #443 fee disclosure on apply: short package rule, before the CTA. */}
-          {item.packageType === "short_20" ? (
-            <p className="mt-4 rounded-[var(--radius-control)] border border-border bg-muted/30 px-4 py-3 text-sm leading-relaxed text-foreground/80">
-              {t("case_board.apply_short_disclosure")}
-            </p>
-          ) : null}
-
-          <Separator className="my-8" />
-
-          <div className="flex flex-col gap-8 text-[15px] leading-relaxed text-foreground/80">
-            {/* Issue #423: an empty note HIDES the quote block entirely —
-                never a "parent didn't add notes" placeholder. */}
-            {item.description?.trim() ? (
-              <div className="flex flex-col gap-3">
-                <SectionHeading>{t("case_board.notes_title")}</SectionHeading>
-                <p>{item.description}</p>
-              </div>
-            ) : null}
-
-            <div className="flex flex-col gap-3">
-              <SectionHeading>{t("case_board.detail_lessons_title")}</SectionHeading>
-              <ul className="flex flex-col gap-2.5">
-                {lessons.map((lesson) => (
-                  <CheckItem key={lesson}>{lesson}</CheckItem>
-                ))}
-              </ul>
-            </div>
-
-            <div className="flex flex-col gap-3">
-              <SectionHeading>{t("case_board.detail_preferences_title")}</SectionHeading>
-              <ul className="flex flex-col gap-2.5">
-                {preferences.map((preference) => (
-                  <CheckItem key={preference}>{preference}</CheckItem>
-                ))}
-              </ul>
-            </div>
-
-            {/* Issue #412 E / #423 B2B: centre identity + Cap.57 chip +
-                the read-only screening summary with the confirm/clarify
-                gate. Parent cases never render this block. */}
-            {item.centre ? (
-              <div className="flex flex-col gap-3">
-                <SectionHeading>{t("case_board.centre_summary_title")}</SectionHeading>
-                <div className="flex flex-col gap-3 rounded-[var(--radius-control)] border border-border bg-muted/30 p-4 text-sm">
-                  <div className="flex flex-wrap items-center gap-2">
-                    <Building2
-                      className="h-4 w-4 text-[color:var(--brand-link)]"
-                      aria-hidden="true"
-                    />
-                    <span className="font-medium text-[color:var(--ink)]">{item.centre.name}</span>
-                    {item.centre.verified ? (
-                      <Badge
-                        variant="outline"
-                        className="gap-1 border-[color:var(--brand-link)]/40 text-[color:var(--brand-link)]"
-                      >
-                        <ShieldCheck className="h-3 w-3" aria-hidden="true" />
-                        {t("case_board.centre_verified")}
-                      </Badge>
-                    ) : null}
-                    <Badge
-                      variant="outline"
-                      className="border-purple-500/40 text-purple-700 dark:text-purple-400"
-                    >
-                      {t("case_board.cap57_chip")}
-                    </Badge>
-                  </div>
-                  {item.centre.verified && item.centre.slug ? (
-                    <Link
-                      to="/business/$slug"
-                      params={{ slug: item.centre.slug }}
-                      className="text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
-                    >
-                      {t("case_board.centre_view_profile")}
-                    </Link>
-                  ) : null}
-                  {item.screening ? (
-                    <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
-                      {(
-                        [
-                          [
-                            "case_board.screening_contracting",
-                            caseScreeningLabel(
-                              item.screening.contractingEntity,
-                              zh ? "zh-HK" : "en",
-                            ),
-                          ],
-                          [
-                            "case_board.screening_fee",
-                            [
-                              caseScreeningLabel(item.screening.feeStructure, zh ? "zh-HK" : "en"),
-                              item.screening.feeAmount,
-                              item.screening.feeOpenToCounter
-                                ? t("case_board.screening_open_to_counter")
-                                : null,
-                            ]
-                              .filter(Boolean)
-                              .join(" · "),
-                          ],
-                          [
-                            "case_board.screening_premises",
-                            caseScreeningLabel(
-                              item.screening.premisesProvider,
-                              zh ? "zh-HK" : "en",
-                            ),
-                          ],
-                          ["case_board.screening_scope", item.screening.scopeDescription],
-                          [
-                            "case_board.screening_zero_admin",
-                            item.screening.adminDutiesVerified
-                              ? t("case_board.screening_confirmed_no")
-                              : null,
-                          ],
-                          [
-                            "case_board.screening_methodology",
-                            caseScreeningLabel(
-                              item.screening.methodologyOwner,
-                              zh ? "zh-HK" : "en",
-                            ),
-                          ],
-                          [
-                            "case_board.screening_other_clients",
-                            caseScreeningLabel(
-                              item.screening.otherClientsAllowed,
-                              zh ? "zh-HK" : "en",
-                            ),
-                          ],
-                          [
-                            "case_board.screening_substitution",
-                            caseScreeningLabel(
-                              item.screening.substitutionAllowed,
-                              zh ? "zh-HK" : "en",
-                            ),
-                          ],
-                        ] as const
-                      )
-                        .filter(([, value]) => Boolean(value))
-                        .map(([labelKey, value]) => (
-                          <div key={labelKey} className="min-w-0">
-                            <dt className="text-[11px] font-medium text-muted-foreground">
-                              {t(labelKey)}
-                            </dt>
-                            <dd className="text-sm font-medium text-[color:var(--ink)]">{value}</dd>
-                          </div>
-                        ))}
-                    </dl>
-                  ) : null}
-                  {/* Confirm / clarify gate before Apply. */}
-                  <div className="space-y-2 border-t border-border pt-3">
-                    <p className="text-xs font-bold text-[color:var(--ink)]">
-                      {t("case_board.screening_confirm_title")}
+                {/* One chip system, grouped soft vs hard (#423 section 3). */}
+                {chips.length > 0 ? (
+                  <div className="flex flex-col gap-2">
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {t("case_board.chips_title")}
                     </p>
-                    <RadioGroup
-                      value={screeningChoice}
-                      onValueChange={(v) => setScreeningChoice(v as "confirm" | "clarify")}
-                      className="gap-2.5"
-                    >
-                      {(
-                        [
-                          ["confirm", "case_board.screening_confirm_option"],
-                          ["clarify", "case_board.screening_clarify_option"],
-                        ] as const
-                      ).map(([value, key]) => (
-                        <Label
-                          key={value}
-                          className="flex cursor-pointer items-start gap-2.5 text-sm font-normal text-muted-foreground"
-                        >
-                          <RadioGroupItem value={value} className="mt-1" />
-                          <span>{t(key)}</span>
-                        </Label>
-                      ))}
-                    </RadioGroup>
-                    {screeningChoice === "clarify" ? (
-                      <div className="space-y-2">
-                        <Textarea
-                          rows={3}
-                          maxLength={500}
-                          placeholder={t("case_board.screening_clarify_placeholder")}
-                          value={clarifyNote}
-                          onChange={(e) => setClarifyNote(e.target.value)}
-                        />
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="outline"
-                          disabled={clarifyNote.trim().length < 10 || flagConcern.isPending}
-                          onClick={() => flagConcern.mutate(clarifyNote.trim())}
-                        >
-                          {flagConcern.isPending
-                            ? t("case_board.screening_clarify_sending")
-                            : t("case_board.screening_clarify_submit")}
-                        </Button>
+                    {hardChips.length > 0 ? (
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="mr-1 text-xs font-medium text-muted-foreground">
+                          {t("case_board.chips_hard")}:
+                        </span>
+                        {hardChips.map((chip) => (
+                          <CaseChipLink key={chip.key} chip={chip} />
+                        ))}
+                      </div>
+                    ) : null}
+                    {softChips.length > 0 ? (
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="mr-1 text-xs font-medium text-muted-foreground">
+                          {t("case_board.chips_soft")}:
+                        </span>
+                        {softChips.map((chip) => (
+                          <CaseChipLink key={chip.key} chip={chip} />
+                        ))}
                       </div>
                     ) : null}
                   </div>
-                </div>
+                ) : null}
               </div>
-            ) : null}
 
-            {payout ? (
-              <div className="flex flex-col gap-3">
-                <SectionHeading>{t("case_board.payout_title")}</SectionHeading>
-                <div className="flex flex-col gap-2 rounded-[var(--radius-control)] border border-border bg-muted/30 p-4 text-sm">
-                  <CaseFeePill packageType={item.packageType} className="w-fit" />
-                  <ul className="flex flex-col gap-1.5">
-                    {payout.map((line) => (
-                      <CheckItem key={line}>{line}</CheckItem>
+              <Separator className="my-8" />
+
+              <div className="flex flex-col gap-8 text-[15px] leading-relaxed text-foreground/80">
+                {/* Issue #423: an empty note HIDES the quote block entirely —
+                never a "parent didn't add notes" placeholder. */}
+                {item.description?.trim() ? (
+                  <div className="flex flex-col gap-3">
+                    <SectionHeading>{t("case_board.notes_title")}</SectionHeading>
+                    <p>{item.description}</p>
+                  </div>
+                ) : null}
+
+                <div className="flex flex-col gap-3">
+                  <SectionHeading>{t("case_board.detail_lessons_title")}</SectionHeading>
+                  <ul className="flex flex-col gap-2.5">
+                    {lessons.map((lesson) => (
+                      <CheckItem key={lesson}>{lesson}</CheckItem>
                     ))}
                   </ul>
                 </div>
+
+                <div className="flex flex-col gap-3">
+                  <SectionHeading>{t("case_board.detail_preferences_title")}</SectionHeading>
+                  <ul className="flex flex-col gap-2.5">
+                    {preferences.map((preference) => (
+                      <CheckItem key={preference}>{preference}</CheckItem>
+                    ))}
+                  </ul>
+                </div>
+
+                {/* Issue #412 E / #423 B2B: centre identity + Cap.57 chip +
+                the read-only screening summary with the confirm/clarify
+                gate. Parent cases never render this block. */}
+                {item.centre ? (
+                  <div className="flex flex-col gap-3">
+                    <SectionHeading>{t("case_board.centre_summary_title")}</SectionHeading>
+                    <div className="flex flex-col gap-3 rounded-[var(--radius-control)] border border-border bg-muted/30 p-4 text-sm">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <Building2
+                          className="h-4 w-4 text-[color:var(--brand-link)]"
+                          aria-hidden="true"
+                        />
+                        <span className="font-medium text-[color:var(--ink)]">
+                          {/* #582 Stage 1: the server strips the name until
+                          the viewer accepts the lead. */}
+                          {item.centre.name ?? t("case_board.centre_masked_name")}
+                        </span>
+                        {item.centre.verified ? (
+                          <Badge
+                            variant="outline"
+                            className="gap-1 border-[color:var(--brand-link)]/40 text-[color:var(--brand-link)]"
+                          >
+                            <ShieldCheck className="h-3 w-3" aria-hidden="true" />
+                            {t("case_board.centre_verified")}
+                          </Badge>
+                        ) : null}
+                        <Badge
+                          variant="outline"
+                          className="border-purple-500/40 text-purple-700 dark:text-purple-400"
+                        >
+                          {t("case_board.cap57_chip")}
+                        </Badge>
+                      </div>
+                      {item.centre.name && item.centre.verified && item.centre.slug ? (
+                        <Link
+                          to="/business/$slug"
+                          params={{ slug: item.centre.slug }}
+                          className="text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
+                        >
+                          {t("case_board.centre_view_profile")}
+                        </Link>
+                      ) : null}
+                      {!item.centre.name ? (
+                        <p className="text-xs text-muted-foreground">
+                          {t("case_board.centre_reveal_note")}
+                        </p>
+                      ) : null}
+                      {item.screening ? (
+                        <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
+                          {(
+                            [
+                              [
+                                "case_board.screening_contracting",
+                                caseScreeningLabel(
+                                  item.screening.contractingEntity,
+                                  zh ? "zh-HK" : "en",
+                                ),
+                              ],
+                              [
+                                "case_board.screening_fee",
+                                [
+                                  caseScreeningLabel(
+                                    item.screening.feeStructure,
+                                    zh ? "zh-HK" : "en",
+                                  ),
+                                  item.screening.feeAmount,
+                                  item.screening.feeOpenToCounter
+                                    ? t("case_board.screening_open_to_counter")
+                                    : null,
+                                ]
+                                  .filter(Boolean)
+                                  .join(" · "),
+                              ],
+                              [
+                                "case_board.screening_premises",
+                                caseScreeningLabel(
+                                  item.screening.premisesProvider,
+                                  zh ? "zh-HK" : "en",
+                                ),
+                              ],
+                              ["case_board.screening_scope", item.screening.scopeDescription],
+                              [
+                                "case_board.screening_zero_admin",
+                                item.screening.adminDutiesVerified
+                                  ? t("case_board.screening_confirmed_no")
+                                  : null,
+                              ],
+                              [
+                                "case_board.screening_methodology",
+                                caseScreeningLabel(
+                                  item.screening.methodologyOwner,
+                                  zh ? "zh-HK" : "en",
+                                ),
+                              ],
+                              [
+                                "case_board.screening_other_clients",
+                                caseScreeningLabel(
+                                  item.screening.otherClientsAllowed,
+                                  zh ? "zh-HK" : "en",
+                                ),
+                              ],
+                              [
+                                "case_board.screening_substitution",
+                                caseScreeningLabel(
+                                  item.screening.substitutionAllowed,
+                                  zh ? "zh-HK" : "en",
+                                ),
+                              ],
+                            ] as const
+                          )
+                            .filter(([, value]) => Boolean(value))
+                            .map(([labelKey, value]) => (
+                              <div key={labelKey} className="min-w-0">
+                                <dt className="text-[11px] font-medium text-muted-foreground">
+                                  {t(labelKey)}
+                                </dt>
+                                <dd className="text-sm font-medium text-[color:var(--ink)]">
+                                  {value}
+                                </dd>
+                              </div>
+                            ))}
+                        </dl>
+                      ) : null}
+                      {/* Confirm / clarify gate before Apply. */}
+                      <div className="space-y-2 border-t border-border pt-3">
+                        <p className="text-xs font-bold text-[color:var(--ink)]">
+                          {t("case_board.screening_confirm_title")}
+                        </p>
+                        {/* #582 Stage 2: the Cap.57 independent-operator +
+                        tutor-pays ladder acknowledgement rides the confirm
+                        screen on every B2B overflow. */}
+                        <p className="text-xs text-muted-foreground">
+                          {t("case_board.screening_cap57_note")}
+                        </p>
+                        <RadioGroup
+                          value={screeningChoice}
+                          onValueChange={(v) => setScreeningChoice(v as "confirm" | "clarify")}
+                          className="gap-2.5"
+                        >
+                          {(
+                            [
+                              ["confirm", "case_board.screening_confirm_option"],
+                              ["clarify", "case_board.screening_clarify_option"],
+                            ] as const
+                          ).map(([value, key]) => (
+                            <Label
+                              key={value}
+                              className="flex cursor-pointer items-start gap-2.5 text-sm font-normal text-muted-foreground"
+                            >
+                              <RadioGroupItem value={value} className="mt-1" />
+                              <span>{t(key)}</span>
+                            </Label>
+                          ))}
+                        </RadioGroup>
+                        {screeningChoice === "clarify" ? (
+                          <div className="space-y-2">
+                            <Textarea
+                              rows={3}
+                              maxLength={500}
+                              placeholder={t("case_board.screening_clarify_placeholder")}
+                              value={clarifyNote}
+                              onChange={(e) => setClarifyNote(e.target.value)}
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              variant="outline"
+                              disabled={clarifyNote.trim().length < 10 || flagConcern.isPending}
+                              onClick={() => flagConcern.mutate(clarifyNote.trim())}
+                            >
+                              {flagConcern.isPending
+                                ? t("case_board.screening_clarify_sending")
+                                : t("case_board.screening_clarify_submit")}
+                            </Button>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  </div>
+                ) : null}
               </div>
-            ) : null}
-          </div>
+            </article>
 
-          <Separator className="my-8" />
-
-          <div className="flex flex-col gap-4 rounded-[var(--radius-control)] border border-border bg-muted/30 p-6 sm:flex-row sm:items-center sm:justify-between">
-            <div className="flex flex-col gap-1">
-              <p className="text-sm font-bold text-[color:var(--ink)]">
-                {t("case_board.ready_title")}
-              </p>
-              <p className="text-sm text-muted-foreground">{t("case_board.ready_body")}</p>
-            </div>
-            <div className="flex shrink-0 flex-wrap items-center gap-2">
-              {/* Issue #81: the same in-app Apply control, WhatsApp secondary. */}
-              <CaseApplyControl
-                item={item}
-                tutorExists={viewerTutorLoaded ? viewerTutor !== null : null}
-                tutorGender={viewerGender}
-                genderMismatch={genderMismatch}
-                alreadyApplied={alreadyApplied}
-                applyPending={applyMutation.isPending}
-                externalBlock={applyDisabled}
-                onExternalBlock={() => toast.error(t("case_board.screening_confirm_required"))}
-                onApply={handleInAppApply}
-              />
-              <Button
-                asChild
-                variant="outline"
-                className={`shrink-0 ${genderMismatch ? "opacity-50" : undefined}`}
-              >
-                <a
-                  href={applyUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  title={genderMismatch ? t("case_board.gender_mismatch_warning") : undefined}
-                >
-                  {genderMismatch ? <AlertTriangle aria-hidden="true" /> : null}
-                  <WhatsAppIcon aria-hidden="true" />
-                  {t("case_board.apply_now")}
-                </a>
-              </Button>
-            </div>
+            <aside className="min-w-0 lg:col-span-5">
+              <div className="flex flex-col gap-4 lg:sticky lg:top-24">
+                <div className="flex flex-col gap-4 rounded-[var(--radius-control)] border border-border bg-muted/30 p-5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <CaseFeePill packageType={item.packageType} />
+                  </div>
+                  <p className="text-sm font-semibold text-[color:var(--ink)]">
+                    {t(caseFeeNoteKey(resolveCaseType(item)))}
+                  </p>
+                  {/* #443 fee disclosure on apply: short package rule, before the CTA. */}
+                  {item.packageType === "short_20" ? (
+                    <p className="rounded-[var(--radius-control)] border border-border bg-muted/30 px-4 py-3 text-sm leading-relaxed text-foreground/80">
+                      {t("case_board.apply_short_disclosure")}
+                    </p>
+                  ) : null}
+                  {genderMismatch ? (
+                    <p className="flex items-start gap-2 rounded-[var(--radius-control)] border border-[color:var(--warning)]/40 bg-[color:var(--warning)]/10 px-3 py-2 text-sm text-[#a16207] dark:text-[color:var(--warning)]">
+                      <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                      {t("case_board.gender_mismatch_warning")}
+                    </p>
+                  ) : null}
+                  <div>
+                    <p className="text-sm font-bold text-[color:var(--ink)]">
+                      {t("case_board.ready_title")}
+                    </p>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      {t("case_board.ready_body")}
+                    </p>
+                  </div>
+                  <div className="flex flex-col gap-2 [&>*]:w-full">
+                    {/* #529: +852 OTP before Apply (renders nothing while the gate is off). */}
+                    {viewerTutor ? <PhoneVerifyCard /> : null}
+                    {/* Issue #81: in-app Apply is the primary CTA; the WhatsApp
+                  link stays as the concierge-intro secondary action. */}
+                    <CaseApplyControl
+                      item={item}
+                      tutorExists={viewerTutorLoaded ? viewerTutor !== null : null}
+                      tutorGender={viewerGender}
+                      genderMismatch={genderMismatch}
+                      alreadyApplied={alreadyApplied}
+                      applyPending={applyMutation.isPending}
+                      externalBlock={applyDisabled}
+                      onExternalBlock={() =>
+                        toast.error(t("case_board.screening_confirm_required"))
+                      }
+                      onApply={handleInAppApply}
+                    />
+                    <ScheduleClashDialog
+                      open={clashLines.length > 0}
+                      flow="apply"
+                      lines={clashLines}
+                      pending={applyMutation.isPending}
+                      onBack={() => setClashLines([])}
+                      onProceed={() => {
+                        setClashLines([]);
+                        applyMutation.mutate();
+                      }}
+                    />
+                    {item.centre ? (
+                      <Button
+                        size="lg"
+                        variant="outline"
+                        disabled={applyDisabled || flagConcern.isPending}
+                        className={genderMismatch ? "opacity-50" : undefined}
+                        title={
+                          screeningLocked
+                            ? t("case_board.screening_confirm_required")
+                            : genderMismatch
+                              ? t("case_board.gender_mismatch_warning")
+                              : undefined
+                        }
+                        onClick={() => {
+                          if (applyDisabled) {
+                            toast.error(t("case_board.screening_confirm_required"));
+                            return;
+                          }
+                          window.open(applyUrl, "_blank", "noreferrer");
+                        }}
+                      >
+                        <WhatsAppIcon aria-hidden="true" />
+                        {t("case_board.apply_now")}
+                      </Button>
+                    ) : (
+                      <Button
+                        asChild
+                        size="lg"
+                        variant="outline"
+                        className={genderMismatch ? "opacity-50" : undefined}
+                      >
+                        <a
+                          href={applyUrl}
+                          target="_blank"
+                          rel="noreferrer"
+                          title={
+                            genderMismatch ? t("case_board.gender_mismatch_warning") : undefined
+                          }
+                        >
+                          <WhatsAppIcon aria-hidden="true" />
+                          {t("case_board.apply_now")}
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                </div>
+                {payout ? (
+                  <div className="flex flex-col gap-3">
+                    <SectionHeading>{t("case_board.payout_title")}</SectionHeading>
+                    <div className="flex flex-col gap-2 rounded-[var(--radius-control)] border border-border bg-muted/30 p-4 text-sm">
+                      <ul className="flex flex-col gap-1.5">
+                        {payout.map((line) => (
+                          <CheckItem key={line}>{line}</CheckItem>
+                        ))}
+                      </ul>
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+            </aside>
           </div>
-        </article>
+        </div>
       </section>
     </PublicPage>
   );

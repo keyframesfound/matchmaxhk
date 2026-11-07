@@ -1068,6 +1068,7 @@ export type Database = {
           assigned_to: string | null;
           class_format_preference: string | null;
           group_cohort_id: string | null;
+          case_type: string;
           package_type: string;
           rate_unit: string;
           student_count: number;
@@ -1148,6 +1149,7 @@ export type Database = {
           assigned_to?: string | null;
           class_format_preference?: string | null;
           group_cohort_id?: string | null;
+          case_type?: string;
           package_type?: string;
           rate_unit?: string;
           student_count?: number;
@@ -1228,6 +1230,7 @@ export type Database = {
           assigned_to?: string | null;
           class_format_preference?: string | null;
           group_cohort_id?: string | null;
+          case_type?: string;
           package_type?: string;
           rate_unit?: string;
           student_count?: number;
@@ -1655,6 +1658,7 @@ export type Database = {
     };
     Functions: {
       claim_org_memberships: { Args: never; Returns: number };
+      confirm_my_availability_fresh: { Args: never; Returns: undefined };
       get_trending_tutors: {
         Args: { p_candidate_limit?: number };
         Returns: {
@@ -1760,6 +1764,10 @@ export type Database = {
       is_org_admin: { Args: { _org_id: string }; Returns: boolean };
       is_org_owner: { Args: { _org_id: string }; Returns: boolean };
       is_platform_admin: { Args: never; Returns: boolean };
+      get_similar_tutors: {
+        Args: { seed_tutor_id: string; active_filters?: Json; limit_count?: number };
+        Returns: { id: string; match_reason_key: string }[];
+      };
       match_tutors_for_case: {
         Args: { _case_id: string; _limit?: number };
         Returns: {

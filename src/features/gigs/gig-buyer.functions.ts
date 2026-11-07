@@ -8,6 +8,8 @@ import {
   MAX_GIG_FILE_BYTES,
   canParentRequestRefund,
   transitionGigOrder,
+  gigFulfillmentDueAt,
+  isMarkingService,
 } from "@/features/gigs/gig";
 
 /**
@@ -86,7 +88,7 @@ export const uploadGigSourceFile = createServerFn({ method: "POST" })
     const { data: order } = await db
       .from<GigOrderRow>("material_orders")
       .select(
-        "id, status, tutor_id, buyer_account_id, digital_materials(material_type, gig_delivery_type)",
+        "id, status, tutor_id, buyer_account_id, fulfillment_due_at, digital_materials(material_type, gig_delivery_type, gig_category, turnaround_hours)",
       )
       .eq("id", data.orderId)
       .maybeSingle();
@@ -95,7 +97,12 @@ export const uploadGigSourceFile = createServerFn({ method: "POST" })
 
     const material = (
       order as unknown as {
-        digital_materials?: { material_type?: string; gig_delivery_type?: string } | null;
+        digital_materials?: {
+          material_type?: string;
+          gig_delivery_type?: string;
+          gig_category?: string;
+          turnaround_hours?: number | null;
+        } | null;
       }
     ).digital_materials;
     if (material?.material_type !== "gig") throw new Error("This order is not a service.");
@@ -118,9 +125,23 @@ export const uploadGigSourceFile = createServerFn({ method: "POST" })
     });
     if (error) throw new Error(error.message);
 
+    // #556: the first draft on a Marking order starts the seller's clock.
+    const startsClock =
+      isMarkingService(material) &&
+      !(order as unknown as { fulfillment_due_at?: string | null }).fulfillment_due_at;
     const { error: updateError } = await db
       .from<never>("material_orders")
-      .update({ buyer_source_path: path })
+      .update({
+        buyer_source_path: path,
+        ...(startsClock
+          ? {
+              fulfillment_due_at: gigFulfillmentDueAt(
+                new Date(),
+                material.turnaround_hours,
+              ).toISOString(),
+            }
+          : {}),
+      })
       .eq("id", order.id);
     if (updateError) throw new Error(updateError.message);
     return { ok: true, path };

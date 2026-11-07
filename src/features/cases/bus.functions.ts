@@ -68,6 +68,21 @@ async function insertEvent(
   payload: Record<string, unknown>,
   sourceId: string | null,
 ): Promise<void> {
+  // #671 burst debounce: the same (event_type, case) firing repeatedly in a
+  // short window collapses to one bell row, so a burst of edits never floods
+  // the inbox. Distinct cases / later windows still notify.
+  if (sourceId && BUS_DEBOUNCE_MS > 0) {
+    const cutoff = new Date(Date.now() - BUS_DEBOUNCE_MS).toISOString();
+    // selectRows only speaks eq/in, so the window filter runs inline.
+    const { data: recent } = await db
+      .from<{ id: string }>("case_events")
+      .select("id")
+      .eq("event_type", eventType)
+      .eq("source_id", sourceId)
+      .gte("created_at", cutoff)
+      .limit(1);
+    if ((recent ?? []).length > 0) return;
+  }
   const { error } = await db
     .from<Row>("case_events")
     .insert({ event_type: eventType, payload, source_id: sourceId })
@@ -77,6 +92,9 @@ async function insertEvent(
     throw new Error(`insert event ${eventType}: ${error?.message ?? "unknown"}`);
   }
 }
+
+/** #671: burst window for identical (event_type, source) notifications. */
+export const BUS_DEBOUNCE_MS = 60_000;
 
 /**
  * #461 addendum Triggers 8-9: lesson lifecycle events (cancelled/scheduled,
@@ -374,9 +392,13 @@ const EMAIL_TEMPLATE_BY_EVENT: Record<string, string> = {
   "lesson.cancelled_by_tutor": "lesson-update",
   "lesson.scheduled_by_parent": "lesson-update",
   "lesson.scheduled_by_tutor": "lesson-update",
+  "billing.notice_by_parent": "lesson-update",
+  "billing.notice_by_tutor": "lesson-update",
   // #542 triggers + #561 action items share the flexible action template;
   // the bilingual strings come from action-email.server.ts.
   "case.lead_new": "action-required",
+  "case.match_alert": "action-required",
+  "case.already_taken": "action-required",
   "intro.shared_parent": "action-required",
   "intro.shared_tutor": "action-required",
   "verification.approved": "action-required",
@@ -686,6 +708,13 @@ export async function drainInternal(db: Db, now: Date = new Date()): Promise<voi
     await generateFeeEvents(db, now);
   } catch (err) {
     console.error("[bus] fee event generation failed", err);
+  }
+  // #657: start or advance ranked match waves (idempotent).
+  try {
+    const { tickCaseMatchWaves } = await import("@/features/cases/case-match-waves.functions");
+    await tickCaseMatchWaves(db, now);
+  } catch (err) {
+    console.error("[bus] match wave tick failed", err);
   }
   // #561 AR-4/AR-10: open/resolve profile-gap actions (idempotent).
   try {

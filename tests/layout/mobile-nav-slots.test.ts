@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { isMobileNavSlotActive, MOBILE_NAV_SLOTS } from "@/components/layout/mobile-nav-slots";
-import en from "@/features/i18n/locales/en.json";
-import zhCN from "@/features/i18n/locales/zh-CN.json";
-import zhHK from "@/features/i18n/locales/zh-HK.json";
+import { isMobileNavSlotActive, MOBILE_NAV_SLOTS } from "../../src/components/layout/mobile-nav-slots";
+import en from "../../src/features/i18n/locales/en.json";
+import zhCN from "../../src/features/i18n/locales/zh-CN.json";
+import zhHK from "../../src/features/i18n/locales/zh-HK.json";
 
 describe("mobile bottom bar slots (#674)", () => {
   it("renders the five slots in the locked left-to-right order", () => {

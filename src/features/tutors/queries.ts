@@ -1,7 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { normalizeSenCategories } from "./sen";
 import { normalizeUniversityGpa } from "./verticals";
 import { isTutorPubliclyListed } from "./tutor-display";
+import { orderBySimilarIds, type SimilarFilters, type SimilarReason } from "./similar-tutors";
 import { normalizeExamResults, type ExamResult } from "./examSystems";
 import type { TutorReview } from "./tutor-reviews";
 import type { EducationValueRow } from "./education-filters";
@@ -15,6 +17,8 @@ export const IA_EE_TOK_SUPPORT_OPTIONS = ["IA", "EE", "TOK"] as const;
 export type TutorAchievement = {
   short_text: string;
   detail_text?: string;
+  /** #575: PUBLIC photo proof path (materials-previews bucket). */
+  proof_image_path?: string;
 };
 
 /** One per-curriculum hourly rate, e.g. { curriculum: "DSE", rate: 400 }. */
@@ -351,10 +355,15 @@ function normalizeAchievements(raw: unknown): TutorAchievement[] {
     const shortText = typeof entry.short_text === "string" ? entry.short_text.trim() : "";
     const detailText = typeof entry.detail_text === "string" ? entry.detail_text.trim() : "";
     if (!shortText) return [];
+    const proofPath =
+      typeof entry.proof_image_path === "string" && entry.proof_image_path.length <= 300
+        ? entry.proof_image_path
+        : undefined;
     return [
       {
         short_text: shortText.slice(0, TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT),
         ...(detailText ? { detail_text: detailText } : {}),
+        ...(proofPath ? { proof_image_path: proofPath } : {}),
       },
     ];
   });
@@ -584,6 +593,30 @@ export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
       .map((row) => normalize(row, defaults))
       .filter((tutor) => isTutorPubliclyListed(tutor)),
   );
+}
+
+/** #563: at most three tutors, chosen server-side; never the whole directory. */
+export async function fetchSimilarTutors(
+  seedTutorId: string,
+  filters: SimilarFilters,
+): Promise<{ tutor: Tutor; reason: SimilarReason }[]> {
+  const { data: rows, error } = await supabase.rpc("get_similar_tutors", {
+    seed_tutor_id: seedTutorId,
+    active_filters: filters as Json,
+  });
+  if (error) throw error;
+  if (!rows || rows.length === 0) return [];
+  const defaults = await fetchTutorPhotoDefaults();
+  const ids = rows.map((row) => row.id);
+  const data = await withTutorSelectFallback<Record<string, unknown>[]>((selectCols) =>
+    supabase.from("tutors").select(selectCols).eq("is_published", true).in("id", ids),
+  );
+  const tutors = await attachGroupCohortRates(
+    (data ?? [])
+      .map((row) => normalize(row, defaults))
+      .filter((tutor) => isTutorPubliclyListed(tutor)),
+  );
+  return orderBySimilarIds(tutors, rows);
 }
 
 export async function fetchPublishedTutors(): Promise<Tutor[]> {

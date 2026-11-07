@@ -1,11 +1,18 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import { selectRows } from "@/features/cases/desk-db";
+import { asAdminDb } from "@/features/materials/storage-helpers";
+
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { referralSurfaceFor } from "@/features/legal/referral-surface";
 import { normalizeTutorRateRows } from "@/features/tutors/rates";
 import { buildTutorCardInsert, mappedCardContactError } from "@/lib/tutor-card-mapping";
-import { tutorApplicationSchema } from "./tutor-application.schema";
+import {
+  activationSchema,
+  buildActivationApplication,
+  phoneIsValid,
+} from "@/features/tutor-application/activation";
 import type { TutorApplication } from "./tutor-application.schema";
 import type { Json } from "@/integrations/supabase/types";
 import { getRuntimeEnv } from "./runtime-env";
@@ -129,232 +136,144 @@ async function sendCardLiveEmail(params: {
   }
 }
 
-export const generateSelfIntroduction = createServerFn({ method: "POST" })
-  // Spends the account's OpenRouter quota: never callable without a session
-  // (the /join form sits behind the _authenticated layout anyway).
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z
-      .object({
-        university: z.string().trim().max(200).default(""),
-        programme: z.string().trim().max(200).default(""),
-        curricula: z.array(z.string().trim().max(60)).max(12).default([]),
-        overallScore: z.string().trim().max(200).default(""),
-        subjects: z.array(z.string().trim().max(120)).max(40).default([]),
-        experience: z.string().trim().max(2000).default(""),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data }) => {
-    const apiKey = getRuntimeEnv("OPENROUTER_API_KEY");
-    if (!apiKey) throw new Error("AI writing is not configured.");
-
-    // Issue #120: one premium first-person bio from the academic data the
-    // applicant already entered. The form shows the draft for review, the
-    // model writes, it never submits.
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://matchmax.hk",
-        "X-Title": "MatchMax Tutor Application",
-      },
-      signal: AbortSignal.timeout(30_000),
-      body: JSON.stringify({
-        model: "qwen/qwen3-vl-32b-instruct",
-        temperature: 0.7,
-        max_tokens: 600,
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a top-tier private tutor in Hong Kong. Write a professional, confident, and friendly self-introduction in the first person ('I'). Use the provided academic data to write exactly 2 short paragraphs. Focus on a passion for teaching and helping students achieve their target grades. Keep the tone premium and natural. Do not use overly robotic words like 'Furthermore' or 'In conclusion.' Maximum 150 words. Return only the introduction text, with no preamble or quotes.",
-          },
-          {
-            role: "user",
-            content: `University: ${data.university || "Not provided"}\nMajor: ${data.programme || "Not provided"}\nHigh School Curriculum: ${data.curricula.join(", ") || "Not provided"}\nTop Grades: ${data.overallScore || "Not provided"}\nSubjects I want to teach: ${data.subjects.join(", ") || "Not provided"}\nTeaching experience: ${data.experience || "Not provided"}`,
-          },
-        ],
-      }),
-    });
-    if (!response.ok) {
-      throw new Error(
-        `AI writing failed (OpenRouter ${response.status}). Please try again or write your introduction manually.`,
-      );
-    }
-    const payload = (await response.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const content = payload.choices?.[0]?.message?.content?.trim();
-    if (!content) throw new Error("AI writing returned nothing. Please try again.");
-    // Defense against chatty models wrapping the bio in markdown fences.
-    return content.replace(/^```[a-z]*\s*|\s*```$/g, "").trim();
-  });
-
 // Issue #122: pricing-recommender output contract.
 const suggestedRateSchema = z.object({
   suggested_range: z.string().trim().min(1).max(60),
   justification: z.string().trim().min(1).max(400),
 });
 
-export const suggestHourlyRate = createServerFn({ method: "POST" })
-  // Same OpenRouter-quota rule as generateSelfIntroduction.
-  .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) =>
-    z
-      .object({
-        university: z.string().trim().max(200).default(""),
-        major: z.string().trim().max(200).default(""),
-        curricula: z.array(z.string().trim().max(60)).max(12).default([]),
-        overallScore: z.string().trim().max(200).default(""),
-        experience: z.string().trim().max(800).default(""),
-      })
-      .parse(input),
-  )
-  .handler(async ({ data }) => {
-    const apiKey = getRuntimeEnv("OPENROUTER_API_KEY");
-    if (!apiKey) throw new Error("Rate suggestions are not configured.");
+type ExistingCard = { id: string; tutor_code: string; is_published: boolean | null };
 
-    const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+async function findExistingCard(userId: string, email: string): Promise<ExistingCard | null> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const columns = "id, tutor_code, is_published";
+  const { data: owned } = await supabaseAdmin
+    .from("tutors")
+    .select(columns)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (owned) return owned as ExistingCard;
+  // Not in the generated types; read through the untyped admin helpers.
+  const [link] = await selectRows<{ tutor_id: string }>(
+    asAdminDb(supabaseAdmin),
+    "tutor_live_card_emails",
+    "tutor_id",
+    [{ col: "email", op: "eq", value: email.trim().toLowerCase() }],
+  );
+  if (!link) return null;
+  const { data: card } = await supabaseAdmin
+    .from("tutors")
+    .select(columns)
+    .eq("id", link.tutor_id)
+    .maybeSingle();
+  return (card as ExistingCard | null) ?? null;
+}
+
+async function assertTutorAge(userId: string): Promise<void> {
+  // #522 age tier: under-16s are blocked from the tutor role (13-15 tier);
+  // a missing DOB never blocks (legacy users). Defence in depth — the
+  // complete_onboarding RPC enforces the same tier.
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: dobRow } = await supabaseAdmin
+    .from("profiles")
+    .select("date_of_birth")
+    .eq("id", userId)
+    .maybeSingle();
+  const dob = (dobRow as { date_of_birth: string | null } | null)?.date_of_birth ?? null;
+  if (!dob) return;
+  const age = Math.floor((Date.now() - Date.parse(`${dob}T00:00:00Z`)) / (365.2425 * 86400_000));
+  if (age < 16) throw new Error("AGE_RESTRICTED");
+}
+
+async function verifyTurnstile(token: string): Promise<void> {
+  const secret = getRuntimeEnv("TURNSTILE_SECRET");
+  const expectedHostnames = new Set(
+    (getRuntimeEnv("TURNSTILE_HOSTNAMES") ?? "")
+      .split(",")
+      .map((hostname) => hostname.trim())
+      .filter(Boolean),
+  );
+  if (!secret || expectedHostnames.size === 0) {
+    throw new Error("Application verification is unavailable.");
+  }
+  let result: { success?: boolean; action?: string; hostname?: string };
+  try {
+    const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "https://matchmax.hk",
-        "X-Title": "MatchMax Tutor Application",
-      },
-      signal: AbortSignal.timeout(30_000),
-      body: JSON.stringify({
-        model: "qwen/qwen3-vl-32b-instruct",
-        temperature: 0,
-        max_tokens: 400,
-        response_format: { type: "json_object" },
-        messages: [
-          {
-            role: "system",
-            content:
-              "You are a pricing analyst for MatchMax, a premium tutoring agency in Hong Kong. \nI will provide you with a tutor applicant's academic background and experience. \nCalculate a suggested hourly rate (in HKD) based on these foundational baseline rules:\n1. Standard DSE / Lower Secondary (HKTA baseline): $150 - $250 HKD/hr.\n2. Premium Curriculums (IB / A-Level / IGCSE): Add a $100 - $150 premium.\n3. Elite Pedigree (Medical/Law students, scores of IB 43+/A-Level 3A*+): Base rate starts at $400 - $600+ HKD/hr.\n4. Experience: Add $50/hr for every 2+ years of experience.\n\nReturn ONLY a valid JSON object with two keys:\n- `suggested_range`: A string formatted like '$300 - $400'\n- `justification`: One short, encouraging sentence explaining the price (e.g., 'With your IB score of 44 and HKU Medical background, parents are willing to pay a premium for your expertise.')",
-          },
-          {
-            role: "user",
-            content: `University: ${data.university || "Not provided"}\nMajor: ${data.major || "Not provided"}\nCurriculum to Teach: ${data.curricula.join(", ") || "Not provided"}\nGrades: ${data.overallScore || "Not provided"}\nExperience: ${data.experience || "Not provided"}`,
-          },
-        ],
-      }),
+      headers: { "Content-Type": "application/x-www-form-urlencoded" },
+      signal: AbortSignal.timeout(10_000),
+      body: new URLSearchParams({ secret, response: token }),
     });
-    if (!response.ok) {
-      throw new Error(
-        `Rate suggestion failed (OpenRouter ${response.status}). Please enter your rate manually.`,
-      );
-    }
-    const payload = (await response.json()) as {
-      choices?: Array<{ message?: { content?: string } }>;
-    };
-    const content = payload.choices?.[0]?.message?.content;
-    if (!content) throw new Error("Rate suggestion returned nothing. Please try again.");
-    return suggestedRateSchema.parse(JSON.parse(content));
-  });
+    if (!response.ok) throw new Error(`siteverify ${response.status}`);
+    result = await response.json();
+  } catch {
+    throw new Error("Application verification failed.");
+  }
+  if (
+    !result.success ||
+    result.action !== "tutor_application" ||
+    !result.hostname ||
+    !expectedHostnames.has(result.hostname)
+  ) {
+    throw new Error("Application verification failed.");
+  }
+}
 
-export const submitTutorApplication = createServerFn({ method: "POST" })
-  // #214: the acceptance row references auth.users(id), so the submit must
-  // carry the applicant's session (the /join page sits behind the
-  // _authenticated layout, so this never blocks a legitimate applicant).
+/**
+ * Issue #576 Stage 2: the 60-second sheet publishes the card straight away.
+ * The sheet is mapped to a stored application, so the #310 publish path, the
+ * contact scans and the join-request archive all stay the single route to a
+ * public card. The card then links to this account, enabling Teaching Mode.
+ */
+export const activateTutorCard = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => {
-    // #214: validate the terms gate FIRST so a missing/unchecked checkbox is
-    // rejected before any application field is even parsed.
-    TermsGateInput.parse(input);
-    return tutorApplicationSchema.parse(input);
-  })
+  .inputValidator((input: unknown) => activationSchema.parse(input))
   .handler(async ({ data, context }) => {
-    const { turnstileToken, ...application } = data;
+    await assertTutorAge(context.userId);
+    await verifyTurnstile(data.turnstileToken);
 
-    // #522 age tier: under-16s are blocked from the tutor role (13-15 tier);
-    // a missing DOB never blocks (legacy users). Defence in depth — the
-    // complete_onboarding RPC enforces the same tier.
-    {
-      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-      const { data: dobRow } = await supabaseAdmin
-        .from("profiles")
-        .select("date_of_birth")
-        .eq("id", context.userId)
-        .maybeSingle();
-      const dob = (dobRow as { date_of_birth: string | null } | null)?.date_of_birth ?? null;
-      if (dob) {
-        const age = Math.floor(
-          (Date.now() - Date.parse(`${dob}T00:00:00Z`)) / (365.2425 * 86400_000),
-        );
-        if (age < 16) throw new Error("AGE_RESTRICTED");
-      }
-    }
-
-    const secret = getRuntimeEnv("TURNSTILE_SECRET");
-    const expectedHostnames = new Set(
-      (getRuntimeEnv("TURNSTILE_HOSTNAMES") ?? "")
-        .split(",")
-        .map((hostname) => hostname.trim())
-        .filter(Boolean),
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: userResult, error: userError } = await supabaseAdmin.auth.admin.getUserById(
+      context.userId,
     );
-
-    if (!secret || expectedHostnames.size === 0) {
-      throw new Error("Application verification is unavailable.");
+    const email = userResult?.user?.email;
+    if (userError || !email) throw new Error("Your account has no email address.");
+    const { data: profile } = await supabaseAdmin
+      .from("profiles")
+      .select("display_name, handle, phone")
+      .eq("id", context.userId)
+      .maybeSingle();
+    // A re-publish refreshes SEN and university columns from the payload, and this
+    // short sheet has none, so an existing card is linked and left untouched.
+    const existing = await findExistingCard(context.userId, email);
+    if (existing) {
+      await context.supabase.rpc("confirm_tutor_claim", { p_tutor_id: existing.id });
+      return {
+        ok: true as const,
+        applicationId: null,
+        tutorCode: existing.tutor_code,
+        tutorId: existing.id,
+        published: existing.is_published === true,
+        handle: profile?.handle ?? null,
+      };
     }
 
-    let result: { success?: boolean; action?: string; hostname?: string };
-    try {
-      const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        signal: AbortSignal.timeout(10_000),
-        body: new URLSearchParams({ secret, response: turnstileToken }),
-      });
-      if (!response.ok) throw new Error(`siteverify ${response.status}`);
-      result = await response.json();
-    } catch {
-      throw new Error("Application verification failed.");
+    const phone = profile?.phone?.trim() || data.phone;
+    if (!phoneIsValid(phone)) throw new Error("Enter a valid phone number.");
+    if (!profile?.phone) {
+      await supabaseAdmin.from("profiles").update({ phone }).eq("id", context.userId);
     }
 
-    if (
-      !result.success ||
-      result.action !== "tutor_application" ||
-      !result.hostname ||
-      !expectedHostnames.has(result.hostname)
-    ) {
-      throw new Error("Application verification failed.");
-    }
-
-    // Issue #319: build the stored payload. The application row keeps the
-    // whole application as jsonb (`data`), so this mapping is what downstream
-    // readers (admin join-requests, autofill) see:
-    // - hourlyRate (legacy, NOT NULL, still read by legacy surfaces) becomes
-    //   the card floor: Math.min of the two base rates (schema guarantees at
-    //   least one is set per the format rules).
-    // - onlineRate/inpersonRate are blanked when the format excludes them.
-    // - rateRows are stored as the normalized output (empty rows dropped,
-    //   half-filled rows already rejected by the schema).
-    // - travelNote is blanked unless the in-person rate is set.
-    const baseRates = [application.onlineRate, application.inpersonRate].filter(
-      (rate): rate is number => typeof rate === "number",
-    );
-    const normalizedRateRows = normalizeTutorRateRows(application.rateRows);
-    const storedApplication = {
-      ...application,
-      hourlyRate: String(Math.min(...baseRates)),
-      onlineRate: application.format === "Face to face" ? null : application.onlineRate,
-      inpersonRate: application.format === "Online" ? null : application.inpersonRate,
-      rateRows: normalizedRateRows.ok ? normalizedRateRows.rows : [],
-      travelNote: application.format === "Online" ? "" : application.travelNote,
-    };
+    const application = buildActivationApplication(data, {
+      email,
+      displayName: profile?.display_name?.trim() ?? "",
+      phone,
+    });
     const { storeTutorApplication } = await import("./tutor-application.server");
-    const { id } = await storeTutorApplication(storedApplication);
+    const { id } = await storeTutorApplication(application);
 
-    // Issue #214: record WHICH terms version the applicant accepted, tagged
-    // by how they arrived, through a referrer link (?ref=) the surface is
-    // referral_signup, otherwise plain signup. Recorded AFTER the application
-    // insert succeeds (subject_id = application id) and BEFORE the card is
-    // published; the insert is fail-closed, so an acceptance that was never
-    // recorded can never let a card go live.
+    // Issue #214: the acceptance is fail-closed and recorded before publishing,
+    // so a card can never go live without one.
     const { recordTermsAcceptance } = await import("@/features/legal/terms-acceptance.server");
     await recordTermsAcceptance({
       userId: context.userId,
@@ -362,15 +281,20 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
       subjectId: id,
     });
 
-    // Issue #310: publish the card immediately. Everything above this line
-    // (zod schema incl. the server-side contact filter on every field that
-    // maps onto the live card, Turnstile) has already gated the submission
-    // BEFORE the row was stored, so a card is only ever published from a
-    // fully valid application. publishTutorCardFromApplication scans the
-    // mapped text again and publishes inside one transaction.
     const published = await publishTutorCardFromApplication(id);
-    // Issue #358: a reused card that staff have since unpublished is NOT
-    // live, skip the "your card is live" email and say so in the result.
+
+    // The application email is this account's email, so the claim's own check passes.
+    const { error: claimError } = await context.supabase.rpc("confirm_tutor_claim", {
+      p_tutor_id: published.tutorId,
+    });
+    if (claimError) console.warn("[activate-tutor-card] claim failed:", claimError.message);
+    if (data.gender !== "prefer_not_to_say") {
+      const { error: genderError } = await supabaseAdmin
+        .from("tutors")
+        .update({ gender: data.gender })
+        .eq("id", published.tutorId);
+      if (genderError) console.warn("[activate-tutor-card] gender failed:", genderError.message);
+    }
     if (published.published) {
       await sendCardLiveEmail({
         email: published.email,
@@ -378,14 +302,12 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
         tutorCode: published.tutorCode,
       });
     }
-
-    // Issue #189: the WhatsApp activation message names this reference so the
-    // team can match the chat thread to the stored application row.
     return {
       ok: true as const,
       applicationId: id,
       tutorCode: published.tutorCode,
       tutorId: published.tutorId,
       published: published.published,
+      handle: profile?.handle ?? null,
     };
   });

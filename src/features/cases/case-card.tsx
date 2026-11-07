@@ -5,12 +5,14 @@
 // row, the bilingual auto-title pair, and the single clickable chip row.
 // Design system: hairline borders, no shadows, sentence-case labels.
 
+import type { ParentTrust } from "@/features/cases/parent-trust";
 import { useTranslation } from "react-i18next";
-import { Building2, MapPin, ShieldCheck, Users } from "lucide-react";
+import { Building2, CreditCard, MapPin, ShieldCheck, Star, Users } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 import {
   CASE_MODE_LABEL,
+  CASE_START_LABEL,
   caseBudgetHkdBounds,
   formatCaseRate,
   formatCaseSchedule,
@@ -21,11 +23,14 @@ import {
   caseTitleFieldsFromBoard,
   type CaseTitleLocale,
 } from "@/features/cases/case-title";
-import { caseChips, type CaseChip } from "@/features/cases/case-chips";
+import { caseChipsWithOverflow, type CaseChip } from "@/features/cases/case-chips";
+import { caseTypeLabelKey, resolveCaseType } from "@/features/cases/case-type";
 import { caseLearnerContext, type CaseLearnerContext } from "@/features/cases/learner-context";
 import type { PublicCaseBoardItem } from "@/lib/cases.functions";
 
 export type CasePackageType = "ongoing_1_5" | "short_20" | "pro_bono";
+
+const CARD_VISIBLE_CHIPS = 4;
 
 /** Locale-primary + secondary titles in the #411 dual-language pattern. */
 export function useCaseTitles(item: PublicCaseBoardItem): {
@@ -98,6 +103,11 @@ export function caseLogisticsParts(item: PublicCaseBoardItem): string[] {
   // dedupe `📍 Online` vs `Online`), GLM review, 2026-10-23.
   const parts = item.district ? [`📍 ${item.district}`, modeLabel] : [`📍 ${modeLabel}`];
   parts.push(formatCaseSchedule(item.sessionsPerWeek, item.sessionLengthMinutes));
+  // #656: the parent-set start band rides the logistics line on the board
+  // card so tutors can see urgency without opening the detail page.
+  if (item.startTiming) {
+    parts.push(CASE_START_LABEL[item.startTiming] ?? item.startTiming);
+  }
   // Dedupe mode when it already leads the line for online-only cases.
   return [...new Set(parts.filter(Boolean))];
 }
@@ -136,18 +146,33 @@ export function CaseChipLink({ chip }: { chip: CaseChip }) {
 
 /**
  * The ONE chip row: clickable chips from the shared profile-tags vocabulary,
- * capped at MAX_CASE_TAGS inside caseChips(), hard-cut to a single ellipsized
- * line so grid cards stay equal height.
+ * hard-cut to a single line with a `+N` count (#552) so grid cards stay equal
+ * height.
  */
 export function CaseChipRow({ item }: { item: PublicCaseBoardItem }) {
-  const chips: CaseChip[] = caseChips(item);
-  if (chips.length === 0) return null;
+  const { visible, overflow } = caseChipsWithOverflow(item, CARD_VISIBLE_CHIPS);
+  if (visible.length === 0) return null;
   return (
-    <div className="flex flex-nowrap items-center gap-1.5 overflow-hidden">
-      {chips.map((chip) => (
-        <CaseChipLink key={chip.key} chip={chip} />
-      ))}
+    <div className="flex items-center gap-1.5">
+      <div className="flex min-w-0 flex-nowrap items-center gap-1.5 overflow-hidden">
+        {visible.map((chip) => (
+          <CaseChipLink key={chip.key} chip={chip} />
+        ))}
+      </div>
+      {overflow > 0 ? (
+        <span className="shrink-0 text-[11px] font-medium text-muted-foreground">+{overflow}</span>
+      ) : null}
     </div>
+  );
+}
+
+/** #552: `Private` / `Centre` / `Activity`, first on the card identity row. */
+export function CaseTypeBadge({ item }: { item: PublicCaseBoardItem }) {
+  const { t } = useTranslation();
+  return (
+    <span className="inline-flex shrink-0 items-center rounded-full border border-border bg-[color:var(--card-tint)] px-2 py-0.5 text-[11px] font-semibold text-[color:var(--ink)]">
+      {t(caseTypeLabelKey(resolveCaseType(item)))}
+    </span>
   );
 }
 
@@ -189,19 +214,22 @@ export function CaseLogisticsLine({
  * Issues #412 / #423 B2B slice: the card identity row. Centre cases swap in
  * the verified-org identity (name + Blue Tick, linking to the storefront
  * when live); unverified centres fall back to the B2C identity line, and
- * parent cases never change. Trust pills only ever render with real data —
- * there is no parent rating today (precedent #151).
+ * parent cases never change. Trust pills only ever render with real data,
+ * past a sample threshold (precedent #151, see parent-trust.ts).
  */
 export function CaseIdentityRow({ item }: { item: PublicCaseBoardItem }) {
   const { t } = useTranslation();
   if (item.centre) {
+    // #582 Stage 1: pre-accept the payload carries name: null — render the
+    // masked "Verified Centre Partner" label; the name reveals on the
+    // detail page after the tutor accepts the lead.
     const inner = (
       <>
         <Building2
           className="h-3.5 w-3.5 shrink-0 text-[color:var(--brand-link)]"
           aria-hidden="true"
         />
-        <span className="truncate">{item.centre.name}</span>
+        <span className="truncate">{item.centre.name ?? t("case_board.centre_masked_name")}</span>
         {item.centre.verified ? (
           <ShieldCheck
             className="h-3.5 w-3.5 shrink-0 text-[color:var(--brand-link)]"
@@ -210,7 +238,7 @@ export function CaseIdentityRow({ item }: { item: PublicCaseBoardItem }) {
         ) : null}
       </>
     );
-    if (item.centre.verified && item.centre.slug) {
+    if (item.centre.name && item.centre.verified && item.centre.slug) {
       return (
         <Link
           to="/business/$slug"
@@ -227,22 +255,62 @@ export function CaseIdentityRow({ item }: { item: PublicCaseBoardItem }) {
       </span>
     );
   }
-  // #459 §E: tell the tutor up front whether a parent or the student
-  // themselves booked, so the first message is framed right.
-  const learner = caseLearnerContext(item.whoFor);
-  if (learner === "generic") {
+  // #552: an activity has a host, not a parent; no host field exists, so generic.
+  if (resolveCaseType(item) === "activity") {
     return (
       <span className="truncate text-xs font-medium text-muted-foreground">
-        {t("case_board.identity_parent")}
+        {t("case_board.identity_activity")}
       </span>
     );
   }
+  // #459 §E: tell the tutor up front whether a parent or the student
+  // themselves booked, so the first message is framed right.
+  const learner = caseLearnerContext(item.whoFor);
+  const trust = item.parentTrust ? <ParentTrustPills trust={item.parentTrust} /> : null;
+  if (learner === "generic") {
+    return (
+      <>
+        <span className="truncate text-xs font-medium text-muted-foreground">
+          {t("case_board.identity_parent")}
+        </span>
+        {trust}
+      </>
+    );
+  }
   return (
-    <span
-      className={`inline-flex min-w-0 items-center truncate rounded-full border px-2 py-0.5 text-[11px] font-semibold ${LEARNER_BADGE_CLASS[learner]}`}
-    >
-      {t(LEARNER_BADGE_KEY[learner])}
-    </span>
+    <>
+      <span
+        className={`inline-flex min-w-0 items-center truncate rounded-full border px-2 py-0.5 text-[11px] font-semibold ${LEARNER_BADGE_CLASS[learner]}`}
+      >
+        {t(LEARNER_BADGE_KEY[learner])}
+      </span>
+      {trust}
+    </>
+  );
+}
+
+function ParentTrustPills({ trust }: { trust: ParentTrust }) {
+  const { t } = useTranslation();
+  const pill =
+    "inline-flex shrink-0 items-center gap-0.5 rounded bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-[color:var(--ink)]";
+  return (
+    <>
+      {trust.rating !== null ? (
+        <span
+          className={pill}
+          title={t("case_board.parent_rating_hint", { count: trust.ratingCount })}
+        >
+          <Star className="h-3 w-3" aria-hidden="true" />
+          {trust.rating.toFixed(1)}
+        </span>
+      ) : null}
+      {trust.onTime ? (
+        <span className={pill} title={t("case_board.parent_on_time_hint")}>
+          <CreditCard className="h-3 w-3" aria-hidden="true" />
+          {t("case_board.parent_on_time")}
+        </span>
+      ) : null}
+    </>
   );
 }
 

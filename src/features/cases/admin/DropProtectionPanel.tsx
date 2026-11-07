@@ -72,6 +72,7 @@ const OUTCOME_LABEL: Record<OutcomeKind, string> = {
   l1_no_show: "Parent no-show / cancel < 24h before Lesson 1",
   continued: "Continued past Lesson 2",
   stopped_after_l1: "Stopped after exactly one paid lesson",
+  stopped_l2_l4: "#672 Parent-fault stop in Lessons 2–4 (credit overpaid fee)",
 };
 const INITIATOR_LABEL: Record<DropInitiator, string> = {
   parent: "Parent",
@@ -307,6 +308,8 @@ type FormState = {
   discountPct: string;
   splitMode: SplitMode;
   confirmBlacklist: boolean;
+  /** #672: lessons done (2–4) when the family stopped inside the window. */
+  completedLessons: string;
 };
 
 function initialForm(state: DropProtectionState): FormState {
@@ -324,6 +327,7 @@ function initialForm(state: DropProtectionState): FormState {
     discountPct: s.discountPct ? String(s.discountPct) : "50",
     splitMode: s.splitMode,
     confirmBlacklist: true,
+    completedLessons: "2",
   };
 }
 
@@ -451,6 +455,10 @@ function DropForm({ caseId, state }: PanelProps) {
   const set = <K extends keyof FormState>(key: K, value: FormState[K]) =>
     setForm((prev) => ({ ...prev, [key]: value }));
   const isStop = form.outcomeKind === "stopped_after_l1";
+  const isL2L4 = form.outcomeKind === "stopped_l2_l4";
+  const completedLessons = isL2L4
+    ? Math.min(4, Math.max(2, Number(form.completedLessons) || 2))
+    : null;
   const discountPct = form.promoType === "discounted_first" ? Number(form.discountPct) : null;
 
   const preview = useMemo(() => {
@@ -471,9 +479,10 @@ function DropForm({ caseId, state }: PanelProps) {
         initiator: form.initiator,
         verification: form.verification,
         reasonClass: form.reasonClass,
+        completedLessons,
       }),
     });
-  }, [state, form, discountPct]);
+  }, [state, form, discountPct, completedLessons]);
 
   const gateError = dropRecordError({
     kind: form.outcomeKind,
@@ -504,7 +513,7 @@ function DropForm({ caseId, state }: PanelProps) {
         data: {
           caseId,
           outcomeKind: form.outcomeKind,
-          initiator: isStop ? form.initiator : null,
+          initiator: isStop || isL2L4 ? form.initiator : null,
           reasonClass: isStop ? form.reasonClass : null,
           fitReason: isStop && form.fitReason ? form.fitReason : null,
           verification: isStop ? form.verification : null,
@@ -515,6 +524,7 @@ function DropForm({ caseId, state }: PanelProps) {
           discountPct,
           splitMode: form.splitMode,
           confirmBlacklist: form.confirmBlacklist,
+          completedLessons,
         },
       }),
     onSuccess: (r) => {
@@ -572,6 +582,37 @@ function DropForm({ caseId, state }: PanelProps) {
       />
 
       {isStop ? <StopFields form={form} set={set} /> : null}
+
+      {isL2L4 ? (
+        <div className="space-y-2 rounded-xl border border-[color:var(--ink)]/[0.07] px-3 py-2.5">
+          <EnumSelect
+            label="Who stopped"
+            value={form.initiator}
+            options={DROP_INITIATORS}
+            labels={INITIATOR_LABEL}
+            onChange={(v) => set("initiator", v)}
+          />
+          <div>
+            <Label className="text-[11px] font-medium text-muted-foreground">
+              Lessons completed (2–4, within 28 days of Lesson 1)
+            </Label>
+            <input
+              type="number"
+              min={2}
+              max={4}
+              value={form.completedLessons}
+              onChange={(e) => set("completedLessons", e.target.value)}
+              className={fieldClass}
+              aria-label="Completed lessons in the Lessons 2–4 window"
+            />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              #672: fee is capped at max(0.5 lesson, 20% × completed lessons). The overpaid
+              difference (collected − adjusted) is issued as MatchMax Commission Credit — never a
+              cash payout.
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       <EnumSelect
         label="Bypass"

@@ -10,11 +10,15 @@
  */
 
 export const BUS_EVENT_TYPES = [
+  "case.match_waves_exhausted",
+  "case.demand_side_updated",
   "lesson.done",
   "lesson.reminder_due",
   "admin_fee.invoiced",
   "admin_fee.unpaid",
   "note_order.delivered",
+  // #556: a paid Marking order still has no draft after 24h.
+  "note_order.draft_needed",
   "review.published",
   // #461 addendum Triggers 8-9: bilateral lesson cancel + schedule/
   // reschedule. Actor-split event types so only the OTHER party is messaged.
@@ -22,10 +26,15 @@ export const BUS_EVENT_TYPES = [
   "lesson.cancelled_by_tutor",
   "lesson.scheduled_by_parent",
   "lesson.scheduled_by_tutor",
+  // #654 reschedule answers and shared statements, for the other side only.
+  "billing.notice_by_parent",
+  "billing.notice_by_tutor",
   // #542 V1 triggers 1/2/4/6/7 + #561 Action Required scenarios. The
   // action-required half is decided by ACTION_PLAN (action-required.ts);
   // these entries only control recipients, channels and mode context.
   "case.lead_new",
+  "case.match_alert",
+  "case.already_taken",
   "intro.shared_parent",
   "intro.shared_tutor",
   "verification.approved",
@@ -53,7 +62,10 @@ export const SKIPPED_EVENT_TYPES: readonly string[] = [
 
 /** #292 events the bell surfaces. "Someone saved your note" is deliberately absent. */
 export const BELL_EVENT_TYPES: readonly string[] = [
+  "case.match_waves_exhausted",
+  "case.demand_side_updated",
   "note_order.delivered",
+  "note_order.draft_needed",
   "review.published",
   "admin_fee.invoiced",
   "admin_fee.unpaid",
@@ -69,10 +81,15 @@ export const BELL_EVENT_TYPES: readonly string[] = [
   "lesson.cancelled_by_tutor",
   "lesson.scheduled_by_parent",
   "lesson.scheduled_by_tutor",
+  // #654 reschedule answers and shared statements, for the other side only.
+  "billing.notice_by_parent",
+  "billing.notice_by_tutor",
   // #542 V1 triggers + #561 action items reach the bell. report.filed is
   // bell-visible for the reported owner (anonymous by design — the payload
   // never carries the reporter identity).
   "case.lead_new",
+  "case.match_alert",
+  "case.already_taken",
   "intro.shared_parent",
   "intro.shared_tutor",
   "verification.approved",
@@ -147,7 +164,9 @@ export function prefsKeyForEmail(
   eventType: string,
   payload: Record<string, unknown>,
   recipientAccountId: string,
-): "case_updates" | "tutor_leads" | "moderation" {
+): "case_updates" | "tutor_leads" | "case_match_alerts" | "moderation" {
+  if (eventType === "case.match_alert") return "case_match_alerts";
+  if (eventType === "case.already_taken") return "tutor_leads";
   if (eventType === "case.lead_new" || eventType === "intro.shared_tutor") return "tutor_leads";
   if (eventType === "verification.approved" || eventType === "verification.rejected")
     return "tutor_leads";
@@ -169,6 +188,18 @@ export const DELIVERY_PLAN: Readonly<
   Record<string, readonly { channel: BusChannel; role: BusRole }[]>
 > = {
   "lesson.done": [],
+  // #657 ranked waves: the tutor gets the bell and an email; the desk only the bell.
+  "case.match_alert": [
+    { channel: "in_app", role: "tutor" },
+    { channel: "email", role: "tutor" },
+  ],
+  "case.already_taken": [
+    { channel: "in_app", role: "tutor" },
+    { channel: "email", role: "tutor" },
+  ],
+  "case.match_waves_exhausted": [{ channel: "in_app", role: "concierge" }],
+  // #637: bell only; the notes themselves stay on the case page.
+  "case.demand_side_updated": [{ channel: "in_app", role: "tutor" }],
   "lesson.review_prompt": [{ channel: "in_app", role: "parent" }],
   "lesson.reminder_due": [
     { channel: "in_app", role: "parent" },
@@ -188,6 +219,7 @@ export const DELIVERY_PLAN: Readonly<
     { channel: "email", role: "tutor" },
     { channel: "email", role: "parent" },
   ],
+  "note_order.draft_needed": [{ channel: "in_app", role: "parent" }],
   "review.published": [{ channel: "in_app", role: "tutor" }],
   // #387 notification leg: the parent learns a session was logged (bell only
   //, lightweight by issue design; the Dispute button lives on the linked
@@ -213,6 +245,14 @@ export const DELIVERY_PLAN: Readonly<
     { channel: "email", role: "tutor" },
   ],
   "lesson.scheduled_by_tutor": [
+    { channel: "in_app", role: "parent" },
+    { channel: "email", role: "parent" },
+  ],
+  "billing.notice_by_parent": [
+    { channel: "in_app", role: "tutor" },
+    { channel: "email", role: "tutor" },
+  ],
+  "billing.notice_by_tutor": [
     { channel: "in_app", role: "parent" },
     { channel: "email", role: "parent" },
   ],
@@ -308,6 +348,7 @@ export function bellLinkFor(
   const caseId = typeof payload.case_id === "string" ? payload.case_id : null;
   const tutorHome = "/dashboard#lessons";
   switch (eventType) {
+    case "note_order.draft_needed":
     case "note_order.delivered": {
       const orderId = typeof payload.order_id === "string" ? payload.order_id : null;
       return orderId ? `/orders/${orderId}` : "/account";
@@ -339,6 +380,12 @@ export function bellLinkFor(
     case "lesson.scheduled_by_tutor":
       if (role === "tutor") return tutorHome;
       return caseId ? `/account/cases/${caseId}` : "/account";
+    case "billing.notice_by_parent":
+    case "billing.notice_by_tutor": {
+      // #654: straight to the tab where the recipient can act.
+      const code = typeof payload.case_code === "string" ? payload.case_code : null;
+      return code ? `/calendar?case=${encodeURIComponent(code)}&tab=schedule` : "/calendar";
+    }
     case "admin_fee.invoiced":
     case "admin_fee.unpaid":
       // #259: the payer (tutor) settles on their case card.
@@ -348,6 +395,16 @@ export function bellLinkFor(
     // #542 V1 triggers + #561 action items. Payload-deep links win when the
     // emitter or the admin tool supplied one (admin free-form tasks land on
     // any route the admin picked).
+    case "case.match_alert":
+      return typeof payload.link === "string" && payload.link.startsWith("/")
+        ? payload.link
+        : "/tutor-requests";
+    case "case.already_taken":
+      return "/tutor-requests";
+    case "case.match_waves_exhausted":
+      return caseId ? `/admin/cases?case=${caseId}` : "/admin/cases";
+    case "case.demand_side_updated":
+      return tutorHome;
     case "case.lead_new":
     case "intro.shared_tutor":
       if (role === "tutor") return tutorHome;

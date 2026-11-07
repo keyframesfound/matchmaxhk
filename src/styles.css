@@ -707,11 +707,12 @@ html {
  * search bar family (SearchPillBar band + panel, CompactSearchPill). These
  * pills float over scrolling content, so they qualify under the floating-layer
  * shadow rule (DESIGN.md: shadows float or they do not exist), alongside
- * .mm-overlay-lift above and .mm-promo-card below. Do not add further shadow rules.
+ * .mm-overlay-lift above. Resting cards take a shadow only when an issue asks
+ * for one (.mm-promo-card #668, .mm-case-card #552).
  */
 /*
- * #668: the homepage promo cards are the one resting surface allowed a shadow
- * (owner call, Airbnb mid-page promo benchmark). Do not reuse on other cards.
+ * #668: the homepage promo cards take the shadow their issue asks for (Airbnb
+ * mid-page promo benchmark).
  */
 .mm-promo-card {
   background-color: #ffffff;
@@ -752,6 +753,30 @@ html {
 .dark .mm-promo-card:hover .mm-promo-cta,
 .dark .mm-promo-card:focus-visible .mm-promo-cta {
   background-color: rgb(255 255 255 / 0.16);
+}
+
+/*
+ * #552: case board card shell, hairline border with the issue's faint shadow.
+ */
+.mm-case-card {
+  background-color: #ffffff;
+  border: 1px solid #eff3f4;
+  box-shadow: 0 1px 2px rgb(15 20 25 / 0.03);
+  transition: border-color 200ms ease;
+}
+
+.mm-case-card:hover {
+  border-color: #cfd9de;
+}
+
+.dark .mm-case-card {
+  background-color: var(--card);
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+.dark .mm-case-card:hover {
+  border-color: rgb(255 255 255 / 0.25);
 }
 
 .pill-elevate,
@@ -994,4 +1019,31 @@ html .driver-popover-progress-text {
   .cv-print .print\:hidden {
     display: none !important;
   }
+}
+
+/*
+ * #636 shared schedule-state tokens: the same four looks on Case Manager, the
+ * public availability grid and the Schedule Fit surfaces.
+ */
+.mm-slot-occupied {
+  background-color: var(--ink);
+  border: 1px solid var(--ink);
+  color: var(--surface);
+}
+.mm-slot-proposed {
+  background-color: color-mix(in srgb, var(--brand-link) 8%, transparent);
+  border: 1px dashed var(--brand-link);
+}
+.mm-slot-blocked {
+  background-color: var(--surface-subtle);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0 4px,
+    color-mix(in srgb, var(--ink) 10%, transparent) 4px 5px
+  );
+  border: 1px solid var(--border);
+}
+.mm-slot-open {
+  background-color: color-mix(in srgb, var(--brand-link) 16%, transparent);
+  border: 1px solid transparent;
 }

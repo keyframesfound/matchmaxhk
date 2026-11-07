@@ -14,6 +14,7 @@
 import { normalizeProfileTag } from "@/features/tutors/profile-tags";
 import { caseAcademicTier, type AcademicTier } from "@/features/tutors/verticals";
 import { caseBudgetHkdBounds } from "@/features/cases/display";
+import { resolveCaseType, type CaseType } from "@/features/cases/case-type";
 import type { PublicCaseBoardItem } from "@/lib/cases.functions";
 import {
   matchCaseAvailability,
@@ -47,6 +48,8 @@ export type CaseBoardFilters = {
   /** #605 §3.11: soft availability picks over the case's preferred times. */
   avail_days?: string;
   avail_bands?: string;
+  /** #552 Private / Centre / Activity; absent means All. */
+  type?: CaseType;
 };
 
 // --- URL-param parsing (TanStack search params arrive JSON-decoded) ---
@@ -140,10 +143,13 @@ export function matchesCaseFilters(
     | "languageOfInstruction"
     | "senRequired"
     | "tags"
+    | "caseType"
+    | "centre"
   > &
     Partial<Pick<PublicCaseBoardItem, "scheduleMode" | "scheduleSlots">>,
   filters: CaseBoardFilters,
 ): boolean {
+  if (filters.type && resolveCaseType(item) !== filters.type) return false;
   if (filters.tier && caseBoardTier(item) !== filters.tier) return false;
   if (filters.subject && !item.subjects.includes(filters.subject)) return false;
   // A case open to both modes matches either filter.

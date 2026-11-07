@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { Link } from "@tanstack/react-router";
 import {
   Award,
-  BadgeCheck,
   CalendarDays,
   Check,
   Columns2,
@@ -37,6 +36,8 @@ import {
   ParentFavoriteBadge,
 } from "@/features/tutors/engagement-badges";
 import { ExperiencePill } from "@/features/tutors/experience-badge";
+import { VerifiedBadge } from "@/features/tutors/verified-badge";
+import { ScheduleFitBadge } from "@/features/cases/schedule-fit-ui";
 import { TutorRatingBadge } from "@/features/tutors/tutor-rating-badge";
 import { TrophyKpiBanner } from "@/features/tutors/trophy-kpi-banner";
 import { PromoBadges } from "@/features/tutors/promo-badges";
@@ -138,6 +139,8 @@ type PublicTutorCardProps = {
   /** Issues #102/#151: engagement summary from get_tutor_engagement. When
    *  absent (or null) no demand / Parent Favorite badges render. */
   engagement?: EngagementSummary | null;
+  /** #659: Schedule Fit Score for the signed-in parent; absent shows no badge. */
+  scheduleFit?: number | null;
 };
 
 export function PublicTutorCard({
@@ -153,6 +156,7 @@ export function PublicTutorCard({
   tagQuery,
   tourId,
   engagement,
+  scheduleFit,
 }: PublicTutorCardProps) {
   const { t, i18n } = useTranslation();
   // Issue #114: honor the visitor's display currency; the native-figure
@@ -434,19 +438,9 @@ export function PublicTutorCard({
                 the #309 emerald pill. Icon-only, like the industry standard;
                 the #309 disclaimer line still renders under the header and the
                 Self-Reported pill is untouched. */}
-            {verified ? (
-              <span
-                className="inline-flex max-w-full items-center justify-center"
-                title={t("tutor_card.verified_disclaimer")}
-              >
-                <BadgeCheck
-                  className="h-5 w-5 fill-[#1d9bf0] text-white dark:text-[#0b2230]"
-                  strokeWidth={1.8}
-                  aria-hidden="true"
-                />
-                <span className="sr-only">{t("tutor_card.verified_badge")}</span>
-              </span>
-            ) : null}
+            {/* #575 §4b: the badge shows the Verified-tutor tip on hover /
+            first tap and opens the Verify explainer on click. */}
+            {verified ? <VerifiedBadge /> : null}
             {/* Issues #102/#151: dynamic demand + Parent Favorite badges in
                 the card's badge column (same wrap-friendly pill anatomy as
                 the status/SEN/Verified badges above). */}
@@ -522,6 +516,15 @@ export function PublicTutorCard({
                 + count at threshold (3), count-only below, "New" at zero.
                 Self-fetching like the pills above; hidden pre-migration. */}
             <TutorRatingBadge tutorId={tutor.id} />
+            {/* #659: visible Schedule Match, not ranking alone. */}
+            {scheduleFit ? (
+              <div className="mt-1.5 space-y-1">
+                <ScheduleFitBadge kind="match" score={scheduleFit} />
+                <p className="text-xs text-muted-foreground">
+                  {t("schedule_fit.explain_match", { n: scheduleFit })}
+                </p>
+              </div>
+            ) : null}
           </div>
 
           {genderLabel ? (
