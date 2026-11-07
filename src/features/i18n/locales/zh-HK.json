@@ -4622,5 +4622,30 @@
     "fit_browse_tutors": "瀏覽吻合導師",
     "fit_tutor_body": "開放個案按其偏好時段與你可授課時間的重疊度排序。",
     "fit_parent_body": "導師按其可授課時間與你空檔的重疊度排序。"
+  },
+  "studio": {
+    "title": "創作者中心",
+    "error": "暫時無法載入你的數據。",
+    "earnings_title": "收益及每週 FPS 發放",
+    "in_hold": "託管中／待達標",
+    "in_hold_hint": "仍在 72 小時買家保障期內的訂單",
+    "available": "待發放結餘",
+    "available_hint": "已結清、待下個星期一批次發放",
+    "total_paid": "累計已發放",
+    "total_paid_hint": "已完成嘅每週批次",
+    "payout_note": "逢星期一 FPS 轉帳 · 星期日 23:59 HKT 截數 · 最低 HK$50。教材平台費推出期間為 2%；課程及組合按分級費率。",
+    "payout_settings": "收款設定及更多 →",
+    "referral_title": "推薦與夥伴",
+    "referral_none": "成為導師後即可獲得個人推薦連結。",
+    "copy": "複製連結",
+    "copied": "已複製連結",
+    "copy_failed": "無法複製連結",
+    "ref_friends": "{{n}} 位已註冊",
+    "ref_pending": "{{amount}} 待達標",
+    "ref_ready": "{{amount}} 待發放",
+    "ref_paid": "{{amount}} 已發放",
+    "referral_rule": "當被推薦用戶嘅首個配對個案完成 1.5 堂行政費結算後，獎賞自動解鎖，並隨星期一批次發放。",
+    "insights_title": "數據洞察",
+    "insights_note": "個人檔案及 listing 瀏覽計數將隨收藏事件層推出。收益及推薦已於上方提供。"
   }
 }

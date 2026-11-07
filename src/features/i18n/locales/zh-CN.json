@@ -4622,5 +4622,30 @@
     "fit_browse_tutors": "浏览吻合导师",
     "fit_tutor_body": "开放个案按其偏好时段与你可授课时间的重叠度排序。",
     "fit_parent_body": "导师按其可授课时间与你空档的重叠度排序。"
+  },
+  "studio": {
+    "title": "创作者中心",
+    "error": "暂时无法加载你的数据。",
+    "earnings_title": "收益及每周 FPS 发放",
+    "in_hold": "托管中／待达标",
+    "in_hold_hint": "仍在 72 小时买家保障期内的订单",
+    "available": "待发放结余",
+    "available_hint": "已结清、待下个星期一批次发放",
+    "total_paid": "累计已发放",
+    "total_paid_hint": "已完成的每周批次",
+    "payout_note": "逢星期一 FPS 转账 · 星期日 23:59 HKT 截数 · 最低 HK$50。教材平台费推出期间为 2%；课程及组合按分级费率。",
+    "payout_settings": "收款设定及更多 →",
+    "referral_title": "推荐与伙伴",
+    "referral_none": "成为导师后即可获得个人推荐链接。",
+    "copy": "复制链接",
+    "copied": "已复制链接",
+    "copy_failed": "无法复制链接",
+    "ref_friends": "{{n}} 位已注册",
+    "ref_pending": "{{amount}} 待达标",
+    "ref_ready": "{{amount}} 待发放",
+    "ref_paid": "{{amount}} 已发放",
+    "referral_rule": "当被推荐用户的首个配对个案完成 1.5 堂行政费结算后，奖励自动解锁，并随星期一批次发放。",
+    "insights_title": "数据洞察",
+    "insights_note": "个人档案及 listing 浏览计数将随收藏事件层推出。收益及推荐已于上方提供。"
   }
 }

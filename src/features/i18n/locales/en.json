@@ -4622,5 +4622,30 @@
     "fit_browse_tutors": "Browse matched tutors",
     "fit_tutor_body": "Open cases are ranked by how well their preferred times overlap your available windows.",
     "fit_parent_body": "Tutors are ranked by how well their availability overlaps your open windows."
+  },
+  "studio": {
+    "title": "Creator Studio",
+    "error": "Could not load your studio right now.",
+    "earnings_title": "Earnings & weekly FPS payout",
+    "in_hold": "In hold / pending",
+    "in_hold_hint": "Orders inside the 72h buyer-protection window",
+    "available": "Ready for next payout",
+    "available_hint": "Cleared balance for the next weekly FPS batch",
+    "total_paid": "Total paid out",
+    "total_paid_hint": "Completed weekly batches",
+    "payout_note": "Weekly Monday FPS payout · Sunday 23:59 HKT cut-off · minimum HK$50. Materials fees are 2% off during the launch window; courses and bundles carry the tiered rate.",
+    "payout_settings": "Payout details & settings →",
+    "referral_title": "Referrals & partners",
+    "referral_none": "Referrals unlock with a tutor account — become a tutor to get your personal link.",
+    "copy": "Copy link",
+    "copied": "Link copied",
+    "copy_failed": "Could not copy the link",
+    "ref_friends": "{{n}} signed up",
+    "ref_pending": "{{amount}} pending",
+    "ref_ready": "{{amount}} ready",
+    "ref_paid": "{{amount}} paid out",
+    "referral_rule": "Your reward unlocks automatically when a referred user's first matched case settles the 1.5-lesson admin fee, then pays out with the Monday batch.",
+    "insights_title": "Insights",
+    "insights_note": "Profile and listing view counters are coming with the saved-content event layer. Earnings and referrals are live above."
   }
 }
