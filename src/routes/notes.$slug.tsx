@@ -107,7 +107,7 @@ function GigOrNotePage() {
 
 function NotePage() {
   const { note } = Route.useLoaderData() as { note: PublicNote };
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const router = useRouter();
   const navigate = router.navigate.bind(router);
@@ -265,6 +265,15 @@ function NotePage() {
               </div>
             </header>
 
+            {note.fileUpdatedAt ? (
+              <p className="text-xs font-medium text-muted-foreground">
+                {t("materials_store.updated_on", {
+                  date: new Date(note.fileUpdatedAt).toLocaleDateString(i18n.language, {
+                    timeZone: "Asia/Hong_Kong",
+                  }),
+                })}
+              </p>
+            ) : null}
             <NoteGallery note={note} />
 
             {isApkgDeck ? (

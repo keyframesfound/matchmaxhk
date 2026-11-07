@@ -3581,7 +3581,9 @@
     "affiliation_title": "Centre Affiliation",
     "affiliation_hint": "Request to be listed as an Affiliated Educator at a registered centre. The centre approves pending requests.",
     "affiliation_request": "Request affiliation",
-    "public_cv": "Academic & Achievement Timeline"
+    "public_cv": "Academic & Achievement Timeline",
+    "collections_aria": "Filter by folder",
+    "collections_all": "All"
   },
   "trophy": {
     "active": "{{count}} Active",
@@ -4547,5 +4549,36 @@
     "blocked_title": "Times you're unavailable",
     "blocked_help": "Tap a slot to mark it unavailable every week. Tutor Search and new case requests use these as defaults, and you can still override them.",
     "blocked_error": "Couldn't update that time. Please try again."
+  },
+  "materials_store": {
+    "type_nav": "Listing type",
+    "type_note": "Note",
+    "type_pack": "Notes Pack",
+    "type_course": "Course",
+    "type_video": "Video",
+    "type_marking": "Marking",
+    "content_tags": "Content tags",
+    "mock_attest": "I confirm these are my own or licensed papers, not copyrighted exam-board papers I do not own.",
+    "mock_attest_short": "Original papers confirmation",
+    "collection_label": "Folder (optional)",
+    "collection_none": "No folder",
+    "collection_new": "New folder name",
+    "collection_add": "Add",
+    "collection_hint": "Folders organise your store. They have no price and no checkout.",
+    "bulk_title": "{{count}} files uploaded",
+    "bulk_question": "How should buyers purchase these?",
+    "bulk_pack": "Bundle as 1 Notes Pack",
+    "bulk_pack_hint": "Creates the notes as drafts first. Once they are approved, add them to the pack with a discounted price.",
+    "bulk_separate": "List as {{count}} separate Notes",
+    "bulk_separate_hint": "Each file becomes its own draft. Finish and submit each one from your account.",
+    "bulk_row_title": "Title",
+    "bulk_row_price": "Price (HK$)",
+    "bulk_price_rule": "Price: HK$0 (Free) or at least HK$20. You can leave it blank for now.",
+    "bulk_cancel": "Cancel",
+    "bulk_create": "Create {{count}} drafts",
+    "bulk_progress": "Uploading {{done}} of {{total}}...",
+    "bulk_done_pack": "{{count}} drafts created. Submit them, then bundle them here once approved.",
+    "bulk_done_separate": "{{count}} drafts created. Finish them from your account.",
+    "updated_on": "Updated {{date}}"
   }
 }

@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { z } from "zod";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useAuth } from "@/features/auth/useAuth";
+import { SellTypePills } from "@/features/materials/sell-type-pills";
 import { GigEditorForm } from "@/features/gigs/gig-editor-form";
 
 /**
@@ -12,6 +14,7 @@ import { GigEditorForm } from "@/features/gigs/gig-editor-form";
  */
 
 export const Route = createFileRoute("/_authenticated/account/services/new")({
+  validateSearch: z.object({ type: z.enum(["marking"]).optional().catch(undefined) }),
   ssr: false,
   head: () => ({
     meta: [{ title: "Add a service | MatchMax" }, { name: "robots", content: "noindex" }],
@@ -20,6 +23,7 @@ export const Route = createFileRoute("/_authenticated/account/services/new")({
 });
 
 function NewServicePage() {
+  const { type } = Route.useSearch();
   const { t } = useTranslation();
   const { user, loading } = useAuth();
 
@@ -33,7 +37,10 @@ function NewServicePage() {
           {loading || !user ? (
             <p className="text-sm text-muted-foreground">{t("orders.sign_in_required")}</p>
           ) : (
-            <GigEditorForm />
+            <>
+              <SellTypePills active="marking" />
+              <GigEditorForm key={type ?? "service"} presetMarking={type === "marking"} />
+            </>
           )}
         </div>
       </main>

@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useAuth } from "@/features/auth/useAuth";
+import { SellTypePills } from "@/features/materials/sell-type-pills";
 import { FolderEditorForm } from "@/features/folders/folder-editor";
 
 /**
@@ -33,7 +34,10 @@ function NewFolderPage() {
           {loading || !user ? (
             <p className="text-sm text-muted-foreground">{t("orders.sign_in_required")}</p>
           ) : (
-            <FolderEditorForm />
+            <>
+              <SellTypePills active="pack" />
+              <FolderEditorForm />
+            </>
           )}
         </div>
       </main>

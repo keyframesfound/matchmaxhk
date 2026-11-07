@@ -14,7 +14,7 @@ import { buildBuyWhatsAppUrl, buildBookLessonsWhatsAppUrl } from "@/features/mat
  */
 
 export const PUBLIC_NOTE_COLUMNS =
-  "id, slug, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, word_count, preview_pages, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, view_count, sold_count, created_at, tutor_id, gig_category, gig_delivery_type, turnaround_note, turnaround_hours, cover_image_path";
+  "file_updated_at, id, slug, title, description, price_hkd, school_tag, curriculum_tag, subject_tag, document_type, material_type, topic, grade_achieved, exemplar_permission, year_tag, page_count, word_count, preview_pages, exact_score_achieved, includes_examiner_comments, watermarked_preview_url, admin_star_rating, promotional_note, view_count, sold_count, created_at, tutor_id, gig_category, gig_delivery_type, turnaround_note, turnaround_hours, cover_image_path";
 
 /**
  * Public readers run under the SERVICE ROLE (RLS does not apply), so the
@@ -77,6 +77,8 @@ export type PublicNote = {
   // --- #556 rich listing (empty before the migration).
   previewImagePaths: string[];
   trailerVideoUrl: string | null;
+  /** #556: set when a published file was replaced. */
+  fileUpdatedAt: string | null;
   whatsIncluded: string[];
   syllabusOutline: string | null;
   // --- Freestyle gig fields (#326): populated only when materialType ===
@@ -145,6 +147,7 @@ export function mapPublicNote(row: NoteRow): PublicNote | null {
     previewImagePaths: Array.isArray(row.preview_image_paths)
       ? row.preview_image_paths.filter((p): p is string => typeof p === "string")
       : [],
+    fileUpdatedAt: typeof row.file_updated_at === "string" ? row.file_updated_at : null,
     trailerVideoUrl: typeof row.trailer_video_url === "string" ? row.trailer_video_url : null,
     whatsIncluded: Array.isArray(row.whats_included)
       ? row.whats_included.filter((p): p is string => typeof p === "string")

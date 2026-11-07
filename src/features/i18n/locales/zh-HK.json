@@ -3581,7 +3581,9 @@
     "affiliation_title": "補習中心關聯",
     "affiliation_hint": "申請成為已註冊中心的特約導師，中心會審批待處理申請。",
     "affiliation_request": "申請關聯",
-    "public_cv": "學術及成就時間線"
+    "public_cv": "學術及成就時間線",
+    "collections_aria": "按系列篩選",
+    "collections_all": "全部"
   },
   "trophy": {
     "active": "{{count}} 位進行中",
@@ -4547,5 +4549,36 @@
     "blocked_title": "你沒空的時間",
     "blocked_help": "點選時段可標示為每星期都沒空。搜尋導師及新個案申請會以此為預設，你仍可自行修改。",
     "blocked_error": "未能更新此時段，請再試一次。"
+  },
+  "materials_store": {
+    "type_nav": "教材類別",
+    "type_note": "單份筆記",
+    "type_pack": "筆記組合",
+    "type_course": "課程組合",
+    "type_video": "教學影片",
+    "type_marking": "改卷服務",
+    "content_tags": "內容標籤",
+    "mock_attest": "本人確認此為本人原創或已獲授權的試卷，並非本人無權使用的考試局版權試卷。",
+    "mock_attest_short": "原創試卷確認",
+    "collection_label": "所屬系列（選填）",
+    "collection_none": "不設系列",
+    "collection_new": "新系列名稱",
+    "collection_add": "新增",
+    "collection_hint": "系列只用作整理你的商店，不設價錢亦不能結帳。",
+    "bulk_title": "已上載 {{count}} 個檔案",
+    "bulk_question": "買家應如何購買此教材？",
+    "bulk_pack": "合併為 1 個筆記組合",
+    "bulk_pack_hint": "先建立筆記草稿，批核後再加入組合並設定優惠價。",
+    "bulk_separate": "分拆為 {{count}} 份獨立筆記",
+    "bulk_separate_hint": "每個檔案各成一份草稿，請在帳戶逐份完成及提交。",
+    "bulk_row_title": "標題",
+    "bulk_row_price": "價錢（HK$）",
+    "bulk_price_rule": "價錢：HK$0（免費）或最少 HK$20，可暫時留空。",
+    "bulk_cancel": "取消",
+    "bulk_create": "建立 {{count}} 份草稿",
+    "bulk_progress": "上載中 {{done}}／{{total}}...",
+    "bulk_done_pack": "已建立 {{count}} 份草稿。請先提交，批核後在此合併。",
+    "bulk_done_separate": "已建立 {{count}} 份草稿，請在帳戶完成。",
+    "updated_on": "已於 {{date}} 更新"
   }
 }

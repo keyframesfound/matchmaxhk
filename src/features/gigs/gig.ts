@@ -11,6 +11,7 @@
  */
 
 import { MAX_PDF_BYTES, splitMaterialMoney } from "../materials/lifecycle";
+import { MIN_MARKING_PRICE_HKD } from "../materials/marketplace-policy";
 import { contactFilterError } from "@/lib/contact-filter";
 
 /** #327: the four-category taxonomy. No syllabus tree. */
@@ -109,6 +110,16 @@ export function validateGigForSubmit(input: GigSubmitInput): string[] {
   }
 
   const category = (input.category ?? "").trim();
+  // #556: Marking has its own floor above the general service minimum.
+  if (
+    category === "document_review" &&
+    price != null &&
+    Number.isFinite(price) &&
+    price >= GIG_MIN_PRICE_HKD &&
+    price < MIN_MARKING_PRICE_HKD
+  ) {
+    errors.push(`Marking services start at HK$${MIN_MARKING_PRICE_HKD}.`);
+  }
   if (!(GIG_CATEGORIES as readonly string[]).includes(category)) {
     errors.push("Category must be document review, speaking/mock, workshop/package, or other.");
   }
@@ -273,6 +284,21 @@ export function gigFulfillmentDueAt(paidAt: Date, turnaroundHours?: number | nul
       ? turnaroundHours
       : DEFAULT_TURNAROUND_HOURS;
   return new Date(paidAt.getTime() + hours * 60 * 60 * 1000);
+}
+
+/** #556: Marking is a file-back document review, on the dual-timer escrow. */
+export function isMarkingService(material: {
+  gig_category?: string | null;
+  gig_delivery_type?: string | null;
+}): boolean {
+  return material.gig_category === "document_review" && material.gig_delivery_type === "file_back";
+}
+
+/** #556: the buyer's 72h inspection starts at delivery for Marking, never at payment. */
+export const MARKING_HOLD_HOURS = 72;
+
+export function markingHoldExpiresAt(deliveredAt: Date): Date {
+  return new Date(deliveredAt.getTime() + MARKING_HOLD_HOURS * 60 * 60 * 1000);
 }
 
 export function gigPastDueCutoff(fulfillmentDueAt: Date): Date {

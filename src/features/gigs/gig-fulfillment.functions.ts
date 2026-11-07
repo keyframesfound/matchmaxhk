@@ -8,6 +8,8 @@ import {
   MAX_GIG_FILE_BYTES,
   transitionGigOrder,
   validateCompletionNote,
+  isMarkingService,
+  markingHoldExpiresAt,
 } from "@/features/gigs/gig";
 import type { StatusGuardedOrderUpdate } from "@/features/gigs/gig";
 import { asAdminDb, base64ToBytes, type AdminDb } from "@/features/materials/storage-helpers";
@@ -32,6 +34,7 @@ type GigOrderRow = {
   in_fulfillment_at: string | null;
   fulfillment_due_at: string | null;
   past_due_at: string | null;
+  buyer_source_path: string | null;
   created_at: string | null;
 };
 
@@ -196,7 +199,7 @@ export const deliverGigOrder = createServerFn({ method: "POST" })
     const { data: order, error } = await db
       .from<GigOrderRow>("material_orders")
       .select(
-        "id, material_id, tutor_id, status, in_fulfillment_at, fulfillment_due_at, past_due_at, created_at",
+        "id, material_id, tutor_id, status, in_fulfillment_at, fulfillment_due_at, past_due_at, buyer_source_path, created_at",
       )
       .eq("id", data.orderId)
       .maybeSingle();
@@ -220,6 +223,13 @@ export const deliverGigOrder = createServerFn({ method: "POST" })
 
     const next = transitionGigOrder(order.status, "deliver");
     if (!next) throw new Error("This order cannot be delivered right now.");
+
+    // #556: Marking has nothing to mark until the buyer's draft arrives, and its
+    // 72h inspection starts here rather than at payment.
+    const marking = isMarkingService(material);
+    if (marking && !order.buyer_source_path) {
+      throw new Error("This order is still waiting for the student's draft.");
+    }
 
     let deliveredFilePath: string | null = null;
     let completionNote: string | null = null;
@@ -251,6 +261,12 @@ export const deliverGigOrder = createServerFn({ method: "POST" })
       .update({
         status: next,
         delivered_at: new Date().toISOString(),
+        ...(marking
+          ? {
+              delivered_held_at: new Date().toISOString(),
+              hold_expires_at: markingHoldExpiresAt(new Date()).toISOString(),
+            }
+          : {}),
         ...(deliveredFilePath ? { delivered_file_path: deliveredFilePath } : {}),
         ...(completionNote ? { completion_note: completionNote } : {}),
       })

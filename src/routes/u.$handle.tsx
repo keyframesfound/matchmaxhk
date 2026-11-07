@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { ActiveCasesSection } from "@/features/cases/active-cases/active-cases-section";
 import {
+  getChannelCollections,
   getChannelMaterials,
   getChannelProfile,
   getChannelReviews,
@@ -64,6 +65,12 @@ function ChannelProfilePage() {
   const materialsQuery = useQuery({
     queryKey: ["channel-materials", handle],
     queryFn: () => getChannelMaterials({ data: { handle } }),
+    enabled: tab === "materials",
+  });
+  const [activeCollection, setActiveCollection] = useState<string | null>(null);
+  const collectionsQuery = useQuery({
+    queryKey: ["channel-collections", handle],
+    queryFn: () => getChannelCollections({ data: { handle } }),
     enabled: tab === "materials",
   });
   const reviewsQuery = useQuery({
@@ -283,9 +290,34 @@ function ChannelProfilePage() {
                 requestAffil={requestAffil}
               />
             )}
+            {tab === "materials" && (collectionsQuery.data ?? []).length > 0 ? (
+              <div className="mb-3 flex flex-wrap gap-2" aria-label={t("channel.collections_aria")}>
+                {[
+                  { id: null as string | null, name: t("channel.collections_all") },
+                  ...(collectionsQuery.data ?? []),
+                ].map((collection) => (
+                  <button
+                    key={collection.id ?? "all"}
+                    type="button"
+                    aria-pressed={activeCollection === collection.id}
+                    onClick={() => setActiveCollection(collection.id)}
+                    className={cn(
+                      "inline-flex h-8 items-center rounded-full border px-3 text-xs font-semibold",
+                      activeCollection === collection.id
+                        ? "border-[color:var(--ink)] bg-[color:var(--ink)]/5 text-[color:var(--ink)]"
+                        : "border-border text-muted-foreground",
+                    )}
+                  >
+                    {collection.name}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             {tab === "materials" && (
               <ul className="space-y-2">
-                {(materialsQuery.data ?? []).map((m) => (
+                {(materialsQuery.data ?? [])
+                  .filter((m) => !activeCollection || m.collection_id === activeCollection)
+                  .map((m) => (
                   <li
                     key={m.id}
                     className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4"

@@ -875,6 +875,63 @@ export async function buildDeliveredFile(
 }
 
 /**
+ * #556 Replace File: a past buyer gets the new version with their own stamp,
+ * at no charge, the next time they download. Their old copy stays the fallback
+ * if anything fails, so a replace can never lose a buyer's access.
+ */
+export async function refreshDeliveredCopyIfStale(
+  db: AdminDb,
+  order: {
+    id: string;
+    reference: string | null;
+    buyer_account_id: string;
+    material_id: string;
+    delivered_at: string | null;
+    delivered_copy_at?: string | null;
+    delivered_file_path: string | null;
+  },
+): Promise<void> {
+  if (!order.delivered_file_path?.startsWith("delivered/")) return;
+  const { data: material } = await db
+    .from<{ original_file_path: string | null; file_updated_at: string | null }>(
+      "digital_materials",
+    )
+    .select("original_file_path, file_updated_at")
+    .eq("id", order.material_id)
+    .maybeSingle();
+  const copyAt = order.delivered_copy_at ?? order.delivered_at;
+  if (!material?.original_file_path || !material.file_updated_at || !copyAt) return;
+  if (Date.parse(material.file_updated_at) <= Date.parse(copyAt)) return;
+  try {
+    const { data: signed, error } = await db.storage
+      .from(ORIGINALS_BUCKET)
+      .createSignedUrl(material.original_file_path, 60);
+    if (error || !signed) throw new Error(error?.message || "Could not read the new file");
+    const res = await fetch(signed.signedUrl);
+    if (!res.ok) throw new Error("Could not read the new file");
+    const originalBytes = new Uint8Array(await res.arrayBuffer());
+    const isApkg = /\.apkg$/i.test(material.original_file_path);
+    const bytes = isApkg
+      ? originalBytes
+      : await buildDeliveredFile(originalBytes, order, await buyerEmailFor(db, order));
+    const path = `delivered/${order.id}.${isApkg ? "apkg" : "pdf"}`;
+    const { error: uploadError } = await db.storage
+      .from(ORIGINALS_BUCKET)
+      .upload(path, bytes as unknown as BlobPart, {
+        contentType: isApkg ? "application/octet-stream" : "application/pdf",
+        upsert: true,
+      });
+    if (uploadError) throw new Error(uploadError.message);
+    await db
+      .from<never>("material_orders")
+      .update({ delivered_file_path: path, delivered_copy_at: new Date().toISOString() })
+      .eq("id", order.id);
+  } catch (err) {
+    console.warn("[materials] re-stamp failed, serving the previous copy:", err);
+  }
+}
+
+/**
  * #203 flow step 4: staff confirms the FPS transfer, enters the reference,
  * and releases. Release stamps the per-order copy; success sets delivered
  * and mints nothing (the buyer's Download button calls #291's

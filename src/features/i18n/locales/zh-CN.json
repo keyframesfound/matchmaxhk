@@ -3581,7 +3581,9 @@
     "affiliation_title": "补习中心关联",
     "affiliation_hint": "申请成为已注册中心的特约导师，中心会审批待处理申请。",
     "affiliation_request": "申请关联",
-    "public_cv": "学术及成就时间线"
+    "public_cv": "学术及成就时间线",
+    "collections_aria": "按系列筛选",
+    "collections_all": "全部"
   },
   "trophy": {
     "active": "{{count}} 位进行中",
@@ -4547,5 +4549,36 @@
     "blocked_title": "你没空的时间",
     "blocked_help": "点选时段可标示为每星期都没空。搜索导师及新个案申请会以此为默认，你仍可自行修改。",
     "blocked_error": "未能更新此时段，请再试一次。"
+  },
+  "materials_store": {
+    "type_nav": "教材类别",
+    "type_note": "单份笔记",
+    "type_pack": "笔记组合",
+    "type_course": "课程组合",
+    "type_video": "教学视频",
+    "type_marking": "改卷服务",
+    "content_tags": "内容标签",
+    "mock_attest": "本人确认此为本人原创或已获授权的试卷，并非本人无权使用的考试局版权试卷。",
+    "mock_attest_short": "原创试卷确认",
+    "collection_label": "所属系列（选填）",
+    "collection_none": "不设系列",
+    "collection_new": "新系列名称",
+    "collection_add": "新增",
+    "collection_hint": "系列只用作整理你的商店，不设价钱亦不能结账。",
+    "bulk_title": "已上传 {{count}} 个文件",
+    "bulk_question": "买家应如何购买此教材？",
+    "bulk_pack": "合并为 1 个笔记组合",
+    "bulk_pack_hint": "先建立笔记草稿，批核后再加入组合并设定优惠价。",
+    "bulk_separate": "分拆为 {{count}} 份独立笔记",
+    "bulk_separate_hint": "每个文件各成一份草稿，请在账户逐份完成及提交。",
+    "bulk_row_title": "标题",
+    "bulk_row_price": "价钱（HK$）",
+    "bulk_price_rule": "价钱：HK$0（免费）或最少 HK$20，可暂时留空。",
+    "bulk_cancel": "取消",
+    "bulk_create": "建立 {{count}} 份草稿",
+    "bulk_progress": "上传中 {{done}}／{{total}}...",
+    "bulk_done_pack": "已建立 {{count}} 份草稿。请先提交，批核后在此合并。",
+    "bulk_done_separate": "已建立 {{count}} 份草稿，请在账户完成。",
+    "updated_on": "已于 {{date}} 更新"
   }
 }

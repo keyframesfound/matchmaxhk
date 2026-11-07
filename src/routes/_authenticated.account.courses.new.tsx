@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
+import { z } from "zod";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useAuth } from "@/features/auth/useAuth";
+import { SellTypePills } from "@/features/materials/sell-type-pills";
 import { CourseEditorForm } from "@/features/courses/course-editor";
 
 /**
@@ -12,6 +14,7 @@ import { CourseEditorForm } from "@/features/courses/course-editor";
  */
 
 export const Route = createFileRoute("/_authenticated/account/courses/new")({
+  validateSearch: z.object({ type: z.enum(["course", "video"]).optional().catch(undefined) }),
   ssr: false,
   head: () => ({
     meta: [{ title: "New course | MatchMax" }, { name: "robots", content: "noindex" }],
@@ -20,6 +23,7 @@ export const Route = createFileRoute("/_authenticated/account/courses/new")({
 });
 
 function NewCoursePage() {
+  const { type } = Route.useSearch();
   const { t } = useTranslation();
   const { user, loading } = useAuth();
 
@@ -33,7 +37,13 @@ function NewCoursePage() {
           {loading || !user ? (
             <p className="text-sm text-muted-foreground">{t("orders.sign_in_required")}</p>
           ) : (
-            <CourseEditorForm />
+            <>
+              <SellTypePills active={type === "course" ? "course" : "video"} />
+              <CourseEditorForm
+                key={type ?? "video"}
+                initialKind={type === "course" ? "general_course" : "video_course"}
+              />
+            </>
           )}
         </div>
       </main>

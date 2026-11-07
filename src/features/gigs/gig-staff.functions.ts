@@ -4,7 +4,12 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb, type AdminDb } from "@/features/materials/storage-helpers";
 import { isUniqueViolation } from "@/features/materials/orders.functions";
-import { GIG_ORDER_STATUSES, gigFulfillmentDueAt, transitionGigOrder } from "@/features/gigs/gig";
+import {
+  GIG_ORDER_STATUSES,
+  gigFulfillmentDueAt,
+  transitionGigOrder,
+  isMarkingService,
+} from "@/features/gigs/gig";
 import type { StatusGuardedOrderUpdate } from "@/features/gigs/gig";
 
 /**
@@ -70,13 +75,15 @@ export function buildGigPaidPatch(input: {
   turnaroundHours: number | null;
   userId: string;
   fpsReference: string;
+  /** #556: Marking starts its clock when the buyer uploads the draft. */
+  waitsForDraft?: boolean;
 }): {
   status: "in_fulfillment";
   fps_reference: string;
   paid_at: string;
   marked_by: string;
   in_fulfillment_at: string;
-  fulfillment_due_at: string;
+  fulfillment_due_at: string | null;
 } {
   const nowIso = input.now.toISOString();
   return {
@@ -85,7 +92,9 @@ export function buildGigPaidPatch(input: {
     paid_at: nowIso,
     marked_by: input.userId,
     in_fulfillment_at: nowIso,
-    fulfillment_due_at: gigFulfillmentDueAt(input.now, input.turnaroundHours).toISOString(),
+    fulfillment_due_at: input.waitsForDraft
+      ? null
+      : gigFulfillmentDueAt(input.now, input.turnaroundHours).toISOString(),
   };
 }
 
@@ -296,6 +305,7 @@ export const markGigOrderPaid = createServerFn({ method: "POST" })
       turnaroundHours: order.digital_materials.turnaround_hours,
       userId: context.userId,
       fpsReference: data.fpsReference,
+      waitsForDraft: isMarkingService(order.digital_materials),
     });
     const { data: updatedRows, error: updateError } = await (
       db.from<never>("material_orders") as unknown as StatusGuardedOrderUpdate
