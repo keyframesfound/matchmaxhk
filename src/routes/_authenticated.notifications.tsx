@@ -81,6 +81,9 @@ function bellLabelKey(item: BellItem): string {
       return "sor.bell_lesson_cancelled_parent";
     case "lesson.cancelled_by_tutor":
       return "sor.bell_lesson_cancelled_tutor";
+    case "billing.notice_by_parent":
+    case "billing.notice_by_tutor":
+      return "sor.bell_billing_notice";
     case "lesson.scheduled_by_parent":
       return "sor.bell_lesson_scheduled_parent";
     case "lesson.scheduled_by_tutor":

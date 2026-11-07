@@ -48,6 +48,8 @@ export type SorStatus =
 /** tutoring_cases with the SoR columns included (board fields abbreviated). */
 export type SorCaseRow = {
   id: string;
+  /** #636: set while the desk has paused the case's schedule. */
+  schedule_paused_at?: string | null;
   case_code: string;
   parent_id: string | null;
   title: string;
