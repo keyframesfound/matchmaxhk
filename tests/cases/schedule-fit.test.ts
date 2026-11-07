@@ -25,6 +25,7 @@ const empty: FitSource = {
   lessons: [],
   proposed: [],
   blockedDates: [],
+  blockedSlots: [],
   openWindows: [],
   tutorGrid: null,
 };
@@ -111,6 +112,22 @@ describe("buildFitSchedule", () => {
     const tutor = buildFitSchedule(source, "tutor", NOW);
     expect([...tutor.blocked].sort()).toEqual(["mon-afternoon", "mon-evening", "mon-morning"]);
     expect(buildFitSchedule(source, "parent", NOW).blocked.size).toBe(0);
+  });
+});
+
+describe("parent User-Blocked", () => {
+  const source: FitSource = { ...empty, blockedSlots: [{ day: "sat", period: "morning" }] };
+
+  it("excludes blocked slots from the open windows, even with no lessons", () => {
+    const open = parentOpenKeys(buildFitSchedule(source, "parent", NOW))!;
+    expect(open.has("sat-morning")).toBe(false);
+    expect(open.size).toBe(ALL_SLOT_KEYS.length - 1);
+  });
+
+  it("soft-warns on a blocked slot and stays out of the tutor's schedule", () => {
+    const parent = buildFitSchedule(source, "parent", NOW);
+    expect(findClashes([{ day: "sat", period: "morning" }], parent)[0]?.state).toBe("blocked");
+    expect(buildFitSchedule(source, "tutor", NOW).blocked.size).toBe(0);
   });
 });
 

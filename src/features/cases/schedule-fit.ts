@@ -61,6 +61,7 @@ export type FitSource = {
     slots: readonly PrefSlot[];
   }[];
   blockedDates: readonly string[];
+  blockedSlots: readonly PrefSlot[];
   openWindows: readonly { weekday: number; startMinute: number; endMinute: number }[];
   tutorGrid: unknown;
 };
@@ -114,7 +115,11 @@ export function buildFitSchedule(source: FitSource, role: FitRole, now: Date): F
         title: p.subject,
       })),
     );
-  return { occupied, proposed, blocked: role === "tutor" ? blockedKeys(source, now) : new Set() };
+  const blocked =
+    role === "tutor"
+      ? blockedKeys(source, now)
+      : new Set(source.blockedSlots.map((s) => `${s.day}-${s.period}`));
+  return { occupied, proposed, blocked };
 }
 
 function blockedKeys(source: FitSource, now: Date): Set<string> {

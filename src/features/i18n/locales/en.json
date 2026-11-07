@@ -4543,6 +4543,9 @@
     "cta_proceed": "Proceed Anyway",
     "cta_back": "Back",
     "cta_apply": "Apply Anyway",
-    "close": "Close"
+    "close": "Close",
+    "blocked_title": "Times you're unavailable",
+    "blocked_help": "Tap a slot to mark it unavailable every week. Tutor Search and new case requests use these as defaults, and you can still override them.",
+    "blocked_error": "Couldn't update that time. Please try again."
   }
 }

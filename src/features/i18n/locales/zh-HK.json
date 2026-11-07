@@ -4543,6 +4543,9 @@
     "cta_proceed": "照常發送",
     "cta_back": "返回",
     "cta_apply": "照常申請",
-    "close": "關閉"
+    "close": "關閉",
+    "blocked_title": "你沒空的時間",
+    "blocked_help": "點選時段可標示為每星期都沒空。搜尋導師及新個案申請會以此為預設，你仍可自行修改。",
+    "blocked_error": "未能更新此時段，請再試一次。"
   }
 }

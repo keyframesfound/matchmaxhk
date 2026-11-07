@@ -1956,7 +1956,9 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                     </tbody>
                   </table>
                   {fitSchedule &&
-                  (fitSchedule.occupied.length > 0 || fitSchedule.proposed.length > 0) ? (
+                  (fitSchedule.occupied.length > 0 ||
+                    fitSchedule.proposed.length > 0 ||
+                    fitSchedule.blocked.size > 0) ? (
                     <div className="mt-2">
                       <ScheduleLegend />
                     </div>

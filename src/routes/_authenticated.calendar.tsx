@@ -14,6 +14,7 @@ import { CaseDrawer } from "@/features/cases/case-manager/case-drawer";
 import { BillingSamplePreview } from "@/features/cases/case-manager/billing-tab";
 import { HomeworkSamplePreview } from "@/features/cases/case-manager/homework-tab";
 import { ProgressSamplePreview } from "@/features/cases/case-manager/progress-tab";
+import { BlockedTimes } from "@/features/cases/case-manager/blocked-times";
 import { ActiveCaseList, ProposedList } from "@/features/cases/case-manager/hub-sections";
 import { ThinCalendar } from "@/features/cases/case-manager/thin-calendar";
 import { caseCodeFromParam, caseTabFromParam, type CaseTab } from "@/features/cases/case-schedule";
@@ -255,6 +256,14 @@ function CalendarPage() {
           onOpenCase={setCaseParam}
         />
         <ProposedList items={schedule.data?.proposed ?? []} />
+        {/* #659: tutors keep their own windows and blackouts; parents block here. */}
+        {schedule.data &&
+        (!schedule.data.isTutor ||
+          schedule.data.blockedSlots.length > 0 ||
+          schedule.data.cases.some((c) => c.role === "parent") ||
+          schedule.data.proposed.some((p) => p.role === "parent")) ? (
+          <BlockedTimes slots={schedule.data.blockedSlots} />
+        ) : null}
         {isLoading && <Loader2 className="h-5 w-5 animate-spin" aria-hidden />}
         {(isError || schedule.isError) && (
           <p className="text-sm text-destructive">{t("calendar_hub.error")}</p>
