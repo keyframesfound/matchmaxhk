@@ -11,6 +11,7 @@ import { Link } from "@tanstack/react-router";
 
 import {
   CASE_MODE_LABEL,
+  CASE_START_LABEL,
   caseBudgetHkdBounds,
   formatCaseRate,
   formatCaseSchedule,
@@ -101,6 +102,11 @@ export function caseLogisticsParts(item: PublicCaseBoardItem): string[] {
   // dedupe `📍 Online` vs `Online`), GLM review, 2026-10-23.
   const parts = item.district ? [`📍 ${item.district}`, modeLabel] : [`📍 ${modeLabel}`];
   parts.push(formatCaseSchedule(item.sessionsPerWeek, item.sessionLengthMinutes));
+  // #656: the parent-set start band rides the logistics line on the board
+  // card so tutors can see urgency without opening the detail page.
+  if (item.startTiming) {
+    parts.push(CASE_START_LABEL[item.startTiming] ?? item.startTiming);
+  }
   // Dedupe mode when it already leads the line for online-only cases.
   return [...new Set(parts.filter(Boolean))];
 }

@@ -4274,7 +4274,10 @@
     "summary_slots_other": "{{count}} 个偏好时段",
     "mode_online": "在线",
     "mode_offline": "面授",
-    "mode_both": "在线或面授"
+    "mode_both": "在线或面授",
+    "tag_custom_label": "新增自定义标签",
+    "tag_custom_placeholder": "自定义标签，例如：考试策略",
+    "tag_custom_add": "新增标签"
   },
   "explore_search": {
     "pill_title": "搜索导师、科目或 #标签",

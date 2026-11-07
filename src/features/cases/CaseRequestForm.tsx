@@ -60,7 +60,13 @@ import {
 } from "@/features/cases/case-options";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { MatchStatusCard } from "@/features/cases/parent/match-status-card";
-import { MAX_PROFILE_TAGS, PRESET_PROFILE_TAGS } from "@/features/tutors/profile-tags";
+import {
+  MAX_PROFILE_TAG_LENGTH,
+  MAX_PROFILE_TAGS,
+  PRESET_PROFILE_TAGS,
+  normalizeProfileTag,
+} from "@/features/tutors/profile-tags";
+import { hasContactDetails } from "@/lib/contact-filter";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
 import {
@@ -597,6 +603,24 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         ? form.scheduleSlots.filter((s) => s !== slot)
         : [...form.scheduleSlots, slot],
     });
+
+  // #656: free-custom tag input next to the preset chips (normalize + dedupe
+  // + contact-filter, same vocabulary as tutor profile tags).
+  const [customTag, setCustomTag] = useState("");
+  const addCustomTag = () => {
+    const tag = normalizeProfileTag(customTag);
+    if (!tag) return;
+    if (form.tags.includes(tag) || form.tags.length >= MAX_PROFILE_TAGS) {
+      setCustomTag("");
+      return;
+    }
+    if (hasContactDetails(tag) || tag.startsWith("@")) {
+      setCustomTag("");
+      return;
+    }
+    update({ tags: [...form.tags, tag] });
+    setCustomTag("");
+  };
 
   // Curriculum locking: subjects/components only populate for the active
   // curriculum; changing it instantly resets them to blank.
@@ -2323,7 +2347,31 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 <p className="mt-1.5 text-xs font-medium text-muted-foreground">
                   Maximum of {MAX_PROFILE_TAGS} tags.
                 </p>
-              ) : null}
+              ) : (
+                <div className="mt-2 flex items-center gap-1.5">
+                  <input
+                    value={customTag}
+                    onChange={(e) => setCustomTag(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addCustomTag();
+                      }
+                    }}
+                    maxLength={MAX_PROFILE_TAG_LENGTH}
+                    placeholder={t("case_intake.tag_custom_placeholder")}
+                    aria-label={t("case_intake.tag_custom_label")}
+                    className="h-9 flex-1 rounded-full border border-input bg-transparent px-3 text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomTag}
+                    className="inline-flex h-9 shrink-0 items-center rounded-full border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)]"
+                  >
+                    {t("case_intake.tag_custom_add")}
+                  </button>
+                </div>
+              )}
             </div>
           </>
         ) : null}

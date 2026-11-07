@@ -4274,7 +4274,10 @@
     "summary_slots_other": "{{count}} 個偏好時段",
     "mode_online": "網上",
     "mode_offline": "面授",
-    "mode_both": "網上或面授"
+    "mode_both": "網上或面授",
+    "tag_custom_label": "新增自訂標籤",
+    "tag_custom_placeholder": "自訂標籤，例如：考試策略",
+    "tag_custom_add": "新增標籤"
   },
   "explore_search": {
     "pill_title": "搜尋導師、科目或 #標籤",

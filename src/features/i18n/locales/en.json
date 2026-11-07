@@ -4274,7 +4274,10 @@
     "summary_slots_other": "{{count}} preferred slots",
     "mode_online": "Online",
     "mode_offline": "In person",
-    "mode_both": "Online or in person"
+    "mode_both": "Online or in person",
+    "tag_custom_label": "Add a custom tag",
+    "tag_custom_placeholder": "Custom tag, e.g. exam strategy",
+    "tag_custom_add": "Add tag"
   },
   "explore_search": {
     "pill_title": "Search tutors, subjects, or #tags",
