@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { DemandSidePanel } from "@/features/cases/demand-side/demand-side-panel";
 import { LearnerSnapshotCard } from "@/features/cases/tutor/learner-snapshot-card";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format, formatDistanceToNow } from "date-fns";
@@ -838,6 +839,7 @@ export function CaseDetailView({
 
           {/* #545: the learner's shared academic snapshot (staff view). */}
           <LearnerSnapshotCard caseId={caseRow.id} />
+          <DemandSidePanel caseId={caseRow.id} />
 
           <ConsolePanel>
             <div className="flex items-center justify-between">

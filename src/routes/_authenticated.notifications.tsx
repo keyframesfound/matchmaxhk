@@ -100,6 +100,8 @@ function bellLabelKey(item: BellItem): string {
       return "sor.bell_case_taken";
     case "case.match_waves_exhausted":
       return "sor.bell_waves_exhausted";
+    case "case.demand_side_updated":
+      return "sor.bell_demand_side";
     case "intro.shared_parent":
       return "sor.bell_intro_parent";
     case "intro.shared_tutor":

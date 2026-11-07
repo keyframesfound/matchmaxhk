@@ -1,4 +1,4 @@
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { formatPostedAgo } from "@/lib/relative-time";
 import {
@@ -20,7 +20,9 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { getMyBell, markNotificationsRead, type BellItem } from "@/features/cases/bus.functions";
+import { BellDot } from "@/components/layout/bell-dot";
+import { useBellQuery } from "@/components/layout/use-bell-query";
+import { markNotificationsRead, type BellItem } from "@/features/cases/bus.functions";
 import { completeMyAction, dismissMyAction } from "@/features/cases/action-required.functions";
 import { cn } from "@/lib/utils";
 
@@ -77,6 +79,8 @@ function bellLabelKey(item: BellItem): string {
       return "sor.bell_case_taken";
     case "case.match_waves_exhausted":
       return "sor.bell_waves_exhausted";
+    case "case.demand_side_updated":
+      return "sor.bell_demand_side";
     case "intro.shared_parent":
       return "sor.bell_intro_parent";
     case "intro.shared_tutor":
@@ -112,12 +116,7 @@ export function BellMenu() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
 
-  const { data } = useQuery({
-    queryKey: ["bell"],
-    queryFn: getMyBell,
-    refetchOnWindowFocus: true,
-    staleTime: 30_000,
-  });
+  const { data } = useBellQuery();
 
   const markRead = useMutation({
     mutationFn: (ids: string[]) => markNotificationsRead({ data: { ids } }),
@@ -155,15 +154,7 @@ export function BellMenu() {
           className="relative flex h-10 w-10 items-center justify-center rounded-full transition-colors hover:bg-[color:var(--foreground)]/[0.05]"
         >
           <Bell className="h-5 w-5 text-[color:var(--ink)]" aria-hidden="true" />
-          {(unread > 0 || openActions > 0) && (
-            <span
-              className={cn(
-                "absolute right-1.5 top-1.5 h-2.5 w-2.5 rounded-full",
-                openActions > 0 ? "bg-amber-500" : "bg-red-500",
-              )}
-              aria-hidden="true"
-            />
-          )}
+          <BellDot unread={unread} openActions={openActions} className="right-1.5 top-1.5" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent
