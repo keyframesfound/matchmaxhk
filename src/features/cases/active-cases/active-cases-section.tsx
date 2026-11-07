@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, ChevronDown, Lock, MapPin, Settings2 } from "lucide-react";
+import { ArrowRight, ChevronDown, CircleDollarSign, Lock, MapPin, Settings2 } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -142,7 +142,13 @@ function CaseCard({
             partyLabel
           )}
         </span>
-        {onPrivacy ? (
+        {card.partyView ? (
+          <span className="inline-flex shrink-0 items-center gap-1 font-medium text-[color:var(--ink)]">
+            <Link to="/calendar" search={{ case: card.caseCode }} className="hover:underline">
+              {t("profile.active_cases.open_case")}
+            </Link>
+          </span>
+        ) : onPrivacy ? (
           <button
             type="button"
             onClick={() => onPrivacy(card)}
@@ -153,6 +159,17 @@ function CaseCard({
           </button>
         ) : null}
       </div>
+      {/* #634 Tier 2 fee milestone: the MatchMax admin-fee state on a party
+          view (tutor viewers only — parents never see the tutor-pays fee). */}
+      {card.partyView && card.feeMilestone && card.feeMilestone !== "none" ? (
+        <p className="flex items-center gap-1.5 text-xs">
+          <CircleDollarSign
+            className={`h-3.5 w-3.5 shrink-0 ${card.feeMilestone === "paid" ? "text-emerald-600" : "text-amber-600"}`}
+            aria-hidden="true"
+          />
+          <span className="font-medium">{t(`profile.active_cases.fee_${card.feeMilestone}`)}</span>
+        </p>
+      ) : null}
     </li>
   );
 }

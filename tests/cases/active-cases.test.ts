@@ -4,7 +4,7 @@ import {
   projectActiveCases,
   type ActiveCaseRow,
   type PartyVisibility,
-} from "@/features/cases/active-cases/active-cases";
+} from "../../src/features/cases/active-cases/active-cases";
 
 const NOW = new Date("2027-01-01T00:00:00Z");
 const TUTOR_USER = "tutor-user";
@@ -176,5 +176,62 @@ describe("parent and centre profiles (#633)", () => {
   it("marks a case linked to a centre as a centre case", () => {
     const { active } = tutorView([row({ organisationId: "org-1" })]);
     expect(active[0].caseType).toBe("centre");
+  });
+});
+
+describe("#634 party view", () => {
+  const partyOpts = (fee: "none" | "invoiced" | "paid" | null = "paid") => ({
+    ownerView: false,
+    now: NOW,
+    viewerPartyCaseIds: new Set(["case-1"]),
+    feeMilestones: new Map([["case-1", fee]]),
+  });
+
+  it("unmasks exact fields and keeps the counterparty clickable for a case party", () => {
+    // The parent hid the case and masked everything; the tutor-party viewer
+    // still sees exact fields and a clickable parent chip.
+    const out = projectActiveCases(
+      [row()],
+      new Map([
+        hide(PARENT_USER),
+        mask(PARENT_USER, { maskRate: true, maskStudent: true, maskDistrict: true }),
+      ]),
+      { side: "tutor", ownerUserId: TUTOR_USER },
+      partyOpts(),
+    );
+    expect(out.active).toHaveLength(1);
+    const card = out.active[0];
+    expect(card.partyView).toBe(true);
+    expect(card.rateHkd).toBe(400);
+    expect(card.area).toBe("Sha Tin");
+    expect(card.studentName).toBe("Mia");
+    expect(card.counterparty?.href).toBe("/u/mia-mum");
+    expect(card.feeMilestone).toBe("paid");
+  });
+
+  it("public visitors keep the masks and get no fee milestone", () => {
+    const out = projectActiveCases(
+      [row()],
+      new Map([mask(PARENT_USER, { maskRate: true, maskStudent: true, maskDistrict: true })]),
+      { side: "tutor", ownerUserId: TUTOR_USER },
+      { ownerView: false, now: NOW, feeMilestones: new Map([["case-1", "paid"]]) },
+    );
+    const card = out.active[0];
+    expect(card.partyView).toBeUndefined();
+    expect(card.rateHkd).toBeNull();
+    expect(card.feeMilestone).toBeUndefined();
+  });
+
+  it("ownerView still wins over the party extras", () => {
+    const out = projectActiveCases(
+      [row()],
+      new Map(),
+      { side: "tutor", ownerUserId: TUTOR_USER },
+      { ownerView: true, now: NOW, viewerPartyCaseIds: new Set(["case-1"]) },
+    );
+    const card = out.active[0];
+    expect(card.hidden).toBe(false);
+    expect(card.privacy).toBeDefined();
+    expect(card.partyView).toBeUndefined();
   });
 });

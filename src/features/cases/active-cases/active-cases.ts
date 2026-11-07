@@ -67,6 +67,10 @@ export type ActiveCaseCard = {
   hidden?: boolean;
   caseId?: string;
   privacy?: PartyVisibility;
+  /** #634 Tier 2: the viewer is a party to this case (exact fields, no masks). */
+  partyView?: boolean;
+  /** #634 Tier 2 fee milestone: MatchMax admin-fee state (tutor view only). */
+  feeMilestone?: "none" | "invoiced" | "paid" | "short_case" | null;
 };
 
 export type ActiveCasesProjection = {
@@ -104,23 +108,51 @@ export function projectActiveCases(
   rows: ActiveCaseRow[],
   visibility: ReadonlyMap<string, PartyVisibility>,
   profile: { side: ProfileSide; ownerUserId: string | null },
-  opts: { ownerView: boolean; now: Date },
+  opts: {
+    ownerView: boolean;
+    now: Date;
+    /** #634: cases where the VIEWER (not the owner) is a party. */
+    viewerPartyCaseIds?: ReadonlySet<string>;
+    /** #634: MatchMax admin-fee milestone per case (party tier only). */
+    feeMilestones?: ReadonlyMap<string, ActiveCaseCard["feeMilestone"]>;
+  },
 ): ActiveCasesProjection {
   const started = rows.filter((row) => row.sorStatus !== null);
   const isPast = (row: ActiveCaseRow) => PAST_SOR_STATUSES.has(row.sorStatus ?? "");
+  const viewerParties = opts.viewerPartyCaseIds ?? new Set<string>();
 
   const toCard = (row: ActiveCaseRow): { card: ActiveCaseCard; hidden: boolean } => {
     const parentDefault: PartyVisibility = {
       ...DEFAULT_PARTY_VISIBILITY,
       maskStudent: Date.parse(row.createdAt) < STUDENT_NAME_CONSENT_CUTOFF,
     };
-    const visibilityOf = (userId: string | null): PartyVisibility =>
-      (userId ? visibility.get(visibilityKey(row.id, userId)) : undefined) ??
-      (userId === row.parentUserId ? parentDefault : DEFAULT_PARTY_VISIBILITY);
+    const isViewerParty = viewerParties.has(row.id);
+    // #634 Tier 2: a case party always sees exact fields — their own masks
+    // and the counterparty's public-hide never apply to the party view.
+    const visibilityOf = (userId: string | null): PartyVisibility => {
+      if (isViewerParty) return DEFAULT_PARTY_VISIBILITY;
+      return (
+        (userId ? visibility.get(visibilityKey(row.id, userId)) : undefined) ??
+        (userId === row.parentUserId ? parentDefault : DEFAULT_PARTY_VISIBILITY)
+      );
+    };
     const parent = visibilityOf(row.parentUserId);
     const tutor = visibilityOf(row.tutorUserId);
     const own = visibilityOf(profile.ownerUserId);
     const areaMasked = Boolean(row.district) && (parent.maskDistrict || tutor.maskDistrict);
+    const counterparty = counterpartyOf(row, profile.side, visibilityOf);
+    // #634: parties click through to each other even when the counterparty
+    // hides the case from their public profile.
+    if (isViewerParty && counterparty) {
+      counterparty.href =
+        counterparty.kind === "parent"
+          ? row.parentHandle
+            ? `/u/${row.parentHandle}`
+            : null
+          : row.tutorCode
+            ? `/tutors/${row.tutorCode}`
+            : null;
+    }
     const card: ActiveCaseCard = {
       caseCode: row.caseCode,
       caseType: caseTypeOf(row),
@@ -133,11 +165,20 @@ export function projectActiveCases(
       rateHkd: parent.maskRate || tutor.maskRate ? null : row.hourlyRateHkd,
       rateUnit: row.rateUnit,
       studentName: parent.maskStudent || tutor.maskStudent ? null : row.learnerNickname,
-      counterparty: counterpartyOf(row, profile.side, visibilityOf),
+      counterparty,
     };
     const hidden = !own.show;
+    const partyExtras = isViewerParty
+      ? {
+          partyView: true,
+          caseId: row.id,
+          feeMilestone: opts.feeMilestones?.get(row.id) ?? null,
+        }
+      : {};
     return {
-      card: opts.ownerView ? { ...card, hidden, caseId: row.id, privacy: own } : card,
+      card: opts.ownerView
+        ? { ...card, hidden, caseId: row.id, privacy: own }
+        : { ...card, ...partyExtras },
       hidden,
     };
   };

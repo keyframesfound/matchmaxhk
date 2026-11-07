@@ -2366,7 +2366,10 @@
       "privacy_mask_rate": "Mask exact hourly rate",
       "privacy_mask_student": "Mask student display name",
       "privacy_mask_district": "Mask district to region only",
-      "privacy_save": "Save Privacy Settings"
+      "privacy_save": "Save Privacy Settings",
+      "open_case": "Open case",
+      "fee_invoiced": "Admin fee: Lesson 1 due (L1 100% + L2 50%)",
+      "fee_paid": "Admin fee settled (Lesson 1 + 50% of Lesson 2)"
     },
     "verified": "Verified",
     "verified_detail": "Transcript checked",

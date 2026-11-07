@@ -13,6 +13,7 @@ import { selectRows, type Db } from "@/features/cases/desk-db";
 import {
   projectActiveCases,
   visibilityKey,
+  type ActiveCaseCard,
   type ActiveCaseRow,
   type ActiveCasesProjection,
   type PartyVisibility,
@@ -209,9 +210,50 @@ async function buildProjection(
     db,
     rows.map((row) => row.id),
   );
+
+  // #634 Tier 2: cases where the VIEWER is the parent or the matched tutor
+  // see exact fields (rate / student / district unmasked, counterparty
+  // clickable) plus the MatchMax admin-fee milestone (tutor viewers only —
+  // parents never see the tutor-pays fee).
+  const partyTutorIds = [...new Set(rows.map((r) => r.tutorUserId).filter(Boolean))] as string[];
+  let tutorIdForViewer: string | null = null;
+  if (viewerId && partyTutorIds.includes(viewerId)) {
+    tutorIdForViewer = viewerId;
+  }
+  const viewerPartyCaseIds = new Set<string>();
+  const feeMilestones = new Map<string, ActiveCaseCard["feeMilestone"]>();
+  if (viewerId) {
+    const partyRows = rows.filter(
+      (r) => r.parentUserId === viewerId || (tutorIdForViewer && r.tutorUserId === viewerId),
+    );
+    for (const row of partyRows) viewerPartyCaseIds.add(row.id);
+    if (tutorIdForViewer && partyRows.length > 0) {
+      const caseIds = partyRows.map((r) => r.id);
+      const fees = await selectRows<{ case_id: string; status: string }>(
+        db,
+        "case_fees",
+        "case_id, status",
+        [{ col: "case_id", op: "in", value: caseIds }],
+      );
+      const feeByCase = new Map<string, string>();
+      for (const f of fees) feeByCase.set(f.case_id, f.status);
+      for (const row of partyRows) {
+        // The single 1.5-lesson admin-fee row: invoiced = Lesson 1 due, paid
+        // = L1/L2 settled. Parents never see this (tutor-pays, #461).
+        const feeStatus = feeByCase.get(row.id) ?? "none";
+        feeMilestones.set(
+          row.id,
+          feeStatus === "invoiced" ? "invoiced" : feeStatus === "paid" ? "paid" : "none",
+        );
+      }
+    }
+  }
+
   return projectActiveCases(rows, visibility, profile, {
     ownerView: viewerId !== null && viewerId === profile.ownerUserId,
     now: new Date(),
+    viewerPartyCaseIds,
+    feeMilestones,
   });
 }
 

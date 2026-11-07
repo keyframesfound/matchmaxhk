@@ -2366,7 +2366,10 @@
       "privacy_mask_rate": "隐藏确实时薪",
       "privacy_mask_student": "隐藏学生显示名称",
       "privacy_mask_district": "只显示地区",
-      "privacy_save": "保存设定"
+      "privacy_save": "保存设定",
+      "open_case": "打开个案",
+      "fee_invoiced": "行政费：第一堂到期（首堂 100% + 第二堂 50%）",
+      "fee_paid": "行政费已结算（第一堂 + 第二堂半数）"
     },
     "verified": "已核实",
     "verified_detail": "成绩表已核对",
