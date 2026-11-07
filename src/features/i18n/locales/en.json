@@ -4790,5 +4790,33 @@
     "referral_rule": "Your reward unlocks automatically when a referred user's first matched case settles the 1.5-lesson admin fee, then pays out with the Monday batch.",
     "insights_title": "Insights",
     "insights_note": "Profile and listing view counters are coming with the saved-content event layer. Earnings and referrals are live above."
+  },
+  "learner": {
+    "who_title": "Who is learning?",
+    "any_student": "Any Student (Manual Filter)",
+    "add_student": "Add Student",
+    "add_title": "Add a student profile",
+    "guest_title": "Tailor this search",
+    "name_placeholder": "Name or nickname (e.g. Lucas)",
+    "level_label": "Grade / level",
+    "level_any": "Any grade",
+    "level_kindergarten": "Kindergarten",
+    "level_university": "University",
+    "curriculum_any": "Any curriculum",
+    "subjects_label": "Target subjects",
+    "subjects_placeholder": "e.g. Physics, Math AA HL",
+    "add_hint": "Saved to your account so you can switch between children in one tap.",
+    "guest_hint": "Used for this visit only. Nothing is saved without an account.",
+    "save_and_use": "Save and use",
+    "use_for_search": "Use for this search",
+    "save_failed": "Could not save the student. Using the details for this search only.",
+    "guest_label": "this student",
+    "auto_matched": "Auto-matched for {{name}}: {{value}}",
+    "banner": "Showing independent tutors tailored for {{name}} ({{value}})",
+    "form_pill": "Pre-filled for {{name}} ({{value}})",
+    "any_level": "any level",
+    "switch": "Switch student",
+    "clear": "Clear",
+    "cancel": "Cancel"
   }
 }

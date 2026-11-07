@@ -4790,5 +4790,33 @@
     "referral_rule": "當被推薦用戶嘅首個配對個案完成 1.5 堂行政費結算後，獎賞自動解鎖，並隨星期一批次發放。",
     "insights_title": "數據洞察",
     "insights_note": "個人檔案及 listing 瀏覽計數將隨收藏事件層推出。收益及推薦已於上方提供。"
+  },
+  "learner": {
+    "who_title": "為哪位學生尋找導師？",
+    "any_student": "不限學生（手動篩選）",
+    "add_student": "新增學生資料",
+    "add_title": "新增學生資料",
+    "guest_title": "為這次搜尋設定學生",
+    "name_placeholder": "名字或暱稱（例如 Lucas）",
+    "level_label": "年級",
+    "level_any": "任何年級",
+    "level_kindergarten": "幼稚園",
+    "level_university": "大學",
+    "curriculum_any": "任何課程",
+    "subjects_label": "目標科目",
+    "subjects_placeholder": "例如 Physics、Math AA HL",
+    "add_hint": "會儲存到你的帳戶，之後可一按切換不同子女。",
+    "guest_hint": "只用於今次瀏覽；未登入不會儲存任何資料。",
+    "save_and_use": "儲存並使用",
+    "use_for_search": "用於今次搜尋",
+    "save_failed": "未能儲存學生資料，只會用於今次搜尋。",
+    "guest_label": "這位學生",
+    "auto_matched": "已為{{name}}自動配對：{{value}}",
+    "banner": "正顯示為{{name}}（{{value}}）推薦的獨立導師",
+    "form_pill": "已按{{name}}（{{value}}）預先填寫",
+    "any_level": "任何年級",
+    "switch": "切換學生",
+    "clear": "清除",
+    "cancel": "取消"
   }
 }

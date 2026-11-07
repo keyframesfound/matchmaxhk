@@ -65,6 +65,8 @@ import {
   type KindergartenFilterKey,
 } from "@/features/tutors/verticals";
 import { cn } from "@/lib/utils";
+import { WhoPicker } from "./who-picker";
+import { useOpenSearchEvent } from "./open-search-event";
 
 export type TutorsSearchState = {
   /** Issue #190: academic-tier tab; default primary_secondary at the route. */
@@ -449,6 +451,8 @@ export function TutorsSearchBar({
 }: TutorsSearchProps) {
   const { t } = useTranslation();
   const [filtersOpen, setFiltersOpen] = useState(false);
+  // #698: the results banner's "Switch student" opens the Filters dialog.
+  useOpenSearchEvent(true, () => setFiltersOpen(true));
   const [pillOpenId, setPillOpenId] = useState<string | null>(null);
 
   // Issue #190: effective tier, the route passes it explicitly; homepage
@@ -728,6 +732,9 @@ export function TutorsSearchBar({
           ) : undefined
         }
       >
+        <FiltersSection id="who" title={t("learner.who_title")}>
+          <WhoPicker />
+        </FiltersSection>
         <FiltersSection id="recommended" title={t("search_ui.quick_title")}>
           <FilterQuickPicks options={quickPicks} />
         </FiltersSection>
@@ -880,6 +887,8 @@ export function TutorsSearchMobile({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [overlayOpen, setOverlayOpen] = useState(Boolean(defaultOverlayOpen));
+  // #698: "Switch student" on the results banner reopens the phone sheet.
+  useOpenSearchEvent(false, () => setOverlayOpen(true));
 
   // Issue #190: effective tier, the route passes it explicitly; homepage
   // callers (no onTierChange) stay on the default tab.
@@ -1088,6 +1097,11 @@ export function TutorsSearchMobile({
           </div>
 
           {/* #605 §3.3: three guided cards, then More Filters. */}
+          {/* #698: who the search is for (soft re-rank, never a filter). */}
+          <GuidedCard title={t("learner.who_title")}>
+            <WhoPicker />
+          </GuidedCard>
+
           <GuidedCard title={t("explore_search.card_subject")}>
             {/* Issue #190: per-tier vertical filter sections, the
                   kindergarten/university tabs replace the standard curriculum +
