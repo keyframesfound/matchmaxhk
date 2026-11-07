@@ -4425,7 +4425,12 @@
     "err_NOTHING_TO_SHARE": "Nothing to share for that month.",
     "marked_by": "Marked {{status}} by {{name}} · {{when}} HKT",
     "role_tutor": "the tutor",
-    "role_parent": "the parent"
+    "role_parent": "the parent",
+    "protection_title": "1.5-lesson fair commission & early-drop protection",
+    "protection_l1": "Stopped after Lesson 1 by the family: your fee drops to 0.5 lessons (50% of Lesson 1).",
+    "protection_l2_l4": "Stopped in Lessons 2–4 (within 28 days) through no fault of yours: your fee is capped at 20% of completed lessons, and the overpaid difference returns as MatchMax Commission Credit auto-applied to your next case.",
+    "protection_child_switch": "Midway switch to a sibling: HK$0 extra if you accept the transfer; if you decline an unagreed change it counts as a family-initiated stop with the same protection.",
+    "protection_card_fee": "Pay the admin fee by FPS or bank transfer with a 0% service fee. Optional card checkout adds a 4% card service fee."
   },
   "demand_side": {
     "title": "Family and student notes",

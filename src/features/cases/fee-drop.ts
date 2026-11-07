@@ -95,6 +95,12 @@ export type CaseOutcome =
       initiator: DropInitiator;
       verification: DropVerification;
       reasonClass: DropReasonClass;
+    }
+  /** #672: parent-fault stop during Lessons 2–4 (within 28 days of L1). */
+  | {
+      kind: "stopped_l2_l4";
+      initiator: DropInitiator;
+      completedLessons: number;
     };
 
 export type FeeResolutionInput = {
@@ -132,7 +138,8 @@ export type FeeRuleId =
   | "DROP_PROTECTED"
   | "HOSTILE_PARENT_PROTECTED"
   | "TUTOR_FLAKE_VOID"
-  | "TUTOR_EMERGENCY_VOID";
+  | "TUTOR_EMERGENCY_VOID"
+  | "PARENT_DROP_L2_L4";
 
 export type FeeConsequences = {
   blacklistParent: boolean;
@@ -373,7 +380,36 @@ function resolveMultiplier(input: FeeResolutionInput, base: number): Draft {
           });
     case "stopped_after_l1":
       return resolveStopAfterL1(input, outcome, base);
+    case "stopped_l2_l4":
+      return resolveStopL2L4(input, outcome, base);
   }
+}
+
+/**
+ * #672 Lessons 2–4 parent-fault stop: the 1.5-lesson fee is retroactively
+ * capped at max(0.5 lesson, 20% × completed lessons). The desk credits the
+ * overpaid difference (collected − adjusted) as MatchMax Commission Credit;
+ * this rule never voids or penalises the tutor.
+ */
+function resolveStopL2L4(
+  input: FeeResolutionInput,
+  outcome: Extract<CaseOutcome, { kind: "stopped_l2_l4" }>,
+  base: number,
+): Draft {
+  if (input.bypass === "confirmed") {
+    return draft("BYPASS_CONFIRMED_FULL", base, {
+      opensOwnershipWindow: true,
+      consequences: { banTutor: true },
+    });
+  }
+  const completed = Math.max(
+    2,
+    Math.min(4, Number.isFinite(outcome.completedLessons) ? outcome.completedLessons : 2),
+  );
+  const multiplier = Math.max(0.5, 0.2 * completed);
+  return draft("PARENT_DROP_L2_L4", Math.min(base, multiplier), {
+    opensOwnershipWindow: true,
+  });
 }
 
 /** The one entry point: which rule fires, what is due, what follows. */
@@ -408,6 +444,8 @@ export const FEE_RULE_LABELS: Record<FeeRuleId, string> = {
   HOSTILE_PARENT_PROTECTED: "Hostile parent: protection kept, blacklist parent",
   TUTOR_FLAKE_VOID: "Tutor quit: Lesson 1 portion due, 30-day shadowban",
   TUTOR_EMERGENCY_VOID: "Tutor emergency with proof: Lesson 1 portion due, no shadowban",
+  PARENT_DROP_L2_L4:
+    "#672 parent-fault stop in Lessons 2–4: fee capped at max(0.5 lesson, 20% of completed), overpaid difference → commission credit",
 };
 
 export const OUTCOME_KINDS = [
@@ -417,6 +455,7 @@ export const OUTCOME_KINDS = [
   "l1_no_show",
   "continued",
   "stopped_after_l1",
+  "stopped_l2_l4",
 ] as const;
 export type OutcomeKind = (typeof OUTCOME_KINDS)[number];
 
@@ -430,9 +469,17 @@ export type OutcomeLesson = { sequence: number; status: string };
 export function suggestOutcomeKind(input: {
   lessons: readonly OutcomeLesson[];
   caseEnded: boolean;
+  /** #672: family-reported stop inside the Lessons 2–4 window. */
+  parentFaultL2L4?: boolean;
 }): OutcomeKind {
   const l1 = input.lessons.find((l) => l.sequence === 1);
   const l2 = input.lessons.find((l) => l.sequence === 2);
+  if (input.parentFaultL2L4 && input.caseEnded && l2?.status === "done") {
+    const doneInWindow = input.lessons.filter(
+      (l) => l.sequence >= 2 && l.sequence <= 4 && l.status === "done",
+    ).length;
+    if (doneInWindow >= 1) return "stopped_l2_l4";
+  }
   if (l2?.status === "done") return "continued";
   if (l1?.status === "no_show" || l1?.status === "late_cancel") return "l1_no_show";
   if (l1?.status === "done") return input.caseEnded ? "stopped_after_l1" : "in_progress";
@@ -445,7 +492,16 @@ export function buildOutcome(input: {
   initiator?: DropInitiator | null;
   verification?: DropVerification | null;
   reasonClass?: DropReasonClass | null;
+  /** #672: mutually-confirmed lessons done when the family stopped (2–4). */
+  completedLessons?: number | null;
 }): CaseOutcome {
+  if (input.kind === "stopped_l2_l4") {
+    return {
+      kind: "stopped_l2_l4",
+      initiator: input.initiator ?? "parent",
+      completedLessons: Math.max(2, Number(input.completedLessons) || 2),
+    };
+  }
   if (input.kind !== "stopped_after_l1") return { kind: input.kind };
   return {
     kind: "stopped_after_l1",

@@ -98,14 +98,29 @@ import { NotePreviewPicker } from "@/features/materials/note-preview-picker";
 import { NotePriceGuidePanel } from "@/features/materials/note-price-guide-panel";
 import {
   earningsEstimate,
+  marketplaceTakeRate,
   NOTES_OPTION_A_LIVE,
   validateListingPrice,
 } from "@/features/materials/marketplace-policy";
+import { isCourseMaterialType } from "@/features/materials/lifecycle";
 
-/** #573 Option A live calculator; the payment fee is always an estimate. */
-function EarningsCalculator({ priceHkd }: { priceHkd: number }) {
+/** #573 Option A live calculator; the payment fee is always an estimate. #672: tiered take rate. */
+function EarningsCalculator({
+  priceHkd,
+  materialType,
+}: {
+  priceHkd: number;
+  materialType: string;
+}) {
   const { t } = useTranslation();
-  const e = earningsEstimate(priceHkd);
+  const takeRate = marketplaceTakeRate({
+    // The seller sees the rate they will be charged; verification tier is
+    // confirmed at checkout — the form shows the standard tier for
+    // unverified sellers and the course tier for course kinds.
+    verified: false,
+    isCourse: isCourseMaterialType(materialType),
+  });
+  const e = earningsEstimate(priceHkd, takeRate);
   const money = (v: number) => `HK$${v.toFixed(2)}`;
   return (
     <div className="space-y-2 rounded-xl border border-border p-4 text-sm">
@@ -1775,7 +1790,10 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           onUsePrice={(value) => setPrice(String(value))}
         />
         {NOTES_OPTION_A_LIVE ? (
-          <EarningsCalculator priceHkd={Number.isNaN(priceNum) ? 0 : priceNum} />
+          <EarningsCalculator
+            priceHkd={Number.isNaN(priceNum) ? 0 : priceNum}
+            materialType={materialType}
+          />
         ) : null}
       </section>
 

@@ -4425,7 +4425,12 @@
     "err_NOTHING_TO_SHARE": "该月份没有可分享的内容。",
     "marked_by": "由 {{name}} 标记{{status}} · {{when}}（香港时间）",
     "role_tutor": "导师",
-    "role_parent": "家长"
+    "role_parent": "家长",
+    "protection_title": "1.5 课公平行政费及首 4 堂家长退补保障",
+    "protection_l1": "第一堂后由家长方终止：行政费下调至 0.5 堂（第一堂的 50%）。",
+    "protection_l2_l4": "首 4 堂内（28 日内）非因你的过失而终止：行政费上限为已完成课数的 20%，多缴差额将以 MatchMax 佣金 credit 自动应用于你下一个个案。",
+    "protection_child_switch": "中途转往兄弟姊妹：你接受转换即 HK$0 额外费用；若你拒绝未经同意的变更，则按家长方终止处理并享同等保障。",
+    "protection_card_fee": "以转数快（FPS）或银行转账缴付行政费可享 0% 手续费。选用信用卡付款将加收 4% 卡费服务费。"
   },
   "demand_side": {
     "title": "家庭及学生备注",

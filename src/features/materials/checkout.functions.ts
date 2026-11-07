@@ -11,9 +11,11 @@ import {
   buildEscrowReleaseFields,
   buildOrderReference,
   computeFolderAdjustedPrice,
+  isCourseMaterialType,
   orderGrantsAccess,
   splitMaterialMoney,
 } from "@/features/materials/lifecycle";
+import { resolveMarketplaceTakePct } from "@/features/cases/commission-protection";
 import { getTutorHoldWindowHours, sweepExpiredHolds } from "@/features/materials/escrow.functions";
 import { SHOP_TERMS_VERSION } from "@/features/legal/terms";
 import { gigOrderBuyerAction } from "@/features/gigs/gig";
@@ -350,13 +352,22 @@ export const startCheckout = createServerFn({ method: "POST" })
     // and the file is released inside the buyer's account.
     // No self-purchase: tutors.user_id is the listing owner's AUTH account.
     const { data: ownerTutor } = await db
-      .from<{ user_id: string }>("tutors")
-      .select("user_id")
+      .from<{ user_id: string; verification_tier: string | null }>("tutors")
+      .select("user_id, verification_tier")
       .eq("id", material.tutor_id)
       .maybeSingle();
     if (ownerTutor?.user_id && ownerTutor.user_id === context.userId) {
       throw new Error("You can't buy your own note.");
     }
+    // #672 tiered take rate snapshot for this order: 5% verified tutor /
+    // 8% standard / 12% courses & bundles. Gigs stay on the legacy cashier
+    // split (the gig flow calls splitMaterialMoney with the default).
+    const takePct = isShopAcknowledgmentKind(material.material_type)
+      ? resolveMarketplaceTakePct({
+          verified: ownerTutor?.verification_tier === "tier_2_verified",
+          isCourse: isCourseMaterialType(material.material_type),
+        })
+      : 20;
 
     // Existing order (active statuses) wins, the unique index is the source
     // of truth. A refunded row is dead: fall through and insert a fresh
@@ -474,7 +485,7 @@ export const startCheckout = createServerFn({ method: "POST" })
         return { orderId: grantInsert.data.id, reference: grantReference };
       }
 
-      const { platformFeeHkd, tutorNetHkd } = splitMaterialMoney(adjusted);
+      const { platformFeeHkd, tutorNetHkd } = splitMaterialMoney(adjusted, takePct);
       const insert = await db
         .from<{ id: string }>("material_orders")
         .insert({
@@ -484,6 +495,7 @@ export const startCheckout = createServerFn({ method: "POST" })
           gross_hkd: adjusted,
           platform_fee_hkd: platformFeeHkd,
           tutor_net_hkd: tutorNetHkd,
+          platform_fee_pct: takePct,
           status: "awaiting_payment",
           reference,
           // #429: shop acknowledgment lives on the order row.
@@ -515,7 +527,7 @@ export const startCheckout = createServerFn({ method: "POST" })
       return { orderId: insert.data.id, reference };
     }
 
-    const { platformFeeHkd, tutorNetHkd } = splitMaterialMoney(Number(material.price_hkd));
+    const { platformFeeHkd, tutorNetHkd } = splitMaterialMoney(Number(material.price_hkd), takePct);
     // #556: a FREE (HK$0) file listing needs no payment round-trip: the
     // order is born paid and released (stamped) right away below.
     const isFreeFile =
@@ -530,6 +542,7 @@ export const startCheckout = createServerFn({ method: "POST" })
         gross_hkd: material.price_hkd,
         platform_fee_hkd: platformFeeHkd,
         tutor_net_hkd: tutorNetHkd,
+        platform_fee_pct: takePct,
         status: isFreeFile ? "paid" : "awaiting_payment",
         ...(isFreeFile ? { paid_at: new Date().toISOString() } : {}),
         reference,

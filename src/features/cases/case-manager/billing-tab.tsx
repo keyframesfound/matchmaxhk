@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
+import { Loader2, ShieldCheck } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -416,6 +416,8 @@ export function BillingTab({
         ) : null}
       </section>
 
+      {data.role === "tutor" ? <CommissionProtectionCard /> : null}
+
       {rescheduling ? (
         <RescheduleDialog
           caseId={caseId}
@@ -425,6 +427,29 @@ export function BillingTab({
         />
       ) : null}
     </div>
+  );
+}
+
+/**
+ * #672 tutor protection summary: the 1.5-lesson fair-commission lock, the
+ * Lessons 2–4 drop-protection credit, the child-switch rule and the 4%
+ * card surcharge. Bookkeeping copy only — no money moves here.
+ */
+function CommissionProtectionCard() {
+  const { t } = useTranslation();
+  return (
+    <section className="space-y-1.5 rounded-xl border border-border p-4">
+      <h3 className="flex items-center gap-1.5 text-sm font-semibold">
+        <ShieldCheck className="h-4 w-4 text-primary" aria-hidden />
+        {t("billing.protection_title")}
+      </h3>
+      <ul className="list-disc space-y-1 pl-4 text-xs text-muted-foreground">
+        <li>{t("billing.protection_l1")}</li>
+        <li>{t("billing.protection_l2_l4")}</li>
+        <li>{t("billing.protection_child_switch")}</li>
+        <li>{t("billing.protection_card_fee")}</li>
+      </ul>
+    </section>
   );
 }
 

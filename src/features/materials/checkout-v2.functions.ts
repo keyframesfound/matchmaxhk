@@ -23,9 +23,12 @@ import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { asAdminDb, type AdminDb } from "@/features/materials/storage-helpers";
 import { selectRows } from "@/features/cases/desk-db";
 
-/** #543 §2: the new MatchMax platform fee on Stripe checkout orders. */
-export const CHECKOUT_PLATFORM_FEE_PCT = 2;
-/** #543 §3.C: the protection-hold window, from paid_at. */
+/**
+ * #672 replaces the flat 2% lock with tiered take rates — the percent is
+ * resolved per order in startCheckout (5% verified tutor / 8% standard /
+ * 12% courses & bundles) and snapshotted on material_orders.platform_fee_pct.
+ * See src/features/cases/commission-protection.ts (MARKETPLACE_TAKE_RATES).
+ */
 export const CHECKOUT_HOLD_HOURS = 72;
 
 /**
