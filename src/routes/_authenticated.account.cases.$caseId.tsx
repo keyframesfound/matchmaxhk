@@ -1,3 +1,4 @@
+import { DemandSidePanel } from "@/features/cases/demand-side/demand-side-panel";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -165,6 +166,9 @@ function ParentCaseDetailPage() {
                 <span className="text-xs">{t("sor.parent_fee_note")}</span>
               </p>
             )}
+
+            {/* #637: household briefing and student self-input. */}
+            <DemandSidePanel caseId={caseId} />
 
             {/* Lesson timeline */}
             <section className="space-y-2">
