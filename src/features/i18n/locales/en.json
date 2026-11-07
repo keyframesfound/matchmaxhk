@@ -4503,5 +4503,14 @@
     "err_BAD_DATE": "Pick a date that is today or earlier.",
     "err_CONTACT_DETAILS": "Remove phone numbers, contact details or web addresses from the text.",
     "err_CASE_ENDED": "This case has ended, so its progress is read-only."
+  },
+  "rail": {
+    "similar_tutors": {
+      "title": "Similar tutors",
+      "subtitle": "Compare independent tutors teaching the same subject and curriculum.",
+      "badge_strict": "Same subject and curriculum",
+      "badge_value": "Same subject · Flexible rate or online",
+      "badge_subject": "Same subject"
+    }
   }
 }

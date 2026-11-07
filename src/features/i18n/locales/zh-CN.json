@@ -4503,5 +4503,14 @@
     "err_BAD_DATE": "请选择今天或之前的日期。",
     "err_CONTACT_DETAILS": "请从文字中移除电话、联络资料或网址。",
     "err_CASE_ENDED": "此个案已结束，成绩只可查看。"
+  },
+  "rail": {
+    "similar_tutors": {
+      "title": "相似导师",
+      "subtitle": "比较教授相同科目及课程之独立导师。",
+      "badge_strict": "同科及同课程",
+      "badge_value": "同科 · 弹性学费／网上授课",
+      "badge_subject": "同科"
+    }
   }
 }
