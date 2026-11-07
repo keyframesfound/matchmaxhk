@@ -950,3 +950,30 @@ html .driver-popover-progress-text {
     display: none !important;
   }
 }
+
+/*
+ * #636 shared schedule-state tokens: the same four looks on Case Manager, the
+ * public availability grid and the Schedule Fit surfaces.
+ */
+.mm-slot-occupied {
+  background-color: var(--ink);
+  border: 1px solid var(--ink);
+  color: var(--surface);
+}
+.mm-slot-proposed {
+  background-color: color-mix(in srgb, var(--brand-link) 8%, transparent);
+  border: 1px dashed var(--brand-link);
+}
+.mm-slot-blocked {
+  background-color: var(--surface-subtle);
+  background-image: repeating-linear-gradient(
+    45deg,
+    transparent 0 4px,
+    color-mix(in srgb, var(--ink) 10%, transparent) 4px 5px
+  );
+  border: 1px solid var(--border);
+}
+.mm-slot-open {
+  background-color: color-mix(in srgb, var(--brand-link) 16%, transparent);
+  border: 1px solid transparent;
+}
