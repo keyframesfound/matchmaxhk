@@ -1888,6 +1888,9 @@
     "explore": "Explore",
     "saved_posts": "Saved",
     "account": "Account",
+    "post": "Post",
+    "post_aria": "Post study material",
+    "notifications": "Notifications",
     "quick_links": "Quick links",
     "marketplace": "Marketplace"
   },
