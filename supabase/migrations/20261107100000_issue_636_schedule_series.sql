@@ -86,5 +86,7 @@ revoke all on function public.guard_lesson_case_paused() from public, anon, auth
 
 comment on column public.case_lessons.series_id is
   '#636 groups lessons created by one weekly fill; null for one-off lessons.';
+comment on column public.case_lessons.no_request_expiry is
+  '#636 series and moved lessons wait for a confirm; exempt from the #204 12h request expiry.';
 comment on column public.tutoring_cases.schedule_paused_at is
   '#636 desk-confirmed pause: future lessons released, new lessons refused until cleared.';
