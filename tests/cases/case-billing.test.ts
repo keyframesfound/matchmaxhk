@@ -5,6 +5,8 @@ import {
   canRespondToReschedule,
   isStatementMonth,
   rescheduleLessonError,
+  shareCoolingDown,
+  statementHasMonth,
   type StatementLesson,
 } from "../../src/features/cases/case-billing";
 
@@ -146,5 +148,19 @@ describe("isStatementMonth", () => {
     expect(isStatementMonth("2026-11")).toBe(true);
     expect(isStatementMonth("2026-13")).toBe(false);
     expect(isStatementMonth("2026-1")).toBe(false);
+  });
+});
+
+describe("statement sharing limits", () => {
+  it("needs a billable lesson in the month", () => {
+    expect(statementHasMonth([lesson()], "2026-11")).toBe(true);
+    expect(statementHasMonth([lesson()], "2030-01")).toBe(false);
+    expect(statementHasMonth([lesson({ status: "cancelled" })], "2026-11")).toBe(false);
+  });
+
+  it("cools down across every month of the case", () => {
+    expect(shareCoolingDown([null, "2026-11-07T03:30:00Z"], NOW)).toBe(true);
+    expect(shareCoolingDown(["2026-11-07T02:59:00Z", null], NOW)).toBe(false);
+    expect(shareCoolingDown([], NOW)).toBe(false);
   });
 });

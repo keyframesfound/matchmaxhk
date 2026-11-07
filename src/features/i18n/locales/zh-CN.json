@@ -3453,7 +3453,8 @@
     "admin_pause_schedule": "暂停并释出即将上的课堂",
     "admin_resume_schedule": "恢复排课",
     "admin_schedule_paused": "个案已暂停，即将上的课堂已释出。",
-    "admin_schedule_resumed": "已恢复排课。"
+    "admin_schedule_resumed": "已恢复排课。",
+    "bell_billing_notice": "个案管理有课堂或学费更新"
   },
   "cv": {
     "title": "学习履历及成绩档案",
@@ -4251,7 +4252,8 @@
     "err_CASE_ENDED": "此个案已结束，功课只可查看。",
     "err_TUTOR_ONLY": "只有此个案的导师可以进行此操作。",
     "err_PARENT_ONLY": "只有此个案的家长可以进行此操作。",
-    "err_NOT_SUBMITTED": "此功课尚未递交。"
+    "err_NOT_SUBMITTED": "此功课尚未递交。",
+    "err_ALREADY_REVIEWED": "此功课已经批改。"
   },
   "billing": {
     "tab": "课堂及账单",
@@ -4304,6 +4306,7 @@
     "err_CONTACT_DETAILS": "请从备注中移除电话、联络资料或网址。",
     "err_CANNOT_RESPOND": "此申请已无法回复。",
     "err_REQUEST_BUSY": "同时有另一项申请，请再试一次。",
-    "err_SHARED_RECENTLY": "过去一小时内已分享。"
+    "err_SHARED_RECENTLY": "过去一小时内已分享。",
+    "err_NOTHING_TO_SHARE": "该月份没有可分享的内容。"
   }
 }

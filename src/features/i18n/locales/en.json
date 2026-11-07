@@ -3453,7 +3453,8 @@
     "admin_pause_schedule": "Pause and release upcoming lessons",
     "admin_resume_schedule": "Resume scheduling",
     "admin_schedule_paused": "Case paused. Upcoming lessons released.",
-    "admin_schedule_resumed": "Scheduling resumed."
+    "admin_schedule_resumed": "Scheduling resumed.",
+    "bell_billing_notice": "Schedule or tuition update in Case Manager"
   },
   "cv": {
     "title": "Education CV & Academic Records",
@@ -4251,7 +4252,8 @@
     "err_CASE_ENDED": "This case has ended, so its homework is read-only.",
     "err_TUTOR_ONLY": "Only the tutor on this case can do this.",
     "err_PARENT_ONLY": "Only the parent on this case can do this.",
-    "err_NOT_SUBMITTED": "This homework has not been submitted yet."
+    "err_NOT_SUBMITTED": "This homework has not been submitted yet.",
+    "err_ALREADY_REVIEWED": "This homework has already been reviewed."
   },
   "billing": {
     "tab": "Schedule & Billing",
@@ -4304,6 +4306,7 @@
     "err_CONTACT_DETAILS": "Remove phone numbers, contact details or web addresses from the note.",
     "err_CANNOT_RESPOND": "This request can't be answered any more.",
     "err_REQUEST_BUSY": "Another request was sent at the same moment. Try again.",
-    "err_SHARED_RECENTLY": "Already shared in the last hour."
+    "err_SHARED_RECENTLY": "Already shared in the last hour.",
+    "err_NOTHING_TO_SHARE": "Nothing to share for that month."
   }
 }

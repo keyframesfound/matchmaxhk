@@ -14,12 +14,13 @@ import { insertAudit, selectRows, type Db, type Row } from "@/features/cases/des
 import { insertLessonLifecycleEvent } from "@/features/cases/bus.functions";
 import {
   RESCHEDULE_NOTE_MAX,
-  SHARE_COOLDOWN_MS,
   STATEMENT_NOTE_MAX,
   STATEMENT_STATUSES,
   canRespondToReschedule,
   isStatementMonth,
   rescheduleLessonError,
+  shareCoolingDown,
+  statementHasMonth,
   type BillingRole,
   type MonthMark,
   type StatementLesson,
@@ -77,6 +78,10 @@ function assertCleanNote(note: string | undefined): void {
   if (note && contactFilterError(note)) throw new Error("CONTACT_DETAILS");
 }
 
+function toStatementLesson(l: LessonRow): StatementLesson {
+  return { id: l.id, startsAt: l.starts_at, durationMin: l.duration_min, status: l.status };
+}
+
 function lessonLine(iso: string): string {
   return `${hktDateKey(new Date(iso))} ${hktClock(iso)} HKT`;
 }
@@ -122,22 +127,21 @@ async function notifyOtherSide(
   db: Db,
   c: PartyCase,
   actor: BillingRole,
-  startsAt: string,
+  line: string,
   heading: string,
   body: string,
 ): Promise<void> {
   // A fresh source id: each of these notifies; the bus dedupes on source id.
   await insertLessonLifecycleEvent(
     db,
-    `lesson.scheduled_by_${actor}`,
+    `billing.notice_by_${actor}`,
     {
       case_id: c.id,
       case_code: c.case_code,
       caseCode: c.case_code,
-      starts_at: startsAt,
       heading,
       body,
-      lessonLine: lessonLine(startsAt),
+      lessonLine: line,
     },
     crypto.randomUUID(),
   );
@@ -192,12 +196,7 @@ export const getCaseBilling = createServerFn({ method: "POST" })
       isShortCase: Boolean(terms[0]?.is_short_case),
       canRequest:
         !c.schedule_paused_at && (c.sor_status === "fee_paid" || c.sor_status === "active"),
-      lessons: lessons.map((l) => ({
-        id: l.id,
-        startsAt: l.starts_at,
-        durationMin: l.duration_min,
-        status: l.status,
-      })),
+      lessons: lessons.map(toStatementLesson),
       pending: requests
         .filter((r) => liveStart.has(r.lesson_id))
         .map((r) => ({
@@ -268,7 +267,7 @@ export const requestReschedule = createServerFn({ method: "POST" })
       db,
       c,
       role,
-      proposedIso,
+      lessonLine(proposedIso),
       "Reschedule requested",
       "A new lesson time was proposed. Accept or decline it in Case Manager.",
     );
@@ -298,9 +297,23 @@ export const respondReschedule = createServerFn({ method: "POST" })
       throw new Error("CANNOT_RESPOND");
     }
 
-    if (data.accept) {
-      const lesson = await lessonOnCase(db, request.lesson_id, c.id);
-      await assertMovable(db, c, tutorId, lesson, request.proposed_starts_at);
+    const lesson = data.accept ? await lessonOnCase(db, request.lesson_id, c.id) : null;
+    if (lesson) await assertMovable(db, c, tutorId, lesson, request.proposed_starts_at);
+
+    // Claim the request first, so a double tap or a racing answer can't apply twice.
+    const status = data.accept ? "accepted" : "declined";
+    const { error: claimError, count } = await db
+      .from<Row>("case_reschedule_requests")
+      .update(
+        { status, responded_by: context.userId, responded_at: new Date().toISOString() },
+        { count: "exact" },
+      )
+      .eq("id", request.id)
+      .eq("status", "pending");
+    if (claimError) throw new Error(claimError.message);
+    if (count === 0) throw new Error("CANNOT_RESPOND");
+
+    if (lesson) {
       const stamp = new Date().toISOString();
       const { error } = await db
         .from<Row>("case_lessons")
@@ -313,24 +326,22 @@ export const respondReschedule = createServerFn({ method: "POST" })
         })
         .eq("id", lesson.id);
       if (error) {
+        const { error: reopenError } = await db
+          .from<Row>("case_reschedule_requests")
+          .update({ status: "pending", responded_by: null, responded_at: null })
+          .eq("id", request.id);
+        if (reopenError) console.error("[billing] reopen failed:", reopenError.message);
         if (isTimeClashError(error.message)) throw new Error("SLOT_CONFLICT");
         throw new Error(error.message);
       }
     }
 
-    const status = data.accept ? "accepted" : "declined";
-    const { error: closeError } = await db
-      .from<Row>("case_reschedule_requests")
-      .update({ status, responded_by: context.userId, responded_at: new Date().toISOString() })
-      .eq("id", request.id)
-      .eq("status", "pending");
-    if (closeError) throw new Error(closeError.message);
     await insertAudit(db, c.id, context.userId, `reschedule_${status}`, null);
     await notifyOtherSide(
       db,
       c,
       role,
-      request.proposed_starts_at,
+      lessonLine(request.proposed_starts_at),
       data.accept ? "Reschedule accepted" : "Reschedule declined",
       data.accept
         ? "The new lesson time is on both Case Manager calendars."
@@ -385,17 +396,23 @@ export const shareStatement = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const { c, role } = await partyCase(db, data.caseId, context.userId);
-    const existing = await selectRows<{ shared_at: string | null }>(
-      db,
-      "case_statement_months",
-      "shared_at",
-      [
+    const [months, lessons] = await Promise.all([
+      selectRows<{ shared_at: string | null }>(db, "case_statement_months", "shared_at", [
         { col: "case_id", op: "eq", value: c.id },
-        { col: "month", op: "eq", value: data.month },
-      ],
-    );
-    const last = existing[0]?.shared_at;
-    if (last && Date.now() - Date.parse(last) < SHARE_COOLDOWN_MS) {
+      ]),
+      selectRows<LessonRow>(db, "case_lessons", LESSON_COLS, [
+        { col: "case_id", op: "eq", value: c.id },
+      ]),
+    ]);
+    if (!statementHasMonth(lessons.map(toStatementLesson), data.month)) {
+      throw new Error("NOTHING_TO_SHARE");
+    }
+    if (
+      shareCoolingDown(
+        months.map((m) => m.shared_at),
+        new Date(),
+      )
+    ) {
       throw new Error("SHARED_RECENTLY");
     }
     const sharedAt = new Date().toISOString();
@@ -410,7 +427,7 @@ export const shareStatement = createServerFn({ method: "POST" })
       db,
       c,
       role,
-      sharedAt,
+      data.month,
       "Tuition statement shared",
       `The ${data.month} statement is ready to view in Case Manager. MatchMax does not collect this tuition.`,
     );

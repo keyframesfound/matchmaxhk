@@ -22,6 +22,9 @@ export const BUS_EVENT_TYPES = [
   "lesson.cancelled_by_tutor",
   "lesson.scheduled_by_parent",
   "lesson.scheduled_by_tutor",
+  // #654 reschedule answers and shared statements, for the other side only.
+  "billing.notice_by_parent",
+  "billing.notice_by_tutor",
   // #542 V1 triggers 1/2/4/6/7 + #561 Action Required scenarios. The
   // action-required half is decided by ACTION_PLAN (action-required.ts);
   // these entries only control recipients, channels and mode context.
@@ -69,6 +72,9 @@ export const BELL_EVENT_TYPES: readonly string[] = [
   "lesson.cancelled_by_tutor",
   "lesson.scheduled_by_parent",
   "lesson.scheduled_by_tutor",
+  // #654 reschedule answers and shared statements, for the other side only.
+  "billing.notice_by_parent",
+  "billing.notice_by_tutor",
   // #542 V1 triggers + #561 action items reach the bell. report.filed is
   // bell-visible for the reported owner (anonymous by design — the payload
   // never carries the reporter identity).
@@ -216,6 +222,14 @@ export const DELIVERY_PLAN: Readonly<
     { channel: "in_app", role: "parent" },
     { channel: "email", role: "parent" },
   ],
+  "billing.notice_by_parent": [
+    { channel: "in_app", role: "tutor" },
+    { channel: "email", role: "tutor" },
+  ],
+  "billing.notice_by_tutor": [
+    { channel: "in_app", role: "parent" },
+    { channel: "email", role: "parent" },
+  ],
   // Concierge unpaid-fee digest (#205). Generated at most once per 24h by the
   // drain; not a bell item for parents/tutors.
   "admin_fee.digest": [
@@ -339,6 +353,12 @@ export function bellLinkFor(
     case "lesson.scheduled_by_tutor":
       if (role === "tutor") return tutorHome;
       return caseId ? `/account/cases/${caseId}` : "/account";
+    case "billing.notice_by_parent":
+    case "billing.notice_by_tutor": {
+      // #654: straight to the tab where the recipient can act.
+      const code = typeof payload.case_code === "string" ? payload.case_code : null;
+      return code ? `/calendar?case=${encodeURIComponent(code)}&tab=schedule` : "/calendar";
+    }
     case "admin_fee.invoiced":
     case "admin_fee.unpaid":
       // #259: the payer (tutor) settles on their case card.

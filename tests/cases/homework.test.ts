@@ -126,6 +126,20 @@ describe("homeworkTextError", () => {
     expect(homeworkTextError("whatsapp me on 91234567")).toBe("CONTACT_DETAILS");
   });
 
+  it("does not mistake exam years or IGCSE-style names for contact details", () => {
+    expect(homeworkTextError("HKDSE 2019-2023 past papers")).toBeNull();
+    expect(homeworkTextError("2020 2022 papers")).toBeNull();
+    expect(homeworkTextError("Edexcel IG Maths, 2023 P1")).toBeNull();
+    expect(homeworkTextError("pp 120-135, Q1-5")).toBeNull();
+  });
+
+  it("still flags a real number, a bare IG handle, an email and a web address", () => {
+    expect(homeworkTextError("call 9123 4567")).toBe("CONTACT_DETAILS");
+    expect(homeworkTextError("add my IG")).toBe("CONTACT_DETAILS");
+    expect(homeworkTextError("send to tutor@example.com")).toBe("CONTACT_DETAILS");
+    expect(homeworkTextError("see example.com")).toBe("CONTACT_DETAILS");
+  });
+
   it("ignores empty optional text", () => {
     expect(homeworkTextError(undefined)).toBeNull();
     expect(homeworkTextError("")).toBeNull();

@@ -604,6 +604,18 @@ export const editCaseLessons = createServerFn({ method: "POST" })
     }
     if (updated === 0) throw new Error("SLOT_CONFLICT");
 
+    // #654: an agreed move replaces any open proposal, so accepting a stale
+    // one can't overwrite this edit.
+    const { error: supersedeError } = await db
+      .from<Row>("case_reschedule_requests")
+      .update({ status: "superseded" })
+      .in(
+        "lesson_id",
+        moves.map((m) => m.id),
+      )
+      .eq("status", "pending");
+    if (supersedeError) throw new Error(supersedeError.message);
+
     await insertAudit(db, c.id, context.userId, "planned", `${role}_moved_lessons_${updated}`);
     const firstMoved = moves[0].newStart;
     // A fresh source id: every edit notifies, the bus dedupes on source id.

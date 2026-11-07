@@ -97,6 +97,16 @@ export function buildStatement(
   };
 }
 
+/** A statement can only be shared for a month that has lessons on it. */
+export function statementHasMonth(lessons: readonly StatementLesson[], month: string): boolean {
+  return lessons.some((l) => BILLABLE_STATUSES.has(l.status) && hktMonthKey(l.startsAt) === month);
+}
+
+/** One share per case per cooldown, whichever month it was for. */
+export function shareCoolingDown(sharedAts: readonly (string | null)[], now: Date): boolean {
+  return sharedAts.some((at) => at !== null && now.getTime() - Date.parse(at) < SHARE_COOLDOWN_MS);
+}
+
 export type RescheduleError = "LESSON_NOT_LIVE" | "LESSON_PAST" | "IN_PAST" | "SAME_TIME";
 
 export function rescheduleLessonError(input: {
