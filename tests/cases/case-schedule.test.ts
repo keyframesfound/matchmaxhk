@@ -262,6 +262,7 @@ describe("caseCodeFromParam", () => {
 describe("caseTabFromParam", () => {
   it("opens homework only when asked and falls back to overview", () => {
     expect(caseTabFromParam("homework")).toBe("homework");
+    expect(caseTabFromParam("schedule")).toBe("schedule");
     expect(caseTabFromParam("nope")).toBe("overview");
     expect(caseTabFromParam(undefined)).toBe("overview");
   });

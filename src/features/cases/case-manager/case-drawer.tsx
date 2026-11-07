@@ -17,6 +17,7 @@ import type { HubScheduleLesson, ScheduleCase } from "@/features/cases/case-sche
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
+import { BillingTab } from "./billing-tab";
 import { EditLessonsDialog } from "./edit-lessons-dialog";
 import { HomeworkTab } from "./homework-tab";
 import { SeriesDialog } from "./series-dialog";
@@ -86,12 +87,16 @@ export function CaseDrawer({
         </SheetHeader>
 
         <Tabs value={tab} onValueChange={(value) => onTabChange(value as CaseTab)} className="mt-4">
-          <TabsList>
+          <TabsList className="max-w-full justify-start overflow-x-auto">
             <TabsTrigger value="overview">{t("homework.tab_overview")}</TabsTrigger>
             <TabsTrigger value="homework">{t("homework.tab")}</TabsTrigger>
+            <TabsTrigger value="schedule">{t("billing.tab")}</TabsTrigger>
           </TabsList>
           <TabsContent value="homework">
             <HomeworkTab caseId={scheduleCase.id} />
+          </TabsContent>
+          <TabsContent value="schedule">
+            <BillingTab caseId={scheduleCase.id} onScheduleChanged={onChanged} />
           </TabsContent>
           <TabsContent value="overview">
             <dl className="mt-4 space-y-2">

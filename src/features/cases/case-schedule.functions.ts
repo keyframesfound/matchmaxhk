@@ -97,6 +97,8 @@ export type HubScheduleLesson = ScheduleLesson & {
   caseCode: string;
   subject: string | null;
   role: PartyRole;
+  /** #654: an open contested reschedule is waiting on this lesson. */
+  reschedulePending: boolean;
 };
 
 export type ProposedItem = {
@@ -249,6 +251,14 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
             { col: "case_id", op: "in", value: caseIds },
           ]);
     const lessons = lessonRows.map(toLesson);
+    const pendingMoves =
+      caseIds.length === 0
+        ? []
+        : await selectRows<{ lesson_id: string }>(db, "case_reschedule_requests", "lesson_id", [
+            { col: "case_id", op: "in", value: caseIds },
+            { col: "status", op: "eq", value: "pending" },
+          ]);
+    const pendingLessonIds = new Set(pendingMoves.map((m) => m.lesson_id));
 
     const cases: ScheduleCase[] = entries.map(({ row, role }) => ({
       id: row.id,
@@ -274,7 +284,16 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
     const byId = new Map(cases.map((c) => [c.id, c]));
     const hubLessons = lessons.flatMap((l) => {
       const c = byId.get(l.caseId);
-      return c ? [{ ...l, caseCode: c.code, subject: c.subject, role: c.role }] : [];
+      if (!c) return [];
+      return [
+        {
+          ...l,
+          caseCode: c.code,
+          subject: c.subject,
+          role: c.role,
+          reschedulePending: pendingLessonIds.has(l.id),
+        },
+      ];
     });
 
     const parentOpen = ownedVisible.filter(
@@ -347,7 +366,7 @@ export async function partyCase(
 }
 
 /** Every occupied block on the tutor's or the learner's side, for clash checks. */
-async function occupiedFor(
+export async function occupiedFor(
   db: Db,
   c: PartyCase,
   tutorId: string,
@@ -584,6 +603,18 @@ export const editCaseLessons = createServerFn({ method: "POST" })
       }
     }
     if (updated === 0) throw new Error("SLOT_CONFLICT");
+
+    // #654: an agreed move replaces any open proposal, so accepting a stale
+    // one can't overwrite this edit.
+    const { error: supersedeError } = await db
+      .from<Row>("case_reschedule_requests")
+      .update({ status: "superseded" })
+      .in(
+        "lesson_id",
+        moves.map((m) => m.id),
+      )
+      .eq("status", "pending");
+    if (supersedeError) throw new Error(supersedeError.message);
 
     await insertAudit(db, c.id, context.userId, "planned", `${role}_moved_lessons_${updated}`);
     const firstMoved = moves[0].newStart;
