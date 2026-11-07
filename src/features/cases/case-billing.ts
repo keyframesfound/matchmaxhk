@@ -30,6 +30,7 @@ export type MonthMark = {
   status: StatementStatus;
   note: string | null;
   markedByRole: BillingRole | null;
+  markedByName: string | null;
   markedAt: string | null;
 };
 
@@ -43,6 +44,7 @@ export type StatementMonth = {
   status: StatementStatus;
   note: string | null;
   markedByRole: BillingRole | null;
+  markedByName: string | null;
   markedAt: string | null;
   lines: StatementLine[];
 };
@@ -87,6 +89,7 @@ export function buildStatement(
       status: mark?.status ?? "unpaid",
       note: mark?.note ?? null,
       markedByRole: mark?.markedByRole ?? null,
+      markedByName: mark?.markedByName ?? null,
       markedAt: mark?.markedAt ?? null,
       lines: monthLines,
     };

@@ -1,8 +1,7 @@
 /**
  * Issue #654: Schedule & Billing, server half. Contested reschedules (the other
  * side accepts or declines) and the shared tuition statement. Every call goes
- * through partyCase. Parties are shown by role, not name, and nothing here
- * charges, holds or moves money.
+ * through partyCase. Nothing here charges, holds or moves money.
  */
 
 import { createServerFn } from "@tanstack/react-start";
@@ -173,12 +172,24 @@ export const getCaseBilling = createServerFn({ method: "POST" })
         month: string;
         status: StatementStatus;
         note: string | null;
+        marked_by: string | null;
         marked_by_role: BillingRole | null;
         marked_at: string | null;
-      }>(db, "case_statement_months", "month, status, note, marked_by_role, marked_at", [
+      }>(db, "case_statement_months", "month, status, note, marked_by, marked_by_role, marked_at", [
         { col: "case_id", op: "eq", value: c.id },
       ]),
     ]);
+    const markerIds = [...new Set(marks.flatMap((m) => (m.marked_by ? [m.marked_by] : [])))];
+    const markers =
+      markerIds.length === 0
+        ? []
+        : await selectRows<{ id: string; display_name: string | null }>(
+            db,
+            "profiles",
+            "id, display_name",
+            [{ col: "id", op: "in", value: markerIds }],
+          );
+    const nameById = new Map(markers.map((m) => [m.id, m.display_name]));
     // A proposal on a lesson that has since been cancelled or passed is dead.
     const liveStart = new Map(
       lessons
@@ -212,6 +223,7 @@ export const getCaseBilling = createServerFn({ method: "POST" })
         status: m.status,
         note: m.note,
         markedByRole: m.marked_by_role,
+        markedByName: (m.marked_by && nameById.get(m.marked_by)) || null,
         markedAt: m.marked_at,
       })),
     };
