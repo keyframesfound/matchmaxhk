@@ -7,18 +7,16 @@ import { TosAcceptanceGate } from "@/features/auth/TosAcceptanceGate";
 import { GateOverlayContext } from "@/features/auth/gate-overlay";
 import { supabase } from "@/integrations/supabase/client";
 import { HANDLE_MAX, HANDLE_MIN, normalizeHandle } from "@/features/auth/handle";
+import { phoneIsValid } from "@/features/tutor-application/activation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 
-type OnboardingChoice = "parent" | "tutor";
-
 /**
  * Blocks the entire app behind a first-run dialog for any signed-in user who
- * has not completed onboarding yet: a required display name plus OPTIONAL
- * parent/tutor intent pills with a Skip (#459 §A — zero lock-in; the old
- * blocking XOR choice is gone). Internal roles (admins/staff) skip straight
+ * has not completed onboarding yet: a required display name,
+ * @handle and phone (#576 Stage 1 — never a Parent vs Tutor choice, per #459). Internal roles (admins/staff) skip straight
  * to the Terms gate. Once saved the ToS acceptance gate takes over, so
  * first-time users see onboarding first, then the ToS dialog.
  */
@@ -103,14 +101,14 @@ function OnboardingRoleDialog({
   onDone: () => void;
 }) {
   const { t } = useTranslation();
-  const { refreshRoles } = useAuth();
+  const { user } = useAuth();
   const [name, setName] = useState(displayName ?? fallbackName);
-  const [choice, setChoice] = useState<OnboardingChoice | null>(null);
+  const [phone, setPhone] = useState("");
   const [handle, setHandle] = useState("");
   const [handleError, setHandleError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const cleanHandle = normalizeHandle(handle);
-  const canSave = Boolean(name.trim()) && cleanHandle !== null;
+  const canSave = Boolean(name.trim()) && cleanHandle !== null && phoneIsValid(phone);
   // #522: optional DOB card (day/month/year selects, 2000–2012 fast reach).
   const [dobDay, setDobDay] = useState("");
   const [dobMonth, setDobMonth] = useState("");
@@ -125,7 +123,7 @@ function OnboardingRoleDialog({
   const dob = dobIso ? new Date(`${dobIso}T00:00:00`) : null;
   const age = dob ? Math.floor((Date.now() - dob.getTime()) / (365.2425 * 24 * 3600 * 1000)) : null;
 
-  async function save(nextChoice: OnboardingChoice | null) {
+  async function save() {
     const trimmed = name.trim();
     if (!trimmed || !cleanHandle) return;
     if (submitting) return;
@@ -135,14 +133,10 @@ function OnboardingRoleDialog({
       toast.error(t("auth.dob_parent_aware_required"));
       return;
     }
-    if (nextChoice === "tutor" && dob && age !== null && age < 16) {
-      toast.error(t("auth.dob_tutor_age_blocked"));
-      return;
-    }
     setSubmitting(true);
     setHandleError(null);
     const { error } = await supabase.rpc("complete_onboarding", {
-      _choice: nextChoice,
+      _choice: null,
       _display_name: trimmed,
       _handle: cleanHandle,
       _date_of_birth: dobIso,
@@ -162,24 +156,19 @@ function OnboardingRoleDialog({
       setSubmitting(false);
       return;
     }
-    if (nextChoice) await refreshRoles();
+    // Best-effort: the RPC above is what completes onboarding, and the phone is
+    // asked for again at activation if this write ever fails.
+    const avatar = user?.user_metadata?.avatar_url;
+    const { error: contactError } = await supabase
+      .from("profiles")
+      .update({
+        phone: phone.trim(),
+        ...(typeof avatar === "string" ? { avatar_url: avatar } : {}),
+      })
+      .eq("id", user?.id ?? "");
+    if (contactError) console.warn("[onboarding] phone save failed:", contactError.message);
     onDone();
   }
-
-  const options: { value: OnboardingChoice; icon: LucideIcon; label: string; desc: string }[] = [
-    {
-      value: "parent",
-      icon: Search,
-      label: t("auth.onboarding_parent_label"),
-      desc: t("auth.onboarding_parent_desc"),
-    },
-    {
-      value: "tutor",
-      icon: GraduationCap,
-      label: t("auth.onboarding_tutor_label"),
-      desc: t("auth.onboarding_tutor_desc"),
-    },
-  ];
 
   return (
     <Dialog open>
@@ -197,7 +186,7 @@ function OnboardingRoleDialog({
           {t("auth.onboarding_subtitle")}
         </DialogDescription>
 
-        {/* #459 §4.1: Display Name + Handle are the only required fields. */}
+        {/* #576 Stage 1: Name, @handle and Phone are the only required fields. */}
         <div className="mt-6 space-y-2">
           <Label htmlFor="onboarding-name" className="text-[color:var(--ink)]">
             {t("auth.onboarding_name_label")}
@@ -248,173 +237,125 @@ function OnboardingRoleDialog({
           </p>
         </div>
 
-        <p className="mt-5 text-sm font-medium text-muted-foreground">
-          {t("auth.onboarding_intent_optional")}
-        </p>
-        <div
-          role="radiogroup"
-          aria-label={t("auth.onboarding_intent_optional")}
-          className="mt-2 grid grid-cols-1 gap-3 sm:grid-cols-2"
-        >
-          {options.map((option) => {
-            const selected = choice === option.value;
-            const Icon = option.icon;
-            return (
-              <button
-                key={option.value}
-                type="button"
-                role="radio"
-                aria-checked={selected}
-                disabled={submitting}
-                onClick={() => setChoice(option.value)}
-                className={`relative flex flex-col items-start gap-3 rounded-2xl border-2 bg-[color:var(--surface)] p-4 pr-9 text-left transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] focus-visible:outline-none disabled:cursor-not-allowed ${
-                  selected
-                    ? "border-[color:var(--ink)]"
-                    : "border-border hover:border-[color:var(--ink)]/50"
-                }`}
-              >
-                <span
-                  aria-hidden
-                  className="absolute right-3 top-3 flex h-5 w-5 items-center justify-center"
-                >
-                  {selected ? (
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full bg-[color:var(--ink)]">
-                      <Check className="h-3 w-3 text-[color:var(--surface)]" strokeWidth={3} />
-                    </span>
-                  ) : (
-                    <span className="h-5 w-5 rounded-full border-2 border-[color:var(--muted-foreground)]/40" />
-                  )}
-                </span>
-                <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[color:var(--primary)]/10 text-[color:var(--primary)]">
-                  <Icon className="h-6 w-6" strokeWidth={2} />
-                </span>
-                <span className="flex flex-col gap-0.5">
-                  <span className="font-bold text-[color:var(--ink)]">{option.label}</span>
-                  <span className="text-sm leading-snug text-muted-foreground">{option.desc}</span>
-                </span>
-              </button>
-            );
-          })}
+        {/* #576 Stage 1: phone is the WhatsApp concierge handoff. */}
+        <div className="mt-4 space-y-2">
+          <Label htmlFor="onboarding-phone" className="text-[color:var(--ink)]">
+            {t("auth.onboarding_phone_label")}
+          </Label>
+          <Input
+            id="onboarding-phone"
+            type="tel"
+            value={phone}
+            maxLength={60}
+            autoComplete="tel"
+            placeholder={t("auth.onboarding_phone_placeholder")}
+            onChange={(event) => setPhone(event.target.value)}
+            className="bg-[color:var(--surface)]"
+          />
         </div>
+
         {/* #522: DOB card — optional, 5-second flow. HK age tiers: under-18
             needs the parental awareness checkbox; under-13 collects the
             parent/guardian contact; under-16 cannot activate Teaching. */}
-        <div className="mt-5 space-y-2">
-          <Label htmlFor="onboarding-dob-day" className="text-[color:var(--ink)]">
+        <details className="mt-4">
+          <summary className="cursor-pointer text-sm font-medium text-muted-foreground">
             {t("auth.dob_label")}
-          </Label>
-          <div className="grid grid-cols-3 gap-2">
-            <select
-              id="onboarding-dob-day"
-              value={dobDay}
-              onChange={(event) => setDobDay(event.target.value)}
-              className="h-10 rounded-xl border border-border bg-[color:var(--surface)] px-3 text-sm"
-              aria-label={t("auth.dob_day")}
-            >
-              <option value="">{t("auth.dob_day")}</option>
-              {Array.from({ length: 31 }, (_, i) => String(i + 1)).map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
-            <select
-              value={dobMonth}
-              onChange={(event) => setDobMonth(event.target.value)}
-              className="h-10 rounded-xl border border-border bg-[color:var(--surface)] px-3 text-sm"
-              aria-label={t("auth.dob_month")}
-            >
-              <option value="">{t("auth.dob_month")}</option>
-              {Array.from({ length: 12 }, (_, i) => String(i + 1)).map((m) => (
-                <option key={m} value={m}>
-                  {m}
-                </option>
-              ))}
-            </select>
-            <select
-              value={dobYear}
-              onChange={(event) => setDobYear(event.target.value)}
-              className="h-10 rounded-xl border border-border bg-[color:var(--surface)] px-3 text-sm"
-              aria-label={t("auth.dob_year")}
-            >
-              <option value="">{t("auth.dob_year")}</option>
-              {Array.from({ length: 80 }, (_, i) => String(new Date().getFullYear() - i)).map(
-                (y) => (
-                  <option key={y} value={y}>
-                    {y}
+          </summary>
+          <div className="mt-5 space-y-2">
+            <Label htmlFor="onboarding-dob-day" className="text-[color:var(--ink)]">
+              {t("auth.dob_label")}
+            </Label>
+            <div className="grid grid-cols-3 gap-2">
+              <select
+                id="onboarding-dob-day"
+                value={dobDay}
+                onChange={(event) => setDobDay(event.target.value)}
+                className="h-10 rounded-xl border border-border bg-[color:var(--surface)] px-3 text-sm"
+                aria-label={t("auth.dob_day")}
+              >
+                <option value="">{t("auth.dob_day")}</option>
+                {Array.from({ length: 31 }, (_, i) => String(i + 1)).map((d) => (
+                  <option key={d} value={d}>
+                    {d}
                   </option>
-                ),
-              )}
-            </select>
-          </div>
-          <p className="text-xs text-muted-foreground">🔒 {t("auth.dob_privacy")}</p>
-          {dob && age !== null && age < 18 && (
-            <label className="flex items-start gap-2 rounded-xl border border-border bg-[color:var(--card-tint)] p-3 text-sm text-[color:var(--ink)]">
+                ))}
+              </select>
+              <select
+                value={dobMonth}
+                onChange={(event) => setDobMonth(event.target.value)}
+                className="h-10 rounded-xl border border-border bg-[color:var(--surface)] px-3 text-sm"
+                aria-label={t("auth.dob_month")}
+              >
+                <option value="">{t("auth.dob_month")}</option>
+                {Array.from({ length: 12 }, (_, i) => String(i + 1)).map((m) => (
+                  <option key={m} value={m}>
+                    {m}
+                  </option>
+                ))}
+              </select>
+              <select
+                value={dobYear}
+                onChange={(event) => setDobYear(event.target.value)}
+                className="h-10 rounded-xl border border-border bg-[color:var(--surface)] px-3 text-sm"
+                aria-label={t("auth.dob_year")}
+              >
+                <option value="">{t("auth.dob_year")}</option>
+                {Array.from({ length: 80 }, (_, i) => String(new Date().getFullYear() - i)).map(
+                  (y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ),
+                )}
+              </select>
+            </div>
+            <p className="text-xs text-muted-foreground">🔒 {t("auth.dob_privacy")}</p>
+            {dob && age !== null && age < 18 && (
+              <label className="flex items-start gap-2 rounded-xl border border-border bg-[color:var(--card-tint)] p-3 text-sm text-[color:var(--ink)]">
+                <input
+                  type="checkbox"
+                  checked={parentAware}
+                  onChange={(event) => setParentAware(event.target.checked)}
+                  className="mt-0.5"
+                />
+                {t("auth.dob_parent_aware")}
+              </label>
+            )}
+            {dob && age !== null && age < 13 && (
+              <div className="space-y-1.5">
+                <Label htmlFor="onboarding-parent-contact" className="text-[color:var(--ink)]">
+                  {t("auth.dob_parent_contact")}
+                </Label>
+                <Input
+                  id="onboarding-parent-contact"
+                  value={parentContact}
+                  maxLength={120}
+                  placeholder="+852 … or parent@email.com"
+                  onChange={(event) => setParentContact(event.target.value)}
+                  className="bg-[color:var(--surface)]"
+                />
+              </div>
+            )}
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
               <input
                 type="checkbox"
-                checked={parentAware}
-                onChange={(event) => setParentAware(event.target.checked)}
-                className="mt-0.5"
+                checked={showBirthday}
+                onChange={(event) => setShowBirthday(event.target.checked)}
               />
-              {t("auth.dob_parent_aware")}
+              {t("auth.dob_show_birthday")}
             </label>
-          )}
-          {dob && age !== null && age < 13 && (
-            <div className="space-y-1.5">
-              <Label htmlFor="onboarding-parent-contact" className="text-[color:var(--ink)]">
-                {t("auth.dob_parent_contact")}
-              </Label>
-              <Input
-                id="onboarding-parent-contact"
-                value={parentContact}
-                maxLength={120}
-                placeholder="+852 … or parent@email.com"
-                onChange={(event) => setParentContact(event.target.value)}
-                className="bg-[color:var(--surface)]"
-              />
-            </div>
-          )}
-          {dob && age !== null && age < 16 && choice === "tutor" && (
-            <p className="rounded-xl border border-destructive/30 bg-destructive/5 p-3 text-xs font-medium text-destructive">
-              {t("auth.dob_tutor_age_blocked")}
-            </p>
-          )}
-          <label className="flex items-center gap-2 text-sm text-muted-foreground">
-            <input
-              type="checkbox"
-              checked={showBirthday}
-              onChange={(event) => setShowBirthday(event.target.checked)}
-            />
-            {t("auth.dob_show_birthday")}
-          </label>
-        </div>
-
-        {/* #459 §4.1 / §10: picking Tutor shows the Cap.57 self-employed note. */}
-        {choice === "tutor" ? (
-          <p className="mt-3 rounded-xl border border-border bg-[color:var(--card-tint)] p-3 text-xs leading-relaxed text-muted-foreground">
-            {t("auth.onboarding_cap57")}
-          </p>
-        ) : null}
-        {/* #459 §A: intent pills are optional — Skip records the name and
-            adds no role; Continue records the chosen intent alongside it. */}
-        <div className="mt-6 flex flex-col gap-2 sm:flex-row-reverse">
+          </div>
+        </details>
+        <div className="mt-6">
           <Button
             variant="solid"
             color="neutral"
             loading={submitting}
             disabled={!canSave}
-            onClick={() => save(choice)}
-            className="h-12 flex-1 rounded-xl text-base font-bold"
+            onClick={save}
+            className="h-12 w-full rounded-xl text-base font-bold"
           >
             {t("auth.onboarding_next")}
-          </Button>
-          <Button
-            variant="ghost"
-            disabled={submitting || !canSave}
-            onClick={() => save(null)}
-            className="h-12 flex-1 rounded-xl text-base font-semibold"
-          >
-            {t("auth.onboarding_skip")}
           </Button>
         </div>
       </DialogContent>

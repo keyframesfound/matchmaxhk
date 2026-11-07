@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ProfileStrengthBanner } from "@/features/profile-strength/profile-strength-banner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMyBell } from "@/features/cases/bus.functions";
 import { EducationCvSection } from "@/features/account/education-cv-section";
@@ -319,6 +320,9 @@ function AccountPage() {
     <div className="flex min-h-screen flex-col bg-[color:var(--background)]">
       <SiteHeader />
       <main className="mx-auto w-full max-w-7xl flex-1 px-4 py-10 sm:px-6">
+        <div className="mb-6">
+          <ProfileStrengthBanner />
+        </div>
         <div className="flex flex-wrap items-center justify-between gap-3">
           <h1 className="text-2xl font-bold tracking-normal">{t("account.title")}</h1>
           {openActionCount > 0 && (
