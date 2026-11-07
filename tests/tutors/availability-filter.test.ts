@@ -5,7 +5,7 @@ import {
   matchTutorAvailability,
   parseAvailBands,
   parseAvailDays,
-} from "@/features/tutors/availability-filter";
+} from "../../src/features/tutors/availability-filter";
 
 const grid = (overrides: Record<string, string[]>) => ({
   mon: ["u", "u", "u", "u", "u", "u"],

@@ -9,7 +9,7 @@ import {
   waveWindowEndsAt,
   type MatchCase,
   type MatchTutor,
-} from "@/features/cases/case-match-waves";
+} from "../../src/features/cases/case-match-waves";
 
 const NOW = new Date("2026-11-07T04:00:00Z"); // 12:00 HKT
 

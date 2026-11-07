@@ -6,7 +6,7 @@ import {
   emptyDemandSide,
   sanitizeDemandSide,
   seedDemandSide,
-} from "@/features/cases/demand-side/demand-side";
+} from "../../src/features/cases/demand-side/demand-side";
 
 describe("demandSideAccess (#637)", () => {
   const parties = { parentId: "p", studentOwnerId: "s", tutorUserId: "t" };

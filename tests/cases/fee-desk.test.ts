@@ -6,7 +6,7 @@ import {
   isAllowedScreenshot,
   isReferenceUsedElsewhere,
   normalizeFpsReference,
-} from "@/features/cases/fee-desk";
+} from "../../src/features/cases/fee-desk";
 
 describe("fee desk (#259)", () => {
   it("builds the FPS memo from the case code", () => {

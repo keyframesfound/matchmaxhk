@@ -7,7 +7,7 @@ import {
   rankGroup,
   scoreEntity,
   suggestTags,
-} from "@/features/search/global-search";
+} from "../../src/features/search/global-search";
 
 describe("global search (#553)", () => {
   it("normalizes tags: lowercase, hyphens, 2-32 chars, no #", () => {

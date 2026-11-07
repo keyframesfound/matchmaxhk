@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 
-import { matchesCaseFilters, type CaseBoardFilters } from "@/features/cases/case-filters";
-import { caseChipsWithOverflow } from "@/features/cases/case-chips";
-import { caseFeeNoteKey, parseCaseTypeParam, resolveCaseType } from "@/features/cases/case-type";
-import type { PublicCaseBoardItem } from "@/lib/cases.functions";
+import { matchesCaseFilters, type CaseBoardFilters } from "../../src/features/cases/case-filters";
+import { caseChipsWithOverflow } from "../../src/features/cases/case-chips";
+import { caseFeeNoteKey, parseCaseTypeParam, resolveCaseType } from "../../src/features/cases/case-type";
+import type { PublicCaseBoardItem } from "../../src/lib/cases.functions";
 
 const centre = { name: "Top Leader", slug: "top", verified: true, orgType: null };
 

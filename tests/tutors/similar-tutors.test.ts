@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { orderBySimilarIds, similarFiltersFromSearch } from "@/features/tutors/similar-tutors";
+import { orderBySimilarIds, similarFiltersFromSearch } from "../../src/features/tutors/similar-tutors";
 
 describe("similarFiltersFromSearch (#563)", () => {
   it("maps directory filters onto the RPC's active_filters", () => {

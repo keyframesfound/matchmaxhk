@@ -4,7 +4,7 @@ import {
   classifyWhatsAppMessage,
   signIngestBody,
   verifyIngestSignature,
-} from "@/features/trust/wa-classifier";
+} from "../../src/features/trust/wa-classifier";
 
 describe("WA advisory classifier (#529 §D)", () => {
   it("flags overpayment scams with keyword-only evidence", () => {
