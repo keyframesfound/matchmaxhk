@@ -3064,6 +3064,16 @@
       "saving": "儲存中…",
       "saved": "時間表已更新",
       "save": "儲存變更"
+    },
+    "proofs": {
+      "title": "成就相片證明",
+      "warning": "此處相片將在你的公開檔案上顯示。只請上載證書、獎牌或畢業照——切勿上載身份證或完整成績表（該等文件只存在於職員私人核實流程）。上載前請遮蔽證件號碼。",
+      "empty": "請先在導師檔案加入成就——之後即可為每項成就附上公開相片證明。",
+      "attach": "附上公開相片",
+      "replace": "更換相片",
+      "remove": "移除",
+      "save": "儲存相片證明",
+      "saved": "相片證明已更新"
     }
   },
   "share": {
@@ -3722,7 +3732,16 @@
     "promo_tooltip": "只限簡短網上介紹。正式課堂按全額收費。如家長確認上完第一堂付費課後停止，Drop-Protection 適用。",
     "rating_summary": "{{avg}} · {{count}} 則評價",
     "rating_new": "新",
-    "rating_count_only": "{{count}} 則評價"
+    "rating_count_only": "{{count}} 則評價",
+    "verified_tip": "已核實導師",
+    "verified_explain_checked": "MatchMax 團隊已核實的內容：導師的身份證明文件，以及藍剔背後的學歷證據（由職員審批的公開考試成績）。",
+    "verified_explain_private": "絕不公開的內容：導師的香港身份證、完整官方成績表及其他後台核實文件，僅限職員查閱。",
+    "verified_explain_proofs": "你可查看的相片證明：",
+    "verified_explain_proofs_hint": "檔案上的學歷可附有公開相片證明——該相片由導師自行選擇公開。",
+    "verified_explain_close": "知道了",
+    "proof_open": "查看相片證明",
+    "proof_pill": "相片證明",
+    "proof_caption": "由導師自行公開的相片證明。私人核實文件絕不會在此顯示。"
   },
   "tutor_compare": {
     "bar_selected": "已揀 {{count}} / {{max}} 位",

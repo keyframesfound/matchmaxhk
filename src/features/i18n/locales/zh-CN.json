@@ -3064,6 +3064,16 @@
       "saving": "保存中…",
       "saved": "时间表已更新",
       "save": "保存变更"
+    },
+    "proofs": {
+      "title": "成就相片证明",
+      "warning": "此处相片将在你的公开档案上显示。只请上传证书、奖牌或毕业照——切勿上传身份证或完整成绩表（该等文件只存在于职员私人核实流程）。上传前请遮蔽证件号码。",
+      "empty": "请先在导师档案加入成就——之后即可为每项成就附上公开相片证明。",
+      "attach": "附上公开相片",
+      "replace": "更换相片",
+      "remove": "移除",
+      "save": "储存相片证明",
+      "saved": "相片证明已更新"
     }
   },
   "share": {
@@ -3722,7 +3732,16 @@
     "promo_tooltip": "只限简短在线介绍。正式课堂按全额收费。如家长确认上完第一堂付费课后停止，Drop-Protection 适用。",
     "rating_summary": "{{avg}} · {{count}} 则评价",
     "rating_new": "新",
-    "rating_count_only": "{{count}} 则评价"
+    "rating_count_only": "{{count}} 则评价",
+    "verified_tip": "已核实导师",
+    "verified_explain_checked": "MatchMax 团队已核实的内容：导师的身份证明文件，以及蓝勾背后的学历证据（由职员审批的公开考试成绩）。",
+    "verified_explain_private": "绝不公开的内容：导师的香港身份证、完整官方成绩表及其他后台核实文件，仅限职员查阅。",
+    "verified_explain_proofs": "你可查看的相片证明：",
+    "verified_explain_proofs_hint": "档案上的学历可附有公开相片证明——该相片由导师自行选择公开。",
+    "verified_explain_close": "知道了",
+    "proof_open": "查看相片证明",
+    "proof_pill": "相片证明",
+    "proof_caption": "由导师自行公开的相片证明。私人核实文件绝不会在此显示。"
   },
   "tutor_compare": {
     "bar_selected": "已拣 {{count}} / {{max}} 位",

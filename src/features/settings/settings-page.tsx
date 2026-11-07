@@ -38,6 +38,7 @@ import { DangerZoneSection } from "@/features/settings/sections/danger-zone-sect
 import { GeneralSection } from "@/features/settings/sections/general-section";
 import { GroupClassesSection } from "@/features/settings/sections/group-classes-section";
 import { MyTutorProfileSection } from "@/features/settings/sections/my-tutor-profile-section";
+import { AchievementProofsSection } from "@/features/settings/sections/achievement-proofs-section";
 import { NotificationsSection } from "@/features/settings/sections/notifications-section";
 import { PrivacySection } from "@/features/settings/sections/privacy-section";
 import { ReferralsSection } from "@/features/settings/sections/referrals-section";
@@ -118,7 +119,7 @@ function LessonsTab(_props: SettingsSectionProps) {
 const SECTION_COMPONENTS: Record<SettingsCategory, ComponentType<SettingsSectionProps>> = {
   home: HomeTab,
   general: GeneralSection,
-  "my-tutor": MyTutorProfileSection,
+  "my-tutor": MyTutorTab,
   availability: AvailabilityTab,
   "group-classes": GroupClassesSection,
   lessons: LessonsTab,
@@ -130,6 +131,17 @@ const SECTION_COMPONENTS: Record<SettingsCategory, ComponentType<SettingsSection
   privacy: PrivacySection,
   "danger-zone": DangerZoneSection,
 };
+
+/** #575: the my-tutor tab shows the profile editor plus the public photo
+ * proofs block (own save path, so the big form stays untouched). */
+function MyTutorTab(_props: SettingsSectionProps) {
+  return (
+    <>
+      <MyTutorProfileSection />
+      <AchievementProofsSection />
+    </>
+  );
+}
 
 export function SettingsPage() {
   const { t } = useTranslation();

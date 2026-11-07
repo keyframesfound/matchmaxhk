@@ -17,6 +17,8 @@ export const IA_EE_TOK_SUPPORT_OPTIONS = ["IA", "EE", "TOK"] as const;
 export type TutorAchievement = {
   short_text: string;
   detail_text?: string;
+  /** #575: PUBLIC photo proof path (materials-previews bucket). */
+  proof_image_path?: string;
 };
 
 /** One per-curriculum hourly rate, e.g. { curriculum: "DSE", rate: 400 }. */
@@ -353,10 +355,15 @@ function normalizeAchievements(raw: unknown): TutorAchievement[] {
     const shortText = typeof entry.short_text === "string" ? entry.short_text.trim() : "";
     const detailText = typeof entry.detail_text === "string" ? entry.detail_text.trim() : "";
     if (!shortText) return [];
+    const proofPath =
+      typeof entry.proof_image_path === "string" && entry.proof_image_path.length <= 300
+        ? entry.proof_image_path
+        : undefined;
     return [
       {
         short_text: shortText.slice(0, TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT),
         ...(detailText ? { detail_text: detailText } : {}),
+        ...(proofPath ? { proof_image_path: proofPath } : {}),
       },
     ];
   });

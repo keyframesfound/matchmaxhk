@@ -9,7 +9,6 @@ import {
   Star,
   ArrowLeft,
   Award,
-  BadgeCheck,
   BookOpen,
   CalendarDays,
   ChevronDown,
@@ -82,6 +81,8 @@ import {
 } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { ExperienceLine } from "@/features/tutors/experience-badge";
+import { VerifiedBadge } from "@/features/tutors/verified-badge";
+import { AchievementProof } from "@/features/tutors/achievement-proof";
 import { CompletedCasesLine } from "@/features/tutors/completed-cases-line";
 import { VerifiedHoursLine } from "@/features/tutors/verified-hours-line";
 import { TutorGroupClassesSection } from "@/features/cases/tutor-cohorts-section";
@@ -740,18 +741,10 @@ function TutorDetail() {
                   )}
                   {/* Issue #411: minimalist BLUE TICK (MatchMax azure),
                       same #309 approved-grade gate as the card. */}
+                  {/* #575 §4b: profile header shares the card badge — same
+                  tip, same Verify explainer. */}
                   {(t.approved_grade_labels?.length ?? 0) > 0 ? (
-                    <span
-                      className="inline-flex items-center"
-                      title={translate("tutor_card.verified_disclaimer")}
-                    >
-                      <BadgeCheck
-                        className="h-4 w-4 fill-[#1d9bf0] text-white dark:text-[#0b2230]"
-                        strokeWidth={1.8}
-                        aria-hidden="true"
-                      />
-                      <span className="sr-only">{translate("tutor_card.verified_badge")}</span>
-                    </span>
+                    <VerifiedBadge className="h-4 w-4" />
                   ) : null}
                   {/* Issues #77/#52: tutor status badge on the profile header. */}
                   {statusKey ? (
@@ -1131,6 +1124,14 @@ function TutorDetail() {
                                 <p className="mt-0.5 whitespace-pre-line text-sm leading-relaxed text-[color:var(--ink)]">
                                   {achievement.detail_text}
                                 </p>
+                              ) : null}
+                              {/* #575: public photo proof thumbnail — opens the
+                              image large; the tutor chose to publish it. */}
+                              {achievement.proof_image_path ? (
+                                <AchievementProof
+                                  path={achievement.proof_image_path}
+                                  label={achievement.short_text}
+                                />
                               ) : null}
                             </div>
                           </li>

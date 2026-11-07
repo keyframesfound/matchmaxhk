@@ -3064,6 +3064,16 @@
       "saving": "Saving…",
       "saved": "Availability grid updated",
       "save": "Save changes"
+    },
+    "proofs": {
+      "title": "Achievement photo proofs",
+      "warning": "Photos here become PUBLIC on your profile. Show certificates, medals or graduation photos only — never identity documents or full transcripts (those stay in the private staff verification flow). Please redact ID numbers before uploading.",
+      "empty": "Add an achievement to your tutor card first — you can then attach a public photo proof to each one.",
+      "attach": "Attach public photo",
+      "replace": "Replace photo",
+      "remove": "Remove",
+      "save": "Save photo proofs",
+      "saved": "Photo proofs updated"
     }
   },
   "share": {
@@ -3722,7 +3732,16 @@
     "promo_tooltip": "Free short online intro only. Regular lessons start at the full rate. Drop-Protection applies after the first paid lesson if parent confirms they stopped.",
     "rating_summary": "{{avg}} · {{count}} reviews",
     "rating_new": "New",
-    "rating_count_only": "{{count}} review(s)"
+    "rating_count_only": "{{count}} review(s)",
+    "verified_tip": "Verified tutor",
+    "verified_explain_checked": "What MatchMax staff checked: the tutor's identity documents and the credential evidence behind their Blue Tick (exam grades submitted and approved by staff).",
+    "verified_explain_private": "What is NEVER public: the tutor's HKID, full official transcripts and any other backend verification files stay staff-only.",
+    "verified_explain_proofs": "Photo proofs you can see:",
+    "verified_explain_proofs_hint": "credentials on the profile may carry a public photo proof — the tutor chose to publish that image themselves.",
+    "verified_explain_close": "Got it",
+    "proof_open": "View photo proof",
+    "proof_pill": "Photo proof",
+    "proof_caption": "Public photo proof published by the tutor. Private verification documents are never shown here."
   },
   "tutor_compare": {
     "bar_selected": "{{count}} of {{max}} selected",
