@@ -453,7 +453,7 @@ export const getPublicCaseBoard = createServerFn({ method: "GET" }).handler(asyn
   if (casesResult.error) throw new Error(casesResult.error.message);
   const rows = (casesResult.data ?? []) as Array<Record<string, unknown>>;
   const settingsValue = settingsResult.data?.value;
-  const items = rows.map(mapPublicCaseRow);
+  const items = rows.map((r) => mapPublicCaseRow(r));
   const trust = await parentTrustByCase(
     supabaseAdmin as unknown as TrustDb,
     items.map((item) => item.id),
