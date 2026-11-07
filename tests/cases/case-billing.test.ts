@@ -82,13 +82,18 @@ describe("buildStatement", () => {
           status: "paid",
           note: null,
           markedByRole: "parent",
+          markedByName: "Chan Tai Man",
           markedAt: "2026-10-31T01:00:00Z",
         },
       ],
     );
     expect(s.months.map((m) => m.month)).toEqual(["2026-11", "2026-10"]);
-    expect(s.months[1]).toMatchObject({ status: "paid", markedByRole: "parent" });
-    expect(s.months[0]).toMatchObject({ status: "unpaid", markedByRole: null });
+    expect(s.months[1]).toMatchObject({
+      status: "paid",
+      markedByRole: "parent",
+      markedByName: "Chan Tai Man",
+    });
+    expect(s.months[0]).toMatchObject({ status: "unpaid", markedByRole: null, markedByName: null });
   });
 
   it("avoids float drift on a line total", () => {

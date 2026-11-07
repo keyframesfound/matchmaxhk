@@ -4321,8 +4321,6 @@
     "status_unpaid": "Unpaid",
     "status_paid": "Paid",
     "status_partial": "Partial",
-    "marked_by_tutor": "Marked {{status}} by the tutor · {{when}} HKT",
-    "marked_by_parent": "Marked {{status}} by the parent · {{when}} HKT",
     "copy": "Copy Statement",
     "copied": "Statement copied.",
     "copy_failed": "Couldn't copy the statement.",
@@ -4347,6 +4345,9 @@
     "err_CANNOT_RESPOND": "This request can't be answered any more.",
     "err_REQUEST_BUSY": "Another request was sent at the same moment. Try again.",
     "err_SHARED_RECENTLY": "Already shared in the last hour.",
-    "err_NOTHING_TO_SHARE": "Nothing to share for that month."
+    "err_NOTHING_TO_SHARE": "Nothing to share for that month.",
+    "marked_by": "Marked {{status}} by {{name}} · {{when}} HKT",
+    "role_tutor": "the tutor",
+    "role_parent": "the parent"
   }
 }

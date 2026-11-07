@@ -280,8 +280,10 @@ function MonthCard({
       </div>
       {month.markedByRole && month.markedAt ? (
         <p className="mt-1.5 text-xs text-muted-foreground">
-          {t(`billing.marked_by_${month.markedByRole}`, {
+          {t("billing.marked_by", {
             status: t(`billing.status_${month.status}`),
+            // Issue copy names the person; the role covers a profile with no name.
+            name: month.markedByName ?? t(`billing.role_${month.markedByRole}`),
             when: when(month.markedAt),
           })}
         </p>

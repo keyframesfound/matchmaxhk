@@ -4321,8 +4321,6 @@
     "status_unpaid": "未付",
     "status_paid": "已付",
     "status_partial": "部分已付",
-    "marked_by_tutor": "由导师标记{{status}} · {{when}}（香港时间）",
-    "marked_by_parent": "由家长标记{{status}} · {{when}}（香港时间）",
     "copy": "复制结算摘要",
     "copied": "已复制结算摘要。",
     "copy_failed": "无法复制结算摘要。",
@@ -4347,6 +4345,9 @@
     "err_CANNOT_RESPOND": "此申请已无法回复。",
     "err_REQUEST_BUSY": "同时有另一项申请，请再试一次。",
     "err_SHARED_RECENTLY": "过去一小时内已分享。",
-    "err_NOTHING_TO_SHARE": "该月份没有可分享的内容。"
+    "err_NOTHING_TO_SHARE": "该月份没有可分享的内容。",
+    "marked_by": "由 {{name}} 标记{{status}} · {{when}}（香港时间）",
+    "role_tutor": "导师",
+    "role_parent": "家长"
   }
 }
