@@ -282,16 +282,19 @@ export function SiteHeader({
           </div>
 
           <div className="ml-auto flex shrink-0 items-center gap-1 sm:gap-2">
-            {/* #553: global search entry (desktop + mobile); the full bar,
-                #tag typeahead and grouped results live on /search. */}
-            <Link
-              to="/search"
-              aria-label={t("global_search.open")}
-              title={t("global_search.open")}
-              className={headerCircleClassName}
-            >
-              <Search className="h-5 w-5 text-[color:var(--ink)]" aria-hidden />
-            </Link>
+            {/* #553: global search entry; the full bar, #tag typeahead and
+                grouped results live on /search. #669: pages with their own
+                search pill skip it so the top bar never shows two searches. */}
+            {hasCenterPill ? null : (
+              <Link
+                to="/search"
+                aria-label={t("global_search.open")}
+                title={t("global_search.open")}
+                className={headerCircleClassName}
+              >
+                <Search className="h-5 w-5 text-[color:var(--ink)]" aria-hidden />
+              </Link>
+            )}
             {/* #459 §B: once Teaching is activated the Become a Tutor link
                 becomes the Learning/Teaching mode switcher. */}
             {isTutor ? (
@@ -581,11 +584,8 @@ export function SiteHeader({
               <span className={brandLabelClassName}>MatchMax</span>
             </div>
           </Link>
-          <div className="flex shrink-0 items-center gap-1">
-            {user && <BellMenu />}
-            {/* #594 (2026-11-04): no phone hamburger; the bottom Account
-                tab opens the Account hub (/me) instead. */}
-          </div>
+          {/* #594 (2026-11-04): no phone hamburger; the bottom Account tab opens
+              the Account hub (/me). #674: Notifications moved to the bottom bar. */}
         </div>
       </div>
       <MobileBottomNav />

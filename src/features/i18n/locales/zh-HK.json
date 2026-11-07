@@ -1886,8 +1886,11 @@
   "nav_mobile": {
     "case": "個案",
     "explore": "探索",
-    "saved_posts": "已儲存",
+    "saved_posts": "收藏",
     "account": "帳戶",
+    "post": "發佈教材",
+    "post_aria": "發佈教材",
+    "notifications": "通知",
     "quick_links": "快速連結",
     "marketplace": "市集"
   },
