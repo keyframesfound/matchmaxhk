@@ -14,6 +14,7 @@
 import { normalizeProfileTag } from "@/features/tutors/profile-tags";
 import { caseAcademicTier, type AcademicTier } from "@/features/tutors/verticals";
 import { caseBudgetHkdBounds } from "@/features/cases/display";
+import { resolveCaseType, type CaseType } from "@/features/cases/case-type";
 import type { PublicCaseBoardItem } from "@/lib/cases.functions";
 
 /** Every advanced board filter, in its URL-param shape. */
@@ -39,6 +40,8 @@ export type CaseBoardFilters = {
   sen?: boolean;
   /** "||"-joined requirement tags, ALL must be on the case. */
   tags?: string;
+  /** #552 Private / Centre / Activity; absent means All. */
+  type?: CaseType;
 };
 
 // --- URL-param parsing (TanStack search params arrive JSON-decoded) ---
@@ -132,9 +135,12 @@ export function matchesCaseFilters(
     | "languageOfInstruction"
     | "senRequired"
     | "tags"
+    | "caseType"
+    | "centre"
   >,
   filters: CaseBoardFilters,
 ): boolean {
+  if (filters.type && resolveCaseType(item) !== filters.type) return false;
   if (filters.tier && caseBoardTier(item) !== filters.tier) return false;
   if (filters.subject && !item.subjects.includes(filters.subject)) return false;
   // A case open to both modes matches either filter.

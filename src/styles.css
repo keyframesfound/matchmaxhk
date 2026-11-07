@@ -707,11 +707,12 @@ html {
  * search bar family (SearchPillBar band + panel, CompactSearchPill). These
  * pills float over scrolling content, so they qualify under the floating-layer
  * shadow rule (DESIGN.md: shadows float or they do not exist), alongside
- * .mm-overlay-lift above and .mm-promo-card below. Do not add further shadow rules.
+ * .mm-overlay-lift above. Resting cards take a shadow only when an issue asks
+ * for one (.mm-promo-card #668, .mm-case-card #552).
  */
 /*
- * #668: the homepage promo cards are the one resting surface allowed a shadow
- * (owner call, Airbnb mid-page promo benchmark). Do not reuse on other cards.
+ * #668: the homepage promo cards take the shadow their issue asks for (Airbnb
+ * mid-page promo benchmark).
  */
 .mm-promo-card {
   background-color: #ffffff;
@@ -752,6 +753,30 @@ html {
 .dark .mm-promo-card:hover .mm-promo-cta,
 .dark .mm-promo-card:focus-visible .mm-promo-cta {
   background-color: rgb(255 255 255 / 0.16);
+}
+
+/*
+ * #552: case board card shell, hairline border with the issue's faint shadow.
+ */
+.mm-case-card {
+  background-color: #ffffff;
+  border: 1px solid #eff3f4;
+  box-shadow: 0 1px 2px rgb(15 20 25 / 0.03);
+  transition: border-color 200ms ease;
+}
+
+.mm-case-card:hover {
+  border-color: #cfd9de;
+}
+
+.dark .mm-case-card {
+  background-color: var(--card);
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+.dark .mm-case-card:hover {
+  border-color: rgb(255 255 255 / 0.25);
 }
 
 .pill-elevate,
