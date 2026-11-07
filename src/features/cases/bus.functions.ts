@@ -377,6 +377,8 @@ const EMAIL_TEMPLATE_BY_EVENT: Record<string, string> = {
   // #542 triggers + #561 action items share the flexible action template;
   // the bilingual strings come from action-email.server.ts.
   "case.lead_new": "action-required",
+  "case.match_alert": "action-required",
+  "case.already_taken": "action-required",
   "intro.shared_parent": "action-required",
   "intro.shared_tutor": "action-required",
   "verification.approved": "action-required",
@@ -686,6 +688,13 @@ export async function drainInternal(db: Db, now: Date = new Date()): Promise<voi
     await generateFeeEvents(db, now);
   } catch (err) {
     console.error("[bus] fee event generation failed", err);
+  }
+  // #657: start or advance ranked match waves (idempotent).
+  try {
+    const { tickCaseMatchWaves } = await import("@/features/cases/case-match-waves.functions");
+    await tickCaseMatchWaves(db, now);
+  } catch (err) {
+    console.error("[bus] match wave tick failed", err);
   }
   // #561 AR-4/AR-10: open/resolve profile-gap actions (idempotent).
   try {

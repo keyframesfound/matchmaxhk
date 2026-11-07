@@ -71,6 +71,12 @@ function bellLabelKey(item: BellItem): string {
     // #542 V1 triggers + #561 action scenarios.
     case "case.lead_new":
       return "sor.bell_lead_new";
+    case "case.match_alert":
+      return "sor.bell_case_match";
+    case "case.already_taken":
+      return "sor.bell_case_taken";
+    case "case.match_waves_exhausted":
+      return "sor.bell_waves_exhausted";
     case "intro.shared_parent":
       return "sor.bell_intro_parent";
     case "intro.shared_tutor":

@@ -10,6 +10,7 @@
  */
 
 export const BUS_EVENT_TYPES = [
+  "case.match_waves_exhausted",
   "lesson.done",
   "lesson.reminder_due",
   "admin_fee.invoiced",
@@ -26,6 +27,8 @@ export const BUS_EVENT_TYPES = [
   // action-required half is decided by ACTION_PLAN (action-required.ts);
   // these entries only control recipients, channels and mode context.
   "case.lead_new",
+  "case.match_alert",
+  "case.already_taken",
   "intro.shared_parent",
   "intro.shared_tutor",
   "verification.approved",
@@ -53,6 +56,7 @@ export const SKIPPED_EVENT_TYPES: readonly string[] = [
 
 /** #292 events the bell surfaces. "Someone saved your note" is deliberately absent. */
 export const BELL_EVENT_TYPES: readonly string[] = [
+  "case.match_waves_exhausted",
   "note_order.delivered",
   "review.published",
   "admin_fee.invoiced",
@@ -73,6 +77,8 @@ export const BELL_EVENT_TYPES: readonly string[] = [
   // bell-visible for the reported owner (anonymous by design — the payload
   // never carries the reporter identity).
   "case.lead_new",
+  "case.match_alert",
+  "case.already_taken",
   "intro.shared_parent",
   "intro.shared_tutor",
   "verification.approved",
@@ -147,7 +153,9 @@ export function prefsKeyForEmail(
   eventType: string,
   payload: Record<string, unknown>,
   recipientAccountId: string,
-): "case_updates" | "tutor_leads" | "moderation" {
+): "case_updates" | "tutor_leads" | "case_match_alerts" | "moderation" {
+  if (eventType === "case.match_alert") return "case_match_alerts";
+  if (eventType === "case.already_taken") return "tutor_leads";
   if (eventType === "case.lead_new" || eventType === "intro.shared_tutor") return "tutor_leads";
   if (eventType === "verification.approved" || eventType === "verification.rejected")
     return "tutor_leads";
@@ -169,6 +177,16 @@ export const DELIVERY_PLAN: Readonly<
   Record<string, readonly { channel: BusChannel; role: BusRole }[]>
 > = {
   "lesson.done": [],
+  // #657 ranked waves: the tutor gets the bell and an email; the desk only the bell.
+  "case.match_alert": [
+    { channel: "in_app", role: "tutor" },
+    { channel: "email", role: "tutor" },
+  ],
+  "case.already_taken": [
+    { channel: "in_app", role: "tutor" },
+    { channel: "email", role: "tutor" },
+  ],
+  "case.match_waves_exhausted": [{ channel: "in_app", role: "concierge" }],
   "lesson.review_prompt": [{ channel: "in_app", role: "parent" }],
   "lesson.reminder_due": [
     { channel: "in_app", role: "parent" },
@@ -348,6 +366,14 @@ export function bellLinkFor(
     // #542 V1 triggers + #561 action items. Payload-deep links win when the
     // emitter or the admin tool supplied one (admin free-form tasks land on
     // any route the admin picked).
+    case "case.match_alert":
+      return typeof payload.link === "string" && payload.link.startsWith("/")
+        ? payload.link
+        : "/tutor-requests";
+    case "case.already_taken":
+      return "/tutor-requests";
+    case "case.match_waves_exhausted":
+      return caseId ? `/admin/cases?case=${caseId}` : "/admin/cases";
     case "case.lead_new":
     case "intro.shared_tutor":
       if (role === "tutor") return tutorHome;

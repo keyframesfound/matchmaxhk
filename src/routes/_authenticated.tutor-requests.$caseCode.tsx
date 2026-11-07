@@ -2,6 +2,7 @@ import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { PhoneVerifyCard } from "@/features/trust/phone-verify-card";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { markCaseMatchOpened } from "@/features/cases/case-match-waves.functions";
 // Locale-aware relative times (zh-HK, GLM round-3 minor on #430). The
 // share/WhatsApp message templates below stay English on purpose, they are
 // outbound message copy, not on-page UI.
@@ -235,6 +236,13 @@ function CaseApplyControl({
 }
 
 function CaseDetailPage() {
+  const { caseCode } = Route.useParams();
+  // #657: opening the case counts as a wave response. Never blocks the page.
+  useEffect(() => {
+    markCaseMatchOpened({ data: { caseCode } }).catch((error: unknown) =>
+      console.warn("[match-waves] open not recorded:", error),
+    );
+  }, [caseCode]);
   const { t, i18n } = useTranslation();
   // GLM round-3 minor on #430: this page's sentence lines previously rendered
   // hardcoded English inside t()-keyed headings, zh-HK visitors got a
