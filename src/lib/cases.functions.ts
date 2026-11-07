@@ -123,6 +123,23 @@ const CaseRequestInput = z
     // Issue #423: the public client note is capped at 500 chars and piped
     // through stripContactDetails (sanitizeCaseFreeText) at save time.
     notes: z.string().trim().max(500).optional().nullable(),
+    // #656 intake restore (all optional; older clients keep the defaults).
+    sessionsPerWeek: z.number().int().min(1).max(7).optional(),
+    sessionLengthMinutes: z.number().int().min(30).max(240).optional(),
+    startTiming: z.enum(["asap", "two_weeks", "one_month", "flexible"]).optional().nullable(),
+    scheduleMode: z.enum(["flexible", "specific"]).optional().nullable(),
+    scheduleSlots: z
+      .array(
+        z.object({
+          day: z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"]),
+          period: z.enum(["morning", "afternoon", "evening"]),
+        }),
+      )
+      .max(21)
+      .optional(),
+    scheduleNote: z.string().trim().max(200).optional().nullable(),
+    locationEstate: z.string().trim().max(80).optional().nullable(),
+    learnerNickname: z.string().trim().max(40).optional().nullable(),
     // Issue #412 E: parent B2C compliance triage, a third-party engager or
     // non-tutoring/staff duties drops the request into compliance_hold.
     triage: z.object({
@@ -218,6 +235,10 @@ export type PublicCaseBoardItem = {
   // only; never identifies the student.
   whoFor: WhoFor | null;
   startTiming: string | null;
+  /** #656: coarse estate / building and soft schedule prefs. */
+  locationEstate: string | null;
+  scheduleMode: "flexible" | "specific" | null;
+  scheduleSlots: { day: string; period: string }[];
   // Issue #423 (sections 2+3): structured package fields, display only,
   // never contact data.
   packageType: "ongoing_1_5" | "short_20" | "pro_bono";
@@ -262,7 +283,7 @@ export type PublicCaseBoardItem = {
 };
 
 const PUBLIC_CASE_COLUMNS =
-  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, who_for, start_timing, package_type, student_count, rate_unit, is_short_case, scheduled_lesson_count, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, compliance_triage, organizations(name, slug, status, org_type)";
+  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, location_estate, schedule_mode, schedule_slots, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, who_for, start_timing, package_type, student_count, rate_unit, is_short_case, scheduled_lesson_count, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, compliance_triage, organizations(name, slug, status, org_type)";
 
 // Never contact_name / contact_phone / student_school / student_grade_current.
 // sen_details is also withheld: the board is public and the free-text needs
@@ -289,6 +310,16 @@ function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
       : [],
     examSystem: (row.exam_system as string | null) ?? null,
     district: (row.district as string | null) ?? null,
+    locationEstate: (row.location_estate as string | null) ?? null,
+    scheduleMode:
+      row.schedule_mode === "specific" || row.schedule_mode === "flexible"
+        ? (row.schedule_mode as "flexible" | "specific")
+        : null,
+    scheduleSlots: Array.isArray(row.schedule_slots)
+      ? (row.schedule_slots as { day?: unknown; period?: unknown }[])
+          .filter((x) => typeof x?.day === "string" && typeof x?.period === "string")
+          .map((x) => ({ day: x.day as string, period: x.period as string }))
+      : [],
     mode: row.mode as "online" | "in_person" | "either",
     sessionsPerWeek: (row.sessions_per_week as number | null) ?? 1,
     sessionLengthMinutes: (row.session_length_minutes as number | null) ?? 60,
@@ -659,8 +690,17 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       sen_details: data.senRequired ? data.senDetails?.trim() || null : null,
       district: data.district || null,
       mode: MODE_TO_DB[data.mode] ?? "either",
-      sessions_per_week: 1,
-      session_length_minutes: 60,
+      // #656: parent-set cadence / duration / start (defaults unchanged).
+      sessions_per_week: data.sessionsPerWeek ?? 1,
+      session_length_minutes: data.sessionLengthMinutes ?? 60,
+      start_timing: data.startTiming ?? null,
+      schedule_mode: data.scheduleMode ?? "flexible",
+      schedule_slots: data.scheduleMode === "specific" ? (data.scheduleSlots ?? []) : [],
+      schedule_note: sanitizeCaseFreeText(data.scheduleNote, 200),
+      // Coarse estate / building only (no street / unit), not for online.
+      location_estate:
+        data.mode === "online" ? null : sanitizeCaseFreeText(data.locationEstate, 80),
+      learner_nickname: sanitizeCaseFreeText(data.learnerNickname, 40),
       budget_min: data.budgetMin ?? null,
       budget_max: data.budgetMax ?? null,
       // Issue #423 (sections 2+3): the structured package fields.

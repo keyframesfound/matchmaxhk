@@ -1098,6 +1098,10 @@ export type Database = {
           preferred_gender: Database["public"]["Enums"]["case_gender_pref"];
           requester_type: string | null;
           schedule_note: string | null;
+          learner_nickname: string | null
+          location_estate: string | null
+          schedule_mode: string | null
+          schedule_slots: Json
           school_type: string | null;
           sen_categories: string[];
           sen_details: string | null;
@@ -1174,6 +1178,10 @@ export type Database = {
           preferred_gender?: Database["public"]["Enums"]["case_gender_pref"];
           requester_type?: string | null;
           schedule_note?: string | null;
+          learner_nickname?: string | null
+          location_estate?: string | null
+          schedule_mode?: string | null
+          schedule_slots?: Json
           school_type?: string | null;
           session_length_minutes?: number;
           sessions_per_week?: number;
@@ -1252,6 +1260,10 @@ export type Database = {
           preferred_gender?: Database["public"]["Enums"]["case_gender_pref"];
           requester_type?: string | null;
           schedule_note?: string | null;
+          learner_nickname?: string | null
+          location_estate?: string | null
+          schedule_mode?: string | null
+          schedule_slots?: Json
           school_type?: string | null;
           sen_categories?: string[];
           sen_details?: string | null;
