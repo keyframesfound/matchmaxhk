@@ -149,6 +149,8 @@ const SaveDraftInput = DraftMetaInput.extend({
   materialId: z.string().uuid().optional(),
 });
 
+export type NoteDraftInput = z.infer<typeof SaveDraftInput>;
+
 const SubmitInput = DraftMetaInput.extend({
   materialId: z.string().uuid().optional(),
   base64Data: z.string().trim().min(100).max(60_000_000).optional(),
@@ -748,6 +750,8 @@ const SubmitForReviewInput = SubmitInput.extend({
   // #573 seller activation: age (18+ or guardian consent) and originality /
   // ban-list warranty, both required; stored with time + IP.
   sellerDeclarations: z.object({ age: z.literal(true), originality: z.literal(true) }),
+  // #556: mock papers carry an originals attestation; other types ignore it.
+  legalOriginals: z.boolean().optional(),
   // #573 scanner: text the browser extracted from the main PDF (optional;
   // a missing / tiny text layer routes the upload to the staff queue).
   fileText: z.string().max(60_000).nullish(),
@@ -1065,6 +1069,13 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
     });
 
     await recordSellerDeclarations(db, context.userId);
+    if (data.materialType === "mock" && data.legalOriginals) {
+      const { error: attestError } = await db
+        .from<never>("digital_materials")
+        .update({ legal_originals_attested_at: new Date().toISOString() })
+        .eq("id", materialId);
+      if (attestError) throw new Error(attestError.message);
+    }
     const scanFlags = scanListing({
       listingText: [
         merged.title,

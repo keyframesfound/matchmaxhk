@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useAuth } from "@/features/auth/useAuth";
+import { SellTypePills } from "@/features/materials/sell-type-pills";
 import { NoteEditorForm } from "@/features/materials/note-editor-form";
 
 /**
@@ -34,7 +35,10 @@ function NewNotePage() {
           {loading || !user ? (
             <p className="text-sm text-muted-foreground">{t("orders.sign_in_required")}</p>
           ) : (
-            <NoteEditorForm />
+            <>
+              <SellTypePills active="note" />
+              <NoteEditorForm />
+            </>
           )}
         </div>
       </main>

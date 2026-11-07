@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { hktDateKey } from "@/features/cases/sor";
 import { PAYOUT_PAYABLE_STATUSES } from "@/features/materials/lifecycle";
+import { asAdminDb } from "@/features/materials/storage-helpers";
 
 /**
  * Issue #250 groundwork (stacked on the #131–#134 marketplace MVP):
@@ -265,6 +266,9 @@ export function buildPayoutCsv(rows: PayoutCsvRow[]): string {
  * code: refunds revoke access by flipping status away from delivered, and
  * any #203 time-limited access window must be added explicitly later.
  */
+type refreshDeliveredCopyIfStaleFn =
+  typeof import("@/features/materials/checkout.functions").refreshDeliveredCopyIfStale;
+
 export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => z.object({ materialId: z.string().uuid() }).parse(data))
@@ -288,8 +292,10 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
     // delivered_file_path, so both product kinds unlock through this gate.
     // (Verified 2026-10-18: zero delivered orders existed on live, so no
     // legacy #250-era buyer loses access.)
-    const deliveredPath = (order as unknown as { delivered_file_path?: string | null })
-      ?.delivered_file_path;
+    const deliveredRow = order as unknown as Parameters<refreshDeliveredCopyIfStaleFn>[1];
+    const { refreshDeliveredCopyIfStale } = await import("@/features/materials/checkout.functions");
+    await refreshDeliveredCopyIfStale(asAdminDb(supabaseAdmin), deliveredRow);
+    const deliveredPath = deliveredRow?.delivered_file_path;
     if (!deliveredPath) {
       // #392: course and folder orders have no per-order stamped copy, the
       // product opens on its own page instead of a file download.

@@ -3503,7 +3503,8 @@
     "bell_demand_side": "A family updated their learning goals and notes",
     "bell_case_match": "A new case matches your profile",
     "bell_case_taken": "A case you applied for has been taken",
-    "bell_waves_exhausted": "Match alerts finished, this case needs the desk"
+    "bell_waves_exhausted": "Match alerts finished, this case needs the desk",
+    "bell_draft_needed": "Upload your draft so the marking can start"
   },
   "cv": {
     "title": "Education CV & Academic Records",
@@ -3592,7 +3593,9 @@
     "inline_edit_profile": "Bio, subjects & rates",
     "inline_edit_availability": "Availability",
     "inline_edit_cv": "Academic CV",
-    "inline_edit_blue_tick": "Verify for Blue Tick"
+    "inline_edit_blue_tick": "Verify for Blue Tick",
+    "collections_aria": "Filter by folder",
+    "collections_all": "All"
   },
   "trophy": {
     "active": "{{count}} Active",
@@ -4627,5 +4630,49 @@
     "cta_briefing": "Add your household briefing",
     "cta_preferred_times": "Set the times you’re unavailable so search can match them",
     "dismiss": "Dismiss"
+  },
+  "materials_store": {
+    "type_nav": "Listing type",
+    "type_note": "Note",
+    "type_pack": "Notes Pack",
+    "type_course": "Course",
+    "type_video": "Video",
+    "type_marking": "Marking",
+    "content_tags": "Content tags",
+    "mock_attest": "I confirm these are my own or licensed papers, not copyrighted exam-board papers I do not own.",
+    "mock_attest_short": "Original papers confirmation",
+    "collection_label": "Folder (optional)",
+    "collection_none": "No folder",
+    "collection_new": "New folder name",
+    "collection_add": "Add",
+    "collection_hint": "Folders organise your store. They have no price and no checkout.",
+    "bulk_title": "{{count}} files uploaded",
+    "bulk_question": "How should buyers purchase these?",
+    "bulk_pack": "Bundle as 1 Notes Pack",
+    "bulk_pack_hint": "Creates the notes as drafts first. Once they are approved, add them to the pack with a discounted price.",
+    "bulk_separate": "List as {{count}} separate Notes",
+    "bulk_separate_hint": "Each file becomes its own draft. Finish and submit each one from your account.",
+    "bulk_row_title": "Title",
+    "bulk_row_price": "Price (HK$)",
+    "bulk_price_rule": "Price: HK$0 (Free) or at least HK$20. You can leave it blank for now.",
+    "bulk_cancel": "Cancel",
+    "bulk_create": "Create {{count}} drafts",
+    "bulk_progress": "Uploading {{done}} of {{total}}...",
+    "bulk_done_pack": "{{count}} drafts created. Submit them, then bundle them here once approved.",
+    "bulk_done_separate": "{{count}} drafts created. Finish them from your account.",
+    "updated_on": "Updated {{date}}",
+    "variant_label": "Another format of (optional)",
+    "variant_none": "Not a format of another note",
+    "variant_name": "Format name, e.g. GoodNotes",
+    "variants_aria": "Formats",
+    "bulk_batch": "Apply to all",
+    "bulk_batch_tags": "Tags, separated by commas",
+    "bulk_apply_price": "Set all",
+    "move_up": "Move up",
+    "move_down": "Move down",
+    "sell_separately": "Allow buyers to buy individual items separately. Untick to sell these only as this pack.",
+    "pack_only": "Sold only as part of “{{title}}”",
+    "link_ack": "Link is set to 'Anyone with the link can view' and will remain active for buyers.",
+    "link_ack_short": "Link access confirmation"
   }
 }

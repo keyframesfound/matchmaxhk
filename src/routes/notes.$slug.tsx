@@ -26,6 +26,7 @@ import { CourseDetailPage } from "@/features/courses/course-detail";
 import { ReportMenuButton } from "@/features/reports/report-button";
 import { canonicalUrl } from "@/features/i18n/seo";
 import { NOTES_OPTION_A_LIVE } from "@/features/materials/marketplace-policy";
+import { getNoteStoreContext } from "@/features/materials/store-context.functions";
 import { NoteGallery, NoteIncludedAndSyllabus } from "@/features/materials/note-rich-listing";
 import {
   NoteDeliverablesPanel,
@@ -107,7 +108,7 @@ function GigOrNotePage() {
 
 function NotePage() {
   const { note } = Route.useLoaderData() as { note: PublicNote };
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { user } = useAuth();
   const router = useRouter();
   const navigate = router.navigate.bind(router);
@@ -134,6 +135,15 @@ function NotePage() {
       recordMaterialView({ data: { materialId: note.id } }).catch(() => undefined),
     );
   }, [user, isOwner, note.id]);
+  // #556: pack-only sale and sibling formats; a failed read leaves the note buyable
+  // here and the server still enforces the rule at checkout.
+  const storeContext = useQuery({
+    queryKey: ["note-store-context", note.id],
+    queryFn: () => getNoteStoreContext({ data: { materialId: note.id } }),
+    retry: false,
+  });
+  const packOnly = note.priceHkd > 0 ? (storeContext.data?.packOnly ?? null) : null;
+
 
   const whatsappQuery = useQuery({
     queryKey: ["note-whatsapp", note.title, note.priceHkd, note.tutorName],
@@ -265,6 +275,37 @@ function NotePage() {
               </div>
             </header>
 
+            {storeContext.data && storeContext.data.variants.length > 1 ? (
+              <nav aria-label={t("materials_store.variants_aria")} className="flex flex-wrap gap-2">
+                {storeContext.data.variants.map((variant) => (
+                  <Link
+                    key={variant.id}
+                    to="/notes/$slug"
+                    params={{ slug: variant.slug ?? variant.id }}
+                    aria-current={variant.id === note.id ? "page" : undefined}
+                    className={`inline-flex min-h-9 items-center rounded-full border px-3 text-sm font-semibold ${
+                      variant.id === note.id
+                        ? "border-[color:var(--ink)] bg-[color:var(--ink)]/5 text-[color:var(--ink)]"
+                        : "border-border text-muted-foreground"
+                    }`}
+                  >
+                    {variant.label} ·{" "}
+                    {variant.priceHkd === 0
+                      ? t("notes.card.free")
+                      : t("notes.price", { amount: variant.priceHkd })}
+                  </Link>
+                ))}
+              </nav>
+            ) : null}
+            {note.fileUpdatedAt ? (
+              <p className="text-xs font-medium text-muted-foreground">
+                {t("materials_store.updated_on", {
+                  date: new Date(note.fileUpdatedAt).toLocaleDateString(i18n.language, {
+                    timeZone: "Asia/Hong_Kong",
+                  }),
+                })}
+              </p>
+            ) : null}
             <NoteGallery note={note} />
 
             {isApkgDeck ? (
@@ -409,7 +450,7 @@ function NotePage() {
                 variant="solid"
                 color="accent"
                 className="w-full font-bold"
-                disabled={checkoutMutation.isPending || isOwner}
+                disabled={checkoutMutation.isPending || isOwner || packOnly !== null}
                 onClick={() => {
                   if (!user) {
                     setGateOpen(true);
@@ -436,6 +477,15 @@ function NotePage() {
                     ? t("notes.engage.get_free")
                     : t("notes.add_to_cart")}
               </Button>
+              {packOnly ? (
+                <Link
+                  to="/notes/$slug"
+                  params={{ slug: packOnly.slug ?? packOnly.id }}
+                  className="block rounded-md border border-border p-3 text-sm font-semibold text-[color:var(--brand-link)]"
+                >
+                  {t("materials_store.pack_only", { title: packOnly.title })}
+                </Link>
+              ) : null}
               {whatsappQuery.data?.requestUrl && (
                 <a
                   href={whatsappQuery.data.requestUrl}

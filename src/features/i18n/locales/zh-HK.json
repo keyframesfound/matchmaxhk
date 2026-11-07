@@ -3503,7 +3503,8 @@
     "bell_demand_side": "家長或學生已更新學習目標及家庭備註",
     "bell_case_match": "有新個案配合您的資料",
     "bell_case_taken": "您申請的個案已被接手",
-    "bell_waves_exhausted": "配對通知已完成，此個案需要客服跟進"
+    "bell_waves_exhausted": "配對通知已完成，此個案需要客服跟進",
+    "bell_draft_needed": "請上載草稿以開始改卷"
   },
   "cv": {
     "title": "學習履歷及成績檔案",
@@ -3592,7 +3593,9 @@
     "inline_edit_profile": "簡介、科目及收費",
     "inline_edit_availability": "可上課時間",
     "inline_edit_cv": "學歷",
-    "inline_edit_blue_tick": "藍勾認證"
+    "inline_edit_blue_tick": "藍勾認證",
+    "collections_aria": "按系列篩選",
+    "collections_all": "全部"
   },
   "trophy": {
     "active": "{{count}} 位進行中",
@@ -4627,5 +4630,49 @@
     "cta_briefing": "填寫家庭簡介",
     "cta_preferred_times": "設定你沒空的時間，方便搜尋配對",
     "dismiss": "關閉"
+  },
+  "materials_store": {
+    "type_nav": "教材類別",
+    "type_note": "單份筆記",
+    "type_pack": "筆記組合",
+    "type_course": "課程組合",
+    "type_video": "教學影片",
+    "type_marking": "改卷服務",
+    "content_tags": "內容標籤",
+    "mock_attest": "本人確認此為本人原創或已獲授權的試卷，並非本人無權使用的考試局版權試卷。",
+    "mock_attest_short": "原創試卷確認",
+    "collection_label": "所屬系列（選填）",
+    "collection_none": "不設系列",
+    "collection_new": "新系列名稱",
+    "collection_add": "新增",
+    "collection_hint": "系列只用作整理你的商店，不設價錢亦不能結帳。",
+    "bulk_title": "已上載 {{count}} 個檔案",
+    "bulk_question": "買家應如何購買此教材？",
+    "bulk_pack": "合併為 1 個筆記組合",
+    "bulk_pack_hint": "先建立筆記草稿，批核後再加入組合並設定優惠價。",
+    "bulk_separate": "分拆為 {{count}} 份獨立筆記",
+    "bulk_separate_hint": "每個檔案各成一份草稿，請在帳戶逐份完成及提交。",
+    "bulk_row_title": "標題",
+    "bulk_row_price": "價錢（HK$）",
+    "bulk_price_rule": "價錢：HK$0（免費）或最少 HK$20，可暫時留空。",
+    "bulk_cancel": "取消",
+    "bulk_create": "建立 {{count}} 份草稿",
+    "bulk_progress": "上載中 {{done}}／{{total}}...",
+    "bulk_done_pack": "已建立 {{count}} 份草稿。請先提交，批核後在此合併。",
+    "bulk_done_separate": "已建立 {{count}} 份草稿，請在帳戶完成。",
+    "updated_on": "已於 {{date}} 更新",
+    "variant_label": "屬於另一教材的版本（選填）",
+    "variant_none": "不是其他筆記的版本",
+    "variant_name": "版本名稱，例如 GoodNotes",
+    "variants_aria": "版本",
+    "bulk_batch": "套用至全部",
+    "bulk_batch_tags": "標籤，以逗號分隔",
+    "bulk_apply_price": "全部設定",
+    "move_up": "上移",
+    "move_down": "下移",
+    "sell_separately": "允許買家單獨購買子項目。取消剔選則只以此組合出售。",
+    "pack_only": "只限隨「{{title}}」出售",
+    "link_ack": "連結已設為「任何持有連結的人均可檢視」並承諾長期有效。",
+    "link_ack_short": "連結權限確認"
   }
 }

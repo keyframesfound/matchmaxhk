@@ -17,6 +17,8 @@ export const BUS_EVENT_TYPES = [
   "admin_fee.invoiced",
   "admin_fee.unpaid",
   "note_order.delivered",
+  // #556: a paid Marking order still has no draft after 24h.
+  "note_order.draft_needed",
   "review.published",
   // #461 addendum Triggers 8-9: bilateral lesson cancel + schedule/
   // reschedule. Actor-split event types so only the OTHER party is messaged.
@@ -63,6 +65,7 @@ export const BELL_EVENT_TYPES: readonly string[] = [
   "case.match_waves_exhausted",
   "case.demand_side_updated",
   "note_order.delivered",
+  "note_order.draft_needed",
   "review.published",
   "admin_fee.invoiced",
   "admin_fee.unpaid",
@@ -216,6 +219,7 @@ export const DELIVERY_PLAN: Readonly<
     { channel: "email", role: "tutor" },
     { channel: "email", role: "parent" },
   ],
+  "note_order.draft_needed": [{ channel: "in_app", role: "parent" }],
   "review.published": [{ channel: "in_app", role: "tutor" }],
   // #387 notification leg: the parent learns a session was logged (bell only
   //, lightweight by issue design; the Dispute button lives on the linked
@@ -344,6 +348,7 @@ export function bellLinkFor(
   const caseId = typeof payload.case_id === "string" ? payload.case_id : null;
   const tutorHome = "/dashboard#lessons";
   switch (eventType) {
+    case "note_order.draft_needed":
     case "note_order.delivered": {
       const orderId = typeof payload.order_id === "string" ? payload.order_id : null;
       return orderId ? `/orders/${orderId}` : "/account";

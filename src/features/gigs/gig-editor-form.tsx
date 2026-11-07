@@ -56,7 +56,14 @@ const GIG_ANY_VALUE = "__any__";
 const isNoteCurriculum = (value: string): value is (typeof NOTE_CURRICULA)[number] =>
   (NOTE_CURRICULA as readonly string[]).includes(value);
 
-export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
+export function GigEditorForm({
+  existing,
+  presetMarking = false,
+}: {
+  existing?: MyGigRow | null;
+  /** #556: the Marking pill opens this form on a file-back document review. */
+  presetMarking?: boolean;
+}) {
   const { t } = useTranslation();
   const [title, setTitle] = useState(existing?.title ?? "");
   // Hydrate the stored description on edit (grok review 2026-10-17): the
@@ -65,8 +72,12 @@ export function GigEditorForm({ existing }: { existing?: MyGigRow | null }) {
   // the whole text blind.
   const [description, setDescription] = useState(existing?.description ?? "");
   const [price, setPrice] = useState<string>(existing ? String(existing.priceHkd ?? "") : "");
-  const [category, setCategory] = useState<string>(existing?.category ?? "");
-  const [deliveryType, setDeliveryType] = useState<string>(existing?.deliveryType ?? "");
+  const [category, setCategory] = useState<string>(
+    existing?.category ?? (presetMarking ? "document_review" : ""),
+  );
+  const [deliveryType, setDeliveryType] = useState<string>(
+    existing?.deliveryType ?? (presetMarking ? "file_back" : ""),
+  );
   const [turnaroundHours, setTurnaroundHours] = useState<number>(
     existing?.turnaroundHours ?? DEFAULT_TURNAROUND_HOURS,
   );
