@@ -4097,6 +4097,24 @@
     "share_no_contact_link": "到安全设置新增",
     "share_state_error": "无法更新——请重试。"
   },
+  "case_manager": {
+    "title": "个案管理",
+    "calendar_aria": "本月",
+    "active_cases": "进行中的个案",
+    "empty_body": "配对开始后，你的课堂、时间表及进行中的个案会显示在这里。",
+    "cta_find": "找导师",
+    "cta_post": "发布补习个案",
+    "cta_browse": "浏览个案（导师）",
+    "howto_button": "使用说明",
+    "howto_title": "个案管理点样用",
+    "howto_1": "每个已配对的个案都会在这里显示为进行中的个案，连同你的导师或学生。",
+    "howto_2": "日历会标示即将上的课堂；请确认每一堂，令双方记录一致。",
+    "howto_3": "导师可看时间表及收入；家长可看课堂记录。",
+    "howto_4": "未有个案？可以找导师、发布补习个案，或（导师）浏览开放中的个案。",
+    "coach_title": "第一次使用？",
+    "coach_body": "这是你的个案管理页：进行中的个案、即将上的课堂及确认都在这里。随时按「使用说明」查看。",
+    "coach_dismiss": "关闭提示"
+  },
   "account_hub": {
     "title": "账户",
     "view_profile": "查看个人档案",

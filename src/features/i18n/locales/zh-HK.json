@@ -4097,6 +4097,24 @@
     "share_no_contact_link": "到安全設定新增",
     "share_state_error": "無法更新——請再試一次。"
   },
+  "case_manager": {
+    "title": "個案管理",
+    "calendar_aria": "本月",
+    "active_cases": "進行中的個案",
+    "empty_body": "配對開始後，你的課堂、時間表及進行中的個案會顯示在這裏。",
+    "cta_find": "搵導師",
+    "cta_post": "發佈補習個案",
+    "cta_browse": "瀏覽個案（導師）",
+    "howto_button": "使用說明",
+    "howto_title": "個案管理點樣用",
+    "howto_1": "每個已配對的個案都會在這裏顯示為進行中的個案，連同你的導師或學生。",
+    "howto_2": "日曆會標示即將上的課堂；請確認每一堂，令雙方記錄一致。",
+    "howto_3": "導師可看時間表及收入；家長可看課堂記錄。",
+    "howto_4": "未有個案？可以搵導師、發佈補習個案，或（導師）瀏覽開放中的個案。",
+    "coach_title": "第一次使用？",
+    "coach_body": "這是你的個案管理頁：進行中的個案、即將上的課堂及確認都在這裏。隨時按「使用說明」查看。",
+    "coach_dismiss": "關閉提示"
+  },
   "account_hub": {
     "title": "帳戶",
     "view_profile": "查看個人檔案",
