@@ -28,6 +28,7 @@ function yFor(pct: number): number {
 /**
  * #653 grade curve: one series, so the heading names it and there is no legend.
  * Plain SVG, no chart library. The assessment log below is its table view.
+ * Details sit under the plot, so they never cover a point on a small screen.
  */
 export function ProgressChart({
   scores,
@@ -50,7 +51,7 @@ export function ProgressChart({
   const active = points.find((p) => p.id === activeId) ?? null;
 
   return (
-    <figure className="relative m-0">
+    <figure className="m-0">
       <svg
         viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
         role="img"
@@ -119,11 +120,11 @@ export function ProgressChart({
                 fill="transparent"
                 tabIndex={0}
                 aria-label={`${p.name}, ${p.pct}%`}
-                className="cursor-pointer outline-none focus-visible:stroke-[color:var(--ink)]"
+                className="cursor-pointer outline-none focus-visible:stroke-[color:var(--ink)] focus-visible:[stroke-width:2]"
                 onMouseEnter={() => setActiveId(p.id)}
                 onFocus={() => setActiveId(p.id)}
                 onBlur={() => setActiveId(null)}
-                onClick={() => setActiveId(p.id)}
+                onClick={() => setActiveId((id) => (id === p.id ? null : p.id))}
               />
             )}
           </g>
@@ -132,24 +133,19 @@ export function ProgressChart({
       {targetLabel ? (
         <figcaption className="mt-1 text-xs text-muted-foreground">{targetLabel}</figcaption>
       ) : null}
-      {active ? (
-        <div
-          role="status"
-          className="mm-overlay-lift pointer-events-none absolute z-10 max-w-[70%] rounded-lg border border-border bg-popover px-2.5 py-1.5 text-xs"
-          style={{
-            left: `${Math.min((active.px / VIEW_WIDTH) * 100, 60)}%`,
-            top: 0,
-          }}
-        >
-          <p className="font-semibold [overflow-wrap:anywhere]">{active.name}</p>
-          <p>
-            {active.pct}%{active.gradeLabel ? ` · ${active.gradeLabel}` : ""} · {active.assessedOn}
-          </p>
-          {active.note ? (
-            <p className="text-muted-foreground [overflow-wrap:anywhere]">{active.note}</p>
-          ) : null}
-        </div>
-      ) : null}
+      <div role="status" className="mt-1 min-h-10 text-xs">
+        {active ? (
+          <>
+            <p className="font-semibold [overflow-wrap:anywhere]">
+              {active.name} · {active.pct}%{active.gradeLabel ? ` · ${active.gradeLabel}` : ""} ·{" "}
+              {active.assessedOn}
+            </p>
+            {active.note ? (
+              <p className="text-muted-foreground [overflow-wrap:anywhere]">{active.note}</p>
+            ) : null}
+          </>
+        ) : null}
+      </div>
     </figure>
   );
 }

@@ -19,6 +19,7 @@ import {
   ASSESSMENT_NAME_MAX,
   ASSESSMENT_NOTE_MAX,
   GRADE_LABEL_MAX,
+  TARGET_GRADE_MAX,
   assessmentError,
   assessmentPct,
   sortAssessments,
@@ -234,7 +235,8 @@ function TargetDialog({
   const save = useMutation({
     mutationFn: () =>
       setProgressTarget({
-        data: { caseId, targetPct: pctValue, targetGrade: grade.trim() || undefined },
+        // The box starts with the current grade, so empty means cleared.
+        data: { caseId, targetPct: pctValue, targetGrade: grade.trim() },
       }),
     onSuccess: () => {
       onOpenChange(false);
@@ -265,7 +267,7 @@ function TargetDialog({
             {t("progress.field_grade")}
             <Input
               value={grade}
-              maxLength={GRADE_LABEL_MAX}
+              maxLength={TARGET_GRADE_MAX}
               onChange={(e) => setGrade(e.target.value)}
             />
           </label>

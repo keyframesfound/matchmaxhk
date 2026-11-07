@@ -10,6 +10,8 @@ export const ASSESSMENT_CATEGORIES = ["lesson_quiz", "past_paper", "school_exam"
 export const ASSESSMENT_NAME_MAX = 80;
 export const ASSESSMENT_NOTE_MAX = 200;
 export const GRADE_LABEL_MAX = 12;
+/** Same limit as target_grade in the #637 panel, which shares the value. */
+export const TARGET_GRADE_MAX = 100;
 export const MAX_MARKS_LIMIT = 10000;
 
 const DATE_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
@@ -40,6 +42,13 @@ export function assessmentPct(marks: number, maxMarks: number): number {
   return roundOne((marks / maxMarks) * 100);
 }
 
+/** A real day: V8 reads 2026-02-31 as 3 March, so round-trip it. */
+function isCalendarDate(value: string): boolean {
+  if (!DATE_PATTERN.test(value)) return false;
+  const ms = Date.parse(`${value}T00:00:00Z`);
+  return !Number.isNaN(ms) && new Date(ms).toISOString().slice(0, 10) === value;
+}
+
 export function assessmentError(input: {
   marks: number;
   maxMarks: number;
@@ -55,7 +64,7 @@ export function assessmentError(input: {
     marks >= 0 &&
     marks <= maxMarks;
   if (!validMarks) return "BAD_MARKS";
-  if (!DATE_PATTERN.test(assessedOn) || Number.isNaN(Date.parse(assessedOn))) return "BAD_DATE";
+  if (!isCalendarDate(assessedOn)) return "BAD_DATE";
   return assessedOn > hktDateKey(now) ? "BAD_DATE" : null;
 }
 

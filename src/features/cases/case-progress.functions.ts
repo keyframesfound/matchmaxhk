@@ -11,11 +11,13 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import { selectRows, type Db, type Row } from "@/features/cases/desk-db";
 import { partyCase, type PartyRole } from "@/features/cases/case-schedule.functions";
+import { seededDemandRow } from "@/features/cases/demand-side/demand-side.functions";
 import {
   ASSESSMENT_CATEGORIES,
   ASSESSMENT_NAME_MAX,
   ASSESSMENT_NOTE_MAX,
   GRADE_LABEL_MAX,
+  TARGET_GRADE_MAX,
   assessmentError,
   type AssessmentCategory,
   type AssessmentScore,
@@ -175,7 +177,7 @@ export const setProgressTarget = createServerFn({ method: "POST" })
       .object({
         caseId: z.string().uuid(),
         targetPct: z.number().int().min(0).max(100),
-        targetGrade: z.string().trim().max(GRADE_LABEL_MAX).optional(),
+        targetGrade: z.string().trim().max(TARGET_GRADE_MAX).optional(),
       })
       .parse(input),
   )
@@ -184,16 +186,21 @@ export const setProgressTarget = createServerFn({ method: "POST" })
     const db = asAdminDb(supabaseAdmin);
     const { c } = await writableParty(db, data.caseId, context.userId);
     assertCleanText(data.targetGrade);
-    const { error } = await db.from<Row>("case_demand_side").upsert(
-      {
-        case_id: c.id,
-        target_pct: data.targetPct,
-        target_grade: data.targetGrade ?? "",
-        updated_by: context.userId,
-        updated_at: new Date().toISOString(),
-      },
-      { onConflict: "case_id" },
-    );
+    // Omitted grade keeps the current one; an empty string clears it.
+    const target = {
+      target_pct: data.targetPct,
+      ...(data.targetGrade === undefined ? {} : { target_grade: data.targetGrade }),
+      updated_by: context.userId,
+      updated_at: new Date().toISOString(),
+    };
+    const existing = await selectRows<{ case_id: string }>(db, "case_demand_side", "case_id", [
+      { col: "case_id", op: "eq", value: c.id },
+    ]);
+    // The #637 panel only seeds while no row exists, so a first write carries the seed.
+    const seed = existing[0] ? {} : await seededDemandRow(db, c.id);
+    const { error } = await db
+      .from<Row>("case_demand_side")
+      .upsert({ case_id: c.id, ...seed, ...target }, { onConflict: "case_id" });
     if (error) throw new Error(error.message);
     return { targetPct: data.targetPct };
   });

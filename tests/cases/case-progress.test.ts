@@ -47,6 +47,7 @@ describe("assessmentError", () => {
   it("blocks a future or malformed date", () => {
     expect(assessmentError({ ...ok, assessedOn: "2026-11-08" })).toBe("BAD_DATE");
     expect(assessmentError({ ...ok, assessedOn: "soon" })).toBe("BAD_DATE");
+    expect(assessmentError({ ...ok, assessedOn: "2026-02-31" })).toBe("BAD_DATE");
   });
 });
 
