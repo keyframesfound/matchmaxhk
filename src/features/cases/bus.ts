@@ -10,6 +10,7 @@
  */
 
 export const BUS_EVENT_TYPES = [
+  "case.demand_side_updated",
   "lesson.done",
   "lesson.reminder_due",
   "admin_fee.invoiced",
@@ -53,6 +54,7 @@ export const SKIPPED_EVENT_TYPES: readonly string[] = [
 
 /** #292 events the bell surfaces. "Someone saved your note" is deliberately absent. */
 export const BELL_EVENT_TYPES: readonly string[] = [
+  "case.demand_side_updated",
   "note_order.delivered",
   "review.published",
   "admin_fee.invoiced",
@@ -169,6 +171,8 @@ export const DELIVERY_PLAN: Readonly<
   Record<string, readonly { channel: BusChannel; role: BusRole }[]>
 > = {
   "lesson.done": [],
+  // #637: bell only; the notes themselves stay on the case page.
+  "case.demand_side_updated": [{ channel: "in_app", role: "tutor" }],
   "lesson.review_prompt": [{ channel: "in_app", role: "parent" }],
   "lesson.reminder_due": [
     { channel: "in_app", role: "parent" },
@@ -348,6 +352,8 @@ export function bellLinkFor(
     // #542 V1 triggers + #561 action items. Payload-deep links win when the
     // emitter or the admin tool supplied one (admin free-form tasks land on
     // any route the admin picked).
+    case "case.demand_side_updated":
+      return tutorHome;
     case "case.lead_new":
     case "intro.shared_tutor":
       if (role === "tutor") return tutorHome;
