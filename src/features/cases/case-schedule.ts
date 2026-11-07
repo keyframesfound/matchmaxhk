@@ -47,10 +47,10 @@ export type PrefSlot = { day: string; period: string };
 export type PendingCase = { caseId: string; scheduleMode: string | null; slots: unknown };
 
 /** The drawer tabs; `?tab=` falls back to overview. */
-export type CaseTab = "overview" | "homework";
+export type CaseTab = "overview" | "homework" | "schedule";
 
 export function caseTabFromParam(value: unknown): CaseTab {
-  return value === "homework" ? "homework" : "overview";
+  return value === "homework" || value === "schedule" ? value : "overview";
 }
 
 /** The `?case=` value, normalised, or null when it cannot be a case code. */

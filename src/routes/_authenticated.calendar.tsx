@@ -11,10 +11,11 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { confirmState, type CalendarSummary } from "@/features/cases/calendar-hub";
 import { getMyCalendar } from "@/features/cases/calendar-hub.functions";
 import { CaseDrawer } from "@/features/cases/case-manager/case-drawer";
+import { BillingSamplePreview } from "@/features/cases/case-manager/billing-tab";
 import { HomeworkSamplePreview } from "@/features/cases/case-manager/homework-tab";
 import { ActiveCaseList, ProposedList } from "@/features/cases/case-manager/hub-sections";
 import { ThinCalendar } from "@/features/cases/case-manager/thin-calendar";
-import { caseCodeFromParam, caseTabFromParam } from "@/features/cases/case-schedule";
+import { caseCodeFromParam, caseTabFromParam, type CaseTab } from "@/features/cases/case-schedule";
 import { getCaseManagerSchedule } from "@/features/cases/case-schedule.functions";
 import { EarningsPanel } from "@/features/cases/tutor/earnings-panel";
 import { Button } from "@/components/ui/button";
@@ -28,12 +29,11 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
  */
 export const Route = createFileRoute("/_authenticated/calendar")({
   ssr: false,
-  validateSearch: (search: Record<string, unknown>): { case?: string; tab?: "homework" } => {
+  validateSearch: (search: Record<string, unknown>): { case?: string; tab?: CaseTab } => {
     const code = caseCodeFromParam(search.case);
     if (!code) return {};
-    return caseTabFromParam(search.tab) === "homework"
-      ? { case: code, tab: "homework" }
-      : { case: code };
+    const tab = caseTabFromParam(search.tab);
+    return tab === "overview" ? { case: code } : { case: code, tab };
   },
   head: () => ({
     meta: [{ title: "Case Manager | MatchMax" }, { name: "robots", content: "noindex" }],
@@ -267,6 +267,7 @@ function CalendarPage() {
         {data?.parent && <SummarySection summary={data.parent} role="parent" />}
         {data && !hasCases ? <EmptyCases /> : null}
         {data && !hasCases ? <HomeworkSamplePreview /> : null}
+        {data && !hasCases ? <BillingSamplePreview /> : null}
         {isError ? <EmptyCases /> : null}
         <HowToUse open={howToOpen} onOpenChange={setHowToOpen} />
         {openCase && schedule.data ? (
@@ -277,7 +278,7 @@ function CalendarPage() {
             tab={caseTabFromParam(tabParam)}
             onTabChange={(tab) =>
               void navigate({
-                search: tab === "homework" ? { case: openCase.code, tab } : { case: openCase.code },
+                search: tab === "overview" ? { case: openCase.code } : { case: openCase.code, tab },
                 replace: true,
               })
             }

@@ -32,6 +32,7 @@ function useChipLabel() {
       l.subject,
       "·",
       t(l.role === "tutor" ? "case_manager.verified_parent" : "case_manager.verified_tutor"),
+      l.reschedulePending ? `· ${t("billing.pending_badge")}` : null,
     ]
       .filter(Boolean)
       .join(" ");
@@ -133,7 +134,10 @@ export function ThinCalendar({
                     type="button"
                     title={chipLabel(l)}
                     onClick={() => onOpenCase(l.caseCode)}
-                    className="mm-slot-occupied truncate rounded px-1 py-0.5 text-left text-[11px]"
+                    className={cn(
+                      l.reschedulePending ? "mm-slot-proposed" : "mm-slot-occupied",
+                      "truncate rounded px-1 py-0.5 text-left text-[11px]",
+                    )}
                   >
                     {chipLabel(l)}
                   </button>
@@ -165,7 +169,10 @@ export function ThinCalendar({
                 <button
                   type="button"
                   onClick={() => onOpenCase(l.caseCode)}
-                  className="mm-slot-occupied w-full rounded-lg px-3 py-2 text-left text-sm"
+                  className={cn(
+                    l.reschedulePending ? "mm-slot-proposed" : "mm-slot-occupied",
+                    "w-full rounded-lg px-3 py-2 text-left text-sm",
+                  )}
                 >
                   {chipLabel(l)}
                 </button>
