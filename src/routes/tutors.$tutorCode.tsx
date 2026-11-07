@@ -1,3 +1,4 @@
+import { ActiveCasesSection } from "@/features/cases/active-cases/active-cases-section";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { useMemo, useEffect, useState } from "react";
@@ -940,6 +941,12 @@ function TutorDetail() {
                 {/* #459 §F guardrail: the card owner cannot request their
                     own listing. */}
                 {user && user.id === t.user_id ? (
+                  <Button asChild variant="outline" className="mr-2 mt-3 rounded-sm font-bold">
+                    {/* #633: owner-only entry to Case Manager, same as Explore Manage. */}
+                    <Link to="/calendar">{translate("profile.active_cases.manage")}</Link>
+                  </Button>
+                ) : null}
+                {user && user.id === t.user_id ? (
                   <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
                     <Lock className="h-3.5 w-3.5" aria-hidden="true" />
                     {translate("profile.own_listing_disabled")}
@@ -987,6 +994,12 @@ function TutorDetail() {
 
         <section className="py-8 sm:py-10">
           <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
+            <div className="mb-8">
+              <ActiveCasesSection
+                subject={{ kind: "tutor", tutorCode: t.tutor_code }}
+                isOwner={Boolean(user && user.id === t.user_id)}
+              />
+            </div>
             <div>
               {/* Issue #394 (TDO liability): non-Gold-Verified profiles must
                   proactively flag their scores as self-reported, never render a

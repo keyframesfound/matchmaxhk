@@ -23,6 +23,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { ActiveCasesSection } from "@/features/cases/active-cases/active-cases-section";
 import {
   getChannelMaterials,
   getChannelProfile,
@@ -103,6 +104,12 @@ function ChannelProfilePage() {
                     )}
                     {editMode ? t("channel.view_public") : t("channel.edit_mode")}
                   </Button>
+                  <Link
+                    to="/calendar"
+                    className="rounded-lg border border-[color:var(--ink)]/15 px-3 py-1.5 text-sm font-medium text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.04]"
+                  >
+                    {t("profile.active_cases.manage")}
+                  </Link>
                   <Link
                     to="/dashboard"
                     className="rounded-lg border border-[color:var(--ink)]/15 px-3 py-1.5 text-sm font-medium text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.04]"
@@ -200,6 +207,12 @@ function ChannelProfilePage() {
                 />
               </div>
             )}
+
+            {/* #633: Active Cases strip; owner links lead to Case Manager. */}
+            <ActiveCasesSection
+              subject={{ kind: "handle", handle: data.handle }}
+              isOwner={data.isOwner}
+            />
 
             {/* Pro-Bono & Impact card */}
             {data.proBono && (
