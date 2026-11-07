@@ -188,6 +188,7 @@ export const submitCentreCaseRequest = createServerFn({ method: "POST" })
       support_type: data.supportType,
       requester_type: "centre",
       organisation_id: org.id,
+      case_type: "centre",
       tutor_background: "any",
       language_of_instruction: "either",
       mode: (data.mode === "offline"

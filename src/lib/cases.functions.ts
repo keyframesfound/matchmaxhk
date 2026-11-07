@@ -221,6 +221,8 @@ export type PublicCaseBoardItem = {
   // Issue #423 (sections 2+3): structured package fields, display only,
   // never contact data.
   packageType: "ongoing_1_5" | "short_20" | "pro_bono";
+  // #552: raw column; read it through resolveCaseType().
+  caseType: string | null;
   studentCount: number;
   rateUnit: "hr" | "lesson" | "month";
   // Issue #443: display-safe short-package inputs — power the package-total
@@ -262,7 +264,7 @@ export type PublicCaseBoardItem = {
 };
 
 const PUBLIC_CASE_COLUMNS =
-  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, who_for, start_timing, package_type, student_count, rate_unit, is_short_case, scheduled_lesson_count, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, compliance_triage, organizations(name, slug, status, org_type)";
+  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, who_for, start_timing, package_type, student_count, rate_unit, is_short_case, scheduled_lesson_count, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, case_type, compliance_triage, organizations(name, slug, status, org_type)";
 
 // Never contact_name / contact_phone / student_school / student_grade_current.
 // sen_details is also withheld: the board is public and the free-text needs
@@ -308,6 +310,7 @@ function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
     startTiming: (row.start_timing as string | null) ?? null,
     // Issue #423: tolerant reads, every legacy row predating the migration
     // carries the same defaults the DB columns were added with.
+    caseType: (row.case_type as string | null) ?? null,
     packageType:
       row.package_type === "short_20" || row.package_type === "pro_bono"
         ? row.package_type

@@ -1068,6 +1068,7 @@ export type Database = {
           assigned_to: string | null;
           class_format_preference: string | null;
           group_cohort_id: string | null;
+          case_type: string;
           package_type: string;
           rate_unit: string;
           student_count: number;
@@ -1144,6 +1145,7 @@ export type Database = {
           assigned_to?: string | null;
           class_format_preference?: string | null;
           group_cohort_id?: string | null;
+          case_type?: string;
           package_type?: string;
           rate_unit?: string;
           student_count?: number;
@@ -1220,6 +1222,7 @@ export type Database = {
           assigned_to?: string | null;
           class_format_preference?: string | null;
           group_cohort_id?: string | null;
+          case_type?: string;
           package_type?: string;
           rate_unit?: string;
           student_count?: number;
