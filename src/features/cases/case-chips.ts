@@ -55,7 +55,7 @@ const CURRICULUM_CHIP_TKEYS: Record<string, string> = {
 
 /** CasePill tones are all soft (hard pills today are SEN/tests, still soft
  * preferences for Apply gating; only gender is a hard gate per #423). */
-export function caseChips(item: PublicCaseBoardItem): CaseChip[] {
+function allCaseChips(item: PublicCaseBoardItem): CaseChip[] {
   const chips: CaseChip[] = [];
   const seen = new Set<string>();
   const push = (chip: CaseChip) => {
@@ -107,7 +107,20 @@ export function caseChips(item: PublicCaseBoardItem): CaseChip[] {
     push({ key: `tag:${norm}`, label: norm, hard: false, tag: norm });
   }
 
-  return chips.slice(0, MAX_CASE_TAGS);
+  return chips;
+}
+
+export function caseChips(item: PublicCaseBoardItem): CaseChip[] {
+  return allCaseChips(item).slice(0, MAX_CASE_TAGS);
+}
+
+/** #552: one-line card row, the first `limit` chips plus a `+N` count. */
+export function caseChipsWithOverflow(
+  item: PublicCaseBoardItem,
+  limit: number,
+): { visible: CaseChip[]; overflow: number } {
+  const chips = allCaseChips(item);
+  return { visible: chips.slice(0, limit), overflow: Math.max(0, chips.length - limit) };
 }
 
 function casePillLabels(item: PublicCaseBoardItem): string[] {

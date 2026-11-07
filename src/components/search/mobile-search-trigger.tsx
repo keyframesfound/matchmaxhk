@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Search, SlidersHorizontal } from "lucide-react";
 import { Link, useRouterState } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 
@@ -15,10 +15,16 @@ import { cn } from "@/lib/utils";
  */
 export function MobileSearchTrigger({
   label,
+  subtitle,
+  badgeCount,
   onClick,
   className,
 }: {
   label: string;
+  /** #605 §3.2: second line summarising the active constraints. */
+  subtitle?: string;
+  /** #605: active filter count on the right-hand filter badge. */
+  badgeCount?: number;
   onClick: () => void;
   className?: string;
 }) {
@@ -74,10 +80,35 @@ export function MobileSearchTrigger({
       <button
         type="button"
         onClick={onClick}
-        className="pill-elevate-lg flex w-full items-center justify-center gap-2.5 rounded-full border border-transparent bg-card px-4 py-3.5 text-base font-medium text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-border"
+        className={cn(
+          "pill-elevate-lg flex w-full items-center justify-center gap-2.5 rounded-full border border-transparent bg-card px-4 text-base font-medium text-[color:var(--ink)] hover:bg-[color:var(--surface-subtle)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-border",
+          subtitle ? "py-2" : "py-3.5",
+        )}
       >
         <Search className="h-5 w-5 shrink-0" aria-hidden="true" />
-        <span className="truncate">{label}</span>
+        {subtitle ? (
+          <span className="min-w-0 flex-1 text-left leading-tight">
+            <span className="block truncate text-[15px] font-semibold">{label}</span>
+            <span className="block truncate text-xs font-normal text-muted-foreground">
+              {subtitle}
+            </span>
+          </span>
+        ) : (
+          <span className="truncate">{label}</span>
+        )}
+        {subtitle !== undefined ? (
+          <span
+            aria-label={badgeCount ? String(badgeCount) : undefined}
+            className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-border"
+          >
+            <SlidersHorizontal className="h-4 w-4" aria-hidden="true" />
+            {badgeCount ? (
+              <span className="absolute -top-1 -right-1 flex h-4.5 min-w-4.5 items-center justify-center rounded-full bg-[color:var(--ink)] px-1 text-[10px] font-bold text-[color:var(--background)]">
+                {badgeCount}
+              </span>
+            ) : null}
+          </span>
+        ) : null}
       </button>
       <nav
         aria-label={t("nav_mobile.quick_links")}
