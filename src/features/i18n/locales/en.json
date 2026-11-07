@@ -4360,7 +4360,11 @@
     "active_filters": "Active filters",
     "remove_filter": "Remove filter: {{label}}",
     "avail_chip": "Available: {{value}}",
-    "list_sep": ", "
+    "list_sep": ", ",
+    "pill_title_cases": "Search cases, subjects, or districts",
+    "placeholder_cases": "Subject, case code, district, or requirement",
+    "card_level": "Student Level",
+    "avail_helper_cases": "Matches the parent's preferred times on the case. Flexible cases always match. Soft preferences, not bookings; final times are set in Case Manager."
   },
   "schedule_state": {
     "occupied": "Occupied",

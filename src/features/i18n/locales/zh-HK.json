@@ -4360,7 +4360,11 @@
     "active_filters": "已選篩選條件",
     "remove_filter": "移除篩選：{{label}}",
     "avail_chip": "可上課：{{value}}",
-    "list_sep": "、"
+    "list_sep": "、",
+    "pill_title_cases": "搜尋個案、科目或地區",
+    "placeholder_cases": "輸入科目、個案編號、地區或補習要求",
+    "card_level": "學生程度",
+    "avail_helper_cases": "按家長在個案填寫的偏好時段配對，「彈性」個案一律符合。屬軟性偏好，並非預約；確實時間以個案管理為準。"
   },
   "schedule_state": {
     "occupied": "已佔用",

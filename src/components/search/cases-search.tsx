@@ -2,6 +2,7 @@ import {
   BadgeCheck,
   BookOpen,
   ClipboardList,
+  FileText,
   Gift,
   GraduationCap,
   HeartHandshake,
@@ -24,6 +25,8 @@ import {
   FiltersSection,
 } from "./filters-dialog";
 import { SubjectMultiSelect } from "./subject-multi-select";
+import { GuidedCard, MoreFiltersAccordion } from "./guided-card";
+import { AvailabilityFilterContent } from "./tutor-availability-filter";
 import type { CompactSegment } from "./sticky-search-group";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -545,6 +548,13 @@ export function CasesSearchBar({
         <FiltersSection id="rate" title={t("search_ui.case_rate_title")}>
           <CaseRateFields draft={draft} onDraftChange={onDraftChange} />
         </FiltersSection>
+        <FiltersSection id="availability" title={t("explore_search.avail_title")}>
+          <AvailabilityFilterContent
+            draft={draft}
+            onDraftChange={onDraftChange}
+            helper={t("explore_search.avail_helper_cases")}
+          />
+        </FiltersSection>
         <FiltersSection id="tags" title={t("search_ui.case_tags_title")}>
           <CaseTagsContent draft={draft} onDraftChange={onDraftChange} />
         </FiltersSection>
@@ -614,12 +624,35 @@ export function CasesSearchMobile({
       active: true,
       onSelect: () => {},
     },
+    {
+      id: "notes",
+      label: t("explore_search.tab_notes"),
+      icon: <FileText className="h-5 w-5" aria-hidden="true" />,
+      active: false,
+      onSelect: () => {
+        setSearchSlideDirection("next");
+        setOverlayOpen(false);
+        void navigate({ to: "/tutors", search: { view: "materials" } });
+      },
+    },
   ];
 
   return (
     <div className={className}>
       <MobileSearchTrigger
-        label={t("search_ui.start_search")}
+        label={t("explore_search.pill_title_cases")}
+        subtitle={[
+          draft.category
+            ? caseCategoryLabel(draft.category, t)
+            : t("explore_search.any_curriculum"),
+          draft.subject || t("explore_search.any_subject"),
+          draft.district || t("explore_search.any_district"),
+        ].join(" · ")}
+        badgeCount={
+          countCaseAdvancedFilters(draft) +
+          [draft.q, draft.category, draft.subject, draft.mode, draft.district].filter(Boolean)
+            .length
+        }
         onClick={() => setOverlayOpen(true)}
       />
 
@@ -635,122 +668,134 @@ export function CasesSearchMobile({
           setOverlayOpen(false);
         }}
       >
-        <div className="space-y-6">
+        <div className="space-y-4">
           <div>
-            <p className="mb-2 text-xl font-bold tracking-tight text-[color:var(--ink)]">
-              {t("search_ui.panel_keyword_title")}
-            </p>
             <SearchBigInput
               value={draft.q ?? ""}
               onValueChange={(q) => onDraftChange({ q: q || undefined })}
               onEnter={() => onApply()}
-              placeholder={t("search_ui.cases_placeholder")}
+              placeholder={t("explore_search.placeholder_cases")}
               ariaLabel={t("search_ui.cases_placeholder")}
             />
+            <div className="mt-3 space-y-2">
+              <PanelLabel>{t("explore_search.popular_title")}</PanelLabel>
+              <FilterQuickPicks options={caseQuickPicks(draft, onDraftChange, t)} />
+            </div>
           </div>
 
-          <div className="space-y-2">
-            <PanelLabel>{t("search_ui.quick_title")}</PanelLabel>
-            <FilterQuickPicks options={caseQuickPicks(draft, onDraftChange, t)} />
-          </div>
+          {/* #605 §3.6 Cases: Pill 2 = student level, Pill 3 = district & mode. */}
+          <GuidedCard title={t("explore_search.card_subject")}>
+            <div className="space-y-1.5">
+              <PanelLabel>{t("search_ui.segment_curriculum")}</PanelLabel>
+              <SearchableSelect
+                value={draft.category ?? ""}
+                onChange={handleCategorySelect}
+                options={[
+                  { value: "", label: t("search_panel.any_category") },
+                  ...CASE_CATEGORY_VALUES.map((value) => ({
+                    value,
+                    label: caseCategoryLabel(value, t),
+                  })),
+                ]}
+                placeholder={t("search_panel.any_category")}
+                searchPlaceholder={t("search_panel.search_category")}
+                className="h-12 rounded-2xl"
+              />
+            </div>
 
-          <div className="space-y-1.5">
-            <PanelLabel>{t("search_ui.segment_curriculum")}</PanelLabel>
-            <SearchableSelect
-              value={draft.category ?? ""}
-              onChange={handleCategorySelect}
-              options={[
-                { value: "", label: t("search_panel.any_category") },
-                ...CASE_CATEGORY_VALUES.map((value) => ({
-                  value,
-                  label: caseCategoryLabel(value, t),
-                })),
-              ]}
-              placeholder={t("search_panel.any_category")}
-              searchPlaceholder={t("search_panel.search_category")}
-              className="h-12 rounded-2xl"
-            />
-          </div>
+            <div className="space-y-1.5">
+              <PanelLabel>{t("search_ui.segment_subject")}</PanelLabel>
+              <SearchableSelect
+                value={draft.subject ?? ""}
+                onChange={(value) => onDraftChange({ subject: value || undefined })}
+                options={[
+                  { value: "", label: t("search_ui.compact_any_subject") },
+                  ...subjectOptions.map((subject) => ({ value: subject, label: subject })),
+                ]}
+                placeholder={t("search_ui.compact_any_subject")}
+                searchPlaceholder={t("search_panel.search_subject")}
+                className="h-12 rounded-2xl"
+              />
+            </div>
+          </GuidedCard>
 
-          <div className="space-y-1.5">
-            <PanelLabel>{t("search_ui.segment_subject")}</PanelLabel>
-            <SearchableSelect
-              value={draft.subject ?? ""}
-              onChange={(value) => onDraftChange({ subject: value || undefined })}
-              options={[
-                { value: "", label: t("search_ui.compact_any_subject") },
-                ...subjectOptions.map((subject) => ({ value: subject, label: subject })),
-              ]}
-              placeholder={t("search_ui.compact_any_subject")}
-              searchPlaceholder={t("search_panel.search_subject")}
-              className="h-12 rounded-2xl"
-            />
-          </div>
-
-          <div className="space-y-2">
-            <PanelLabel>{t("search_ui.segment_mode")}</PanelLabel>
-            <CaseModeContent draft={draft} onDraftChange={onDraftChange} />
-          </div>
-
-          <div className="space-y-1.5">
-            <PanelLabel>{t("search_ui.segment_district")}</PanelLabel>
-            <SearchableSelect
-              value={draft.district ?? ""}
-              onChange={(value) => onDraftChange({ district: value || undefined })}
-              options={[
-                { value: "", label: t("search_ui.any_district") },
-                ...HK_DISTRICTS.map((district) => ({ value: district, label: district })),
-              ]}
-              placeholder={t("search_ui.any_district")}
-              searchPlaceholder={t("search_panel.search_subject")}
-              className="h-12 rounded-2xl"
-            />
-          </div>
-
-          {/* Issue #423 ship-order 5: the advanced filter sections. */}
-          <div className="space-y-2">
-            <PanelLabel>{t("search_ui.case_tier_title")}</PanelLabel>
+          <GuidedCard title={t("explore_search.card_level")}>
             <CaseTierContent draft={draft} onDraftChange={onDraftChange} />
-          </div>
+          </GuidedCard>
 
-          <div className="space-y-2">
-            <PanelLabel>{t("search_ui.case_fee_title")}</PanelLabel>
-            <CaseFeeContent draft={draft} onDraftChange={onDraftChange} />
-          </div>
+          <GuidedCard title={t("explore_search.card_mode")}>
+            <div className="space-y-2">
+              <PanelLabel>{t("search_ui.segment_mode")}</PanelLabel>
+              <CaseModeContent draft={draft} onDraftChange={onDraftChange} />
+            </div>
 
-          <div className="space-y-2">
-            <PanelLabel>{t("search_ui.status_title")}</PanelLabel>
-            <CaseBackgroundContent
-              draft={draft}
-              onDraftChange={onDraftChange}
-              className="h-12 rounded-2xl"
-            />
-          </div>
+            <div className="space-y-1.5">
+              <PanelLabel>{t("search_ui.segment_district")}</PanelLabel>
+              <SearchableSelect
+                value={draft.district ?? ""}
+                onChange={(value) => onDraftChange({ district: value || undefined })}
+                options={[
+                  { value: "", label: t("search_ui.any_district") },
+                  ...HK_DISTRICTS.map((district) => ({ value: district, label: district })),
+                ]}
+                placeholder={t("search_ui.any_district")}
+                searchPlaceholder={t("search_panel.search_subject")}
+                className="h-12 rounded-2xl"
+              />
+            </div>
+          </GuidedCard>
 
-          <div className="space-y-2">
-            <PanelLabel>{t("search_ui.gender_title")}</PanelLabel>
-            <CaseGenderContent draft={draft} onDraftChange={onDraftChange} />
-          </div>
+          <MoreFiltersAccordion
+            title={t("explore_search.more_filters")}
+            count={countCaseAdvancedFilters(draft) - (draft.tier ? 1 : 0)}
+          >
+            <div className="space-y-2">
+              <PanelLabel>{t("explore_search.avail_title")}</PanelLabel>
+              <AvailabilityFilterContent
+                draft={draft}
+                onDraftChange={onDraftChange}
+                helper={t("explore_search.avail_helper_cases")}
+              />
+            </div>
+            <div className="space-y-2">
+              <PanelLabel>{t("search_ui.case_fee_title")}</PanelLabel>
+              <CaseFeeContent draft={draft} onDraftChange={onDraftChange} />
+            </div>
 
-          <div className="space-y-2">
-            <PanelLabel>{t("search_ui.case_lang_title")}</PanelLabel>
-            <CaseLanguageContent draft={draft} onDraftChange={onDraftChange} />
-          </div>
+            <div className="space-y-2">
+              <PanelLabel>{t("search_ui.status_title")}</PanelLabel>
+              <CaseBackgroundContent
+                draft={draft}
+                onDraftChange={onDraftChange}
+                className="h-12 rounded-2xl"
+              />
+            </div>
 
-          <div className="space-y-2">
-            <PanelLabel>{t("sen.filter_title")}</PanelLabel>
-            <CaseSenContent draft={draft} onDraftChange={onDraftChange} />
-          </div>
+            <div className="space-y-2">
+              <PanelLabel>{t("search_ui.gender_title")}</PanelLabel>
+              <CaseGenderContent draft={draft} onDraftChange={onDraftChange} />
+            </div>
 
-          <div className="space-y-2.5">
-            <PanelLabel>{t("search_ui.case_rate_title")}</PanelLabel>
-            <CaseRateFields draft={draft} onDraftChange={onDraftChange} />
-          </div>
+            <div className="space-y-2">
+              <PanelLabel>{t("search_ui.case_lang_title")}</PanelLabel>
+              <CaseLanguageContent draft={draft} onDraftChange={onDraftChange} />
+            </div>
 
-          <div className="space-y-2">
-            <PanelLabel>{t("search_ui.case_tags_title")}</PanelLabel>
-            <CaseTagsContent draft={draft} onDraftChange={onDraftChange} />
-          </div>
+            <div className="space-y-2">
+              <PanelLabel>{t("sen.filter_title")}</PanelLabel>
+              <CaseSenContent draft={draft} onDraftChange={onDraftChange} />
+            </div>
+
+            <div className="space-y-2.5">
+              <PanelLabel>{t("search_ui.case_rate_title")}</PanelLabel>
+              <CaseRateFields draft={draft} onDraftChange={onDraftChange} />
+            </div>
+
+            <div className="space-y-2">
+              <PanelLabel>{t("search_ui.case_tags_title")}</PanelLabel>
+              <CaseTagsContent draft={draft} onDraftChange={onDraftChange} />
+            </div>
+          </MoreFiltersAccordion>
         </div>
       </MobileSearchOverlay>
     </div>
