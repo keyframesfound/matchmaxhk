@@ -707,8 +707,78 @@ html {
  * search bar family (SearchPillBar band + panel, CompactSearchPill). These
  * pills float over scrolling content, so they qualify under the floating-layer
  * shadow rule (DESIGN.md: shadows float or they do not exist), alongside
- * .mm-overlay-lift above. Do not add further shadow rules.
+ * .mm-overlay-lift above. Resting cards take a shadow only when an issue asks
+ * for one (.mm-promo-card #668, .mm-case-card #552).
  */
+/*
+ * #668: the homepage promo cards take the shadow their issue asks for (Airbnb
+ * mid-page promo benchmark).
+ */
+.mm-promo-card {
+  background-color: #ffffff;
+  border: 1px solid rgb(15 23 42 / 0.06);
+  box-shadow:
+    0 6px 16px rgb(0 0 0 / 0.08),
+    0 1px 3px rgb(0 0 0 / 0.04);
+  transition: box-shadow 200ms ease;
+}
+
+.mm-promo-card:hover,
+.mm-promo-card:focus-visible {
+  box-shadow: 0 10px 24px rgb(0 0 0 / 0.11);
+}
+
+.mm-promo-cta {
+  background-color: #f3f4f6;
+  color: #0f172a;
+  transition: background-color 200ms ease;
+}
+
+.mm-promo-card:hover .mm-promo-cta,
+.mm-promo-card:focus-visible .mm-promo-cta {
+  background-color: #e5e7eb;
+}
+
+.dark .mm-promo-card {
+  background-color: var(--card);
+  border-color: var(--border);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.55);
+}
+
+.dark .mm-promo-cta {
+  background-color: rgb(255 255 255 / 0.1);
+  color: var(--ink);
+}
+
+.dark .mm-promo-card:hover .mm-promo-cta,
+.dark .mm-promo-card:focus-visible .mm-promo-cta {
+  background-color: rgb(255 255 255 / 0.16);
+}
+
+/*
+ * #552: case board card shell, hairline border with the issue's faint shadow.
+ */
+.mm-case-card {
+  background-color: #ffffff;
+  border: 1px solid #eff3f4;
+  box-shadow: 0 1px 2px rgb(15 20 25 / 0.03);
+  transition: border-color 200ms ease;
+}
+
+.mm-case-card:hover {
+  border-color: #cfd9de;
+}
+
+.dark .mm-case-card {
+  background-color: var(--card);
+  border-color: var(--border);
+  box-shadow: none;
+}
+
+.dark .mm-case-card:hover {
+  border-color: rgb(255 255 255 / 0.25);
+}
+
 .pill-elevate,
 .pill-elevate-lg,
 .pill-elevate-strong {

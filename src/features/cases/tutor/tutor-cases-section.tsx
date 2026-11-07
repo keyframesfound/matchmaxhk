@@ -39,6 +39,7 @@ import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card"
 import { ShortCaseChip } from "@/features/cases/tutor/short-case-chip";
 import { ScheduleNextLessonDialog } from "@/features/cases/tutor/schedule-next-lesson-dialog";
 import { FeePayPanel } from "@/features/cases/tutor/fee-pay-panel";
+import { DemandSidePanel } from "@/features/cases/demand-side/demand-side-panel";
 import { LearnerSnapshotCard } from "@/features/cases/tutor/learner-snapshot-card";
 import { lessonActionsFor } from "@/features/cases/tutor/week-model";
 import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
@@ -608,6 +609,10 @@ export function TutorCasesSection() {
                 <EngagementSummaryCard caseId={c.id} party="tutor" />
                 {/* #545: the learner's shared academic snapshot. */}
                 <LearnerSnapshotCard caseId={c.id} />
+                {/* #637: read-only for the tutor. */}
+                <div className="mt-3">
+                  <DemandSidePanel caseId={c.id} />
+                </div>
               </li>
             ))}
           </ul>

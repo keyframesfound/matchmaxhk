@@ -68,6 +68,15 @@ import {
   type AcademicTier,
 } from "@/features/tutors/verticals";
 import { supabase } from "@/integrations/supabase/client";
+import { ActiveFilterRibbon } from "@/components/search/active-filter-ribbon";
+import { buildActiveFilterChips } from "@/features/tutors/active-filter-chips";
+import {
+  availabilityRank,
+  isAvailabilityActive,
+  matchTutorAvailability,
+  parseAvailBands,
+  parseAvailDays,
+} from "@/features/tutors/availability-filter";
 import {
   parseSelectedStatuses,
   parseStatusListParam,
@@ -87,8 +96,13 @@ const searchSchema = z.object({
   category: z.string().optional(),
   subject: z.string().optional(),
   // Issue #187: extra subjects beyond the primary (comma-free, "||"-joined).
-  // AND-ed with `subject`, a tutor must teach every selected subject.
+  // #605: OR by default (tutors teaching more of the picks rank higher);
+  // `subject_match=and` requires every selected subject.
   subjects_extra: z.string().optional(),
+  subject_match: z.enum(["and", "or"]).optional(),
+  // #605 §3.11: soft availability over tutors.availability_grid.
+  avail_days: z.string().optional(), // "mon,tue"
+  avail_bands: z.string().optional(), // "morning,evening"
   station: z.string().optional(), // nearest MTR station to the student
   mode: z.string().optional(), // online | in_person | either
   gender: z.string().optional(), // male | female | other
@@ -232,6 +246,12 @@ function TutorsDirectory() {
     .split("||")
     .map((value) => value.trim().toLowerCase())
     .filter(Boolean);
+  const subjectMatchAll = draft.subject_match === "and";
+  const availPick = useMemo(
+    () => ({ days: parseAvailDays(draft.avail_days), bands: parseAvailBands(draft.avail_bands) }),
+    [draft.avail_days, draft.avail_bands],
+  );
+  const availActive = isAvailabilityActive(availPick);
   const stationFilter = draft.station ?? "";
   const modeFilter = draft.mode ?? "";
   const genderFilter = draft.gender ?? "";
@@ -261,6 +281,10 @@ function TutorsDirectory() {
   const kindergartenToggles = kindergartenActiveToggles(draft);
 
   const filtered = useMemo(() => {
+    const allSubjectFilters = [subjectFilter, ...extraSubjectFilters].filter(Boolean);
+    const subjectHits = (tut: Tutor) =>
+      allSubjectFilters.filter((wanted) => tut.subjects.some((s) => matchesSubjectQuery(s, wanted)))
+        .length;
     const query = (draft.q ?? "").trim().toLowerCase();
     const sort = draft.sort ?? "";
 
@@ -279,20 +303,13 @@ function TutorsDirectory() {
         ])
       )
         return false;
-      if (
-        isPrimarySecondaryTier &&
-        subjectFilter &&
-        !tut.subjects.some((s) => matchesSubjectQuery(s, subjectFilter))
-      )
-        return false;
-      // Issue #187: AND semantics, a tutor must teach every extra subject too.
-      if (
-        isPrimarySecondaryTier &&
-        extraSubjectFilters.length > 0 &&
-        !extraSubjectFilters.every((extra) =>
-          tut.subjects.some((s) => matchesSubjectQuery(s, extra)),
-        )
-      )
+      // #605: multi-subject OR by default; AND only with subject_match=and.
+      if (isPrimarySecondaryTier && allSubjectFilters.length > 0) {
+        const hits = subjectHits(tut);
+        if (subjectMatchAll ? hits < allSubjectFilters.length : hits === 0) return false;
+      }
+      // #605 §3.11: soft availability; tutors with no grid stay (ranked last).
+      if (availActive && matchTutorAvailability(tut.availability_grid, availPick) === "miss")
         return false;
       if (draft.min_price !== undefined && getTutorBaseRate(tut) < draft.min_price) return false;
       if (draft.max_price !== undefined && getTutorBaseRate(tut) > draft.max_price) return false;
@@ -375,6 +392,18 @@ function TutorsDirectory() {
     });
 
     return [...list].sort((a, b) => {
+      // #605: tutors teaching more of the picked subjects rank first (OR).
+      if (isPrimarySecondaryTier && allSubjectFilters.length > 1) {
+        const hitDelta = subjectHits(b) - subjectHits(a);
+        if (hitDelta !== 0) return hitDelta;
+      }
+      // #605 §3.11: explicit availability overlap ahead of unset grids.
+      if (availActive) {
+        const availDelta =
+          availabilityRank(matchTutorAvailability(a.availability_grid, availPick)) -
+          availabilityRank(matchTutorAvailability(b.availability_grid, availPick));
+        if (availDelta !== 0) return availDelta;
+      }
       // Issue #658 §2.2: with a status pick active, exact matches rank ahead
       // of legacy bundled profiles pulled in by the FT/PT backfill, before
       // the regular experience/rate ordering.
@@ -407,6 +436,9 @@ function TutorsDirectory() {
     categoryFilter,
     subjectFilter,
     extraSubjectFilters,
+    subjectMatchAll,
+    availActive,
+    availPick,
     effectiveStationFilter,
     modeFilter,
     genderFilter,
@@ -509,6 +541,10 @@ function TutorsDirectory() {
 
   const compactSegments = useTutorsCompactSegments(draft);
 
+  // #605 AC8: chips for the APPLIED search; removing one navigates at once.
+  const activeChips = buildActiveFilterChips(search, t);
+  const removeChip = (patch: Partial<SearchState>) => navigate({ search: { ...search, ...patch } });
+
   // #131: Tutors | Study Materials directory tab.
   const directoryView = search.view === "materials" ? "materials" : "tutors";
   const setDirectoryView = (next: "tutors" | "materials") => {
@@ -581,6 +617,7 @@ function TutorsDirectory() {
                     allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
                     educationValues={educationValues}
                     defaultOverlayOpen={search.open === true}
+                    resultCount={isLoading ? undefined : filtered.length}
                     whatsappUrl={hotlineUrl || undefined}
                   />
                 </div>
@@ -610,6 +647,11 @@ function TutorsDirectory() {
           ) : (
             <section className="pt-6 pb-12 sm:pt-8">
               <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
+                <ActiveFilterRibbon
+                  chips={activeChips}
+                  onRemove={(chip) => removeChip(chip.patch as Partial<SearchState>)}
+                  onClearAll={clearAll}
+                />
                 <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
                   {isLoading ? (
                     <Skeleton className="h-4 w-28" />
