@@ -5,8 +5,9 @@
 // row, the bilingual auto-title pair, and the single clickable chip row.
 // Design system: hairline borders, no shadows, sentence-case labels.
 
+import type { ParentTrust } from "@/features/cases/parent-trust";
 import { useTranslation } from "react-i18next";
-import { Building2, MapPin, ShieldCheck, Users } from "lucide-react";
+import { Building2, CreditCard, MapPin, ShieldCheck, Star, Users } from "lucide-react";
 import { Link } from "@tanstack/react-router";
 
 import {
@@ -207,8 +208,8 @@ export function CaseLogisticsLine({
  * Issues #412 / #423 B2B slice: the card identity row. Centre cases swap in
  * the verified-org identity (name + Blue Tick, linking to the storefront
  * when live); unverified centres fall back to the B2C identity line, and
- * parent cases never change. Trust pills only ever render with real data —
- * there is no parent rating today (precedent #151).
+ * parent cases never change. Trust pills only ever render with real data,
+ * past a sample threshold (precedent #151, see parent-trust.ts).
  */
 export function CaseIdentityRow({ item }: { item: PublicCaseBoardItem }) {
   const { t } = useTranslation();
@@ -245,24 +246,62 @@ export function CaseIdentityRow({ item }: { item: PublicCaseBoardItem }) {
       </span>
     );
   }
-  // #552: an activity has a host, not a parent; no host field exists yet.
-  if (resolveCaseType(item) === "activity") return null;
-  // #459 §E: tell the tutor up front whether a parent or the student
-  // themselves booked, so the first message is framed right.
-  const learner = caseLearnerContext(item.whoFor);
-  if (learner === "generic") {
+  // #552: an activity has a host, not a parent; no host field exists, so generic.
+  if (resolveCaseType(item) === "activity") {
     return (
       <span className="truncate text-xs font-medium text-muted-foreground">
-        {t("case_board.identity_parent")}
+        {t("case_board.identity_activity")}
       </span>
     );
   }
+  // #459 §E: tell the tutor up front whether a parent or the student
+  // themselves booked, so the first message is framed right.
+  const learner = caseLearnerContext(item.whoFor);
+  const trust = item.parentTrust ? <ParentTrustPills trust={item.parentTrust} /> : null;
+  if (learner === "generic") {
+    return (
+      <>
+        <span className="truncate text-xs font-medium text-muted-foreground">
+          {t("case_board.identity_parent")}
+        </span>
+        {trust}
+      </>
+    );
+  }
   return (
-    <span
-      className={`inline-flex min-w-0 items-center truncate rounded-full border px-2 py-0.5 text-[11px] font-semibold ${LEARNER_BADGE_CLASS[learner]}`}
-    >
-      {t(LEARNER_BADGE_KEY[learner])}
-    </span>
+    <>
+      <span
+        className={`inline-flex min-w-0 items-center truncate rounded-full border px-2 py-0.5 text-[11px] font-semibold ${LEARNER_BADGE_CLASS[learner]}`}
+      >
+        {t(LEARNER_BADGE_KEY[learner])}
+      </span>
+      {trust}
+    </>
+  );
+}
+
+function ParentTrustPills({ trust }: { trust: ParentTrust }) {
+  const { t } = useTranslation();
+  const pill =
+    "inline-flex shrink-0 items-center gap-0.5 rounded bg-muted px-1.5 py-0.5 text-[11px] font-semibold text-[color:var(--ink)]";
+  return (
+    <>
+      {trust.rating !== null ? (
+        <span
+          className={pill}
+          title={t("case_board.parent_rating_hint", { count: trust.ratingCount })}
+        >
+          <Star className="h-3 w-3" aria-hidden="true" />
+          {trust.rating.toFixed(1)}
+        </span>
+      ) : null}
+      {trust.onTime ? (
+        <span className={pill} title={t("case_board.parent_on_time_hint")}>
+          <CreditCard className="h-3 w-3" aria-hidden="true" />
+          {t("case_board.parent_on_time")}
+        </span>
+      ) : null}
+    </>
   );
 }
 

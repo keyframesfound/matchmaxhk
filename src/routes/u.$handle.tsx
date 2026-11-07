@@ -14,6 +14,7 @@ import {
   Users,
 } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { z } from "zod";
 import { toast } from "sonner";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -24,6 +25,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { ActiveCasesSection } from "@/features/cases/active-cases/active-cases-section";
+import { CHANNEL_EDITORS, ChannelInlineEditors } from "@/features/channels/channel-inline-editors";
+import { ProfileStrengthBanner } from "@/features/profile-strength/profile-strength-banner";
 import {
   getChannelCollections,
   getChannelMaterials,
@@ -32,8 +35,16 @@ import {
   requestAffiliation,
 } from "@/features/channels/channel.functions";
 
+const channelSearch = z.object({
+  edit: z
+    .enum(["open", ...CHANNEL_EDITORS])
+    .optional()
+    .catch(undefined),
+});
+
 export const Route = createFileRoute("/u/$handle")({
   ssr: false,
+  validateSearch: channelSearch,
   head: ({ params }) => ({
     meta: [
       { title: `@${params.handle} | MatchMax Channel` },
@@ -55,7 +66,9 @@ function ChannelProfilePage() {
   const { handle } = Route.useParams();
   const { t, i18n } = useTranslation();
   const [tab, setTab] = useState<"overview" | "materials" | "reviews">("overview");
-  const [editMode, setEditMode] = useState(false);
+  const { edit } = Route.useSearch();
+  // #576: activation and Profile Strength deep-link straight into Edit Mode.
+  const [editMode, setEditMode] = useState(Boolean(edit));
   const [affiliationSlug, setAffiliationSlug] = useState("");
 
   const profileQuery = useQuery({
@@ -98,6 +111,7 @@ function ChannelProfilePage() {
           </p>
         ) : (
           <div className="mx-auto w-full max-w-4xl space-y-6 py-4">
+            {data.isOwner ? <ProfileStrengthBanner /> : null}
             {/* Owner bar */}
             {data.isOwner && (
               <div className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border bg-card px-4 py-2.5">
@@ -429,6 +443,7 @@ function OverviewTab({
   setAffiliationSlug: (v: string) => void;
   requestAffil: { mutate: () => void; pending: boolean };
 }) {
+  const { edit } = Route.useSearch();
   const { t } = useTranslation();
   return (
     <div className="space-y-4">
@@ -459,6 +474,14 @@ function OverviewTab({
           </p>
         )}
       </div>
+
+      {/* #576 Stage 3: inline editors for everything /join no longer collects. */}
+      {editMode && data.isOwner && (
+        <ChannelInlineEditors
+          hasTutorCard={Boolean(data.tutorCode)}
+          initial={edit && edit !== "open" ? edit : undefined}
+        />
+      )}
 
       {/* #548 owner edit-mode block: affiliation request */}
       {editMode && data.isOwner && (
