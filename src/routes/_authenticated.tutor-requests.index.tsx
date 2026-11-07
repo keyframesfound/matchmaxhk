@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CaseRequestForm } from "@/features/cases/CaseRequestForm";
 import { CaseSaveButton } from "@/features/cases/saved-cases";
@@ -46,6 +47,7 @@ import {
   CaseIdentityRow,
   CaseLogisticsLine,
   CaseStudentsRow,
+  CaseTypeBadge,
   caseLogisticsParts,
   caseRateText,
   useCaseTitles,
@@ -66,6 +68,13 @@ import {
   parseCaseRateParam,
   parseCaseTagsParam,
 } from "@/features/cases/case-filters";
+import {
+  CASE_TYPES,
+  caseTypeLabelKey,
+  parseCaseTypeParam,
+  type CaseType,
+} from "@/features/cases/case-type";
+import { cn } from "@/lib/utils";
 import { parseTierParam } from "@/features/tutors/search-tiers";
 import {
   joinAvailParam,
@@ -75,6 +84,9 @@ import {
 import type { AcademicTier } from "@/features/tutors/verticals";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 import { useAuth } from "@/features/auth/useAuth";
+import { rankCasesByFit } from "@/features/cases/schedule-fit";
+import { ScheduleFitBadge, ScheduleSyncPanel } from "@/features/cases/schedule-fit-ui";
+import { useTutorScheduleSync } from "@/features/cases/use-schedule-fit";
 import {
   listMyAppliedCaseCodes,
   myAppliedCasesQueryKey,
@@ -92,6 +104,7 @@ type CaseBoardSearch = {
 } & CaseBoardFiltersState;
 
 type CaseBoardFiltersState = {
+  type?: CaseType;
   tier?: AcademicTier;
   subject?: string;
   mode?: string;
@@ -149,6 +162,8 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
     if (background) result.background = background;
     const gender = parseCaseGenderParam(search.gender);
     if (gender) result.gender = gender;
+    const caseType = parseCaseTypeParam(search.type);
+    if (caseType) result.type = caseType;
     const language = parseCaseLanguageParam(search.language);
     if (language) result.language = language;
     if (search.sen === true || search.sen === "true") result.sen = true;
@@ -207,6 +222,11 @@ function caseSectionKey(examSystem: string | null): string {
   return value;
 }
 
+// #552: the spacing SoT for equal-card marketplace grids. Cards stay one `1fr`
+// column even with one or two items.
+const BOARD_GRID_CLASS =
+  "grid w-full grid-cols-1 items-stretch gap-6 md:grid-cols-2 lg:grid-cols-3";
+
 function CaseShareButton({ item }: { item: PublicCaseBoardItem }) {
   const { t } = useTranslation();
   const { primary } = useCaseTitles(item);
@@ -239,6 +259,48 @@ function CaseShareButton({ item }: { item: PublicCaseBoardItem }) {
 
 /** #81: small "Applied" pill for board cards of cases the tutor already hit
  * 1-click Apply on. Only rendered with a true prop, additive, default off. */
+/** #552: All · Private · Centre · Activity / Gig, combinable with other filters. */
+function CaseTypeFilter({
+  value,
+  onChange,
+}: {
+  value: CaseType | undefined;
+  onChange: (type: CaseType | undefined) => void;
+}) {
+  const { t } = useTranslation();
+  const options: { type: CaseType | undefined; label: string }[] = [
+    { type: undefined, label: t("case_board.type_filter_all") },
+    ...CASE_TYPES.map((type) => ({
+      type,
+      label: t(type === "activity" ? "case_board.type_filter_activity" : caseTypeLabelKey(type)),
+    })),
+  ];
+  return (
+    <div
+      role="group"
+      aria-label={t("case_board.type_filter_aria")}
+      className="mt-5 flex flex-wrap gap-2"
+    >
+      {options.map(({ type, label }) => (
+        <button
+          key={label}
+          type="button"
+          aria-pressed={value === type}
+          onClick={() => onChange(type)}
+          className={cn(
+            "inline-flex h-9 items-center rounded-full border px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]",
+            value === type
+              ? "border-[color:var(--surface-invert)] bg-[color:var(--surface-invert)] text-[color:var(--surface-invert-fg)]"
+              : "border-border bg-[color:var(--surface)] text-[color:var(--ink)] hover:border-[color:var(--foreground)]/25",
+          )}
+        >
+          {label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function CaseAppliedPill() {
   const { t } = useTranslation();
   return (
@@ -249,7 +311,16 @@ function CaseAppliedPill() {
   );
 }
 
-function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applied?: boolean }) {
+function CaseCard({
+  item,
+  applied = false,
+  fitScore,
+}: {
+  item: PublicCaseBoardItem;
+  applied?: boolean;
+  /** #660: Schedule Fit Score for the signed-in tutor; absent shows no badge. */
+  fitScore?: number;
+}) {
   const { t, i18n } = useTranslation();
   const { primary, secondary } = useCaseTitles(item);
   // Issue #113/#423: tutors quoting in another currency see the converted
@@ -262,12 +333,15 @@ function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applie
   const logisticsParts = caseLogisticsParts(item);
   const postedAgo = formatPostedAgo(item.boardPublishedAt ?? item.createdAt, i18n.language);
   return (
-    <li className="relative flex flex-col rounded-xl border border-border bg-[color:var(--surface)] p-4 transition-colors hover:border-[color:var(--foreground)]/25">
+    <li className="mm-case-card relative flex h-full w-full min-w-0 flex-col rounded-2xl p-5">
       {/* Identity row, trust pills ONLY with real data; there is NO parent
           rating today, so nothing fabricated renders (precedent #151).
           Centre cases swap in the verified-org identity (#412/#423). */}
-      <div className="flex items-center justify-between gap-2">
-        <CaseIdentityRow item={item} />
+      <div className="flex h-7 items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <CaseTypeBadge item={item} />
+          <CaseIdentityRow item={item} />
+        </div>
         {item.startTiming === "asap" ? (
           <span className="inline-flex shrink-0 items-center gap-0.5 rounded bg-[color:var(--warning)]/15 px-1.5 py-0.5 text-xs font-bold text-[#a16207] dark:text-[color:var(--warning)]">
             <CalendarClock className="h-3 w-3" aria-hidden="true" />
@@ -286,6 +360,18 @@ function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applie
         <h3 className="truncate text-base font-bold text-[color:var(--ink)]">{primary}</h3>
         {secondary ? <p className="truncate text-sm text-muted-foreground">{secondary}</p> : null}
       </Link>
+
+      {/* #660: same badge family and formula as the parent Tutor Search. */}
+      {fitScore ? (
+        <div className="mt-2 space-y-1">
+          <ScheduleFitBadge kind="fit" score={fitScore} />
+          {item.scheduleMode === "specific" && item.scheduleSlots.length > 0 ? (
+            <p className="text-xs text-muted-foreground">
+              {t("schedule_fit.explain_fit", { n: fitScore })}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* 1-line logistics row. */}
       <CaseLogisticsLine parts={logisticsParts} className="mt-2 [&>span]:w-full [&>span]:min-w-0" />
@@ -312,12 +398,12 @@ function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applie
         </div>
       ) : null}
 
-      <div className="mt-2 min-h-[1.75rem]">
+      <div className="mb-3 mt-2 min-h-[1.75rem]">
         <CaseChipRow item={item} />
       </div>
 
       {/* Footer: neutral CTAs (tutor-card parity) + fee-rule pill + posted. */}
-      <div className="mt-3 flex items-center justify-between gap-2 border-t border-border pt-3">
+      <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-3">
         <div className="flex min-w-0 items-center gap-0.5">
           <CaseCompareToggle caseId={item.id} />
           <CaseShareButton item={item} />
@@ -335,13 +421,13 @@ function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applie
           </Link>
         </div>
       </div>
-      <div className="mt-2 flex items-center justify-between gap-2">
-        <div className="flex min-w-0 items-center gap-1.5">
+      <div className="mt-2 flex items-center justify-between gap-4">
+        <div className="flex shrink-0 items-center gap-1.5">
           <CaseFeePill packageType={item.packageType} />
           {/* Issue #81: 1-click Apply receipt on the card itself. */}
           {applied ? <CaseAppliedPill /> : null}
         </div>
-        <span className="shrink-0 text-xs text-muted-foreground">
+        <span className="min-w-0 truncate text-right text-xs text-muted-foreground">
           {t("case_board.posted_ago", { ago: postedAgo })}
         </span>
       </div>
@@ -351,7 +437,7 @@ function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applie
 
 function ListSkeleton({ cards }: { cards: number }) {
   return (
-    <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+    <ul className={BOARD_GRID_CLASS}>
       {Array.from({ length: cards }).map((_, i) => (
         <li key={i} className="flex flex-col gap-2 rounded-xl border border-border p-4">
           <Skeleton className="h-3 w-16" />
@@ -424,6 +510,8 @@ function TutorRequestsPage() {
         language: next.language,
         sen: next.sen,
         tags: next.tags,
+        // #552: the type row lives outside the search draft.
+        type: search.type,
       },
     });
   };
@@ -450,7 +538,13 @@ function TutorRequestsPage() {
   });
   const appliedCodes = useMemo(() => new Set(myAppliedCaseCodes ?? []), [myAppliedCaseCodes]);
 
-  const filteredCases = useMemo(() => {
+  // #660: matched by default when the tutor has schedule data. Show All and
+  // slot edits last for this session and never touch Case Manager.
+  const scheduleFit = useTutorScheduleSync();
+  const [matchedToSchedule, setMatchedToSchedule] = useState(true);
+  const [fitEditing, setFitEditing] = useState(false);
+
+  const searchedCases = useMemo(() => {
     const query = (search.q ?? "").trim().toLowerCase();
     // Issue #311: ?tag= is an exact-match filter on the case's stored tags,
     // mirroring the /tutors tag filter.
@@ -503,6 +597,15 @@ function TutorRequestsPage() {
     });
   };
 
+  const {
+    items: filteredCases,
+    scores: caseFitScores,
+    zeroFit,
+  } = useMemo(
+    () => rankCasesByFit(searchedCases, scheduleFit.open, matchedToSchedule),
+    [searchedCases, scheduleFit.open, matchedToSchedule],
+  );
+
   const toggleForm = () => {
     if (formOpen) {
       setFormOpen(false);
@@ -539,7 +642,8 @@ function TutorRequestsPage() {
     search.language ||
     search.sen ||
     search.avail_days ||
-    search.avail_bands,
+    search.avail_bands ||
+    search.type,
   );
 
   // Issue #311/#423: every active requirement tag (single ?tag= + the
@@ -676,7 +780,7 @@ function TutorRequestsPage() {
 
           {/* Board */}
           <section className="py-10 sm:py-12">
-            <div className="mx-auto w-full max-w-3xl px-4 sm:px-6">
+            <div className="mx-auto w-full max-w-[1360px] px-4 sm:px-6 lg:px-8">
               <div className="mb-10">
                 <Badge variant="outline" className="mb-4">
                   Tutor requests
@@ -693,6 +797,55 @@ function TutorRequestsPage() {
                   Real tutoring requests from Hong Kong parents. Open a case for the full details
                   and apply for the ones that fit your schedule.
                 </p>
+                <CaseTypeFilter
+                  value={search.type}
+                  onChange={(type) => navigate({ search: (prev) => ({ ...prev, type }) })}
+                />
+                {/* #660: session-only schedule match; never an Airbnb "When" bar. */}
+                {scheduleFit.isLoading ? (
+                  <Skeleton className="mt-4 h-9 w-64 rounded-md" />
+                ) : scheduleFit.sync ? (
+                  <div className="mt-4 space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-[color:var(--ink)]">
+                        <Checkbox
+                          checked={matchedToSchedule}
+                          onCheckedChange={(checked) => setMatchedToSchedule(checked === true)}
+                        />
+                        {t("schedule_fit.matched_pill")}
+                      </label>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        aria-expanded={fitEditing}
+                        onClick={() => setFitEditing((value) => !value)}
+                      >
+                        {t("schedule_fit.edit")}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        disabled={!matchedToSchedule}
+                        onClick={() => setMatchedToSchedule(false)}
+                      >
+                        {t("schedule_fit.show_all")}
+                      </Button>
+                    </div>
+                    {fitEditing ? (
+                      <ScheduleSyncPanel
+                        sync={scheduleFit.sync}
+                        banner={t("schedule_fit.sync_banner_tutor")}
+                      />
+                    ) : null}
+                    {zeroFit ? (
+                      <p className="text-sm text-muted-foreground">
+                        {t("schedule_fit.zero_fit_notice")}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
                 {/* Issue #311: the active tag filters, one click each to clear. */}
                 {activeTags.length > 0 ? (
                   <div className="mt-4 flex flex-wrap gap-1.5">
@@ -714,7 +867,7 @@ function TutorRequestsPage() {
                 ) : null}
               </div>
 
-              <div className="p-0 sm:p-2">
+              <div>
                 {isLoading ? (
                   <ListSkeleton cards={6} />
                 ) : cases.length === 0 ? (
@@ -765,12 +918,13 @@ function TutorRequestsPage() {
                     </div>
                   </div>
                 ) : (
-                  <ul className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                  <ul className={BOARD_GRID_CLASS}>
                     {filteredCases.map((item) => (
                       <CaseCard
                         key={item.id}
                         item={item}
                         applied={appliedCodes.has(item.caseCode)}
+                        fitScore={caseFitScores.get(item.id)}
                       />
                     ))}
                   </ul>

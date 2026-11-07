@@ -37,8 +37,11 @@ import { ReviewStepHeader } from "@/features/cases/review-step-header";
 import { caseHasVerifiedLesson } from "@/features/cases/case-reviews";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { ShortCaseChip } from "@/features/cases/tutor/short-case-chip";
+import { SCHEDULABLE_SOR_STATUSES } from "@/features/cases/schedule-lesson";
+import { NextLessonLine } from "@/features/cases/case-manager/next-lesson-line";
 import { ScheduleNextLessonDialog } from "@/features/cases/tutor/schedule-next-lesson-dialog";
 import { FeePayPanel } from "@/features/cases/tutor/fee-pay-panel";
+import { DemandSidePanel } from "@/features/cases/demand-side/demand-side-panel";
 import { LearnerSnapshotCard } from "@/features/cases/tutor/learner-snapshot-card";
 import { lessonActionsFor } from "@/features/cases/tutor/week-model";
 import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
@@ -589,6 +592,10 @@ export function TutorCasesSection() {
                   c.sor_status !== "replaced" && <TutorReviewParentForm caseId={c.id} t={t} />}
                 {/* #387: logged sessions + logging form (fee-paid cases). */}
                 <SessionLogForm item={c} />
+                {/* #636: Next Lesson + deep link into Case Manager. */}
+                {c.sor_status && SCHEDULABLE_SOR_STATUSES.has(c.sor_status) && (
+                  <NextLessonLine caseCode={c.case_code} lessons={c.lessons} />
+                )}
                 {/* #461 3c: one-slot schedule on fee-paid / active cases. */}
                 <ScheduleNextLessonDialog caseId={c.id} sorStatus={c.sor_status} />
                 {/* #503: bilateral End Case — the tutor marks the case
@@ -608,6 +615,10 @@ export function TutorCasesSection() {
                 <EngagementSummaryCard caseId={c.id} party="tutor" />
                 {/* #545: the learner's shared academic snapshot. */}
                 <LearnerSnapshotCard caseId={c.id} />
+                {/* #637: read-only for the tutor. */}
+                <div className="mt-3">
+                  <DemandSidePanel caseId={c.id} />
+                </div>
               </li>
             ))}
           </ul>

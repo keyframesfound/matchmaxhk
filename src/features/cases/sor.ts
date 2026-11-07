@@ -139,18 +139,35 @@ export function isRequestExpired(createdAt: Date, now: Date): boolean {
 }
 
 /**
+ * #636: series and moved lessons sit on an agreed case, so they wait for the
+ * other side's confirm instead of expiring like a one-off slot request.
+ */
+export function lessonRequestExpired(
+  lesson: { created_at?: string | null; no_request_expiry?: boolean | null },
+  now: Date,
+): boolean {
+  if (lesson.no_request_expiry || typeof lesson.created_at !== "string") return false;
+  return isRequestExpired(new Date(lesson.created_at), now);
+}
+
+/**
  * #204 lazy-cancel predicate: only a still-planned request the TUTOR never
  * confirmed expires. A planned lesson the tutor already confirmed is waiting
  * on the parent (incl. #461 tutor-scheduled lessons) and must not be cancelled.
  */
 export function isUnconfirmedRequestExpired(
-  lesson: { status: string; created_at: string; confirmed_by_tutor_at: string | null },
+  lesson: {
+    status: string;
+    created_at: string;
+    confirmed_by_tutor_at: string | null;
+    no_request_expiry?: boolean | null;
+  },
   now: Date,
 ): boolean {
   return (
     lesson.status === "planned" &&
     lesson.confirmed_by_tutor_at === null &&
-    isRequestExpired(new Date(lesson.created_at), now)
+    lessonRequestExpired(lesson, now)
   );
 }
 

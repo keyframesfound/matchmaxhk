@@ -5,7 +5,7 @@ import {
   hktMonthKey,
   summarizeCalendar,
   type HubLesson,
-} from "@/features/cases/calendar-hub";
+} from "../../src/features/cases/calendar-hub";
 
 const base: Omit<HubLesson, "id" | "startsAt" | "status"> = {
   caseId: "c1",

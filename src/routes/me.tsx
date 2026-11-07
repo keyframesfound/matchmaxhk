@@ -3,6 +3,8 @@ import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import {
+  Activity,
+  Wallet,
   BellRing,
   BookOpen,
   Building2,
@@ -205,6 +207,12 @@ function AccountHubPage() {
             </Link>
             <Link to="/notifications" className={rowClass}>
               <RowContent icon={icon(BellRing)} label={t("account_hub.notifications")} />
+            </Link>
+            <Link to="/activity" className={rowClass}>
+              <RowContent icon={icon(Activity)} label={t("account_hub.activity_row")} />
+            </Link>
+            <Link to="/account/studio" className={rowClass}>
+              <RowContent icon={icon(Wallet)} label={t("studio.title")} />
             </Link>
             {(CENTRE_MARKET_ENABLED || membership) && (
               <Link to={membership ? "/business" : "/business/join"} className={rowClass}>

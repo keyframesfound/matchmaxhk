@@ -56,6 +56,11 @@ export function NotificationsSection({ profile, updateProfile }: SettingsSection
             titleKey: "settings.notifications.tutor_leads",
             descKey: "settings.notifications.tutor_leads_desc",
           },
+          {
+            key: "case_match_alerts" as const,
+            titleKey: "settings.notifications.case_match_alerts",
+            descKey: "settings.notifications.case_match_alerts_desc",
+          },
         ]
       : []),
     {

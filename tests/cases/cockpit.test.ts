@@ -7,7 +7,7 @@ import {
   fillMacro,
   fpsMacroVars,
   marketVerdict,
-} from "@/features/cases/cockpit";
+} from "../../src/features/cases/cockpit";
 
 describe("matching cockpit (#454)", () => {
   it("standard fee = rate × 1.5 × students, never × duration", () => {

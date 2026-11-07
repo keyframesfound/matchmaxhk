@@ -25,6 +25,14 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { submitCaseRequest } from "@/lib/cases.functions";
+import { ScheduleLegend } from "@/features/cases/case-manager/schedule-legend";
+import { findClashes, type ClashLine } from "@/features/cases/schedule-fit";
+import {
+  ScheduleClashDialog,
+  slotStateClass,
+  slotStateLabelKey,
+} from "@/features/cases/schedule-fit-ui";
+import { useFitSchedule } from "@/features/cases/use-schedule-fit";
 import { PhoneVerifyCard } from "@/features/trust/phone-verify-card";
 import { ChildPicker } from "@/features/children/child-picker";
 import {
@@ -52,7 +60,14 @@ import {
 } from "@/features/cases/case-options";
 import { getSubjectOptionsForCategory } from "@/features/tutors/subjects";
 import { MatchStatusCard } from "@/features/cases/parent/match-status-card";
-import { MAX_PROFILE_TAGS, PRESET_PROFILE_TAGS } from "@/features/tutors/profile-tags";
+import {
+  MAX_PROFILE_TAG_LENGTH,
+  MAX_PROFILE_TAGS,
+  PRESET_PROFILE_TAGS,
+  normalizeProfileTag,
+} from "@/features/tutors/profile-tags";
+import { hasContactDetails } from "@/lib/contact-filter";
+import { courseworkPreCheck } from "@/features/cases/coursework-precheck";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
 import {
@@ -180,6 +195,8 @@ type FormState = {
   // Issue #253 (F2) + #444 + #508: matching-fee agreement, version fee-2026-10-v3
   // (v2 = payer is the self-employed tutor).
   feeAgreed: boolean;
+  // #673: academic-integrity & prep pre-check for TOK/EE/IA/SBA/one-off asks.
+  integrityAgreed: boolean;
   // Issue #412 E: parent B2C triage (compliance screening).
   engager: string;
   nonTutoringDuties: string;
@@ -253,6 +270,7 @@ const INITIAL_FORM: FormState = {
   learnerNickname: "",
   termsAgreed: false,
   feeAgreed: false,
+  integrityAgreed: false,
   engager: "",
   nonTutoringDuties: "no",
 };
@@ -301,6 +319,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [result, setResult] = useState<{ caseCode: string } | null>(null);
+  // #659: the parent's Case Manager schedule greys cells and drives the soft
+  // clash reminder; overriding a cell only changes this draft.
+  const { schedule: fitSchedule } = useFitSchedule("parent");
+  const [clashLines, setClashLines] = useState<ClashLine[]>([]);
   // Issue #114: pre-fill the budget currency from the visitor's active
   // display currency, but ONLY until the visitor (or a restored draft)
   // has made their own choice. #380 review: re-syncing on every
@@ -340,6 +362,13 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   // #656 §4b: one pasteable block with every field the parent set.
   const dash = "—";
   const subjectList = SUBJECT_KEYS.map((k) => form[k].trim()).filter(Boolean);
+  // #673: the integrity pre-check lights up when the request touches
+  // TOK / EE / IA / SBA coursework or one-off review wording.
+  const integrity = courseworkPreCheck({
+    subjects: subjectList,
+    specificComponent: form.specificComponent,
+    notes: form.notes,
+  });
   const slotText =
     form.scheduleMode === "specific" && form.scheduleSlots.length > 0
       ? form.scheduleSlots
@@ -586,6 +615,24 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         : [...form.scheduleSlots, slot],
     });
 
+  // #656: free-custom tag input next to the preset chips (normalize + dedupe
+  // + contact-filter, same vocabulary as tutor profile tags).
+  const [customTag, setCustomTag] = useState("");
+  const addCustomTag = () => {
+    const tag = normalizeProfileTag(customTag);
+    if (!tag) return;
+    if (form.tags.includes(tag) || form.tags.length >= MAX_PROFILE_TAGS) {
+      setCustomTag("");
+      return;
+    }
+    if (hasContactDetails(tag) || tag.startsWith("@")) {
+      setCustomTag("");
+      return;
+    }
+    update({ tags: [...form.tags, tag] });
+    setCustomTag("");
+  };
+
   // Curriculum locking: subjects/components only populate for the active
   // curriculum; changing it instantly resets them to blank.
   const handleCurriculumChange = (value: string) => {
@@ -734,6 +781,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       if (!form.budgetMax.trim()) nextErrors.budgetMax = "Required";
       if (!form.termsAgreed) nextErrors.termsAgreed = "Required";
       if (!form.feeAgreed) nextErrors.feeAgreed = "Required";
+      // #673: coursework / one-off requests confirm the integrity pre-check.
+      if (integrity.required && !form.integrityAgreed) nextErrors.integrityAgreed = "Required";
     }
     return nextErrors;
   };
@@ -885,6 +934,21 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       toast.error("Please fill in the highlighted fields.");
+      return;
+    }
+    if (submitMutation.isPending) return;
+    const clashes =
+      fitSchedule && form.scheduleMode === "specific"
+        ? findClashes(
+            form.scheduleSlots.map((slot) => {
+              const [day, period] = slot.split("-");
+              return { day, period };
+            }),
+            fitSchedule,
+          )
+        : [];
+    if (clashes.length > 0) {
+      setClashLines(clashes);
       return;
     }
     submitMutation.mutate();
@@ -1901,18 +1965,20 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                           {WEEK_DAYS.map((day) => {
                             const slot = `${day}-${period}`;
                             const on = form.scheduleSlots.includes(slot);
+                            const stateKey = slotStateLabelKey(slot, fitSchedule);
                             return (
                               <td key={slot} className="p-0.5">
                                 <button
                                   type="button"
                                   aria-pressed={on}
-                                  aria-label={`${t(`case_intake.day_${day}`)} ${t(`case_intake.period_${period}`)}`}
+                                  aria-label={`${t(`case_intake.day_${day}`)} ${t(`case_intake.period_${period}`)}${stateKey ? ` ${t(stateKey)}` : ""}`}
+                                  title={stateKey ? t(stateKey) : undefined}
                                   onClick={() => toggleSlot(slot)}
                                   className={cn(
                                     "h-8 w-9 rounded-md border",
                                     on
                                       ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/20"
-                                      : "border-border",
+                                      : (slotStateClass(slot, fitSchedule) ?? "border-border"),
                                   )}
                                 >
                                   {on ? (
@@ -1926,6 +1992,14 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                       ))}
                     </tbody>
                   </table>
+                  {fitSchedule &&
+                  (fitSchedule.occupied.length > 0 ||
+                    fitSchedule.proposed.length > 0 ||
+                    fitSchedule.blocked.size > 0) ? (
+                    <div className="mt-2">
+                      <ScheduleLegend />
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
               <Input
@@ -2286,7 +2360,31 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 <p className="mt-1.5 text-xs font-medium text-muted-foreground">
                   Maximum of {MAX_PROFILE_TAGS} tags.
                 </p>
-              ) : null}
+              ) : (
+                <div className="mt-2 flex items-center gap-1.5">
+                  <input
+                    value={customTag}
+                    onChange={(e) => setCustomTag(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        addCustomTag();
+                      }
+                    }}
+                    maxLength={MAX_PROFILE_TAG_LENGTH}
+                    placeholder={t("case_intake.tag_custom_placeholder")}
+                    aria-label={t("case_intake.tag_custom_label")}
+                    className="h-9 flex-1 rounded-full border border-input bg-transparent px-3 text-xs"
+                  />
+                  <button
+                    type="button"
+                    onClick={addCustomTag}
+                    className="inline-flex h-9 shrink-0 items-center rounded-full border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:border-[color:var(--brand-link)] hover:text-[color:var(--ink)]"
+                  >
+                    {t("case_intake.tag_custom_add")}
+                  </button>
+                </div>
+              )}
             </div>
           </>
         ) : null}
@@ -2335,13 +2433,33 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               ) : null}
             </span>
           </label>
+          {integrity.required ? (
+            <div className="rounded-sm border border-[color:var(--warning)]/40 bg-[color:var(--warning)]/[0.06] p-3">
+              <label className="flex gap-3 text-sm text-muted-foreground">
+                <Checkbox
+                  checked={form.integrityAgreed}
+                  onCheckedChange={(checked) => update({ integrityAgreed: checked === true })}
+                  aria-invalid={errors.integrityAgreed ? true : undefined}
+                  className={errors.integrityAgreed ? "border-destructive" : undefined}
+                />
+                <span>
+                  {t("case_request.integrity_precheck")}
+                  {errors.integrityAgreed ? (
+                    <span className="ml-2 align-middle text-xs font-medium text-destructive">
+                      Required
+                    </span>
+                  ) : null}
+                </span>
+              </label>
+            </div>
+          ) : null}
           <label className="flex gap-3 text-sm text-muted-foreground">
             <Checkbox
               checked={form.termsAgreed}
               onCheckedChange={(checked) => update({ termsAgreed: checked === true })}
               aria-invalid={errors.termsAgreed ? true : undefined}
               className={errors.termsAgreed ? "border-destructive" : undefined}
-            />
+            />{" "}
             <span>
               I agree to the MatchMax{" "}
               <Link
@@ -2363,6 +2481,17 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       ) : null}
 
       {/* #529: +852 OTP on the final step (renders nothing while the gate is off). */}
+      <ScheduleClashDialog
+        open={clashLines.length > 0}
+        flow="request"
+        lines={clashLines}
+        pending={submitMutation.isPending}
+        onBack={() => setClashLines([])}
+        onProceed={() => {
+          setClashLines([]);
+          submitMutation.mutate();
+        }}
+      />
       {step === 3 && (
         <div className="mt-6">
           <PhoneVerifyCard defaultPhone={form.contactPhone} />

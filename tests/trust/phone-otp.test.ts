@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { checkPhoneGate, isHkMobile, isOtpRequired, toHkE164 } from "@/features/trust/phone-otp";
+import { checkPhoneGate, isHkMobile, isOtpRequired, toHkE164 } from "../../src/features/trust/phone-otp";
 
 describe("+852 phone OTP gate (#529)", () => {
   it("accepts HK mobiles only", () => {

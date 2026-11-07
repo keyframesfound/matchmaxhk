@@ -338,6 +338,8 @@ const recordInput = z.object({
   splitMode: z.enum(SPLIT_MODES),
   /** Operator confirms the hostile-parent blacklist (default on in the UI). */
   confirmBlacklist: z.boolean().default(true),
+  /** #672: lessons done (2–4) when the family stopped inside the window. */
+  completedLessons: z.number().int().min(2).max(4).nullable().optional(),
 });
 
 type RecordInput = z.infer<typeof recordInput>;
@@ -451,7 +453,8 @@ export const recordDropOutcome = createServerFn({ method: "POST" })
     const ctx = await loadContext(db, data.caseId);
     if (ctx.lessonValueHkd === null) throw new Error("NO_RATE_ON_CASE");
 
-    const isStop = data.outcomeKind === "stopped_after_l1";
+    const isL1Stop = data.outcomeKind === "stopped_after_l1";
+    const isStop = isL1Stop || data.outcomeKind === "stopped_l2_l4";
     const resolution = resolveCaseFee({
       lessonValueHkd: ctx.lessonValueHkd,
       studentCount: ctx.c.student_count,
@@ -468,6 +471,7 @@ export const recordDropOutcome = createServerFn({ method: "POST" })
         initiator: data.initiator,
         verification: data.verification,
         reasonClass: data.reasonClass,
+        completedLessons: data.completedLessons,
       }),
     });
 
@@ -496,10 +500,10 @@ export const recordDropOutcome = createServerFn({ method: "POST" })
         commission_split_mode: data.splitMode,
         drop_outcome: data.outcomeKind,
         drop_initiator: isStop ? (data.initiator ?? "parent") : null,
-        drop_reason_class: isStop ? (data.reasonClass ?? "vague") : null,
-        drop_fit_reason: isStop ? (data.fitReason ?? null) : null,
-        drop_verification: isStop ? (data.verification ?? "pending") : "none",
-        drop_verified_by: isStop ? (data.verifiedBy ?? null) : null,
+        drop_reason_class: isL1Stop ? (data.reasonClass ?? "vague") : null,
+        drop_fit_reason: isL1Stop ? (data.fitReason ?? null) : null,
+        drop_verification: isL1Stop ? (data.verification ?? "pending") : "none",
+        drop_verified_by: isL1Stop ? (data.verifiedBy ?? null) : null,
         drop_proof_note: data.proofNote?.trim() || null,
         drop_recorded_at: new Date().toISOString(),
         drop_recorded_by: context.userId,
@@ -519,5 +523,96 @@ export const recordDropOutcome = createServerFn({ method: "POST" })
       "drop_decision",
       `[#536 ${resolution.ruleId}] due=${resolution.finalCommissionDueHkd ?? "n/a"} tier=${ctx.ownership.tier} window=${ctx.ownership.state}`,
     );
+
+    // #672 Lessons 2–4 parent-fault stop: credit the overpaid difference
+    // (collected − adjusted) as MatchMax Commission Credit. Idempotent per
+    // case (unique index); a re-save corrects the amount in place.
+    if (resolution.ruleId === "PARENT_DROP_L2_L4" && ctx.c.matched_tutor_id) {
+      await upsertCommissionCredit(db, {
+        caseId: ctx.c.id,
+        caseCode: ctx.c.case_code,
+        tutorId: ctx.c.matched_tutor_id,
+        ruleId: resolution.ruleId,
+        adjustedFeeHkd: resolution.finalCommissionDueHkd,
+        userId: context.userId,
+      });
+    }
+    // #672 parent reliability: family-initiated early stops without verified
+    // tutor fault (any of L1 / L2–4) bump the parent's counter.
+    if (
+      PARENT_FAULT_RULES.has(resolution.ruleId) &&
+      (data.initiator === "parent" || data.initiator === "centre") &&
+      ctx.c.parent_id
+    ) {
+      await bumpEarlyTerminationCount(db, ctx.c.parent_id);
+    }
     return resolution;
   });
+
+/** #672 rules that count as a family-fault early stop (no verified tutor fault). */
+const PARENT_FAULT_RULES = new Set([
+  "DROP_PROTECTED",
+  "HOSTILE_PARENT_PROTECTED",
+  "PARENT_DROP_L2_L4",
+]);
+
+/** Collected admin fee = paid case_fees rows on the case. */
+async function collectedFeeHkd(db: Db, caseId: string): Promise<number> {
+  const rows = await selectRows<{ amount_hkd: number | null }>(db, "case_fees", "amount_hkd", [
+    { col: "case_id", op: "eq", value: caseId },
+    { col: "status", op: "eq", value: "paid" },
+  ]);
+  return rows.reduce((sum, r) => sum + (Number(r.amount_hkd) || 0), 0);
+}
+
+async function upsertCommissionCredit(
+  db: Db,
+  input: {
+    caseId: string;
+    caseCode: string;
+    tutorId: string;
+    ruleId: string;
+    adjustedFeeHkd: number | null;
+    userId: string;
+  },
+): Promise<void> {
+  const adjusted = Number(input.adjustedFeeHkd);
+  if (!Number.isFinite(adjusted)) return;
+  const collected = await collectedFeeHkd(db, input.caseId);
+  const credit = Math.max(0, Math.round((collected - adjusted) * 100) / 100);
+  if (credit <= 0) return;
+  const now = new Date().toISOString();
+  const { error } = await db.from<Row>("commission_credits").upsert(
+    {
+      tutor_id: input.tutorId,
+      source_case_id: input.caseId,
+      amount_hkd: credit,
+      rule_id: input.ruleId,
+      adjusted_fee_hkd: adjusted,
+      collected_hkd: collected,
+      status: "available",
+      note: `#672 Lessons 2–4 parent-fault stop on ${input.caseCode}`,
+      updated_at: now,
+    },
+    { onConflict: "source_case_id" },
+  );
+  if (error) throw new Error(error.message);
+  await insertAudit(
+    db,
+    input.caseId,
+    input.userId,
+    "drop_decision",
+    `[#672] commission credit issued: ${credit.toFixed(2)} (collected ${collected.toFixed(2)} − adjusted ${adjusted.toFixed(2)})`,
+  );
+}
+
+async function bumpEarlyTerminationCount(db: Db, parentId: string): Promise<void> {
+  const rows = await selectRows<{ early_termination_count: number | null }>(
+    db,
+    "profiles",
+    "early_termination_count",
+    [{ col: "id", op: "eq", value: parentId }],
+  );
+  const next = (Number(rows[0]?.early_termination_count) || 0) + 1;
+  await db.from<Row>("profiles").update({ early_termination_count: next }).eq("id", parentId);
+}

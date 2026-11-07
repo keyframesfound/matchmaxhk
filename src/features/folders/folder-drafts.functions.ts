@@ -37,13 +37,14 @@ type FolderRow = {
   slug: string | null;
   status: MaterialStatus;
   price_hkd: number;
+  sell_children_separately?: boolean | null;
   description: string | null;
   cover_image_path: string | null;
   rejection_reason: string | null;
 };
 
 const FOLDER_SELECT =
-  "id, tutor_id, title, slug, status, price_hkd, description, cover_image_path, rejection_reason";
+  "id, tutor_id, title, slug, status, price_hkd, description, cover_image_path, rejection_reason, sell_children_separately";
 
 export type FolderEditorChild = {
   id: string;
@@ -68,6 +69,7 @@ export type FolderEditorData = {
     status: MaterialStatus;
     rejectionReason: string | null;
     coverUrl: string;
+    sellChildrenSeparately: boolean;
   } | null;
   children: FolderEditorChild[];
   picker: FolderEditorPickerRow[];
@@ -155,6 +157,8 @@ const FolderMetaInput = z.object({
   description: z.string().trim().max(FOLDER_DESCRIPTION_MAX_LEN).optional(),
   priceHkd: z.number().min(0).max(100_000).optional(),
   childIds: z.array(z.string().uuid()).max(FOLDER_MAX_CHILDREN).optional(),
+  // #556: false makes the items pack-only.
+  sellChildrenSeparately: z.boolean().optional(),
 });
 
 const SaveFolderInput = FolderMetaInput.extend({ materialId: z.string().uuid().optional() });
@@ -216,6 +220,9 @@ export const saveFolderDraft = createServerFn({ method: "POST" })
           ...(data.title != null ? { title: data.title } : {}),
           ...(data.description != null ? { description: data.description } : {}),
           ...(data.priceHkd != null ? { price_hkd: data.priceHkd } : {}),
+          ...(data.sellChildrenSeparately != null
+            ? { sell_children_separately: data.sellChildrenSeparately }
+            : {}),
         })
         .eq("id", existing.id);
       if (error) throw new Error(error.message);
@@ -243,6 +250,7 @@ export const saveFolderDraft = createServerFn({ method: "POST" })
     const { data: inserted, error } = await db
       .from<{ id: string }>("digital_materials")
       .insert({
+        sell_children_separately: data.sellChildrenSeparately ?? true,
         tutor_id: tutor.id,
         title: data.title?.trim() || "Untitled folder",
         description: data.description ?? null,
@@ -416,6 +424,7 @@ export const getFolderEditorData = createServerFn({ method: "POST" })
 
     return {
       folder: {
+        sellChildrenSeparately: folderRows.sell_children_separately !== false,
         id: folderRows.id,
         title: folderRows.title,
         description: folderRows.description,

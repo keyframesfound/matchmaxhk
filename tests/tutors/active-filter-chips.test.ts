@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildActiveFilterChips } from "@/features/tutors/active-filter-chips";
+import { buildActiveFilterChips } from "../../src/features/tutors/active-filter-chips";
 
 const t = (key: string, options?: Record<string, unknown>) =>
   key === "explore_search.list_sep"

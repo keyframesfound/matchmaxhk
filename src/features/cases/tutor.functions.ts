@@ -16,7 +16,7 @@ import {
   cancelActionFor,
   hktFromParts,
   isActiveStudentCase,
-  isRequestExpired,
+  lessonRequestExpired,
   isUnconfirmedRequestExpired,
   TUTOR_PLUS_THRESHOLD,
 } from "@/features/cases/sor";
@@ -134,6 +134,7 @@ export type TutorCaseItem = {
     duration_min: number;
     status: string;
     created_at: string;
+    no_request_expiry: boolean | null;
     confirmed_by_parent_at: string | null;
     confirmed_by_tutor_at: string | null;
     location_or_link: string | null;
@@ -207,6 +208,7 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         duration_min: number;
         status: string;
         created_at: string;
+        no_request_expiry: boolean | null;
         confirmed_by_parent_at: string | null;
         confirmed_by_tutor_at: string | null;
         location_or_link: string | null;
@@ -214,7 +216,7 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
       }>(
         db,
         "case_lessons",
-        "id, case_id, sequence, starts_at, duration_min, status, created_at, confirmed_by_parent_at, confirmed_by_tutor_at, location_or_link, attendance",
+        "id, case_id, sequence, starts_at, duration_min, status, created_at, no_request_expiry, confirmed_by_parent_at, confirmed_by_tutor_at, location_or_link, attendance",
         [{ col: "case_id", op: "in", value: caseIds }],
         { col: "starts_at", asc: true },
       ),
@@ -338,6 +340,7 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
             duration_min: l.duration_min,
             status: l.status,
             created_at: l.created_at,
+            no_request_expiry: l.no_request_expiry,
             confirmed_by_parent_at: l.confirmed_by_parent_at,
             confirmed_by_tutor_at: l.confirmed_by_tutor_at,
             location_or_link: hidesLocation ? null : l.location_or_link,
@@ -404,7 +407,7 @@ export const confirmLessonTutor = createServerFn({ method: "POST" })
     const lesson = await myLesson(db, data.lessonId, tutorId);
     if (lesson.status !== "planned") throw new Error("NOT_PLANNED");
     // #204: a slot request unconfirmed for 12h has expired, no late confirms.
-    if (isRequestExpired(new Date(lesson.created_at), new Date())) {
+    if (lessonRequestExpired(lesson, new Date())) {
       throw new Error("REQUEST_EXPIRED");
     }
 

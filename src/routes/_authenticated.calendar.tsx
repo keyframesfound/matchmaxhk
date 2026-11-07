@@ -1,14 +1,31 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { addDays, endOfMonth, format, isSameDay, startOfMonth, startOfWeek } from "date-fns";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { CircleHelp, Loader2, X } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { confirmState, type CalendarSummary } from "@/features/cases/calendar-hub";
 import { getMyCalendar } from "@/features/cases/calendar-hub.functions";
+import { CaseDrawer } from "@/features/cases/case-manager/case-drawer";
+import { BillingSamplePreview } from "@/features/cases/case-manager/billing-tab";
+import { HomeworkSamplePreview } from "@/features/cases/case-manager/homework-tab";
+import { ProgressSamplePreview } from "@/features/cases/case-manager/progress-tab";
+import { ProfileStrengthBanner } from "@/features/profile-strength/profile-strength-banner";
+import { BlockedTimes } from "@/features/cases/case-manager/blocked-times";
+import { ActiveCaseList, ProposedList } from "@/features/cases/case-manager/hub-sections";
+import { ThinCalendar } from "@/features/cases/case-manager/thin-calendar";
+import { caseCodeFromParam, caseTabFromParam, type CaseTab } from "@/features/cases/case-schedule";
+import {
+  confirmMyAvailabilityFresh,
+  getCaseManagerSchedule,
+} from "@/features/cases/case-schedule.functions";
+import { availabilityFreshness } from "@/features/cases/availability-freshness";
+import { ProfileStrengthSection } from "@/features/account/profile-strength-card";
 import { EarningsPanel } from "@/features/cases/tutor/earnings-panel";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -21,6 +38,12 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
  */
 export const Route = createFileRoute("/_authenticated/calendar")({
   ssr: false,
+  validateSearch: (search: Record<string, unknown>): { case?: string; tab?: CaseTab } => {
+    const code = caseCodeFromParam(search.case);
+    if (!code) return {};
+    const tab = caseTabFromParam(search.tab);
+    return tab === "overview" ? { case: code } : { case: code, tab };
+  },
   head: () => ({
     meta: [{ title: "Case Manager | MatchMax" }, { name: "robots", content: "noindex" }],
   }),
@@ -102,49 +125,36 @@ function SummarySection({ summary, role }: { summary: CalendarSummary; role: "tu
 
 const COACH_KEY = "mm_case_manager_coach_v1";
 
-/** #594: thin month grid, a visual shell (not a full calendar product). */
-function ThinMonth({ lessonDates }: { lessonDates: Date[] }) {
+/**
+ * #673: 14-day availability freshness. Stale grids lose 15 Profile-Strength
+ * points until the tutor taps "Confirm schedule is up to date" — one tap,
+ * no grid edit. Never-confirmed tutors see a soft nudge instead.
+ */
+function FreshnessBanner({ confirmedAt }: { confirmedAt: string | null }) {
   const { t } = useTranslation();
-  const today = new Date();
-  const first = startOfWeek(startOfMonth(today), { weekStartsOn: 1 });
-  const last = endOfMonth(today);
-  const days: Date[] = [];
-  for (let d = first; d <= last || days.length % 7 !== 0; d = addDays(d, 1)) days.push(d);
+  const queryClient = useQueryClient();
+  const confirm = useMutation({
+    mutationFn: () => confirmMyAvailabilityFresh(),
+    onSuccess: () => {
+      toast.success(t("calendar_hub.freshness_done"));
+      void queryClient.invalidateQueries({ queryKey: ["case-manager-schedule"] });
+    },
+    onError: () => toast.error(t("calendar_hub.error")),
+  });
+  const fresh = availabilityFreshness(confirmedAt);
+  if (!fresh.stale && !fresh.neverConfirmed) return null;
   return (
-    <section
-      aria-label={t("case_manager.calendar_aria")}
-      className="rounded-[var(--radius-panel)] border border-border bg-card p-4"
-    >
-      <p className="mb-3 text-sm font-semibold">{format(today, "MMMM yyyy")}</p>
-      <div className="grid grid-cols-7 gap-1 text-center text-[11px] text-muted-foreground">
-        {["M", "T", "W", "T", "F", "S", "S"].map((d, i) => (
-          <span key={i}>{d}</span>
-        ))}
-        {days.map((d) => {
-          const inMonth = d.getMonth() === today.getMonth();
-          const hasLesson = lessonDates.some((l) => isSameDay(l, d));
-          const isToday = isSameDay(d, today);
-          return (
-            <span
-              key={d.toISOString()}
-              className={
-                "relative flex h-8 items-center justify-center rounded-lg text-xs " +
-                (isToday
-                  ? "bg-[color:var(--ink)] font-bold text-[color:var(--surface-invert-fg)]"
-                  : inMonth
-                    ? "text-[color:var(--ink)]"
-                    : "text-muted-foreground/40")
-              }
-            >
-              {d.getDate()}
-              {hasLesson ? (
-                <span className="absolute bottom-1 h-1 w-1 rounded-full bg-[color:var(--brand-link)]" />
-              ) : null}
-            </span>
-          );
-        })}
-      </div>
-    </section>
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-panel)] border border-border bg-card p-4 text-sm">
+      <p className="text-muted-foreground">
+        {fresh.stale
+          ? t("calendar_hub.freshness_stale", { days: fresh.daysSinceConfirmed ?? 0 })
+          : t("calendar_hub.freshness_never")}
+      </p>
+      <Button type="button" size="sm" disabled={confirm.isPending} onClick={() => confirm.mutate()}>
+        {confirm.isPending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+        {t("calendar_hub.freshness_cta")}
+      </Button>
+    </div>
   );
 }
 
@@ -204,10 +214,32 @@ function HowToUse({ open, onOpenChange }: { open: boolean; onOpenChange: (v: boo
 
 function CalendarPage() {
   const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const navigate = Route.useNavigate();
+  const { case: caseParam, tab: tabParam } = Route.useSearch();
   const { data, isLoading, isError } = useQuery({
     queryKey: ["calendar-hub"],
     queryFn: () => getMyCalendar(),
   });
+  const schedule = useQuery({
+    queryKey: ["case-manager-schedule"],
+    queryFn: () => getCaseManagerSchedule(),
+  });
+  const openCase = caseParam ? schedule.data?.cases.find((c) => c.code === caseParam) : undefined;
+  const setCaseParam = (code?: string) =>
+    void navigate({ search: code ? { case: code } : {}, replace: !code });
+  const refreshSchedule = () => {
+    void queryClient.invalidateQueries({ queryKey: ["case-manager-schedule"] });
+    void queryClient.invalidateQueries({ queryKey: ["calendar-hub"] });
+    void queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
+  };
+  // #594: an unknown or unauthorized ?case= keeps the hub up and drops the param.
+  useEffect(() => {
+    if (caseParam && schedule.data && !openCase) {
+      toast.error(t("case_manager.case_not_found"));
+      void navigate({ search: {}, replace: true });
+    }
+  }, [caseParam, schedule.data, openCase, navigate, t]);
   const [howToOpen, setHowToOpen] = useState(false);
   // #594: first-visit coach tip (dismissible, remembered on this device).
   const [showCoach, setShowCoach] = useState(false);
@@ -226,9 +258,6 @@ function CalendarPage() {
       // private mode: the tip just shows again next time
     }
   };
-  const lessonDates = [...(data?.tutor?.upcoming ?? []), ...(data?.parent?.upcoming ?? [])].map(
-    (l) => new Date(l.startsAt),
-  );
   const hasCases = Boolean(data?.tutor || data?.parent);
 
   return (
@@ -256,9 +285,33 @@ function CalendarPage() {
             </button>
           </div>
         ) : null}
-        <ThinMonth lessonDates={lessonDates} />
+        <ProfileStrengthBanner />
+        {schedule.data?.isTutor ? (
+          <FreshnessBanner confirmedAt={schedule.data.availabilityConfirmedAt} />
+        ) : null}
+        <ThinCalendar
+          lessons={schedule.data?.lessons ?? []}
+          blockedDates={schedule.data?.blockedDates ?? []}
+          onOpenCase={setCaseParam}
+        />
+        <ActiveCaseList
+          cases={schedule.data?.cases ?? []}
+          lessons={schedule.data?.lessons ?? []}
+          onOpenCase={setCaseParam}
+        />
+        <ProposedList items={schedule.data?.proposed ?? []} />
+        {/* #659: tutors keep their own windows and blackouts; parents block here. */}
+        {schedule.data &&
+        (!schedule.data.isTutor ||
+          schedule.data.blockedSlots.length > 0 ||
+          schedule.data.cases.some((c) => c.role === "parent") ||
+          schedule.data.proposed.some((p) => p.role === "parent")) ? (
+          <BlockedTimes slots={schedule.data.blockedSlots} />
+        ) : null}
         {isLoading && <Loader2 className="h-5 w-5 animate-spin" aria-hidden />}
-        {isError && <p className="text-sm text-destructive">{t("calendar_hub.error")}</p>}
+        {(isError || schedule.isError) && (
+          <p className="text-sm text-destructive">{t("calendar_hub.error")}</p>
+        )}
         {data?.tutor && (
           <>
             <SummarySection summary={data.tutor} role="tutor" />
@@ -267,8 +320,28 @@ function CalendarPage() {
         )}
         {data?.parent && <SummarySection summary={data.parent} role="parent" />}
         {data && !hasCases ? <EmptyCases /> : null}
+        {data && !hasCases && schedule.data?.isTutor ? <ProfileStrengthSection /> : null}
+        {data && !hasCases ? <HomeworkSamplePreview /> : null}
+        {data && !hasCases ? <ProgressSamplePreview /> : null}
+        {data && !hasCases ? <BillingSamplePreview /> : null}
         {isError ? <EmptyCases /> : null}
         <HowToUse open={howToOpen} onOpenChange={setHowToOpen} />
+        {openCase && schedule.data ? (
+          <CaseDrawer
+            key={openCase.id}
+            scheduleCase={openCase}
+            lessons={schedule.data.lessons}
+            tab={caseTabFromParam(tabParam)}
+            onTabChange={(tab) =>
+              void navigate({
+                search: tab === "overview" ? { case: openCase.code } : { case: openCase.code, tab },
+                replace: true,
+              })
+            }
+            onClose={() => setCaseParam()}
+            onChanged={refreshSchedule}
+          />
+        ) : null}
       </main>
       <SiteFooter />
     </div>

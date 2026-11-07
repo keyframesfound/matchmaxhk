@@ -11,9 +11,11 @@ import {
   buildEscrowReleaseFields,
   buildOrderReference,
   computeFolderAdjustedPrice,
+  isCourseMaterialType,
   orderGrantsAccess,
   splitMaterialMoney,
 } from "@/features/materials/lifecycle";
+import { resolveMarketplaceTakePct } from "@/features/cases/commission-protection";
 import { getTutorHoldWindowHours, sweepExpiredHolds } from "@/features/materials/escrow.functions";
 import { SHOP_TERMS_VERSION } from "@/features/legal/terms";
 import { gigOrderBuyerAction } from "@/features/gigs/gig";
@@ -329,6 +331,13 @@ export const startCheckout = createServerFn({ method: "POST" })
     if (!material || material.status !== "published") {
       throw new Error("This note is not available right now.");
     }
+    // #556: a pack-only item is bought through its pack. A free preview stays open.
+    if (Number(material.price_hkd) > 0) {
+      const { packOnlyFolderFor } = await import("@/features/materials/store-context.functions");
+      if (await packOnlyFolderFor(db, material.id)) {
+        throw new Error("This item is sold only as part of its pack.");
+      }
+    }
     // #429: the SHOP acknowledgment is REQUIRED for every kind that releases
     // escrow-held money (notes kinds + folders + courses). Fail-closed.
     if (isShopAcknowledgmentKind(material.material_type) && data.shopTermsAgreed !== true) {
@@ -350,13 +359,22 @@ export const startCheckout = createServerFn({ method: "POST" })
     // and the file is released inside the buyer's account.
     // No self-purchase: tutors.user_id is the listing owner's AUTH account.
     const { data: ownerTutor } = await db
-      .from<{ user_id: string }>("tutors")
-      .select("user_id")
+      .from<{ user_id: string; verification_tier: string | null }>("tutors")
+      .select("user_id, verification_tier")
       .eq("id", material.tutor_id)
       .maybeSingle();
     if (ownerTutor?.user_id && ownerTutor.user_id === context.userId) {
       throw new Error("You can't buy your own note.");
     }
+    // #672 tiered take rate snapshot for this order: 5% verified tutor /
+    // 8% standard / 12% courses & bundles. Gigs stay on the legacy cashier
+    // split (the gig flow calls splitMaterialMoney with the default).
+    const takePct = isShopAcknowledgmentKind(material.material_type)
+      ? resolveMarketplaceTakePct({
+          verified: ownerTutor?.verification_tier === "tier_2_verified",
+          isCourse: isCourseMaterialType(material.material_type),
+        })
+      : 20;
 
     // Existing order (active statuses) wins, the unique index is the source
     // of truth. A refunded row is dead: fall through and insert a fresh
@@ -474,7 +492,7 @@ export const startCheckout = createServerFn({ method: "POST" })
         return { orderId: grantInsert.data.id, reference: grantReference };
       }
 
-      const { platformFeeHkd, tutorNetHkd } = splitMaterialMoney(adjusted);
+      const { platformFeeHkd, tutorNetHkd } = splitMaterialMoney(adjusted, takePct);
       const insert = await db
         .from<{ id: string }>("material_orders")
         .insert({
@@ -484,6 +502,7 @@ export const startCheckout = createServerFn({ method: "POST" })
           gross_hkd: adjusted,
           platform_fee_hkd: platformFeeHkd,
           tutor_net_hkd: tutorNetHkd,
+          platform_fee_pct: takePct,
           status: "awaiting_payment",
           reference,
           // #429: shop acknowledgment lives on the order row.
@@ -515,7 +534,7 @@ export const startCheckout = createServerFn({ method: "POST" })
       return { orderId: insert.data.id, reference };
     }
 
-    const { platformFeeHkd, tutorNetHkd } = splitMaterialMoney(Number(material.price_hkd));
+    const { platformFeeHkd, tutorNetHkd } = splitMaterialMoney(Number(material.price_hkd), takePct);
     // #556: a FREE (HK$0) file listing needs no payment round-trip: the
     // order is born paid and released (stamped) right away below.
     const isFreeFile =
@@ -530,6 +549,7 @@ export const startCheckout = createServerFn({ method: "POST" })
         gross_hkd: material.price_hkd,
         platform_fee_hkd: platformFeeHkd,
         tutor_net_hkd: tutorNetHkd,
+        platform_fee_pct: takePct,
         status: isFreeFile ? "paid" : "awaiting_payment",
         ...(isFreeFile ? { paid_at: new Date().toISOString() } : {}),
         reference,
@@ -872,6 +892,63 @@ export async function buildDeliveredFile(
     });
   }
   return doc.save();
+}
+
+/**
+ * #556 Replace File: a past buyer gets the new version with their own stamp,
+ * at no charge, the next time they download. Their old copy stays the fallback
+ * if anything fails, so a replace can never lose a buyer's access.
+ */
+export async function refreshDeliveredCopyIfStale(
+  db: AdminDb,
+  order: {
+    id: string;
+    reference: string | null;
+    buyer_account_id: string;
+    material_id: string;
+    delivered_at: string | null;
+    delivered_copy_at?: string | null;
+    delivered_file_path: string | null;
+  },
+): Promise<void> {
+  if (!order.delivered_file_path?.startsWith("delivered/")) return;
+  const { data: material } = await db
+    .from<{ original_file_path: string | null; file_updated_at: string | null }>(
+      "digital_materials",
+    )
+    .select("original_file_path, file_updated_at")
+    .eq("id", order.material_id)
+    .maybeSingle();
+  const copyAt = order.delivered_copy_at ?? order.delivered_at;
+  if (!material?.original_file_path || !material.file_updated_at || !copyAt) return;
+  if (Date.parse(material.file_updated_at) <= Date.parse(copyAt)) return;
+  try {
+    const { data: signed, error } = await db.storage
+      .from(ORIGINALS_BUCKET)
+      .createSignedUrl(material.original_file_path, 60);
+    if (error || !signed) throw new Error(error?.message || "Could not read the new file");
+    const res = await fetch(signed.signedUrl);
+    if (!res.ok) throw new Error("Could not read the new file");
+    const originalBytes = new Uint8Array(await res.arrayBuffer());
+    const isApkg = /\.apkg$/i.test(material.original_file_path);
+    const bytes = isApkg
+      ? originalBytes
+      : await buildDeliveredFile(originalBytes, order, await buyerEmailFor(db, order));
+    const path = `delivered/${order.id}.${isApkg ? "apkg" : "pdf"}`;
+    const { error: uploadError } = await db.storage
+      .from(ORIGINALS_BUCKET)
+      .upload(path, bytes as unknown as BlobPart, {
+        contentType: isApkg ? "application/octet-stream" : "application/pdf",
+        upsert: true,
+      });
+    if (uploadError) throw new Error(uploadError.message);
+    await db
+      .from<never>("material_orders")
+      .update({ delivered_file_path: path, delivered_copy_at: new Date().toISOString() })
+      .eq("id", order.id);
+  } catch (err) {
+    console.warn("[materials] re-stamp failed, serving the previous copy:", err);
+  }
 }
 
 /**

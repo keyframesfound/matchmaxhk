@@ -1,3 +1,5 @@
+import { readSimilarContext } from "@/features/tutors/similar-tutors";
+import { ActiveCasesSection } from "@/features/cases/active-cases/active-cases-section";
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { useMemo, useEffect, useState } from "react";
@@ -7,7 +9,6 @@ import {
   Star,
   ArrowLeft,
   Award,
-  BadgeCheck,
   BookOpen,
   CalendarDays,
   ChevronDown,
@@ -47,7 +48,7 @@ import {
 } from "@/features/tracking/engagement-client";
 import { selectProfileSocialProof } from "@/features/tutors/engagement";
 import {
-  fetchPublishedTutors,
+  fetchSimilarTutors,
   fetchTutorByCode,
   fetchTutorReviews,
   getTutorGenderLabel,
@@ -80,6 +81,8 @@ import {
 } from "@/features/tutors/tutor-display";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { ExperienceLine } from "@/features/tutors/experience-badge";
+import { VerifiedBadge } from "@/features/tutors/verified-badge";
+import { AchievementProof } from "@/features/tutors/achievement-proof";
 import { CompletedCasesLine } from "@/features/tutors/completed-cases-line";
 import { VerifiedHoursLine } from "@/features/tutors/verified-hours-line";
 import { TutorGroupClassesSection } from "@/features/cases/tutor-cohorts-section";
@@ -499,33 +502,18 @@ function TutorDetail() {
     queryFn: () => fetchMaterialsForTutor(t.id),
   });
 
-  const { data: allPublished = [] } = useQuery({
-    queryKey: ["tutors", "published"],
-    queryFn: fetchPublishedTutors,
+  // #563: server-picked, bounded rail. A failed read hides the rail and never
+  // blocks the enquiry path.
+  const { data: similar, isLoading: similarLoading } = useQuery({
+    queryKey: ["tutor", "similar", t.id],
+    queryFn: () => fetchSimilarTutors(t.id, readSimilarContext(t.tutor_code)),
+    staleTime: 60_000,
   });
-
-  const suggestedTutors = useMemo(() => {
-    const currentSubjects = new Set(
-      (t.subjects ?? []).map((s) => s.trim().toLowerCase()).filter(Boolean),
-    );
-    return allPublished
-      .filter((candidate) => candidate.id !== t.id)
-      .map((candidate) => {
-        const sharedSubjects = (candidate.subjects ?? []).filter((s) =>
-          currentSubjects.has(s.trim().toLowerCase()),
-        ).length;
-        const sharedStations = (candidate.stations ?? []).filter((station) =>
-          (t.stations ?? []).includes(station),
-        ).length;
-        return { tutor: candidate, score: sharedSubjects * 2 + sharedStations };
-      })
-      .sort(
-        (a, b) =>
-          b.score - a.score || (b.tutor.experience_years ?? 0) - (a.tutor.experience_years ?? 0),
-      )
-      .slice(0, 3)
-      .map((entry) => entry.tutor);
-  }, [allPublished, t]);
+  const similarEntries = useMemo(() => similar ?? [], [similar]);
+  const suggestedTutors = useMemo(
+    () => similarEntries.map((entry) => entry.tutor),
+    [similarEntries],
+  );
 
   // Issue #102: one profile_view per mount, plus batched engagement summaries
   // for this tutor's social-proof block and the suggested-tutor cards below.
@@ -753,18 +741,10 @@ function TutorDetail() {
                   )}
                   {/* Issue #411: minimalist BLUE TICK (MatchMax azure),
                       same #309 approved-grade gate as the card. */}
+                  {/* #575 §4b: profile header shares the card badge — same
+                  tip, same Verify explainer. */}
                   {(t.approved_grade_labels?.length ?? 0) > 0 ? (
-                    <span
-                      className="inline-flex items-center"
-                      title={translate("tutor_card.verified_disclaimer")}
-                    >
-                      <BadgeCheck
-                        className="h-4 w-4 fill-[#1d9bf0] text-white dark:text-[#0b2230]"
-                        strokeWidth={1.8}
-                        aria-hidden="true"
-                      />
-                      <span className="sr-only">{translate("tutor_card.verified_badge")}</span>
-                    </span>
+                    <VerifiedBadge className="h-4 w-4" />
                   ) : null}
                   {/* Issues #77/#52: tutor status badge on the profile header. */}
                   {statusKey ? (
@@ -940,6 +920,12 @@ function TutorDetail() {
                 {/* #459 §F guardrail: the card owner cannot request their
                     own listing. */}
                 {user && user.id === t.user_id ? (
+                  <Button asChild variant="outline" className="mr-2 mt-3 rounded-sm font-bold">
+                    {/* #633: owner-only entry to Case Manager, same as Explore Manage. */}
+                    <Link to="/calendar">{translate("profile.active_cases.manage")}</Link>
+                  </Button>
+                ) : null}
+                {user && user.id === t.user_id ? (
                   <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
                     <Lock className="h-3.5 w-3.5" aria-hidden="true" />
                     {translate("profile.own_listing_disabled")}
@@ -987,6 +973,12 @@ function TutorDetail() {
 
         <section className="py-8 sm:py-10">
           <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
+            <div className="mb-8">
+              <ActiveCasesSection
+                subject={{ kind: "tutor", tutorCode: t.tutor_code }}
+                isOwner={Boolean(user && user.id === t.user_id)}
+              />
+            </div>
             <div>
               {/* Issue #394 (TDO liability): non-Gold-Verified profiles must
                   proactively flag their scores as self-reported, never render a
@@ -1132,6 +1124,14 @@ function TutorDetail() {
                                 <p className="mt-0.5 whitespace-pre-line text-sm leading-relaxed text-[color:var(--ink)]">
                                   {achievement.detail_text}
                                 </p>
+                              ) : null}
+                              {/* #575: public photo proof thumbnail — opens the
+                              image large; the tutor chose to publish it. */}
+                              {achievement.proof_image_path ? (
+                                <AchievementProof
+                                  path={achievement.proof_image_path}
+                                  label={achievement.short_text}
+                                />
                               ) : null}
                             </div>
                           </li>
@@ -1344,64 +1344,77 @@ function TutorDetail() {
           </div>
         </section>
 
-        {suggestedTutors.length > 0 ? (
+        {similarLoading || suggestedTutors.length > 0 ? (
           <section className="border-t border-border bg-muted/30 py-10 sm:py-12">
             <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
               <div className="flex flex-wrap items-end justify-between gap-3">
                 <div>
                   <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
-                    {translate("profile.suggested_title")}
+                    {translate("rail.similar_tutors.title")}
                   </h2>
+                  <p className="mt-1 text-sm text-muted-foreground">
+                    {translate("rail.similar_tutors.subtitle")}
+                  </p>
                 </div>
                 <Button asChild variant="outline" size="sm">
                   <Link to="/tutors">{translate("profile.browse_all")}</Link>
                 </Button>
               </div>
               <div className="mt-6 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                {suggestedTutors.map((candidate) => {
+                {similarLoading
+                  ? [0, 1, 2].map((slot) => (
+                      <Skeleton key={slot} className="h-80 w-full rounded-[var(--radius-panel)]" />
+                    ))
+                  : null}
+                {similarEntries.map(({ tutor: candidate, reason }) => {
                   const candidateInquiry = getTutorInquiryAction(
                     candidate,
                     whatsappNumber,
                     i18n.language,
                   );
                   return (
-                    <PublicTutorCard
-                      key={candidate.id}
-                      tutor={candidate}
-                      engagement={engagementSummaries?.get(candidate.id) ?? null}
-                      priceSuffix={translate("featured.per_hour")}
-                      onOpen={(code) =>
-                        void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
-                      }
-                      footerAction={
-                        candidateInquiry.kind === "status" ? (
-                          <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)]">
-                            {candidateInquiry.label}
-                          </span>
-                        ) : (
-                          <Button
-                            asChild
-                            className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                          >
-                            <a
-                              href={candidateInquiry.href}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              onClick={(event) => event.stopPropagation()}
+                    <div key={candidate.id} className="flex min-w-0 flex-col gap-2">
+                      <span className="w-fit rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                        {translate(`rail.similar_tutors.badge_${reason}`)}
+                      </span>
+                      <PublicTutorCard
+                        tutor={candidate}
+                        engagement={engagementSummaries?.get(candidate.id) ?? null}
+                        priceSuffix={translate("featured.per_hour")}
+                        onOpen={(code) =>
+                          void navigate({ to: "/tutors/$tutorCode", params: { tutorCode: code } })
+                        }
+                        footerAction={
+                          candidateInquiry.kind === "status" ? (
+                            <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)]">
+                              {candidateInquiry.label}
+                            </span>
+                          ) : (
+                            <Button
+                              asChild
+                              className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                             >
-                              {candidateInquiry.kind === "pre_book" && candidate.earliest_start_date
-                                ? translate("tutor_card.prebook_cta", {
-                                    date: formatAvailabilityDate(
-                                      candidate.earliest_start_date,
-                                      i18n.language,
-                                    ),
-                                  })
-                                : translate("profile.request_tutor")}
-                            </a>
-                          </Button>
-                        )
-                      }
-                    />
+                              <a
+                                href={candidateInquiry.href}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                {candidateInquiry.kind === "pre_book" &&
+                                candidate.earliest_start_date
+                                  ? translate("tutor_card.prebook_cta", {
+                                      date: formatAvailabilityDate(
+                                        candidate.earliest_start_date,
+                                        i18n.language,
+                                      ),
+                                    })
+                                  : translate("profile.request_tutor")}
+                              </a>
+                            </Button>
+                          )
+                        }
+                      />
+                    </div>
                   );
                 })}
               </div>
