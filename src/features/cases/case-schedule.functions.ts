@@ -23,10 +23,12 @@ import {
   hktClock,
   orderForShift,
   partitionSeriesClashes,
+  readSlots,
   scheduleUpdatedCaseIds,
   seriesPrefill,
   shiftedStart,
   targetsForEdit,
+  type PrefSlot,
   type ScheduleLesson,
 } from "@/features/cases/case-schedule";
 import {
@@ -38,6 +40,15 @@ import {
 } from "@/features/cases/schedule-lesson";
 import { hktDateKey } from "@/features/cases/sor";
 import type { ExistingLesson } from "@/features/cases/slot";
+import { AVAIL_BANDS } from "@/features/tutors/availability-filter";
+import {
+  GRID_DAYS,
+  parseAvailabilityGrid,
+  type GridCellState,
+  type GridDay,
+} from "@/features/tutors/availability-grid-model";
+
+type GridMatrix = Record<GridDay, GridCellState[]>;
 
 const CASE_LIMIT = 200;
 const SEQUENCE_RETRIES = 3;
@@ -108,6 +119,8 @@ export type ProposedItem = {
   role: PartyRole;
   scheduleMode: string | null;
   scheduleUpdated: boolean;
+  /** #659/#660: the held soft slots, for clash lines. */
+  slots: PrefSlot[];
 };
 
 export type CaseManagerSchedule = {
@@ -118,6 +131,11 @@ export type CaseManagerSchedule = {
   blockedDates: string[];
   /** Open: the tutor's weekly teaching windows in HKT minutes. */
   openWindows: { weekday: number; startMinute: number; endMinute: number }[];
+  /** #660: the tutor's soft weekly grid, used when no teaching windows are set. */
+  tutorGrid: GridMatrix | null;
+  /** #659: the parent's weekly User-Blocked slots. */
+  blockedSlots: PrefSlot[];
+  isTutor: boolean;
 };
 
 function toLesson(row: LessonRow): ScheduleLesson {
@@ -206,6 +224,7 @@ function toProposedItems(
     role,
     scheduleMode: c.schedule_mode,
     scheduleUpdated: updated.has(c.id),
+    slots: readSlots(c.schedule_slots),
   }));
 }
 
@@ -217,7 +236,7 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
     const now = new Date();
     const tutorId = await myTutorId(db, context.userId);
 
-    const [taught, owned, hidden] = await Promise.all([
+    const [taught, owned, hidden, blockedSlotRows] = await Promise.all([
       tutorId
         ? selectRows<CaseRow>(db, "tutoring_cases", CASE_COLS, [
             { col: "matched_tutor_id", op: "eq", value: tutorId },
@@ -233,6 +252,9 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
         { col: "parent_id", op: "eq", value: context.userId },
       ]),
       hiddenStudentIds(db, context.userId),
+      selectRows<PrefSlot>(db, "user_blocked_slots", "day, period", [
+        { col: "user_id", op: "eq", value: context.userId },
+      ]),
     ]);
     const ownedVisible = owned.filter((c) => !c.student_id || !hidden.has(c.student_id));
     const parentMatched = ownedVisible.filter((c) => c.matched_tutor_id !== null);
@@ -304,8 +326,9 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
 
     let blockedDates: string[] = [];
     let openWindows: CaseManagerSchedule["openWindows"] = [];
+    let tutorGrid: GridMatrix | null = null;
     if (tutorId) {
-      const [{ pending, releasedSlots }, blackouts, windows] = await Promise.all([
+      const [{ pending, releasedSlots }, blackouts, windows, gridRows] = await Promise.all([
         tutorProposals(db, tutorId, now),
         selectRows<{ blackout_date: string }>(db, "tutor_blackout_dates", "blackout_date", [
           { col: "tutor_id", op: "eq", value: tutorId },
@@ -316,7 +339,11 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
           "weekday, start_minute, end_minute",
           [{ col: "tutor_id", op: "eq", value: tutorId }],
         ),
+        selectRows<{ availability_grid: unknown }>(db, "tutors", "availability_grid", [
+          { col: "id", op: "eq", value: tutorId },
+        ]),
       ]);
+      tutorGrid = parseAvailabilityGrid(gridRows[0]?.availability_grid);
       const tutorLessons = hubLessons.filter((l) => l.role === "tutor");
       proposed.push(...toProposedItems(pending, "tutor", tutorLessons, releasedSlots));
       blockedDates = blackouts.map((b) => b.blackout_date);
@@ -327,7 +354,40 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
       }));
     }
 
-    return { cases, lessons: hubLessons, proposed, blockedDates, openWindows };
+    return {
+      cases,
+      lessons: hubLessons,
+      proposed,
+      blockedDates,
+      openWindows,
+      tutorGrid,
+      blockedSlots: readSlots(blockedSlotRows),
+      isTutor: tutorId !== null,
+    };
+  });
+
+/** #659: writes the caller's own User-Blocked slot; soft, never touches lessons. */
+export const setMyBlockedSlot = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({ day: z.enum(GRID_DAYS), period: z.enum(AVAIL_BANDS), blocked: z.boolean() })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ ok: true }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    const table = db.from<Row>("user_blocked_slots");
+    const slot = { user_id: context.userId, day: data.day, period: data.period };
+    const { error } = data.blocked
+      ? await table.upsert(slot, { onConflict: "user_id,day,period", ignoreDuplicates: true })
+      : await table
+          .delete()
+          .eq("user_id", slot.user_id)
+          .eq("day", slot.day)
+          .eq("period", slot.period);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 export type PartyCase = {

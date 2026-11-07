@@ -1,7 +1,7 @@
 import { rememberSimilarContext, similarFiltersFromSearch } from "@/features/tutors/similar-tutors";
 import { cn } from "@/lib/utils";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { z } from "zod";
@@ -25,6 +25,9 @@ import {
   trackTutorEvent,
   useTutorEngagementSummaries,
 } from "@/features/tracking/engagement-client";
+import { FULL_FIT, compareFit, parentTutorFit } from "@/features/cases/schedule-fit";
+import { ScheduleSyncContext, ScheduleSyncPanel } from "@/features/cases/schedule-fit-ui";
+import { useParentScheduleSync } from "@/features/cases/use-schedule-fit";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
@@ -252,6 +255,17 @@ function TutorsDirectory() {
     [draft.avail_days, draft.avail_bands],
   );
   const availActive = isAvailabilityActive(availPick);
+  // #659: Case Manager windows drive ranking; session edits never write back.
+  const scheduleFit = useParentScheduleSync(availPick);
+  const fitWindows = scheduleFit.active;
+  const scheduleSyncValue = useMemo(
+    () => ({ sync: scheduleFit.sync, isLoading: scheduleFit.isLoading }),
+    [scheduleFit.sync, scheduleFit.isLoading],
+  );
+  const fitScores = useMemo(
+    () => new Map(tutors.map((tut) => [tut.id, parentTutorFit(fitWindows, tut.availability_grid)])),
+    [tutors, fitWindows],
+  );
   const stationFilter = draft.station ?? "";
   const modeFilter = draft.mode ?? "";
   const genderFilter = draft.gender ?? "";
@@ -309,7 +323,12 @@ function TutorsDirectory() {
         if (subjectMatchAll ? hits < allSubjectFilters.length : hits === 0) return false;
       }
       // #605 §3.11: soft availability; tutors with no grid stay (ranked last).
-      if (availActive && matchTutorAvailability(tut.availability_grid, availPick) === "miss")
+      // #659: a scored search ranks misses last instead of hiding them.
+      if (
+        availActive &&
+        !fitWindows &&
+        matchTutorAvailability(tut.availability_grid, availPick) === "miss"
+      )
         return false;
       if (draft.min_price !== undefined && getTutorBaseRate(tut) < draft.min_price) return false;
       if (draft.max_price !== undefined && getTutorBaseRate(tut) > draft.max_price) return false;
@@ -392,6 +411,11 @@ function TutorsDirectory() {
     });
 
     return [...list].sort((a, b) => {
+      // #659: the default sort is Schedule Fit Score, best first.
+      if (fitWindows && sort !== "price_asc" && sort !== "price_desc") {
+        const fitDelta = compareFit(fitScores.get(a.id) ?? null, fitScores.get(b.id) ?? null);
+        if (fitDelta !== 0) return fitDelta;
+      }
       // #605: tutors teaching more of the picked subjects rank first (OR).
       if (isPrimarySecondaryTier && allSubjectFilters.length > 1) {
         const hitDelta = subjectHits(b) - subjectHits(a);
@@ -439,6 +463,8 @@ function TutorsDirectory() {
     subjectMatchAll,
     availActive,
     availPick,
+    fitWindows,
+    fitScores,
     effectiveStationFilter,
     modeFilter,
     genderFilter,
@@ -457,6 +483,12 @@ function TutorsDirectory() {
     draft.max_price,
     draft.sort,
   ]);
+
+  // #659: partial and unscored tutors sit under a divider, never hidden.
+  const firstPartialFit =
+    fitWindows && draft.sort !== "price_asc" && draft.sort !== "price_desc"
+      ? filtered.findIndex((tut) => (fitScores.get(tut.id) ?? -1) < FULL_FIT)
+      : -1;
 
   // Issue #130: when the pedigree filters alone zero out the results, show a
   // friendly empty state plus a fallback list of elite-pedigree tutors instead
@@ -606,20 +638,22 @@ function TutorsDirectory() {
               </div>
               {directoryView === "tutors" ? (
                 <div data-tour="parent-search">
-                  <TutorsSearchMobile
-                    className="mt-7"
-                    draft={draft}
-                    onDraftChange={setDraftParam}
-                    onApply={applySearch}
-                    onClear={clearAll}
-                    tier={tier}
-                    onTierChange={setTier}
-                    allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
-                    educationValues={educationValues}
-                    defaultOverlayOpen={search.open === true}
-                    resultCount={isLoading ? undefined : filtered.length}
-                    whatsappUrl={hotlineUrl || undefined}
-                  />
+                  <ScheduleSyncContext.Provider value={scheduleSyncValue}>
+                    <TutorsSearchMobile
+                      className="mt-7"
+                      draft={draft}
+                      onDraftChange={setDraftParam}
+                      onApply={applySearch}
+                      onClear={clearAll}
+                      tier={tier}
+                      onTierChange={setTier}
+                      allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
+                      educationValues={educationValues}
+                      defaultOverlayOpen={search.open === true}
+                      resultCount={isLoading ? undefined : filtered.length}
+                      whatsappUrl={hotlineUrl || undefined}
+                    />
+                  </ScheduleSyncContext.Provider>
                 </div>
               ) : null}
             </div>
@@ -627,18 +661,20 @@ function TutorsDirectory() {
           {directoryView === "tutors" ? (
             <StickySearchBar>
               <div data-tour="parent-search" className="mx-auto max-w-5xl px-4 sm:px-6 py-3">
-                <TutorsSearchBar
-                  draft={draft}
-                  onDraftChange={setDraftParam}
-                  onApply={applySearch}
-                  onClear={clearAll}
-                  tier={tier}
-                  onTierChange={setTier}
-                  resultCount={filtered.length}
-                  allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
-                  educationValues={educationValues}
-                  whatsappUrl={hotlineUrl || undefined}
-                />
+                <ScheduleSyncContext.Provider value={scheduleSyncValue}>
+                  <TutorsSearchBar
+                    draft={draft}
+                    onDraftChange={setDraftParam}
+                    onApply={applySearch}
+                    onClear={clearAll}
+                    tier={tier}
+                    onTierChange={setTier}
+                    resultCount={filtered.length}
+                    allPrices={tutors.map((tutor) => getTutorBaseRate(tutor))}
+                    educationValues={educationValues}
+                    whatsappUrl={hotlineUrl || undefined}
+                  />
+                </ScheduleSyncContext.Provider>
               </div>
             </StickySearchBar>
           ) : null}
@@ -699,6 +735,12 @@ function TutorsDirectory() {
                     </div>
                   ) : null}
                 </div>
+
+                {scheduleFit.sync ? (
+                  <div className="mb-6">
+                    <ScheduleSyncPanel sync={scheduleFit.sync} collapsible />
+                  </div>
+                ) : null}
 
                 {isLoading && (
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -822,48 +864,58 @@ function TutorsDirectory() {
                     {filtered.map((tut: Tutor, index: number) => {
                       const inquiry = getTutorInquiryAction(tut, whatsappNumber, i18n.language);
                       return (
-                        <PublicTutorCard
-                          key={tut.id}
-                          tutor={tut}
-                          engagement={engagementSummaries?.get(tut.id) ?? null}
-                          priceSuffix={t("featured.per_hour")}
-                          onOpen={openTutorDetail}
-                          onCompareToggle={() => toggleCompare(tut)}
-                          compareSelected={compareIds.includes(tut.id)}
-                          tagQuery={(tag) => {
-                            setDraftParam({ tag });
-                            applySearch({ tag });
-                          }}
-                          // Issue #397: the parent tour spotlights the first card.
-                          tourId={index === 0 ? "parent-card" : undefined}
-                          footerAction={
-                            <>
-                              <TutorSaveButton
-                                tutorId={tut.id}
-                                compact
-                                dataTour={index === 0 ? "parent-save" : undefined}
-                              />
-                              <Button
-                                asChild
-                                className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
-                              >
-                                <a
-                                  href={inquiry.href}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  onClick={(event) => event.stopPropagation()}
-                                  onClickCapture={() => {
-                                    // Issue #102: fire-and-forget; never blocks
-                                    // or alters the CTA itself.
-                                    void trackTutorEvent(tut.id, "inquiry_click");
-                                  }}
+                        <Fragment key={tut.id}>
+                          {index === firstPartialFit ? (
+                            <div className="col-span-full flex items-center gap-3 text-xs font-semibold text-muted-foreground">
+                              <span className="h-px flex-1 bg-border" aria-hidden />
+                              {t("schedule_fit.partial_divider")}
+                              <span className="h-px flex-1 bg-border" aria-hidden />
+                            </div>
+                          ) : null}
+                          <PublicTutorCard
+                            key={tut.id}
+                            tutor={tut}
+                            engagement={engagementSummaries?.get(tut.id) ?? null}
+                            priceSuffix={t("featured.per_hour")}
+                            onOpen={openTutorDetail}
+                            onCompareToggle={() => toggleCompare(tut)}
+                            scheduleFit={fitScores.get(tut.id)}
+                            compareSelected={compareIds.includes(tut.id)}
+                            tagQuery={(tag) => {
+                              setDraftParam({ tag });
+                              applySearch({ tag });
+                            }}
+                            // Issue #397: the parent tour spotlights the first card.
+                            tourId={index === 0 ? "parent-card" : undefined}
+                            footerAction={
+                              <>
+                                <TutorSaveButton
+                                  tutorId={tut.id}
+                                  compact
+                                  dataTour={index === 0 ? "parent-save" : undefined}
+                                />
+                                <Button
+                                  asChild
+                                  className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)]"
                                 >
-                                  {inquiry.label}
-                                </a>
-                              </Button>
-                            </>
-                          }
-                        />
+                                  <a
+                                    href={inquiry.href}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    onClick={(event) => event.stopPropagation()}
+                                    onClickCapture={() => {
+                                      // Issue #102: fire-and-forget; never blocks
+                                      // or alters the CTA itself.
+                                      void trackTutorEvent(tut.id, "inquiry_click");
+                                    }}
+                                  >
+                                    {inquiry.label}
+                                  </a>
+                                </Button>
+                              </>
+                            }
+                          />
+                        </Fragment>
                       );
                     })}
                   </div>
