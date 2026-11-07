@@ -67,6 +67,8 @@ import {
   type AcademicTier,
 } from "@/features/tutors/verticals";
 import { supabase } from "@/integrations/supabase/client";
+import { ActiveFilterRibbon } from "@/components/search/active-filter-ribbon";
+import { buildActiveFilterChips } from "@/features/tutors/active-filter-chips";
 import {
   availabilityRank,
   isAvailabilityActive,
@@ -536,6 +538,10 @@ function TutorsDirectory() {
 
   const compactSegments = useTutorsCompactSegments(draft);
 
+  // #605 AC8: chips for the APPLIED search; removing one navigates at once.
+  const activeChips = buildActiveFilterChips(search, t);
+  const removeChip = (patch: Partial<SearchState>) => navigate({ search: { ...search, ...patch } });
+
   // #131: Tutors | Study Materials directory tab.
   const directoryView = search.view === "materials" ? "materials" : "tutors";
   const setDirectoryView = (next: "tutors" | "materials") => {
@@ -638,6 +644,11 @@ function TutorsDirectory() {
           ) : (
             <section className="pt-6 pb-12 sm:pt-8">
               <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
+                <ActiveFilterRibbon
+                  chips={activeChips}
+                  onRemove={(chip) => removeChip(chip.patch as Partial<SearchState>)}
+                  onClearAll={clearAll}
+                />
                 <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
                   {isLoading ? (
                     <Skeleton className="h-4 w-28" />
