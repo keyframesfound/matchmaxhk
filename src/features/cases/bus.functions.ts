@@ -29,6 +29,7 @@ import {
 import { ACTION_PLAN, firstReminderAt } from "@/features/cases/action-required";
 import {
   eventKey,
+  debounceCutoffIso,
   shouldCreateConciergeDigest,
   shouldCreateParentFeeReminder,
   shouldCreateReminder,
@@ -72,8 +73,10 @@ async function insertEvent(
   // short window collapses to one bell row, so a burst of edits never floods
   // the inbox. Distinct cases / later windows still notify.
   if (sourceId && BUS_DEBOUNCE_MS > 0) {
-    const cutoff = new Date(Date.now() - BUS_DEBOUNCE_MS).toISOString();
-    // selectRows only speaks eq/in, so the window filter runs inline.
+    // #671: cutoff comes from the pure helper (bus-pure.ts) so the window is
+    // unit-testable; selectRows only speaks eq/in, so the window filter runs
+    // inline.
+    const cutoff = debounceCutoffIso(new Date(), BUS_DEBOUNCE_MS);
     const { data: recent } = await db
       .from<{ id: string }>("case_events")
       .select("id")

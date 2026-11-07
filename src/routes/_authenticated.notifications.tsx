@@ -3,17 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { formatPostedAgo } from "@/lib/relative-time";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
-import {
-  AlertCircle,
-  Bell,
-  CalendarClock,
-  CalendarX,
-  CheckCheck,
-  Inbox,
-  Package,
-  Star,
-  Wallet,
-} from "lucide-react";
+import { Inbox } from "lucide-react";
 import { useTranslation } from "react-i18next";
 import i18n from "@/features/i18n/config";
 import { cn } from "@/lib/utils";
@@ -24,6 +14,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getMyBell, markNotificationsRead, type BellItem } from "@/features/cases/bus.functions";
 import { completeMyAction, dismissMyAction } from "@/features/cases/action-required.functions";
+import { bellGroup, bellIcon, bellLabel, type BellGroup } from "@/features/cases/bell-view";
 
 export const Route = createFileRoute("/_authenticated/notifications")({
   ssr: false,
@@ -37,114 +28,15 @@ export const Route = createFileRoute("/_authenticated/notifications")({
   component: NotificationsPage,
 });
 
-type PageFilter = "all" | "action" | "unread" | "cases" | "schedule" | "ratings" | "account";
+type PageFilter = "all" | "action" | "unread" | BellGroup;
+// #671: the family grouping, icons and labels moved to the shared
+// features/cases/bell-view.ts so the inbox page and the bell dropdown can
+// never drift (single view layer over the ONE pipeline).
 
-/**
- * #671: one pipeline, grouped views — every consumer (schedule changes,
- * request status, ratings, statements, demand-side, account actions) lands
- * in the SAME bell, so the inbox groups by family instead of by feature.
- */
-function eventGroup(eventType: string): Exclude<PageFilter, "all" | "action" | "unread"> {
-  if (eventType.startsWith("lesson.") || eventType.startsWith("billing.")) return "schedule";
-  if (eventType.startsWith("review.") || eventType === "lesson.review_prompt") return "ratings";
-  if (eventType.startsWith("action.")) return "account";
-  return "cases";
-}
-
-function bellIcon(eventType: string) {
-  if (eventType === "note_order.delivered") return Package;
-  if (eventType === "review.published" || eventType === "lesson.review_prompt") return Star;
-  if (eventType.startsWith("lesson.cancelled")) return CalendarX;
-  if (eventType.startsWith("lesson.scheduled") || eventType === "lesson.reminder_due")
-    return CalendarClock;
-  if (eventType.startsWith("admin_fee")) return Wallet;
-  if (
-    eventType.startsWith("action.") ||
-    eventType.startsWith("verification.") ||
-    eventType === "case.lead_new" ||
-    eventType.startsWith("intro.shared") ||
-    eventType === "material.rejected" ||
-    eventType === "content.rejected" ||
-    eventType === "report.filed"
-  )
-    return AlertCircle;
-  return Bell;
-}
-
-function bellLabelKey(item: BellItem): string {
-  switch (item.event_type) {
-    case "note_order.draft_needed":
-      return "sor.bell_draft_needed";
-    case "note_order.delivered":
-      return item.role_hint === "tutor" ? "sor.bell_note_sold" : "sor.bell_order_delivered";
-    case "review.published":
-      return "sor.bell_new_review";
-    case "lesson.review_prompt":
-      return "sor.bell_review_prompt";
-    case "lesson.reminder_due":
-      return "sor.bell_lesson_tomorrow";
-    case "admin_fee.invoiced":
-      return "sor.bell_fee_due";
-    case "admin_fee.unpaid":
-      return "sor.bell_fee_unpaid";
-    case "admin_fee.digest":
-      return "sor.bell_unpaid_digest";
-    // #461 addendum Triggers 8-9: actor-split event types, so the label
-    // always describes the OTHER side's action.
-    case "lesson.cancelled_by_parent":
-      return "sor.bell_lesson_cancelled_parent";
-    case "lesson.cancelled_by_tutor":
-      return "sor.bell_lesson_cancelled_tutor";
-    case "billing.notice_by_parent":
-    case "billing.notice_by_tutor":
-      return "sor.bell_billing_notice";
-    case "lesson.scheduled_by_parent":
-      return "sor.bell_lesson_scheduled_parent";
-    case "lesson.scheduled_by_tutor":
-      return "sor.bell_lesson_scheduled_tutor";
-    // #542 V1 triggers + #561 action scenarios.
-    case "case.end_requested_by_parent":
-      return "sor.bell_case_end_by_parent";
-    case "case.end_requested_by_tutor":
-      return "sor.bell_case_end_by_tutor";
-    case "experience.session_logged":
-      return "sor.bell_session_logged";
-    case "case.lead_new":
-      return "sor.bell_lead_new";
-    case "case.match_alert":
-      return "sor.bell_case_match";
-    case "case.already_taken":
-      return "sor.bell_case_taken";
-    case "case.match_waves_exhausted":
-      return "sor.bell_waves_exhausted";
-    case "case.demand_side_updated":
-      return "sor.bell_demand_side";
-    case "intro.shared_parent":
-      return "sor.bell_intro_parent";
-    case "intro.shared_tutor":
-      return "sor.bell_intro_tutor";
-    case "verification.approved":
-      return "sor.bell_verify_approved";
-    case "verification.rejected":
-      return "sor.bell_verify_rejected";
-    case "material.rejected":
-      return "sor.bell_material_rejected";
-    case "content.rejected":
-      return "sor.bell_content_rejected";
-    case "report.filed":
-      return "sor.bell_report_filed";
-    case "action.profile_fields":
-      return "sor.bell_profile_fields";
-    case "action.onboarding":
-      return "sor.bell_onboarding";
-    case "action.admin_task":
-      return "sor.bell_admin_task";
-    default:
-      return "sor.bell_update";
-  }
-}
-
-function actionTitle(item: BellItem): string {
+function actionTitle(
+  item: BellItem,
+  t: (key: string, vars?: Record<string, unknown>) => string,
+): string {
   if (
     item.event_type === "action.admin_task" &&
     typeof item.payload.admin_title === "string" &&
@@ -154,7 +46,8 @@ function actionTitle(item: BellItem): string {
       ? String(item.payload.admin_title_zh ?? item.payload.admin_title)
       : String(item.payload.admin_title);
   }
-  return bellLabelKey(item);
+  // #671: translate the key here (was returned raw and rendered literally).
+  return bellLabel(item, t);
 }
 
 function NotificationsPage() {
@@ -202,10 +95,10 @@ function NotificationsPage() {
         ? items.filter((i) => !i.read)
         : filter === "all"
           ? items
-          : items.filter((i) => eventGroup(i.event_type) === filter);
+          : items.filter((i) => bellGroup(i.event_type) === filter);
 
-  const groupCount = (group: ReturnType<typeof eventGroup>) =>
-    items.filter((i) => eventGroup(i.event_type) === group).length;
+  const groupCount = (group: BellGroup) =>
+    items.filter((i) => bellGroup(i.event_type) === group).length;
 
   const chip = (key: PageFilter, label: string, count?: number) => (
     <button
@@ -301,8 +194,8 @@ function NotificationsPage() {
                           )}
                         >
                           {isClosedAction || isOpenAction
-                            ? actionTitle(item)
-                            : t(bellLabelKey(item))}
+                            ? actionTitle(item, t)
+                            : bellLabel(item, t)}
                         </span>
                         {isOpenAction && (
                           <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-amber-700">
