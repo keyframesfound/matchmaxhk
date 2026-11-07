@@ -1,4 +1,13 @@
 {
+  "rail": {
+    "similar_tutors": {
+      "title": "相似導師",
+      "subtitle": "比較教授相同科目及課程之獨立導師。",
+      "badge_strict": "同科及同課程",
+      "badge_value": "同科 · 彈性學費／網上授課",
+      "badge_subject": "同科"
+    }
+  },
   "account": {
     "dob_banner": "新增您的生日，讓我們提供貼合年齡的功能及選擇性生日祝福。出生年份保持私密。",
     "dob_banner_cta": "前往設定新增生日",

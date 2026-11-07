@@ -1,7 +1,9 @@
 import { supabase } from "@/integrations/supabase/client";
+import type { Json } from "@/integrations/supabase/types";
 import { normalizeSenCategories } from "./sen";
 import { normalizeUniversityGpa } from "./verticals";
 import { isTutorPubliclyListed } from "./tutor-display";
+import { orderBySimilarIds, type SimilarFilters, type SimilarReason } from "./similar-tutors";
 import { normalizeExamResults, type ExamResult } from "./examSystems";
 import type { TutorReview } from "./tutor-reviews";
 import type { EducationValueRow } from "./education-filters";
@@ -584,6 +586,30 @@ export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
       .map((row) => normalize(row, defaults))
       .filter((tutor) => isTutorPubliclyListed(tutor)),
   );
+}
+
+/** #563: at most three tutors, chosen server-side; never the whole directory. */
+export async function fetchSimilarTutors(
+  seedTutorId: string,
+  filters: SimilarFilters,
+): Promise<{ tutor: Tutor; reason: SimilarReason }[]> {
+  const { data: rows, error } = await supabase.rpc("get_similar_tutors", {
+    seed_tutor_id: seedTutorId,
+    active_filters: filters as Json,
+  });
+  if (error) throw error;
+  if (!rows || rows.length === 0) return [];
+  const defaults = await fetchTutorPhotoDefaults();
+  const ids = rows.map((row) => row.id);
+  const data = await withTutorSelectFallback<Record<string, unknown>[]>((selectCols) =>
+    supabase.from("tutors").select(selectCols).eq("is_published", true).in("id", ids),
+  );
+  const tutors = await attachGroupCohortRates(
+    (data ?? [])
+      .map((row) => normalize(row, defaults))
+      .filter((tutor) => isTutorPubliclyListed(tutor)),
+  );
+  return orderBySimilarIds(tutors, rows);
 }
 
 export async function fetchPublishedTutors(): Promise<Tutor[]> {

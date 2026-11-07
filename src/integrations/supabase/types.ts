@@ -1748,6 +1748,10 @@ export type Database = {
       is_org_admin: { Args: { _org_id: string }; Returns: boolean };
       is_org_owner: { Args: { _org_id: string }; Returns: boolean };
       is_platform_admin: { Args: never; Returns: boolean };
+      get_similar_tutors: {
+        Args: { seed_tutor_id: string; active_filters?: Json; limit_count?: number };
+        Returns: { id: string; match_reason_key: string }[];
+      };
       match_tutors_for_case: {
         Args: { _case_id: string; _limit?: number };
         Returns: {

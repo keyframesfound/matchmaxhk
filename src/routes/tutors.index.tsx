@@ -1,3 +1,4 @@
+import { rememberSimilarContext, similarFiltersFromSearch } from "@/features/tutors/similar-tutors";
 import { cn } from "@/lib/utils";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
@@ -471,6 +472,8 @@ function TutorsDirectory() {
   };
 
   const openTutorDetail = (tutorCode: string) => {
+    // #563: the profile's similar-tutors rail honours the active search.
+    rememberSimilarContext(tutorCode, similarFiltersFromSearch(draft));
     navigate({ to: "/tutors/$tutorCode", params: { tutorCode } });
   };
 
