@@ -261,8 +261,12 @@ export type PublicCaseBoardItem = {
   createdAt: string;
   // Issues #412 / #423 B2B slice: verified centre identity on centre cases
   // (null on parent cases). verified = org status "active" post BR review.
+  // #582 3-stage reveal: the full name only leaves the server once the
+  // viewer has accepted the lead (applied / matched); pre-accept responses
+  // carry name: null unless the centre opted into a light public name —
+  // the UI renders "Verified Centre Partner" instead.
   centre: {
-    name: string;
+    name: string | null;
     slug: string | null;
     verified: boolean;
     orgType: string | null;
@@ -285,12 +289,15 @@ export type PublicCaseBoardItem = {
 };
 
 const PUBLIC_CASE_COLUMNS =
-  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, location_estate, schedule_mode, schedule_slots, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, who_for, start_timing, package_type, student_count, rate_unit, is_short_case, scheduled_lesson_count, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, case_type, compliance_triage, organizations(name, slug, status, org_type)";
+  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, location_estate, schedule_mode, schedule_slots, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, who_for, start_timing, package_type, student_count, rate_unit, is_short_case, scheduled_lesson_count, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, case_type, compliance_triage, organizations(name, slug, status, org_type, show_public_name)";
 
 // Never contact_name / contact_phone / student_school / student_grade_current.
 // sen_details is also withheld: the board is public and the free-text needs
 // details can identify the student, matching reads it via admin surfaces.
-function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
+function mapPublicCaseRow(
+  row: Record<string, unknown>,
+  opts: { centreReveal?: boolean } = {},
+): PublicCaseBoardItem {
   return {
     id: row.id as string,
     caseCode: row.case_code as string,
@@ -384,11 +391,23 @@ function mapPublicCaseRow(row: Record<string, unknown>): PublicCaseBoardItem {
     // parent rows have no organisation link and map to null.
     centre: (() => {
       const org = row.organizations as
-        { name?: string; slug?: string; status?: string; org_type?: string } | null | undefined;
+        | {
+            name?: string;
+            slug?: string;
+            status?: string;
+            org_type?: string;
+            show_public_name?: boolean;
+          }
+        | null
+        | undefined;
       if (!org?.name) return null;
+      // #582 3-stage reveal: pre-accept responses strip name + slug unless
+      // the centre opted into a light public name; the UI renders the
+      // "Verified Centre Partner" label instead. Contact fields never ship.
+      const reveal = opts.centreReveal === true || org.show_public_name === true;
       return {
-        name: org.name,
-        slug: org.slug ?? null,
+        name: reveal ? org.name : null,
+        slug: reveal ? (org.slug ?? null) : null,
         verified: org.status === "active",
         orgType: org.org_type ?? null,
       };
@@ -432,22 +451,27 @@ export const getPublicCaseBoard = createServerFn({ method: "GET" }).handler(asyn
   const rows = (casesResult.data ?? []) as Array<Record<string, unknown>>;
   const settingsValue = settingsResult.data?.value;
   return {
-    items: rows.map(mapPublicCaseRow),
+    items: rows.map((r) => mapPublicCaseRow(r)),
     whatsappNumber: typeof settingsValue === "string" ? settingsValue.trim() : "",
   };
 });
 
 // Single public case detail, same safe columns as the board.
+// #582: viewer-aware centre reveal — Stage 1 (pre-accept) masks the centre
+// name server-side; Stage 2+ (the viewer already applied to or matches the
+// case) sees the full name. The caller is always signed in (the route is
+// _authenticated), so the middleware resolves the viewer.
 export const getPublicCaseByCode = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
     z.object({ caseCode: z.string().trim().min(1).max(40) }).parse(data),
   )
-  .handler(async ({ data }) => {
+  .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const [caseResult, settingsResult] = await Promise.all([
       supabaseAdmin
         .from("tutoring_cases")
-        .select(PUBLIC_CASE_COLUMNS)
+        .select(`${PUBLIC_CASE_COLUMNS}, matched_tutor_id`)
         .eq("case_code", data.caseCode)
         .not("board_published_at", "is", null)
         .not("status", "in", "(matched,closed,rejected,compliance_hold,released)")
@@ -458,8 +482,33 @@ export const getPublicCaseByCode = createServerFn({ method: "GET" })
     const row = caseResult.data as Record<string, unknown> | null;
     if (!row) return null;
     const settingsValue = settingsResult.data?.value;
+
+    // Stage 2+: reveal the full centre name once this viewer has accepted
+    // the lead — any live application, or they ARE the matched tutor.
+    let centreReveal = false;
+    if (row.organizations) {
+      // RLS-deny tables go through the service-role wrapper (case_applications
+      // has no authenticated grant, matching applications.functions.ts).
+      const db = asAdminDb(supabaseAdmin);
+      const tutors = await selectRows<{ id: string }>(db, "tutors", "id", [
+        { col: "user_id", op: "eq", value: context.userId },
+      ]);
+      const tutorId = tutors[0]?.id ?? null;
+      const isMatched =
+        typeof row.matched_tutor_id === "string" && row.matched_tutor_id === tutorId;
+      let hasApplication = false;
+      if (tutorId) {
+        const apps = await selectRows<{ id: string }>(db, "case_applications", "id", [
+          { col: "case_id", op: "eq", value: row.id as string },
+          { col: "tutor_id", op: "eq", value: tutorId },
+        ]);
+        hasApplication = apps.length > 0;
+      }
+      centreReveal = isMatched || hasApplication;
+    }
+
     return {
-      item: mapPublicCaseRow(row),
+      item: mapPublicCaseRow(row, { centreReveal }),
       whatsappNumber: typeof settingsValue === "string" ? settingsValue.trim() : "",
     };
   });

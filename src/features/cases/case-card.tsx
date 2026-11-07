@@ -219,13 +219,16 @@ export function CaseLogisticsLine({
 export function CaseIdentityRow({ item }: { item: PublicCaseBoardItem }) {
   const { t } = useTranslation();
   if (item.centre) {
+    // #582 Stage 1: pre-accept the payload carries name: null — render the
+    // masked "Verified Centre Partner" label; the name reveals on the
+    // detail page after the tutor accepts the lead.
     const inner = (
       <>
         <Building2
           className="h-3.5 w-3.5 shrink-0 text-[color:var(--brand-link)]"
           aria-hidden="true"
         />
-        <span className="truncate">{item.centre.name}</span>
+        <span className="truncate">{item.centre.name ?? t("case_board.centre_masked_name")}</span>
         {item.centre.verified ? (
           <ShieldCheck
             className="h-3.5 w-3.5 shrink-0 text-[color:var(--brand-link)]"
@@ -234,7 +237,7 @@ export function CaseIdentityRow({ item }: { item: PublicCaseBoardItem }) {
         ) : null}
       </>
     );
-    if (item.centre.verified && item.centre.slug) {
+    if (item.centre.name && item.centre.verified && item.centre.slug) {
       return (
         <Link
           to="/business/$slug"

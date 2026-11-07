@@ -748,7 +748,9 @@ function CaseDetailPage() {
                           aria-hidden="true"
                         />
                         <span className="font-medium text-[color:var(--ink)]">
-                          {item.centre.name}
+                          {/* #582 Stage 1: the server strips the name until
+                          the viewer accepts the lead. */}
+                          {item.centre.name ?? t("case_board.centre_masked_name")}
                         </span>
                         {item.centre.verified ? (
                           <Badge
@@ -766,7 +768,7 @@ function CaseDetailPage() {
                           {t("case_board.cap57_chip")}
                         </Badge>
                       </div>
-                      {item.centre.verified && item.centre.slug ? (
+                      {item.centre.name && item.centre.verified && item.centre.slug ? (
                         <Link
                           to="/business/$slug"
                           params={{ slug: item.centre.slug }}
@@ -774,6 +776,11 @@ function CaseDetailPage() {
                         >
                           {t("case_board.centre_view_profile")}
                         </Link>
+                      ) : null}
+                      {!item.centre.name ? (
+                        <p className="text-xs text-muted-foreground">
+                          {t("case_board.centre_reveal_note")}
+                        </p>
                       ) : null}
                       {item.screening ? (
                         <dl className="grid gap-x-6 gap-y-2 sm:grid-cols-2">
@@ -855,6 +862,12 @@ function CaseDetailPage() {
                       <div className="space-y-2 border-t border-border pt-3">
                         <p className="text-xs font-bold text-[color:var(--ink)]">
                           {t("case_board.screening_confirm_title")}
+                        </p>
+                        {/* #582 Stage 2: the Cap.57 independent-operator +
+                        tutor-pays ladder acknowledgement rides the confirm
+                        screen on every B2B overflow. */}
+                        <p className="text-xs text-muted-foreground">
+                          {t("case_board.screening_cap57_note")}
                         </p>
                         <RadioGroup
                           value={screeningChoice}

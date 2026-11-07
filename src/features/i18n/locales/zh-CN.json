@@ -444,7 +444,10 @@
     "screening_clarify_sent": "多谢你的意见——已通知配对团队，此个案正重新审核中。",
     "screening_confirm_required": "请先确认审核摘要（或提出澄清），才可以申请。",
     "identity_parent_account": "家长账户",
-    "identity_independent_student": "独立学生"
+    "identity_independent_student": "独立学生",
+    "centre_masked_name": "认证教育中心伙伴",
+    "centre_reveal_note": "接受个案后将显示教育中心全名；确认配对后将解锁直接联络方式。",
+    "screening_cap57_note": "学费由教育中心直接支付予你。MatchMax 会按留任阶梯（6 个月内 1.5 → 1.0 → 0.5 → $0）向你收取平台行政费。"
   },
   "case_request": {
     "fee_notice_title": "配对费用",
