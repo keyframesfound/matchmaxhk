@@ -37,7 +37,19 @@ export const Route = createFileRoute("/_authenticated/notifications")({
   component: NotificationsPage,
 });
 
-type PageFilter = "all" | "action" | "unread";
+type PageFilter = "all" | "action" | "unread" | "cases" | "schedule" | "ratings" | "account";
+
+/**
+ * #671: one pipeline, grouped views — every consumer (schedule changes,
+ * request status, ratings, statements, demand-side, account actions) lands
+ * in the SAME bell, so the inbox groups by family instead of by feature.
+ */
+function eventGroup(eventType: string): Exclude<PageFilter, "all" | "action" | "unread"> {
+  if (eventType.startsWith("lesson.") || eventType.startsWith("billing.")) return "schedule";
+  if (eventType.startsWith("review.") || eventType === "lesson.review_prompt") return "ratings";
+  if (eventType.startsWith("action.")) return "account";
+  return "cases";
+}
 
 function bellIcon(eventType: string) {
   if (eventType === "note_order.delivered") return Package;
@@ -186,7 +198,12 @@ function NotificationsPage() {
       ? items.filter((i) => i.action_required)
       : filter === "unread"
         ? items.filter((i) => !i.read)
-        : items;
+        : filter === "all"
+          ? items
+          : items.filter((i) => eventGroup(i.event_type) === filter);
+
+  const groupCount = (group: ReturnType<typeof eventGroup>) =>
+    items.filter((i) => eventGroup(i.event_type) === group).length;
 
   const chip = (key: PageFilter, label: string, count?: number) => (
     <button
@@ -217,6 +234,11 @@ function NotificationsPage() {
           {chip("all", t("sor.nf_filter_all"))}
           {chip("action", t("sor.nf_filter_action"), openActions.length)}
           {chip("unread", t("sor.nf_filter_unread"), data?.unread ?? 0)}
+          {/* #671: family groups — Cases · Schedule · Ratings · Account. */}
+          {chip("cases", t("sor.nf_group_cases"), groupCount("cases"))}
+          {chip("schedule", t("sor.nf_group_schedule"), groupCount("schedule"))}
+          {chip("ratings", t("sor.nf_group_ratings"), groupCount("ratings"))}
+          {chip("account", t("sor.nf_group_account"), groupCount("account"))}
         </div>
 
         {/* #561: the content area keeps a minimum height so the footer sits

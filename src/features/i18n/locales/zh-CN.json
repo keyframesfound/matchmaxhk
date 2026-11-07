@@ -3501,7 +3501,11 @@
     "bell_demand_side": "家长或学生已更新学习目标及家庭备注",
     "bell_case_match": "有新个案配合您的资料",
     "bell_case_taken": "您申请的个案已被接手",
-    "bell_waves_exhausted": "配对通知已完成，此个案需要客服跟进"
+    "bell_waves_exhausted": "配对通知已完成，此个案需要客服跟进",
+    "nf_group_cases": "个案",
+    "nf_group_schedule": "时间表",
+    "nf_group_ratings": "评分",
+    "nf_group_account": "账户"
   },
   "cv": {
     "title": "学习履历及成绩档案",

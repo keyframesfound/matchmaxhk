@@ -3501,7 +3501,11 @@
     "bell_demand_side": "A family updated their learning goals and notes",
     "bell_case_match": "A new case matches your profile",
     "bell_case_taken": "A case you applied for has been taken",
-    "bell_waves_exhausted": "Match alerts finished, this case needs the desk"
+    "bell_waves_exhausted": "Match alerts finished, this case needs the desk",
+    "nf_group_cases": "Cases",
+    "nf_group_schedule": "Schedule",
+    "nf_group_ratings": "Ratings",
+    "nf_group_account": "Account"
   },
   "cv": {
     "title": "Education CV & Academic Records",
