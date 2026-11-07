@@ -46,6 +46,13 @@ export type PrefSlot = { day: string; period: string };
 
 export type PendingCase = { caseId: string; scheduleMode: string | null; slots: unknown };
 
+/** The drawer tabs; `?tab=` falls back to overview. */
+export type CaseTab = "overview" | "homework";
+
+export function caseTabFromParam(value: unknown): CaseTab {
+  return value === "homework" ? "homework" : "overview";
+}
+
 /** The `?case=` value, normalised, or null when it cannot be a case code. */
 export function caseCodeFromParam(value: unknown): string | null {
   if (typeof value !== "string") return null;
@@ -150,7 +157,9 @@ export function targetsForEdit(
   const editable = lessons
     .filter(
       (l) =>
-        l.caseId === caseId && LIVE_STATUSES.has(l.status) && Date.parse(l.startsAt) > now.getTime(),
+        l.caseId === caseId &&
+        LIVE_STATUSES.has(l.status) &&
+        Date.parse(l.startsAt) > now.getTime(),
     )
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   const ids = new Set(lessonIds);
@@ -172,7 +181,10 @@ export function shiftedStart(
 }
 
 /** Write order that stops a shifted series from clashing with its own rows. */
-export function orderForShift<T extends { startsAt: string }>(lessons: readonly T[], dayDelta: number): T[] {
+export function orderForShift<T extends { startsAt: string }>(
+  lessons: readonly T[],
+  dayDelta: number,
+): T[] {
   const sorted = [...lessons].sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   return dayDelta > 0 ? sorted.reverse() : sorted;
 }
@@ -185,7 +197,9 @@ export function nextLessonFor(
   const upcoming = lessons
     .filter(
       (l) =>
-        l.caseId === caseId && LIVE_STATUSES.has(l.status) && Date.parse(l.startsAt) > now.getTime(),
+        l.caseId === caseId &&
+        LIVE_STATUSES.has(l.status) &&
+        Date.parse(l.startsAt) > now.getTime(),
     )
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
   return upcoming[0] ?? null;
@@ -233,7 +247,10 @@ function readSlots(value: unknown): PrefSlot[] {
 }
 
 /** Preferred slots that a live lesson now sits on (weekday + period, HKT). */
-export function overlappedPrefSlots(slots: unknown, lessons: readonly ScheduleLesson[]): PrefSlot[] {
+export function overlappedPrefSlots(
+  slots: unknown,
+  lessons: readonly ScheduleLesson[],
+): PrefSlot[] {
   const taken = new Set(
     lessons
       .filter((l) => LIVE_STATUSES.has(l.status))

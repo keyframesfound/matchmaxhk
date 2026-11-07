@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildWeeklySeries,
   caseCodeFromParam,
+  caseTabFromParam,
   chipsByHktDay,
   hktClock,
   nextLessonFor,
@@ -140,9 +141,9 @@ describe("targetsForEdit", () => {
 
   it("one and selected take only live future lessons on this case", () => {
     expect(targetsForEdit(rows, "c1", ["a"], "one", NOW).map((l) => l.id)).toEqual(["a"]);
-    expect(targetsForEdit(rows, "c1", ["a", "b", "c", "d", "f"], "selected", NOW).map((l) => l.id)).toEqual(
-      ["a", "b"],
-    );
+    expect(
+      targetsForEdit(rows, "c1", ["a", "b", "c", "d", "f"], "selected", NOW).map((l) => l.id),
+    ).toEqual(["a", "b"]);
   });
 
   it("one refuses more than a single id", () => {
@@ -258,6 +259,14 @@ describe("caseCodeFromParam", () => {
   });
 });
 
+describe("caseTabFromParam", () => {
+  it("opens homework only when asked and falls back to overview", () => {
+    expect(caseTabFromParam("homework")).toBe("homework");
+    expect(caseTabFromParam("nope")).toBe("overview");
+    expect(caseTabFromParam(undefined)).toBe("overview");
+  });
+});
+
 describe("Schedule Updated (proposed slots vs occupied lessons)", () => {
   const evening = { day: "tue", period: "evening" } as const;
 
@@ -272,7 +281,10 @@ describe("Schedule Updated (proposed slots vs occupied lessons)", () => {
 
   it("ignores cancelled lessons, so the warning clears once a slot is released", () => {
     expect(
-      overlappedPrefSlots([evening], [lesson({ startsAt: "2026-11-10T10:00:00Z", status: "cancelled" })]),
+      overlappedPrefSlots(
+        [evening],
+        [lesson({ startsAt: "2026-11-10T10:00:00Z", status: "cancelled" })],
+      ),
     ).toEqual([]);
   });
 
