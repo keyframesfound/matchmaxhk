@@ -2797,7 +2797,9 @@
       "product_news": "產品消息",
       "product_news_desc": "偶爾通知你 MatchMax 嘅新功能。",
       "saved": "通知偏好設定已儲存。",
-      "save_error": "無法儲存你嘅通知偏好設定。"
+      "save_error": "無法儲存你嘅通知偏好設定。",
+      "case_match_alerts": "個案配對通知",
+      "case_match_alerts_desc": "當新個案配合您的教學範圍時通知您。我們每次只通知幾位導師。"
     },
     "privacy": {
       "export_title": "下載你嘅資料",
@@ -3466,7 +3468,10 @@
     "admin_schedule_paused": "個案已暫停，即將上的課堂已釋出。",
     "admin_schedule_resumed": "已恢復排課。",
     "bell_billing_notice": "個案管理有課堂或學費更新",
-    "bell_demand_side": "家長或學生已更新學習目標及家庭備註"
+    "bell_demand_side": "家長或學生已更新學習目標及家庭備註",
+    "bell_case_match": "有新個案配合您的資料",
+    "bell_case_taken": "您申請的個案已被接手",
+    "bell_waves_exhausted": "配對通知已完成，此個案需要客服跟進"
   },
   "cv": {
     "title": "學習履歷及成績檔案",

@@ -97,6 +97,12 @@ function bellLabelKey(item: BellItem): string {
       return "sor.bell_session_logged";
     case "case.lead_new":
       return "sor.bell_lead_new";
+    case "case.match_alert":
+      return "sor.bell_case_match";
+    case "case.already_taken":
+      return "sor.bell_case_taken";
+    case "case.match_waves_exhausted":
+      return "sor.bell_waves_exhausted";
     case "case.demand_side_updated":
       return "sor.bell_demand_side";
     case "intro.shared_parent":

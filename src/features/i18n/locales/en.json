@@ -2797,7 +2797,9 @@
       "product_news": "Product news",
       "product_news_desc": "Occasional updates about new MatchMax features.",
       "saved": "Notification preferences saved.",
-      "save_error": "Unable to save your notification preferences."
+      "save_error": "Unable to save your notification preferences.",
+      "case_match_alerts": "Case match alerts",
+      "case_match_alerts_desc": "When a newly posted case fits what you teach. We alert a few tutors at a time."
     },
     "privacy": {
       "export_title": "Download your data",
@@ -3466,7 +3468,10 @@
     "admin_schedule_paused": "Case paused. Upcoming lessons released.",
     "admin_schedule_resumed": "Scheduling resumed.",
     "bell_billing_notice": "Schedule or tuition update in Case Manager",
-    "bell_demand_side": "A family updated their learning goals and notes"
+    "bell_demand_side": "A family updated their learning goals and notes",
+    "bell_case_match": "A new case matches your profile",
+    "bell_case_taken": "A case you applied for has been taken",
+    "bell_waves_exhausted": "Match alerts finished, this case needs the desk"
   },
   "cv": {
     "title": "Education CV & Academic Records",
