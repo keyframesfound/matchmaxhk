@@ -67,6 +67,11 @@ import {
   parseCaseTagsParam,
 } from "@/features/cases/case-filters";
 import { parseTierParam } from "@/features/tutors/search-tiers";
+import {
+  joinAvailParam,
+  parseAvailBands,
+  parseAvailDays,
+} from "@/features/tutors/availability-filter";
 import type { AcademicTier } from "@/features/tutors/verticals";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 import { useAuth } from "@/features/auth/useAuth";
@@ -98,6 +103,8 @@ type CaseBoardFiltersState = {
   language?: string;
   sen?: boolean;
   tags?: string;
+  avail_days?: string;
+  avail_bands?: string;
 };
 
 // Hover-intent prefetch target for the case board: cached data renders the
@@ -147,6 +154,11 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
     if (search.sen === true || search.sen === "true") result.sen = true;
     const tags = parseCaseTagsParam(search.tags);
     if (tags) result.tags = tags;
+    // #605 §3.11: availability picks (unknown values drop).
+    const availDays = joinAvailParam(parseAvailDays(search.avail_days));
+    if (availDays) result.avail_days = availDays;
+    const availBands = joinAvailParam(parseAvailBands(search.avail_bands));
+    if (availBands) result.avail_bands = availBands;
     return result;
   },
   head: () => {
@@ -525,7 +537,9 @@ function TutorRequestsPage() {
     search.background ||
     search.gender ||
     search.language ||
-    search.sen,
+    search.sen ||
+    search.avail_days ||
+    search.avail_bands,
   );
 
   // Issue #311/#423: every active requirement tag (single ?tag= + the

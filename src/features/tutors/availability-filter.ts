@@ -78,3 +78,26 @@ export function matchTutorAvailability(
 export function availabilityRank(match: AvailabilityMatch): number {
   return match === "match" ? 0 : 1;
 }
+
+/**
+ * #605 §3.11 Cases scope: match a case's parent-preferred times (#656
+ * intake) against the browsing tutor's picks. Flexible cases match any
+ * pick; specific cases need ≥1 overlapping slot; cases from before the
+ * intake restore (no mode) are "unset" (shown, ranked last).
+ */
+export function matchCaseAvailability(
+  scheduleMode: string | null | undefined,
+  scheduleSlots: readonly { day: string; period: string }[] | null | undefined,
+  pick: AvailabilityPick,
+): AvailabilityMatch {
+  if (!isAvailabilityActive(pick)) return "match";
+  if (scheduleMode === "flexible") return "match";
+  const slots = Array.isArray(scheduleSlots) ? scheduleSlots : [];
+  if (scheduleMode !== "specific" || slots.length === 0) return "unset";
+  const overlap = slots.some(
+    (slot) =>
+      (pick.days.length === 0 || pick.days.includes(slot.day as GridDay)) &&
+      (pick.bands.length === 0 || pick.bands.includes(slot.period as AvailBand)),
+  );
+  return overlap ? "match" : "miss";
+}

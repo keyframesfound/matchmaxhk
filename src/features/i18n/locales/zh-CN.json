@@ -4204,6 +4204,10 @@
     "active_filters": "已选筛选条件",
     "remove_filter": "移除筛选：{{label}}",
     "avail_chip": "可上课：{{value}}",
-    "list_sep": "、"
+    "list_sep": "、",
+    "pill_title_cases": "搜索个案、科目或地区",
+    "placeholder_cases": "输入科目、个案编号、地区或补习要求",
+    "card_level": "学生程度",
+    "avail_helper_cases": "按家长在个案填写的偏好时段配对，「弹性」个案一律符合。属软性偏好，并非预约；确实时间以个案管理为准。"
   }
 }
