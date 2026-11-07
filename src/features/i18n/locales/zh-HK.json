@@ -446,7 +446,11 @@
     "screening_clarify_sent": "多謝你的意見——已通知配對團隊，此個案正重新審核中。",
     "screening_confirm_required": "請先確認審核摘要（或提出澄清），才可以申請。",
     "identity_parent_account": "家長帳戶",
-    "identity_independent_student": "獨立學生"
+    "identity_independent_student": "獨立學生",
+    "parent_on_time": "準時付款",
+    "parent_on_time_hint": "最少 3 個月準時繳付學費，由導師確認",
+    "parent_rating_hint": "{{count}} 位導師評分",
+    "identity_activity": "活動主持／導師"
   },
   "case_request": {
     "fee_notice_title": "配對費用",

@@ -446,7 +446,11 @@
     "screening_clarify_sent": "Thanks, your note went to the matching desk and the request is on hold for re-screening.",
     "screening_confirm_required": "Confirm the screening summary (or send a clarification) before applying.",
     "identity_parent_account": "Parent account",
-    "identity_independent_student": "Independent student"
+    "identity_independent_student": "Independent student",
+    "parent_on_time": "On-time",
+    "parent_on_time_hint": "Tuition settled on time for at least 3 months, confirmed by tutors",
+    "parent_rating_hint": "Rated by {{count}} tutors",
+    "identity_activity": "Activity Host / Tutor"
   },
   "case_request": {
     "fee_notice_title": "The matching fee",
