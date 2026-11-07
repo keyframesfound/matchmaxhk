@@ -467,24 +467,24 @@ function TrendingTutorsSection({
                         {inquiry.label}
                       </span>
                     ) : (
-                      <span
-                        className="contents"
-                        onClickCapture={() => void trackTutorEvent(tutor.id, "inquiry_click")}
+                      // The CTA is the slot's direct last child (no wrapper) so the
+                      // card's 44px CTA height applies here like every other rail.
+                      <Button
+                        asChild
+                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
                       >
-                        <Button
-                          asChild
-                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
+                        <a
+                          href={inquiry.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void trackTutorEvent(tutor.id, "inquiry_click");
+                          }}
                         >
-                          <a
-                            href={inquiry.href}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={(event) => event.stopPropagation()}
-                          >
-                            {inquiry.label}
-                          </a>
-                        </Button>
-                      </span>
+                          {inquiry.label}
+                        </a>
+                      </Button>
                     )}
                   </>
                 }
