@@ -54,6 +54,7 @@ export const CASE_LANGUAGE_LABEL: Record<string, string> = {
 export const CASE_START_LABEL: Record<string, string> = {
   asap: "Starts ASAP",
   two_weeks: "Within 2 weeks",
+  one_month: "Within 1 month",
   flexible: "Flexible start",
 };
 
@@ -88,6 +89,7 @@ export const CASE_LANGUAGE_LABEL_ZH: Record<string, string> = {
 export const CASE_START_LABEL_ZH: Record<string, string> = {
   asap: "盡快開始",
   two_weeks: "兩星期內",
+  one_month: "一個月內",
   flexible: "時間靈活",
 };
 

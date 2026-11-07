@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Hash, Send } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, CheckCircle2, Hash, Plus, Send, X } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -167,6 +167,15 @@ type FormState = {
   // with the derived requirement tags server-side by mergeCaseTags, which
   // always keeps the derived tags regardless of how many presets are picked.
   tags: string[];
+  // #656 intake restore.
+  sessionsPerWeek: string;
+  sessionLengthMinutes: string;
+  startTiming: string;
+  scheduleMode: "flexible" | "specific";
+  scheduleSlots: string[]; // "mon-evening"
+  scheduleNote: string;
+  locationEstate: string;
+  learnerNickname: string;
   termsAgreed: boolean;
   // Issue #253 (F2) + #444 + #508: matching-fee agreement, version fee-2026-10-v3
   // (v2 = payer is the self-employed tutor).
@@ -175,6 +184,17 @@ type FormState = {
   engager: string;
   nonTutoringDuties: string;
 };
+
+const SUBJECT_KEYS = ["subject1", "subject2", "subject3", "subject4"] as const;
+const SUBJECT_PLACEHOLDERS = [
+  "e.g. Math AA HL",
+  "e.g. Chemistry",
+  "e.g. Physics",
+  "e.g. Economics",
+];
+const WEEK_DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+const DAY_PERIODS = ["morning", "afternoon", "evening"] as const;
+const LESSON_LENGTHS = ["45", "60", "90", "120", "150", "180"];
 
 const INITIAL_FORM: FormState = {
   requesterType: "",
@@ -223,6 +243,14 @@ const INITIAL_FORM: FormState = {
   senCategories: [],
   senDetails: "",
   tags: [],
+  sessionsPerWeek: "1",
+  sessionLengthMinutes: "60",
+  startTiming: "",
+  scheduleMode: "flexible",
+  scheduleSlots: [],
+  scheduleNote: "",
+  locationEstate: "",
+  learnerNickname: "",
   termsAgreed: false,
   feeAgreed: false,
   engager: "",
@@ -309,18 +337,36 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   // request once the case code exists (enabled only after a successful
   // submit so the message can include it).
   const whatsappDigits = useWhatsAppNumber(Boolean(result));
+  // #656 §4b: one pasteable block with every field the parent set.
+  const dash = "—";
+  const subjectList = SUBJECT_KEYS.map((k) => form[k].trim()).filter(Boolean);
+  const slotText =
+    form.scheduleMode === "specific" && form.scheduleSlots.length > 0
+      ? form.scheduleSlots
+          .map((slot) => {
+            const [day, period] = slot.split("-");
+            return `${t(`case_intake.day_${day}`)} ${t(`case_intake.period_${period}`)}`;
+          })
+          .join(", ")
+      : dash;
   const whatsappSummary = result
     ? [
-        `Hi MatchMax! I have just submitted a case request (${result.caseCode}).`,
-        form.parentName ? `Name: ${form.parentName}` : null,
-        form.curriculum ? `Curriculum: ${form.curriculum}` : null,
-        form.subject1
-          ? `Subjects: ${[form.subject1, form.subject2].filter(Boolean).join(", ")}`
-          : null,
+        `Hi MatchMax! I just submitted a Case Request.`,
+        `Case code: ${result.caseCode}`,
+        `Who for: ${form.whoFor || dash} · Nickname: ${form.learnerNickname.trim() || dash}`,
+        `Student: ${form.studentGender || dash} · ${form.year || form.academicLevel || dash} · ${form.curriculum || dash}`,
+        `Subjects: ${subjectList.join(", ") || dash}`,
+        `Mode: ${form.deliveryMode || dash} · Location: ${form.district || dash} · Estate: ${form.locationEstate.trim() || dash}`,
+        `Lessons/week: ${form.sessionsPerWeek} · Hours/lesson: ${Number(form.sessionLengthMinutes) / 60}`,
+        `Start: ${form.startTiming ? t(`case_intake.start_${form.startTiming}`) : dash} · Schedule: ${t(`case_intake.schedule_${form.scheduleMode}`)} · Preferred times: ${slotText}${form.scheduleNote.trim() ? ` (${form.scheduleNote.trim()})` : ""}`,
+        `Tutor prefs: ${form.tutorBackground || dash} · ${form.tutorGenderPreference || dash}`,
+        `Duties (Cap.57): ${form.nonTutoringDuties || dash}`,
+        `Tags: ${form.tags.join(", ") || dash}`,
         form.budgetMin || form.budgetMax
           ? `Budget: ${form.budgetMin ? `${form.budgetCurrency} ${form.budgetMin}` : ""}${form.budgetMax ? `–${form.budgetCurrency} ${form.budgetMax}` : ""}${budgetApproxNote ? ` (≈ ${budgetApproxNote}/hr)` : ""}`
           : null,
-        form.district ? `District: ${form.district}` : null,
+        `Notes: ${form.notes.trim() || dash}`,
+        `Contact: ${form.parentName || dash} · ${form.contactPhone || dash}`,
       ]
         .filter(Boolean)
         .join("\n")
@@ -401,6 +447,21 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     )
       ? restored.tutorGenderPreference
       : "any";
+    // #656: drafts saved before the intake restore lack these fields;
+    // sanitize them (and tampered values) back to the defaults.
+    const slotKeys = new Set(
+      WEEK_DAYS.flatMap((day) => DAY_PERIODS.map((period) => `${day}-${period}`)),
+    );
+    const scheduleSlots = Array.isArray(restored.scheduleSlots)
+      ? restored.scheduleSlots.filter((v) => typeof v === "string" && slotKeys.has(v))
+      : [];
+    const scheduleMode = restored.scheduleMode === "specific" ? "specific" : "flexible";
+    const startTiming = ["asap", "two_weeks", "one_month", "flexible"].includes(
+      restored.startTiming,
+    )
+      ? restored.startTiming
+      : "";
+    const str = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max) : "");
     setForm((prev) => ({
       ...prev,
       ...restored,
@@ -420,6 +481,14 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       tutorGenderPreference,
       instructionLanguage: languages,
       tags,
+      scheduleSlots,
+      scheduleMode,
+      startTiming,
+      sessionsPerWeek: str(restored.sessionsPerWeek, 1) || "1",
+      sessionLengthMinutes: str(restored.sessionLengthMinutes, 3) || "60",
+      scheduleNote: str(restored.scheduleNote, 200),
+      locationEstate: str(restored.locationEstate, 80),
+      learnerNickname: str(restored.learnerNickname, 40),
     }));
   }, [restored]);
 
@@ -441,7 +510,11 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         // Issue #437: demographics defaults are the blank state.
         (key === "whoFor" && v === "") ||
         (key === "studentGender" && v === "") ||
-        (key === "tutorGenderPreference" && v === "any"),
+        (key === "tutorGenderPreference" && v === "any") ||
+        // #656: intake defaults are the blank state.
+        (key === "sessionsPerWeek" && v === "1") ||
+        (key === "sessionLengthMinutes" && v === "60") ||
+        (key === "scheduleMode" && v === "flexible"),
     );
 
   const update = (patch: Partial<FormState>) => {
@@ -492,6 +565,26 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     : subjectOptions;
   const componentOptions = getComponentOptionsForCurriculum(form.curriculum);
   const showMtr = form.deliveryMode !== "" && form.deliveryMode !== "online";
+  // #656 §4f: subject slots (✕ clears and shifts up, + adds the next one).
+  const [extraSubjectSlots, setExtraSubjectSlots] = useState(0);
+  const filledSubjects = SUBJECT_KEYS.filter((k) => form[k].trim()).length;
+  const visibleSubjectSlots = Math.min(
+    SUBJECT_KEYS.length,
+    Math.max(1, filledSubjects + extraSubjectSlots, filledSubjects),
+  );
+  const removeSubject = (index: number) => {
+    const values = SUBJECT_KEYS.map((k) => form[k]);
+    values.splice(index, 1);
+    values.push("");
+    update({ subject1: values[0], subject2: values[1], subject3: values[2], subject4: values[3] });
+    setExtraSubjectSlots(0);
+  };
+  const toggleSlot = (slot: string) =>
+    update({
+      scheduleSlots: form.scheduleSlots.includes(slot)
+        ? form.scheduleSlots.filter((s) => s !== slot)
+        : [...form.scheduleSlots, slot],
+    });
 
   // Curriculum locking: subjects/components only populate for the active
   // curriculum; changing it instantly resets them to blank.
@@ -725,6 +818,25 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           senCategories: form.senRequired ? form.senCategories : [],
           senDetails: form.senRequired ? form.senDetails.trim() || null : null,
           tags: form.tags,
+          // #656 intake restore.
+          sessionsPerWeek: Number(form.sessionsPerWeek) || 1,
+          sessionLengthMinutes: Number(form.sessionLengthMinutes) || 60,
+          startTiming: (form.startTiming || null) as
+            "asap" | "two_weeks" | "one_month" | "flexible" | null,
+          scheduleMode: form.scheduleMode,
+          scheduleSlots:
+            form.scheduleMode === "specific"
+              ? form.scheduleSlots.map((slot) => {
+                  const [day, period] = slot.split("-");
+                  return {
+                    day: day as (typeof WEEK_DAYS)[number],
+                    period: period as (typeof DAY_PERIODS)[number],
+                  };
+                })
+              : [],
+          scheduleNote: form.scheduleNote.trim() || null,
+          locationEstate: showMtr ? form.locationEstate.trim() || null : null,
+          learnerNickname: form.learnerNickname.trim() || null,
           // Issue #412 E: parent B2C compliance triage.
           triage: {
             engager: form.engager as "myself_child" | "organisation_third_party",
@@ -908,6 +1020,35 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           {titlePreview.zh && titlePreview.zh !== titlePreview.en ? (
             <p className="mt-0.5 text-sm text-muted-foreground">{titlePreview.zh}</p>
           ) : null}
+          {/* #656: live summary rail of what the parent has set so far. */}
+          <div className="mt-3 flex flex-wrap gap-1.5" aria-label={t("case_intake.summary_aria")}>
+            {[
+              subjectList.join(" · "),
+              form.year || form.academicLevel,
+              form.deliveryMode
+                ? t(`case_intake.mode_${form.deliveryMode}`, { defaultValue: form.deliveryMode })
+                : "",
+              [form.district, form.locationEstate.trim()].filter(Boolean).join(" · "),
+              t("case_intake.summary_cadence", {
+                count: Number(form.sessionsPerWeek) || 1,
+                hours: (Number(form.sessionLengthMinutes) || 60) / 60,
+              }),
+              form.startTiming ? t(`case_intake.start_${form.startTiming}`) : "",
+              form.scheduleMode === "specific" && form.scheduleSlots.length > 0
+                ? t("case_intake.summary_slots", { count: form.scheduleSlots.length })
+                : t("case_intake.schedule_flexible"),
+              ...form.tags.map((tag) => `#${tag}`),
+            ]
+              .filter(Boolean)
+              .map((chip, index) => (
+                <span
+                  key={`${chip}-${index}`}
+                  className="rounded-full border border-border bg-card px-2.5 py-0.5 text-xs font-medium text-[color:var(--ink)]"
+                >
+                  {chip}
+                </span>
+              ))}
+          </div>
         </div>
       ) : null}
 
@@ -1135,6 +1276,22 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 }
               />
             ) : null}
+            {/* #656: how to call the learner when not a linked child. */}
+            {form.whoFor === "someone_else" || (form.whoFor === "my_child" && !form.studentId) ? (
+              <div>
+                <label className={labelClassName} htmlFor={`${idPrefix}-nickname`}>
+                  {t("case_intake.nickname_label")}
+                </label>
+                <Input
+                  id={`${idPrefix}-nickname`}
+                  className={controlClassName}
+                  maxLength={40}
+                  placeholder={t("case_intake.nickname_placeholder")}
+                  value={form.learnerNickname}
+                  onChange={(e) => update({ learnerNickname: e.target.value })}
+                />
+              </div>
+            ) : null}
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-support-type`}>
                 Type of support
@@ -1225,81 +1382,59 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 className={controlClassName}
               />
             </div>
-            <div>
+            {/* #656 §4f: every filled subject slot has a ✕ to clear it (later
+                slots move up), and a + adds the next slot, up to four. */}
+            <div className="space-y-3 sm:col-span-2">
               <label className={labelClassName} htmlFor={`${idPrefix}-subject1`}>
                 Subject(s) needed
                 {errors.subject1 === "Required" ? <RequiredFlag /> : null}
               </label>
-              <SearchableSelect
-                value={form.subject1}
-                onChange={(v) => update({ subject1: v })}
-                options={subjectOptions}
-                allowCustom
-                disabled={!form.curriculum}
-                placeholder={form.curriculum ? "e.g. Math AA HL" : "Select a curriculum first"}
-                searchPlaceholder="Search subject..."
-                emptyText="No matches, type to enter a custom subject."
-                className={controlClassName}
-                invalid={Boolean(errors.subject1)}
-              />
+              {SUBJECT_KEYS.slice(0, visibleSubjectSlots).map((key, index) => (
+                <div key={key} className="flex items-center gap-2">
+                  <SearchableSelect
+                    value={form[key]}
+                    onChange={(v) => update({ [key]: v } as Partial<FormState>)}
+                    options={subjectOptions}
+                    allowCustom
+                    disabled={!form.curriculum}
+                    placeholder={
+                      form.curriculum ? SUBJECT_PLACEHOLDERS[index] : "Select a curriculum first"
+                    }
+                    searchPlaceholder="Search subject..."
+                    emptyText="No matches, type to enter a custom subject."
+                    className={cn(controlClassName, "min-w-0 flex-1")}
+                    invalid={index === 0 && Boolean(errors.subject1)}
+                  />
+                  {form[key] ? (
+                    <button
+                      type="button"
+                      onClick={() => removeSubject(index)}
+                      aria-label={t("case_intake.remove_subject")}
+                      title={t("case_intake.remove_subject")}
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-border text-muted-foreground hover:text-[color:var(--ink)]"
+                    >
+                      <X className="h-4 w-4" aria-hidden />
+                    </button>
+                  ) : null}
+                  {index === visibleSubjectSlots - 1 &&
+                  visibleSubjectSlots < SUBJECT_KEYS.length &&
+                  form[key] ? (
+                    <button
+                      type="button"
+                      onClick={() => setExtraSubjectSlots((n) => n + 1)}
+                      aria-label={t("case_intake.add_subject")}
+                      title={t("case_intake.add_subject")}
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[color:var(--brand-link)] text-[color:var(--brand-link)]"
+                    >
+                      <Plus className="h-4 w-4" aria-hidden />
+                    </button>
+                  ) : null}
+                </div>
+              ))}
               {errors.subject1 && errors.subject1 !== "Required" ? (
                 <p className="mt-1 text-xs font-semibold text-destructive">{errors.subject1}</p>
               ) : null}
             </div>
-            <div>
-              <label className={labelClassName} htmlFor={`${idPrefix}-subject2`}>
-                Second subject (Optional)
-              </label>
-              <SearchableSelect
-                value={form.subject2}
-                onChange={(v) => update({ subject2: v })}
-                options={subjectOptions}
-                allowCustom
-                disabled={!form.curriculum}
-                placeholder={form.curriculum ? "e.g. Chemistry" : "Select a curriculum first"}
-                searchPlaceholder="Search subject..."
-                emptyText="No matches, type to enter a custom subject."
-                className={controlClassName}
-              />
-            </div>
-            {/* Issue #183: 3rd/4th subjects, revealed progressively like the
-                achievements/subjects pickers on the tutor application. */}
-            {form.subject2 ? (
-              <div>
-                <label className={labelClassName} htmlFor={`${idPrefix}-subject3`}>
-                  Third subject (Optional)
-                </label>
-                <SearchableSelect
-                  value={form.subject3}
-                  onChange={(v) => update({ subject3: v })}
-                  options={subjectOptions}
-                  allowCustom
-                  disabled={!form.curriculum}
-                  placeholder={form.curriculum ? "e.g. Physics" : "Select a curriculum first"}
-                  searchPlaceholder="Search subject..."
-                  emptyText="No matches, type to enter a custom subject."
-                  className={controlClassName}
-                />
-              </div>
-            ) : null}
-            {form.subject3 ? (
-              <div>
-                <label className={labelClassName} htmlFor={`${idPrefix}-subject4`}>
-                  Fourth subject (Optional)
-                </label>
-                <SearchableSelect
-                  value={form.subject4}
-                  onChange={(v) => update({ subject4: v })}
-                  options={subjectOptions}
-                  allowCustom
-                  disabled={!form.curriculum}
-                  placeholder={form.curriculum ? "e.g. Economics" : "Select a curriculum first"}
-                  searchPlaceholder="Search subject..."
-                  emptyText="No matches, type to enter a custom subject."
-                  className={controlClassName}
-                />
-              </div>
-            ) : null}
             <div className="sm:col-span-2">
               <label className={labelClassName} htmlFor={`${idPrefix}-language`}>
                 Instruction language
@@ -1644,6 +1779,164 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                 ) : null}
               </div>
             ) : null}
+            {/* #656: coarse estate / building (optional, no street or unit). */}
+            {showMtr ? (
+              <div>
+                <label className={labelClassName} htmlFor={`${idPrefix}-estate`}>
+                  {t("case_intake.estate_label")}
+                </label>
+                <Input
+                  id={`${idPrefix}-estate`}
+                  className={controlClassName}
+                  maxLength={80}
+                  placeholder={t("case_intake.estate_placeholder")}
+                  value={form.locationEstate}
+                  onChange={(e) => update({ locationEstate: e.target.value })}
+                />
+              </div>
+            ) : null}
+            {/* #656: parent-set cadence, duration and start band. */}
+            <div>
+              <label className={labelClassName} htmlFor={`${idPrefix}-per-week`}>
+                {t("case_intake.per_week_label")}
+              </label>
+              <Select
+                value={form.sessionsPerWeek}
+                onValueChange={(v) => update({ sessionsPerWeek: v })}
+              >
+                <SelectTrigger id={`${idPrefix}-per-week`} className={controlClassName}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {["1", "2", "3", "4", "5", "6", "7"].map((n) => (
+                    <SelectItem key={n} value={n}>
+                      {t("case_intake.per_week_value", { count: Number(n) })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <label className={labelClassName} htmlFor={`${idPrefix}-length`}>
+                {t("case_intake.length_label")}
+              </label>
+              <Select
+                value={form.sessionLengthMinutes}
+                onValueChange={(v) => update({ sessionLengthMinutes: v })}
+              >
+                <SelectTrigger id={`${idPrefix}-length`} className={controlClassName}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {LESSON_LENGTHS.map((m) => (
+                    <SelectItem key={m} value={m}>
+                      {t("case_intake.length_value", { hours: Number(m) / 60 })}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="sm:col-span-2">
+              <span className={labelClassName}>{t("case_intake.start_label")}</span>
+              <div className="flex flex-wrap gap-2">
+                {(["asap", "two_weeks", "one_month", "flexible"] as const).map((band) => (
+                  <button
+                    key={band}
+                    type="button"
+                    aria-pressed={form.startTiming === band}
+                    onClick={() => update({ startTiming: form.startTiming === band ? "" : band })}
+                    className={cn(
+                      "rounded-full border px-3.5 py-1.5 text-sm font-semibold",
+                      form.startTiming === band
+                        ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--surface-invert-fg)]"
+                        : "border-border text-[color:var(--ink)]/75",
+                    )}
+                  >
+                    {t(`case_intake.start_${band}`)}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {/* #656: preferred schedule is a soft preference, never a booking;
+                the final schedule is set in Case Manager after a match. */}
+            <div className="sm:col-span-2">
+              <span className={labelClassName}>{t("case_intake.schedule_label")}</span>
+              <div className="flex flex-wrap gap-2">
+                {(["flexible", "specific"] as const).map((mode) => (
+                  <button
+                    key={mode}
+                    type="button"
+                    aria-pressed={form.scheduleMode === mode}
+                    onClick={() => update({ scheduleMode: mode })}
+                    className={cn(
+                      "rounded-full border px-3.5 py-1.5 text-sm font-semibold",
+                      form.scheduleMode === mode
+                        ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--surface-invert-fg)]"
+                        : "border-border text-[color:var(--ink)]/75",
+                    )}
+                  >
+                    {t(`case_intake.schedule_${mode}`)}
+                  </button>
+                ))}
+              </div>
+              {form.scheduleMode === "specific" ? (
+                <div className="mt-3 overflow-x-auto">
+                  <table className="text-xs">
+                    <thead>
+                      <tr>
+                        <th />
+                        {WEEK_DAYS.map((day) => (
+                          <th key={day} className="px-1 pb-1 font-semibold text-muted-foreground">
+                            {t(`case_intake.day_${day}`)}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {DAY_PERIODS.map((period) => (
+                        <tr key={period}>
+                          <th className="pr-2 text-left font-semibold text-muted-foreground">
+                            {t(`case_intake.period_${period}`)}
+                          </th>
+                          {WEEK_DAYS.map((day) => {
+                            const slot = `${day}-${period}`;
+                            const on = form.scheduleSlots.includes(slot);
+                            return (
+                              <td key={slot} className="p-0.5">
+                                <button
+                                  type="button"
+                                  aria-pressed={on}
+                                  aria-label={`${t(`case_intake.day_${day}`)} ${t(`case_intake.period_${period}`)}`}
+                                  onClick={() => toggleSlot(slot)}
+                                  className={cn(
+                                    "h-8 w-9 rounded-md border",
+                                    on
+                                      ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/20"
+                                      : "border-border",
+                                  )}
+                                >
+                                  {on ? (
+                                    <Check className="mx-auto h-3.5 w-3.5" aria-hidden />
+                                  ) : null}
+                                </button>
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ) : null}
+              <Input
+                className={cn(controlClassName, "mt-3")}
+                maxLength={200}
+                placeholder={t("case_intake.schedule_note_placeholder")}
+                value={form.scheduleNote}
+                onChange={(e) => update({ scheduleNote: e.target.value })}
+              />
+              <p className="mt-1 text-xs text-muted-foreground">{t("case_intake.schedule_hint")}</p>
+            </div>
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-budget-max`}>
                 Hourly budget
