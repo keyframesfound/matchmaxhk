@@ -347,22 +347,36 @@ async function partyCase(
 }
 
 /** Every occupied block on the tutor's or the learner's side, for clash checks. */
-async function occupiedFor(db: Db, c: PartyCase, tutorId: string): Promise<(ExistingLesson & { id: string })[]> {
+async function occupiedFor(
+  db: Db,
+  c: PartyCase,
+  tutorId: string,
+): Promise<(ExistingLesson & { id: string })[]> {
   type Busy = {
     id: string;
     starts_at: string;
     duration_min: number;
     tutoring_cases: { mode: string | null } | null;
   };
-  const tutorRows = await selectRows<Busy>(db, "case_lessons", "id, starts_at, duration_min, tutoring_cases(mode)", [
-    { col: "tutor_id", op: "eq", value: tutorId },
-    { col: "status", op: "in", value: OCCUPYING },
-  ]);
+  const tutorRows = await selectRows<Busy>(
+    db,
+    "case_lessons",
+    "id, starts_at, duration_min, tutoring_cases(mode)",
+    [
+      { col: "tutor_id", op: "eq", value: tutorId },
+      { col: "status", op: "in", value: OCCUPYING },
+    ],
+  );
   const learnerRows = c.student_id
-    ? await selectRows<Busy>(db, "case_lessons", "id, starts_at, duration_min, tutoring_cases!inner(mode, student_id)", [
-        { col: "tutoring_cases.student_id", op: "eq", value: c.student_id },
-        { col: "status", op: "in", value: OCCUPYING },
-      ])
+    ? await selectRows<Busy>(
+        db,
+        "case_lessons",
+        "id, starts_at, duration_min, tutoring_cases!inner(mode, student_id)",
+        [
+          { col: "tutoring_cases.student_id", op: "eq", value: c.student_id },
+          { col: "status", op: "in", value: OCCUPYING },
+        ],
+      )
     : [];
   const byId = new Map([...tutorRows, ...learnerRows].map((r) => [r.id, r]));
   return [...byId.values()].map((r) => ({
@@ -437,7 +451,8 @@ export const scheduleLessonSeries = createServerFn({ method: "POST" })
     if (free.length === 0) throw new Error("SLOT_CONFLICT");
 
     const stamp = new Date().toISOString();
-    const side = role === "tutor" ? { confirmed_by_tutor_at: stamp } : { confirmed_by_parent_at: stamp };
+    const side =
+      role === "tutor" ? { confirmed_by_tutor_at: stamp } : { confirmed_by_parent_at: stamp };
     for (let attempt = 0; attempt < SEQUENCE_RETRIES; attempt += 1) {
       const existing = await selectRows<{ sequence: number }>(db, "case_lessons", "sequence", [
         { col: "case_id", op: "eq", value: c.id },
@@ -453,12 +468,19 @@ export const scheduleLessonSeries = createServerFn({ method: "POST" })
           location_or_link: data.locationOrLink || null,
           status: "planned",
           series_id: data.seriesId,
+          no_request_expiry: true,
           created_by: context.userId,
           ...side,
         })),
       );
       if (!error) {
-        await insertAudit(db, c.id, context.userId, "planned", `${role}_scheduled_series_${free.length}`);
+        await insertAudit(
+          db,
+          c.id,
+          context.userId,
+          "planned",
+          `${role}_scheduled_series_${free.length}`,
+        );
         await insertLessonLifecycleEvent(
           db,
           `lesson.scheduled_by_${role}`,
@@ -549,6 +571,7 @@ export const editCaseLessons = createServerFn({ method: "POST" })
           starts_at: move.newStart,
           duration_min: move.durationMin,
           status: "planned",
+          no_request_expiry: true,
           ...side,
         })
         .eq("id", move.id);

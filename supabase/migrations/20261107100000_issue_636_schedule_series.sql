@@ -5,7 +5,10 @@
 -- Ending, replacing or pausing a case cancels its future live lessons, so the
 -- tutor's and learner's time frees up whichever path made the change.
 alter table public.case_lessons
-  add column if not exists series_id uuid;
+  add column if not exists series_id uuid,
+  -- Series and moved lessons wait for a confirm; the #204 12h expiry is for
+  -- one-off slot requests and would cancel them.
+  add column if not exists no_request_expiry boolean not null default false;
 
 create unique index if not exists case_lessons_series_start_uq
   on public.case_lessons (series_id, starts_at)
