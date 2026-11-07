@@ -4,6 +4,7 @@ export type NotificationPrefs = {
   case_updates: boolean;
   match_suggestions: boolean;
   tutor_leads: boolean;
+  case_match_alerts: boolean;
   product_news: boolean;
 };
 
@@ -11,6 +12,7 @@ export const DEFAULT_NOTIFICATION_PREFS: NotificationPrefs = {
   case_updates: true,
   match_suggestions: true,
   tutor_leads: true,
+  case_match_alerts: true,
   product_news: false,
 };
 
@@ -18,6 +20,7 @@ const NOTIFICATION_PREF_KEYS = [
   "case_updates",
   "match_suggestions",
   "tutor_leads",
+  "case_match_alerts",
   "product_news",
 ] as const;
 

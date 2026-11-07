@@ -56,6 +56,7 @@ import { DeskCockpitPanel } from "@/features/cases/admin/DeskCockpitPanel";
 import { ShortCasePanel } from "@/features/cases/admin/ShortCasePanel";
 import { DropProtectionPanel } from "@/features/cases/admin/DropProtectionPanel";
 import { CaseFitPanel } from "@/features/cases/admin/CaseFitPanel";
+import { CaseMatchWavesPanel } from "@/features/cases/admin/CaseMatchWavesPanel";
 import { AcademyPanel } from "@/features/cases/admin/AcademyPanel";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { formatStudentLevel } from "@/features/cases/display";
@@ -819,6 +820,9 @@ export function CaseDetailView({
 
           {/* Epic #537: Drop-Protection, ownership window, trust flags (#536 engine). */}
           <DropProtectionPanel caseId={caseRow.id} />
+
+          {/* #657: ranked match alert waves and staff overrides. */}
+          <CaseMatchWavesPanel caseId={caseRow.id} />
 
           {/* #528: soft fit tags, matching hint, L1 signals. */}
           <CaseFitPanel caseId={caseRow.id} />
