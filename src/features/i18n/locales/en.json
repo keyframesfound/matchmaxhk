@@ -4114,5 +4114,19 @@
     "coach_title": "New here?",
     "coach_body": "This is your Case Manager: active cases, upcoming lessons and confirmations in one place. Tap How to use any time.",
     "coach_dismiss": "Dismiss tip"
+  },
+  "account_hub": {
+    "title": "Account",
+    "view_profile": "View profile",
+    "signed_out_title": "Sign in to MatchMax",
+    "signed_out_body": "Save tutors and notes, post a case and manage your lessons.",
+    "become_tutor_body": "Teach with MatchMax and get matched with students.",
+    "section_account": "Account",
+    "section_explore": "MatchMax",
+    "section_preferences": "Preferences",
+    "privacy": "Privacy",
+    "notifications": "Notifications",
+    "refer": "Refer a tutor",
+    "legal": "Terms and policies"
   }
 }

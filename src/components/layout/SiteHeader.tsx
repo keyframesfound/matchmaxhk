@@ -22,8 +22,7 @@ import { toast } from "sonner";
 import { useSwitchLocale } from "@/features/i18n/switch-locale";
 import { nextLocaleInCycle, normalizeLocale } from "@/features/i18n/seo";
 
-import { LanguageToggle } from "@/components/brand/LanguageToggle";
-import { CurrencyMenuSub, CurrencyToggle } from "@/components/brand/CurrencyToggle";
+import { CurrencyMenuSub } from "@/components/brand/CurrencyToggle";
 import { Logo } from "@/components/brand/Logo";
 import { COLLAPSE_MIDPOINT, useSearchGroup } from "@/components/search/sticky-search-group";
 import {
@@ -33,7 +32,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Button } from "@/components/ui/button";
 import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { BellMenu } from "@/components/layout/bell-menu";
 import { useAuth } from "@/features/auth/useAuth";
@@ -45,7 +43,6 @@ import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 import { cn } from "@/lib/utils";
 
 import { MobileBottomNav } from "./mobile-bottom-nav";
-import { StaggeredMobileMenu } from "./StaggeredMobileMenu";
 
 type NavDestination =
   | "/guide"
@@ -183,11 +180,6 @@ export function SiteHeader({
     }
   }
 
-  const modeSwitchItem = (to: "parent" | "tutor") => ({
-    label: to === "tutor" ? t("nav.switch_to_teaching") : t("nav.switch_to_learning"),
-    ariaLabel: to === "tutor" ? t("nav.switch_to_teaching") : t("nav.switch_to_learning"),
-    action: () => switchMode(to),
-  });
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
   const searchStr = useRouterState({ select: (state) => state.location.searchStr ?? "" });
@@ -214,30 +206,6 @@ export function SiteHeader({
   const brandLabelClassName =
     "font-wordmark-nav text-lg font-bold tracking-tight text-brand-gradient sm:text-xl";
 
-  // Mobile keeps a slim top bar (logo + staggered menu); the fixed bottom
-  // tab bar handles account navigation and must render outside the header.
-  const mobileItems = [
-    { label: t("nav.how"), ariaLabel: t("nav.how"), to: "/guide" },
-    ...(CENTRE_MARKET_ENABLED
-      ? [{ label: t("nav.courses"), ariaLabel: t("nav.courses"), to: "/courses" }]
-      : []),
-    // #594 Account declutter: Find / Saved / Upload notes / Cases live on
-    // the Explore pills, bottom nav and Marketplace, not in this menu.
-    // #459 §B: tutors switch modes instead of seeing Become a Tutor.
-    ...(isTutor
-      ? [activeRole === "tutor" ? { ...modeSwitchItem("parent") } : { ...modeSwitchItem("tutor") }]
-      : [{ label: t("nav.become_tutor"), ariaLabel: t("nav.become_tutor"), to: "/join" }]),
-    ...(CENTRE_MARKET_ENABLED
-      ? [{ label: t("nav.for_business"), ariaLabel: t("nav.for_business"), to: "/pricing" }]
-      : []),
-    ...(hasOrg
-      ? [{ label: t("nav.my_business"), ariaLabel: t("nav.my_business"), to: "/business" }]
-      : []),
-    { label: t("nav.tab_calendar"), ariaLabel: t("nav.tab_calendar"), to: "/calendar" },
-    { label: t("nav.help"), ariaLabel: t("nav.help"), to: "/help" },
-    ...(user ? [{ label: t("nav.settings"), ariaLabel: t("nav.settings"), to: "/dashboard" }] : []),
-    ...(isAdmin ? [{ label: t("nav.admin"), ariaLabel: t("nav.admin"), to: "/admin" }] : []),
-  ];
   return (
     <>
       <header
@@ -615,49 +583,8 @@ export function SiteHeader({
           </Link>
           <div className="flex shrink-0 items-center gap-1">
             {user && <BellMenu />}
-            <StaggeredMobileMenu
-              items={mobileItems}
-              renderFooter={(closeMenu) => (
-                <div className="flex flex-col gap-3">
-                  {!user ? (
-                    <>
-                      <Link to="/auth" onClick={closeMenu}>
-                        <Button
-                          variant="outline"
-                          className="h-10 w-full rounded-full border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06] hover:text-[color:var(--ink)]"
-                        >
-                          {t("nav.sign_in")}
-                        </Button>
-                      </Link>
-                      <Link to="/auth" onClick={closeMenu}>
-                        <Button
-                          variant="solid"
-                          color="blue"
-                          className="h-10 w-full rounded-full text-sm font-semibold"
-                        >
-                          {t("nav.sign_up")}
-                        </Button>
-                      </Link>
-                    </>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        void signOut();
-                        closeMenu();
-                      }}
-                      className="h-10 w-full rounded-full border border-[color:var(--ink)]/15 text-sm font-semibold text-[color:var(--ink)] transition-colors hover:bg-[color:var(--destructive)]/10 hover:text-[color:var(--destructive)]"
-                    >
-                      {t("nav.sign_out")}
-                    </button>
-                  )}
-                  <div className="flex items-center justify-start gap-2 pt-2">
-                    <LanguageToggle />
-                    <CurrencyToggle />
-                  </div>
-                </div>
-              )}
-            />
+            {/* #594 (2026-11-04): no phone hamburger; the bottom Account
+                tab opens the Account hub (/me) instead. */}
           </div>
         </div>
       </div>

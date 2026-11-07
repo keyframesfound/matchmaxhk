@@ -4114,5 +4114,19 @@
     "coach_title": "第一次使用？",
     "coach_body": "这是你的个案管理页：进行中的个案、即将上的课堂及确认都在这里。随时按「使用说明」查看。",
     "coach_dismiss": "关闭提示"
+  },
+  "account_hub": {
+    "title": "账户",
+    "view_profile": "查看个人档案",
+    "signed_out_title": "登录 MatchMax",
+    "signed_out_body": "收藏导师及笔记、发布补习个案及管理你的课堂。",
+    "become_tutor_body": "在 MatchMax 任教，获配对学生。",
+    "section_account": "账户",
+    "section_explore": "MatchMax",
+    "section_preferences": "偏好设定",
+    "privacy": "私隐",
+    "notifications": "通知",
+    "refer": "推荐导师",
+    "legal": "条款及政策"
   }
 }
