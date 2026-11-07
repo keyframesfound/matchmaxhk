@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Sheet,
   SheetContent,
@@ -10,19 +11,14 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components/ui/sheet";
-import {
-  hktClock,
-  hktDayLabel,
-  nextLessonFor,
-} from "@/features/cases/case-schedule";
-import type {
-  HubScheduleLesson,
-  ScheduleCase,
-} from "@/features/cases/case-schedule.functions";
+import { hktClock, hktDayLabel, nextLessonFor } from "@/features/cases/case-schedule";
+import type { CaseTab } from "@/features/cases/case-schedule";
+import type { HubScheduleLesson, ScheduleCase } from "@/features/cases/case-schedule.functions";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 import { EditLessonsDialog } from "./edit-lessons-dialog";
+import { HomeworkTab } from "./homework-tab";
 import { SeriesDialog } from "./series-dialog";
 
 function Fact({ label, value }: { label: string; value: string | null }) {
@@ -42,11 +38,15 @@ function Fact({ label, value }: { label: string; value: string | null }) {
 export function CaseDrawer({
   scheduleCase,
   lessons,
+  tab,
+  onTabChange,
   onClose,
   onChanged,
 }: {
   scheduleCase: ScheduleCase;
   lessons: readonly HubScheduleLesson[];
+  tab: CaseTab;
+  onTabChange: (tab: CaseTab) => void;
   onClose: () => void;
   onChanged: () => void;
 }) {
@@ -85,107 +85,120 @@ export function CaseDrawer({
           </SheetDescription>
         </SheetHeader>
 
-        <dl className="mt-4 space-y-2">
-          <Fact label={t("case_manager.fact_subject")} value={scheduleCase.subject} />
-          <Fact label={t("case_manager.fact_level")} value={scheduleCase.level} />
-          <Fact
-            label={t("case_manager.fact_rate")}
-            value={
-              scheduleCase.rateHkd === null
-                ? null
-                : t("case_manager.rate_value", { rate: scheduleCase.rateHkd })
-            }
-          />
-          <Fact label={t("case_manager.fact_mode")} value={scheduleCase.mode} />
-          <Fact label={t("case_manager.fact_district")} value={scheduleCase.district} />
-        </dl>
+        <Tabs value={tab} onValueChange={(value) => onTabChange(value as CaseTab)} className="mt-4">
+          <TabsList>
+            <TabsTrigger value="overview">{t("homework.tab_overview")}</TabsTrigger>
+            <TabsTrigger value="homework">{t("homework.tab")}</TabsTrigger>
+          </TabsList>
+          <TabsContent value="homework">
+            <HomeworkTab caseId={scheduleCase.id} />
+          </TabsContent>
+          <TabsContent value="overview">
+            <dl className="mt-4 space-y-2">
+              <Fact label={t("case_manager.fact_subject")} value={scheduleCase.subject} />
+              <Fact label={t("case_manager.fact_level")} value={scheduleCase.level} />
+              <Fact
+                label={t("case_manager.fact_rate")}
+                value={
+                  scheduleCase.rateHkd === null
+                    ? null
+                    : t("case_manager.rate_value", { rate: scheduleCase.rateHkd })
+                }
+              />
+              <Fact label={t("case_manager.fact_mode")} value={scheduleCase.mode} />
+              <Fact label={t("case_manager.fact_district")} value={scheduleCase.district} />
+            </dl>
 
-        <section className="mt-5 space-y-2">
-          <p className="text-sm font-semibold">
-            {next
-              ? t("case_manager.next_lesson", {
-                  day: hktDayLabel(next.startsAt, i18n.language),
-                  time: hktClock(next.startsAt),
-                })
-              : t("case_manager.next_lesson_flexible")}
-          </p>
-          {scheduleCase.paused ? (
-            <p className="text-sm text-muted-foreground">{t("case_manager.paused_note")}</p>
-          ) : null}
-          {upcoming.length > 0 ? (
-            <ul className="divide-y divide-border rounded-xl border border-border">
-              {upcoming.map((l) => (
-                <li key={l.id}>
-                  <label className="flex min-h-11 items-center gap-3 px-3 py-2 text-sm">
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(l.id)}
-                      onChange={() => toggle(l.id)}
-                    />
-                    <span className="flex-1">
-                      {hktDayLabel(l.startsAt, i18n.language)}, {hktClock(l.startsAt)}
-                      <span className="text-muted-foreground">
-                        {" · "}
-                        {t("sor.schedule_next_minutes", { n: l.durationMin })}
-                      </span>
-                    </span>
-                  </label>
-                </li>
-              ))}
-            </ul>
-          ) : null}
-          <div className="flex flex-wrap gap-2">
-            {scheduleCase.canSchedule ? (
-              <Button type="button" size="sm" onClick={() => setSeriesOpen(true)}>
-                {t("case_manager.series_open")}
-              </Button>
-            ) : null}
-            <Button
-              type="button"
-              size="sm"
-              variant="outline"
-              disabled={selected.length === 0}
-              onClick={() => setEditOpen(true)}
-            >
-              {t("case_manager.edit_open")}
-            </Button>
-          </div>
-          {upcoming.length > 0 ? (
-            <p className="text-xs text-muted-foreground">{t("case_manager.edit_select_hint")}</p>
-          ) : null}
-        </section>
+            <section className="mt-5 space-y-2">
+              <p className="text-sm font-semibold">
+                {next
+                  ? t("case_manager.next_lesson", {
+                      day: hktDayLabel(next.startsAt, i18n.language),
+                      time: hktClock(next.startsAt),
+                    })
+                  : t("case_manager.next_lesson_flexible")}
+              </p>
+              {scheduleCase.paused ? (
+                <p className="text-sm text-muted-foreground">{t("case_manager.paused_note")}</p>
+              ) : null}
+              {upcoming.length > 0 ? (
+                <ul className="divide-y divide-border rounded-xl border border-border">
+                  {upcoming.map((l) => (
+                    <li key={l.id}>
+                      <label className="flex min-h-11 items-center gap-3 px-3 py-2 text-sm">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(l.id)}
+                          onChange={() => toggle(l.id)}
+                        />
+                        <span className="flex-1">
+                          {hktDayLabel(l.startsAt, i18n.language)}, {hktClock(l.startsAt)}
+                          <span className="text-muted-foreground">
+                            {" · "}
+                            {t("sor.schedule_next_minutes", { n: l.durationMin })}
+                          </span>
+                        </span>
+                      </label>
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+              <div className="flex flex-wrap gap-2">
+                {scheduleCase.canSchedule ? (
+                  <Button type="button" size="sm" onClick={() => setSeriesOpen(true)}>
+                    {t("case_manager.series_open")}
+                  </Button>
+                ) : null}
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  disabled={selected.length === 0}
+                  onClick={() => setEditOpen(true)}
+                >
+                  {t("case_manager.edit_open")}
+                </Button>
+              </div>
+              {upcoming.length > 0 ? (
+                <p className="text-xs text-muted-foreground">
+                  {t("case_manager.edit_select_hint")}
+                </p>
+              ) : null}
+            </section>
 
-        <section className="mt-5 rounded-xl border border-dashed border-border p-3 text-sm">
-          <p className="font-semibold">{t("case_manager.attendance_title")}</p>
-          <p className="text-muted-foreground">{t("case_manager.attendance_soon")}</p>
-        </section>
+            <section className="mt-5 rounded-xl border border-dashed border-border p-3 text-sm">
+              <p className="font-semibold">{t("case_manager.attendance_title")}</p>
+              <p className="text-muted-foreground">{t("case_manager.attendance_soon")}</p>
+            </section>
 
-        <div className="mt-5 flex flex-col gap-2 text-sm">
-          {isTutor ? (
-            <Link
-              to="/dashboard"
-              hash="lessons"
-              className="font-semibold text-[color:var(--brand-link)] hover:underline"
-            >
-              {t("calendar_hub.open_tutor")}
-            </Link>
-          ) : (
-            <Link
-              to="/account/cases/$caseId"
-              params={{ caseId: scheduleCase.id }}
-              className="font-semibold text-[color:var(--brand-link)] hover:underline"
-            >
-              {t("calendar_hub.open_parent")}
-            </Link>
-          )}
-          <Link
-            to={isTutor ? "/guide/tutors" : "/guide/parents"}
-            className="font-semibold text-[color:var(--brand-link)] hover:underline"
-          >
-            {t("case_manager.guide_link")}
-          </Link>
-          <p className="text-xs text-muted-foreground">{t("case_manager.independent_note")}</p>
-        </div>
+            <div className="mt-5 flex flex-col gap-2 text-sm">
+              {isTutor ? (
+                <Link
+                  to="/dashboard"
+                  hash="lessons"
+                  className="font-semibold text-[color:var(--brand-link)] hover:underline"
+                >
+                  {t("calendar_hub.open_tutor")}
+                </Link>
+              ) : (
+                <Link
+                  to="/account/cases/$caseId"
+                  params={{ caseId: scheduleCase.id }}
+                  className="font-semibold text-[color:var(--brand-link)] hover:underline"
+                >
+                  {t("calendar_hub.open_parent")}
+                </Link>
+              )}
+              <Link
+                to={isTutor ? "/guide/tutors" : "/guide/parents"}
+                className="font-semibold text-[color:var(--brand-link)] hover:underline"
+              >
+                {t("case_manager.guide_link")}
+              </Link>
+              <p className="text-xs text-muted-foreground">{t("case_manager.independent_note")}</p>
+            </div>
+          </TabsContent>
+        </Tabs>
 
         {seriesOpen ? (
           <SeriesDialog

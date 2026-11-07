@@ -311,7 +311,7 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
     return { cases, lessons: hubLessons, proposed, blockedDates, openWindows };
   });
 
-type PartyCase = {
+export type PartyCase = {
   id: string;
   case_code: string;
   parent_id: string | null;
@@ -322,7 +322,7 @@ type PartyCase = {
   mode: string | null;
 };
 
-async function partyCase(
+export async function partyCase(
   db: Db,
   caseId: string,
   userId: string,
