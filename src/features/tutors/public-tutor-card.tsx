@@ -363,14 +363,14 @@ export function PublicTutorCard({
     <article
       data-tour={tourId}
       className={cn(
-        "@container relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card transition-[transform,border-color] duration-200 hover:-translate-y-1 hover:border-[color:var(--foreground)]/25 motion-reduce:transition-none motion-reduce:hover:translate-y-0 md:min-h-[23rem]",
+        "@container relative flex h-full min-h-[20rem] w-full flex-col overflow-hidden rounded-[var(--radius-panel)] border border-border bg-card transition-colors duration-200 hover:border-[color:var(--foreground)]/25 motion-reduce:transition-none md:min-h-[23rem]",
         interactive && "cursor-pointer",
         compareSelected && "border-[color:var(--ring)] ring-2 ring-[color:var(--ring)]",
         className,
       )}
       onClick={interactive ? () => onOpen(tutor.tutor_code) : undefined}
     >
-      <header className="relative border-b border-border px-3 py-2.5 md:px-4 md:py-3">
+      <header className="relative border-b border-border px-3 py-2.5 md:min-h-[8.75rem] md:px-4 md:py-3">
         <div className="flex items-start gap-2.5 md:gap-3.5">
           {/* Photo column sizes to its widest child (the status pill, capped
               at max-w-24) so the badge fits under the tutor code instead of
