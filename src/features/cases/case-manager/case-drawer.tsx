@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { BillingTab } from "./billing-tab";
 import { EditLessonsDialog } from "./edit-lessons-dialog";
 import { HomeworkTab } from "./homework-tab";
+import { ProgressTab } from "./progress-tab";
 import { SeriesDialog } from "./series-dialog";
 
 function Fact({ label, value }: { label: string; value: string | null }) {
@@ -90,10 +91,14 @@ export function CaseDrawer({
           <TabsList className="max-w-full justify-start overflow-x-auto">
             <TabsTrigger value="overview">{t("homework.tab_overview")}</TabsTrigger>
             <TabsTrigger value="homework">{t("homework.tab")}</TabsTrigger>
+            <TabsTrigger value="progress">{t("progress.tab")}</TabsTrigger>
             <TabsTrigger value="schedule">{t("billing.tab")}</TabsTrigger>
           </TabsList>
           <TabsContent value="homework">
             <HomeworkTab caseId={scheduleCase.id} />
+          </TabsContent>
+          <TabsContent value="progress">
+            <ProgressTab caseId={scheduleCase.id} />
           </TabsContent>
           <TabsContent value="schedule">
             <BillingTab caseId={scheduleCase.id} onScheduleChanged={onChanged} />

@@ -13,6 +13,7 @@ import { getMyCalendar } from "@/features/cases/calendar-hub.functions";
 import { CaseDrawer } from "@/features/cases/case-manager/case-drawer";
 import { BillingSamplePreview } from "@/features/cases/case-manager/billing-tab";
 import { HomeworkSamplePreview } from "@/features/cases/case-manager/homework-tab";
+import { ProgressSamplePreview } from "@/features/cases/case-manager/progress-tab";
 import { ActiveCaseList, ProposedList } from "@/features/cases/case-manager/hub-sections";
 import { ThinCalendar } from "@/features/cases/case-manager/thin-calendar";
 import { caseCodeFromParam, caseTabFromParam, type CaseTab } from "@/features/cases/case-schedule";
@@ -267,6 +268,7 @@ function CalendarPage() {
         {data?.parent && <SummarySection summary={data.parent} role="parent" />}
         {data && !hasCases ? <EmptyCases /> : null}
         {data && !hasCases ? <HomeworkSamplePreview /> : null}
+        {data && !hasCases ? <ProgressSamplePreview /> : null}
         {data && !hasCases ? <BillingSamplePreview /> : null}
         {isError ? <EmptyCases /> : null}
         <HowToUse open={howToOpen} onOpenChange={setHowToOpen} />
