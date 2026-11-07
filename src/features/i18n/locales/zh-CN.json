@@ -4200,6 +4200,10 @@
     "band_evening": "晚上",
     "subject_match_title": "多个科目",
     "subject_match_all": "必须教授所有已选科目",
-    "subject_match_hint": "关闭时：教授任何一科的导师都会显示，教授越多科的排越前。"
+    "subject_match_hint": "关闭时：教授任何一科的导师都会显示，教授越多科的排越前。",
+    "active_filters": "已选筛选条件",
+    "remove_filter": "移除筛选：{{label}}",
+    "avail_chip": "可上课：{{value}}",
+    "list_sep": "、"
   }
 }

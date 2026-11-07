@@ -4200,6 +4200,10 @@
     "band_evening": "Evening",
     "subject_match_title": "Multiple subjects",
     "subject_match_all": "Must teach all selected",
-    "subject_match_hint": "Off: tutors teaching any selected subject show, those teaching more rank first."
+    "subject_match_hint": "Off: tutors teaching any selected subject show, those teaching more rank first.",
+    "active_filters": "Active filters",
+    "remove_filter": "Remove filter: {{label}}",
+    "avail_chip": "Available: {{value}}",
+    "list_sep": ", "
   }
 }
