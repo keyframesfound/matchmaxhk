@@ -49,6 +49,10 @@ export const BUS_EVENT_TYPES = [
   "listing.viewed",
   "listing.saved",
   "entitlement.granted",
+  // ---- #613 roster attendance (single clearly-commented block; full bell
+  // inbox chrome is #614's job — these only emit structured payloads) ------
+  "attendance.recorded",
+  "attendance.updated",
 ] as const;
 
 export type BusEventType = (typeof BUS_EVENT_TYPES)[number];
@@ -100,6 +104,9 @@ export const BELL_EVENT_TYPES: readonly string[] = [
   "action.profile_fields",
   "action.onboarding",
   "action.admin_task",
+  // #613: parents of LINKED roster students see the attendance bell.
+  "attendance.recorded",
+  "attendance.updated",
 ];
 
 /**
@@ -131,6 +138,10 @@ const RECIPIENT_ROLE_EVENTS: readonly string[] = [
   "action.profile_fields",
   "action.onboarding",
   "action.admin_task",
+  // #613: attendance events address the linked parent account directly
+  // (payload.recipient_account_id; context 'learning').
+  "attendance.recorded",
+  "attendance.updated",
 ];
 
 /**
@@ -314,6 +325,11 @@ export const DELIVERY_PLAN: Readonly<
     { channel: "in_app", role: "recipient" },
     { channel: "email", role: "recipient" },
   ],
+  // ---- #613 roster attendance: in-app bell for the linked parent only (no
+  // email — fee/order classes are the email set). PENDING_LINK students have
+  // no recipient yet; the claim backfill re-emits with their account. --------
+  "attendance.recorded": [{ channel: "in_app", role: "recipient" }],
+  "attendance.updated": [{ channel: "in_app", role: "recipient" }],
 };
 
 export type PlannedDelivery = { channel: BusChannel; role: BusRole };
@@ -425,6 +441,11 @@ export function bellLinkFor(
       return typeof payload.link === "string" && payload.link.startsWith("/")
         ? payload.link
         : "/notifications";
+    // #613: parents land on their account hub (the full parent attendance
+    // inbox is #614's chrome).
+    case "attendance.recorded":
+    case "attendance.updated":
+      return "/account";
     default:
       return null;
   }
