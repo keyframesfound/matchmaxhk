@@ -25,6 +25,14 @@ import {
 } from "@/components/ui/select";
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { submitCaseRequest } from "@/lib/cases.functions";
+import { ScheduleLegend } from "@/features/cases/case-manager/schedule-legend";
+import { findClashes, type ClashLine } from "@/features/cases/schedule-fit";
+import {
+  ScheduleClashDialog,
+  slotStateClass,
+  slotStateLabelKey,
+} from "@/features/cases/schedule-fit-ui";
+import { useFitSchedule } from "@/features/cases/use-schedule-fit";
 import { PhoneVerifyCard } from "@/features/trust/phone-verify-card";
 import { ChildPicker } from "@/features/children/child-picker";
 import {
@@ -301,6 +309,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [result, setResult] = useState<{ caseCode: string } | null>(null);
+  // #659: the parent's Case Manager schedule greys cells and drives the soft
+  // clash reminder; overriding a cell only changes this draft.
+  const { schedule: fitSchedule } = useFitSchedule("parent");
+  const [clashLines, setClashLines] = useState<ClashLine[]>([]);
   // Issue #114: pre-fill the budget currency from the visitor's active
   // display currency, but ONLY until the visitor (or a restored draft)
   // has made their own choice. #380 review: re-syncing on every
@@ -885,6 +897,21 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) {
       toast.error("Please fill in the highlighted fields.");
+      return;
+    }
+    if (submitMutation.isPending) return;
+    const clashes =
+      fitSchedule && form.scheduleMode === "specific"
+        ? findClashes(
+            form.scheduleSlots.map((slot) => {
+              const [day, period] = slot.split("-");
+              return { day, period };
+            }),
+            fitSchedule,
+          )
+        : [];
+    if (clashes.length > 0) {
+      setClashLines(clashes);
       return;
     }
     submitMutation.mutate();
@@ -1901,18 +1928,20 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                           {WEEK_DAYS.map((day) => {
                             const slot = `${day}-${period}`;
                             const on = form.scheduleSlots.includes(slot);
+                            const stateKey = slotStateLabelKey(slot, fitSchedule);
                             return (
                               <td key={slot} className="p-0.5">
                                 <button
                                   type="button"
                                   aria-pressed={on}
-                                  aria-label={`${t(`case_intake.day_${day}`)} ${t(`case_intake.period_${period}`)}`}
+                                  aria-label={`${t(`case_intake.day_${day}`)} ${t(`case_intake.period_${period}`)}${stateKey ? ` ${t(stateKey)}` : ""}`}
+                                  title={stateKey ? t(stateKey) : undefined}
                                   onClick={() => toggleSlot(slot)}
                                   className={cn(
                                     "h-8 w-9 rounded-md border",
                                     on
                                       ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/20"
-                                      : "border-border",
+                                      : (slotStateClass(slot, fitSchedule) ?? "border-border"),
                                   )}
                                 >
                                   {on ? (
@@ -1926,6 +1955,12 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
                       ))}
                     </tbody>
                   </table>
+                  {fitSchedule &&
+                  (fitSchedule.occupied.length > 0 || fitSchedule.proposed.length > 0) ? (
+                    <div className="mt-2">
+                      <ScheduleLegend />
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
               <Input
@@ -2363,6 +2398,17 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       ) : null}
 
       {/* #529: +852 OTP on the final step (renders nothing while the gate is off). */}
+      <ScheduleClashDialog
+        open={clashLines.length > 0}
+        flow="request"
+        lines={clashLines}
+        pending={submitMutation.isPending}
+        onBack={() => setClashLines([])}
+        onProceed={() => {
+          setClashLines([]);
+          submitMutation.mutate();
+        }}
+      />
       {step === 3 && (
         <div className="mt-6">
           <PhoneVerifyCard defaultPhone={form.contactPhone} />

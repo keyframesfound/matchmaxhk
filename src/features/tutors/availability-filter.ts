@@ -22,7 +22,7 @@ export const AVAIL_BANDS = ["morning", "afternoon", "evening"] as const;
 export type AvailBand = (typeof AVAIL_BANDS)[number];
 
 /** Grid slot row indexes (06-09 … 21-24) covered by each band. */
-const BAND_ROWS: Record<AvailBand, number[]> = {
+export const BAND_ROWS: Record<AvailBand, number[]> = {
   morning: [0, 1],
   afternoon: [2, 3],
   evening: [4, 5],

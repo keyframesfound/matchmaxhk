@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
+import { ScheduleSyncPanel, useScheduleSyncContext } from "@/features/cases/schedule-fit-ui";
 import { GRID_DAYS, type GridDay } from "@/features/tutors/availability-grid-model";
 import {
   AVAIL_BANDS,
@@ -41,6 +42,7 @@ export function AvailabilityFilterContent({
   onDraftChange: (patch: AvailabilityDraft) => void;
 }) {
   const { t } = useTranslation();
+  const scheduleSync = useScheduleSyncContext();
   const days = parseAvailDays(draft.avail_days);
   const bands = parseAvailBands(draft.avail_bands);
 
@@ -55,6 +57,10 @@ export function AvailabilityFilterContent({
 
   return (
     <div className="space-y-3">
+      {/* #659: the parent's Case Manager windows, editable for this session. */}
+      {scheduleSync ? (
+        <ScheduleSyncPanel sync={scheduleSync.sync} isLoading={scheduleSync.isLoading} />
+      ) : null}
       <div
         className="flex flex-wrap gap-2"
         role="group"

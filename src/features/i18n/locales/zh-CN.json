@@ -4512,5 +4512,37 @@
       "badge_value": "同科 · 弹性学费／网上授课",
       "badge_subject": "同科"
     }
+  },
+  "schedule_fit": {
+    "sync_banner": "已根据你的个案管理时间表自动筛选，你可随时自行修改时段。",
+    "sync_banner_tutor": "根据你的个案管理时间表，修改只适用于本次浏览。",
+    "reset": "重设",
+    "edit": "修改",
+    "show_all": "显示全部",
+    "matched_pill": "配合我的时间表",
+    "zero_fit_notice": "暂时没有完全吻合时段的个案，以下显示所有开放个案",
+    "partial_divider": "部分时段吻合",
+    "badge_match_full": "100% 时间吻合",
+    "badge_match_pct": "时间吻合 {{n}}%",
+    "badge_fit_full": "100% 时间吻合",
+    "badge_fit_pct": "时间吻合 {{n}}%",
+    "explain_match": "可上课时间与你的空档重叠（吻合度 {{n}}%）",
+    "explain_fit": "个案偏好时段与你的空档重叠（吻合度 {{n}}%）",
+    "clash_title": "时间冲突提示",
+    "body_request": "所选时段与现有或待确认的补习个案时间重叠。你确定要继续发送申请吗？",
+    "body_apply": "此个案的时段与你在个案管理中已占用或待确认的时间重叠。你确定要照常申请吗？",
+    "intro_request": "所选时段与现有时间表重叠：",
+    "intro_apply": "此个案的偏好时段与你的时间表重叠：",
+    "outro_request": "你可以修改时段，或照常发送这个申请。",
+    "line_occupied": "{{when}} 与你进行中的「{{title}}」个案重叠",
+    "line_proposed_request": "{{when}} 与你待确认的「{{title}}」申请／邀请重叠",
+    "line_proposed_apply": "{{when}} 与你待确认的「{{title}}」申请重叠",
+    "line_generic": "{{when}} 与进行中或待确认的个案重叠",
+    "line_blocked": "{{when}} 已在你的时间表标示为没空",
+    "cta_edit": "修改时段",
+    "cta_proceed": "照常发送",
+    "cta_back": "返回",
+    "cta_apply": "照常申请",
+    "close": "关闭"
   }
 }

@@ -230,12 +230,12 @@ export function chipsByHktDay<T extends ScheduleLesson>(lessons: readonly T[]): 
   return days;
 }
 
-function periodOfMinute(minute: number): string {
+export function periodOfMinute(minute: number): string {
   if (minute < AFTERNOON_START_MIN) return "morning";
   return minute < EVENING_START_MIN ? "afternoon" : "evening";
 }
 
-function readSlots(value: unknown): PrefSlot[] {
+export function readSlots(value: unknown): PrefSlot[] {
   if (!Array.isArray(value)) return [];
   return value.filter(
     (s): s is PrefSlot =>

@@ -23,10 +23,12 @@ import {
   hktClock,
   orderForShift,
   partitionSeriesClashes,
+  readSlots,
   scheduleUpdatedCaseIds,
   seriesPrefill,
   shiftedStart,
   targetsForEdit,
+  type PrefSlot,
   type ScheduleLesson,
 } from "@/features/cases/case-schedule";
 import {
@@ -38,6 +40,13 @@ import {
 } from "@/features/cases/schedule-lesson";
 import { hktDateKey } from "@/features/cases/sor";
 import type { ExistingLesson } from "@/features/cases/slot";
+import {
+  parseAvailabilityGrid,
+  type GridCellState,
+  type GridDay,
+} from "@/features/tutors/availability-grid-model";
+
+type GridMatrix = Record<GridDay, GridCellState[]>;
 
 const CASE_LIMIT = 200;
 const SEQUENCE_RETRIES = 3;
@@ -108,6 +117,8 @@ export type ProposedItem = {
   role: PartyRole;
   scheduleMode: string | null;
   scheduleUpdated: boolean;
+  /** #659/#660: the held soft slots, for clash lines. */
+  slots: PrefSlot[];
 };
 
 export type CaseManagerSchedule = {
@@ -118,6 +129,8 @@ export type CaseManagerSchedule = {
   blockedDates: string[];
   /** Open: the tutor's weekly teaching windows in HKT minutes. */
   openWindows: { weekday: number; startMinute: number; endMinute: number }[];
+  /** #660: the tutor's soft weekly grid, used when no teaching windows are set. */
+  tutorGrid: GridMatrix | null;
 };
 
 function toLesson(row: LessonRow): ScheduleLesson {
@@ -206,6 +219,7 @@ function toProposedItems(
     role,
     scheduleMode: c.schedule_mode,
     scheduleUpdated: updated.has(c.id),
+    slots: readSlots(c.schedule_slots),
   }));
 }
 
@@ -304,8 +318,9 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
 
     let blockedDates: string[] = [];
     let openWindows: CaseManagerSchedule["openWindows"] = [];
+    let tutorGrid: GridMatrix | null = null;
     if (tutorId) {
-      const [{ pending, releasedSlots }, blackouts, windows] = await Promise.all([
+      const [{ pending, releasedSlots }, blackouts, windows, gridRows] = await Promise.all([
         tutorProposals(db, tutorId, now),
         selectRows<{ blackout_date: string }>(db, "tutor_blackout_dates", "blackout_date", [
           { col: "tutor_id", op: "eq", value: tutorId },
@@ -316,7 +331,11 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
           "weekday, start_minute, end_minute",
           [{ col: "tutor_id", op: "eq", value: tutorId }],
         ),
+        selectRows<{ availability_grid: unknown }>(db, "tutors", "availability_grid", [
+          { col: "id", op: "eq", value: tutorId },
+        ]),
       ]);
+      tutorGrid = parseAvailabilityGrid(gridRows[0]?.availability_grid);
       const tutorLessons = hubLessons.filter((l) => l.role === "tutor");
       proposed.push(...toProposedItems(pending, "tutor", tutorLessons, releasedSlots));
       blockedDates = blackouts.map((b) => b.blackout_date);
@@ -327,7 +346,7 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
       }));
     }
 
-    return { cases, lessons: hubLessons, proposed, blockedDates, openWindows };
+    return { cases, lessons: hubLessons, proposed, blockedDates, openWindows, tutorGrid };
   });
 
 export type PartyCase = {

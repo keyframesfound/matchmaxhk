@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { PageContainer } from "@/components/layout/PageContainer";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CaseRequestForm } from "@/features/cases/CaseRequestForm";
 import { CaseSaveButton } from "@/features/cases/saved-cases";
@@ -78,6 +79,9 @@ import { parseTierParam } from "@/features/tutors/search-tiers";
 import type { AcademicTier } from "@/features/tutors/verticals";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 import { useAuth } from "@/features/auth/useAuth";
+import { rankCasesByFit } from "@/features/cases/schedule-fit";
+import { ScheduleFitBadge, ScheduleSyncPanel } from "@/features/cases/schedule-fit-ui";
+import { useTutorScheduleSync } from "@/features/cases/use-schedule-fit";
 import {
   listMyAppliedCaseCodes,
   myAppliedCasesQueryKey,
@@ -295,7 +299,16 @@ function CaseAppliedPill() {
   );
 }
 
-function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applied?: boolean }) {
+function CaseCard({
+  item,
+  applied = false,
+  fitScore,
+}: {
+  item: PublicCaseBoardItem;
+  applied?: boolean;
+  /** #660: Schedule Fit Score for the signed-in tutor; absent shows no badge. */
+  fitScore?: number;
+}) {
   const { t, i18n } = useTranslation();
   const { primary, secondary } = useCaseTitles(item);
   // Issue #113/#423: tutors quoting in another currency see the converted
@@ -335,6 +348,18 @@ function CaseCard({ item, applied = false }: { item: PublicCaseBoardItem; applie
         <h3 className="truncate text-base font-bold text-[color:var(--ink)]">{primary}</h3>
         {secondary ? <p className="truncate text-sm text-muted-foreground">{secondary}</p> : null}
       </Link>
+
+      {/* #660: same badge family and formula as the parent Tutor Search. */}
+      {fitScore ? (
+        <div className="mt-2 space-y-1">
+          <ScheduleFitBadge kind="fit" score={fitScore} />
+          {item.scheduleMode === "specific" && item.scheduleSlots.length > 0 ? (
+            <p className="text-xs text-muted-foreground">
+              {t("schedule_fit.explain_fit", { n: fitScore })}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       {/* 1-line logistics row. */}
       <CaseLogisticsLine parts={logisticsParts} className="mt-2 [&>span]:w-full [&>span]:min-w-0" />
@@ -501,7 +526,13 @@ function TutorRequestsPage() {
   });
   const appliedCodes = useMemo(() => new Set(myAppliedCaseCodes ?? []), [myAppliedCaseCodes]);
 
-  const filteredCases = useMemo(() => {
+  // #660: matched by default when the tutor has schedule data. Show All and
+  // slot edits last for this session and never touch Case Manager.
+  const scheduleFit = useTutorScheduleSync();
+  const [matchedToSchedule, setMatchedToSchedule] = useState(true);
+  const [fitEditing, setFitEditing] = useState(false);
+
+  const searchedCases = useMemo(() => {
     const query = (search.q ?? "").trim().toLowerCase();
     // Issue #311: ?tag= is an exact-match filter on the case's stored tags,
     // mirroring the /tutors tag filter.
@@ -553,6 +584,15 @@ function TutorRequestsPage() {
       el.scrollIntoView({ behavior: "smooth", block: "start" });
     });
   };
+
+  const {
+    items: filteredCases,
+    scores: caseFitScores,
+    zeroFit,
+  } = useMemo(
+    () => rankCasesByFit(searchedCases, scheduleFit.open, matchedToSchedule),
+    [searchedCases, scheduleFit.open, matchedToSchedule],
+  );
 
   const toggleForm = () => {
     if (formOpen) {
@@ -747,6 +787,51 @@ function TutorRequestsPage() {
                   value={search.type}
                   onChange={(type) => navigate({ search: (prev) => ({ ...prev, type }) })}
                 />
+                {/* #660: session-only schedule match; never an Airbnb "When" bar. */}
+                {scheduleFit.isLoading ? (
+                  <Skeleton className="mt-4 h-9 w-64 rounded-md" />
+                ) : scheduleFit.sync ? (
+                  <div className="mt-4 space-y-3">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <label className="inline-flex cursor-pointer items-center gap-2 text-sm font-semibold text-[color:var(--ink)]">
+                        <Checkbox
+                          checked={matchedToSchedule}
+                          onCheckedChange={(checked) => setMatchedToSchedule(checked === true)}
+                        />
+                        {t("schedule_fit.matched_pill")}
+                      </label>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        aria-expanded={fitEditing}
+                        onClick={() => setFitEditing((value) => !value)}
+                      >
+                        {t("schedule_fit.edit")}
+                      </Button>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        disabled={!matchedToSchedule}
+                        onClick={() => setMatchedToSchedule(false)}
+                      >
+                        {t("schedule_fit.show_all")}
+                      </Button>
+                    </div>
+                    {fitEditing ? (
+                      <ScheduleSyncPanel
+                        sync={scheduleFit.sync}
+                        banner={t("schedule_fit.sync_banner_tutor")}
+                      />
+                    ) : null}
+                    {zeroFit ? (
+                      <p className="text-sm text-muted-foreground">
+                        {t("schedule_fit.zero_fit_notice")}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
                 {/* Issue #311: the active tag filters, one click each to clear. */}
                 {activeTags.length > 0 ? (
                   <div className="mt-4 flex flex-wrap gap-1.5">
@@ -825,6 +910,7 @@ function TutorRequestsPage() {
                         key={item.id}
                         item={item}
                         applied={appliedCodes.has(item.caseCode)}
+                        fitScore={caseFitScores.get(item.id)}
                       />
                     ))}
                   </ul>

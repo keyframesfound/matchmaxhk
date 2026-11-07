@@ -37,6 +37,7 @@ import {
   ParentFavoriteBadge,
 } from "@/features/tutors/engagement-badges";
 import { ExperiencePill } from "@/features/tutors/experience-badge";
+import { ScheduleFitBadge } from "@/features/cases/schedule-fit-ui";
 import { TutorRatingBadge } from "@/features/tutors/tutor-rating-badge";
 import { TrophyKpiBanner } from "@/features/tutors/trophy-kpi-banner";
 import { PromoBadges } from "@/features/tutors/promo-badges";
@@ -138,6 +139,8 @@ type PublicTutorCardProps = {
   /** Issues #102/#151: engagement summary from get_tutor_engagement. When
    *  absent (or null) no demand / Parent Favorite badges render. */
   engagement?: EngagementSummary | null;
+  /** #659: Schedule Fit Score for the signed-in parent; absent shows no badge. */
+  scheduleFit?: number | null;
 };
 
 export function PublicTutorCard({
@@ -153,6 +156,7 @@ export function PublicTutorCard({
   tagQuery,
   tourId,
   engagement,
+  scheduleFit,
 }: PublicTutorCardProps) {
   const { t, i18n } = useTranslation();
   // Issue #114: honor the visitor's display currency; the native-figure
@@ -522,6 +526,15 @@ export function PublicTutorCard({
                 + count at threshold (3), count-only below, "New" at zero.
                 Self-fetching like the pills above; hidden pre-migration. */}
             <TutorRatingBadge tutorId={tutor.id} />
+            {/* #659: visible Schedule Match, not ranking alone. */}
+            {scheduleFit ? (
+              <div className="mt-1.5 space-y-1">
+                <ScheduleFitBadge kind="match" score={scheduleFit} />
+                <p className="text-xs text-muted-foreground">
+                  {t("schedule_fit.explain_match", { n: scheduleFit })}
+                </p>
+              </div>
+            ) : null}
           </div>
 
           {genderLabel ? (

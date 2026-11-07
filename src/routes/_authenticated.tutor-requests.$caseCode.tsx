@@ -1,6 +1,9 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { PhoneVerifyCard } from "@/features/trust/phone-verify-card";
 import { useEffect, useState } from "react";
+import { findClashes, type ClashLine } from "@/features/cases/schedule-fit";
+import { ScheduleClashDialog } from "@/features/cases/schedule-fit-ui";
+import { useFitSchedule } from "@/features/cases/use-schedule-fit";
 import { useTranslation } from "react-i18next";
 import { markCaseMatchOpened } from "@/features/cases/case-match-waves.functions";
 import { caseFeeNoteKey, resolveCaseType } from "@/features/cases/case-type";
@@ -349,9 +352,21 @@ function CaseDetailPage() {
             : e.message,
       ),
   });
+  // #660: a soft reminder on overlap. Flexible cases hold no slot, so no modal.
+  const { schedule: fitSchedule } = useFitSchedule("tutor");
+  const [clashLines, setClashLines] = useState<ClashLine[]>([]);
   const handleInAppApply = () => {
     if (applyDisabled) {
       toast.error(t("case_board.screening_confirm_required"));
+      return;
+    }
+    if (applyMutation.isPending) return;
+    const clashes =
+      fitSchedule && item.scheduleMode !== "flexible"
+        ? findClashes(item.scheduleSlots, fitSchedule, item.id)
+        : [];
+    if (clashes.length > 0) {
+      setClashLines(clashes);
       return;
     }
     applyMutation.mutate();
@@ -936,6 +951,17 @@ function CaseDetailPage() {
                         toast.error(t("case_board.screening_confirm_required"))
                       }
                       onApply={handleInAppApply}
+                    />
+                    <ScheduleClashDialog
+                      open={clashLines.length > 0}
+                      flow="apply"
+                      lines={clashLines}
+                      pending={applyMutation.isPending}
+                      onBack={() => setClashLines([])}
+                      onProceed={() => {
+                        setClashLines([]);
+                        applyMutation.mutate();
+                      }}
                     />
                     {item.centre ? (
                       <Button

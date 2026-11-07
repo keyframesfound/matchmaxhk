@@ -4512,5 +4512,37 @@
       "badge_value": "同科 · 彈性學費／網上授課",
       "badge_subject": "同科"
     }
+  },
+  "schedule_fit": {
+    "sync_banner": "已根據你的個案管理時間表自動篩選，你可隨時自行修改時段。",
+    "sync_banner_tutor": "根據你的個案管理時間表，修改只適用於今次瀏覽。",
+    "reset": "重設",
+    "edit": "修改",
+    "show_all": "顯示全部",
+    "matched_pill": "配合我的時間表",
+    "zero_fit_notice": "暫時沒有完全吻合時段的個案，以下顯示所有開放個案",
+    "partial_divider": "部分時段吻合",
+    "badge_match_full": "100% 時間吻合",
+    "badge_match_pct": "時間吻合 {{n}}%",
+    "badge_fit_full": "100% 時間吻合",
+    "badge_fit_pct": "時間吻合 {{n}}%",
+    "explain_match": "可上課時間與你的空檔重疊（吻合度 {{n}}%）",
+    "explain_fit": "個案偏好時段與你的空檔重疊（吻合度 {{n}}%）",
+    "clash_title": "時間衝突提示",
+    "body_request": "所選時段與現有或待確認的補習個案時間重疊。你確定要繼續發送申請嗎？",
+    "body_apply": "此個案的時段與你在個案管理中已佔用或待確認的時間重疊。你確定要照常申請嗎？",
+    "intro_request": "所選時段與現有時間表重疊：",
+    "intro_apply": "此個案的偏好時段與你的時間表重疊：",
+    "outro_request": "你可以修改時段，或照常發送這個申請。",
+    "line_occupied": "{{when}} 與你進行中的「{{title}}」個案重疊",
+    "line_proposed_request": "{{when}} 與你待確認的「{{title}}」申請／邀請重疊",
+    "line_proposed_apply": "{{when}} 與你待確認的「{{title}}」申請重疊",
+    "line_generic": "{{when}} 與進行中或待確認的個案重疊",
+    "line_blocked": "{{when}} 已在你的時間表標示為沒空",
+    "cta_edit": "修改時段",
+    "cta_proceed": "照常發送",
+    "cta_back": "返回",
+    "cta_apply": "照常申請",
+    "close": "關閉"
   }
 }
