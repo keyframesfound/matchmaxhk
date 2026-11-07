@@ -1,12 +1,33 @@
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
-import { CircleHelp, Heart, SearchX, SlidersHorizontal, Store, Upload, Users } from "lucide-react";
+import {
+  CircleHelp,
+  ClipboardList,
+  FileText,
+  GraduationCap,
+  Heart,
+  SearchX,
+  SlidersHorizontal,
+  Store,
+  Upload,
+  Users,
+} from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { SearchableSelect } from "@/components/ui/searchable-select";
+import { GuidedCard, MoreFiltersAccordion } from "@/components/search/guided-card";
+import {
+  MobileSearchOverlay,
+  type MobileSearchTab,
+} from "@/components/search/mobile-search-overlay";
+import { MobileSearchTrigger } from "@/components/search/mobile-search-trigger";
+import { PanelLabel, SearchBigInput, Segmented } from "@/components/search/search-controls";
+import { setSearchSlideDirection } from "@/components/search/slide-direction";
 import {
   Select,
   SelectContent,
@@ -100,6 +121,12 @@ export function MaterialsDirectory() {
   const [language, setLanguage] = useState("");
   const [savedOnly, setSavedOnly] = useState(false);
   const [filtersOpen, setFiltersOpen] = useState(false);
+  // #605 §3.6 Notes: grade band (Pill 3) + More Filters price / verified.
+  const [grade, setGrade] = useState("");
+  const [priceBand, setPriceBand] = useState<"" | "free" | "paid">("");
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { data: materials = [], isLoading } = useQuery({
     queryKey: ["materials", "marketplace"],
@@ -153,6 +180,17 @@ export function MaterialsDirectory() {
     [materials],
   );
 
+  // #605: grade / score bands that listings actually carry (5**, 7, A* …).
+  const grades = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          materials.map((m) => m.grade_achieved?.trim()).filter((g): g is string => Boolean(g)),
+        ),
+      ).sort((a, b) => a.localeCompare(b)),
+    [materials],
+  );
+
   // Sub-category chips: the selected curriculum's list, else every
   // category that at least one listing in the shop uses.
   const subcategoryOptions = useMemo(() => {
@@ -177,6 +215,10 @@ export function MaterialsDirectory() {
       if (subcategory && m.subcategory !== subcategory) return false;
       if (language && m.content_language !== language) return false;
       if (savedOnly && !savedIds.has(m.id)) return false;
+      if (grade && (m.grade_achieved ?? "").trim() !== grade) return false;
+      if (priceBand === "free" && Number(m.price_hkd) !== 0) return false;
+      if (priceBand === "paid" && Number(m.price_hkd) === 0) return false;
+      if (verifiedOnly && !m.tutor_verified) return false;
       return true;
     });
     // Notes upload v2: ranked, forgiving search (synonyms EN/繁/简, typos,
@@ -214,6 +256,9 @@ export function MaterialsDirectory() {
     language,
     savedOnly,
     savedIds,
+    grade,
+    priceBand,
+    verifiedOnly,
     t,
   ]);
 
@@ -226,6 +271,9 @@ export function MaterialsDirectory() {
     setSubcategory("");
     setLanguage("");
     setSavedOnly(false);
+    setGrade("");
+    setPriceBand("");
+    setVerifiedOnly(false);
   };
   const activeFilterCount = [school, subject, curriculum, language].filter(Boolean).length;
   const hasFilters =
@@ -236,11 +284,57 @@ export function MaterialsDirectory() {
     kind !== "all" ||
     subcategory ||
     language ||
-    savedOnly;
+    savedOnly ||
+    grade ||
+    priceBand ||
+    verifiedOnly;
 
   useEffect(() => {
     document.title = "Study Materials Marketplace | MatchMax";
   }, []);
+
+  const sheetFilterCount = [
+    query,
+    curriculum,
+    subject,
+    kind !== "all" ? kind : "",
+    subcategory,
+    grade,
+    priceBand,
+    language,
+    school,
+    verifiedOnly ? "verified" : "",
+    savedOnly ? "saved" : "",
+  ].filter(Boolean).length;
+  const sheetTabs: MobileSearchTab[] = [
+    {
+      id: "tutors",
+      label: t("search_ui.tab_tutors"),
+      icon: <GraduationCap className="h-5 w-5" aria-hidden="true" />,
+      active: false,
+      onSelect: () => {
+        setSearchSlideDirection("prev");
+        void navigate({ to: "/tutors", search: { q: query || undefined, open: true } });
+      },
+    },
+    {
+      id: "cases",
+      label: t("search_ui.tab_cases"),
+      icon: <ClipboardList className="h-5 w-5" aria-hidden="true" />,
+      active: false,
+      onSelect: () => {
+        setSearchSlideDirection("prev");
+        void navigate({ to: "/tutor-requests", search: { q: query || undefined, open: true } });
+      },
+    },
+    {
+      id: "notes",
+      label: t("explore_search.tab_notes"),
+      icon: <FileText className="h-5 w-5" aria-hidden="true" />,
+      active: true,
+      onSelect: () => {},
+    },
+  ];
 
   const kindChips: { value: KindFilter; label: string }[] = [
     { value: "all", label: t("shop.filter_all") },
@@ -255,6 +349,20 @@ export function MaterialsDirectory() {
   return (
     <section className="pt-6 pb-12 sm:pt-8">
       <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
+        {/* #605 phone: the shared search trigger + full-screen sheet (Notes scope). */}
+        <MobileSearchTrigger
+          className="mb-4"
+          label={t("explore_search.pill_title_notes")}
+          subtitle={[
+            curriculum || t("explore_search.any_curriculum"),
+            subject || t("explore_search.any_subject"),
+            kind !== "all"
+              ? (kindChips.find((chip) => chip.value === kind)?.label ?? "")
+              : t("explore_search.any_resource"),
+          ].join(" · ")}
+          badgeCount={sheetFilterCount}
+          onClick={() => setSheetOpen(true)}
+        />
         {/* #557 / #594: Marketplace tabs, Notes | Gigs. */}
         {/* #605 / #557 M3: one compact sub-row, Notes | Gigs on the left,
             How it works + Upload on the right. */}
@@ -365,10 +473,176 @@ export function MaterialsDirectory() {
           </div>
         ) : null}
 
+        <MobileSearchOverlay
+          open={sheetOpen}
+          onOpenChange={setSheetOpen}
+          tabs={sheetTabs}
+          clearLabel={t("search_ui.clear_all")}
+          submitLabel={t("explore_search.show_notes", { count: filtered.length })}
+          onClear={clearAll}
+          onSubmit={() => setSheetOpen(false)}
+        >
+          <div className="space-y-4">
+            <SearchBigInput
+              value={query}
+              onValueChange={setQuery}
+              onEnter={() => setSheetOpen(false)}
+              placeholder={t("explore_search.placeholder_notes")}
+              ariaLabel={t("materials.search_placeholder")}
+            />
+            <GuidedCard title={t("explore_search.card_subject")}>
+              <div className="space-y-1.5">
+                <PanelLabel>{t("search_ui.segment_curriculum")}</PanelLabel>
+                <SearchableSelect
+                  value={curriculum}
+                  onChange={setCurriculum}
+                  options={[
+                    { value: "", label: t("materials.filter_curriculum_all") },
+                    ...curricula.map((entry) => ({ value: entry, label: entry })),
+                  ]}
+                  placeholder={t("materials.filter_curriculum_all")}
+                  className="h-12 rounded-2xl"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <PanelLabel>{t("search_ui.segment_subject")}</PanelLabel>
+                <SearchableSelect
+                  value={subject}
+                  onChange={setSubject}
+                  options={[
+                    { value: "", label: t("materials.filter_subject_all") },
+                    ...subjects.map((entry) => ({ value: entry, label: entry })),
+                  ]}
+                  placeholder={t("materials.filter_subject_all")}
+                  className="h-12 rounded-2xl"
+                />
+              </div>
+            </GuidedCard>
+            {shopTab === "notes" ? (
+              <GuidedCard title={t("explore_search.card_resource")}>
+                <div className="flex flex-wrap gap-2">
+                  {kindChips.map((chip) => (
+                    <button
+                      key={chip.value}
+                      type="button"
+                      aria-pressed={kind === chip.value}
+                      onClick={() => setKind(chip.value)}
+                      className={sheetChipClass(kind === chip.value)}
+                    >
+                      {chip.label}
+                    </button>
+                  ))}
+                </div>
+                {subcategoryOptions.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {subcategoryOptions.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        aria-pressed={subcategory === option.value}
+                        onClick={() =>
+                          setSubcategory(subcategory === option.value ? "" : option.value)
+                        }
+                        className={sheetChipClass(subcategory === option.value)}
+                      >
+                        {t(option.labelKey)}
+                      </button>
+                    ))}
+                  </div>
+                ) : null}
+              </GuidedCard>
+            ) : null}
+            {grades.length > 0 ? (
+              <GuidedCard title={t("explore_search.card_grade")}>
+                <div className="flex flex-wrap gap-2">
+                  {grades.map((entry) => (
+                    <button
+                      key={entry}
+                      type="button"
+                      aria-pressed={grade === entry}
+                      onClick={() => setGrade(grade === entry ? "" : entry)}
+                      className={sheetChipClass(grade === entry)}
+                    >
+                      {entry}
+                    </button>
+                  ))}
+                </div>
+              </GuidedCard>
+            ) : null}
+            <MoreFiltersAccordion
+              title={t("explore_search.more_filters")}
+              count={
+                [priceBand, language, school, verifiedOnly ? "v" : "", savedOnly ? "s" : ""].filter(
+                  Boolean,
+                ).length
+              }
+            >
+              <div className="space-y-2">
+                <PanelLabel>{t("explore_search.price_title")}</PanelLabel>
+                <Segmented
+                  aria-label={t("explore_search.price_title")}
+                  value={priceBand}
+                  onChange={(value) => setPriceBand(value as "" | "free" | "paid")}
+                  options={[
+                    { value: "", label: t("explore_search.price_any") },
+                    { value: "free", label: t("explore_search.price_free") },
+                    { value: "paid", label: t("explore_search.price_paid") },
+                  ]}
+                />
+              </div>
+              <div className="space-y-2">
+                <PanelLabel>{t("explore_search.language_title")}</PanelLabel>
+                <SearchableSelect
+                  value={language}
+                  onChange={setLanguage}
+                  options={[
+                    { value: "", label: t("notes.search.language_all") },
+                    ...CONTENT_LANGUAGES.map((code) => ({
+                      value: code,
+                      label: t(`notes.language.${code}`),
+                    })),
+                  ]}
+                  placeholder={t("notes.search.language_all")}
+                  className="h-12 rounded-2xl"
+                />
+              </div>
+              <div className="space-y-2">
+                <PanelLabel>{t("explore_search.school_title")}</PanelLabel>
+                <SearchableSelect
+                  value={school}
+                  onChange={setSchool}
+                  options={[
+                    { value: "", label: t("materials.filter_school_all") },
+                    ...schools.map((entry) => ({ value: entry, label: entry })),
+                  ]}
+                  placeholder={t("materials.filter_school_all")}
+                  className="h-12 rounded-2xl"
+                />
+              </div>
+              <label className="flex w-fit cursor-pointer items-center gap-3 text-sm font-medium text-[color:var(--ink)]">
+                <Checkbox
+                  checked={verifiedOnly}
+                  onCheckedChange={(checked) => setVerifiedOnly(checked === true)}
+                />
+                {t("explore_search.verified_seller")}
+              </label>
+              {user ? (
+                <label className="flex w-fit cursor-pointer items-center gap-3 text-sm font-medium text-[color:var(--ink)]">
+                  <Checkbox
+                    checked={savedOnly}
+                    onCheckedChange={(checked) => setSavedOnly(checked === true)}
+                  />
+                  {t("notes.search.saved_only")}
+                </label>
+              ) : null}
+            </MoreFiltersAccordion>
+          </div>
+        </MobileSearchOverlay>
+
         {/* Filter bar, flat, border-delineated, same chrome as the tutors bar. */}
         {/* #605: no always-on card of 4 stacked selects; one search field and
-            a Filters button that opens them. */}
-        <div className="mb-4 flex items-center gap-2">
+            a Filters button that opens them. Phone uses the sheet above. */}
+        <div className="mb-4 hidden items-center gap-2 lg:flex">
           <input
             type="search"
             value={query}
@@ -614,3 +888,11 @@ export function DirectoryToggle({
     </div>
   );
 }
+
+const sheetChipClass = (active: boolean) =>
+  cn(
+    "inline-flex h-9 items-center rounded-full border px-3.5 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+    active
+      ? "border-[color:var(--ink)] bg-[color:var(--ink)]/5 text-[color:var(--ink)]"
+      : "border-[color:var(--ink)]/15 bg-[color:var(--surface)] text-[color:var(--ink)]/70 hover:border-[color:var(--ink)]/30 hover:text-[color:var(--ink)]",
+  );
