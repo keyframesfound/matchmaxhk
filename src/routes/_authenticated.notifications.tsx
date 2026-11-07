@@ -97,6 +97,8 @@ function bellLabelKey(item: BellItem): string {
       return "sor.bell_session_logged";
     case "case.lead_new":
       return "sor.bell_lead_new";
+    case "case.demand_side_updated":
+      return "sor.bell_demand_side";
     case "intro.shared_parent":
       return "sor.bell_intro_parent";
     case "intro.shared_tutor":

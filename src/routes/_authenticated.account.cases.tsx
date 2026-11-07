@@ -1,3 +1,4 @@
+import { HouseholdSummary } from "@/features/cases/demand-side/household-summary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { format } from "date-fns";
@@ -49,6 +50,7 @@ function ParentCasesPage() {
         <h1 className="text-2xl font-semibold tracking-tight text-[color:var(--ink)]">
           {t("sor.parent_cases_title")}
         </h1>
+        <HouseholdSummary />
 
         <div className="mt-6 space-y-3">
           {isLoading && [0, 1].map((i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}

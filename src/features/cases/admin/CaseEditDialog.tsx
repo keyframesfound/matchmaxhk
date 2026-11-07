@@ -60,6 +60,8 @@ type EditFormState = {
   budgetMin: string;
   budgetMax: string;
   startTiming: string;
+  // #552: centre is derived from the organisation link, not picked here.
+  caseType: string;
 };
 
 function toFormState(caseRow: CaseRow): EditFormState {
@@ -90,6 +92,7 @@ function toFormState(caseRow: CaseRow): EditFormState {
         ? ""
         : String(caseRow.budget_max),
     startTiming: caseRow.start_timing ?? "unset",
+    caseType: caseRow.case_type === "activity" ? "activity" : "private",
   };
 }
 
@@ -110,6 +113,7 @@ export function CaseEditDialog({
     if (open) setForm(toFormState(caseRow));
   }, [open, caseRow]);
 
+  const isCentreCase = Boolean(caseRow.organisation_id);
   const update = (patch: Partial<EditFormState>) => setForm((prev) => ({ ...prev, ...patch }));
 
   const saveMutation = useMutation({
@@ -150,6 +154,13 @@ export function CaseEditDialog({
         budget_min: form.budgetMin ? Number(form.budgetMin) : null,
         budget_max: form.budgetMax ? Number(form.budgetMax) : null,
         start_timing: form.startTiming === "unset" ? null : form.startTiming,
+        // #552: Activity / Gig cases are locked to the 1.5-lesson fee.
+        ...(isCentreCase
+          ? {}
+          : {
+              case_type: form.caseType,
+              ...(form.caseType === "activity" ? { package_type: "ongoing_1_5" } : {}),
+            }),
       };
       const { error } = await supabase
         .from("tutoring_cases")
@@ -393,6 +404,24 @@ export function CaseEditDialog({
                 <SelectItem value="flexible">Flexible</SelectItem>
               </SelectContent>
             </Select>
+          </div>
+          <div>
+            <label className={labelClassName}>Case type</label>
+            {isCentreCase ? (
+              <p className="flex h-10 items-center text-sm text-muted-foreground">
+                Centre (linked organisation)
+              </p>
+            ) : (
+              <Select value={form.caseType} onValueChange={(v) => update({ caseType: v })}>
+                <SelectTrigger className={controlClassName}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="private">Private</SelectItem>
+                  <SelectItem value="activity">Activity / Gig (1.5-lesson fee)</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
           <div className="sm:col-span-2">
             <label className={labelClassName} htmlFor={`ce-desc-${caseRow.id}`}>

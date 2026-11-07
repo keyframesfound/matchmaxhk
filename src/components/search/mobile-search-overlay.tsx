@@ -70,6 +70,26 @@ export function MobileSearchOverlay({
 
   useEffect(() => () => window.clearTimeout(closeTimer.current), []);
 
+  // #605 §3.5: iPad / phone keyboard docking. Size the sheet to the visual
+  // viewport (not raw 100vh) so the footer and the lower options sit above
+  // the on-screen keyboard and stay reachable by scrolling the body.
+  const [viewport, setViewport] = useState<{ height: number; top: number } | null>(null);
+  useEffect(() => {
+    if (!open || typeof window === "undefined" || !window.visualViewport) return;
+    const vv = window.visualViewport;
+    const sync = () => {
+      const keyboardUp = window.innerHeight - vv.height > 80;
+      setViewport(keyboardUp ? { height: vv.height, top: vv.offsetTop } : null);
+    };
+    sync();
+    vv.addEventListener("resize", sync);
+    vv.addEventListener("scroll", sync);
+    return () => {
+      vv.removeEventListener("resize", sync);
+      vv.removeEventListener("scroll", sync);
+    };
+  }, [open]);
+
   if (!open) return null;
 
   const requestClose = () => {
@@ -98,8 +118,9 @@ export function MobileSearchOverlay({
     <div
       role="dialog"
       aria-modal="true"
+      style={viewport ? { height: viewport.height, top: viewport.top, bottom: "auto" } : undefined}
       className={cn(
-        "fixed inset-0 z-[70] flex flex-col bg-[color:var(--surface-subtle)] lg:hidden",
+        "fixed inset-0 z-[70] h-[100dvh] flex flex-col bg-[color:var(--surface-subtle)] lg:hidden",
         "animate-in ease-out",
         closing
           ? cn(exitClass, "animation-duration-200")
@@ -142,7 +163,23 @@ export function MobileSearchOverlay({
           <X className="h-4 w-4" aria-hidden="true" />
         </button>
       </div>
-      <div className="flex-1 overflow-y-auto pb-[calc(4.5rem+env(safe-area-inset-bottom))]">
+      <div
+        className="flex-1 overflow-y-auto overscroll-contain pb-[calc(4.5rem+env(safe-area-inset-bottom))] [-webkit-overflow-scrolling:touch]"
+        // #605 §3.5: tapping a chip / option drops the keyboard to reclaim
+        // height; typing fields keep focus.
+        onPointerDown={(event) => {
+          const target = event.target as HTMLElement;
+          const active = document.activeElement as HTMLElement | null;
+          if (
+            active &&
+            (active.tagName === "INPUT" || active.tagName === "TEXTAREA") &&
+            target.closest("button, [role='option']") &&
+            !target.closest("input, textarea")
+          ) {
+            active.blur();
+          }
+        }}
+      >
         <div className="min-h-full bg-card px-4 pt-3 pb-6 sm:px-5">{children}</div>
       </div>
       <div className="absolute inset-x-0 bottom-0 z-10 flex items-center justify-between gap-3 border-t border-border bg-card px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
