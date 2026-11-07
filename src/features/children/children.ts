@@ -23,6 +23,33 @@ const optionalText = (max: number) =>
     .nullish()
     .transform((value) => (value ? value : null));
 
+/** #698: grade levels a child profile can carry (DB check mirrors this). */
+export const CHILD_LEVELS = [
+  "kindergarten",
+  "p1",
+  "p2",
+  "p3",
+  "p4",
+  "p5",
+  "p6",
+  "s1",
+  "s2",
+  "s3",
+  "s4",
+  "s5",
+  "s6",
+  "y7",
+  "y8",
+  "y9",
+  "y10",
+  "y11",
+  "y12",
+  "y13",
+  "university",
+] as const;
+export type ChildLevel = (typeof CHILD_LEVELS)[number];
+export const CHILD_SUBJECTS_MAX = 8;
+
 export const ChildInput = z.object({
   nickname: z.string().trim().min(1).max(NICKNAME_MAX),
   school: optionalText(SCHOOL_MAX),
@@ -34,6 +61,16 @@ export const ChildInput = z.object({
     .max(GRAD_YEAR_MAX)
     .nullish()
     .transform((value) => value ?? null),
+  // #698: optional grade level + target subjects (older clients omit them).
+  level: z
+    .enum(CHILD_LEVELS)
+    .nullish()
+    .transform((value) => value ?? null),
+  subjects: z
+    .array(z.string().trim().min(1).max(60))
+    .max(CHILD_SUBJECTS_MAX)
+    .nullish()
+    .transform((value) => [...new Set(value ?? [])]),
 });
 
 export type ChildInputValue = z.infer<typeof ChildInput>;
@@ -44,6 +81,9 @@ export type ChildProfile = {
   school: string | null;
   curriculum: string | null;
   gradYear: number | null;
+  /** #698: grade level code (CHILD_LEVELS) and target subjects. */
+  level: ChildLevel | null;
+  subjects: string[];
   /** #459: managed_by_parent until the child claims their own account. */
   status: "managed_by_parent" | "linked_independent" | "claimed_independent";
   /** #459 §4.4: what the parent keeps once the child claims the profile. */

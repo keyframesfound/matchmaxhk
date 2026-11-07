@@ -4790,5 +4790,33 @@
     "referral_rule": "当被推荐用户的首个配对个案完成 1.5 堂行政费结算后，奖励自动解锁，并随星期一批次发放。",
     "insights_title": "数据洞察",
     "insights_note": "个人档案及 listing 浏览计数将随收藏事件层推出。收益及推荐已于上方提供。"
+  },
+  "learner": {
+    "who_title": "为哪位学生寻找导师？",
+    "any_student": "不限学生（手动筛选）",
+    "add_student": "新增学生资料",
+    "add_title": "新增学生资料",
+    "guest_title": "为这次搜索设定学生",
+    "name_placeholder": "名字或昵称（例如 Lucas）",
+    "level_label": "年级",
+    "level_any": "任何年级",
+    "level_kindergarten": "幼儿园",
+    "level_university": "大学",
+    "curriculum_any": "任何课程",
+    "subjects_label": "目标科目",
+    "subjects_placeholder": "例如 Physics、Math AA HL",
+    "add_hint": "会储存到你的账户，之后可一按切换不同子女。",
+    "guest_hint": "只用于今次浏览；未登录不会储存任何资料。",
+    "save_and_use": "储存并使用",
+    "use_for_search": "用于今次搜索",
+    "save_failed": "未能储存学生资料，只会用于今次搜索。",
+    "guest_label": "这位学生",
+    "auto_matched": "已为{{name}}自动配对：{{value}}",
+    "banner": "正显示为{{name}}（{{value}}）推荐的独立导师",
+    "form_pill": "已按{{name}}（{{value}}）预先填写",
+    "any_level": "任何年级",
+    "switch": "切换学生",
+    "clear": "清除",
+    "cancel": "取消"
   }
 }

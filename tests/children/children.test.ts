@@ -25,7 +25,14 @@ describe("ChildInput", () => {
       curriculum: "",
       gradYear: null,
     });
-    expect(parsed).toEqual({ nickname: "Anson", school: null, curriculum: null, gradYear: null });
+    expect(parsed).toEqual({
+      nickname: "Anson",
+      school: null,
+      curriculum: null,
+      gradYear: null,
+      level: null,
+      subjects: [],
+    });
   });
 
   it("keeps filled optional fields", () => {
@@ -40,7 +47,20 @@ describe("ChildInput", () => {
       school: "St. Paul's",
       curriculum: "HKDSE",
       gradYear: 2031,
+      level: null,
+      subjects: [],
     });
+  });
+
+  it("#698: keeps a known grade level and dedupes subjects", () => {
+    const parsed = ChildInput.parse({
+      nickname: "Lucas",
+      level: "y12",
+      subjects: ["Physics", "Physics", "Mathematics"],
+    });
+    expect(parsed.level).toBe("y12");
+    expect(parsed.subjects).toEqual(["Physics", "Mathematics"]);
+    expect(() => ChildInput.parse({ nickname: "X", level: "grade12" })).toThrow();
   });
 
   it("rejects a blank or overlong nickname", () => {

@@ -13,7 +13,12 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import { selectRows, type Db } from "@/features/cases/desk-db";
-import { ChildInput, type ChildProfile } from "@/features/children/children";
+import {
+  CHILD_LEVELS,
+  ChildInput,
+  type ChildLevel,
+  type ChildProfile,
+} from "@/features/children/children";
 
 type StudentRow = {
   id: string;
@@ -21,6 +26,8 @@ type StudentRow = {
   school: string | null;
   curriculum: string | null;
   grad_year: number | null;
+  level: string | null;
+  subjects: string[] | null;
   status: "managed_by_parent" | "linked_independent" | "claimed_independent";
   archived_at: string | null;
   created_at: string;
@@ -29,7 +36,7 @@ type StudentRow = {
 };
 
 const STUDENT_COLS =
-  "id, display_name, school, curriculum, grad_year, status, archived_at, created_at, can_view_schedule, can_manage_billing";
+  "id, display_name, school, curriculum, grad_year, level, subjects, status, archived_at, created_at, can_view_schedule, can_manage_billing";
 
 function toChildProfile(row: StudentRow): ChildProfile {
   return {
@@ -38,6 +45,10 @@ function toChildProfile(row: StudentRow): ChildProfile {
     school: row.school,
     curriculum: row.curriculum,
     gradYear: row.grad_year,
+    level: (CHILD_LEVELS as readonly string[]).includes(row.level ?? "")
+      ? (row.level as ChildLevel)
+      : null,
+    subjects: Array.isArray(row.subjects) ? row.subjects : [],
     status: row.status,
     canViewSchedule: row.can_view_schedule !== false,
     canManageBilling: row.can_manage_billing !== false,
@@ -85,6 +96,8 @@ export const saveChild = createServerFn({ method: "POST" })
       school: data.child.school,
       curriculum: data.child.curriculum,
       grad_year: data.child.gradYear,
+      level: data.child.level,
+      subjects: data.child.subjects,
     };
 
     if (data.id) {

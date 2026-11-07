@@ -85,6 +85,16 @@ import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { buildCaseTitle } from "@/features/cases/case-title";
 import { cn } from "@/lib/utils";
+import {
+  learnerSummary,
+  setLearnerContext,
+  useLearnerContext,
+} from "@/features/children/learner-context";
+import {
+  applyLearnerPrefill,
+  learnerPrefill,
+  type LearnerPrefill,
+} from "@/features/cases/learner-prefill";
 
 const PHONE_REGEX = /^[+(\d][\d\s()./+-]{4,19}\d$/;
 
@@ -520,6 +530,23 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       learnerNickname: str(restored.learnerNickname, 40),
     }));
   }, [restored]);
+
+  // #698: pre-fill from the learner picked in search ("Who is learning?").
+  // Runs after the draft restore; only empty or still-pre-filled fields
+  // change, so switching child mid-form never clobbers a manual edit.
+  const learner = useLearnerContext();
+  const lastPrefill = useRef<LearnerPrefill>({});
+  const learnerKey = learner
+    ? [learner.childId, learner.level, learner.curriculum, learner.subjects.join("|")].join("~")
+    : "";
+  useEffect(() => {
+    const next = learnerPrefill(learner);
+    const previous = lastPrefill.current;
+    lastPrefill.current = next;
+    if (Object.keys(next).length === 0 && Object.keys(previous).length === 0) return;
+    setForm((prev) => applyLearnerPrefill(prev, next, previous));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the learner's values
+  }, [learnerKey]);
 
   const isBlankDraft = (value: FormState) =>
     Object.entries(value).every(
@@ -1025,6 +1052,22 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       onSubmit={handleSubmit}
       className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-5 sm:p-8"
     >
+      {/* #698: which learner this request was pre-filled for. */}
+      {learner ? (
+        <p className="mb-5 inline-flex flex-wrap items-center gap-1.5 rounded-full border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/[0.07] px-3 py-1.5 text-sm font-semibold text-[color:var(--ink)]">
+          {t("learner.form_pill", {
+            name: learner.name || t("learner.guest_label"),
+            value: learnerSummary(learner, t) || t("learner.any_level"),
+          })}
+          <button
+            type="button"
+            onClick={() => setLearnerContext(null)}
+            className="ml-1 text-[color:var(--brand-link)] underline-offset-4 hover:underline"
+          >
+            {t("learner.clear")}
+          </button>
+        </p>
+      ) : null}
       {/* Progress header */}
       <ol className="mb-8 flex items-center gap-2 sm:gap-3" aria-label="Form progress">
         {stepLabels.map((label, index) => {
