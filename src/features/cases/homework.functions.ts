@@ -172,6 +172,7 @@ export const submitHomework = createServerFn({ method: "POST" })
     if (role !== "parent") throw new Error("PARENT_ONLY");
     assertCleanText(data.note);
     const row = await homeworkOnCase(db, data.homeworkId, c.id);
+    if (row.reviewed_at) throw new Error("ALREADY_REVIEWED");
     const submittedAt = row.submitted_at ?? new Date().toISOString();
     const { error } = await db
       .from<Row>("case_homework")

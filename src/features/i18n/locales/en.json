@@ -4251,6 +4251,7 @@
     "err_CASE_ENDED": "This case has ended, so its homework is read-only.",
     "err_TUTOR_ONLY": "Only the tutor on this case can do this.",
     "err_PARENT_ONLY": "Only the parent on this case can do this.",
-    "err_NOT_SUBMITTED": "This homework has not been submitted yet."
+    "err_NOT_SUBMITTED": "This homework has not been submitted yet.",
+    "err_ALREADY_REVIEWED": "This homework has already been reviewed."
   }
 }

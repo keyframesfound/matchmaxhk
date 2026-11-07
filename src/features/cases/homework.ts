@@ -4,13 +4,17 @@
  * coursework (Cap.57), and nothing here reaches a public surface.
  */
 
-import { contactFilterError } from "@/lib/contact-filter";
+import { hasContactDetails } from "@/lib/contact-filter";
 
 export const HOMEWORK_TITLE_MAX = 120;
 export const HOMEWORK_TEXT_MAX = 1000;
 export const HOMEWORK_NOTE_MAX = 500;
 export const HOMEWORK_REVIEW_MAX = 200;
 export const HOMEWORK_LINK_MAX = 500;
+
+/** Exam-paper wording the shared contact filter would read as a phone or a channel. */
+const YEAR_PAIR = /\b(?:19|20)\d{2}[\s\-–]+(?:19|20)\d{2}\b/g;
+const EXAM_BOARD_IG = /\b(?:edexcel|cie|caie|cambridge)\s+ig\b/gi;
 
 const CONTACT_HOSTS = [
   "wa.me",
@@ -95,5 +99,6 @@ export function isAllowedHomeworkLink(value: string): boolean {
 
 export function homeworkTextError(text: string | null | undefined): "CONTACT_DETAILS" | null {
   if (!text) return null;
-  return contactFilterError(text) ? "CONTACT_DETAILS" : null;
+  const cleaned = text.replace(YEAR_PAIR, " ").replace(EXAM_BOARD_IG, " ");
+  return hasContactDetails(cleaned) ? "CONTACT_DETAILS" : null;
 }

@@ -4251,6 +4251,7 @@
     "err_CASE_ENDED": "此个案已结束，功课只可查看。",
     "err_TUTOR_ONLY": "只有此个案的导师可以进行此操作。",
     "err_PARENT_ONLY": "只有此个案的家长可以进行此操作。",
-    "err_NOT_SUBMITTED": "此功课尚未递交。"
+    "err_NOT_SUBMITTED": "此功课尚未递交。",
+    "err_ALREADY_REVIEWED": "此功课已经批改。"
   }
 }

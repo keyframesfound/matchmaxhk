@@ -4251,6 +4251,7 @@
     "err_CASE_ENDED": "此個案已結束，功課只可查看。",
     "err_TUTOR_ONLY": "只有此個案的導師可以進行此操作。",
     "err_PARENT_ONLY": "只有此個案的家長可以進行此操作。",
-    "err_NOT_SUBMITTED": "此功課尚未遞交。"
+    "err_NOT_SUBMITTED": "此功課尚未遞交。",
+    "err_ALREADY_REVIEWED": "此功課已經批改。"
   }
 }
