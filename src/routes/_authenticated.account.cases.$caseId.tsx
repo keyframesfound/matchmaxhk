@@ -172,6 +172,7 @@ function ParentCaseDetailPage() {
             {data.canRequestSlot && (
               <NextLessonLine caseCode={data.case_code} lessons={data.lessons} />
             )}
+
             {/* #637: household briefing and student self-input. */}
             <DemandSidePanel caseId={caseId} />
 
