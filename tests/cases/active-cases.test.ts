@@ -6,13 +6,14 @@ import {
   type PartyVisibility,
 } from "@/features/cases/active-cases/active-cases";
 
-const NOW = new Date("2026-11-07T00:00:00Z");
+const NOW = new Date("2027-01-01T00:00:00Z");
 const TUTOR_USER = "tutor-user";
 const PARENT_USER = "parent-user";
 
 const row = (over: Partial<ActiveCaseRow> = {}): ActiveCaseRow => ({
   id: "case-1",
   caseCode: "MM-2048",
+  createdAt: "2026-12-01T00:00:00Z",
   sorStatus: "active",
   caseType: "private",
   organisationId: null,
@@ -125,11 +126,35 @@ describe("masks: the strictest party wins on public (#635)", () => {
   });
 });
 
+describe("student names on cases created before the feature", () => {
+  const legacy = row({ createdAt: "2026-10-01T00:00:00Z" });
+
+  it("masks them by default, even when the case has no parent account", () => {
+    expect(tutorView([legacy]).active[0].studentName).toBeNull();
+    expect(tutorView([row({ ...legacy, parentUserId: null })]).active[0].studentName).toBeNull();
+  });
+
+  it("shows the name once the parent chooses to", () => {
+    const { active } = tutorView([legacy], [mask(PARENT_USER, { maskStudent: false })]);
+    expect(active[0].studentName).toBe("Mia");
+  });
+
+  it("shows the parent the masked setting in their own sheet", () => {
+    const { active } = projectActiveCases(
+      [legacy],
+      new Map(),
+      { side: "parent", ownerUserId: PARENT_USER },
+      { ownerView: true, now: NOW },
+    );
+    expect(active[0].privacy?.maskStudent).toBe(true);
+  });
+});
+
 describe("45-day activity pill (#462)", () => {
   it("stays on for 45 days after the case ended, then turns off", () => {
     const ended = (at: string) => tutorView([row({ sorStatus: "closed", endedAt: at })]).recent45d;
-    expect(ended("2026-10-01T00:00:00Z")).toBe(true);
-    expect(ended("2026-09-01T00:00:00Z")).toBe(false);
+    expect(ended("2026-12-01T00:00:00Z")).toBe(true);
+    expect(ended("2026-10-01T00:00:00Z")).toBe(false);
   });
 });
 

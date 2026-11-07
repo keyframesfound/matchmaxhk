@@ -5,6 +5,12 @@
 
 const ACTIVITY_WINDOW_MS = 45 * 24 * 60 * 60 * 1000;
 const PAST_SOR_STATUSES = new Set(["closed", "replaced"]);
+/**
+ * Parents of cases created before this feature never agreed to publication, and
+ * many students are minors. Their student name stays masked until the parent
+ * chooses otherwise in the Privacy sheet. Later cases follow the #635 default.
+ */
+const STUDENT_NAME_CONSENT_CUTOFF = Date.parse("2026-11-08T00:00:00+08:00");
 
 export type PartyVisibility = {
   show: boolean;
@@ -23,6 +29,7 @@ export const DEFAULT_PARTY_VISIBILITY: PartyVisibility = {
 export type ActiveCaseRow = {
   id: string;
   caseCode: string;
+  createdAt: string;
   sorStatus: string | null;
   caseType: string | null;
   organisationId: string | null;
@@ -103,9 +110,13 @@ export function projectActiveCases(
   const isPast = (row: ActiveCaseRow) => PAST_SOR_STATUSES.has(row.sorStatus ?? "");
 
   const toCard = (row: ActiveCaseRow): { card: ActiveCaseCard; hidden: boolean } => {
+    const parentDefault: PartyVisibility = {
+      ...DEFAULT_PARTY_VISIBILITY,
+      maskStudent: Date.parse(row.createdAt) < STUDENT_NAME_CONSENT_CUTOFF,
+    };
     const visibilityOf = (userId: string | null): PartyVisibility =>
       (userId ? visibility.get(visibilityKey(row.id, userId)) : undefined) ??
-      DEFAULT_PARTY_VISIBILITY;
+      (userId === row.parentUserId ? parentDefault : DEFAULT_PARTY_VISIBILITY);
     const parent = visibilityOf(row.parentUserId);
     const tutor = visibilityOf(row.tutorUserId);
     const own = visibilityOf(profile.ownerUserId);

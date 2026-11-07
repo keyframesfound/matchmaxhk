@@ -27,11 +27,12 @@ const SubjectSchema = z.discriminatedUnion("kind", [
 export type ActiveCasesSubject = z.infer<typeof SubjectSchema>;
 
 const CASE_COLUMNS =
-  "id, case_code, sor_status, sor_status_at, case_type, organisation_id, subjects, exam_system, student_level, mode, district, hourly_rate_hkd, rate_unit, learner_nickname, parent_id, matched_tutor_id";
+  "id, case_code, created_at, sor_status, sor_status_at, case_type, organisation_id, subjects, exam_system, student_level, mode, district, hourly_rate_hkd, rate_unit, learner_nickname, parent_id, matched_tutor_id";
 
 type CaseRow = {
   id: string;
   case_code: string;
+  created_at: string;
   sor_status: string | null;
   sor_status_at: string | null;
   case_type: string | null;
@@ -145,6 +146,7 @@ async function toRows(db: Db, cases: CaseRow[]): Promise<ActiveCaseRow[]> {
     return {
       id: c.id,
       caseCode: c.case_code,
+      createdAt: c.created_at,
       sorStatus: c.sor_status,
       caseType: c.case_type,
       organisationId: c.organisation_id,
