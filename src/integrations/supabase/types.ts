@@ -1658,6 +1658,7 @@ export type Database = {
     };
     Functions: {
       claim_org_memberships: { Args: never; Returns: number };
+      confirm_my_availability_fresh: { Args: never; Returns: undefined };
       get_trending_tutors: {
         Args: { p_candidate_limit?: number };
         Returns: {

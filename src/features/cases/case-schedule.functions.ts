@@ -136,6 +136,8 @@ export type CaseManagerSchedule = {
   /** #659: the parent's weekly User-Blocked slots. */
   blockedSlots: PrefSlot[];
   isTutor: boolean;
+  /** #673: last 1-tap availability confirmation (14-day staleness rule). */
+  availabilityConfirmedAt: string | null;
 };
 
 function toLesson(row: LessonRow): ScheduleLesson {
@@ -327,6 +329,7 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
     let blockedDates: string[] = [];
     let openWindows: CaseManagerSchedule["openWindows"] = [];
     let tutorGrid: GridMatrix | null = null;
+    let availabilityConfirmedAt: string | null = null;
     if (tutorId) {
       const [{ pending, releasedSlots }, blackouts, windows, gridRows] = await Promise.all([
         tutorProposals(db, tutorId, now),
@@ -339,11 +342,16 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
           "weekday, start_minute, end_minute",
           [{ col: "tutor_id", op: "eq", value: tutorId }],
         ),
-        selectRows<{ availability_grid: unknown }>(db, "tutors", "availability_grid", [
-          { col: "id", op: "eq", value: tutorId },
-        ]),
+        selectRows<{ availability_grid: unknown; availability_confirmed_at: string | null }>(
+          db,
+          "tutors",
+          "availability_grid, availability_confirmed_at",
+          [{ col: "id", op: "eq", value: tutorId }],
+        ),
       ]);
       tutorGrid = parseAvailabilityGrid(gridRows[0]?.availability_grid);
+      // #673: the 14-day freshness rule reads the last 1-tap confirmation.
+      availabilityConfirmedAt = gridRows[0]?.availability_confirmed_at ?? null;
       const tutorLessons = hubLessons.filter((l) => l.role === "tutor");
       proposed.push(...toProposedItems(pending, "tutor", tutorLessons, releasedSlots));
       blockedDates = blackouts.map((b) => b.blackout_date);
@@ -363,7 +371,23 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
       tutorGrid,
       blockedSlots: readSlots(blockedSlotRows),
       isTutor: tutorId !== null,
+      availabilityConfirmedAt,
     };
+  });
+
+/** #673: 1-tap "Confirm schedule is up to date" — resets the freshness clock
+ * without touching the grid. Self-serve RPC (SECURITY DEFINER). */
+export const confirmMyAvailabilityFresh = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<{ ok: true }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.rpc("confirm_my_availability_fresh");
+    if (error) {
+      const code = (error as { code?: string }).code ?? "";
+      throw new Error(code === "P0001" ? "NO_TUTOR_CARD" : error.message);
+    }
+    void context;
+    return { ok: true };
   });
 
 /** #659: writes the caller's own User-Blocked slot; soft, never touches lessons. */

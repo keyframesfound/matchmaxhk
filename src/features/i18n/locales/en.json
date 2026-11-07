@@ -482,7 +482,8 @@
     "rate_tba": "Rate TBA",
     "triage_engager_label": "Who is engaging the tutor?",
     "triage_duties_label": "Any non-tutoring household, childcare, or staff duties?",
-    "triage_duties_hint": "Tutors on MatchMax teach only, requests involving staff or household duties go to a compliance review."
+    "triage_duties_hint": "Tutors on MatchMax teach only, requests involving staff or household duties go to a compliance review.",
+    "integrity_precheck": "I understand this request involves coursework or assessment terms (TOK / EE / IA / SBA) or a one-off session. Tutors may support and prepare students, but MatchMax tutors never write, complete, or submit assessments on a student's behalf — tutors who refuse academic-integrity grounds keep their full fee protection."
   },
   "case_status": {
     "title": "Match status",
@@ -4032,7 +4033,11 @@
     "open_tutor": "Open lessons and cases",
     "open_parent": "Open your cases",
     "error": "Could not load your calendar. Please try again.",
-    "no_cases": "No matched cases yet. Your lessons appear here once a tutor is matched."
+    "no_cases": "No matched cases yet. Your lessons appear here once a tutor is matched.",
+    "freshness_stale": "Your weekly availability was last confirmed {{days}} days ago. Confirm it is still accurate so parents see current times (Profile Strength is reduced by 15 until confirmed).",
+    "freshness_never": "Confirm your weekly availability is up to date so parents see current times.",
+    "freshness_cta": "Confirm schedule is up to date",
+    "freshness_done": "Availability confirmed as current"
   },
   "global_search": {
     "title": "Search",
@@ -4558,5 +4563,20 @@
     "blocked_title": "Times you're unavailable",
     "blocked_help": "Tap a slot to mark it unavailable every week. Tutor Search and new case requests use these as defaults, and you can still override them.",
     "blocked_error": "Couldn't update that time. Please try again."
+  },
+  "profile_strength": {
+    "title": "Profile Strength",
+    "subtitle": "{{done}}% complete",
+    "nba_cta": "Fix now",
+    "complete": "Your profile is complete — nice work.",
+    "freshness_note": "Your availability is over 14 days unconfirmed, which lowers this score. Confirm it in the banner above.",
+    "nba_display_name": "Add your tutor display name",
+    "nba_photo": "Add a profile photo",
+    "nba_subjects": "List the subjects you teach",
+    "nba_bio": "Write a short introduction",
+    "nba_rates": "Set your hourly rate",
+    "nba_availability": "Set your weekly availability grid",
+    "nba_weekly_windows": "Set your teaching windows",
+    "nba_publish": "Publish your tutor profile"
   }
 }

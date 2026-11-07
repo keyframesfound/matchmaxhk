@@ -3,6 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { useEffect, useState } from "react";
 import { CircleHelp, Loader2, X } from "lucide-react";
+import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
@@ -18,7 +19,12 @@ import { BlockedTimes } from "@/features/cases/case-manager/blocked-times";
 import { ActiveCaseList, ProposedList } from "@/features/cases/case-manager/hub-sections";
 import { ThinCalendar } from "@/features/cases/case-manager/thin-calendar";
 import { caseCodeFromParam, caseTabFromParam, type CaseTab } from "@/features/cases/case-schedule";
-import { getCaseManagerSchedule } from "@/features/cases/case-schedule.functions";
+import {
+  confirmMyAvailabilityFresh,
+  getCaseManagerSchedule,
+} from "@/features/cases/case-schedule.functions";
+import { availabilityFreshness } from "@/features/cases/availability-freshness";
+import { ProfileStrengthSection } from "@/features/account/profile-strength-card";
 import { EarningsPanel } from "@/features/cases/tutor/earnings-panel";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
@@ -117,6 +123,39 @@ function SummarySection({ summary, role }: { summary: CalendarSummary; role: "tu
 }
 
 const COACH_KEY = "mm_case_manager_coach_v1";
+
+/**
+ * #673: 14-day availability freshness. Stale grids lose 15 Profile-Strength
+ * points until the tutor taps "Confirm schedule is up to date" — one tap,
+ * no grid edit. Never-confirmed tutors see a soft nudge instead.
+ */
+function FreshnessBanner({ confirmedAt }: { confirmedAt: string | null }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const confirm = useMutation({
+    mutationFn: () => confirmMyAvailabilityFresh(),
+    onSuccess: () => {
+      toast.success(t("calendar_hub.freshness_done"));
+      void queryClient.invalidateQueries({ queryKey: ["case-manager-schedule"] });
+    },
+    onError: () => toast.error(t("calendar_hub.error")),
+  });
+  const fresh = availabilityFreshness(confirmedAt);
+  if (!fresh.stale && !fresh.neverConfirmed) return null;
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-[var(--radius-panel)] border border-border bg-card p-4 text-sm">
+      <p className="text-muted-foreground">
+        {fresh.stale
+          ? t("calendar_hub.freshness_stale", { days: fresh.daysSinceConfirmed ?? 0 })
+          : t("calendar_hub.freshness_never")}
+      </p>
+      <Button type="button" size="sm" disabled={confirm.isPending} onClick={() => confirm.mutate()}>
+        {confirm.isPending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
+        {t("calendar_hub.freshness_cta")}
+      </Button>
+    </div>
+  );
+}
 
 /** #594: empty Case Manager still shows the shape of the hub. */
 function EmptyCases() {
@@ -245,6 +284,9 @@ function CalendarPage() {
             </button>
           </div>
         ) : null}
+        {schedule.data?.isTutor ? (
+          <FreshnessBanner confirmedAt={schedule.data.availabilityConfirmedAt} />
+        ) : null}
         <ThinCalendar
           lessons={schedule.data?.lessons ?? []}
           blockedDates={schedule.data?.blockedDates ?? []}
@@ -276,6 +318,7 @@ function CalendarPage() {
         )}
         {data?.parent && <SummarySection summary={data.parent} role="parent" />}
         {data && !hasCases ? <EmptyCases /> : null}
+        {data && !hasCases && schedule.data?.isTutor ? <ProfileStrengthSection /> : null}
         {data && !hasCases ? <HomeworkSamplePreview /> : null}
         {data && !hasCases ? <ProgressSamplePreview /> : null}
         {data && !hasCases ? <BillingSamplePreview /> : null}

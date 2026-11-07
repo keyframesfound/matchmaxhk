@@ -482,7 +482,8 @@
     "rate_tba": "學費待議",
     "triage_engager_label": "邊個委聘導師？學生係邊位？",
     "triage_duties_label": "需唔需要導師處理教學以外嘅家務、湊仔或助理職務？",
-    "triage_duties_hint": "MatchMax 嘅導師只負責教學——涉及家務或職務嘅個案會交由合規審核。"
+    "triage_duties_hint": "MatchMax 嘅導師只負責教學——涉及家務或職務嘅個案會交由合規審核。",
+    "integrity_precheck": "我了解此個案涉及課程作業或評核術語（TOK / EE / IA / SBA）或單次課堂。導師可以輔助及備試，但 MatchMax 導師絕不會代學生撰寫、完成或提交任何評核作業——導師因學術誠信理由拒絕時，仍保留全部行政費保障。"
   },
   "case_status": {
     "title": "配對進度",
@@ -4032,7 +4033,11 @@
     "open_tutor": "查看課堂及個案",
     "open_parent": "查看你的個案",
     "error": "未能載入日曆，請再試一次。",
-    "no_cases": "暫未有已配對個案。配對導師後，課堂會顯示在這裡。"
+    "no_cases": "暫未有已配對個案。配對導師後，課堂會顯示在這裡。",
+    "freshness_stale": "你的每週可授課時間已 {{days}} 日未確認。請確認仍然有效，讓家長看到最新時段（未確認前個人檔案完整度將扣 15 分）。",
+    "freshness_never": "確認你的每週可授課時間仍然有效，讓家長看到最新時段。",
+    "freshness_cta": "確認時間表最新狀態",
+    "freshness_done": "已確認時間表為最新"
   },
   "global_search": {
     "title": "搜尋",
@@ -4558,5 +4563,20 @@
     "blocked_title": "你沒空的時間",
     "blocked_help": "點選時段可標示為每星期都沒空。搜尋導師及新個案申請會以此為預設，你仍可自行修改。",
     "blocked_error": "未能更新此時段，請再試一次。"
+  },
+  "profile_strength": {
+    "title": "個人檔案完整度",
+    "subtitle": "已完成 {{done}}%",
+    "nba_cta": "立即處理",
+    "complete": "你的個人檔案已經齊全——做得好。",
+    "freshness_note": "你的可授課時間已超過 14 日未確認，會降低此分數。請在上方的橫幅確認。",
+    "nba_display_name": "新增導師顯示名稱",
+    "nba_photo": "新增個人照片",
+    "nba_subjects": "列出你教授的科目",
+    "nba_bio": "撰寫簡短自我介紹",
+    "nba_rates": "設定你的時薪",
+    "nba_availability": "設定每週可授課時間表",
+    "nba_weekly_windows": "設定教學時段",
+    "nba_publish": "發佈你的導師檔案"
   }
 }

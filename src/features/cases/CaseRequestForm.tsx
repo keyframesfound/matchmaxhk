@@ -67,6 +67,7 @@ import {
   normalizeProfileTag,
 } from "@/features/tutors/profile-tags";
 import { hasContactDetails } from "@/lib/contact-filter";
+import { courseworkPreCheck } from "@/features/cases/coursework-precheck";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
 import { useSenCategoryLabels } from "@/features/tutors/sen-labels";
 import {
@@ -194,6 +195,8 @@ type FormState = {
   // Issue #253 (F2) + #444 + #508: matching-fee agreement, version fee-2026-10-v3
   // (v2 = payer is the self-employed tutor).
   feeAgreed: boolean;
+  // #673: academic-integrity & prep pre-check for TOK/EE/IA/SBA/one-off asks.
+  integrityAgreed: boolean;
   // Issue #412 E: parent B2C triage (compliance screening).
   engager: string;
   nonTutoringDuties: string;
@@ -267,6 +270,7 @@ const INITIAL_FORM: FormState = {
   learnerNickname: "",
   termsAgreed: false,
   feeAgreed: false,
+  integrityAgreed: false,
   engager: "",
   nonTutoringDuties: "no",
 };
@@ -358,6 +362,13 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   // #656 §4b: one pasteable block with every field the parent set.
   const dash = "—";
   const subjectList = SUBJECT_KEYS.map((k) => form[k].trim()).filter(Boolean);
+  // #673: the integrity pre-check lights up when the request touches
+  // TOK / EE / IA / SBA coursework or one-off review wording.
+  const integrity = courseworkPreCheck({
+    subjects: subjectList,
+    specificComponent: form.specificComponent,
+    notes: form.notes,
+  });
   const slotText =
     form.scheduleMode === "specific" && form.scheduleSlots.length > 0
       ? form.scheduleSlots
@@ -770,6 +781,8 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       if (!form.budgetMax.trim()) nextErrors.budgetMax = "Required";
       if (!form.termsAgreed) nextErrors.termsAgreed = "Required";
       if (!form.feeAgreed) nextErrors.feeAgreed = "Required";
+      // #673: coursework / one-off requests confirm the integrity pre-check.
+      if (integrity.required && !form.integrityAgreed) nextErrors.integrityAgreed = "Required";
     }
     return nextErrors;
   };
@@ -2420,13 +2433,33 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
               ) : null}
             </span>
           </label>
+          {integrity.required ? (
+            <div className="rounded-sm border border-[color:var(--warning)]/40 bg-[color:var(--warning)]/[0.06] p-3">
+              <label className="flex gap-3 text-sm text-muted-foreground">
+                <Checkbox
+                  checked={form.integrityAgreed}
+                  onCheckedChange={(checked) => update({ integrityAgreed: checked === true })}
+                  aria-invalid={errors.integrityAgreed ? true : undefined}
+                  className={errors.integrityAgreed ? "border-destructive" : undefined}
+                />
+                <span>
+                  {t("case_request.integrity_precheck")}
+                  {errors.integrityAgreed ? (
+                    <span className="ml-2 align-middle text-xs font-medium text-destructive">
+                      Required
+                    </span>
+                  ) : null}
+                </span>
+              </label>
+            </div>
+          ) : null}
           <label className="flex gap-3 text-sm text-muted-foreground">
             <Checkbox
               checked={form.termsAgreed}
               onCheckedChange={(checked) => update({ termsAgreed: checked === true })}
               aria-invalid={errors.termsAgreed ? true : undefined}
               className={errors.termsAgreed ? "border-destructive" : undefined}
-            />
+            />{" "}
             <span>
               I agree to the MatchMax{" "}
               <Link
