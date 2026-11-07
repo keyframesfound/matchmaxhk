@@ -4364,7 +4364,22 @@
     "pill_title_cases": "搜尋個案、科目或地區",
     "placeholder_cases": "輸入科目、個案編號、地區或補習要求",
     "card_level": "學生程度",
-    "avail_helper_cases": "按家長在個案填寫的偏好時段配對，「彈性」個案一律符合。屬軟性偏好，並非預約；確實時間以個案管理為準。"
+    "avail_helper_cases": "按家長在個案填寫的偏好時段配對，「彈性」個案一律符合。屬軟性偏好，並非預約；確實時間以個案管理為準。",
+    "pill_title_notes": "搜尋筆記、課題或 #標籤",
+    "placeholder_notes": "輸入科目、課題、#dse-chem 或筆記名稱",
+    "any_resource": "任何類型",
+    "card_resource": "資源類型",
+    "card_grade": "成績 / 分數",
+    "price_title": "價錢",
+    "price_any": "不限",
+    "price_free": "免費",
+    "price_paid": "付費",
+    "language_title": "語言",
+    "school_title": "學校",
+    "verified_seller": "只顯示認證賣家（藍剔認證）",
+    "show_notes": "顯示 {{count}} 個結果",
+    "show_notes_one": "顯示 {{count}} 個結果",
+    "show_notes_other": "顯示 {{count}} 個結果"
   },
   "schedule_state": {
     "occupied": "已佔用",
