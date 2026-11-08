@@ -13,7 +13,8 @@ import {
   Users,
   Wallet,
 } from "lucide-react";
-import { useState } from "react";import { useTranslation } from "react-i18next";
+import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import i18n from "@/features/i18n/config";
 import { toast } from "sonner";
 
