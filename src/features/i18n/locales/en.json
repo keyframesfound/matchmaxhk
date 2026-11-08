@@ -1787,16 +1787,30 @@
     "sample_title": "Example tutor profile",
     "sample_university": "The University of Hong Kong",
     "subtitle": "Join the MatchMax tutor network in Hong Kong. Complete this short form and attach your transcript, our team reviews every application.",
-    "success_message": "Your card was published the moment you submitted, parents can find it on MatchMax right now. One last step: activate via WhatsApp so the team can reach you about matching cases.",
+    "success_message": "Fill it in once — your matching profile is ready. Your card went live the moment you submitted, and parents can find it right now. What's left below is verification only, not more form-filling.",
     "success_title": "Your tutor card is live",
-    "success_unpublished_message": "We matched this application to your existing tutor card, which is not currently live. Our team will review and republish it, we'll WhatsApp you as soon as it's back on MatchMax. One last step: activate via WhatsApp so the team can reach you about matching cases.",
+    "success_unpublished_message": "We matched this application to your existing tutor card, which is not currently live. Our team will review and republish it, we'll WhatsApp you as soon as it's back on MatchMax. The steps below cover verification only.",
     "success_unpublished_title": "Application received",
     "terms_verification_1": "We check documents the tutor uploads. We do not confirm them with the IB, HKEAA, or any school.",
     "terms_verification_2": "We do not guarantee a grade, an offer, or a teaching result.",
     "terms_verification_3": "The badge covers the grades shown on the card, not the bio.",
     "terms_verification_4": "A parent who wants the slip asks the tutor after the introduction. MatchMax does not send identity documents.",
     "title": "Apply to tutor with MatchMax",
-    "view_live_card": "View your live card"
+    "view_live_card": "View your live card",
+    "account_email_hint": "Your MatchMax account email — your card and application are linked to it.",
+    "availability_title": "Weekly availability",
+    "availability_hint": "Tap a cell to cycle available → partial → unavailable. Matching and parents use this grid; you can fine-tune it anytime from your dashboard.",
+    "capacity_title": "Capacity & preferred time windows",
+    "error_availability": "Mark at least one time slot you can teach",
+    "availability_save_failed": "Your card is live, but your availability didn't save — set it in Dashboard → Availability.",
+    "next_steps_title": "What happens next",
+    "next_step_1_title": "Upload grade slips for staff review",
+    "next_step_1_body": "From your profile editor, add grade slips for the results on your card. Staff check them; once at least one is approved your card shows the Verified badge.",
+    "next_step_2_title": "Full verification / Blue Tick (optional)",
+    "next_step_2_body": "Later, you can add identity and credential checks for the Blue Tick tier. Your card is already usable and matchable without it.",
+    "next_step_3_title": "Keep your profile fresh",
+    "whatsapp_title": "Say hi on WhatsApp (recommended)",
+    "whatsapp_message": "Your card is already live. Opening the thread lets the MatchMax concierge team reach you quickly when a parent matches — the pre-filled message carries your application reference."
   },
   "legal": {
     "notes_terms": {
@@ -4766,7 +4780,9 @@
     "error_phone": "Enter a valid phone number.",
     "error_acks": "Tick all three boxes to publish.",
     "error_rate": "Enter a rate from HK${{min}} to HK${{max}}.",
-    "error_captcha": "The security check could not load. Refresh and try again."
+    "error_captcha": "The security check could not load. Refresh and try again.",
+    "intake_title": "Your tutor profile — fill it in once",
+    "intake_desc": "One complete form, about five minutes: subjects, grades, achievements, rates and weekly availability. Your card publishes the moment you submit; only credential verification happens afterwards."
   },
   "profile_strength": {
     "title": "Profile Strength",
