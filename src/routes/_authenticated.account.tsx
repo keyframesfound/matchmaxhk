@@ -42,6 +42,7 @@ import {
   type LearnerFilter,
 } from "@/features/children/children";
 import { VerifiedHoursLine } from "@/features/tutors/verified-hours-line";
+import { ProfileConnectionsCard } from "@/features/connections/profile-connections-card";
 import { getMyApplicationStatus } from "@/features/tutor-application/application-status.functions";
 import { ApplicationStatusPanel } from "@/features/tutor-application/application-status-card";
 import {
@@ -561,6 +562,12 @@ function AccountPage() {
               ) : null}
             </p>
           </section>
+        ) : null}
+
+        {/* #617: Airbnb-style 2-up square grid — Cases & Rosters +
+            Connections (hub). Tutor profile surface only. */}
+        {tutor ? (
+          <ProfileConnectionsCard tutorVerified={tutor.verification_tier === "tier_2_verified"} />
         ) : null}
 
         {/* My notes (tutor side, P8), drafts included */}

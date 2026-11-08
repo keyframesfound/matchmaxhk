@@ -110,6 +110,7 @@ import {
   parseAvailabilityGrid,
 } from "@/features/tutors/availability-grid-model";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
+import { ConnectTutorButton } from "@/features/connections/connect-tutor-button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { MarkdownText } from "@/components/ui/markdown-text";
 import { shareOrCopy } from "@/lib/share";
@@ -925,6 +926,15 @@ function TutorDetail() {
                     <Link to="/calendar">{translate("profile.active_cases.manage")}</Link>
                   </Button>
                 ) : null}
+                {/* #617: verified-tutor Connect CTA — renders only for a
+                    signed-in tier_2_verified tutor viewing another verified
+                    tutor; hides itself for everyone else. */}
+                <ConnectTutorButton
+                  targetTutorId={t.id}
+                  targetUserId={t.user_id}
+                  targetName={t.display_name || t.tutor_code}
+                  targetVerified={t.verification_tier === "tier_2_verified"}
+                />
                 {user && user.id === t.user_id ? (
                   <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
                     <Lock className="h-3.5 w-3.5" aria-hidden="true" />
