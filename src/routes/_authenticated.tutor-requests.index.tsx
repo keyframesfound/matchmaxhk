@@ -101,6 +101,9 @@ type CaseBoardSearch = {
   district?: string;
   tag?: string;
   open?: true;
+  // #709: a Notes-surface "Request 1-on-1 Trial" CTA lands here with the
+  // author's public tutor code; the post form pre-fills it into the notes.
+  tutor?: string;
 } & CaseBoardFiltersState;
 
 type CaseBoardFiltersState = {
@@ -144,6 +147,10 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
     if (typeof search.tag === "string" && search.tag.trim())
       result.tag = normalizeProfileTag(search.tag);
     if (search.open === "1" || search.open === "true" || search.open === true) result.open = true;
+    // #709: Notes-surface trial CTA pre-attach; keep the public tutor code
+    // only (MM-T### per lib/tutor-code.ts — no free-form data rides the URL).
+    if (typeof search.tutor === "string" && /^MM-T\d{1,6}$/i.test(search.tutor.trim()))
+      result.tutor = search.tutor.trim().toUpperCase();
     // Issue #423 ship-order 5: advanced filters. Absent params stay
     // undefined (never null/false) so cold URLs are never rewritten.
     const tier = parseTierParam(search.tier);
@@ -721,7 +728,16 @@ function TutorRequestsPage() {
                     this board so qualified tutors can apply directly.
                   </p>
                 </div>
-                <CaseRequestForm idPrefix="tr" />
+                <CaseRequestForm
+                  idPrefix="tr"
+                  // #709: a Notes detail / Order page trial CTA lands here with
+                  // the author's tutor code pre-attached to the request notes.
+                  prefillNote={
+                    search.tutor
+                      ? t("case_request.notes_tutor_prefill", { code: search.tutor })
+                      : undefined
+                  }
+                />
               </PageContainer>
             </div>
           ) : null}

@@ -79,6 +79,9 @@ const CentreCaseInput = z.object({
   notes: z.string().trim().max(500).optional().nullable(),
   triage: CentreTriageInput,
   feeAck: z.literal(true),
+  // #709: explicit Cap. 57 attestation — a centre request may never seek an
+  // employment relationship; the server rejects the payload without it.
+  cap57Ack: z.literal(true),
 });
 
 /**
