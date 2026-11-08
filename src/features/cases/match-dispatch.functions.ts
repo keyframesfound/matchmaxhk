@@ -19,6 +19,7 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import { insertAudit, requireAdmin, selectRows, type Db } from "@/features/cases/desk-db";
+import { decrementTutorCapacity } from "@/features/tutors/capacity";
 import {
   INTRO_WINDOW_DAYS,
   isPastOwnershipWindow,
@@ -249,6 +250,35 @@ export const searchCaseTutorsForMatch = createServerFn({ method: "POST" })
 export type MatchTutorResult = { outcome: "matched" } | { outcome: "needs_ack"; warning: string };
 
 /**
+ * Issue #715: a confirmed match consumes one of the tutor's open student
+ * slots (floor 0). Reaching 0 flips is_accepting_students off, which drops
+ * the tutor out of the discovery carousels on their next load until they
+ * manually raise the count again. App-side on purpose — no DB trigger.
+ */
+async function consumeTutorSlotOnMatch(db: Db, tutorId: string): Promise<void> {
+  const tutors = await selectRows<{
+    remaining_student_slots: number | null;
+    is_accepting_students: boolean | null;
+  }>(db, "tutors", "remaining_student_slots, is_accepting_students", [
+    { col: "id", op: "eq", value: tutorId },
+  ]);
+  const tutor = tutors[0];
+  if (!tutor) return;
+  const next = decrementTutorCapacity({
+    remainingStudentSlots: tutor.remaining_student_slots,
+    isAcceptingStudents: tutor.is_accepting_students,
+  });
+  const { error } = await db
+    .from("tutors")
+    .update({
+      remaining_student_slots: next.remainingStudentSlots,
+      is_accepting_students: next.isAcceptingStudents,
+    })
+    .eq("id", tutorId);
+  if (error) throw new Error(error.message);
+}
+
+/**
  * Assign a tutor to a case from the desk (#508). Returns `needs_ack` with the
  * hard-warning copy when the tutor's intro window with this counterparty has
  * closed; the panel must surface that copy and re-call with
@@ -330,6 +360,18 @@ export const matchCaseTutor = createServerFn({ method: "POST" })
       "matched",
       overrideNote ? `[#508 override] ${overrideNote}` : `matched to ${tutor.display_name}`,
     );
+
+    // Issue #715: only the transition INTO matched consumes a slot — re-picking
+    // the same tutor on an already-matched case must not burn another one.
+    // Fail-open (engagement-summary precedent): capacity is advisory state and
+    // must never block the match itself.
+    if (c.status !== "matched" || c.matched_tutor_id !== tutor.id) {
+      try {
+        await consumeTutorSlotOnMatch(db, tutor.id);
+      } catch (capacityError) {
+        console.error("[match-dispatch] capacity decrement failed:", capacityError);
+      }
+    }
 
     // Issue #412 F: the engagement summary is ensured at match time. Fail-open
     // (transitionCase precedent) — it re-ensures idempotently later.
