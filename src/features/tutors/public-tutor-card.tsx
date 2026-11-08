@@ -415,7 +415,7 @@ export function PublicTutorCard({
             <p className="max-w-full whitespace-nowrap text-xs font-semibold text-muted-foreground">
               {formattedCode}
             </p>
-                        {/* Issue #715: compact availability pill (slots left / available
+            {/* Issue #715: compact availability pill (slots left / available
                 now / currently full) — first badge in the column so intake
                 state reads before status/SEN/badges. */}
             <TutorAvailabilityBadge tutor={tutor} />
