@@ -184,6 +184,9 @@ type PublicMaterialRow = {
   tutor_id: string;
   gig_category: string | null;
   gig_delivery_type: string | null;
+  // #709: only getMyOrder embeds the author's tutors row (public code, not
+  // contact data) to power the Order-page 1-on-1 trial upsell.
+  tutors?: { tutor_code: string } | null;
 };
 
 type OrderWithMaterial = OrderRow & { digital_materials: PublicMaterialRow | null };
@@ -627,6 +630,9 @@ export type MyOrder = {
   disputeDetail: string | null;
   disputeOpenedAt: string | null;
   shopTermsVersion: string | null;
+  // #709: the note author's public tutor code (null for gigs/shop products),
+  // used by the Order-page "Request 1-on-1 Trial" upsell only.
+  authorTutorCode: string | null;
   // --- Freestyle gig fields (#328): populated only for material_type 'gig'.
   materialType: string;
   gigCategory: string | null;
@@ -665,7 +671,7 @@ export const getMyOrder = createServerFn({ method: "POST" })
     const { data: order } = await db
       .from<OrderWithMaterial>("material_orders")
       .select(
-        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, buyer_source_path, completion_note, fulfillment_due_at, hold_until, released_at, released_reason, refund_amount, dispute_status, dispute_reason, dispute_detail, dispute_opened_at, shop_terms_version, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id, gig_category, gig_delivery_type)",
+        "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, buyer_source_path, completion_note, fulfillment_due_at, hold_until, released_at, released_reason, refund_amount, dispute_status, dispute_reason, dispute_detail, dispute_opened_at, shop_terms_version, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id, gig_category, gig_delivery_type, tutors(tutor_code))",
       )
       .eq("id", data.orderId)
       .eq("buyer_account_id", context.userId)
@@ -694,6 +700,7 @@ export const getMyOrder = createServerFn({ method: "POST" })
       disputeDetail: order.dispute_detail,
       disputeOpenedAt: order.dispute_opened_at,
       shopTermsVersion: order.shop_terms_version,
+      authorTutorCode: material?.tutors?.tutor_code ?? null,
       materialType: material?.material_type ?? "notes",
       gigCategory: material?.gig_category ?? null,
       gigDeliveryType: material?.gig_delivery_type ?? null,

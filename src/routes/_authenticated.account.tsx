@@ -578,6 +578,14 @@ function AccountPage() {
             </Button>
           </div>
 
+          {/* #709: sellers must see the 48h/72h payout hold and the
+              refunds-only-from-held-funds boundary on their dashboard. */}
+          {materials.length > 0 && (
+            <p className="rounded-lg border border-border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
+              {t("account.notes_hold_note")}
+            </p>
+          )}
+
           {materialsQuery.isLoading ? (
             <div className="flex h-32 items-center justify-center rounded-xl border border-border bg-card">
               <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" aria-hidden />

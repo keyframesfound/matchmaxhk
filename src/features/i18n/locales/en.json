@@ -112,7 +112,8 @@
     "source_file_waiting": "Waiting for the buyer to upload their file.",
     "source_file_unavailable": "No source file attached.",
     "order_held": "Payment on hold",
-    "order_released": "Hold released"
+    "order_released": "Hold released",
+    "notes_hold_note": "Payouts for sold notes are held for 48 hours after delivery (72 hours in your first 14 days or first sales), or until the buyer taps 'Received, no issue'. Valid refunds are paid only from still-held seller funds during the hold window."
   },
   "admin": {
     "ar_title": "Appoint Action",
@@ -492,7 +493,8 @@
     "triage_engager_label": "Who is engaging the tutor?",
     "triage_duties_label": "Any non-tutoring household, childcare, or staff duties?",
     "triage_duties_hint": "Tutors on MatchMax teach only, requests involving staff or household duties go to a compliance review.",
-    "integrity_precheck": "I understand this request involves coursework or assessment terms (TOK / EE / IA / SBA) or a one-off session. Tutors may support and prepare students, but MatchMax tutors never write, complete, or submit assessments on a student's behalf — tutors who refuse academic-integrity grounds keep their full fee protection."
+    "integrity_precheck": "I understand this request involves coursework or assessment terms (TOK / EE / IA / SBA) or a one-off session. Tutors may support and prepare students, but MatchMax tutors never write, complete, or submit assessments on a student's behalf — tutors who refuse academic-integrity grounds keep their full fee protection.",
+    "notes_tutor_prefill": "Referred tutor: {{code}} (1-on-1 trial requested from this tutor's Notes page)"
   },
   "case_status": {
     "title": "Match status",
@@ -1100,7 +1102,7 @@
     "index_notes_body": "Original study packs, the automatic content check, and the ban list that keeps everyone safe.",
     "index_parents_body": "How matching works, what the admin fee covers, and what we don't do after the introduction.",
     "index_partners_body": "How tuition centres and educational consultancies join as Organisation Partners: verification, the centre workspace, and the performance-based introduction fee.",
-    "index_refer_body": "Share a link, your friend applies as a tutor, you earn 15% of the admin fee.",
+    "index_refer_body": "Share a link, your friend applies as an independent tutor, and you earn 15% of the admin fee they pay MatchMax. Parents never pay a matching fee.",
     "index_tutors_body": "How listing works, what the 1.5-lesson admin fee really is, and what we never touch.",
     "index_verification_body": "What we check at each tier, and what verification does not promise.",
     "index_verification_link": "Full verification details",
@@ -1252,7 +1254,7 @@
       "cta_contact": "Contact Partnerships Team"
     },
     "refer": {
-      "intro": "Share your link. When your friend completes their first paid case, you earn 15% of MatchMax’s admin fee.",
+      "intro": "Share your link. When the independent tutor you referred completes their first successful case, you earn 15% of the administrative fee they pay MatchMax. Parents never pay a matching fee.",
       "steps_title": "Five steps",
       "s1_title": "Copy your link",
       "s1_body": "Your Refer & Earn dashboard shows your unique link.",
@@ -1263,12 +1265,12 @@
       "s4_title": "Their first case completes and is paid",
       "s4_body": "The bounty unlocks after Lessons 1 & 2 are done and the admin fee is marked paid.",
       "s5_title": "You get 15% by FPS monthly",
-      "s5_body": "15% of the MatchMax admin fee, not the hourly rate, paid on the monthly run.",
+      "s5_body": "15% of the administrative fee the referred independent tutor pays MatchMax — never the hourly rate — by FPS on the 1st of the month after Lessons 1 & 2 are completed and the admin fee is settled.",
       "rule_title": "The rule in detail",
-      "rule_bounty": "Reward: 15% of the MatchMax admin fee (never 15% of the tutor’s hourly rate).",
+      "rule_bounty": "Parents never pay a matching fee. You earn 15% of the administrative fee paid by the referred independent tutor on their first successful case (payable on the 1st of the month after Lessons 1 & 2 are completed and the tutor's admin fee is settled.)",
       "rule_what_counts": "Attribution: your friend must apply through your link, which attributes for 90 days. One referrer only.",
       "rule_when": "Payable only after Lessons 1 & 2 complete and the admin fee is marked paid.",
-      "rule_how_paid": "Paid by FPS on the monthly run.",
+      "rule_how_paid": "Paid by FPS on the 1st of the month after Lessons 1 & 2 are completed and the admin fee is settled.",
       "exclusions_title": "What does not count",
       "exclusion_self": "Self-referral.",
       "exclusion_already": "Already-approved tutors.",
@@ -2249,7 +2251,10 @@
     "auto": {
       "rejected": "Not published: {{reason}} Edit the note and submit again.",
       "hint": "Every upload is checked automatically for copied official papers or textbooks, contact details, violence and sexual content. Clean notes go live straight away; anything unclear gets a quick staff review."
-    }
+    },
+    "hold_title": "48–72h payout hold (buyer & seller protection)",
+    "hold_disclosure": "Seller payout is held for 48 hours after delivery (72 hours for new sellers in their first 14 days or first sales), or until the buyer taps 'Received, no issue', whichever is sooner. Refunds for defective or misdescribed files are paid solely from still-held seller funds during the hold window.",
+    "trial_cta": "Request 1-on-1 Trial with This Tutor ($0 Matching Fee)"
   },
   "orders": {
     "checkout_title": "Finish your order",
@@ -2328,7 +2333,11 @@
     "desk_dispute_reject": "Reject and release",
     "desk_dispute_decided_refund": "Refunded from the held funds.",
     "desk_dispute_decided_reject": "Dispute rejected, the hold is released.",
-    "desk_dispute_rejected_note": "Dispute rejected, released normally"
+    "desk_dispute_rejected_note": "Dispute rejected, released normally",
+    "protection_title": "Buyer & Seller Protection (48–72h Escrow Hold)",
+    "protection_body": "Seller payout is held for 48 hours after delivery (72 hours for new sellers in their first 14 days or first sales), or until the buyer taps 'Received, no issue', whichever is sooner. Refunds for defective or misdescribed files are paid solely from still-held seller funds during the hold window.",
+    "trial_upsell_body": "Want 1-on-1 coaching from the author of this note ({{code}})? Parents pay $0 matching fee. Book a trial lesson via MatchMax.",
+    "trial_upsell_cta": "Request 1-on-1 Trial with This Tutor ($0 Matching Fee)"
   },
   "page_error": {
     "title": "This page didn't load",
@@ -2726,7 +2735,7 @@
     },
     "referrals": {
       "title": "Refer & Earn 15%",
-      "description": "Know a top-tier scholar who would make a great MatchMax tutor? Send them your unique link. When they land their first case, you automatically earn a 15% cut of the matching fee. No limits on how many friends you can invite.",
+      "description": "Know a top-tier scholar who would make a great MatchMax tutor? Send them your unique link. When they land their first case, you automatically earn a 15% cut of the administrative fee they pay MatchMax. Parents never pay a matching fee. No limits on how many friends you can invite.",
       "link_label": "Your referral link",
       "copy": "Copy",
       "copied": "Referral link copied",
@@ -4792,5 +4801,8 @@
     "referral_rule": "Your reward unlocks automatically when a referred user's first matched case settles the 1.5-lesson admin fee, then pays out with the Monday batch.",
     "insights_title": "Insights",
     "insights_note": "Profile and listing view counters are coming with the saved-content event layer. Earnings and referrals are live above."
+  },
+  "business": {
+    "cap57_ack": "I confirm this request is for an independent contractor tutor (獨立導師) and does not involve employment, fixed staff duties, or employer-employee control under Cap. 57."
   }
 }
