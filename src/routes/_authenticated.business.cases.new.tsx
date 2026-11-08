@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { useTranslation } from "react-i18next";
 import { Building2, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
@@ -44,6 +45,7 @@ export const Route = createFileRoute("/_authenticated/business/cases/new")({
 // request into compliance_hold for manual staff review before matching.
 function CentreCaseRequestPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const { user, loading } = useAuth();
   const { organization, membership, isLoading: orgLoading } = useMyOrganization();
   const submitFn = useServerFn(submitCentreCaseRequest);
@@ -84,6 +86,9 @@ function CentreCaseRequestPage() {
     otherClientsAllowed: "yes",
     substitutionAllowed: "open",
     feeAck: false,
+    // #709: explicit Cap. 57 independent-contractor attestation, required
+    // before the submit button unlocks.
+    cap57Ack: false,
   });
 
   const setField = (patch: Partial<typeof form>) => setForm((prev) => ({ ...prev, ...patch }));
@@ -110,7 +115,8 @@ function CentreCaseRequestPage() {
     !form.scopeDescription.trim() ||
     !form.adminDutiesRequired ||
     !form.replacesVacancy ||
-    !form.feeAck;
+    !form.feeAck ||
+    !form.cap57Ack;
 
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
@@ -152,6 +158,7 @@ function CentreCaseRequestPage() {
             substitutionAllowed: form.substitutionAllowed as "yes" | "no" | "open",
           },
           feeAck: true,
+          cap57Ack: true,
         },
       });
       toast.success(
@@ -658,6 +665,18 @@ function CentreCaseRequestPage() {
               </span>
             </label>
 
+            {/* #709: Cap. 57 attestation — the submit button stays disabled
+                until this is ticked (incomplete gate above). */}
+            <label className="flex gap-3 rounded-sm border border-border bg-muted/50 p-4 text-sm text-muted-foreground">
+              <Checkbox
+                checked={form.cap57Ack}
+                onCheckedChange={(checked) => setField({ cap57Ack: checked === true })}
+              />
+              <span className="font-medium text-[color:var(--ink)]">
+                {t("business.cap57_ack")} *
+              </span>
+            </label>
+
             <Button
               type="submit"
               disabled={submitting || incomplete}
@@ -669,7 +688,8 @@ function CentreCaseRequestPage() {
             </Button>
             {incomplete ? (
               <p className="text-center text-xs text-muted-foreground">
-                Complete the required fields, answer both Part 3 gates, and tick the confirmation.
+                Complete the required fields, answer both Part 3 gates, and tick both confirmations
+                (including the Cap. 57 independent-tutor attestation).
               </p>
             ) : null}
           </form>

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   formatAvailabilityDate,
+  getTutorAvailabilityBadge,
   getTutorAvailabilityState,
   getTutorInquiryAction,
 } from "../../src/features/tutors/tutor-display";
@@ -63,7 +64,8 @@ describe("getTutorInquiryAction status kind (P5)", () => {
     );
     expect(action.kind).toBe("status");
     expect(action.href).toBe("");
-    expect(action.label).toBe("Full");
+    // Issue #715 copy: the full badge reads "Currently Full".
+    expect(action.label).toBe("Currently Full");
   });
 
   it("inactive renders a status chip, not a link", () => {
@@ -80,5 +82,54 @@ describe("getTutorInquiryAction status kind (P5)", () => {
     const action = getTutorInquiryAction(tutor, "85212345678", "en");
     expect(action.kind).toBe("request");
     expect(action.href).toContain("wa.me");
+  });
+});
+
+describe("getTutorAvailabilityBadge (issue #715 pill)", () => {
+  it("1–3 slots → slots_left with the count", () => {
+    expect(
+      getTutorAvailabilityBadge({ is_accepting_students: true, remaining_student_slots: 3 }),
+    ).toEqual({
+      kind: "slots_left",
+      count: 3,
+    });
+    expect(
+      getTutorAvailabilityBadge({ is_accepting_students: true, remaining_student_slots: 1 }),
+    ).toEqual({
+      kind: "slots_left",
+      count: 1,
+    });
+  });
+
+  it("4+ slots → available_now", () => {
+    expect(
+      getTutorAvailabilityBadge({ is_accepting_students: true, remaining_student_slots: 4 }),
+    ).toEqual({
+      kind: "available_now",
+    });
+    expect(
+      getTutorAvailabilityBadge({ is_accepting_students: true, remaining_student_slots: 30 }),
+    ).toEqual({
+      kind: "available_now",
+    });
+  });
+
+  it("full (0 slots) and paused → full pill", () => {
+    expect(
+      getTutorAvailabilityBadge({ is_accepting_students: true, remaining_student_slots: 0 }),
+    ).toEqual({
+      kind: "full",
+    });
+    expect(
+      getTutorAvailabilityBadge({ is_accepting_students: false, remaining_student_slots: 5 }),
+    ).toEqual({
+      kind: "full",
+    });
+  });
+
+  it("taking with no slot data renders no pill", () => {
+    expect(
+      getTutorAvailabilityBadge({ is_accepting_students: true, remaining_student_slots: null }),
+    ).toBeNull();
   });
 });

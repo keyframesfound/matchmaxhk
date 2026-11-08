@@ -37,6 +37,7 @@ import {
 } from "@/features/tutors/engagement-badges";
 import { ExperiencePill } from "@/features/tutors/experience-badge";
 import { VerifiedBadge } from "@/features/tutors/verified-badge";
+import { TutorAvailabilityBadge } from "@/features/tutors/availability-badge";
 import { ScheduleFitBadge } from "@/features/cases/schedule-fit-ui";
 import { TutorRatingBadge } from "@/features/tutors/tutor-rating-badge";
 import { TrophyKpiBanner } from "@/features/tutors/trophy-kpi-banner";
@@ -223,10 +224,11 @@ export function PublicTutorCard({
     : null;
   const showParentFavorite = engagement ? isParentFavorite(engagement) : false;
   const statusLabel = statusKey ? t(statusKey) : "";
-  // Issue #502: the preferred/display name is the primary identity under the
-  // photo; the tutor code stays visible as secondary meta so parents can
-  // still quote the MM-T... code when requesting. Unnamed cards (display
-  // name blank or equal to the code) keep today's code-only rendering.
+  // Issue #502: the preferred/display name is the tutor's public identity on
+  // the profile page, alt text and share/compare copy. Issue #667: the CARD
+  // header itself stays uniform — every card renders the bare tutor code
+  // under the photo (#502's name-first variant gave named tutors a taller,
+  // differently-shaped header than everyone else's).
   const formattedCode = formatTutorCode(tutor.tutor_code);
   const displayName = tutor.display_name.trim();
   const cardIdentity = displayName || formattedCode;
@@ -251,6 +253,9 @@ export function PublicTutorCard({
     [tutor.exam_results, tutor.academic_headline],
   );
   const breakdownGradeCount = useMemo(() => countCoreAcademicGrades(breakdown), [breakdown]);
+  // A group with neither grades nor a total renders nothing, so it must not
+  // keep an empty "Core Academic Breakdown" heading on the card.
+  const hasBreakdownContent = breakdown.some((group) => group.grades.length > 0 || group.total);
   // Issue #107: degree line (postgrad • undergrad) + secondary school. Issue
   // #138: each school/uni line may wrap to two lines instead of truncating.
   const educationLines = getTutorEducationLines(tutor).filter(
@@ -404,18 +409,16 @@ export function PublicTutorCard({
                 />
               )}
             </div>
-            {/* Issue #502: primary identity under the photo — display name
-                when set, else the tutor code (today's behaviour). */}
-            <p className="max-w-full whitespace-normal text-center text-xs font-semibold break-words text-muted-foreground">
-              {cardIdentity}
+            {/* Issue #502/#667: the header identity is ALWAYS the bare tutor
+                code so every card's header block is shaped the same; the
+                display name still leads the profile page and share copy. */}
+            <p className="max-w-full whitespace-nowrap text-xs font-semibold text-muted-foreground">
+              {formattedCode}
             </p>
-            {/* Issue #502: the code stays reachable for parent requests as a
-                small secondary line when a display name leads. */}
-            {isNamed ? (
-              <p className="max-w-full text-[11px] leading-tight text-muted-foreground">
-                ({formattedCode})
-              </p>
-            ) : null}
+            {/* Issue #715: compact availability pill (slots left / available
+                now / currently full) — first badge in the column so intake
+                state reads before status/SEN/badges. */}
+            <TutorAvailabilityBadge tutor={tutor} />
             {/* Issues #77/#52: tutor status badge (uni student / full-part-time
                 / examiner) under the tutor code. Wraps to two lines for long
                 labels instead of ellipsizing. */}
@@ -566,7 +569,7 @@ export function PublicTutorCard({
             ))}
           </div>
         ) : null}
-        {breakdown.length > 0 || academicChips.length > 0 ? (
+        {hasBreakdownContent || academicChips.length > 0 ? (
           <section className="border-b border-border pb-3.5 md:pb-4">
             <h3 className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
               <LineChart
@@ -592,7 +595,14 @@ export function PublicTutorCard({
                     const room = Math.max(0, visibleGradeCap - before);
                     return group.grades.slice(0, room);
                   })();
-              if (!isBreakdownExpanded && gradesShown.length === 0) return null;
+              // Past the collapsed grade cap a group hides, except a group
+              // that only carries a total ("IBDP: 41/45") and has no grades.
+              if (
+                !isBreakdownExpanded &&
+                gradesShown.length === 0 &&
+                (group.grades.length > 0 || !group.total)
+              )
+                return null;
               return (
                 <div
                   key={`${group.curriculum}-${groupIndex}`}
@@ -745,7 +755,7 @@ export function PublicTutorCard({
         </section>
       </div>
 
-      <footer className="flex min-w-0 flex-nowrap items-center justify-between gap-2 border-t border-border px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
+      <footer className="flex min-w-0 flex-nowrap items-center justify-between gap-2 border-t border-border px-3 py-2 md:gap-3 md:px-4 md:py-2.5 @max-sm:gap-2! @max-sm:px-3!">
         {price.baseRate > 0 ? (
           <FitText
             as="p"
@@ -776,7 +786,7 @@ export function PublicTutorCard({
           // Pricing flagged (issue #125) or unset: the card shows no rate.
           <div className="flex-1" />
         )}
-        <div className="ml-auto flex shrink-0 items-center gap-1.5 md:gap-2">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 md:gap-2 @max-sm:gap-1!">
           {onCompareToggle ? (
             <TooltipProvider delayDuration={300}>
               <Tooltip>
@@ -815,7 +825,9 @@ export function PublicTutorCard({
                     aria-label={`${t("share.share_tutor")} (${formatTutorCode(tutor.tutor_code)})`}
                     onClick={handleShare}
                     onKeyDown={(event) => event.stopPropagation()}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8"
+                    // Narrow cards (< 24rem) drop the share icon so the price
+                    // keeps a readable size; sharing stays on the profile page.
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:hidden"
                   >
                     <Share2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
                   </button>
@@ -828,7 +840,7 @@ export function PublicTutorCard({
               of the caller's last action (Request tutor / status) is lifted
               to a 44px tap target; its width stays compact so the price
               keeps its size. */}
-          <span className="flex shrink-0 items-center gap-1.5 [&>:last-child]:h-11!">
+          <span className="flex shrink-0 items-center gap-1.5 @max-sm:gap-1 [&>:last-child]:h-11! @max-sm:[&>:last-child]:px-3!">
             {footerAction}
           </span>
         </div>

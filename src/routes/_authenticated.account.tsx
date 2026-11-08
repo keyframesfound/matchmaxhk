@@ -42,6 +42,7 @@ import {
   type LearnerFilter,
 } from "@/features/children/children";
 import { VerifiedHoursLine } from "@/features/tutors/verified-hours-line";
+import { ProfileConnectionsCard } from "@/features/connections/profile-connections-card";
 import { getMyApplicationStatus } from "@/features/tutor-application/application-status.functions";
 import { ApplicationStatusPanel } from "@/features/tutor-application/application-status-card";
 import {
@@ -563,6 +564,12 @@ function AccountPage() {
           </section>
         ) : null}
 
+        {/* #617: Airbnb-style 2-up square grid — Cases & Rosters +
+            Connections (hub). Tutor profile surface only. */}
+        {tutor ? (
+          <ProfileConnectionsCard tutorVerified={tutor.verification_tier === "tier_2_verified"} />
+        ) : null}
+
         {/* My notes (tutor side, P8), drafts included */}
         <section className="mt-8 space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-3">
@@ -577,6 +584,14 @@ function AccountPage() {
               </Link>
             </Button>
           </div>
+
+          {/* #709: sellers must see the 48h/72h payout hold and the
+              refunds-only-from-held-funds boundary on their dashboard. */}
+          {materials.length > 0 && (
+            <p className="rounded-lg border border-border bg-muted/40 p-3 text-xs leading-relaxed text-muted-foreground">
+              {t("account.notes_hold_note")}
+            </p>
+          )}
 
           {materialsQuery.isLoading ? (
             <div className="flex h-32 items-center justify-center rounded-xl border border-border bg-card">

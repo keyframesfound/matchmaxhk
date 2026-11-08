@@ -1,9 +1,19 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { formatPostedAgo } from "@/lib/relative-time";
-import { Bell, GraduationCap, MessageCircle } from "lucide-react";
-import { useState } from "react";
-import { useTranslation } from "react-i18next";
+import {
+  AlertCircle,
+  Bell,
+  CalendarClock,
+  CheckCheck,
+  GraduationCap,
+  MessageCircle,
+  Package,
+  Star,
+  Users,
+  Wallet,
+} from "lucide-react";
+import { useState } from "react";import { useTranslation } from "react-i18next";
 import i18n from "@/features/i18n/config";
 import { toast } from "sonner";
 

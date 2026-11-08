@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   joinAvailParam,
+  matchCaseAvailability,
   matchTutorAvailability,
   parseAvailBands,
   parseAvailDays,
@@ -42,5 +43,29 @@ describe("#605 availability filter", () => {
     const monMorning = grid({ mon: ["a", "u", "u", "u", "u", "u"] });
     expect(matchTutorAvailability(monMorning, { days: ["tue"], bands: ["evening"] })).toBe("miss");
     expect(matchTutorAvailability(monMorning, { days: ["mon"], bands: ["evening"] })).toBe("miss");
+  });
+});
+
+describe("#605 case availability", () => {
+  const pick = { days: ["tue" as const], bands: ["evening" as const] };
+  it("flexible cases always match", () => {
+    expect(matchCaseAvailability("flexible", [], pick)).toBe("match");
+  });
+  it("legacy cases without a mode are unset", () => {
+    expect(matchCaseAvailability(null, [], pick)).toBe("unset");
+  });
+  it("specific cases need an overlapping slot", () => {
+    expect(matchCaseAvailability("specific", [{ day: "tue", period: "evening" }], pick)).toBe(
+      "match",
+    );
+    expect(matchCaseAvailability("specific", [{ day: "mon", period: "evening" }], pick)).toBe(
+      "miss",
+    );
+    expect(
+      matchCaseAvailability("specific", [{ day: "mon", period: "evening" }], {
+        days: [],
+        bands: ["evening"],
+      }),
+    ).toBe("match");
   });
 });

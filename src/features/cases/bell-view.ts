@@ -1,5 +1,6 @@
 import {
   AlertCircle,
+  Users,
   Bell,
   CalendarClock,
   CalendarX,
@@ -181,6 +182,8 @@ export function bellLabelKey(item: BellLabelInput): string {
 
 export function bellIcon(eventType: string): LucideIcon {
   if (eventType === "note_order.delivered") return Package;
+  // #617 Tutor Connect: requests and acceptances share the people icon.
+  if (eventType === "connect.request" || eventType === "connect.accepted") return Users;
   if (eventType === "review.published" || eventType === "lesson.review_prompt") return Star;
   if (eventType.startsWith("lesson.cancelled")) return CalendarX;
   if (eventType.startsWith("lesson.scheduled") || eventType === "lesson.reminder_due")
