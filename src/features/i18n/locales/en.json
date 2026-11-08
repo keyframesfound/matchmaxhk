@@ -3744,6 +3744,8 @@
     "status_paused": "Requests paused",
     "status_inactive": "Inactive",
     "status_full": "Currently Full",
+    "badge_slots_left": "Available · {{count}} slot(s) left",
+    "badge_available_now": "Available now",
     "verified_badge": "Verified",
     "verified_disclaimer": "Staff checked the grades shown. Not confirmed with the exam board. Ask the tutor for the slip before lesson one.",
     "view_all_grades": "View all {{count}} grades",

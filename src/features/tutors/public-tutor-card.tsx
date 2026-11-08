@@ -37,6 +37,7 @@ import {
 } from "@/features/tutors/engagement-badges";
 import { ExperiencePill } from "@/features/tutors/experience-badge";
 import { VerifiedBadge } from "@/features/tutors/verified-badge";
+import { TutorAvailabilityBadge } from "@/features/tutors/availability-badge";
 import { ScheduleFitBadge } from "@/features/cases/schedule-fit-ui";
 import { TutorRatingBadge } from "@/features/tutors/tutor-rating-badge";
 import { TrophyKpiBanner } from "@/features/tutors/trophy-kpi-banner";
@@ -414,6 +415,10 @@ export function PublicTutorCard({
             <p className="max-w-full whitespace-nowrap text-xs font-semibold text-muted-foreground">
               {formattedCode}
             </p>
+            {/* Issue #715: compact availability pill (slots left / available
+                now / currently full) — first badge in the column so intake
+                state reads before status/SEN/badges. */}
+            <TutorAvailabilityBadge tutor={tutor} />
             {/* Issues #77/#52: tutor status badge (uni student / full-part-time
                 / examiner) under the tutor code. Wraps to two lines for long
                 labels instead of ellipsizing. */}

@@ -3744,6 +3744,8 @@
     "status_paused": "暫停接受查詢",
     "status_inactive": "暫停招生",
     "status_full": "目前名額已滿",
+    "badge_slots_left": "可預約 · 尚餘 {{count}} 個名額",
+    "badge_available_now": "現正招生",
     "verified_badge": "已核實",
     "verified_disclaimer": "Staff已查核卡片上顯示嘅成績，但未向考試局確認。第一堂之前，請直接向導師攞成績紙。",
     "view_all_grades": "查看全部 {{count}} 項成績",
