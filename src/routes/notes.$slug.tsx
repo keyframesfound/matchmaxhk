@@ -2,7 +2,16 @@ import { createFileRoute, Link, notFound, useRouter } from "@tanstack/react-rout
 import { type QueryClient, useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
-import { BookOpen, FileText, GraduationCap, Eye, ShoppingCart, MessageCircle } from "lucide-react";
+import {
+  BookOpen,
+  FileText,
+  GraduationCap,
+  Eye,
+  ShoppingCart,
+  MessageCircle,
+  ShieldCheck,
+  UserRoundSearch,
+} from "lucide-react";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -143,7 +152,6 @@ function NotePage() {
     retry: false,
   });
   const packOnly = note.priceHkd > 0 ? (storeContext.data?.packOnly ?? null) : null;
-
 
   const whatsappQuery = useQuery({
     queryKey: ["note-whatsapp", note.title, note.priceHkd, note.tutorName],
@@ -477,6 +485,18 @@ function NotePage() {
                     ? t("notes.engage.get_free")
                     : t("notes.add_to_cart")}
               </Button>
+              {/* #709: zero-CAC conversion — Notes buyers book a 1-on-1 trial
+                  with the author through the normal match intake. The tutor's
+                  code rides the URL; no phone number is exposed and no
+                  unmoderated chat opens. */}
+              {!isOwner && note.tutorCode ? (
+                <Button asChild variant="solid" color="blue" className="w-full font-bold">
+                  <Link to="/tutor-requests" search={{ post: true, tutor: note.tutorCode }}>
+                    <UserRoundSearch className="mr-2 h-4 w-4" aria-hidden />
+                    {t("notes.trial_cta")}
+                  </Link>
+                </Button>
+              ) : null}
               {packOnly ? (
                 <Link
                   to="/notes/$slug"
@@ -501,6 +521,19 @@ function NotePage() {
                 <p className="rounded-lg border border-success/40 bg-success/5 p-3 text-xs leading-relaxed">
                   {t("notes_option_a.escrow_badge")}
                 </p>
+              ) : null}
+              {/* #709: the 48h/72h hold + refunds-from-held-funds boundary must
+                  be visible BEFORE purchase (locked in Notes Terms). */}
+              {!isOwner ? (
+                <div className="rounded-lg border border-border bg-muted/40 p-3">
+                  <p className="flex items-center gap-1.5 text-xs font-semibold">
+                    <ShieldCheck className="h-3.5 w-3.5 text-success" aria-hidden />
+                    {t("notes.hold_title")}
+                  </p>
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                    {t("notes.hold_disclosure")}
+                  </p>
+                </div>
               ) : null}
               <ul className="space-y-1.5 border-t border-border pt-4 text-xs text-muted-foreground">
                 <li>· {t("notes.perk_manual_review")}</li>

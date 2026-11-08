@@ -112,7 +112,8 @@
     "source_file_waiting": "待家長上傳檔案。",
     "source_file_unavailable": "尚未附加原始檔案。",
     "order_held": "款項託管中",
-    "order_released": "保管期已結束"
+    "order_released": "保管期已結束",
+    "notes_hold_note": "已售筆記嘅款項會喺檔案交付後暫存 48 小時（新賣家首 14 日或首宗交易為 72 小時），或直至買家點擊『已收妥，沒有問題』。暫存期內，有效退款只會由尚未發放嘅賣家款項中扣除。"
   },
   "admin": {
     "ar_title": "指派待辦",
@@ -492,7 +493,8 @@
     "triage_engager_label": "邊個委聘導師？學生係邊位？",
     "triage_duties_label": "需唔需要導師處理教學以外嘅家務、湊仔或助理職務？",
     "triage_duties_hint": "MatchMax 嘅導師只負責教學——涉及家務或職務嘅個案會交由合規審核。",
-    "integrity_precheck": "我了解此個案涉及課程作業或評核術語（TOK / EE / IA / SBA）或單次課堂。導師可以輔助及備試，但 MatchMax 導師絕不會代學生撰寫、完成或提交任何評核作業——導師因學術誠信理由拒絕時，仍保留全部行政費保障。"
+    "integrity_precheck": "我了解此個案涉及課程作業或評核術語（TOK / EE / IA / SBA）或單次課堂。導師可以輔助及備試，但 MatchMax 導師絕不會代學生撰寫、完成或提交任何評核作業——導師因學術誠信理由拒絕時，仍保留全部行政費保障。",
+    "notes_tutor_prefill": "指定導師：{{code}}（由此導師嘅筆記頁面申請 1 對 1 試堂）"
   },
   "case_status": {
     "title": "配對進度",
@@ -2249,7 +2251,10 @@
     "auto": {
       "rejected": "未能上架：{{reason}} 請修改筆記後再提交。",
       "hint": "系統會自動檢查每份上載，包括抄襲的官方試卷或課本、聯絡資料、暴力及色情內容。沒有問題的筆記會即時上架；有疑問的會交由職員快速審核。"
-    }
+    },
+    "hold_title": "48–72 小時放款暫存（買賣雙方保障）",
+    "hold_disclosure": "賣家款項將於檔案交付後暫存 48 小時（新賣家首 14 日或首宗交易為 72 小時），或直至買家點擊『已收妥，沒有問題』為止（以較早者為準）。如檔案損壞或與描述不符，退款僅限於暫存期內由尚未發放之賣家款項中扣除。",
+    "trial_cta": "申請此導師 1 對 1 試堂（$0 配對費）"
   },
   "orders": {
     "checkout_title": "完成訂單",
@@ -2328,7 +2333,11 @@
     "desk_dispute_reject": "駁回並結束保管",
     "desk_dispute_decided_refund": "已從保管款項退款。",
     "desk_dispute_decided_reject": "爭議已駁回 — 保管已結束。",
-    "desk_dispute_rejected_note": "爭議已駁回 — 正常結束保管"
+    "desk_dispute_rejected_note": "爭議已駁回 — 正常結束保管",
+    "protection_title": "買賣雙方保障（48–72 小時託管暫存）",
+    "protection_body": "賣家款項將於檔案交付後暫存 48 小時（新賣家首 14 日或首宗交易為 72 小時），或直至買家點擊『已收妥，沒有問題』為止（以較早者為準）。如檔案損壞或與描述不符，退款僅限於暫存期內由尚未發放之賣家款項中扣除。",
+    "trial_upsell_body": "想由呢份筆記嘅作者（{{code}}）提供 1 對 1 指導？家長配對費 $0，經 MatchMax 預約試堂。",
+    "trial_upsell_cta": "申請此導師 1 對 1 試堂（$0 配對費）"
   },
   "page_error": {
     "title": "呢一頁載入唔到",
@@ -3525,7 +3534,9 @@
     "nf_group_cases": "個案",
     "nf_group_schedule": "時間表",
     "nf_group_ratings": "評分",
-    "nf_group_account": "帳戶"
+    "nf_group_account": "帳戶",
+    "bell_connect_request": "新的夥伴連結邀請",
+    "bell_connect_accepted": "夥伴連結邀請已接受"
   },
   "cv": {
     "title": "學習履歷及成績檔案",
@@ -3755,7 +3766,9 @@
     "verified_explain_close": "知道了",
     "proof_open": "查看相片證明",
     "proof_pill": "相片證明",
-    "proof_caption": "由導師自行公開的相片證明。私人核實文件絕不會在此顯示。"
+    "proof_caption": "由導師自行公開的相片證明。私人核實文件絕不會在此顯示。",
+    "badge_slots_left": "可預約 · 尚餘 {{count}} 個名額",
+    "badge_available_now": "現正招生"
   },
   "tutor_compare": {
     "bar_selected": "已揀 {{count}} / {{max}} 位",
@@ -4818,5 +4831,82 @@
     "switch": "切換學生",
     "clear": "清除",
     "cancel": "取消"
+  },
+  "connections": {
+    "error": {
+      "daily_cap": "您已達每日 10 個連結邀請上限，請明日再試。",
+      "pending_cap": "你已有 25 個待回覆的連結邀請，請等待回覆後再發送。",
+      "cooldown": "對方最近婉拒了連結邀請，請於 30 天後再試。",
+      "already_connected": "你已與這位導師連結。",
+      "self": "無法與自己建立連結。",
+      "not_found": "找不到該導師。",
+      "forbidden": "只有認證導師可以使用夥伴連結。",
+      "not_a_tutor": "只有導師可以使用夥伴連結。",
+      "note_too_long": "介紹不可超過 140 字。",
+      "save_failed": "發生錯誤，請重試。"
+    },
+    "title": "夥伴連結",
+    "subtitle": "與認證導師合作：分科合教、小組雙導師、互相代課。",
+    "tab_connected": "已連結",
+    "tab_pending": "待確認",
+    "tab_find": "尋找導師",
+    "card_grid_title": "導師工具",
+    "card_cases": "個案及學生名單",
+    "card_cases_sub": "你的個案與學生名單。",
+    "card_connections": "夥伴連結",
+    "new_badge": "新",
+    "count_line": "已連結 {{connected}} · 待確認 {{pending}}",
+    "gate_title": "夥伴連結僅供認證導師使用",
+    "gate_body": "完成導師認證即可解鎖「夥伴連結」，與其他認證導師合作開班。",
+    "gate_cta": "前往認證",
+    "empty_connected": "暫無已連結導師。請瀏覽「尋找導師」建立合教網絡。",
+    "empty_pending": "暫無待確認邀請。",
+    "empty_find": "暫無符合篩選條件的導師，請調整篩選再試。",
+    "direction_inbound": "收到的邀請",
+    "direction_outbound": "已發送的邀請",
+    "waiting": "等待回覆",
+    "declined_until": "邀請已被婉拒——{{date}} 後可再次連結。",
+    "connect": "連結",
+    "respond": "回應",
+    "accept": "接受",
+    "decline": "婉拒",
+    "disconnect": "解除連結",
+    "disconnect_confirm": "確認解除連結？",
+    "cancel": "取消",
+    "message": "訊息",
+    "message_soon": "訊息功能即將推出。",
+    "requested": "已邀請",
+    "connected_label": "已連結",
+    "verified": "已認證",
+    "contact_hidden": "〔已隱藏聯絡方式〕",
+    "modal_title": "發送連結邀請",
+    "modal_to": "收件人：{{name}}",
+    "intent_label": "合教意向",
+    "intent_SUBJECT_SPLIT": "分科合教",
+    "intent_GROUP_COTEACH": "小組雙導師",
+    "intent_RELIEF_COVER": "代課支援",
+    "intent_CURRICULUM_PAIR": "課程配搭",
+    "note_label": "簡短介紹（可選）",
+    "note_placeholder": "說說你想合作的原因……",
+    "note_counter": "{{length}}/140",
+    "send": "發送連結邀請",
+    "sending": "發送中……",
+    "toast_sent": "已向 {{name}} 發送連結邀請。",
+    "toast_accepted": "已與 {{name}} 成為夥伴。",
+    "toast_accepted_generic": "已成為夥伴。",
+    "toast_declined": "已婉拒邀請。",
+    "toast_disconnected": "已解除連結。",
+    "filter_subject": "科目",
+    "filter_curriculum": "課程",
+    "filter_district": "地區",
+    "filter_intent": "合教意向",
+    "filter_intent_hint": "顯示已有此類型已接受連結的導師。",
+    "curriculum_DSE": "HKDSE",
+    "curriculum_IB": "IB",
+    "curriculum_IGCSE": "IGCSE",
+    "curriculum_A_Level": "A-Level"
+  },
+  "business": {
+    "cap57_ack": "本人確認此轉介申請僅為尋找獨立導師（自僱性質），並不構成《僱傭條例》（第 57 章）下之僱傭關係、固定駐場職員職務或僱主控制。"
   }
 }

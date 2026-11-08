@@ -68,7 +68,10 @@ type LooseQuery = {
 /* This overview queries several relations in one helper and two of them
  * (reports, case_fees) are not modeled in the generated supabase types yet,
  * so it goes through a minimal query surface instead of the typed client. */
-const fromAny = supabase.from as unknown as (relation: string) => LooseQuery;
+// Bind before casting (#602): a detached `supabase.from` loses `this` and
+// supabase-js crashes reading `.rest` — same idiom as the bound rpc call in
+// fetchEngagement below.
+const fromAny = supabase.from.bind(supabase) as unknown as (relation: string) => LooseQuery;
 
 async function headCount(table: string, filters: HeadFilter[] = []): Promise<number> {
   let query = fromAny(table).select("*", { count: "exact", head: true });

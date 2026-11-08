@@ -320,9 +320,16 @@ const TUTOR_GENDER_OPTIONS = [
 type CaseRequestFormProps = {
   idPrefix?: string;
   onSubmitted?: (result: { caseCode: string }) => void;
+  /** #709: seeds the notes field when the visitor has no saved draft — the
+   * Notes-surface trial CTA passes the author's tutor code here. */
+  prefillNote?: string;
 };
 
-export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFormProps) {
+export function CaseRequestForm({
+  idPrefix = "cr",
+  onSubmitted,
+  prefillNote,
+}: CaseRequestFormProps) {
   const { t } = useTranslation();
   const senCategoryLabels = useSenCategoryLabels();
   const [step, setStep] = useState(1);
@@ -547,6 +554,21 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     setForm((prev) => applyLearnerPrefill(prev, next, previous));
     // eslint-disable-next-line react-hooks/exhaustive-deps -- keyed on the learner's values
   }, [learnerKey]);
+
+  // #709: a Notes-surface trial CTA pre-attaches the author's tutor code.
+  // Runs once, only when the visitor has NO saved draft — a restored draft
+  // (their own content) always wins over the URL prefill.
+  const prefillApplied = useRef(false);
+  useEffect(() => {
+    if (prefillApplied.current) return;
+    if (restored) {
+      prefillApplied.current = true;
+      return;
+    }
+    if (!prefillNote) return;
+    prefillApplied.current = true;
+    setForm((prev) => (prev.notes.trim() ? prev : { ...prev, notes: prefillNote.slice(0, 500) }));
+  }, [restored, prefillNote]);
 
   const isBlankDraft = (value: FormState) =>
     Object.entries(value).every(

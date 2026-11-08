@@ -37,6 +37,7 @@ import {
 } from "@/features/tutors/engagement-badges";
 import { ExperiencePill } from "@/features/tutors/experience-badge";
 import { VerifiedBadge } from "@/features/tutors/verified-badge";
+import { TutorAvailabilityBadge } from "@/features/tutors/availability-badge";
 import { ScheduleFitBadge } from "@/features/cases/schedule-fit-ui";
 import { TutorRatingBadge } from "@/features/tutors/tutor-rating-badge";
 import { TrophyKpiBanner } from "@/features/tutors/trophy-kpi-banner";
@@ -223,10 +224,11 @@ export function PublicTutorCard({
     : null;
   const showParentFavorite = engagement ? isParentFavorite(engagement) : false;
   const statusLabel = statusKey ? t(statusKey) : "";
-  // Issue #502: the preferred/display name is the primary identity under the
-  // photo; the tutor code stays visible as secondary meta so parents can
-  // still quote the MM-T... code when requesting. Unnamed cards (display
-  // name blank or equal to the code) keep today's code-only rendering.
+  // Issue #502: the preferred/display name is the tutor's public identity on
+  // the profile page, alt text and share/compare copy. Issue #667: the CARD
+  // header itself stays uniform — every card renders the bare tutor code
+  // under the photo (#502's name-first variant gave named tutors a taller,
+  // differently-shaped header than everyone else's).
   const formattedCode = formatTutorCode(tutor.tutor_code);
   const displayName = tutor.display_name.trim();
   const cardIdentity = displayName || formattedCode;
@@ -407,18 +409,16 @@ export function PublicTutorCard({
                 />
               )}
             </div>
-            {/* Issue #502: primary identity under the photo — display name
-                when set, else the tutor code (today's behaviour). */}
-            <p className="max-w-full whitespace-normal text-center text-xs font-semibold break-words text-muted-foreground">
-              {cardIdentity}
+            {/* Issue #502/#667: the header identity is ALWAYS the bare tutor
+                code so every card's header block is shaped the same; the
+                display name still leads the profile page and share copy. */}
+            <p className="max-w-full whitespace-nowrap text-xs font-semibold text-muted-foreground">
+              {formattedCode}
             </p>
-            {/* Issue #502: the code stays reachable for parent requests as a
-                small secondary line when a display name leads. */}
-            {isNamed ? (
-              <p className="max-w-full text-[11px] leading-tight text-muted-foreground">
-                ({formattedCode})
-              </p>
-            ) : null}
+            {/* Issue #715: compact availability pill (slots left / available
+                now / currently full) — first badge in the column so intake
+                state reads before status/SEN/badges. */}
+            <TutorAvailabilityBadge tutor={tutor} />
             {/* Issues #77/#52: tutor status badge (uni student / full-part-time
                 / examiner) under the tutor code. Wraps to two lines for long
                 labels instead of ellipsizing. */}

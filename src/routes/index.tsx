@@ -31,6 +31,7 @@ import {
   fetchPublishedTutors,
   fetchTopWeeklyTutors,
   getTutorCardHighlights,
+  isTutorFullyBooked,
   type Tutor,
 } from "@/features/tutors/queries";
 import {
@@ -573,7 +574,13 @@ function Landing() {
       };
     };
     const eligible = rankTrending(
-      trendingCandidates.filter((candidate) => tutorById.has(candidate.tutor_id)),
+      // Issue #715: the trending row is a discovery carousel — full tutors
+      // (paused or 0 open slots) never surface, and the ≥3 cold-start guardrail
+      // keeps hiding the whole row when too few discoverable tutors remain.
+      trendingCandidates.filter((candidate) => {
+        const tutor = tutorById.get(candidate.tutor_id);
+        return tutor !== undefined && !isTutorFullyBooked(tutor);
+      }),
       qualityFor,
     ).filter((candidate) => candidate.popularity_score > 0);
     if (eligible.length < TRENDING_MIN_ELIGIBLE) return [];
@@ -595,6 +602,14 @@ function Landing() {
     });
   }, [publishedTutors, trendingCandidates]);
 
+  // Issue #715: discovery carousels exclude full tutors (paused or 0 open
+  // slots). Deliberately home-only — the /tutors browse grid and direct
+  // profile URLs keep every published tutor, they just badge them.
+  const discoverableTutors = useMemo(
+    () => publishedTutors.filter((tutor) => !isTutorFullyBooked(tutor)),
+    [publishedTutors],
+  );
+
   // Issue #485 Phase A: one card per home layout. The old per-category
   // tutorsForCategory() built every rail independently, so multi-tag tutors
   // repeated across Most Requested + IBDP + DSE. This single sequential
@@ -606,14 +621,14 @@ function Landing() {
   const curriculumRails = useMemo(
     () =>
       buildHomeCurriculumRails({
-        tutors: publishedTutors,
+        tutors: discoverableTutors,
         trendingTutorIds: trendingEntries.map((entry) => entry.tutor.id),
         categories: CURRICULUM_CATEGORIES.map(({ value }) => value),
         maxPerRail: MAX_HOME_TUTORS,
         day: hktDate(),
         highlightsFor: getTutorCardHighlights,
       }),
-    [publishedTutors, trendingEntries],
+    [discoverableTutors, trendingEntries],
   );
 
   // Education dropdown options = the distinct values that actually appear on
