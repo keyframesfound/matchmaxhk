@@ -1711,16 +1711,30 @@
     "sample_title": "示例导师档案",
     "sample_university": "香港大学",
     "subtitle": "加入 MatchMax 香港导师网络。填妥以下表格并上传成绩单，我哋会逐一审阅每份申请。",
-    "success_message": "你一提交，导师卡已即时在 MatchMax 上架，家长而家就可以找到你。最后一步：喺 WhatsApp 启用，等我哋团队可以就配对个案联络你。",
+    "success_message": "填一次，配对档案就齐备。你一提交，导师卡已即时上架，家长现在就能找到你。下面剩下的只是验证步骤，不用再填表。",
     "success_title": "你的导师卡已经上架",
-    "success_unpublished_message": "我哋已将今次申请配对到你现有的导师卡，张卡目前未上架。团队会审核并重新上架，一经处理就会透过 WhatsApp 通知你。最后一步：喺 WhatsApp 启用，等我哋团队可以就配对个案联络你。",
+    "success_unpublished_message": "我们已将今次申请配对到你现有的导师卡，张卡目前未上架。团队会审核并重新上架，一经处理就会透过 WhatsApp 通知你。下面的步骤只涉及验证。",
     "success_unpublished_title": "已收到你的申请",
     "terms_verification_1": "我哋会查核导师上传嘅文件，但唔会向IB、HKEAA或任何学校确认。",
     "terms_verification_2": "我哋唔会保证成绩、取录或教学成果。",
     "terms_verification_3": "徽章只涵盖卡片上显示嘅成绩，唔包括个人简介。",
     "terms_verification_4": "家长如果想看成绩纸，喺介绍之后直接向导师攞。MatchMax唔会发送任何身份证明文件。",
     "title": "申请成为 MatchMax 导师",
-    "view_live_card": "查看你的上架导师卡"
+    "view_live_card": "查看你的上架导师卡",
+    "account_email_hint": "你的 MatchMax 账户邮箱——导师卡和申请都绑定在它上面。",
+    "availability_title": "每周补习时间",
+    "availability_hint": "点一下格子循环切换：可补 → 部分时段可 → 不可补。匹配和家长都会用这个表，之后你可以在工作台随时调整。",
+    "capacity_title": "学额和偏好时段",
+    "error_availability": "请至少选一个可以补习的时段",
+    "availability_save_failed": "你的导师卡已上架，但时间表未能保存——请在工作台 → 可用时间设置。",
+    "next_steps_title": "下一步",
+    "next_step_1_title": "上传成绩单给职员审核",
+    "next_step_1_body": "在个人档案编辑器为卡片上的成绩上传证明。职员会逐一审核；至少一张获批后，卡片就会显示「已验证」徽章。",
+    "next_step_2_title": "完整验证 / 蓝勾（可选）",
+    "next_step_2_body": "之后可以再加身份和凭证核实升级蓝勾。没有蓝勾，卡片都已经可以使用和匹配。",
+    "next_step_3_title": "保持档案最新",
+    "whatsapp_title": "在 WhatsApp 打个招呼（建议）",
+    "whatsapp_message": "你的导师卡已经上架。开启对话可以让 MatchMax 专人团队在有家长配对时快速联络你——预填消息会带上你的申请编号。"
   },
   "legal": {
     "notes_terms": {
@@ -4679,7 +4693,9 @@
     "error_phone": "请输入有效电话号码。",
     "error_acks": "请勾选全部三项以发布。",
     "error_rate": "请输入 HK${{min}} 至 HK${{max}} 的时薪。",
-    "error_captcha": "未能载入安全检查，请刷新再试。"
+    "error_captcha": "未能载入安全检查，请刷新再试。",
+    "intake_title": "你的导师档案——一次填好",
+    "intake_desc": "一份完整表格，约五分钟：科目、成绩、成就、收费和每周时间表。提交后导师卡即时上架，之后只剩凭证验证。"
   },
   "profile_strength": {
     "title": "个人档案完整度",

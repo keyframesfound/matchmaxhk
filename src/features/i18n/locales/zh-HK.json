@@ -1711,16 +1711,30 @@
     "sample_title": "示例導師檔案",
     "sample_university": "香港大學",
     "subtitle": "加入 MatchMax 香港導師網絡。填妥以下表格並上載成績單，我哋會逐一審閱每份申請。",
-    "success_message": "你一提交，導師卡已即時在 MatchMax 上架，家長而家就可以搵到你。最後一步：喺 WhatsApp 啟用，等我哋團隊可以就配對個案聯絡你。",
+    "success_message": "填一次，配對檔案就齊備。你一提交，導師卡已即時上架，家長而家就搵到你。下面淨低嘅只係驗證步驟，唔使再填表。",
     "success_title": "你的導師卡已經上架",
-    "success_unpublished_message": "我哋已將今次申請配對到你現有的導師卡，張卡目前未上架。團隊會審核並重新上架，一經處理就會透過 WhatsApp 通知你。最後一步：喺 WhatsApp 啟用，等我哋團隊可以就配對個案聯絡你。",
+    "success_unpublished_message": "我哋已將今次申請配對到你現有的導師卡，張卡目前未上架。團隊會審核並重新上架，一經處理就會透過 WhatsApp 通知你。下面嘅步驟只涉及驗證。",
     "success_unpublished_title": "已收到你的申請",
     "terms_verification_1": "我哋會查核導師上載嘅文件，但唔會向IB、HKEAA或任何學校確認。",
     "terms_verification_2": "我哋唔會保證成績、取錄或教學成果。",
     "terms_verification_3": "徽章只涵蓋卡片上顯示嘅成績，唔包括個人簡介。",
     "terms_verification_4": "家長如果想看成績紙，喺介紹之後直接向導師攞。MatchMax唔會發送任何身份證明文件。",
     "title": "申請成為 MatchMax 導師",
-    "view_live_card": "查看你的上架導師卡"
+    "view_live_card": "查看你的上架導師卡",
+    "account_email_hint": "你嘅 MatchMax 帳戶電郵——導師卡同申請都綁定喺佢上面。",
+    "availability_title": "每週補習時間",
+    "availability_hint": "點一下格仔循環切換：可補 → 部分時段可 → 不可補。配對同家長都會用呢個表，之後你可以喺工作台隨時調整。",
+    "capacity_title": "學額同偏好時段",
+    "error_availability": "請至少揀一個可以補習嘅時段",
+    "availability_save_failed": "你的導師卡已上架，但時間表未能儲存——請喺工作台 → 可用時間設定。",
+    "next_steps_title": "下一步",
+    "next_step_1_title": "上載成績單俾職員審核",
+    "next_step_1_body": "喺個人檔案編輯器為卡片上嘅成績上載證明。職員會逐一審核；至少一張獲批後，卡片就會顯示「已驗證」徽章。",
+    "next_step_2_title": "完整驗證 / 藍剔（可選）",
+    "next_step_2_body": "之後可以再加身份同憑證核實升級藍剔。冇藍剔，張卡都已經可以用同配對。",
+    "next_step_3_title": "保持檔案最新",
+    "whatsapp_title": "喺 WhatsApp 打聲招呼（建議）",
+    "whatsapp_message": "你的導師卡已經上架。開啟對話可以令 MatchMax 專人團隊喺有家長配對時快速聯絡你——預填訊息會帶埋你嘅申請編號。"
   },
   "legal": {
     "notes_terms": {
@@ -4679,7 +4693,9 @@
     "error_phone": "請輸入有效電話號碼。",
     "error_acks": "請剔選全部三項以發佈。",
     "error_rate": "請輸入 HK${{min}} 至 HK${{max}} 的時薪。",
-    "error_captcha": "未能載入安全檢查，請重新整理再試。"
+    "error_captcha": "未能載入安全檢查，請重新整理再試。",
+    "intake_title": "你的導師檔案——一次填好",
+    "intake_desc": "一份完整表格，約五分鐘：科目、成績、成就、收費同每週時間表。提交後導師卡即時上架，之後只淨低憑證驗證。"
   },
   "profile_strength": {
     "title": "個人檔案完整度",

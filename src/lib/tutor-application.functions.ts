@@ -8,12 +8,9 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { referralSurfaceFor } from "@/features/legal/referral-surface";
 import { normalizeTutorRateRows } from "@/features/tutors/rates";
 import { buildTutorCardInsert, mappedCardContactError } from "@/lib/tutor-card-mapping";
-import {
-  activationSchema,
-  buildActivationApplication,
-  phoneIsValid,
-} from "@/features/tutor-application/activation";
+import { tutorApplicationSchema } from "@/lib/tutor-application.schema";
 import type { TutorApplication } from "./tutor-application.schema";
+import { phoneIsValid } from "@/features/tutor-application/activation";
 import type { Json } from "@/integrations/supabase/types";
 import { getRuntimeEnv } from "./runtime-env";
 
@@ -136,12 +133,6 @@ async function sendCardLiveEmail(params: {
   }
 }
 
-// Issue #122: pricing-recommender output contract.
-const suggestedRateSchema = z.object({
-  suggested_range: z.string().trim().min(1).max(60),
-  justification: z.string().trim().min(1).max(400),
-});
-
 type ExistingCard = { id: string; tutor_code: string; is_published: boolean | null };
 
 async function findExistingCard(userId: string, email: string): Promise<ExistingCard | null> {
@@ -220,60 +211,82 @@ async function verifyTurnstile(token: string): Promise<void> {
 }
 
 /**
- * Issue #576 Stage 2: the 60-second sheet publishes the card straight away.
- * The sheet is mapped to a stored application, so the #310 publish path, the
- * contact scans and the join-request archive all stay the single route to a
- * public card. The card then links to this account, enabling Teaching Mode.
+ * Issue #718: the full single-page intake is back as the tutor path at
+ * /join. One submission stores the whole application (matching data,
+ * grades, bio, availability answers) and publishes the card straight away
+ * through the SAME #310 path the 60-second sheet used, so the contact
+ * scans, the join-request archive and the post-submit verification flow
+ * all keep working unchanged. Availability answers ride along in the
+ * client after publish (owner-scoped RPCs) — see ApplicationForm.
  */
-export const activateTutorCard = createServerFn({ method: "POST" })
+export const submitTutorApplication = createServerFn({ method: "POST" })
+  // #214: the acceptance row references auth.users(id), so the submit must
+  // carry the applicant's session (the /join page sits behind the
+  // _authenticated layout, so this never blocks a legitimate applicant).
   .middleware([requireSupabaseAuth])
-  .inputValidator((input: unknown) => activationSchema.parse(input))
+  .inputValidator((input: unknown) => {
+    // #214: validate the terms gate FIRST so a missing/unchecked checkbox is
+    // rejected before any application field is even parsed.
+    TermsGateInput.parse(input);
+    return tutorApplicationSchema.parse(input);
+  })
   .handler(async ({ data, context }) => {
+    const { turnstileToken, ...application } = data;
+
+    // #522 age tier (defence in depth with complete_onboarding).
     await assertTutorAge(context.userId);
-    await verifyTurnstile(data.turnstileToken);
+    await verifyTurnstile(turnstileToken);
 
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: userResult, error: userError } = await supabaseAdmin.auth.admin.getUserById(
       context.userId,
     );
-    const email = userResult?.user?.email;
-    if (userError || !email) throw new Error("Your account has no email address.");
+    const accountEmail = userResult?.user?.email;
+    if (userError || !accountEmail) throw new Error("Your account has no email address.");
     const { data: profile } = await supabaseAdmin
       .from("profiles")
       .select("display_name, handle, phone")
       .eq("id", context.userId)
       .maybeSingle();
-    // A re-publish refreshes SEN and university columns from the payload, and this
-    // short sheet has none, so an existing card is linked and left untouched.
-    const existing = await findExistingCard(context.userId, email);
-    if (existing) {
-      await context.supabase.rpc("confirm_tutor_claim", { p_tutor_id: existing.id });
-      return {
-        ok: true as const,
-        applicationId: null,
-        tutorCode: existing.tutor_code,
-        tutorId: existing.id,
-        published: existing.is_published === true,
-        handle: profile?.handle ?? null,
-      };
-    }
 
-    const phone = profile?.phone?.trim() || data.phone;
-    if (!phoneIsValid(phone)) throw new Error("Enter a valid phone number.");
-    if (!profile?.phone) {
-      await supabaseAdmin.from("profiles").update({ phone }).eq("id", context.userId);
-    }
+    // The publish RPC keys the card's email lock and confirm_tutor_claim's
+    // match on the STORED application email, so the account email always
+    // wins over whatever the form carried (the form field is pre-filled
+    // read-only from the account).
+    const email = accountEmail.trim().toLowerCase();
 
-    const application = buildActivationApplication(data, {
+    // Issue #319: build the stored payload. The application row keeps the
+    // whole application as jsonb (`data`), so this mapping is what downstream
+    // readers (admin join-requests, staff desk) see:
+    // - hourlyRate (legacy, NOT NULL, still read by legacy surfaces) becomes
+    //   the card floor: Math.min of the two base rates (schema guarantees at
+    //   least one is set per the format rules).
+    // - onlineRate/inpersonRate are blanked when the format excludes them.
+    // - rateRows are stored as the normalized output (empty rows dropped,
+    //   half-filled rows already rejected by the schema).
+    // - travelNote is blanked unless the in-person rate is set.
+    const baseRates = [application.onlineRate, application.inpersonRate].filter(
+      (rate): rate is number => typeof rate === "number",
+    );
+    const normalizedRateRows = normalizeTutorRateRows(application.rateRows);
+    const storedApplication = {
+      ...application,
       email,
-      displayName: profile?.display_name?.trim() ?? "",
-      phone,
-    });
+      hourlyRate: baseRates.length > 0 ? String(Math.min(...baseRates)) : "",
+      onlineRate: application.format === "Face to face" ? null : application.onlineRate,
+      inpersonRate: application.format === "Online" ? null : application.inpersonRate,
+      rateRows: normalizedRateRows.ok ? normalizedRateRows.rows : [],
+      travelNote: application.format === "Online" ? "" : application.travelNote,
+    };
     const { storeTutorApplication } = await import("./tutor-application.server");
-    const { id } = await storeTutorApplication(application);
+    const { id } = await storeTutorApplication(storedApplication);
 
-    // Issue #214: the acceptance is fail-closed and recorded before publishing,
-    // so a card can never go live without one.
+    // Issue #214: record WHICH terms version the applicant accepted, tagged
+    // by how they arrived, through a referrer link (?ref=) the surface is
+    // referral_signup, otherwise plain signup. Recorded AFTER the application
+    // insert succeeds (subject_id = application id) and BEFORE the card is
+    // published; the insert is fail-closed, so an acceptance that was never
+    // recorded can never let a card go live.
     const { recordTermsAcceptance } = await import("@/features/legal/terms-acceptance.server");
     await recordTermsAcceptance({
       userId: context.userId,
@@ -281,20 +294,46 @@ export const activateTutorCard = createServerFn({ method: "POST" })
       subjectId: id,
     });
 
+    // Issue #310: publish the card immediately. Everything above this line
+    // (zod schema incl. the server-side contact filter on every field that
+    // maps onto the live card, Turnstile) has already gated the submission
+    // BEFORE the row was stored, so a card is only ever published from a
+    // fully valid application. publishTutorCardFromApplication scans the
+    // mapped text again and publishes inside one transaction; a second
+    // submit for the same email reuses (and refreshes) that card.
     const published = await publishTutorCardFromApplication(id);
 
-    // The application email is this account's email, so the claim's own check passes.
+    // The application email is this account's email, so the claim's own
+    // check passes and the card links to this account (Teaching Mode).
     const { error: claimError } = await context.supabase.rpc("confirm_tutor_claim", {
       p_tutor_id: published.tutorId,
     });
-    if (claimError) console.warn("[activate-tutor-card] claim failed:", claimError.message);
-    if (data.gender !== "prefer_not_to_say") {
+    if (claimError) console.warn("[submit-tutor-application] claim failed:", claimError.message);
+
+    // Issue #718: gender re-attached from the quick sheet; the card mapper
+    // has no gender column, so it lands directly on the card row.
+    if (application.gender !== "prefer_not_to_say") {
       const { error: genderError } = await supabaseAdmin
         .from("tutors")
-        .update({ gender: data.gender })
+        .update({ gender: application.gender })
         .eq("id", published.tutorId);
-      if (genderError) console.warn("[activate-tutor-card] gender failed:", genderError.message);
+      if (genderError)
+        console.warn("[submit-tutor-application] gender failed:", genderError.message);
     }
+
+    // Backfill the account phone from the intake answer (same as the quick
+    // sheet did); the onboarding gate normally collects it first.
+    const phone = profile?.phone?.trim() || application.phone;
+    if (phone && phoneIsValid(phone) && !profile?.phone) {
+      const { error: phoneError } = await supabaseAdmin
+        .from("profiles")
+        .update({ phone })
+        .eq("id", context.userId);
+      if (phoneError) console.warn("[submit-tutor-application] phone failed:", phoneError.message);
+    }
+
+    // Issue #358: a reused card that staff have since unpublished is NOT
+    // live, skip the "your card is live" email and say so in the result.
     if (published.published) {
       await sendCardLiveEmail({
         email: published.email,
@@ -302,6 +341,9 @@ export const activateTutorCard = createServerFn({ method: "POST" })
         tutorCode: published.tutorCode,
       });
     }
+
+    // Issue #189: the WhatsApp activation message names this reference so the
+    // team can match the chat thread to the stored application row.
     return {
       ok: true as const,
       applicationId: id,
