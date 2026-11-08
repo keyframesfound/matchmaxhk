@@ -374,6 +374,43 @@ function OrderPage() {
               </div>
             )}
 
+            {/* #709: the 48h/72h escrow-hold rule + held-funds refund boundary,
+                surfaced on the post-purchase order/download page (the amber
+                banner below is the order-specific countdown + early release). */}
+            {!isGig && ["delivered", "held"].includes(order.status) && (
+              <div className="space-y-2 rounded-2xl border border-border bg-card p-5">
+                <h2 className="flex items-center gap-2 text-base font-bold">
+                  <ShieldCheck className="h-4 w-4 text-success" aria-hidden />
+                  {t("orders.protection_title")}
+                </h2>
+                <p className="text-sm leading-relaxed text-muted-foreground">
+                  {t("orders.protection_body")}
+                </p>
+              </div>
+            )}
+            {/* #709: zero-CAC upsell — convert the Notes buyer into a 1-on-1
+                trial with the author via the normal match intake. Only the
+                public tutor code rides the URL; no contact data is exposed. */}
+            {!isGig &&
+              order.materialType === "notes" &&
+              order.action === "download" &&
+              order.authorTutorCode && (
+                <div className="space-y-3 rounded-2xl border border-border bg-[color:var(--surface-header)] p-5">
+                  <p className="text-sm leading-relaxed text-muted-foreground">
+                    {t("orders.trial_upsell_body", { code: order.authorTutorCode })}
+                  </p>
+                  <Button asChild variant="solid" color="blue" className="w-full font-bold">
+                    <Link
+                      to="/tutor-requests"
+                      search={{ post: true, tutor: order.authorTutorCode }}
+                    >
+                      <ShieldCheck className="mr-2 h-4 w-4" aria-hidden />
+                      {t("orders.trial_upsell_cta")}
+                    </Link>
+                  </Button>
+                </div>
+              )}
+
             {/* #429 escrow: while held, the payment is protected and can be
                 refunded in full from the held funds; the buyer can end the
                 hold early with Received / No issue. */}
