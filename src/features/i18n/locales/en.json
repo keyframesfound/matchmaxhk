@@ -4771,5 +4771,10 @@
     "referral_rule": "Your reward unlocks automatically when a referred user's first matched case settles the 1.5-lesson admin fee, then pays out with the Monday batch.",
     "insights_title": "Insights",
     "insights_note": "Profile and listing view counters are coming with the saved-content event layer. Earnings and referrals are live above."
+  },
+  "locale_suggestion": {
+    "prompt": "This page is also available in Chinese.",
+    "switch": "Switch",
+    "dismiss": "Keep English"
   }
 }

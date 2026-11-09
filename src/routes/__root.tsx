@@ -19,6 +19,7 @@ import { ThemeProvider } from "@/features/theme/ThemeProvider";
 import { DisplayCurrencyProvider } from "@/features/currency/display-currency-context";
 
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
+import { LocaleSuggestionBanner } from "@/components/layout/LocaleSuggestionBanner";
 import { ReferralCapture } from "@/components/layout/ReferralCapture";
 import { WhatsAppFloatButton } from "@/components/layout/WhatsAppFloatButton";
 import { CompareSelectionReset } from "@/features/cases/compare-cases";
@@ -208,6 +209,7 @@ function RootComponent() {
           <ReferralCapture />
           <DisplayCurrencyProvider>
             <ThemeProvider>
+              <LocaleSuggestionBanner />
               <AccountStatusBanners />
               <OnboardingGate>
                 <CommunityCommitmentGate>

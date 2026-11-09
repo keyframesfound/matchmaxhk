@@ -4771,5 +4771,10 @@
     "referral_rule": "当被推荐用户的首个配对个案完成 1.5 堂行政费结算后，奖励自动解锁，并随星期一批次发放。",
     "insights_title": "数据洞察",
     "insights_note": "个人档案及 listing 浏览计数将随收藏事件层推出。收益及推荐已于上方提供。"
+  },
+  "locale_suggestion": {
+    "prompt": "本页面提供简体中文版本。",
+    "switch": "切换至简体中文",
+    "dismiss": "继续使用英文"
   }
 }

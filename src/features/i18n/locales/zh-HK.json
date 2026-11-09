@@ -4771,5 +4771,10 @@
     "referral_rule": "當被推薦用戶嘅首個配對個案完成 1.5 堂行政費結算後，獎賞自動解鎖，並隨星期一批次發放。",
     "insights_title": "數據洞察",
     "insights_note": "個人檔案及 listing 瀏覽計數將隨收藏事件層推出。收益及推薦已於上方提供。"
+  },
+  "locale_suggestion": {
+    "prompt": "呢個網頁有繁體中文版本。",
+    "switch": "切換至繁體中文",
+    "dismiss": "繼續用英文"
   }
 }
