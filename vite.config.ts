@@ -41,6 +41,8 @@ function copyPdfjsAssets() {
 }
 
 export default defineConfig({
+  // Per-build id for the edge HTML cache key (src/lib/edge-html-cache.ts).
+  define: { __MM_BUILD_ID__: JSON.stringify(Date.now().toString(36)) },
   resolve: {
     alias: [
       // pdf-lib (server-side note watermark / stamping) imports tslib. Its

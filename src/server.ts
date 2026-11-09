@@ -4,6 +4,7 @@ import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { setRuntimeBindings } from "./lib/runtime-env";
 import { runWithRequestLocale } from "./features/i18n/request-locale.server";
+import { serveWithEdgeCache, type EdgeCache } from "./lib/edge-html-cache";
 import {
   buildLocalePath,
   parseLocalePath,
@@ -200,6 +201,34 @@ function personalLocaleRedirect(url: URL): Response {
   });
 }
 
+// Set per build by vite.config.ts `define`; keys the edge HTML cache so a
+// deploy never serves pages referencing the previous build's assets.
+declare const __MM_BUILD_ID__: string | undefined;
+const BUILD_ID = typeof __MM_BUILD_ID__ === "string" ? __MM_BUILD_ID__ : "dev";
+
+// Workers Cache API; absent in vite dev / Node and on *.workers.dev hosts
+// (where it is a silent no-op), so the cache simply never hits there.
+function getEdgeCache(): EdgeCache | null {
+  const store = (globalThis as { caches?: { default?: EdgeCache } }).caches?.default;
+  return store ?? null;
+}
+
+// Nitro's cloudflare-module preset calls this entry as fetch(request) and
+// hangs the Workers ctx.waitUntil on the request itself; a direct Workers
+// call passes it as the third argument. Accept either.
+type WaitUntilCarrier = { waitUntil?: (promise: Promise<unknown>) => void } | null | undefined;
+
+function getWaitUntil(
+  request: Request,
+  ctx: unknown,
+): ((promise: Promise<unknown>) => void) | null {
+  for (const carrier of [ctx as WaitUntilCarrier, request as unknown as WaitUntilCarrier]) {
+    const waitUntil = carrier?.waitUntil;
+    if (typeof waitUntil === "function") return waitUntil.bind(carrier);
+  }
+  return null;
+}
+
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
@@ -217,8 +246,14 @@ export default {
       }
 
       const handler = await getServerEntry();
-      const response = await runWithRequestLocale(request, () => handler.fetch(request, env, ctx));
-      return await normalizeCatastrophicSsrResponse(response);
+      const render = async () =>
+        normalizeCatastrophicSsrResponse(
+          await runWithRequestLocale(request, () => handler.fetch(request, env, ctx)),
+        );
+      const cache = getEdgeCache();
+      const waitUntil = getWaitUntil(request, ctx);
+      if (!cache || !waitUntil) return await render();
+      return await serveWithEdgeCache({ request, cache, buildId: BUILD_ID, render, waitUntil });
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {
