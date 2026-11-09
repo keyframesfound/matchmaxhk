@@ -4924,5 +4924,14 @@
   },
   "business": {
     "cap57_ack": "I confirm this request is for an independent contractor tutor (獨立導師) and does not involve employment, fixed staff duties, or employer-employee control under Cap. 57."
+  },
+  "tailored_notes": {
+    "tailored_for": "Tailored for:",
+    "for_child": "For {{name}} ({{curriculum}})",
+    "for_search": "For your search ({{value}})",
+    "all": "All Study Materials",
+    "recommended_title": "Recommended {{curriculum}} Materials for You",
+    "other_title": "Explore Other Curricula & Notes",
+    "empty_for": "No {{curriculum}} materials yet. Here are other study materials."
   }
 }

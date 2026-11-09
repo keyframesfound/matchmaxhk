@@ -225,3 +225,41 @@ function subscribe(callback: () => void) {
 export function useLearnerContext(): LearnerContext | null {
   return useSyncExternalStore(subscribe, snapshot, () => null);
 }
+
+// --- #700 Priority 3: recent search signals (guests and parents alike) ---
+
+const RECENT_KEY = "mm_recent_search_v1";
+
+export type RecentSearchSignals = { curriculum: string | null; subjects: string[] };
+
+/** Remember the curriculum / subjects of the latest tutor search this visit. */
+export function setRecentSearchSignals(signals: {
+  curriculum?: string | null;
+  subjects?: string[];
+}) {
+  if (typeof window === "undefined") return;
+  const curriculum = normalizeLearnerCurriculum(signals.curriculum ?? null);
+  const subjects = (signals.subjects ?? []).filter(Boolean).slice(0, 4);
+  if (!curriculum && subjects.length === 0) return;
+  try {
+    window.sessionStorage.setItem(RECENT_KEY, JSON.stringify({ curriculum, subjects }));
+  } catch {
+    // storage blocked: no carry-over this visit
+  }
+}
+
+export function readRecentSearchSignals(): RecentSearchSignals | null {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(RECENT_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<RecentSearchSignals>;
+    const curriculum = normalizeLearnerCurriculum(parsed.curriculum ?? null);
+    const subjects = Array.isArray(parsed.subjects)
+      ? parsed.subjects.filter((s): s is string => typeof s === "string").slice(0, 4)
+      : [];
+    return curriculum || subjects.length > 0 ? { curriculum, subjects } : null;
+  } catch {
+    return null;
+  }
+}

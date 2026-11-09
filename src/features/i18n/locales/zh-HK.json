@@ -4924,5 +4924,14 @@
   },
   "business": {
     "cap57_ack": "本人確認此轉介申請僅為尋找獨立導師（自僱性質），並不構成《僱傭條例》（第 57 章）下之僱傭關係、固定駐場職員職務或僱主控制。"
+  },
+  "tailored_notes": {
+    "tailored_for": "為以下學生推薦：",
+    "for_child": "適合 {{name}}（{{curriculum}}）",
+    "for_search": "按你的搜尋（{{value}}）",
+    "all": "所有教材",
+    "recommended_title": "為你推薦的 {{curriculum}} 教材",
+    "other_title": "探索其他課程教材及筆記",
+    "empty_for": "暫時未有 {{curriculum}} 教材，以下是其他教材。"
   }
 }
