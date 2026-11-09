@@ -8,7 +8,7 @@ import { createFileRoute, notFound, redirect } from "@tanstack/react-router";
 // /help/$category path has never been a page — keep the 404.
 const LEGACY_HELP_CATEGORY_REDIRECTS = new Set(["tutor-guide", "tutor-handbook"]);
 
-export const Route = createFileRoute("/help/$category")({
+export const Route = createFileRoute("/help/$category/")({
   beforeLoad: ({ params }) => {
     if (LEGACY_HELP_CATEGORY_REDIRECTS.has(params.category)) {
       throw redirect({ to: "/help", search: { audience: "tutors" }, statusCode: 301 });

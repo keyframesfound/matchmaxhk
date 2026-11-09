@@ -5067,5 +5067,10 @@
     "self_claim_error": "導師或中心管理員不能連結自己名單之家長帳戶。",
     "self_claim_note": "您不能連結自己名單的家長連結，請將連結發送給家長。",
     "preview_banner": "預覽模式：請將此連結發送予家長以完成綁定"
+  },
+  "locale_suggestion": {
+    "prompt": "呢個網頁有繁體中文版本。",
+    "switch": "切換至繁體中文",
+    "dismiss": "繼續用英文"
   }
 }

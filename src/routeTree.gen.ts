@@ -45,7 +45,6 @@ import { Route as GuideReferRouteImport } from './routes/guide.refer'
 import { Route as GuideTutorsRouteImport } from './routes/guide.tutors'
 import { Route as GuideVerificationRouteImport } from './routes/guide.verification'
 import { Route as HelpIndexRouteImport } from './routes/help.index'
-import { Route as HelpCategoryRouteImport } from './routes/help.$category'
 import { Route as LegalNotesTermsRouteImport } from './routes/legal.notes-terms'
 import { Route as NotesSlugRouteImport } from './routes/notes.$slug'
 import { Route as OrdersOrderIdRouteImport } from './routes/orders.$orderId'
@@ -84,6 +83,7 @@ import { Route as AuthenticatedBusinessTeamRouteImport } from './routes/_authent
 import { Route as AuthenticatedTutorRequestsIndexRouteImport } from './routes/_authenticated.tutor-requests.index'
 import { Route as AuthenticatedTutorRequestsCaseCodeRouteImport } from './routes/_authenticated.tutor-requests.$caseCode'
 import { Route as ApiTrustWaIngestRouteImport } from './routes/api/trust/wa-ingest'
+import { Route as HelpCategoryIndexRouteImport } from './routes/help.$category.index'
 import { Route as HelpCategorySlugRouteImport } from './routes/help.$category.$slug'
 import { Route as AuthenticatedAccountCasesCaseIdRouteImport } from './routes/_authenticated.account.cases.$caseId'
 import { Route as AuthenticatedAccountCoursesNewRouteImport } from './routes/_authenticated.account.courses.new'
@@ -277,11 +277,6 @@ const GuideVerificationRoute = GuideVerificationRouteImport.update({
 const HelpIndexRoute = HelpIndexRouteImport.update({
   id: '/help/',
   path: '/help/',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const HelpCategoryRoute = HelpCategoryRouteImport.update({
-  id: '/help/$category',
-  path: '/help/$category',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LegalNotesTermsRoute = LegalNotesTermsRouteImport.update({
@@ -499,10 +494,15 @@ const ApiTrustWaIngestRoute = ApiTrustWaIngestRouteImport.update({
   path: '/api/trust/wa-ingest',
   getParentRoute: () => rootRouteImport,
 } as any)
+const HelpCategoryIndexRoute = HelpCategoryIndexRouteImport.update({
+  id: '/help/$category/',
+  path: '/help/$category/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const HelpCategorySlugRoute = HelpCategorySlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => HelpCategoryRoute,
+  id: '/help/$category/$slug',
+  path: '/help/$category/$slug',
+  getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedAccountCasesCaseIdRoute =
   AuthenticatedAccountCasesCaseIdRouteImport.update({
@@ -614,7 +614,6 @@ export interface FileRoutesByFullPath {
   '/guide/refer': typeof GuideReferRoute
   '/guide/tutors': typeof GuideTutorsRoute
   '/guide/verification': typeof GuideVerificationRoute
-  '/help/$category': typeof HelpCategoryRouteWithChildren
   '/legal/notes-terms': typeof LegalNotesTermsRoute
   '/notes/$slug': typeof NotesSlugRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
@@ -657,6 +656,7 @@ export interface FileRoutesByFullPath {
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/business/': typeof AuthenticatedBusinessIndexRoute
   '/tutor-requests/': typeof AuthenticatedTutorRequestsIndexRoute
+  '/help/$category/': typeof HelpCategoryIndexRoute
   '/account/cases/$caseId': typeof AuthenticatedAccountCasesCaseIdRoute
   '/account/courses/new': typeof AuthenticatedAccountCoursesNewRoute
   '/account/folders/new': typeof AuthenticatedAccountFoldersNewRoute
@@ -703,7 +703,6 @@ export interface FileRoutesByTo {
   '/guide/refer': typeof GuideReferRoute
   '/guide/tutors': typeof GuideTutorsRoute
   '/guide/verification': typeof GuideVerificationRoute
-  '/help/$category': typeof HelpCategoryRouteWithChildren
   '/legal/notes-terms': typeof LegalNotesTermsRoute
   '/notes/$slug': typeof NotesSlugRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
@@ -746,6 +745,7 @@ export interface FileRoutesByTo {
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/business': typeof AuthenticatedBusinessIndexRoute
   '/tutor-requests': typeof AuthenticatedTutorRequestsIndexRoute
+  '/help/$category': typeof HelpCategoryIndexRoute
   '/account/cases/$caseId': typeof AuthenticatedAccountCasesCaseIdRoute
   '/account/courses/new': typeof AuthenticatedAccountCoursesNewRoute
   '/account/folders/new': typeof AuthenticatedAccountFoldersNewRoute
@@ -795,7 +795,6 @@ export interface FileRoutesById {
   '/guide/refer': typeof GuideReferRoute
   '/guide/tutors': typeof GuideTutorsRoute
   '/guide/verification': typeof GuideVerificationRoute
-  '/help/$category': typeof HelpCategoryRouteWithChildren
   '/legal/notes-terms': typeof LegalNotesTermsRoute
   '/notes/$slug': typeof NotesSlugRoute
   '/orders/$orderId': typeof OrdersOrderIdRoute
@@ -838,6 +837,7 @@ export interface FileRoutesById {
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/business/': typeof AuthenticatedBusinessIndexRoute
   '/_authenticated/tutor-requests/': typeof AuthenticatedTutorRequestsIndexRoute
+  '/help/$category/': typeof HelpCategoryIndexRoute
   '/_authenticated/account/cases/$caseId': typeof AuthenticatedAccountCasesCaseIdRoute
   '/_authenticated/account/courses/new': typeof AuthenticatedAccountCoursesNewRoute
   '/_authenticated/account/folders/new': typeof AuthenticatedAccountFoldersNewRoute
@@ -887,7 +887,6 @@ export interface FileRouteTypes {
     | '/guide/refer'
     | '/guide/tutors'
     | '/guide/verification'
-    | '/help/$category'
     | '/legal/notes-terms'
     | '/notes/$slug'
     | '/orders/$orderId'
@@ -930,6 +929,7 @@ export interface FileRouteTypes {
     | '/admin/'
     | '/business/'
     | '/tutor-requests/'
+    | '/help/$category/'
     | '/account/cases/$caseId'
     | '/account/courses/new'
     | '/account/folders/new'
@@ -976,7 +976,6 @@ export interface FileRouteTypes {
     | '/guide/refer'
     | '/guide/tutors'
     | '/guide/verification'
-    | '/help/$category'
     | '/legal/notes-terms'
     | '/notes/$slug'
     | '/orders/$orderId'
@@ -1019,6 +1018,7 @@ export interface FileRouteTypes {
     | '/admin'
     | '/business'
     | '/tutor-requests'
+    | '/help/$category'
     | '/account/cases/$caseId'
     | '/account/courses/new'
     | '/account/folders/new'
@@ -1067,7 +1067,6 @@ export interface FileRouteTypes {
     | '/guide/refer'
     | '/guide/tutors'
     | '/guide/verification'
-    | '/help/$category'
     | '/legal/notes-terms'
     | '/notes/$slug'
     | '/orders/$orderId'
@@ -1110,6 +1109,7 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/'
     | '/_authenticated/business/'
     | '/_authenticated/tutor-requests/'
+    | '/help/$category/'
     | '/_authenticated/account/cases/$caseId'
     | '/_authenticated/account/courses/new'
     | '/_authenticated/account/folders/new'
@@ -1151,7 +1151,6 @@ export interface RootRouteChildren {
   GuideReferRoute: typeof GuideReferRoute
   GuideTutorsRoute: typeof GuideTutorsRoute
   GuideVerificationRoute: typeof GuideVerificationRoute
-  HelpCategoryRoute: typeof HelpCategoryRouteWithChildren
   LegalNotesTermsRoute: typeof LegalNotesTermsRoute
   NotesSlugRoute: typeof NotesSlugRoute
   OrdersOrderIdRoute: typeof OrdersOrderIdRoute
@@ -1164,6 +1163,8 @@ export interface RootRouteChildren {
   HelpIndexRoute: typeof HelpIndexRoute
   TutorsIndexRoute: typeof TutorsIndexRoute
   ApiTrustWaIngestRoute: typeof ApiTrustWaIngestRoute
+  HelpCategorySlugRoute: typeof HelpCategorySlugRoute
+  HelpCategoryIndexRoute: typeof HelpCategoryIndexRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
   LovableEmailTransactionalPreviewRoute: typeof LovableEmailTransactionalPreviewRoute
@@ -1421,13 +1422,6 @@ declare module '@tanstack/react-router' {
       path: '/help'
       fullPath: '/help/'
       preLoaderRoute: typeof HelpIndexRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/help/$category': {
-      id: '/help/$category'
-      path: '/help/$category'
-      fullPath: '/help/$category'
-      preLoaderRoute: typeof HelpCategoryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/legal/notes-terms': {
@@ -1696,12 +1690,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiTrustWaIngestRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/help/$category/': {
+      id: '/help/$category/'
+      path: '/help/$category'
+      fullPath: '/help/$category/'
+      preLoaderRoute: typeof HelpCategoryIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/help/$category/$slug': {
       id: '/help/$category/$slug'
-      path: '/$slug'
+      path: '/help/$category/$slug'
       fullPath: '/help/$category/$slug'
       preLoaderRoute: typeof HelpCategorySlugRouteImport
-      parentRoute: typeof HelpCategoryRoute
+      parentRoute: typeof rootRouteImport
     }
     '/_authenticated/account/cases/$caseId': {
       id: '/_authenticated/account/cases/$caseId'
@@ -1936,18 +1937,6 @@ const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
   AuthenticatedRouteChildren,
 )
 
-interface HelpCategoryRouteChildren {
-  HelpCategorySlugRoute: typeof HelpCategorySlugRoute
-}
-
-const HelpCategoryRouteChildren: HelpCategoryRouteChildren = {
-  HelpCategorySlugRoute: HelpCategorySlugRoute,
-}
-
-const HelpCategoryRouteWithChildren = HelpCategoryRoute._addFileChildren(
-  HelpCategoryRouteChildren,
-)
-
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRoute: AuthenticatedRouteWithChildren,
@@ -1974,7 +1963,6 @@ const rootRouteChildren: RootRouteChildren = {
   GuideReferRoute: GuideReferRoute,
   GuideTutorsRoute: GuideTutorsRoute,
   GuideVerificationRoute: GuideVerificationRoute,
-  HelpCategoryRoute: HelpCategoryRouteWithChildren,
   LegalNotesTermsRoute: LegalNotesTermsRoute,
   NotesSlugRoute: NotesSlugRoute,
   OrdersOrderIdRoute: OrdersOrderIdRoute,
@@ -1987,6 +1975,8 @@ const rootRouteChildren: RootRouteChildren = {
   HelpIndexRoute: HelpIndexRoute,
   TutorsIndexRoute: TutorsIndexRoute,
   ApiTrustWaIngestRoute: ApiTrustWaIngestRoute,
+  HelpCategorySlugRoute: HelpCategorySlugRoute,
+  HelpCategoryIndexRoute: HelpCategoryIndexRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
   LovableEmailTransactionalPreviewRoute: LovableEmailTransactionalPreviewRoute,

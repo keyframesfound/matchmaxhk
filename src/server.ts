@@ -3,10 +3,12 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { setRuntimeBindings } from "./lib/runtime-env";
+import { runWithRequestLocale } from "./features/i18n/request-locale.server";
+import { serveWithEdgeCache, type EdgeCache } from "./lib/edge-html-cache";
 import {
   buildLocalePath,
   parseLocalePath,
-  resolvePreferredLocaleForRequest,
+  resolveLocaleGateTarget,
   segmentOfLocale,
 } from "./features/i18n/routing";
 
@@ -119,12 +121,14 @@ function getCanonicalRedirect(request: Request): Response | null {
   return Response.redirect(url.toString(), 308);
 }
 
-// Locale URL prefixes (/en, /zh) — 2026-10-25. Prefixed page URLs pass
+// Locale URL prefixes (/en, /zh, /cn) — 2026-10-25. Prefixed page URLs pass
 // through (the router's rewrite pair strips the segment for matching);
-// everything else page-like gets redirected to the visitor's preferred
-// locale: saved choice cookie → ?hl= override → Accept-Language → English.
-// 307 + no-store, never 308: the target varies per visitor, so it must not
-// be permanently cached.
+// everything else page-like gets redirected to a locale: ?hl= override →
+// saved choice cookie → English.
+// 2026-11-09 SEO fix: cookieless requests (every crawler) get a permanent 301,
+// so Google consolidates the old bare URLs onto /en instead of keeping both
+// (a 307 told it the bare URL was still the real page). Only the cookie leg
+// varies per visitor, so it alone stays 307 + no-store.
 const LOCALE_GATE_BYPASS_PREFIXES = ["/_", "/lovable"];
 
 function looksLikeFilePath(pathname: string): boolean {
@@ -141,12 +145,12 @@ function getLocaleRedirect(request: Request): Response | null {
   // Legacy full-tag prefix: /zh-HK/... → /zh/...
   if (/^\/zh-hk(?=\/|$)/i.test(pathname)) {
     url.pathname = `/zh${pathname.slice("/zh-HK".length) || ""}`;
-    return localeRedirectResponse(url);
+    return permanentLocaleRedirect(url);
   }
   // Full-tag Simplified prefix: /zh-CN/... → /cn/...
   if (/^\/zh-cn(?=\/|$)/i.test(pathname)) {
     url.pathname = `/cn${pathname.slice("/zh-CN".length) || ""}`;
-    return localeRedirectResponse(url);
+    return permanentLocaleRedirect(url);
   }
 
   const parsed = parseLocalePath(pathname);
@@ -157,7 +161,7 @@ function getLocaleRedirect(request: Request): Response | null {
     const dup = /^\/(en|zh|cn)(?=\/|$)/i.exec(parsed.rest);
     if (dup) {
       url.pathname = `/${parsed.segment}${parsed.rest.slice(dup[0].length) || "/"}`;
-      return localeRedirectResponse(url);
+      return permanentLocaleRedirect(url);
     }
     return null;
   }
@@ -168,25 +172,61 @@ function getLocaleRedirect(request: Request): Response | null {
   const upper = /^\/(en|zh|cn)(?=\/|$)/i.exec(pathname);
   if (upper) {
     url.pathname = `/${upper[1].toLowerCase()}${pathname.slice(upper[0].length) || ""}`;
-    return localeRedirectResponse(url);
+    return permanentLocaleRedirect(url);
   }
 
   if (LOCALE_GATE_BYPASS_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return null;
   if (looksLikeFilePath(pathname)) return null;
 
-  const segment = segmentOfLocale(resolvePreferredLocaleForRequest(request));
-  url.pathname = buildLocalePath(segment, pathname);
-  return localeRedirectResponse(url);
+  const { locale, personal } = resolveLocaleGateTarget(request);
+  url.pathname = buildLocalePath(segmentOfLocale(locale), pathname);
+  return personal ? personalLocaleRedirect(url) : permanentLocaleRedirect(url);
 }
 
-// 307 + no-store, never 308: the target varies per visitor, so it must not
-// be permanently cached. Relative Location: immune to host/port
-// reconstruction behind proxies.
-function localeRedirectResponse(url: URL): Response {
+// Relative Location: immune to host/port reconstruction behind proxies.
+// The short max-age keeps a future URL change from being pinned in browsers
+// forever; Google reads permanence from the status code, not the cache.
+function permanentLocaleRedirect(url: URL): Response {
+  return new Response(null, {
+    status: 301,
+    headers: { Location: url.pathname + url.search, "Cache-Control": "public, max-age=3600" },
+  });
+}
+
+// Cookie-chosen locale: varies per visitor, so it must not be cached.
+function personalLocaleRedirect(url: URL): Response {
   return new Response(null, {
     status: 307,
     headers: { Location: url.pathname + url.search, "Cache-Control": "no-store" },
   });
+}
+
+// Set per build by vite.config.ts `define`; keys the edge HTML cache so a
+// deploy never serves pages referencing the previous build's assets.
+declare const __MM_BUILD_ID__: string | undefined;
+const BUILD_ID = typeof __MM_BUILD_ID__ === "string" ? __MM_BUILD_ID__ : "dev";
+
+// Workers Cache API; absent in vite dev / Node and on *.workers.dev hosts
+// (where it is a silent no-op), so the cache simply never hits there.
+function getEdgeCache(): EdgeCache | null {
+  const store = (globalThis as { caches?: { default?: EdgeCache } }).caches?.default;
+  return store ?? null;
+}
+
+// Nitro's cloudflare-module preset calls this entry as fetch(request) and
+// hangs the Workers ctx.waitUntil on the request itself; a direct Workers
+// call passes it as the third argument. Accept either.
+type WaitUntilCarrier = { waitUntil?: (promise: Promise<unknown>) => void } | null | undefined;
+
+function getWaitUntil(
+  request: Request,
+  ctx: unknown,
+): ((promise: Promise<unknown>) => void) | null {
+  for (const carrier of [ctx as WaitUntilCarrier, request as unknown as WaitUntilCarrier]) {
+    const waitUntil = carrier?.waitUntil;
+    if (typeof waitUntil === "function") return waitUntil.bind(carrier);
+  }
+  return null;
 }
 
 export default {
@@ -206,8 +246,14 @@ export default {
       }
 
       const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
-      return await normalizeCatastrophicSsrResponse(response);
+      const render = async () =>
+        normalizeCatastrophicSsrResponse(
+          await runWithRequestLocale(request, () => handler.fetch(request, env, ctx)),
+        );
+      const cache = getEdgeCache();
+      const waitUntil = getWaitUntil(request, ctx);
+      if (!cache || !waitUntil) return await render();
+      return await serveWithEdgeCache({ request, cache, buildId: BUILD_ID, render, waitUntil });
     } catch (error) {
       console.error(error);
       return new Response(renderErrorPage(), {

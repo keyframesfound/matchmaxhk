@@ -187,3 +187,8 @@ export function hreflangLinks(
     { rel: "alternate", hrefLang: "x-default", href: canonicalUrl(path, "en") },
   ];
 }
+
+/** Self-canonical + hreflang alternates: the head links every indexable page needs. */
+export function localeLinks(path: string): { rel: string; hrefLang?: string; href: string }[] {
+  return [{ rel: "canonical", href: canonicalUrl(path) }, ...hreflangLinks(path)];
+}

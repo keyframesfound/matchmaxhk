@@ -80,17 +80,24 @@ export function urlLocaleFromWindow(): SeoLocale | null {
 
 let activeUrlLocale: SeoLocale = urlLocaleFromWindow() ?? "en";
 
+// Server-only per-request source, installed by request-locale.server.ts.
+// Kept as an injected callback so this shared module never imports
+// node:async_hooks into the client bundle.
+let requestLocaleResolver: (() => SeoLocale | null | undefined) | null = null;
+
+export function setRequestLocaleResolver(resolver: () => SeoLocale | null | undefined): void {
+  requestLocaleResolver = resolver;
+}
+
 /**
- * The locale of the URL the router is currently rendering. Set by the rewrite
- * input (per request/navigation) and seeded from window at module load.
- *
- * SSR caveat: this is module-scoped, so two interleaved requests with
- * different locales can transiently read each other's value in head() meta.
- * Rendered link hrefs do NOT share this problem — they use the per-router
- * closure segment in router.tsx.
+ * The locale of the URL the router is currently rendering. On the server the
+ * per-request store wins: the module-scoped value below is shared by every
+ * request in the isolate, so interleaved SSR requests used to read each
+ * other's locale in head() meta (wrong canonical/og:url under crawl bursts).
+ * On the client the module value is set by the rewrite input per navigation.
  */
 export function getActiveUrlLocale(): SeoLocale {
-  return activeUrlLocale;
+  return requestLocaleResolver?.() ?? activeUrlLocale;
 }
 
 export function setActiveUrlLocale(locale: SeoLocale): void {
@@ -110,44 +117,23 @@ function cookieLocaleFromHeader(cookieHeader: string | null): SeoLocale | null {
 }
 
 /**
- * Accept-Language mapping mirrors navigatorLocale() in seo.ts: HK/TW/MO/
- * generic-zh browsers → zh-HK; mainland (zh-CN/zh-SG) stays English. A bare
- * "zh" fallback tag AFTER a mainland tag must not flip to zh-HK (mainland
- * Chrome sends "zh-CN,zh;q=0.9,en;q=0.8"), so a seen mainland tag wins.
+ * Where the / → /en|/zh|/cn gate in server.ts sends an unprefixed page URL.
+ * ?hl= shareable override → saved choice (cookie) → English. Accept-Language
+ * is deliberately ignored (2026-11-09 SEO fix): an unprefixed URL must
+ * resolve the same way for every cookieless client, so crawlers see one
+ * stable, permanent redirect instead of a per-visitor 307. ?hl must beat the
+ * cookie so a shared /pricing?hl=en link overrides the visitor's saved
+ * preference (the client-side readPreferredLocale() in seo.ts uses the same
+ * order). `personal` marks a cookie-driven target that must not be cached.
  */
-function acceptLanguageLocale(header: string | null): SeoLocale {
-  if (!header) return "en";
-  let mainlandSeen = false;
-  for (const raw of header.split(",")) {
-    // Strip the ;q= quality parameter before matching ("zh;q=0.9" is a
-    // bare zh tag).
-    const tag = raw.trim().toLowerCase().split(";")[0].trim();
-    if (!tag) continue;
-    if (tag.startsWith("zh")) {
-      if (tag.startsWith("zh-cn") || tag.startsWith("zh-sg")) {
-        mainlandSeen = true;
-        continue;
-      }
-      if (tag === "zh" && mainlandSeen) continue;
-      return "zh-HK";
-    }
-    if (tag.startsWith("en")) return "en";
-  }
-  return "en";
-}
-
-/**
- * Locale an unprefixed page URL should redirect to, for the / → /en|/zh gate
- * in server.ts: ?hl= shareable override → saved choice (cookie) →
- * Accept-Language soft default → English. ?hl must beat the cookie so a
- * shared /pricing?hl=en link overrides the visitor's saved preference (the
- * client-side readPreferredLocale() in seo.ts uses the same order).
- */
-export function resolvePreferredLocaleForRequest(request: Request): SeoLocale {
+export function resolveLocaleGateTarget(request: Request): {
+  locale: SeoLocale;
+  personal: boolean;
+} {
   const url = new URL(request.url);
   const hl = url.searchParams.get("hl");
-  if (isSupportedLocaleValue(hl)) return hl;
+  if (isSupportedLocaleValue(hl)) return { locale: hl, personal: false };
   const cookie = cookieLocaleFromHeader(request.headers.get("cookie"));
-  if (cookie) return cookie;
-  return acceptLanguageLocale(request.headers.get("accept-language"));
+  if (cookie) return { locale: cookie, personal: true };
+  return { locale: "en", personal: false };
 }

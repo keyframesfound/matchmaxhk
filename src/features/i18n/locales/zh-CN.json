@@ -5067,5 +5067,10 @@
     "self_claim_error": "导师或中心管理员不能连结自己名单之家长帐户。",
     "self_claim_note": "您不能连结自己名单的家长连结，请将连结发送给家长。",
     "preview_banner": "预览模式：请将此连结发送予家长以完成绑定"
+  },
+  "locale_suggestion": {
+    "prompt": "本页面提供简体中文版本。",
+    "switch": "切换至简体中文",
+    "dismiss": "继续使用英文"
   }
 }

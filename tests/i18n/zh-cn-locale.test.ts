@@ -4,7 +4,7 @@ import {
   buildLocalePath,
   localeOfSegment,
   parseLocalePath,
-  resolvePreferredLocaleForRequest,
+  resolveLocaleGateTarget,
   segmentOfLocale,
 } from "../../src/features/i18n/routing";
 import { nextLocaleInCycle, normalizeLocale, pickCopy } from "../../src/features/i18n/seo";
@@ -37,15 +37,15 @@ describe("Simplified Chinese locale (/cn)", () => {
     const request = new Request("https://matchmax.hk/tutors", {
       headers: { "accept-language": "zh-CN,zh;q=0.9,en;q=0.8" },
     });
-    expect(resolvePreferredLocaleForRequest(request)).toBe("en");
+    expect(resolveLocaleGateTarget(request).locale).toBe("en");
   });
 
   it("honours an explicit Simplified choice (cookie or ?hl=)", () => {
     const viaCookie = new Request("https://matchmax.hk/tutors", {
       headers: { cookie: "matchmax.locale=zh-CN" },
     });
-    expect(resolvePreferredLocaleForRequest(viaCookie)).toBe("zh-CN");
-    expect(resolvePreferredLocaleForRequest(new Request("https://matchmax.hk/?hl=zh-CN"))).toBe(
+    expect(resolveLocaleGateTarget(viaCookie).locale).toBe("zh-CN");
+    expect(resolveLocaleGateTarget(new Request("https://matchmax.hk/?hl=zh-CN")).locale).toBe(
       "zh-CN",
     );
   });

@@ -1,4 +1,8 @@
 # https://matchmax.hk/robots.txt
+#
+# Only private app areas are blocked. Retired / coming-soon pages (/courses,
+# /pricing, /cases, /business) are deliberately NOT blocked: Google must be
+# able to crawl them to see their 404 or noindex and drop them from the index.
 
 User-agent: *
 Allow: /
@@ -8,30 +12,24 @@ Disallow: /dashboard
 Disallow: /auth
 Disallow: /my-cases
 Disallow: /post-case
-Disallow: /cases
-Disallow: /courses
-Disallow: /business
-Disallow: /pricing
 Disallow: /lovable/
 Disallow: /en/admin
 Disallow: /zh/admin
+Disallow: /cn/admin
 Disallow: /en/dashboard
 Disallow: /zh/dashboard
+Disallow: /cn/dashboard
 Disallow: /en/auth
 Disallow: /zh/auth
+Disallow: /cn/auth
 Disallow: /en/my-cases
 Disallow: /zh/my-cases
+Disallow: /cn/my-cases
 Disallow: /en/post-case
 Disallow: /zh/post-case
-Disallow: /en/cases
-Disallow: /zh/cases
-Disallow: /en/courses
-Disallow: /zh/courses
-Disallow: /en/business
-Disallow: /zh/business
-Disallow: /en/pricing
-Disallow: /zh/pricing
+Disallow: /cn/post-case
 Disallow: /en/lovable/
 Disallow: /zh/lovable/
+Disallow: /cn/lovable/
 
 Sitemap: https://matchmax.hk/sitemap.xml

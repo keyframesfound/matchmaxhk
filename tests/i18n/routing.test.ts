@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   buildLocalePath,
   parseLocalePath,
-  resolvePreferredLocaleForRequest,
+  resolveLocaleGateTarget,
   segmentOfLocale,
   stripLocalePrefix,
 } from "../../src/features/i18n/routing";
@@ -44,55 +44,39 @@ describe("parseLocalePath / buildLocalePath round-trip", () => {
   });
 });
 
-describe("resolvePreferredLocaleForRequest (the server 307 gate)", () => {
+describe("resolveLocaleGateTarget (the server / → /en|/zh|/cn gate)", () => {
   it("?hl= overrides the saved cookie (shareable links stay shareable)", () => {
-    const res = resolvePreferredLocaleForRequest(
-      request("/pricing?hl=en", { cookie: "matchmax.locale=zh-HK" }),
-    );
-    expect(res).toBe("en");
-  });
-
-  it("falls back to the cookie when no ?hl=", () => {
     expect(
-      resolvePreferredLocaleForRequest(request("/pricing", { cookie: "matchmax.locale=zh-HK" })),
-    ).toBe("zh-HK");
+      resolveLocaleGateTarget(request("/pricing?hl=en", { cookie: "matchmax.locale=zh-HK" })),
+    ).toEqual({ locale: "en", personal: false });
   });
 
-  it("mainland Chrome (zh-CN + bare zh fallback) stays English", () => {
-    // Mainland Chrome sends exactly this shape; the bare zh fallback tag
-    // must not flip the result to zh-HK.
+  it("an explicit ?hl= is a stable, cacheable target", () => {
+    expect(resolveLocaleGateTarget(request("/?hl=zh-HK"))).toEqual({
+      locale: "zh-HK",
+      personal: false,
+    });
+  });
+
+  it("falls back to the saved cookie, marked personal so it is never cached", () => {
     expect(
-      resolvePreferredLocaleForRequest(
-        request("/", { "accept-language": "zh-CN,zh;q=0.9,en;q=0.8" }),
-      ),
-    ).toBe("en");
-    expect(
-      resolvePreferredLocaleForRequest(request("/", { "accept-language": "zh-SG,zh;q=0.9" })),
-    ).toBe("en");
+      resolveLocaleGateTarget(request("/pricing", { cookie: "matchmax.locale=zh-CN" })),
+    ).toEqual({ locale: "zh-CN", personal: true });
   });
 
-  it("HK/TW/MO/generic-zh browsers get zh-HK", () => {
-    expect(resolvePreferredLocaleForRequest(request("/", { "accept-language": "zh-HK,zh" }))).toBe(
-      "zh-HK",
-    );
-    expect(resolvePreferredLocaleForRequest(request("/", { "accept-language": "zh-TW" }))).toBe(
-      "zh-HK",
-    );
-    expect(resolvePreferredLocaleForRequest(request("/", { "accept-language": "zh" }))).toBe(
-      "zh-HK",
-    );
+  it("ignores Accept-Language so every cookieless client (crawlers) gets the same target", () => {
+    for (const acceptLanguage of ["zh-HK,zh", "zh-TW", "zh-CN,zh;q=0.9", "en-US,en"]) {
+      expect(
+        resolveLocaleGateTarget(request("/tutors", { "accept-language": acceptLanguage })),
+      ).toEqual({ locale: "en", personal: false });
+    }
+    expect(resolveLocaleGateTarget(request("/"))).toEqual({ locale: "en", personal: false });
   });
 
-  it("English browsers and headerless bots stay English", () => {
-    expect(resolvePreferredLocaleForRequest(request("/", { "accept-language": "en-US,en" }))).toBe(
-      "en",
-    );
-    expect(resolvePreferredLocaleForRequest(request("/"))).toBe("en");
-  });
-
-  it("an explicit ?hl= wins even over a conflicting Accept-Language", () => {
-    expect(
-      resolvePreferredLocaleForRequest(request("/?hl=zh-HK", { "accept-language": "en-US" })),
-    ).toBe("zh-HK");
+  it("ignores an unsupported cookie value", () => {
+    expect(resolveLocaleGateTarget(request("/", { cookie: "matchmax.locale=fr" }))).toEqual({
+      locale: "en",
+      personal: false,
+    });
   });
 });

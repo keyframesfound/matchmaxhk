@@ -19,7 +19,7 @@ import {
 } from "@/features/help/content";
 import { cn } from "@/lib/utils";
 
-import { canonicalUrl } from "@/features/i18n/seo";
+import { canonicalUrl, localeLinks } from "@/features/i18n/seo";
 export const Route = createFileRoute("/help/")({
   // `q` prefills the search box when arriving from a sub-header search on a
   // topic/article page (issue #500: persistent Help search), so the index
@@ -63,6 +63,7 @@ export const Route = createFileRoute("/help/")({
       },
       { property: "og:url", content: canonicalUrl("/help") },
     ],
+    links: localeLinks("/help"),
   }),
   component: HelpCentrePage,
 });

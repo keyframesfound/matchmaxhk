@@ -5067,5 +5067,10 @@
     "self_claim_error": "Educators cannot claim a parent link for their own roster.",
     "self_claim_note": "You cannot claim a parent link for your own roster. Send the link to the parent.",
     "preview_banner": "Preview Mode: Send this link to the parent to claim"
+  },
+  "locale_suggestion": {
+    "prompt": "This page is also available in Chinese.",
+    "switch": "Switch",
+    "dismiss": "Keep English"
   }
 }

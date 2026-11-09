@@ -8,6 +8,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { useAuth } from "@/features/auth/useAuth";
+import { canonicalUrl, localeLinks } from "@/features/i18n/seo";
 import { JoinChooser } from "@/features/tutor-application/join-chooser";
 import { ApplicationForm } from "@/features/tutor-application/ApplicationForm";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,10 +36,10 @@ export const Route = createFileRoute("/_authenticated/join")({
           "Fill one complete tutor intake — matching data, grades, bio and availability — publish your card, sell study notes, or partner with MatchMax as a tutoring centre in Hong Kong.",
       },
       { property: "og:type", content: "website" },
-      { property: "og:url", content: "https://matchmax.hk/join" },
+      { property: "og:url", content: canonicalUrl("/join") },
       { name: "twitter:card", content: "summary_large_image" },
     ],
-    links: [{ rel: "canonical", href: "https://matchmax.hk/join" }],
+    links: localeLinks("/join"),
   }),
   component: JoinPage,
 });
