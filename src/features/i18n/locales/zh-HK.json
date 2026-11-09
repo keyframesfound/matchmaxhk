@@ -3550,7 +3550,15 @@
     "nf_group_ratings": "評分",
     "nf_group_account": "帳戶",
     "bell_connect_request": "新的夥伴連結邀請",
-    "bell_connect_accepted": "夥伴連結邀請已接受"
+    "bell_connect_accepted": "夥伴連結邀請已接受",
+    "nf_sample_schedule_updated": "「{{caseTitle}}」時間表已更新",
+    "nf_sample_rating_prompt": "為同 {{tutor}} 嘅課堂評分",
+    "nf_sample_statement_paid": "{{name}} 已將 {{month}} 學費標記為已付",
+    "nf_sample_request_accepted": "{{tutor}} 已接受你的申請",
+    "nf_wa_copy": "複製 WhatsApp 摘要",
+    "nf_wa_v1_hint": "V1 · 中英對照，即貼即用",
+    "nf_wa_copied": "WhatsApp 摘要已複製",
+    "nf_wa_copy_failed": "複製失敗，請再試一次"
   },
   "cv": {
     "title": "學習履歷及成績檔案",

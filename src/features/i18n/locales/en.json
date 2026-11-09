@@ -3550,7 +3550,15 @@
     "nf_group_ratings": "Ratings",
     "nf_group_account": "Account",
     "bell_connect_request": "New connect request",
-    "bell_connect_accepted": "Connect request accepted"
+    "bell_connect_accepted": "Connect request accepted",
+    "nf_sample_schedule_updated": "Schedule updated on {{caseTitle}}",
+    "nf_sample_rating_prompt": "Rate your lesson with {{tutor}}",
+    "nf_sample_statement_paid": "{{name}} marked tuition paid for {{month}}",
+    "nf_sample_request_accepted": "{{tutor}} accepted your request",
+    "nf_wa_copy": "Copy WhatsApp summary",
+    "nf_wa_v1_hint": "V1 · bilingual, paste-ready",
+    "nf_wa_copied": "WhatsApp summary copied",
+    "nf_wa_copy_failed": "Copy failed — try again"
   },
   "cv": {
     "title": "Education CV & Academic Records",

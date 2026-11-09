@@ -7,13 +7,16 @@ import {
   CalendarClock,
   CheckCheck,
   GraduationCap,
+  MessageCircle,
   Package,
   Star,
   Users,
   Wallet,
 } from "lucide-react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import i18n from "@/features/i18n/config";
+import { toast } from "sonner";
 
 import {
   DropdownMenu,
@@ -25,94 +28,54 @@ import { BellDot } from "@/components/layout/bell-dot";
 import { useBellQuery } from "@/components/layout/use-bell-query";
 import { markNotificationsRead, type BellItem } from "@/features/cases/bus.functions";
 import { completeMyAction, dismissMyAction } from "@/features/cases/action-required.functions";
+import { bellGroup, bellIcon, bellLabel, type BellGroup } from "@/features/cases/bell-view";
+import { buildWaSummary, waSummaryTimestamp } from "@/features/cases/wa-summary";
 import { cn } from "@/lib/utils";
 
-function bellIcon(eventType: string) {
-  if (eventType === "note_order.delivered") return Package;
-  if (eventType === "review.published" || eventType === "lesson.review_prompt") return Star;
-  if (eventType === "lesson.reminder_due") return CalendarClock;
-  if (eventType === "experience.session_logged") return GraduationCap;
-  // #617 Tutor Connect: requests and acceptances share the people icon.
-  if (eventType === "connect.request" || eventType === "connect.accepted") return Users;
-  if (eventType === "case.end_requested_by_parent" || eventType === "case.end_requested_by_tutor")
-    return CheckCheck;
-  if (eventType.startsWith("admin_fee")) return Wallet;
-  // #561/#542 action-class items carry the attention icon.
-  if (
-    eventType.startsWith("action.") ||
-    eventType.startsWith("verification.") ||
-    eventType === "case.lead_new" ||
-    eventType.startsWith("intro.shared") ||
-    eventType === "material.rejected" ||
-    eventType === "content.rejected" ||
-    eventType === "report.filed"
-  )
-    return AlertCircle;
-  return Bell;
+/** HKT clock stamp for the WA digest lines ("6 Nov, 16:00" / "11月6日 16:00"). */
+function hktWhen(iso: string): { en: string; zh: string } {
+  const at = new Date(iso);
+  if (Number.isNaN(at.getTime())) return { en: "", zh: "" };
+  const en = new Intl.DateTimeFormat("en-HK", {
+    timeZone: "Asia/Hong_Kong",
+    day: "numeric",
+    month: "short",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(at);
+  const zh = new Intl.DateTimeFormat("zh-HK", {
+    timeZone: "Asia/Hong_Kong",
+    day: "numeric",
+    month: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(at);
+  return { en, zh };
 }
 
-export function bellLabelKey(item: BellItem): string {
-  switch (item.event_type) {
-    case "note_order.draft_needed":
-      return "sor.bell_draft_needed";
-    case "note_order.delivered":
-      return item.role_hint === "tutor" ? "sor.bell_note_sold" : "sor.bell_order_delivered";
-    case "review.published":
-      return "sor.bell_new_review";
-    case "lesson.review_prompt":
-      return "sor.bell_review_prompt";
-    case "lesson.reminder_due":
-      return "sor.bell_lesson_tomorrow";
-    case "experience.session_logged":
-      return "sor.bell_session_logged";
-    case "case.end_requested_by_parent":
-      return "sor.bell_case_end_by_parent";
-    case "case.end_requested_by_tutor":
-      return "sor.bell_case_end_by_tutor";
-    case "admin_fee.invoiced":
-      return "sor.bell_fee_due";
-    case "admin_fee.unpaid":
-      return "sor.bell_fee_unpaid";
-    case "admin_fee.digest":
-      return "sor.bell_unpaid_digest";
-    // #542 V1 triggers + #561 action scenarios.
-    case "case.lead_new":
-      return "sor.bell_lead_new";
-    case "case.match_alert":
-      return "sor.bell_case_match";
-    case "case.already_taken":
-      return "sor.bell_case_taken";
-    case "case.match_waves_exhausted":
-      return "sor.bell_waves_exhausted";
-    case "case.demand_side_updated":
-      return "sor.bell_demand_side";
-    case "intro.shared_parent":
-      return "sor.bell_intro_parent";
-    case "intro.shared_tutor":
-      return "sor.bell_intro_tutor";
-    case "verification.approved":
-      return "sor.bell_verify_approved";
-    case "verification.rejected":
-      return "sor.bell_verify_rejected";
-    case "material.rejected":
-      return "sor.bell_material_rejected";
-    case "content.rejected":
-      return "sor.bell_content_rejected";
-    case "report.filed":
-      return "sor.bell_report_filed";
-    case "action.profile_fields":
-      return "sor.bell_profile_fields";
-    case "action.onboarding":
-      return "sor.bell_onboarding";
-    case "action.admin_task":
-      return "sor.bell_admin_task";
-    // #617 Tutor Connect graph.
-    case "connect.request":
-      return "sor.bell_connect_request";
-    case "connect.accepted":
-      return "sor.bell_connect_accepted";
-    default:
-      return "sor.bell_update";
+async function copyToClipboard(text: string): Promise<boolean> {
+  try {
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(text);
+      return true;
+    }
+  } catch {
+    // fall through to the textarea path (non-secure contexts / permissions)
+  }
+  try {
+    const ta = document.createElement("textarea");
+    ta.value = text;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    const ok = document.execCommand("copy");
+    document.body.removeChild(ta);
+    return ok;
+  } catch {
+    return false;
   }
 }
 
@@ -120,11 +83,15 @@ export function bellLabelKey(item: BellItem): string {
  * #292, the bell, fed by the #205 bus. Red dot = unread in-app count; it
  * clears when the list is opened (mark-all on the /notifications page, or
  * per-item on click). A save is never an event.
+ * #671: family filter chips (Cases · Schedule · Ratings · Account) shared
+ * with the inbox page via bell-view.ts, plus the V1 paste-ready WhatsApp
+ * summary (clipboard only — no automated WA delivery).
  */
 export function BellMenu() {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
+  const [group, setGroup] = useState<"all" | BellGroup>("all");
 
   const { data } = useBellQuery();
 
@@ -146,7 +113,54 @@ export function BellMenu() {
 
   const unread = data?.unread ?? 0;
   const openActions = data?.openActions ?? 0;
-  const items = data?.items ?? [];
+  const allItems = data?.items ?? [];
+  // #671: family filters over the same inbox — the dropdown mirrors the
+  // /notifications page chips so the two surfaces never drift.
+  const items =
+    group === "all" ? allItems : allItems.filter((i) => bellGroup(i.event_type) === group);
+
+  // #671 V1 WA summary: bilingual paste-ready digest of the current inbox.
+  async function copyWaSummary() {
+    const ten = i18n.getFixedT("en");
+    const tzh = i18n.getFixedT("zh-HK");
+    const stamp = waSummaryTimestamp();
+    const lines = allItems.slice(0, 10).map((item) => {
+      const when = hktWhen(item.created_at);
+      return {
+        en: `${bellLabel(item, ten)}${when.en ? ` · ${when.en}` : ""}`,
+        zh: `${bellLabel(item, tzh)}${when.zh ? ` · ${when.zh}` : ""}`,
+      };
+    });
+    const text = buildWaSummary({
+      generatedEn: stamp.en,
+      generatedZh: stamp.zh,
+      lines,
+      emptyEn: ten("sor.bell_empty"),
+      emptyZh: tzh("sor.bell_empty"),
+    });
+    const ok = await copyToClipboard(text);
+    if (ok) toast.success(t("sor.nf_wa_copied"));
+    else toast.error(t("sor.nf_wa_copy_failed"));
+  }
+
+  const chip = (key: "all" | BellGroup, label: string, count?: number) => (
+    <button
+      key={key}
+      type="button"
+      onClick={() => setGroup(key)}
+      className={cn(
+        "rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
+        group === key
+          ? "border-[color:var(--ink)] bg-[color:var(--ink)] text-[color:var(--background)]"
+          : "border-[color:var(--ink)]/15 text-muted-foreground hover:bg-[color:var(--foreground)]/[0.04]",
+      )}
+    >
+      {label}
+      {count !== undefined && count > 0 ? ` · ${count}` : ""}
+    </button>
+  );
+
+  const groupCount = (g: BellGroup) => allItems.filter((i) => bellGroup(i.event_type) === g).length;
 
   return (
     <DropdownMenu
@@ -171,6 +185,14 @@ export function BellMenu() {
         align="end"
         className="w-80 overflow-hidden rounded-2xl border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0"
       >
+        {/* #671: family filters — Cases · Schedule · Ratings · Account. */}
+        <div className="flex flex-wrap gap-1.5 border-b border-[color:var(--ink)]/10 px-3 py-2">
+          {chip("all", t("sor.nf_filter_all"))}
+          {chip("cases", t("sor.nf_group_cases"), groupCount("cases"))}
+          {chip("schedule", t("sor.nf_group_schedule"), groupCount("schedule"))}
+          {chip("ratings", t("sor.nf_group_ratings"), groupCount("ratings"))}
+          {chip("account", t("sor.nf_group_account"), groupCount("account"))}
+        </div>
         <div className="max-h-96 overflow-y-auto px-1.5 py-1.5">
           {items.length === 0 ? (
             <p className="px-3 py-4 text-sm text-muted-foreground">{t("sor.bell_empty")}</p>
@@ -188,7 +210,7 @@ export function BellMenu() {
                     ? i18n.language.startsWith("zh")
                       ? String(item.payload.admin_title_zh ?? item.payload.admin_title)
                       : String(item.payload.admin_title)
-                    : t(bellLabelKey(item));
+                    : bellLabel(item, t);
                 return (
                   <div
                     key={item.id}
@@ -260,7 +282,7 @@ export function BellMenu() {
                       aria-hidden="true"
                     />
                     <span className="flex-1">
-                      <span className="block text-sm">{t(bellLabelKey(item))}</span>
+                      <span className="block text-sm">{bellLabel(item, t)}</span>
                       <span className="block text-xs text-muted-foreground">
                         {formatPostedAgo(item.created_at, i18n.language)}
                       </span>
@@ -274,17 +296,35 @@ export function BellMenu() {
             })
           )}
         </div>
-        <DropdownMenuItem asChild className="border-t border-[color:var(--ink)]/10">
-          <button
-            type="button"
-            onClick={() => {
-              navigate({ to: "/notifications" });
-            }}
-          >
-            <GraduationCap className="mr-2 h-4 w-4" aria-hidden="true" />
-            {t("sor.bell_view_all")}
-          </button>
-        </DropdownMenuItem>
+        <div className="border-t border-[color:var(--ink)]/10">
+          <DropdownMenuItem asChild>
+            <button
+              type="button"
+              onClick={() => {
+                void copyWaSummary();
+              }}
+            >
+              <MessageCircle className="mr-2 h-4 w-4" aria-hidden="true" />
+              <span className="flex-1">
+                <span className="block text-sm">{t("sor.nf_wa_copy")}</span>
+                <span className="block text-[10px] text-muted-foreground">
+                  {t("sor.nf_wa_v1_hint")}
+                </span>
+              </span>
+            </button>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild className="border-t border-[color:var(--ink)]/10">
+            <button
+              type="button"
+              onClick={() => {
+                navigate({ to: "/notifications" });
+              }}
+            >
+              <GraduationCap className="mr-2 h-4 w-4" aria-hidden="true" />
+              {t("sor.bell_view_all")}
+            </button>
+          </DropdownMenuItem>
+        </div>
       </DropdownMenuContent>
     </DropdownMenu>
   );

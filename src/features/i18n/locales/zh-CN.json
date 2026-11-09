@@ -3550,7 +3550,15 @@
     "nf_group_ratings": "评分",
     "nf_group_account": "账户",
     "bell_connect_request": "新的伙伴链接邀请",
-    "bell_connect_accepted": "伙伴链接邀请已接受"
+    "bell_connect_accepted": "伙伴链接邀请已接受",
+    "nf_sample_schedule_updated": "「{{caseTitle}}」时间表已更新",
+    "nf_sample_rating_prompt": "为 {{tutor}} 的课堂评分",
+    "nf_sample_statement_paid": "{{name}} 已将 {{month}} 学费标记为已付",
+    "nf_sample_request_accepted": "{{tutor}} 已接受你的申请",
+    "nf_wa_copy": "复制 WhatsApp 摘要",
+    "nf_wa_v1_hint": "V1 · 中英对照，即贴即用",
+    "nf_wa_copied": "WhatsApp 摘要已复制",
+    "nf_wa_copy_failed": "复制失败，请再试一次"
   },
   "cv": {
     "title": "学习履历及成绩档案",

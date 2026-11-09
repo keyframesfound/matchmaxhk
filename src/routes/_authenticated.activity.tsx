@@ -8,7 +8,8 @@ import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getMyCalendar } from "@/features/cases/calendar-hub.functions";
 import { getMyBell, type BellItem } from "@/features/cases/bus.functions";
-import { bellLabelKey } from "@/components/layout/bell-menu";
+// #671: labels live in the shared bell-view module (was re-exported by bell-menu).
+import { bellLabel } from "@/features/cases/bell-view";
 import { ProfileStrengthSection } from "@/features/account/profile-strength-card";
 import { HouseholdSummary } from "@/features/cases/demand-side/household-summary";
 import { useAuth } from "@/features/auth/useAuth";
@@ -75,10 +76,10 @@ function PendingModule({ items, open }: { items: BellItem[]; open: number }) {
             <li key={item.id} className="py-2.5 text-sm">
               {item.link ? (
                 <a href={item.link} className="font-medium text-[color:var(--ink)] hover:underline">
-                  {t(bellLabelKey(item))}
+                  {bellLabel(item, t)}
                 </a>
               ) : (
-                <span className="font-medium text-[color:var(--ink)]">{t(bellLabelKey(item))}</span>
+                <span className="font-medium text-[color:var(--ink)]">{bellLabel(item, t)}</span>
               )}
             </li>
           ))}
