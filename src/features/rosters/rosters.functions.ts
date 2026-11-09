@@ -1109,6 +1109,19 @@ export const voidSession = createServerFn({ method: "POST" })
       throw new Error("ATTENDANCE_STALE");
     }
 
+    // #387 predicate+rowCount race guard, applied at the SESSION level FIRST:
+    // a concurrent void of the same session loses here (count 0 → stale)
+    // before it can unwind any counter or write a duplicate audit row, so the
+    // unwind loop below runs for exactly one caller.
+    const nowIso = new Date().toISOString();
+    const { count: voided, error: sessionError } = await db
+      .from("roster_sessions")
+      .update({ status: "voided", voided_at: nowIso }, { count: "exact" })
+      .eq("id", session.id)
+      .eq("updated_at", data.baseUpdatedAt);
+    if (sessionError) throw new Error(sessionError.message);
+    if (!voided) throw new Error("ATTENDANCE_STALE");
+
     const attendanceRows = await selectRows<RosterAttendanceRow>(db, "roster_attendance", "*", [
       { col: "session_id", op: "eq", value: session.id },
       { col: "voided_at", op: "eq", value: null },
@@ -1121,9 +1134,17 @@ export const voidSession = createServerFn({ method: "POST" })
       : [];
     const studentById = new Map(students.map((s) => [s.id, s]));
 
-    const nowIso = new Date().toISOString();
-    // Unwind the completed counters first (voided sessions contribute 0).
+    // Unwind the completed counters (voided sessions contribute 0). Each row
+    // is voided with a counted voided_at-IS-NULL CAS; count 0 = already voided
+    // → skip so a retried call never decrements or re-audits that row.
     for (const a of attendanceRows) {
+      const { count: rowVoided, error: attError } = await db
+        .from("roster_attendance")
+        .update({ voided_at: nowIso, updated_at: nowIso }, { count: "exact" })
+        .eq("id", a.id)
+        .eq("voided_at", null);
+      if (attError) throw new Error(attError.message);
+      if (!rowVoided) continue;
       if (a.status === "present" || a.status === "late") {
         const student = studentById.get(a.roster_student_id);
         if (student) {
@@ -1136,12 +1157,6 @@ export const voidSession = createServerFn({ method: "POST" })
           if (cntError) throw new Error(cntError.message);
         }
       }
-      const { error: attError } = await db
-        .from("roster_attendance")
-        .update({ voided_at: nowIso, updated_at: nowIso })
-        .eq("id", a.id)
-        .eq("voided_at", null);
-      if (attError) throw new Error(attError.message);
       const { error: auditError } = await db.from("roster_attendance_audit").insert({
         attendance_id: a.id,
         session_id: session.id,
@@ -1173,13 +1188,6 @@ export const voidSession = createServerFn({ method: "POST" })
       }
     }
 
-    const { count: voided, error: sessionError } = await db
-      .from("roster_sessions")
-      .update({ status: "voided", voided_at: nowIso }, { count: "exact" })
-      .eq("id", session.id)
-      .eq("updated_at", data.baseUpdatedAt);
-    if (sessionError) throw new Error(sessionError.message);
-    if (!voided) throw new Error("ATTENDANCE_STALE");
     return { ok: true, updatedAt: nowIso };
   });
 
