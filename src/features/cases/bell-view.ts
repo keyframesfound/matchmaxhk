@@ -2,6 +2,7 @@ import {
   AlertCircle,
   Users,
   Bell,
+  CalendarCheck2,
   CalendarClock,
   CalendarX,
   CheckCheck,
@@ -39,6 +40,8 @@ export function bellGroup(eventType: string): BellGroup {
   // the lesson. prefix, so it was dead code and prompts landed in Schedule.
   if (eventType === "lesson.review_prompt" || eventType.startsWith("review.")) return "ratings";
   if (eventType.startsWith("lesson.") || eventType.startsWith("billing.")) return "schedule";
+  // #613: roster attendance is lesson-schedule traffic for the linked parent.
+  if (eventType.startsWith("attendance.")) return "schedule";
   if (eventType.startsWith("action.")) return "account";
   return "cases";
 }
@@ -97,6 +100,23 @@ export function bellLabel(item: BellLabelInput, t: BellTranslate): string {
       const month = str(p.month) ?? str(p.statement_month);
       if (name && month) return t("sor.nf_sample_statement_paid", { name, month });
       return t("sor.bell_billing_notice");
+    }
+    // #613 attendance events interpolate the student + the localized status
+    // pill from the payload; a malformed payload falls back to the generic
+    // bell label rather than rendering raw {{placeholders}}.
+    case "attendance.recorded":
+    case "attendance.updated": {
+      const student = str(p.student_name) ?? str(p.studentName);
+      const status = typeof p.status === "string" && p.status !== "" ? p.status : null;
+      if (student && status) {
+        return t(
+          item.event_type === "attendance.recorded"
+            ? "sor.bell_attendance_recorded"
+            : "sor.bell_attendance_updated",
+          { student, status: t(`rosters.status_${status}`) },
+        );
+      }
+      return t("sor.bell_update");
     }
     // "{Tutor} accepted your request" / {Tutor} 已接受你的申請 — reserved
     // for the request-status producer (no event type exists yet); added so
@@ -175,6 +195,11 @@ export function bellLabelKey(item: BellLabelInput): string {
       return "sor.bell_onboarding";
     case "action.admin_task":
       return "sor.bell_admin_task";
+    // #613 roster attendance (single commented block; inbox chrome is #614).
+    case "attendance.recorded":
+      return "sor.bell_attendance_recorded";
+    case "attendance.updated":
+      return "sor.bell_attendance_updated";
     default:
       return "sor.bell_update";
   }
@@ -189,6 +214,8 @@ export function bellIcon(eventType: string): LucideIcon {
   if (eventType.startsWith("lesson.scheduled") || eventType === "lesson.reminder_due")
     return CalendarClock;
   if (eventType === "experience.session_logged") return GraduationCap;
+  // #613 roster attendance (single commented block; inbox chrome is #614).
+  if (eventType.startsWith("attendance.")) return CalendarCheck2;
   if (eventType === "case.end_requested_by_parent" || eventType === "case.end_requested_by_tutor")
     return CheckCheck;
   if (eventType.startsWith("admin_fee")) return Wallet;

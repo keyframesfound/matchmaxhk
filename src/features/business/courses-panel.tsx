@@ -23,6 +23,7 @@ import {
   ArrowDown,
   ArrowUp,
   BookOpen,
+  CalendarCheck2,
   ChevronsUpDown,
   Copy,
   ExternalLink,
@@ -404,6 +405,13 @@ export function CoursesPanel({ onLimitReached }: { onLimitReached?: () => void }
                     >
                       <ExternalLink className="h-4 w-4" />
                       View public page
+                    </Link>
+                  </DropdownMenuItem>
+                  {/* #613: 1-click Manage Roster for centre courses. */}
+                  <DropdownMenuItem asChild>
+                    <Link to="/account/rosters" search={{ course: course.id, create: "1" }}>
+                      <CalendarCheck2 className="h-4 w-4" />
+                      Manage roster
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem

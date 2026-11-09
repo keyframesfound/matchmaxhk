@@ -52,6 +52,9 @@ describe("#671 bell-view family groups", () => {
     expect(bellGroup("lesson.review_prompt")).toBe("ratings");
     expect(bellGroup("review.published")).toBe("ratings");
     expect(bellGroup("action.onboarding")).toBe("account");
+    // #613: roster attendance rides the Schedule family.
+    expect(bellGroup("attendance.recorded")).toBe("schedule");
+    expect(bellGroup("attendance.updated")).toBe("schedule");
     // request/case + moderation + materials stay under Cases.
     expect(bellGroup("case.match_alert")).toBe("cases");
     expect(bellGroup("verification.approved")).toBe("cases");
@@ -119,5 +122,25 @@ describe("#671 copy samples (EN + 繁中 templates)", () => {
   it("unknown/unspecialised events keep their static label", () => {
     const item = { event_type: "case.match_alert", payload: {} };
     expect(bellLabel(item, ten)).toBe(en.sor.bell_case_match);
+  });
+
+  it("#613 attendance labels interpolate the student + the localized status pill", () => {
+    const recorded = {
+      event_type: "attendance.recorded",
+      payload: { student_name: "Chan Tai Man", status: "late" },
+    };
+    expect(bellLabel(recorded, ten)).toBe("Attendance recorded for Chan Tai Man — Late");
+    expect(bellLabel(recorded, tzh)).toBe("Chan Tai Man 已紀錄課堂點名 — 遲到");
+
+    const updated = {
+      event_type: "attendance.updated",
+      payload: { student_name: "Chan Tai Man", status: "absent_unexcused" },
+    };
+    expect(bellLabel(updated, ten)).toBe("Attendance updated for Chan Tai Man — now Absent");
+  });
+
+  it("#613 a malformed attendance payload falls back to the generic bell label", () => {
+    const junk = { event_type: "attendance.recorded", payload: {} };
+    expect(bellLabel(junk, ten)).toBe(en.sor.bell_update);
   });
 });
