@@ -4924,5 +4924,14 @@
   },
   "business": {
     "cap57_ack": "本人确认此转介申请仅为寻找独立导师（自雇性质），并不构成《雇佣条例》（第 57 章）下之雇佣关系、固定驻场职员职务或雇主控制。"
+  },
+  "tailored_notes": {
+    "tailored_for": "为以下学生推荐：",
+    "for_child": "适合 {{name}}（{{curriculum}}）",
+    "for_search": "按你的搜索（{{value}}）",
+    "all": "所有教材",
+    "recommended_title": "为你推荐的 {{curriculum}} 教材",
+    "other_title": "探索其他课程教材及笔记",
+    "empty_for": "暂时未有 {{curriculum}} 教材，以下是其他教材。"
   }
 }

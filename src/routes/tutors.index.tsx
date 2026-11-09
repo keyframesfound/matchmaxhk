@@ -77,6 +77,7 @@ import { requestOpenSearch } from "@/components/search/open-search-event";
 import {
   isLearnerActive,
   scoreTutorForLearner,
+  setRecentSearchSignals,
   useLearnerContext,
 } from "@/features/children/learner-context";
 import { buildActiveFilterChips } from "@/features/tutors/active-filter-chips";
@@ -300,6 +301,17 @@ function TutorsDirectory() {
   const isPrimarySecondaryTier = tier === "primary_secondary";
   const fieldFilter = draft.field ?? "";
   const kindergartenToggles = kindergartenActiveToggles(draft);
+
+  // #700 Priority 3: remember this visit's applied curriculum / subjects so
+  // the Marketplace can put matching notes first (guests included).
+  useEffect(() => {
+    setRecentSearchSignals({
+      curriculum: search.category ?? null,
+      subjects: [search.subject ?? "", ...(search.subjects_extra ?? "").split("||")]
+        .map((value) => value.trim())
+        .filter(Boolean),
+    });
+  }, [search.category, search.subject, search.subjects_extra]);
 
   // #698: session learner ("Who is learning?") for the soft re-rank.
   const learner = useLearnerContext();
