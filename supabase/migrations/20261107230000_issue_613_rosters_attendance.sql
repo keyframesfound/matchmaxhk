@@ -319,11 +319,16 @@ create policy roster_attendance_marker_all on public.roster_attendance
   );
 
 -- Audit: written by the server fns (service role); owner can read the trail.
+-- The audit table has NO roster_id column — reach it through the attendance
+-- row (merge-day fix; the as-shipped policy failed to compile with 42703).
 create policy roster_attendance_audit_owner_select on public.roster_attendance_audit
   for select using (
     exists (
-      select 1 from public.rosters r
-      where r.id = roster_id and r.owner_user_id = auth.uid()
+      select 1
+      from public.roster_attendance ra
+      join public.rosters r on r.id = ra.roster_id
+      where ra.id = roster_attendance_audit.attendance_id
+        and r.owner_user_id = auth.uid()
     )
   );
 
