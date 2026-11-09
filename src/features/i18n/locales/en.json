@@ -4933,5 +4933,15 @@
     "recommended_title": "Recommended {{curriculum}} Materials for You",
     "other_title": "Explore Other Curricula & Notes",
     "empty_for": "No {{curriculum}} materials yet. Here are other study materials."
+  },
+  "case_best_match": {
+    "sort_label": "Sort cases",
+    "sort_best": "Best Match for You",
+    "sort_latest": "All Latest Cases",
+    "profile_line": "Matching your profile: {{value}}",
+    "badge": "Matches your profile",
+    "fit_pct": "{{n}}% fit",
+    "incomplete": "Add your preferred grades & subjects to get tailored case recommendations.",
+    "incomplete_cta": "Complete profile"
   }
 }

@@ -4933,5 +4933,15 @@
     "recommended_title": "为你推荐的 {{curriculum}} 教材",
     "other_title": "探索其他课程教材及笔记",
     "empty_for": "暂时未有 {{curriculum}} 教材，以下是其他教材。"
+  },
+  "case_best_match": {
+    "sort_label": "个案排序",
+    "sort_best": "为你推荐",
+    "sort_latest": "所有最新个案",
+    "profile_line": "按你的教学履历配对：{{value}}",
+    "badge": "符合你的教学履历",
+    "fit_pct": "{{n}}% 吻合",
+    "incomplete": "完善你的任教年级及科目，即可获取专属个案推荐。",
+    "incomplete_cta": "完善履历"
   }
 }
