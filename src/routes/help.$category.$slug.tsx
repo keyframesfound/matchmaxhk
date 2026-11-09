@@ -19,7 +19,7 @@ import {
   type HelpArticle,
 } from "@/features/help/content";
 import { cn } from "@/lib/utils";
-import { canonicalUrl } from "@/features/i18n/seo";
+import { canonicalUrl, localeLinks } from "@/features/i18n/seo";
 
 // Issue #500 (GLM review round 2): the redesign deleted these stub URLs, so
 // their indexed/bookmarked paths would hard-404. Each 301s to its successor
@@ -109,6 +109,7 @@ export const Route = createFileRoute("/help/$category/$slug")({
         { property: "og:description", content: article.summary },
         { property: "og:url", content: canonicalUrl(path) },
       ],
+      links: localeLinks(path),
       scripts: [
         {
           type: "application/ld+json",

@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { formatPostedAgo } from "@/lib/relative-time";
-import { currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
+import { currentSeoLocale, localeLinks, localizedMeta } from "@/features/i18n/seo";
 import {
   ArrowRight,
   BadgeCheck,
@@ -189,7 +189,7 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
         },
         { property: "og:url", content: "https://matchmax.hk/tutor-requests" },
       ],
-      links: [{ rel: "canonical", href: "https://matchmax.hk/tutor-requests" }],
+      links: localeLinks("/tutor-requests"),
     };
   },
   component: TutorRequestsPage,

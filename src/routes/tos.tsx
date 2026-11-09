@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
+import { localeLinks } from "@/features/i18n/seo";
 
 export const Route = createFileRoute("/tos")({
   head: () => ({
@@ -17,6 +18,7 @@ export const Route = createFileRoute("/tos")({
       },
       { name: "robots", content: "index, follow" },
     ],
+    links: localeLinks("/tos"),
   }),
   component: TermsOfUsePage,
 });

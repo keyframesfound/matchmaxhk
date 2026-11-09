@@ -2,6 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
+import { localeLinks } from "@/features/i18n/seo";
 
 export const Route = createFileRoute("/privacy-policy")({
   head: () => ({
@@ -13,6 +14,7 @@ export const Route = createFileRoute("/privacy-policy")({
       },
       { name: "robots", content: "index, follow" },
     ],
+    links: localeLinks("/privacy-policy"),
   }),
   component: PrivacyPolicyPage,
 });

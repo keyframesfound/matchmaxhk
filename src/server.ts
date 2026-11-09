@@ -6,7 +6,7 @@ import { setRuntimeBindings } from "./lib/runtime-env";
 import {
   buildLocalePath,
   parseLocalePath,
-  resolvePreferredLocaleForRequest,
+  resolveLocaleGateTarget,
   segmentOfLocale,
 } from "./features/i18n/routing";
 
@@ -119,12 +119,14 @@ function getCanonicalRedirect(request: Request): Response | null {
   return Response.redirect(url.toString(), 308);
 }
 
-// Locale URL prefixes (/en, /zh) — 2026-10-25. Prefixed page URLs pass
+// Locale URL prefixes (/en, /zh, /cn) — 2026-10-25. Prefixed page URLs pass
 // through (the router's rewrite pair strips the segment for matching);
-// everything else page-like gets redirected to the visitor's preferred
-// locale: saved choice cookie → ?hl= override → Accept-Language → English.
-// 307 + no-store, never 308: the target varies per visitor, so it must not
-// be permanently cached.
+// everything else page-like gets redirected to a locale: ?hl= override →
+// saved choice cookie → English.
+// 2026-11-09 SEO fix: cookieless requests (every crawler) get a permanent 301,
+// so Google consolidates the old bare URLs onto /en instead of keeping both
+// (a 307 told it the bare URL was still the real page). Only the cookie leg
+// varies per visitor, so it alone stays 307 + no-store.
 const LOCALE_GATE_BYPASS_PREFIXES = ["/_", "/lovable"];
 
 function looksLikeFilePath(pathname: string): boolean {
@@ -141,12 +143,12 @@ function getLocaleRedirect(request: Request): Response | null {
   // Legacy full-tag prefix: /zh-HK/... → /zh/...
   if (/^\/zh-hk(?=\/|$)/i.test(pathname)) {
     url.pathname = `/zh${pathname.slice("/zh-HK".length) || ""}`;
-    return localeRedirectResponse(url);
+    return permanentLocaleRedirect(url);
   }
   // Full-tag Simplified prefix: /zh-CN/... → /cn/...
   if (/^\/zh-cn(?=\/|$)/i.test(pathname)) {
     url.pathname = `/cn${pathname.slice("/zh-CN".length) || ""}`;
-    return localeRedirectResponse(url);
+    return permanentLocaleRedirect(url);
   }
 
   const parsed = parseLocalePath(pathname);
@@ -157,7 +159,7 @@ function getLocaleRedirect(request: Request): Response | null {
     const dup = /^\/(en|zh|cn)(?=\/|$)/i.exec(parsed.rest);
     if (dup) {
       url.pathname = `/${parsed.segment}${parsed.rest.slice(dup[0].length) || "/"}`;
-      return localeRedirectResponse(url);
+      return permanentLocaleRedirect(url);
     }
     return null;
   }
@@ -168,21 +170,29 @@ function getLocaleRedirect(request: Request): Response | null {
   const upper = /^\/(en|zh|cn)(?=\/|$)/i.exec(pathname);
   if (upper) {
     url.pathname = `/${upper[1].toLowerCase()}${pathname.slice(upper[0].length) || ""}`;
-    return localeRedirectResponse(url);
+    return permanentLocaleRedirect(url);
   }
 
   if (LOCALE_GATE_BYPASS_PREFIXES.some((prefix) => pathname.startsWith(prefix))) return null;
   if (looksLikeFilePath(pathname)) return null;
 
-  const segment = segmentOfLocale(resolvePreferredLocaleForRequest(request));
-  url.pathname = buildLocalePath(segment, pathname);
-  return localeRedirectResponse(url);
+  const { locale, personal } = resolveLocaleGateTarget(request);
+  url.pathname = buildLocalePath(segmentOfLocale(locale), pathname);
+  return personal ? personalLocaleRedirect(url) : permanentLocaleRedirect(url);
 }
 
-// 307 + no-store, never 308: the target varies per visitor, so it must not
-// be permanently cached. Relative Location: immune to host/port
-// reconstruction behind proxies.
-function localeRedirectResponse(url: URL): Response {
+// Relative Location: immune to host/port reconstruction behind proxies.
+// The short max-age keeps a future URL change from being pinned in browsers
+// forever; Google reads permanence from the status code, not the cache.
+function permanentLocaleRedirect(url: URL): Response {
+  return new Response(null, {
+    status: 301,
+    headers: { Location: url.pathname + url.search, "Cache-Control": "public, max-age=3600" },
+  });
+}
+
+// Cookie-chosen locale: varies per visitor, so it must not be cached.
+function personalLocaleRedirect(url: URL): Response {
   return new Response(null, {
     status: 307,
     headers: { Location: url.pathname + url.search, "Cache-Control": "no-store" },
