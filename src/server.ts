@@ -3,6 +3,7 @@ import "./lib/error-capture";
 import { consumeLastCapturedError } from "./lib/error-capture";
 import { renderErrorPage } from "./lib/error-page";
 import { setRuntimeBindings } from "./lib/runtime-env";
+import { runWithRequestLocale } from "./features/i18n/request-locale.server";
 import {
   buildLocalePath,
   parseLocalePath,
@@ -216,7 +217,7 @@ export default {
       }
 
       const handler = await getServerEntry();
-      const response = await handler.fetch(request, env, ctx);
+      const response = await runWithRequestLocale(request, () => handler.fetch(request, env, ctx));
       return await normalizeCatastrophicSsrResponse(response);
     } catch (error) {
       console.error(error);

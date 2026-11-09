@@ -80,17 +80,24 @@ export function urlLocaleFromWindow(): SeoLocale | null {
 
 let activeUrlLocale: SeoLocale = urlLocaleFromWindow() ?? "en";
 
+// Server-only per-request source, installed by request-locale.server.ts.
+// Kept as an injected callback so this shared module never imports
+// node:async_hooks into the client bundle.
+let requestLocaleResolver: (() => SeoLocale | null | undefined) | null = null;
+
+export function setRequestLocaleResolver(resolver: () => SeoLocale | null | undefined): void {
+  requestLocaleResolver = resolver;
+}
+
 /**
- * The locale of the URL the router is currently rendering. Set by the rewrite
- * input (per request/navigation) and seeded from window at module load.
- *
- * SSR caveat: this is module-scoped, so two interleaved requests with
- * different locales can transiently read each other's value in head() meta.
- * Rendered link hrefs do NOT share this problem — they use the per-router
- * closure segment in router.tsx.
+ * The locale of the URL the router is currently rendering. On the server the
+ * per-request store wins: the module-scoped value below is shared by every
+ * request in the isolate, so interleaved SSR requests used to read each
+ * other's locale in head() meta (wrong canonical/og:url under crawl bursts).
+ * On the client the module value is set by the rewrite input per navigation.
  */
 export function getActiveUrlLocale(): SeoLocale {
-  return activeUrlLocale;
+  return requestLocaleResolver?.() ?? activeUrlLocale;
 }
 
 export function setActiveUrlLocale(locale: SeoLocale): void {
