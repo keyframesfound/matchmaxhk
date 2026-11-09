@@ -4933,5 +4933,15 @@
     "recommended_title": "為你推薦的 {{curriculum}} 教材",
     "other_title": "探索其他課程教材及筆記",
     "empty_for": "暫時未有 {{curriculum}} 教材，以下是其他教材。"
+  },
+  "case_best_match": {
+    "sort_label": "個案排序",
+    "sort_best": "為你推薦",
+    "sort_latest": "所有最新個案",
+    "profile_line": "按你的教學履歷配對：{{value}}",
+    "badge": "符合你的教學履歷",
+    "fit_pct": "{{n}}% 吻合",
+    "incomplete": "完善你的任教年級及科目，即可獲取專屬個案推薦。",
+    "incomplete_cta": "完善履歷"
   }
 }
