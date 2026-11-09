@@ -191,6 +191,12 @@ export const tutorApplicationSchema = z
     startDate: z.string().trim().max(40).optional().default(""),
     status: z.enum(ALL_STATUS_OPTIONS),
     statusOther: z.string().trim().max(200).optional().default(""),
+    // Issue #718: gender re-attached from the #576 quick sheet — required at
+    // intake (one tap), parents filter tutors by gender preference. Same
+    // vocabulary as tutors.gender ("prefer_not_to_say" is never written to
+    // the public column). Inlined here: activation.ts imports this file, so
+    // the constants cannot be imported back without a cycle.
+    gender: z.enum(["female", "male", "prefer_not_to_say"]),
     professionalRoles: z.array(z.enum(PROFESSIONAL_ROLE_OPTIONS)).default([]),
     examiningBoards: z.array(z.enum(EXAMINING_BOARD_OPTIONS)).default([]),
     teachingQualifications: z.array(z.enum(TEACHING_QUALIFICATION_OPTIONS)).default([]),
@@ -623,6 +629,11 @@ export function buildAnswerRows(data: TutorApplication): AnswerRow[] {
       value: data.startImmediately ? "Immediately" : data.startDate || "—",
     },
     { label: "Current status", value: data.status },
+    // Issue #718: gender re-attached from the quick sheet.
+    {
+      label: "Gender",
+      value: data.gender === "prefer_not_to_say" ? "Prefer not to say" : data.gender,
+    },
     ...(data.professionalRoles.length
       ? [{ label: "Professional roles", value: data.professionalRoles.join(", ") }]
       : []),

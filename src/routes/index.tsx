@@ -31,6 +31,7 @@ import {
   fetchPublishedTutors,
   fetchTopWeeklyTutors,
   getTutorCardHighlights,
+  isTutorFullyBooked,
   type Tutor,
 } from "@/features/tutors/queries";
 import {
@@ -467,24 +468,24 @@ function TrendingTutorsSection({
                         {inquiry.label}
                       </span>
                     ) : (
-                      <span
-                        className="contents"
-                        onClickCapture={() => void trackTutorEvent(tutor.id, "inquiry_click")}
+                      // The CTA is the slot's direct last child (no wrapper) so the
+                      // card's 44px CTA height applies here like every other rail.
+                      <Button
+                        asChild
+                        className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
                       >
-                        <Button
-                          asChild
-                          className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
+                        <a
+                          href={inquiry.href}
+                          target="_blank"
+                          rel="noreferrer"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            void trackTutorEvent(tutor.id, "inquiry_click");
+                          }}
                         >
-                          <a
-                            href={inquiry.href}
-                            target="_blank"
-                            rel="noreferrer"
-                            onClick={(event) => event.stopPropagation()}
-                          >
-                            {inquiry.label}
-                          </a>
-                        </Button>
-                      </span>
+                          {inquiry.label}
+                        </a>
+                      </Button>
                     )}
                   </>
                 }
@@ -573,7 +574,13 @@ function Landing() {
       };
     };
     const eligible = rankTrending(
-      trendingCandidates.filter((candidate) => tutorById.has(candidate.tutor_id)),
+      // Issue #715: the trending row is a discovery carousel — full tutors
+      // (paused or 0 open slots) never surface, and the ≥3 cold-start guardrail
+      // keeps hiding the whole row when too few discoverable tutors remain.
+      trendingCandidates.filter((candidate) => {
+        const tutor = tutorById.get(candidate.tutor_id);
+        return tutor !== undefined && !isTutorFullyBooked(tutor);
+      }),
       qualityFor,
     ).filter((candidate) => candidate.popularity_score > 0);
     if (eligible.length < TRENDING_MIN_ELIGIBLE) return [];
@@ -595,6 +602,14 @@ function Landing() {
     });
   }, [publishedTutors, trendingCandidates]);
 
+  // Issue #715: discovery carousels exclude full tutors (paused or 0 open
+  // slots). Deliberately home-only — the /tutors browse grid and direct
+  // profile URLs keep every published tutor, they just badge them.
+  const discoverableTutors = useMemo(
+    () => publishedTutors.filter((tutor) => !isTutorFullyBooked(tutor)),
+    [publishedTutors],
+  );
+
   // Issue #485 Phase A: one card per home layout. The old per-category
   // tutorsForCategory() built every rail independently, so multi-tag tutors
   // repeated across Most Requested + IBDP + DSE. This single sequential
@@ -606,14 +621,14 @@ function Landing() {
   const curriculumRails = useMemo(
     () =>
       buildHomeCurriculumRails({
-        tutors: publishedTutors,
+        tutors: discoverableTutors,
         trendingTutorIds: trendingEntries.map((entry) => entry.tutor.id),
         categories: CURRICULUM_CATEGORIES.map(({ value }) => value),
         maxPerRail: MAX_HOME_TUTORS,
         day: hktDate(),
         highlightsFor: getTutorCardHighlights,
       }),
-    [publishedTutors, trendingEntries],
+    [discoverableTutors, trendingEntries],
   );
 
   // Education dropdown options = the distinct values that actually appear on

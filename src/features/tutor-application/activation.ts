@@ -190,6 +190,8 @@ export function buildActivationApplication(
     startDate: "",
     status: STATUS_LABEL_BY_CODE[input.statusCode],
     statusOther: "",
+    // Issue #718: the schema requires gender on every stored application.
+    gender: input.gender,
     professionalRoles: [],
     examiningBoards: [],
     teachingQualifications: [],

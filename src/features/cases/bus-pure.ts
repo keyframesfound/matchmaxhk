@@ -19,6 +19,16 @@ export function eventKey(eventType: string, sourceId: string | null): string {
   return `${eventType}:${sourceId ?? "null"}`;
 }
 
+/**
+ * #671 burst debounce: pure cutoff for the insert-side window in
+ * bus.functions.ts insertEvent — an event whose (event_type, source_id) key
+ * already fired at/after this cutoff collapses into the earlier bell row.
+ * Kept here so the window math is unit-testable without a DB.
+ */
+export function debounceCutoffIso(now: Date, windowMs: number): string {
+  return new Date(now.getTime() - windowMs).toISOString();
+}
+
 export type ReminderLesson = {
   id: string;
   starts_at: string;

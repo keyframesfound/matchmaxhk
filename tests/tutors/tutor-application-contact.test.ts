@@ -67,6 +67,8 @@ function application(overrides: Record<string, unknown> = {}) {
     materials: "Yes",
     format: "Online",
     maxStudents: "",
+    // Issue #718: gender is required at intake again (quick-sheet field).
+    gender: "female",
     locations: "",
     medium: "English, Cantonese",
     notes: "",
