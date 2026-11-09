@@ -16,6 +16,11 @@ import { caseAcademicTier, type AcademicTier } from "@/features/tutors/verticals
 import { caseBudgetHkdBounds } from "@/features/cases/display";
 import { resolveCaseType, type CaseType } from "@/features/cases/case-type";
 import type { PublicCaseBoardItem } from "@/lib/cases.functions";
+import {
+  matchCaseAvailability,
+  parseAvailBands,
+  parseAvailDays,
+} from "@/features/tutors/availability-filter";
 
 /** Every advanced board filter, in its URL-param shape. */
 export type CaseBoardFilters = {
@@ -40,6 +45,9 @@ export type CaseBoardFilters = {
   sen?: boolean;
   /** "||"-joined requirement tags, ALL must be on the case. */
   tags?: string;
+  /** #605 §3.11: soft availability picks over the case's preferred times. */
+  avail_days?: string;
+  avail_bands?: string;
   /** #552 Private / Centre / Activity; absent means All. */
   type?: CaseType;
 };
@@ -137,7 +145,8 @@ export function matchesCaseFilters(
     | "tags"
     | "caseType"
     | "centre"
-  >,
+  > &
+    Partial<Pick<PublicCaseBoardItem, "scheduleMode" | "scheduleSlots">>,
   filters: CaseBoardFilters,
 ): boolean {
   if (filters.type && resolveCaseType(item) !== filters.type) return false;
@@ -164,6 +173,13 @@ export function matchesCaseFilters(
     const owned = new Set((item.tags ?? []).map((tag) => normalizeProfileTag(tag)));
     if (!tags.every((tag) => owned.has(tag))) return false;
   }
+  if (
+    matchCaseAvailability(item.scheduleMode, item.scheduleSlots, {
+      days: parseAvailDays(filters.avail_days),
+      bands: parseAvailBands(filters.avail_bands),
+    }) === "miss"
+  )
+    return false;
   return true;
 }
 
@@ -179,5 +195,6 @@ export function countCaseAdvancedFilters(filters: CaseBoardFilters): number {
     filters.rate_min !== undefined ? "rate" : "",
     filters.rate_max !== undefined ? "rate" : "",
     ...getSelectedCaseTags(filters).map(() => "tag"),
+    filters.avail_days || filters.avail_bands ? "availability" : "",
   ].filter(Boolean).length;
 }

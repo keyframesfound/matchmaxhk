@@ -591,7 +591,9 @@ export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
   return attachGroupCohortRates(
     (data ?? [])
       .map((row) => normalize(row, defaults))
-      .filter((tutor) => isTutorPubliclyListed(tutor)),
+      // Issue #715: the home featured row is a discovery carousel — full
+      // tutors (paused or 0 slots) must never surface here.
+      .filter((tutor) => isTutorPubliclyListed(tutor) && !isTutorFullyBooked(tutor)),
   );
 }
 
@@ -600,9 +602,13 @@ export async function fetchSimilarTutors(
   seedTutorId: string,
   filters: SimilarFilters,
 ): Promise<{ tutor: Tutor; reason: SimilarReason }[]> {
+  // Issue #715: full tutors must never appear in the "Suggested for you"
+  // feed, so we pull a wider candidate pool and drop fully booked rows before
+  // the top-3 cut (the RPC caps the pool at 12).
   const { data: rows, error } = await supabase.rpc("get_similar_tutors", {
     seed_tutor_id: seedTutorId,
     active_filters: filters as Json,
+    limit_count: 12,
   });
   if (error) throw error;
   if (!rows || rows.length === 0) return [];
@@ -614,9 +620,10 @@ export async function fetchSimilarTutors(
   const tutors = await attachGroupCohortRates(
     (data ?? [])
       .map((row) => normalize(row, defaults))
-      .filter((tutor) => isTutorPubliclyListed(tutor)),
+      // Issue #715: recommendation feed — exclude fully booked tutors.
+      .filter((tutor) => isTutorPubliclyListed(tutor) && !isTutorFullyBooked(tutor)),
   );
-  return orderBySimilarIds(tutors, rows);
+  return orderBySimilarIds(tutors, rows).slice(0, 3);
 }
 
 export async function fetchPublishedTutors(): Promise<Tutor[]> {

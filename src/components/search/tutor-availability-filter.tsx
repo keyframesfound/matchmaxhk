@@ -37,9 +37,12 @@ export function availabilityFilterCount(draft: AvailabilityDraft): number {
 export function AvailabilityFilterContent({
   draft,
   onDraftChange,
+  helper,
 }: {
   draft: AvailabilityDraft;
   onDraftChange: (patch: AvailabilityDraft) => void;
+  /** Scope-specific helper line (cases match the parent's preferred times). */
+  helper?: string;
 }) {
   const { t } = useTranslation();
   const scheduleSync = useScheduleSyncContext();
@@ -96,7 +99,7 @@ export function AvailabilityFilterContent({
         ))}
       </div>
       <p className="text-xs leading-relaxed text-muted-foreground">
-        {t("explore_search.avail_helper")}
+        {helper ?? t("explore_search.avail_helper")}
       </p>
     </div>
   );

@@ -34,6 +34,7 @@ import { Route as AuthenticatedJoinRouteImport } from './routes/_authenticated.j
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
 import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authenticated.saved-posts'
 import { Route as BusinessSlugRouteImport } from './routes/business.$slug'
+import { Route as ClaimRosterTokenRouteImport } from './routes/claim-roster.$token'
 import { Route as CoursesIndexRouteImport } from './routes/courses.index'
 import { Route as CoursesCourseIdRouteImport } from './routes/courses.$courseId'
 import { Route as GuideIndexRouteImport } from './routes/guide.index'
@@ -55,7 +56,9 @@ import { Route as UHandleRouteImport } from './routes/u.$handle'
 import { Route as AuthenticatedAccountCasesRouteImport } from './routes/_authenticated.account.cases'
 import { Route as AuthenticatedAccountClaimRouteImport } from './routes/_authenticated.account.claim'
 import { Route as AuthenticatedAccountClaimChildRouteImport } from './routes/_authenticated.account.claim-child'
+import { Route as AuthenticatedAccountConnectionsRouteImport } from './routes/_authenticated.account.connections'
 import { Route as AuthenticatedAccountPreviewRouteImport } from './routes/_authenticated.account.preview'
+import { Route as AuthenticatedAccountRostersRouteImport } from './routes/_authenticated.account.rosters'
 import { Route as AuthenticatedAccountStudioRouteImport } from './routes/_authenticated.account.studio'
 import { Route as AuthenticatedAdminIndexRouteImport } from './routes/_authenticated.admin.index'
 import { Route as AuthenticatedAdminAcademyRouteImport } from './routes/_authenticated.admin.academy'
@@ -221,6 +224,11 @@ const BusinessSlugRoute = BusinessSlugRouteImport.update({
   path: '/business/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ClaimRosterTokenRoute = ClaimRosterTokenRouteImport.update({
+  id: '/claim-roster/$token',
+  path: '/claim-roster/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const CoursesIndexRoute = CoursesIndexRouteImport.update({
   id: '/courses/',
   path: '/courses/',
@@ -329,10 +337,22 @@ const AuthenticatedAccountClaimChildRoute =
     path: '/claim-child',
     getParentRoute: () => AuthenticatedAccountRoute,
   } as any)
+const AuthenticatedAccountConnectionsRoute =
+  AuthenticatedAccountConnectionsRouteImport.update({
+    id: '/connections',
+    path: '/connections',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
 const AuthenticatedAccountPreviewRoute =
   AuthenticatedAccountPreviewRouteImport.update({
     id: '/preview',
     path: '/preview',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
+const AuthenticatedAccountRostersRoute =
+  AuthenticatedAccountRostersRouteImport.update({
+    id: '/rosters',
+    path: '/rosters',
     getParentRoute: () => AuthenticatedAccountRoute,
   } as any)
 const AuthenticatedAccountStudioRoute =
@@ -586,6 +606,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
+  '/claim-roster/$token': typeof ClaimRosterTokenRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/guide/notes': typeof GuideNotesRoute
   '/guide/parents': typeof GuideParentsRoute
@@ -607,7 +628,9 @@ export interface FileRoutesByFullPath {
   '/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
   '/account/claim': typeof AuthenticatedAccountClaimRoute
   '/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
+  '/account/connections': typeof AuthenticatedAccountConnectionsRoute
   '/account/preview': typeof AuthenticatedAccountPreviewRoute
+  '/account/rosters': typeof AuthenticatedAccountRostersRoute
   '/account/studio': typeof AuthenticatedAccountStudioRoute
   '/admin/academy': typeof AuthenticatedAdminAcademyRoute
   '/admin/action-required': typeof AuthenticatedAdminActionRequiredRoute
@@ -672,6 +695,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
+  '/claim-roster/$token': typeof ClaimRosterTokenRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/guide/notes': typeof GuideNotesRoute
   '/guide/parents': typeof GuideParentsRoute
@@ -693,7 +717,9 @@ export interface FileRoutesByTo {
   '/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
   '/account/claim': typeof AuthenticatedAccountClaimRoute
   '/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
+  '/account/connections': typeof AuthenticatedAccountConnectionsRoute
   '/account/preview': typeof AuthenticatedAccountPreviewRoute
+  '/account/rosters': typeof AuthenticatedAccountRostersRoute
   '/account/studio': typeof AuthenticatedAccountStudioRoute
   '/admin/academy': typeof AuthenticatedAdminAcademyRoute
   '/admin/action-required': typeof AuthenticatedAdminActionRequiredRoute
@@ -761,6 +787,7 @@ export interface FileRoutesById {
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
+  '/claim-roster/$token': typeof ClaimRosterTokenRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/guide/notes': typeof GuideNotesRoute
   '/guide/parents': typeof GuideParentsRoute
@@ -782,7 +809,9 @@ export interface FileRoutesById {
   '/_authenticated/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
   '/_authenticated/account/claim': typeof AuthenticatedAccountClaimRoute
   '/_authenticated/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
+  '/_authenticated/account/connections': typeof AuthenticatedAccountConnectionsRoute
   '/_authenticated/account/preview': typeof AuthenticatedAccountPreviewRoute
+  '/_authenticated/account/rosters': typeof AuthenticatedAccountRostersRoute
   '/_authenticated/account/studio': typeof AuthenticatedAccountStudioRoute
   '/_authenticated/admin/academy': typeof AuthenticatedAdminAcademyRoute
   '/_authenticated/admin/action-required': typeof AuthenticatedAdminActionRequiredRoute
@@ -850,6 +879,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/saved-posts'
     | '/business/$slug'
+    | '/claim-roster/$token'
     | '/courses/$courseId'
     | '/guide/notes'
     | '/guide/parents'
@@ -871,7 +901,9 @@ export interface FileRouteTypes {
     | '/account/cases'
     | '/account/claim'
     | '/account/claim-child'
+    | '/account/connections'
     | '/account/preview'
+    | '/account/rosters'
     | '/account/studio'
     | '/admin/academy'
     | '/admin/action-required'
@@ -936,6 +968,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/saved-posts'
     | '/business/$slug'
+    | '/claim-roster/$token'
     | '/courses/$courseId'
     | '/guide/notes'
     | '/guide/parents'
@@ -957,7 +990,9 @@ export interface FileRouteTypes {
     | '/account/cases'
     | '/account/claim'
     | '/account/claim-child'
+    | '/account/connections'
     | '/account/preview'
+    | '/account/rosters'
     | '/account/studio'
     | '/admin/academy'
     | '/admin/action-required'
@@ -1024,6 +1059,7 @@ export interface FileRouteTypes {
     | '/_authenticated/notifications'
     | '/_authenticated/saved-posts'
     | '/business/$slug'
+    | '/claim-roster/$token'
     | '/courses/$courseId'
     | '/guide/notes'
     | '/guide/parents'
@@ -1045,7 +1081,9 @@ export interface FileRouteTypes {
     | '/_authenticated/account/cases'
     | '/_authenticated/account/claim'
     | '/_authenticated/account/claim-child'
+    | '/_authenticated/account/connections'
     | '/_authenticated/account/preview'
+    | '/_authenticated/account/rosters'
     | '/_authenticated/account/studio'
     | '/_authenticated/admin/academy'
     | '/_authenticated/admin/action-required'
@@ -1105,6 +1143,7 @@ export interface RootRouteChildren {
   TosRoute: typeof TosRoute
   TutorPlaybookRoute: typeof TutorPlaybookRoute
   BusinessSlugRoute: typeof BusinessSlugRoute
+  ClaimRosterTokenRoute: typeof ClaimRosterTokenRoute
   CoursesCourseIdRoute: typeof CoursesCourseIdRoute
   GuideNotesRoute: typeof GuideNotesRoute
   GuideParentsRoute: typeof GuideParentsRoute
@@ -1308,6 +1347,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof BusinessSlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/claim-roster/$token': {
+      id: '/claim-roster/$token'
+      path: '/claim-roster/$token'
+      fullPath: '/claim-roster/$token'
+      preLoaderRoute: typeof ClaimRosterTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/courses/': {
       id: '/courses/'
       path: '/courses'
@@ -1455,11 +1501,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountClaimChildRouteImport
       parentRoute: typeof AuthenticatedAccountRoute
     }
+    '/_authenticated/account/connections': {
+      id: '/_authenticated/account/connections'
+      path: '/connections'
+      fullPath: '/account/connections'
+      preLoaderRoute: typeof AuthenticatedAccountConnectionsRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
     '/_authenticated/account/preview': {
       id: '/_authenticated/account/preview'
       path: '/preview'
       fullPath: '/account/preview'
       preLoaderRoute: typeof AuthenticatedAccountPreviewRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
+    '/_authenticated/account/rosters': {
+      id: '/_authenticated/account/rosters'
+      path: '/rosters'
+      fullPath: '/account/rosters'
+      preLoaderRoute: typeof AuthenticatedAccountRostersRouteImport
       parentRoute: typeof AuthenticatedAccountRoute
     }
     '/_authenticated/account/studio': {
@@ -1756,7 +1816,9 @@ interface AuthenticatedAccountRouteChildren {
   AuthenticatedAccountCasesRoute: typeof AuthenticatedAccountCasesRouteWithChildren
   AuthenticatedAccountClaimRoute: typeof AuthenticatedAccountClaimRoute
   AuthenticatedAccountClaimChildRoute: typeof AuthenticatedAccountClaimChildRoute
+  AuthenticatedAccountConnectionsRoute: typeof AuthenticatedAccountConnectionsRoute
   AuthenticatedAccountPreviewRoute: typeof AuthenticatedAccountPreviewRoute
+  AuthenticatedAccountRostersRoute: typeof AuthenticatedAccountRostersRoute
   AuthenticatedAccountStudioRoute: typeof AuthenticatedAccountStudioRoute
   AuthenticatedAccountCoursesNewRoute: typeof AuthenticatedAccountCoursesNewRoute
   AuthenticatedAccountFoldersNewRoute: typeof AuthenticatedAccountFoldersNewRoute
@@ -1770,7 +1832,9 @@ const AuthenticatedAccountRouteChildren: AuthenticatedAccountRouteChildren = {
   AuthenticatedAccountCasesRoute: AuthenticatedAccountCasesRouteWithChildren,
   AuthenticatedAccountClaimRoute: AuthenticatedAccountClaimRoute,
   AuthenticatedAccountClaimChildRoute: AuthenticatedAccountClaimChildRoute,
+  AuthenticatedAccountConnectionsRoute: AuthenticatedAccountConnectionsRoute,
   AuthenticatedAccountPreviewRoute: AuthenticatedAccountPreviewRoute,
+  AuthenticatedAccountRostersRoute: AuthenticatedAccountRostersRoute,
   AuthenticatedAccountStudioRoute: AuthenticatedAccountStudioRoute,
   AuthenticatedAccountCoursesNewRoute: AuthenticatedAccountCoursesNewRoute,
   AuthenticatedAccountFoldersNewRoute: AuthenticatedAccountFoldersNewRoute,
@@ -1891,6 +1955,7 @@ const rootRouteChildren: RootRouteChildren = {
   TosRoute: TosRoute,
   TutorPlaybookRoute: TutorPlaybookRoute,
   BusinessSlugRoute: BusinessSlugRoute,
+  ClaimRosterTokenRoute: ClaimRosterTokenRoute,
   CoursesCourseIdRoute: CoursesCourseIdRoute,
   GuideNotesRoute: GuideNotesRoute,
   GuideParentsRoute: GuideParentsRoute,

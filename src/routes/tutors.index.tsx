@@ -72,6 +72,14 @@ import {
 } from "@/features/tutors/verticals";
 import { supabase } from "@/integrations/supabase/client";
 import { ActiveFilterRibbon } from "@/components/search/active-filter-ribbon";
+import { LearnerContextBanner } from "@/components/search/who-picker";
+import { requestOpenSearch } from "@/components/search/open-search-event";
+import {
+  isLearnerActive,
+  scoreTutorForLearner,
+  setRecentSearchSignals,
+  useLearnerContext,
+} from "@/features/children/learner-context";
 import { buildActiveFilterChips } from "@/features/tutors/active-filter-chips";
 import {
   availabilityRank,
@@ -294,6 +302,21 @@ function TutorsDirectory() {
   const fieldFilter = draft.field ?? "";
   const kindergartenToggles = kindergartenActiveToggles(draft);
 
+  // #700 Priority 3: remember this visit's applied curriculum / subjects so
+  // the Marketplace can put matching notes first (guests included).
+  useEffect(() => {
+    setRecentSearchSignals({
+      curriculum: search.category ?? null,
+      subjects: [search.subject ?? "", ...(search.subjects_extra ?? "").split("||")]
+        .map((value) => value.trim())
+        .filter(Boolean),
+    });
+  }, [search.category, search.subject, search.subjects_extra]);
+
+  // #698: session learner ("Who is learning?") for the soft re-rank.
+  const learner = useLearnerContext();
+  const learnerActive = isLearnerActive(learner);
+
   const filtered = useMemo(() => {
     const allSubjectFilters = [subjectFilter, ...extraSubjectFilters].filter(Boolean);
     const subjectHits = (tut: Tutor) =>
@@ -416,6 +439,12 @@ function TutorsDirectory() {
         const fitDelta = compareFit(fitScores.get(a.id) ?? null, fitScores.get(b.id) ?? null);
         if (fitDelta !== 0) return fitDelta;
       }
+      // #698: tailored for the selected learner (level, curriculum,
+      // subjects). Soft: it only orders, never hides.
+      if (learnerActive && sort !== "price_asc" && sort !== "price_desc") {
+        const learnerDelta = scoreTutorForLearner(learner, b) - scoreTutorForLearner(learner, a);
+        if (learnerDelta !== 0) return learnerDelta;
+      }
       // #605: tutors teaching more of the picked subjects rank first (OR).
       if (isPrimarySecondaryTier && allSubjectFilters.length > 1) {
         const hitDelta = subjectHits(b) - subjectHits(a);
@@ -465,6 +494,8 @@ function TutorsDirectory() {
     availPick,
     fitWindows,
     fitScores,
+    learner,
+    learnerActive,
     effectiveStationFilter,
     modeFilter,
     genderFilter,
@@ -683,6 +714,7 @@ function TutorsDirectory() {
           ) : (
             <section className="pt-6 pb-12 sm:pt-8">
               <div className="mx-auto max-w-[1536px] px-4 sm:px-6">
+                <LearnerContextBanner onSwitch={requestOpenSearch} />
                 <ActiveFilterRibbon
                   chips={activeChips}
                   onRemove={(chip) => removeChip(chip.patch as Partial<SearchState>)}

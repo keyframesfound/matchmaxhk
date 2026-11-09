@@ -34,6 +34,8 @@ function baseApplication(overrides: Partial<StoredApplication> = {}): StoredAppl
     startDate: "",
     status: "University Student",
     statusOther: "",
+    // Issue #718: gender is required at intake again (quick-sheet field).
+    gender: "female",
     professionalRoles: [],
     examiningBoards: [],
     teachingQualifications: [],

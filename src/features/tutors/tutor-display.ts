@@ -237,6 +237,29 @@ export function getTutorAvailabilityState(
 }
 
 /**
+ * Issue #715: tutor-card availability pill state, derived from the same
+ * capacity columns.
+ *  - 1–3 open slots  → "Available · N slot(s) left" (emerald)
+ *  - 4+ open slots   → "Available now" (emerald)
+ *  - full or paused  → "Currently Full" (neutral slate)
+ * Taking tutors with NO slot data (null, pre-migration) render no pill —
+ * we never claim availability we cannot see.
+ */
+export type TutorAvailabilityBadge =
+  { kind: "slots_left"; count: number } | { kind: "available_now" } | { kind: "full" };
+
+export function getTutorAvailabilityBadge(
+  tutor: Pick<Tutor, "is_accepting_students" | "remaining_student_slots">,
+): TutorAvailabilityBadge | null {
+  const state = getTutorAvailabilityState(tutor);
+  if (state === "full" || state === "inactive") return { kind: "full" };
+  const slots = tutor.remaining_student_slots;
+  if (typeof slots !== "number") return null;
+  if (slots <= 3) return { kind: "slots_left", count: slots };
+  return { kind: "available_now" };
+}
+
+/**
  * Issue #103: waitlist CTA for fully booked tutors, same WhatsApp deep link,
  * different label/message so parents know lessons are full.
  */

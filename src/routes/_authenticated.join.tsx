@@ -9,8 +9,8 @@ import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { useAuth } from "@/features/auth/useAuth";
 import { canonicalUrl, localeLinks } from "@/features/i18n/seo";
-import { ActivateTutorCard } from "@/features/tutor-application/activate-tutor-card";
 import { JoinChooser } from "@/features/tutor-application/join-chooser";
+import { ApplicationForm } from "@/features/tutor-application/ApplicationForm";
 import { supabase } from "@/integrations/supabase/client";
 import { REFERRAL_CODE_PATTERN, storeReferralCode } from "@/lib/referral";
 
@@ -27,13 +27,13 @@ export const Route = createFileRoute("/_authenticated/join")({
       {
         name: "description",
         content:
-          "Publish your tutor card in about a minute, sell study notes, or partner with MatchMax as a tutoring centre in Hong Kong.",
+          "Fill one complete tutor intake — matching data, grades, bio and availability — publish your card, sell study notes, or partner with MatchMax as a tutoring centre in Hong Kong.",
       },
       { property: "og:title", content: "Join MatchMax" },
       {
         property: "og:description",
         content:
-          "Publish your tutor card in about a minute, sell study notes, or partner with MatchMax as a tutoring centre in Hong Kong.",
+          "Fill one complete tutor intake — matching data, grades, bio and availability — publish your card, sell study notes, or partner with MatchMax as a tutoring centre in Hong Kong.",
       },
       { property: "og:type", content: "website" },
       { property: "og:url", content: canonicalUrl("/join") },
@@ -44,7 +44,12 @@ export const Route = createFileRoute("/_authenticated/join")({
   component: JoinPage,
 });
 
-/** #576: role chooser, then the 60-second activation sheet for tutors. */
+/**
+ * #576 role chooser; #718 restores the full single-page tutor intake
+ * (ApplicationForm) as the Tutor path — one submission collects the core
+ * matching data, availability and status fields, deferring only credential
+ * verification to the existing post-submit flow.
+ */
 function JoinPage() {
   const { t } = useTranslation();
   const { path, ref } = Route.useSearch();
@@ -82,14 +87,14 @@ function JoinPage() {
   return (
     <PublicPage>
       <PageIntro
-        description={t(tutorPath ? "join_flow.activate_desc" : "join_flow.chooser_desc")}
-        title={t(tutorPath ? "join_flow.activate_title" : "join_flow.chooser_title")}
+        description={t(tutorPath ? "join_flow.intake_desc" : "join_flow.chooser_desc")}
+        title={t(tutorPath ? "join_flow.intake_title" : "join_flow.chooser_title")}
         width="wide"
         dense
         meta={t("join.new_to_market")}
       />
       <PageContainer className="py-5 sm:py-6" width="wide">
-        {tutorPath ? <ActivateTutorCard /> : <JoinChooser />}
+        {tutorPath ? <ApplicationForm /> : <JoinChooser />}
       </PageContainer>
     </PublicPage>
   );

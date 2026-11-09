@@ -45,10 +45,18 @@ export const BUS_EVENT_TYPES = [
   "action.profile_fields",
   "action.onboarding",
   "action.admin_task",
+  // #617 Tutor Connect graph: connect.request → the recipient tutor,
+  // connect.accepted → the original requester. In-app only.
+  "connect.request",
+  "connect.accepted",
   // Accepted but unconsumed (#205): stored as skipped, no message.
   "listing.viewed",
   "listing.saved",
   "entitlement.granted",
+  // ---- #613 roster attendance (single clearly-commented block; full bell
+  // inbox chrome is #614's job — these only emit structured payloads) ------
+  "attendance.recorded",
+  "attendance.updated",
 ] as const;
 
 export type BusEventType = (typeof BUS_EVENT_TYPES)[number];
@@ -100,6 +108,13 @@ export const BELL_EVENT_TYPES: readonly string[] = [
   "action.profile_fields",
   "action.onboarding",
   "action.admin_task",
+  // #613: parents of LINKED roster students see the attendance bell.
+  "attendance.recorded",
+  "attendance.updated",
+  // #617 Tutor Connect graph: request/accept reach the bell (in-app only;
+  // the payload names the counterpart and the link opens the hub tab).
+  "connect.request",
+  "connect.accepted",
 ];
 
 /**
@@ -131,6 +146,10 @@ const RECIPIENT_ROLE_EVENTS: readonly string[] = [
   "action.profile_fields",
   "action.onboarding",
   "action.admin_task",
+  // #613: attendance events address the linked parent account directly
+  // (payload.recipient_account_id; context 'learning').
+  "attendance.recorded",
+  "attendance.updated",
 ];
 
 /**
@@ -314,6 +333,17 @@ export const DELIVERY_PLAN: Readonly<
     { channel: "in_app", role: "recipient" },
     { channel: "email", role: "recipient" },
   ],
+  // ---- #613 roster attendance: in-app bell for the linked parent only (no
+  // email — fee/order classes are the email set). PENDING_LINK students have
+  // no recipient yet; the claim backfill re-emits with their account. --------
+  "attendance.recorded": [{ channel: "in_app", role: "recipient" }],
+  "attendance.updated": [{ channel: "in_app", role: "recipient" }],
+  // ---- #617 Tutor Connect graph -------------------------------------------
+  // Bell-only website notifications (no email): the payload's tutor_id is
+  // the RECIPIENT tutor's id (connect.request) or the original requester's
+  // (connect.accepted); the drain resolves it to the account via tutors.user_id.
+  "connect.request": [{ channel: "in_app", role: "tutor" }],
+  "connect.accepted": [{ channel: "in_app", role: "tutor" }],
 };
 
 export type PlannedDelivery = { channel: BusChannel; role: BusRole };
@@ -418,6 +448,11 @@ export function bellLinkFor(
       return typeof payload.link === "string" && payload.link.startsWith("/")
         ? payload.link
         : "/dashboard#my-tutor";
+    // #617 Tutor Connect: land on the tab where the recipient can act.
+    case "connect.request":
+      return "/account/connections?tab=pending";
+    case "connect.accepted":
+      return "/account/connections?tab=connected";
     case "material.rejected":
     case "content.rejected":
     case "report.filed":
@@ -425,6 +460,11 @@ export function bellLinkFor(
       return typeof payload.link === "string" && payload.link.startsWith("/")
         ? payload.link
         : "/notifications";
+    // #613: parents land on their account hub (the full parent attendance
+    // inbox is #614's chrome).
+    case "attendance.recorded":
+    case "attendance.updated":
+      return "/account";
     default:
       return null;
   }
