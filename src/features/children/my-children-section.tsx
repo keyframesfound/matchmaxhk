@@ -10,11 +10,13 @@ import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import {
+  CHILD_LEVELS,
   CHILD_SOFT_LIMIT,
   ChildInput,
   shouldWarnChildCount,
   type ChildProfile,
 } from "@/features/children/children";
+import { learnerLevelLabel } from "@/features/children/learner-context";
 import {
   archiveChild,
   listMyChildren,
@@ -25,9 +27,24 @@ import { startChildClaim } from "@/features/children/claim.functions";
 
 export const CHILDREN_QUERY_KEY = ["account", "children"] as const;
 
-type Draft = { nickname: string; school: string; curriculum: string; gradYear: string };
+type Draft = {
+  nickname: string;
+  school: string;
+  curriculum: string;
+  gradYear: string;
+  /** #698: grade level code and comma-separated target subjects. */
+  level: string;
+  subjects: string;
+};
 
-const EMPTY_DRAFT: Draft = { nickname: "", school: "", curriculum: "", gradYear: "" };
+const EMPTY_DRAFT: Draft = {
+  nickname: "",
+  school: "",
+  curriculum: "",
+  gradYear: "",
+  level: "",
+  subjects: "",
+};
 
 function toDraft(child: ChildProfile): Draft {
   return {
@@ -35,6 +52,8 @@ function toDraft(child: ChildProfile): Draft {
     school: child.school ?? "",
     curriculum: child.curriculum ?? "",
     gradYear: child.gradYear ? String(child.gradYear) : "",
+    level: child.level ?? "",
+    subjects: (child.subjects ?? []).join(", "),
   };
 }
 
@@ -123,7 +142,15 @@ export function MyChildrenSection() {
               <div className="min-w-0">
                 <p className="truncate font-semibold text-[color:var(--ink)]">{child.nickname}</p>
                 <p className="truncate text-sm text-muted-foreground">
-                  {[child.school, child.curriculum, child.gradYear].filter(Boolean).join(" · ")}
+                  {[
+                    child.school,
+                    child.curriculum,
+                    child.gradYear,
+                    learnerLevelLabel(child.level, t),
+                    (child.subjects ?? []).join(", "),
+                  ]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </p>
                 {child.status === "claimed_independent" ? <RetainToggles child={child} /> : null}
               </div>
@@ -330,6 +357,12 @@ function ChildForm({ initial, childId, onDone }: ChildFormProps) {
         school: draft.school,
         curriculum: draft.curriculum,
         gradYear: draft.gradYear ? Number(draft.gradYear) : null,
+        level: draft.level || null,
+        subjects: draft.subjects
+          .split(/[,，、]/)
+          .map((value) => value.trim())
+          .filter(Boolean)
+          .slice(0, 8),
       });
       return saveChild({ data: { id: childId, child } });
     },
@@ -391,6 +424,32 @@ function ChildForm({ initial, childId, onDone }: ChildFormProps) {
           max={2100}
           value={draft.gradYear}
           onChange={(event) => update({ gradYear: event.target.value })}
+        />
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-level`}>{t("learner.level_label")}</Label>
+        <select
+          id={`${idPrefix}-level`}
+          value={draft.level}
+          onChange={(event) => update({ level: event.target.value })}
+          className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
+        >
+          <option value="">{t("learner.level_any")}</option>
+          {CHILD_LEVELS.map((level) => (
+            <option key={level} value={level}>
+              {learnerLevelLabel(level, t)}
+            </option>
+          ))}
+        </select>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor={`${idPrefix}-subjects`}>{t("learner.subjects_label")}</Label>
+        <Input
+          id={`${idPrefix}-subjects`}
+          value={draft.subjects}
+          onChange={(event) => update({ subjects: event.target.value })}
+          placeholder={t("learner.subjects_placeholder")}
+          maxLength={300}
         />
       </div>
       <div className="flex gap-2 sm:col-span-2">
