@@ -18,6 +18,18 @@ import {
 import { motion, useReducedMotion } from "motion/react";
 
 import { Button } from "@/components/ui/button";
+import {
+  learnerCurriculumLabel,
+  learnerFromChild,
+  learnerLevelLabel,
+  readRecentSearchSignals,
+  setLearnerContext,
+  useLearnerContext,
+  type RecentSearchSignals,
+} from "@/features/children/learner-context";
+import { listMyChildren } from "@/features/children/children.functions";
+import { CHILDREN_QUERY_KEY } from "@/features/children/my-children-section";
+import { splitTailored } from "@/features/materials/tailored-materials";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { GuidedCard, MoreFiltersAccordion } from "@/components/search/guided-card";
@@ -128,6 +140,20 @@ export function MaterialsDirectory() {
   const [sheetOpen, setSheetOpen] = useState(false);
   const navigate = useNavigate();
   const { user } = useAuth();
+  // #700: tailor the feed to the active learner (#698 "Who"), else to this
+  // visit's tutor-search curriculum / subjects. "All study materials" or a
+  // manual curriculum pick switches it off.
+  const learner = useLearnerContext();
+  const [recentSignals, setRecentSignals] = useState<RecentSearchSignals | null>(null);
+  useEffect(() => setRecentSignals(readRecentSearchSignals()), []);
+  const [tailorOff, setTailorOff] = useState(false);
+  const childrenQuery = useQuery({
+    queryKey: CHILDREN_QUERY_KEY,
+    queryFn: () => listMyChildren(),
+    enabled: Boolean(user),
+    staleTime: 60_000,
+  });
+  const savedChildren = user ? (childrenQuery.data ?? []) : [];
   const { data: materials = [], isLoading } = useQuery({
     queryKey: ["materials", "marketplace"],
     queryFn: fetchMarketplaceMaterials,
@@ -262,6 +288,17 @@ export function MaterialsDirectory() {
     t,
   ]);
 
+  const learnerTailoring =
+    learner && (learner.curriculum || learner.subjects.length > 0)
+      ? { curriculum: learner.curriculum, subjects: learner.subjects }
+      : null;
+  const tailoring =
+    shopTab === "notes" && !tailorOff && !curriculum ? (learnerTailoring ?? recentSignals) : null;
+  const tailoredSplit = useMemo(() => splitTailored(filtered, tailoring), [filtered, tailoring]);
+  const tailoringLabel = tailoring?.curriculum
+    ? learnerCurriculumLabel(tailoring.curriculum)
+    : (tailoring?.subjects ?? []).join(", ");
+
   const clearAll = () => {
     setQuery("");
     setSchool("");
@@ -335,6 +372,30 @@ export function MaterialsDirectory() {
       onSelect: () => {},
     },
   ];
+
+  // #557 / #543 CEO lock: Carousell-style 2-column grid of compact
+  // photo-first cards (photo, title, price, seller name).
+  const renderGrid = (items: MarketplaceMaterial[]) => (
+    <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 lg:grid-cols-4 xl:grid-cols-5">
+      {items.map((material) => (
+        <NoteBrowseCard
+          key={material.id}
+          material={material}
+          rating={ratings.get(material.id) ?? null}
+          saved={savedIds.has(material.id)}
+          onToggleSave={() => void toggleSave(material.id)}
+        />
+      ))}
+    </div>
+  );
+
+  const tailorPillClass = (active: boolean) =>
+    cn(
+      "inline-flex shrink-0 items-center whitespace-nowrap rounded-full border px-3.5 py-1.5 text-[13px] font-bold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
+      active
+        ? "border-[color:var(--brand-link)] bg-[color:var(--brand-link)]/10 text-[color:var(--ink)]"
+        : "border-border bg-card text-[color:var(--ink)]/70 hover:bg-[color:var(--surface-subtle)] hover:text-[color:var(--ink)]",
+    );
 
   const kindChips: { value: KindFilter; label: string }[] = [
     { value: "all", label: t("shop.filter_all") },
@@ -759,6 +820,85 @@ export function MaterialsDirectory() {
         {/* Issue #566 follow-up: the bold count span duplicated the {{count}}
             inside the translation ("1 1 listing found"). Translation-owned,
             matching the tutors directory count (#600). */}
+        {/* #700: "Tailored for" quick-switch pills (children / this search / all). */}
+        {shopTab === "notes" && (savedChildren.length > 0 || learnerTailoring || recentSignals) ? (
+          <div
+            role="group"
+            aria-label={t("tailored_notes.tailored_for")}
+            className="-mx-4 mb-4 flex items-center gap-2 overflow-x-auto px-4 pb-1 [scrollbar-width:none] sm:mx-0 sm:flex-wrap sm:px-0 [&::-webkit-scrollbar]:hidden"
+          >
+            <span className="shrink-0 text-[13px] font-semibold text-muted-foreground">
+              {t("tailored_notes.tailored_for")}
+            </span>
+            {savedChildren.map((child) => {
+              const ctx = learnerFromChild(child);
+              const active =
+                Boolean(tailoring) && learner?.source === "child" && learner.childId === child.id;
+              const label =
+                learnerCurriculumLabel(ctx.curriculum) || learnerLevelLabel(ctx.level, t);
+              return (
+                <button
+                  key={child.id}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => {
+                    setLearnerContext(ctx);
+                    setCurriculum("");
+                    setTailorOff(false);
+                  }}
+                  className={tailorPillClass(active)}
+                >
+                  {label
+                    ? t("tailored_notes.for_child", { name: child.nickname, curriculum: label })
+                    : child.nickname}
+                </button>
+              );
+            })}
+            {learner?.source === "guest" && learnerTailoring ? (
+              <button
+                type="button"
+                aria-pressed={Boolean(tailoring)}
+                onClick={() => {
+                  setCurriculum("");
+                  setTailorOff(false);
+                }}
+                className={tailorPillClass(Boolean(tailoring))}
+              >
+                {t("tailored_notes.for_child", {
+                  name: learner.name || t("learner.guest_label"),
+                  curriculum:
+                    learnerCurriculumLabel(learner.curriculum) || learner.subjects.join(", "),
+                })}
+              </button>
+            ) : null}
+            {!learnerTailoring && recentSignals ? (
+              <button
+                type="button"
+                aria-pressed={Boolean(tailoring)}
+                onClick={() => {
+                  setCurriculum("");
+                  setTailorOff(false);
+                }}
+                className={tailorPillClass(Boolean(tailoring))}
+              >
+                {t("tailored_notes.for_search", {
+                  value:
+                    learnerCurriculumLabel(recentSignals.curriculum) ||
+                    recentSignals.subjects.join(", "),
+                })}
+              </button>
+            ) : null}
+            <button
+              type="button"
+              aria-pressed={!tailoring}
+              onClick={() => setTailorOff(true)}
+              className={tailorPillClass(!tailoring)}
+            >
+              {t("tailored_notes.all")}
+            </button>
+          </div>
+        ) : null}
+
         <div className="mb-6 flex items-baseline justify-between">
           {isLoading ? (
             <Skeleton className="h-4 w-28" />
@@ -798,21 +938,40 @@ export function MaterialsDirectory() {
           </div>
         )}
 
-        {!isLoading && filtered.length > 0 && (
-          // #557 / #543 CEO lock: Carousell-style 2-column grid of compact
-          // photo-first cards (photo, title, price, seller name).
-          <div className="grid grid-cols-2 gap-x-3 gap-y-6 sm:grid-cols-3 sm:gap-x-4 lg:grid-cols-4 xl:grid-cols-5">
-            {filtered.map((material: MarketplaceMaterial) => (
-              <NoteBrowseCard
-                key={material.id}
-                material={material}
-                rating={ratings.get(material.id) ?? null}
-                saved={savedIds.has(material.id)}
-                onToggleSave={() => void toggleSave(material.id)}
-              />
-            ))}
-          </div>
-        )}
+        {!isLoading && filtered.length > 0 && !tailoring ? renderGrid(filtered) : null}
+
+        {/* #700: recommended for the learner first, everything else below a
+            divider (never hidden). */}
+        {!isLoading && filtered.length > 0 && tailoring ? (
+          <>
+            {tailoredSplit.recommended.length > 0 ? (
+              <section aria-labelledby="mm-tailored-heading" className="mb-10">
+                <h2
+                  id="mm-tailored-heading"
+                  className="mb-4 text-lg font-bold tracking-tight text-[color:var(--ink)] sm:text-xl"
+                >
+                  {t("tailored_notes.recommended_title", { curriculum: tailoringLabel })}
+                </h2>
+                {renderGrid(tailoredSplit.recommended)}
+              </section>
+            ) : (
+              <p className="mb-6 rounded-lg border border-border bg-[color:var(--surface-subtle)] px-4 py-3 text-sm text-muted-foreground">
+                {t("tailored_notes.empty_for", { curriculum: tailoringLabel })}
+              </p>
+            )}
+            {tailoredSplit.others.length > 0 ? (
+              <section aria-labelledby="mm-other-heading">
+                <h2
+                  id="mm-other-heading"
+                  className="mb-4 border-t border-border pt-6 text-lg font-bold tracking-tight text-[color:var(--ink)] sm:text-xl"
+                >
+                  {t("tailored_notes.other_title")}
+                </h2>
+                {renderGrid(tailoredSplit.others)}
+              </section>
+            ) : null}
+          </>
+        ) : null}
       </div>
       <AuthGateDialog
         open={authGateOpen}

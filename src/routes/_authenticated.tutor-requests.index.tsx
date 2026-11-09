@@ -13,6 +13,7 @@ import {
   Inbox,
   SearchX,
   Share2,
+  Sparkles,
 } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -85,6 +86,8 @@ import type { AcademicTier } from "@/features/tutors/verticals";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 import { useAuth } from "@/features/auth/useAuth";
 import { rankCasesByFit } from "@/features/cases/schedule-fit";
+import { isMatchProfileComplete, sortCasesByBestMatch } from "@/features/cases/case-best-match";
+import { useTutorMatchProfile } from "@/features/cases/use-tutor-match-profile";
 import { ScheduleFitBadge, ScheduleSyncPanel } from "@/features/cases/schedule-fit-ui";
 import { useTutorScheduleSync } from "@/features/cases/use-schedule-fit";
 import {
@@ -322,11 +325,14 @@ function CaseCard({
   item,
   applied = false,
   fitScore,
+  profileMatch,
 }: {
   item: PublicCaseBoardItem;
   applied?: boolean;
   /** #660: Schedule Fit Score for the signed-in tutor; absent shows no badge. */
   fitScore?: number;
+  /** #699: profile-fit score when the case matches the tutor's profile. */
+  profileMatch?: number;
 }) {
   const { t, i18n } = useTranslation();
   const { primary, secondary } = useCaseTitles(item);
@@ -367,6 +373,17 @@ function CaseCard({
         <h3 className="truncate text-base font-bold text-[color:var(--ink)]">{primary}</h3>
         {secondary ? <p className="truncate text-sm text-muted-foreground">{secondary}</p> : null}
       </Link>
+
+      {/* #699: badge only on strong profile fits (subject + stage + curriculum). */}
+      {profileMatch ? (
+        <span className="mt-2 inline-flex w-fit items-center gap-1 rounded-full border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/10 px-2.5 py-0.5 text-xs font-bold text-[color:var(--ink)]">
+          <Sparkles className="h-3 w-3 text-[color:var(--brand-link)]" aria-hidden="true" />
+          {t("case_best_match.badge")}
+          <span className="font-semibold text-muted-foreground">
+            · {t("case_best_match.fit_pct", { n: profileMatch })}
+          </span>
+        </span>
+      ) : null}
 
       {/* #660: same badge family and formula as the parent Tutor Search. */}
       {fitScore ? (
@@ -605,13 +622,44 @@ function TutorRequestsPage() {
   };
 
   const {
-    items: filteredCases,
+    items: fitRankedCases,
     scores: caseFitScores,
     zeroFit,
   } = useMemo(
     () => rankCasesByFit(searchedCases, scheduleFit.open, matchedToSchedule),
     [searchedCases, scheduleFit.open, matchedToSchedule],
   );
+
+  // #699: "Best Match for You" for signed-in tutors (soft order + badge).
+  // Schedule match (#660), when on, stays the primary order.
+  const tutorMatch = useTutorMatchProfile();
+  const [caseSort, setCaseSort] = useState<"best" | "latest">("best");
+  const profileComplete = isMatchProfileComplete(tutorMatch.profile);
+  const { items: filteredCases, matches: caseMatches } = useMemo(() => {
+    const ranked = sortCasesByBestMatch(fitRankedCases, tutorMatch.profile);
+    if (caseSort !== "best" || !profileComplete) {
+      return { items: fitRankedCases, matches: ranked.matches };
+    }
+    const scheduleActive = Boolean(scheduleFit.sync) && matchedToSchedule;
+    if (!scheduleActive) return ranked;
+    // Schedule Fit first (#660), best profile match within the same fit.
+    const position = new Map(fitRankedCases.map((item, index) => [item.id, index]));
+    const items = [...fitRankedCases].sort(
+      (a, b) =>
+        (caseFitScores.get(b.id) ?? 0) - (caseFitScores.get(a.id) ?? 0) ||
+        (ranked.matches.get(b.id)?.score ?? 0) - (ranked.matches.get(a.id)?.score ?? 0) ||
+        (position.get(a.id) ?? 0) - (position.get(b.id) ?? 0),
+    );
+    return { items, matches: ranked.matches };
+  }, [
+    fitRankedCases,
+    caseFitScores,
+    tutorMatch.profile,
+    caseSort,
+    profileComplete,
+    scheduleFit.sync,
+    matchedToSchedule,
+  ]);
 
   const toggleForm = () => {
     if (formOpen) {
@@ -817,6 +865,58 @@ function TutorRequestsPage() {
                   value={search.type}
                   onChange={(type) => navigate({ search: (prev) => ({ ...prev, type }) })}
                 />
+                {/* #699: Best Match / Latest sort for signed-in tutors. */}
+                {tutorMatch.isTutor && !tutorMatch.isLoading ? (
+                  profileComplete ? (
+                    <div className="mt-4 space-y-1.5">
+                      <div
+                        role="radiogroup"
+                        aria-label={t("case_best_match.sort_label")}
+                        className="inline-flex rounded-full border border-border bg-card p-1"
+                      >
+                        {(["best", "latest"] as const).map((value) => (
+                          <button
+                            key={value}
+                            type="button"
+                            role="radio"
+                            aria-checked={caseSort === value}
+                            onClick={() => setCaseSort(value)}
+                            className={cn(
+                              "rounded-full px-3.5 py-1.5 text-sm font-semibold transition-colors",
+                              caseSort === value
+                                ? "bg-[color:var(--ink)] text-[color:var(--surface-invert-fg)]"
+                                : "text-[color:var(--ink)]/70 hover:text-[color:var(--ink)]",
+                            )}
+                          >
+                            {value === "best"
+                              ? t("case_best_match.sort_best")
+                              : t("case_best_match.sort_latest")}
+                          </button>
+                        ))}
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        {t("case_best_match.profile_line", {
+                          value: [
+                            tutorMatch.profile?.targetStudents.join(", "),
+                            tutorMatch.profile?.subjects.slice(0, 4).join(", "),
+                          ]
+                            .filter(Boolean)
+                            .join(" · "),
+                        })}
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="mt-4 rounded-lg border border-border bg-[color:var(--surface-subtle)] px-3 py-2 text-sm text-[color:var(--ink)]">
+                      {t("case_best_match.incomplete")}{" "}
+                      <Link
+                        to="/account"
+                        className="font-bold text-[color:var(--brand-link)] underline-offset-4 hover:underline"
+                      >
+                        {t("case_best_match.incomplete_cta")}
+                      </Link>
+                    </p>
+                  )
+                ) : null}
                 {/* #660: session-only schedule match; never an Airbnb "When" bar. */}
                 {scheduleFit.isLoading ? (
                   <Skeleton className="mt-4 h-9 w-64 rounded-md" />
@@ -941,6 +1041,11 @@ function TutorRequestsPage() {
                         item={item}
                         applied={appliedCodes.has(item.caseCode)}
                         fitScore={caseFitScores.get(item.id)}
+                        profileMatch={
+                          tutorMatch.isTutor && caseMatches.get(item.id)?.matched
+                            ? caseMatches.get(item.id)?.score
+                            : undefined
+                        }
                       />
                     ))}
                   </ul>
