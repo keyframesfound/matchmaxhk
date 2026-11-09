@@ -777,7 +777,9 @@ export function PublicTutorCard({
                 #114: converted figure when the visitor picked a display
                 currency; tooltip shows the tutor's own quote when it differs. */}
             {convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) ?? `$${price.baseRate}`}
-            <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
+            {/* #750: on narrow cards "up/hr" sits under the figure so the
+                share icon fits back on the row without shrinking the price. */}
+            <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:mt-0.5 @max-sm:ml-0 @max-sm:block @max-sm:text-[0.66em]!">
               {t("tutor_card.price_up")}
               {priceSuffix}
             </span>
@@ -798,7 +800,7 @@ export function PublicTutorCard({
                     onClick={handleCompareToggle}
                     onKeyDown={(event) => event.stopPropagation()}
                     className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8",
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-7 @max-sm:w-7",
                       compareSelected
                         ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)]"
                         : "text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06]",
@@ -825,9 +827,8 @@ export function PublicTutorCard({
                     aria-label={`${t("share.share_tutor")} (${formatTutorCode(tutor.tutor_code)})`}
                     onClick={handleShare}
                     onKeyDown={(event) => event.stopPropagation()}
-                    // Narrow cards (< 24rem) drop the share icon so the price
-                    // keeps a readable size; sharing stays on the profile page.
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:hidden"
+                    // #750: share stays on every card; narrow cards use a 28px icon.
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-7 @max-sm:w-7"
                   >
                     <Share2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
                   </button>
