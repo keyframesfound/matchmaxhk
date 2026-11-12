@@ -5073,5 +5073,12 @@
     "prompt": "呢個網頁有繁體中文版本。",
     "switch": "切換至繁體中文",
     "dismiss": "繼續用英文"
+  },
+  "note_upsell": {
+    "cta": "預約此導師 1 對 1 補習",
+    "subtext": "獨立導師 · 1 對 1 補習 HK${{rate}}/小時起 · 家長配對費用全免",
+    "subtext_no_rate": "獨立導師 · 家長配對費用全免",
+    "current_tutor": "你的現任導師",
+    "verified": "已認證"
   }
 }

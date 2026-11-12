@@ -87,6 +87,7 @@ import { buildCaseTitle } from "@/features/cases/case-title";
 import { cn } from "@/lib/utils";
 import {
   learnerSummary,
+  normalizeLearnerCurriculum,
   setLearnerContext,
   useLearnerContext,
 } from "@/features/children/learner-context";
@@ -323,12 +324,15 @@ type CaseRequestFormProps = {
   /** #709: seeds the notes field when the visitor has no saved draft — the
    * Notes-surface trial CTA passes the author's tutor code here. */
   prefillNote?: string;
+  /** #731: curriculum / subject carried from a Marketplace note. */
+  prefillStudy?: { curriculum: string | null; subjects: string[] };
 };
 
 export function CaseRequestForm({
   idPrefix = "cr",
   onSubmitted,
   prefillNote,
+  prefillStudy,
 }: CaseRequestFormProps) {
   const { t } = useTranslation();
   const senCategoryLabels = useSenCategoryLabels();
@@ -569,6 +573,21 @@ export function CaseRequestForm({
     prefillApplied.current = true;
     setForm((prev) => (prev.notes.trim() ? prev : { ...prev, notes: prefillNote.slice(0, 500) }));
   }, [restored, prefillNote]);
+
+  // #731: a note's curriculum / subject fill only empty fields, once.
+  const studyApplied = useRef(false);
+  useEffect(() => {
+    if (studyApplied.current || !prefillStudy) return;
+    studyApplied.current = true;
+    const patch = learnerPrefill({
+      source: "guest",
+      level: null,
+      curriculum: normalizeLearnerCurriculum(prefillStudy.curriculum),
+      subjects: prefillStudy.subjects,
+    });
+    setForm((prev) => applyLearnerPrefill(prev, patch, {}));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- apply once on mount
+  }, []);
 
   const isBlankDraft = (value: FormState) =>
     Object.entries(value).every(

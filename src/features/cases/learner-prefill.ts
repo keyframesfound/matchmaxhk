@@ -1,4 +1,4 @@
-import { getCurriculumOptionsForLevel } from "./case-options";
+import { CURRICULA_FOR_ACADEMIC_LEVEL, getCurriculumOptionsForLevel } from "./case-options";
 import { storedStudentLevel } from "./case-verticals";
 import {
   learnerFunnelLevel,
@@ -26,6 +26,18 @@ export type LearnerPrefill = {
   subject4?: string;
 };
 
+function funnelForCurriculum(
+  curriculum: string | null,
+): "Kindergarten" | "Primary" | "Secondary" | "University" | null {
+  if (!curriculum) return null;
+  for (const [level, curricula] of Object.entries(CURRICULA_FOR_ACADEMIC_LEVEL)) {
+    if (curricula.includes(curriculum)) {
+      return level as "Kindergarten" | "Primary" | "Secondary" | "University";
+    }
+  }
+  return null;
+}
+
 export function learnerPrefill(ctx: LearnerContext | null): LearnerPrefill {
   if (!ctx) return {};
   const patch: LearnerPrefill = {};
@@ -33,7 +45,9 @@ export function learnerPrefill(ctx: LearnerContext | null): LearnerPrefill {
     patch.whoFor = "my_child";
     patch.studentId = ctx.childId;
   }
-  const funnel = learnerFunnelLevel(ctx.level);
+  // #731: a curriculum alone (e.g. from a Marketplace note) implies its
+  // level, so a later level pick does not wipe the pre-filled curriculum.
+  const funnel = learnerFunnelLevel(ctx.level) ?? funnelForCurriculum(ctx.curriculum);
   if (funnel) {
     patch.supportType = "subject_tutoring";
     patch.academicLevel = funnel;

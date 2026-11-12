@@ -5073,5 +5073,12 @@
     "prompt": "本页面提供简体中文版本。",
     "switch": "切换至简体中文",
     "dismiss": "继续使用英文"
+  },
+  "note_upsell": {
+    "cta": "预约此导师 1 对 1 补习",
+    "subtext": "独立导师 · 1 对 1 补习 HK${{rate}}/小时起 · 家长配对费用全免",
+    "subtext_no_rate": "独立导师 · 家长配对费用全免",
+    "current_tutor": "你的现任导师",
+    "verified": "已认证"
   }
 }
