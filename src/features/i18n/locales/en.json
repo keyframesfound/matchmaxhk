@@ -2402,7 +2402,8 @@
       "privacy_save": "Save Privacy Settings",
       "open_case": "Open case",
       "fee_invoiced": "Admin fee: Lesson 1 due (L1 100% + L2 50%)",
-      "fee_paid": "Admin fee settled (Lesson 1 + 50% of Lesson 2)"
+      "fee_paid": "Admin fee settled (Lesson 1 + 50% of Lesson 2)",
+      "open_for_new": "Open for new students"
     },
     "verified": "Verified",
     "verified_detail": "Transcript checked",

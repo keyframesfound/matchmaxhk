@@ -2402,7 +2402,8 @@
       "privacy_save": "保存设定",
       "open_case": "打开个案",
       "fee_invoiced": "行政费：第一堂到期（首堂 100% + 第二堂 50%）",
-      "fee_paid": "行政费已结算（第一堂 + 第二堂半数）"
+      "fee_paid": "行政费已结算（第一堂 + 第二堂半数）",
+      "open_for_new": "可接收新学生"
     },
     "verified": "已核实",
     "verified_detail": "成绩表已核对",
