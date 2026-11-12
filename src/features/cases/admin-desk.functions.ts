@@ -22,6 +22,7 @@ import {
   isLegalTransition,
 } from "@/features/cases/sor";
 import { buildCaseFlagRow, type CaseFlagReason } from "@/features/cases/case-flags";
+import { syncCaseFeeMilestones } from "@/features/cases/fee-milestones.server";
 
 type Row = Record<string, unknown>;
 type Db = ReturnType<typeof asAdminDb>;
@@ -769,6 +770,11 @@ export const lessonAdminMark = createServerFn({ method: "POST" })
       data.status,
       data.reason ?? null,
     );
+    // #760 Part 1: a desk mark of 'done' can deliver the L1/L2 (or short)
+    // fee milestone — recalc the ledger (idempotent, no-op otherwise).
+    if (data.status === "done") {
+      await syncCaseFeeMilestones(db, lesson.case_id, "case_lesson");
+    }
     return { ok: true };
   });
 

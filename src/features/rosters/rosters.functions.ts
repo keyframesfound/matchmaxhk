@@ -25,6 +25,7 @@ import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import { selectRows, type Db } from "@/features/cases/desk-db";
 import { insertLessonLifecycleEvent } from "@/features/cases/bus.functions";
+import { syncCaseFeeMilestones } from "@/features/cases/fee-milestones.server";
 import { getRuntimeEnv } from "@/lib/runtime-env";
 import {
   ATTENDANCE_STATUSES,
@@ -456,6 +457,13 @@ export type RosterSessionView = {
   attendance: SessionAttendanceView[];
 };
 
+export type FeeMilestoneView = {
+  kind: "lesson_1_100" | "lesson_2_50" | "short_course_20";
+  status: "pending" | "delivered";
+  amountHkd: number | null;
+  deliveredAt: string | null;
+};
+
 export type RosterDetail = {
   roster: {
     id: string;
@@ -472,6 +480,16 @@ export type RosterDetail = {
   students: RosterStudentView[];
   markers: RosterMarkerView[];
   sessions: RosterSessionView[];
+  /**
+   * #760 Part 1: tutor-side admin-fee milestone ledger for MATCHED rosters
+   * linked to a platform case (null otherwise — SELF_BROUGHT/partner
+   * students are HK$0 and never see a commission box). Educator/mark access
+   * only; the parent claim view never receives this field.
+   */
+  feeMilestones: {
+    rateHkd: number | null;
+    items: FeeMilestoneView[];
+  } | null;
 };
 
 export const getRoster = createServerFn({ method: "POST" })
@@ -566,6 +584,35 @@ export const getRoster = createServerFn({ method: "POST" })
       };
     });
 
+    // #760 Part 1: tutor-side fee milestone ledger — only for MATCHED
+    // rosters linked to a platform case; every other source is HK$0.
+    let feeMilestones: RosterDetail["feeMilestones"] = null;
+    if (roster.source_type === "matched_case" && roster.case_id) {
+      const milestoneRows = await selectRows<{
+        kind: string;
+        status: string;
+        amount_hkd: number | string | null;
+        delivered_at: string | null;
+      }>(db, "case_fee_milestones", "kind, status, amount_hkd, delivered_at", [
+        { col: "case_id", op: "eq", value: roster.case_id },
+      ]);
+      const caseRows = await selectRows<{ hourly_rate_hkd: number | null }>(
+        db,
+        "tutoring_cases",
+        "hourly_rate_hkd",
+        [{ col: "id", op: "eq", value: roster.case_id }],
+      );
+      feeMilestones = {
+        rateHkd: caseRows[0]?.hourly_rate_hkd == null ? null : Number(caseRows[0].hourly_rate_hkd),
+        items: milestoneRows.map((m) => ({
+          kind: m.kind as "lesson_1_100" | "lesson_2_50" | "short_course_20",
+          status: m.status === "delivered" ? "delivered" : "pending",
+          amountHkd: m.amount_hkd == null ? null : Number(m.amount_hkd),
+          deliveredAt: m.delivered_at,
+        })),
+      };
+    }
+
     return {
       roster: {
         id: roster.id,
@@ -598,6 +645,7 @@ export const getRoster = createServerFn({ method: "POST" })
         revoked: m.revoked_at != null,
       })),
       sessions,
+      feeMilestones,
     };
   });
 
@@ -974,6 +1022,13 @@ export const saveAttendance = createServerFn({ method: "POST" })
       }
     }
 
+    // #760 Part 1: attendance just moved a completed-lesson counter —
+    // recalc the admin-fee milestone ledger for the linked case (idempotent;
+    // SELF_BROUGHT rosters no-op inside the sync).
+    if (access.roster.case_id) {
+      await syncCaseFeeMilestones(db, access.roster.case_id, "roster_attendance");
+    }
+
     return { ok: true, sessionId, duplicate: false, notified };
   });
 
@@ -1074,6 +1129,11 @@ export const editAttendance = createServerFn({ method: "POST" })
         },
         record.id,
       );
+    }
+
+    // #760 Part 1: an edit moved the completed counter — recalc milestones.
+    if (access.roster.case_id) {
+      await syncCaseFeeMilestones(db, access.roster.case_id, "roster_attendance");
     }
 
     return { ok: true, updatedAt: nowIso };
@@ -1188,6 +1248,12 @@ export const voidSession = createServerFn({ method: "POST" })
       }
     }
 
+    // #760 Part 1: a void unwound completed counters — recalc milestones so
+    // a delivered milestone reverts to pending (24h correction window).
+    if (session.roster_id && access.roster.case_id) {
+      await syncCaseFeeMilestones(db, access.roster.case_id, "roster_attendance");
+    }
+
     return { ok: true, updatedAt: nowIso };
   });
 
@@ -1293,6 +1359,13 @@ export type ClaimPreview = {
   courseTitle: string | null;
   /** Always HK$0 — parent accounts are free (Cap.57 display only). */
   feeHkd: 0;
+  /**
+   * #760 Part 1 parent lesson counter ("Completed: X / Y") — attendance and
+   * package shape ONLY; the tutor-side admin-fee milestones never ride on
+   * any parent-facing payload.
+   */
+  completedLessonCount: number;
+  packageLessonCount: number | null;
 };
 
 export const getRosterClaimPreview = createServerFn({ method: "POST" })
@@ -1310,6 +1383,8 @@ export const getRosterClaimPreview = createServerFn({ method: "POST" })
         studentName: null,
         courseTitle: null,
         feeHkd: 0,
+        completedLessonCount: 0,
+        packageLessonCount: null,
       };
     }
     const state = claimTokenState(token, new Date());
@@ -1325,6 +1400,8 @@ export const getRosterClaimPreview = createServerFn({ method: "POST" })
         studentName: null,
         courseTitle: null,
         feeHkd: 0,
+        completedLessonCount: 0,
+        packageLessonCount: null,
       };
     }
     const rosters = await selectRows<RosterRow>(db, "rosters", "*", [
@@ -1350,6 +1427,8 @@ export const getRosterClaimPreview = createServerFn({ method: "POST" })
       studentName: student.display_name,
       courseTitle,
       feeHkd: 0,
+      completedLessonCount: Number(student.completed_lesson_count ?? 0),
+      packageLessonCount: student.package_lesson_count,
     };
   });
 

@@ -208,6 +208,15 @@ function ClaimRosterPage() {
             <dt className="text-muted-foreground">{t("claim_roster.course")}</dt>
             <dd className="font-semibold text-[color:var(--ink)]">{preview?.courseTitle ?? "—"}</dd>
           </div>
+          {/* #760 Part 1 parent lesson counter — attendance/package only. */}
+          <div className="flex justify-between gap-4">
+            <dt className="text-muted-foreground">{t("claim_roster.lessons_completed")}</dt>
+            <dd className="font-mono font-semibold text-[color:var(--ink)]">
+              {preview?.packageLessonCount
+                ? `${preview.completedLessonCount}/${preview.packageLessonCount}`
+                : (preview?.completedLessonCount ?? 0)}
+            </dd>
+          </div>
           <div className="flex justify-between gap-4">
             <dt className="text-muted-foreground">{t("claim_roster.fee")}</dt>
             <dd className="font-semibold text-emerald-700">{t("claim_roster.fee_free")}</dd>
