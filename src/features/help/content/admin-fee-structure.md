@@ -27,11 +27,13 @@ This is the definition used in section 15 of the MatchMax Terms of Service, whic
 | Situation | Admin fee (tutor pays) |
 | --- | --- |
 | Private (B2C) match, per enrolled student / case | 1.5 lessons (100% of Lesson 1 + 50% of Lesson 2) |
-| Short package of 5 lessons or fewer | 20% of the package [VERIFY-WITH-CEO] |
+| Short package of 5 lessons or fewer (declared at booking, before Lesson 1) | 20% of the package value |
 | Partner centre intro, 1st student | 1.5 lessons |
-| Same centre within 6 months, 2nd student | 1.0 lesson |
-| Same centre within 6 months, 3rd student | 0.5 lesson |
+| Same centre within 6 months, 2nd student | 1.0 lesson (billed 0.5 at Lesson 1 + 0.5 at Lesson 2) |
+| Same centre within 6 months, 3rd student | 0.5 lesson (billed 0.5 at Lesson 1 + $0 at Lesson 2) |
 | Same centre within 6 months, 4th student or later | $0 (about 3.0 lessons max per centre introduction) |
+
+A centre's step-down tier only advances when a student completes **both** Lesson 1 and Lesson 2 (or finishes a declared short package) — a student who drops after Lesson 1 does not move the centre to the next tier. Short packages (≤5 lessons) must be declared at booking before Lesson 1; an ongoing case cannot be re-labelled as a short package once Lesson 1 has started, and a short package cannot continue past its declared lessons until it is converted to the ongoing 1.5-lesson rule (only the top-up difference to 1.5 lessons is payable).
 
 ## What the fee means in practice
 

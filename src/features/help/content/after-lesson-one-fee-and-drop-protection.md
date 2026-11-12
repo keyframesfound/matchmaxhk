@@ -33,6 +33,8 @@ Report lessons promptly and accurately. Your reports feed your verified teaching
 
 If a parent or centre stops after exactly one paid lesson and MatchMax verifies the stop with them, you do not owe the full Lesson 1 portion. Verified stop → the fee for that case is 0.5 lessons: you keep the other half of the Lesson 1 tuition you were paid.
 
+**50% Early-Stop Protection through Lesson 2 (#760):** if the family ends the case right after Lesson 2 (before Lesson 3) through no fault of yours, your total admin fee for the case is capped at 50% of the tuition you actually earned — 0.5 lessons after a Lesson 1 stop, 1.0 lesson total after a Lesson 2 stop (the 0.5-lesson Lesson 2 portion is waived). Once the case continues to Lesson 3 or later, the full 1.5-lesson fee is locked. If YOU quit without a verified emergency, the cap never applies: the full accrued portion is due, with a strike and a 30-day shadowban under the trust rules.
+
 How it works:
 
 - **Verification is ours, not yours.** The team asks the parent or centre once whether the full lesson happened and why they stopped. You never have to chase proof, and your word alone never reduces the fee — the same rule protects you in both directions.

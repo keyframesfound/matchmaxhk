@@ -21,6 +21,7 @@ import {
   TUTOR_PLUS_THRESHOLD,
 } from "@/features/cases/sor";
 import { generateSlots, type GeneratedSlot } from "@/features/cases/slot";
+import { shortCaseOverrunError } from "@/features/cases/short-case";
 import {
   caseHasVerifiedLesson,
   validateReviewInput,
@@ -410,6 +411,20 @@ export const confirmLessonTutor = createServerFn({ method: "POST" })
     if (lessonRequestExpired(lesson, new Date())) {
       throw new Error("REQUEST_EXPIRED");
     }
+    // #760 overrun gate: confirming a lesson beyond a short package's
+    // declared N requires the desk convert-to-ongoing first.
+    const shortRow = await selectRows<{
+      is_short_case: boolean;
+      scheduled_lesson_count: number | null;
+    }>(db, "tutoring_cases", "is_short_case, scheduled_lesson_count", [
+      { col: "id", op: "eq", value: lesson.case_id },
+    ]);
+    const overrun = shortCaseOverrunError({
+      isShortCase: shortRow[0]?.is_short_case === true,
+      scheduledLessonCount: shortRow[0]?.scheduled_lesson_count ?? null,
+      lessonSequence: lesson.sequence,
+    });
+    if (overrun) throw new Error(overrun);
 
     const parentConfirmed = lesson.confirmed_by_parent_at !== null;
     const nextStatus = parentConfirmed ? "confirmed" : "planned";

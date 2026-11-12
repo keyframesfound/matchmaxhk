@@ -56,6 +56,8 @@ flowchart TD
 | Pre-L1 reject | $0, no Ownership window | none | none | `PRE_L1_REJECT` |
 | Continues to L2+ (first Regular) | tier base, 1.5×R for tier 1 / primary | none | none | `CONTINUED_FULL` |
 | Stop after one paid lesson, verified, vague reason | min(base, 0.5×R) | keeps the rest | none | `DROP_PROTECTED` |
+| Parent / centre stops right after Lesson 2, before Lesson 3 (#760) | min(base, 1.0×R) — L2's 0.5×R waived (50% earned-tuition cap) | keeps the rest | none | `STOPPED_AFTER_L2_PARENT_CHOICE` |
+| Tutor quits after Lesson 2 (#760) | tier base due, cap void | strike + 30-day shadowban + priority rematch | priority rematch | `TUTOR_QUIT_AFTER_L2` |
 | Clear tutor fault | L1 portion (1.0×R) | no form | none | `TUTOR_FAULT_VOID` |
 | Hostile / abusive parent (verified) | min(base, 0.5×R) | no penalty | blacklisted | `HOSTILE_PARENT_PROTECTED` |
 | Tutor L1 quit | L1 portion + priority rematch, no parent refund | strike + 30-day shadowban | none | `TUTOR_FLAKE_VOID` |
@@ -69,7 +71,9 @@ flowchart TD
 
 Notes:
 
-- L1 portion = min(tier base, 1.0×R) under `100_50`, min(tier base, 0.75×R) under the opt-in `75_75` A/B.
+- L1 portion = min(tier base, 1.0×R) under `100_50`, min(tier base, 0.75×R) under the opt-in `75_75` A/B. Centre tiers split differently (#760): Tier 2 bills 0.5×R L1 + 0.5×R L2 and Tier 3 bills 0.5×R L1 + $0 L2 (`tierL1Portion`), so a Tier 2/3 student dropping after Lesson 1 owes only the 0.5×R L1 slice.
+- #760 boundary: a stop with EXACTLY Lessons 1–2 done resolves to `STOPPED_AFTER_L2_PARENT_CHOICE` (1.0×R cap). The #672 parent-fault credit rule (`PARENT_DROP_L2_L4`, max(0.5, 0.2×completed) with overpaid difference → commission credit) keeps the 3–4-lesson window only.
+- Short case (declared 1–5 lessons at intake, `is_short_case`): the 20% package fee replaces the 1.5-lesson rule. #760 locks: declared BEFORE Lesson 1 is confirmed (no retroactive reclassification — `SHORT_LOCKED_AFTER_L1`); Lesson N+1 cannot be scheduled or dual-confirmed until the desk converts to ongoing (`SHORT_CASE_OVERRUN`); converting bills only the top-up difference to the 1.5-lesson fee (`shortCaseTopUpHkd`, desk bills on the paid basis via `convertBalanceAmountHkd`).
 - A tutor-funded first-lesson discount scales the L1 portion and the protection to the amount actually paid. Regular lessons stay on full R.
 - Only parent or centre confirmation can reduce the fee. Admin-reviewed evidence is accepted only on the tutor-initiated hostile-parent and emergency paths (`dropRecordError`).
 - Consequences (blacklist, strike, shadowban) apply once per rule change, so re-saving a decision never double-counts. Bans stay a human action.
