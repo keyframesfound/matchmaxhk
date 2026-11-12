@@ -25,8 +25,18 @@ export function BackToTopButton() {
   // inline "Back to top" link, so the float would duplicate it.
   const isGuideRoute = pathname === "/guide" || pathname.startsWith("/guide/");
   const isHelpRoute = pathname === "/help" || pathname.startsWith("/help/");
+  // Issue #728: on the phone Account hub the float covered the language /
+  // currency row (right edge); the page is short, so no float there.
+  const isAccountHub = pathname === "/me";
 
-  if (isGuideRoute || isHelpRoute || pathname === "/join" || !isVisible || compareBarVisible) {
+  if (
+    isGuideRoute ||
+    isHelpRoute ||
+    isAccountHub ||
+    pathname === "/join" ||
+    !isVisible ||
+    compareBarVisible
+  ) {
     return null;
   }
 

@@ -120,26 +120,65 @@ export function getTutorStatusLabelKey(tutorStatus: string | null | undefined): 
  * card adds the tutor name + code, the general CTA (float / hotline) omits
  * them. 繁中 is the default (HK parents); English when the UI is English.
  */
+/**
+ * #751: what the parent already chose in search (filters + the #698
+ * learner), carried into the WhatsApp request so they never retype it.
+ * Every field is optional; a missing one keeps its [placeholder].
+ */
+export type InquirySearchContext = {
+  curriculum?: string | null;
+  grade?: string | null;
+  subjects?: string[];
+  mode?: string | null;
+  station?: string | null;
+  rate?: number | null;
+};
+
 export function buildWhatsAppPrefill(input: {
   tutorName?: string | null;
   tutorCode?: string | null;
   language?: string | null;
+  search?: InquirySearchContext | null;
 }): string {
   const isEnglish = (input.language ?? "").toLowerCase().startsWith("en");
   const code = input.tutorCode ? formatTutorCode(input.tutorCode) : "";
   const name = (input.tutorName ?? "").trim();
+  const ctx = input.search ?? {};
+  const level = [ctx.curriculum?.trim(), ctx.grade?.trim()].filter(Boolean).join(" · ");
+  const subjects = (ctx.subjects ?? [])
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .join(", ");
+  const rate = ctx.rate && ctx.rate > 0 ? `$${ctx.rate}` : "$[X]";
+  const station = ctx.station?.trim() ? ` · ${ctx.station.trim()}` : "";
   if (isEnglish) {
     const who = code ? ` about tutor ${name || code} (#${code})` : " about a tutor";
-    return `Hi MatchMax! I'd like to ask${who}. Student: [curriculum & grade] / [subject] / [district or online] / budget about $[X]/hr.`;
+    const where =
+      ctx.mode === "online"
+        ? "online"
+        : ctx.mode === "in_person"
+          ? `in person${station}`
+          : "[district or online]";
+    return `Hi MatchMax! I'd like to ask${who}. Student: ${level || "[curriculum & grade]"} / ${subjects || "[subject]"} / ${where} / budget about ${rate}/hr.`;
   }
   const who = code ? `導師 ${name || code} (#${code})` : "導師";
-  return `您好！我想查詢${who}。學生資料：[學制及年級] / [科目] / [面授地區或網上] / 預算約 $[X]/hr。`;
+  const where =
+    ctx.mode === "online"
+      ? "網上"
+      : ctx.mode === "in_person"
+        ? `面授${station}`
+        : "[面授地區或網上]";
+  return `您好！我想查詢${who}。學生資料：${level || "[學制及年級]"} / ${subjects || "[科目]"} / ${where} / 預算約 ${rate}/hr。`;
 }
 
 export function buildTutorWhatsAppUrl(
   whatsappNumber: string | undefined,
   tutorCode: string,
-  options: { tutorName?: string | null; language?: string | null } = {},
+  options: {
+    tutorName?: string | null;
+    language?: string | null;
+    search?: InquirySearchContext | null;
+  } = {},
 ) {
   const digits = (whatsappNumber ?? "").replace(/[^\d]/g, "");
   if (!digits) return "";
@@ -148,6 +187,7 @@ export function buildTutorWhatsAppUrl(
     tutorName: options.tutorName,
     tutorCode: tutorCode || null,
     language: options.language,
+    search: options.search,
   });
   return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 }
@@ -292,6 +332,8 @@ export function getTutorInquiryAction(
     Partial<Pick<Tutor, "display_name">>,
   whatsappNumber: string | undefined,
   language: string,
+  /** #751: active search filters to pre-fill into the request message. */
+  search?: InquirySearchContext | null,
 ): TutorInquiryAction {
   // Issue #308: a suspended owner keeps their card up but loses every
   // request/waitlist/pre-book action; the caller renders a status chip.
@@ -336,6 +378,7 @@ export function getTutorInquiryAction(
     href: buildTutorWhatsAppUrl(whatsappNumber, tutor.tutor_code, {
       tutorName: tutor.display_name,
       language,
+      search,
     }),
     label: i18n.t("tutor_card.request_cta"),
   };
