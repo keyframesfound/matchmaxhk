@@ -7,7 +7,7 @@ import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] font-semibold outline-none transition-[transform,background-color,border-color,color] duration-150 ease-out focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] focus-visible:ring-offset-2 active:scale-[0.97] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:scale-100 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  "relative inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] font-semibold outline-none transition-[transform,background-color,border-color,color] duration-150 ease-out focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] focus-visible:ring-offset-2 active:translate-y-px active:scale-[0.98] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:translate-y-0 motion-reduce:active:scale-100 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       color: {
@@ -46,10 +46,11 @@ const buttonVariants = cva(
         outline:
           "border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] text-[color:var(--ink)] hover:border-[color:var(--foreground)]/25 hover:bg-[color:var(--foreground)]/[0.04]",
         secondary:
-          "bg-[var(--btn,var(--btn-neutral))] text-[color:var(--btn-fg,var(--btn-neutral-fg))] hover:bg-[var(--btn-hover,var(--btn-neutral-hover))]",
+          "bg-[var(--btn,var(--btn-neutral))] text-[color:var(--btn-fg,var(--btn-neutral-fg))] hover:bg-[var(--btn-hover,var(--btn-neutral-hover))] mm-press",
         soft: "bg-[color-mix(in_oklab,var(--btn,var(--foreground))_12%,transparent)] text-[var(--btn,var(--foreground))] hover:bg-[color-mix(in_oklab,var(--btn,var(--foreground))_18%,transparent)]",
+        // #729: Airbnb-style press, filled buttons sink (1px; .mm-press in styles.css).
         solid:
-          "bg-[var(--btn,var(--btn-neutral))] text-[var(--btn-fg,var(--btn-neutral-fg))] hover:bg-[var(--btn-hover,var(--btn-neutral-hover))]",
+          "bg-[var(--btn,var(--btn-neutral))] text-[var(--btn-fg,var(--btn-neutral-fg))] hover:bg-[var(--btn-hover,var(--btn-neutral-hover))] mm-press",
       },
     },
     defaultVariants: {

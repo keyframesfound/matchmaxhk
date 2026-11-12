@@ -253,9 +253,7 @@ html {
   /* Floating-layer elevation (Arc: shadows only on layers that float over
    * the page — dialogs, menus, popovers, sheets, toasts). Neutral near-black
    * at low opacity; never coloured. Resting surfaces stay border-delineated. */
-  --lift-overlay:
-    0 2px 6px -2px rgb(15 20 25 / 0.08),
-    0 18px 45px -20px rgb(15 20 25 / 0.24);
+  --lift-overlay: 0 2px 6px -2px rgb(15 20 25 / 0.08), 0 18px 45px -20px rgb(15 20 25 / 0.24);
 }
 
 /*
@@ -354,9 +352,7 @@ html {
   --brand-whatsapp-hover: #1ebe57;
 
   /* Floating-layer elevation, night variant (per the luminosity ladder) */
-  --lift-overlay:
-    0 2px 8px -4px rgb(0 0 0 / 0.5),
-    0 16px 40px -24px rgb(0 0 0 / 0.78);
+  --lift-overlay: 0 2px 8px -4px rgb(0 0 0 / 0.5), 0 16px 40px -24px rgb(0 0 0 / 0.78);
 }
 
 @layer base {
@@ -830,6 +826,31 @@ html {
   box-shadow:
     inset 0 1px 2px rgba(0, 0, 0, 0.5),
     0 1px 3px rgba(0, 0, 0, 0.4);
+}
+
+/* #729: Airbnb-style press on filled buttons. Resting stays flat (Floating
+ * Shadow Rule); only the pressed instant sinks with a short inset shadow,
+ * paired with the 1px translate in button.tsx. */
+.mm-press {
+  transition:
+    transform 150ms ease-out,
+    background-color 150ms ease-out,
+    box-shadow 120ms ease-out;
+}
+
+.mm-press:active {
+  box-shadow: inset 0 2px 4px rgba(15, 23, 42, 0.22);
+}
+
+.dark .mm-press:active {
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mm-press,
+  .mm-press:active {
+    transition: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

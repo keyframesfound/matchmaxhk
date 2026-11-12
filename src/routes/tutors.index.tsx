@@ -76,6 +76,8 @@ import { LearnerContextBanner } from "@/components/search/who-picker";
 import { requestOpenSearch } from "@/components/search/open-search-event";
 import {
   isLearnerActive,
+  learnerCurriculumLabel,
+  learnerLevelLabel,
   scoreTutorForLearner,
   setRecentSearchSignals,
   useLearnerContext,
@@ -316,6 +318,33 @@ function TutorsDirectory() {
   // #698: session learner ("Who is learning?") for the soft re-rank.
   const learner = useLearnerContext();
   const learnerActive = isLearnerActive(learner);
+
+  // #751: carry the applied filters (and the #698 learner's grade) into each
+  // card's WhatsApp request so the parent never retypes them.
+  const inquirySearch = useMemo(
+    () => ({
+      curriculum: search.category
+        ? learnerCurriculumLabel(search.category)
+        : learner?.curriculum
+          ? learnerCurriculumLabel(learner.curriculum)
+          : null,
+      grade: learner?.level ? learnerLevelLabel(learner.level, t) : null,
+      subjects: [search.subject ?? "", ...(search.subjects_extra ?? "").split("||")]
+        .map((value) => value.trim())
+        .filter(Boolean),
+      mode: search.mode ?? null,
+      station: search.mode === "in_person" ? (search.station ?? null) : null,
+    }),
+    [
+      search.category,
+      search.subject,
+      search.subjects_extra,
+      search.mode,
+      search.station,
+      learner,
+      t,
+    ],
+  );
 
   const filtered = useMemo(() => {
     const allSubjectFilters = [subjectFilter, ...extraSubjectFilters].filter(Boolean);
@@ -808,6 +837,7 @@ function TutorsDirectory() {
                               tut,
                               whatsappNumber,
                               i18n.language,
+                              { ...inquirySearch, rate: getTutorBaseRate(tut) },
                             );
                             return (
                               <PublicTutorCard
@@ -894,7 +924,10 @@ function TutorsDirectory() {
                 {!isLoading && filtered.length > 0 && (
                   <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
                     {filtered.map((tut: Tutor, index: number) => {
-                      const inquiry = getTutorInquiryAction(tut, whatsappNumber, i18n.language);
+                      const inquiry = getTutorInquiryAction(tut, whatsappNumber, i18n.language, {
+                        ...inquirySearch,
+                        rate: getTutorBaseRate(tut),
+                      });
                       return (
                         <Fragment key={tut.id}>
                           {index === firstPartialFit ? (
