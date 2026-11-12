@@ -229,22 +229,38 @@ async function buildProjection(
     for (const row of partyRows) viewerPartyCaseIds.add(row.id);
     if (tutorIdForViewer && partyRows.length > 0) {
       const caseIds = partyRows.map((r) => r.id);
-      const fees = await selectRows<{ case_id: string; status: string }>(
-        db,
-        "case_fees",
-        "case_id, status",
-        [{ col: "case_id", op: "in", value: caseIds }],
-      );
+      const [fees, milestones] = await Promise.all([
+        selectRows<{ case_id: string; status: string }>(db, "case_fees", "case_id, status", [
+          { col: "case_id", op: "in", value: caseIds },
+        ]),
+        selectRows<{ case_id: string; status: string }>(
+          db,
+          "case_fee_milestones",
+          "case_id, status",
+          [{ col: "case_id", op: "in", value: caseIds }],
+        ),
+      ]);
       const feeByCase = new Map<string, string>();
       for (const f of fees) feeByCase.set(f.case_id, f.status);
+      // #760 Part 1: a delivered milestone with no fee row yet = the fee is
+      // accruing (lesson delivered, invoice not raised until L2 / desk).
+      const deliveredByCase = new Set<string>();
+      for (const m of milestones) {
+        if (m.status === "delivered") deliveredByCase.add(m.case_id);
+      }
       for (const row of partyRows) {
         // The single 1.5-lesson admin-fee row: invoiced = Lesson 1 due, paid
         // = L1/L2 settled. Parents never see this (tutor-pays, #461).
         const feeStatus = feeByCase.get(row.id) ?? "none";
-        feeMilestones.set(
-          row.id,
-          feeStatus === "invoiced" ? "invoiced" : feeStatus === "paid" ? "paid" : "none",
-        );
+        const milestone: ActiveCaseCard["feeMilestone"] =
+          feeStatus === "invoiced"
+            ? "invoiced"
+            : feeStatus === "paid"
+              ? "paid"
+              : deliveredByCase.has(row.id)
+                ? "accruing"
+                : "none";
+        feeMilestones.set(row.id, milestone);
       }
     }
   }

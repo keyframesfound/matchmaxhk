@@ -318,7 +318,8 @@
     "out_of_window": "已過簡介期",
     "out_of_window_hint": "佢同呢個客嘅 6 個月簡介期已過——再配對平台費會係 $0（費用引擎會標 OWNERSHIP_EXPIRED）。可以建議客戶直接聯絡佢。",
     "shadowbanned": "限制配對至 {{date}}",
-    "shadowbanned_hint": "呢位導師喺第一堂後無緊急證明就退出，限制配對 30 日（#529）。你仍然可以批准，但有選擇時請優先揀其他導師。"
+    "shadowbanned_hint": "呢位導師喺第一堂後無緊急證明就退出，限制配對 30 日（#529）。你仍然可以批准，但有選擇時請優先揀其他導師。",
+    "overdue_admin_fee_block": "請先結清已完成個案之行政費（逾期未繳逾 72 小時），以解鎖申請新學生個案。現有個案的教學與管理不受影響。"
   },
   "caseDesk": {
     "tutor_code_label": "導師編號",
@@ -2403,7 +2404,8 @@
       "open_case": "開啟個案",
       "fee_invoiced": "行政費：第一堂到期（首堂 100% + 第二堂 50%）",
       "fee_paid": "行政費已結算（第一堂 + 第二堂半數）",
-      "open_for_new": "可接收新學生"
+      "open_for_new": "可接收新學生",
+      "fee_accruing": "行政費累計中 — 將於第 2 堂後結算"
     },
     "verified": "已核實",
     "verified_detail": "成績表已核對",
@@ -4058,7 +4060,13 @@
     "uploaded": "已收到截圖，預計於 {{date}} 確認付款。",
     "upload_failed": "上載失敗，請再試一次。",
     "err_FPS_REFERENCE_USED": "此轉數快參考編號已用於另一個個案。",
-    "view_screenshot": "查看付款截圖"
+    "view_screenshot": "查看付款截圖",
+    "proof_verifying": "正在核實轉數快收據（24小時內）",
+    "proof_rejected": "收據須重新上傳",
+    "screenshot_replace": "更換截圖",
+    "copy_fps": "複製轉數快 ID",
+    "copy_reference": "複製備註碼",
+    "copied": "已複製"
   },
   "cockpit": {
     "title": "配對控制台",

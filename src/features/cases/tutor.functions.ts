@@ -126,6 +126,9 @@ export type TutorCaseItem = {
   fee_id: string | null;
   fee_due_at: string | null;
   fee_has_screenshot: boolean;
+  /** #760 Part 3: none / submitted (verifying) / rejected (re-upload). */
+  fee_proof_status: string | null;
+  fee_proof_reject_note: string | null;
   /** #533: MatchMax Managed (#530 Hybrid) — attendance note gate + credits. */
   managed: boolean;
   lessons: {
@@ -228,9 +231,14 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         status: FeeStatus;
         due_at: string | null;
         payment_screenshot_path?: string | null;
-      }>(db, "case_fees", "id, case_id, amount_hkd, status, due_at, payment_screenshot_path", [
-        { col: "case_id", op: "in", value: caseIds },
-      ]),
+        proof_status: string | null;
+        proof_reject_note: string | null;
+      }>(
+        db,
+        "case_fees",
+        "id, case_id, amount_hkd, status, due_at, payment_screenshot_path, proof_status, proof_reject_note",
+        [{ col: "case_id", op: "in", value: caseIds }],
+      ),
       selectRows<SessionLogRowT>(
         db,
         "tutor_session_logs",
@@ -276,6 +284,8 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         amount_hkd: number;
         due_at: string | null;
         has_screenshot: boolean;
+        proof_status: string | null;
+        proof_reject_note: string | null;
       }
     >();
     for (const f of fees) {
@@ -295,6 +305,8 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
           amount_hkd: f.amount_hkd,
           due_at: f.due_at,
           has_screenshot: Boolean(f.payment_screenshot_path),
+          proof_status: f.proof_status,
+          proof_reject_note: f.proof_reject_note,
         });
       }
     }
@@ -331,6 +343,8 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         fee_id: openFeeByCase.get(c.id)?.id ?? null,
         fee_due_at: openFeeByCase.get(c.id)?.due_at ?? null,
         fee_has_screenshot: openFeeByCase.get(c.id)?.has_screenshot ?? false,
+        fee_proof_status: openFeeByCase.get(c.id)?.proof_status ?? null,
+        fee_proof_reject_note: openFeeByCase.get(c.id)?.proof_reject_note ?? null,
         managed: c.managed === true,
         lessons: lessons
           .filter((l) => l.case_id === c.id)

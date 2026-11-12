@@ -23,6 +23,7 @@ import {
   type CaseApplicationAdminRow,
 } from "@/features/cases/applications";
 import { checkFirstLessonCap } from "@/features/trust/trust";
+import { adminFeeOverdue } from "@/features/cases/fee-desk";
 
 type Row = Record<string, unknown>;
 type Db = ReturnType<typeof asAdminDb>;
@@ -119,10 +120,44 @@ export const applyToCase = createServerFn({ method: "POST" })
     const caseRow = cases[0];
     if (!caseRow) throw new Error("CASE_NOT_FOUND");
 
+    // #760 Part 3 soft account gate: an admin fee left unresolved past the
+    // 72h window (no accepted proof) blocks NEW case applications until the
+    // tutor settles it or ops verifies a proof. Lesson logging, teaching and
+    // every existing-case tool stay untouched.
+    const tutorCaseIds = (
+      await selectRows<{ id: string }>(db, "tutoring_cases", "id", [
+        { col: "matched_tutor_id", op: "eq", value: tutor.id },
+      ])
+    ).map((r) => r.id);
+    let hasOverdueAdminFee = false;
+    if (tutorCaseIds.length > 0) {
+      const feeRows = await selectRows<{
+        status: string;
+        proof_status: string | null;
+        proof_rejected_at: string | null;
+        created_at: string | null;
+      }>(db, "case_fees", "status, proof_status, proof_rejected_at, created_at", [
+        { col: "case_id", op: "in", value: tutorCaseIds },
+      ]);
+      const now = new Date();
+      hasOverdueAdminFee = feeRows.some((f) =>
+        adminFeeOverdue(
+          {
+            status: f.status,
+            payment_screenshot_path: null,
+            proof_status: f.proof_status,
+            proof_rejected_at: f.proof_rejected_at,
+            created_at: f.created_at,
+          },
+          now,
+        ),
+      );
+    }
+
     // Hard server-side gates. The centre screening radio is a UI-level gate
     // (the server cannot see it), so it is intentionally not re-checked here —
     // board visibility, status and the gender rule are the enforceable ones.
-    const eligibility = validateEligibilityOnServer(caseRow, tutor);
+    const eligibility = validateEligibilityOnServer(caseRow, tutor, { hasOverdueAdminFee });
     if (eligibility) throw new Error(eligibility);
 
     const note = validateApplicationNote(data.note);
@@ -191,6 +226,7 @@ function validateEligibilityOnServer(
     preferred_gender: string | null;
   },
   tutor: { gender: string | null },
+  options?: { hasOverdueAdminFee?: boolean },
 ): string | null {
   const result = canApplyToCase(
     {
@@ -202,6 +238,7 @@ function validateEligibilityOnServer(
           : "any",
     },
     { gender: tutor.gender },
+    options,
   );
   return result.ok ? null : result.reason;
 }

@@ -70,7 +70,7 @@ export type ActiveCaseCard = {
   /** #634 Tier 2: the viewer is a party to this case (exact fields, no masks). */
   partyView?: boolean;
   /** #634 Tier 2 fee milestone: MatchMax admin-fee state (tutor view only). */
-  feeMilestone?: "none" | "invoiced" | "paid" | "short_case" | null;
+  feeMilestone?: "none" | "accruing" | "invoiced" | "paid" | "short_case" | null;
 };
 
 export type ActiveCasesProjection = {

@@ -67,7 +67,8 @@ export type ApplicationBlockReason =
   | "CASE_CLOSED"
   | "NO_TUTOR_PROFILE"
   | "GENDER_MISMATCH"
-  | "SCREENING_CONFIRM_REQUIRED";
+  | "SCREENING_CONFIRM_REQUIRED"
+  | "OVERDUE_ADMIN_FEE";
 
 /** Case fields the eligibility check needs (works for board items and DB rows). */
 export type ApplyEligibilityCase = {
@@ -124,6 +125,8 @@ const CASE_CLOSED_STATUSES = new Set([
 export function canApplyToCase(
   caseRow: ApplyEligibilityCase,
   tutorProfile: ApplyTutorProfile,
+  /** #760: tutor has an admin fee unpaid >72h without an accepted proof. */
+  options?: { hasOverdueAdminFee?: boolean },
 ): { ok: true } | { ok: false; reason: ApplicationBlockReason } {
   if (!caseRow.boardPublishedAt) return { ok: false, reason: "CASE_NOT_ON_BOARD" };
   if (CASE_CLOSED_STATUSES.has(caseRow.status)) return { ok: false, reason: "CASE_CLOSED" };
@@ -133,6 +136,11 @@ export function canApplyToCase(
   }
   if (caseRow.centre === true && caseRow.screeningConfirmed !== true) {
     return { ok: false, reason: "SCREENING_CONFIRM_REQUIRED" };
+  }
+  if (options?.hasOverdueAdminFee === true) {
+    // #760 soft account gate: settle the completed case's admin fee to
+    // unlock NEW case applications. Existing-case tools are never blocked.
+    return { ok: false, reason: "OVERDUE_ADMIN_FEE" };
   }
   return { ok: true };
 }

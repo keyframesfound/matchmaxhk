@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  adminFeeOverdue,
   expectedMarkingDateHkt,
   fpsMemoForCase,
   isAllowedScreenshot,
   isReferenceUsedElsewhere,
   normalizeFpsReference,
+  settlementCardState,
 } from "../../src/features/cases/fee-desk";
 
 describe("fee desk (#259)", () => {
@@ -29,10 +31,10 @@ describe("fee desk (#259)", () => {
     expect(isReferenceUsedElsewhere("", "b", paid)).toBe(false);
   });
 
-  it("accepts JPEG/PNG up to 5 MB only", () => {
+  it("accepts JPEG/PNG up to 10 MB only (#760)", () => {
     expect(isAllowedScreenshot("image/png", 1000)).toBe(true);
-    expect(isAllowedScreenshot("image/jpeg", 5 * 1024 * 1024)).toBe(true);
-    expect(isAllowedScreenshot("image/jpeg", 5 * 1024 * 1024 + 1)).toBe(false);
+    expect(isAllowedScreenshot("image/jpeg", 10 * 1024 * 1024)).toBe(true);
+    expect(isAllowedScreenshot("image/jpeg", 10 * 1024 * 1024 + 1)).toBe(false);
     expect(isAllowedScreenshot("image/webp", 1000)).toBe(false);
     expect(isAllowedScreenshot("image/png", 0)).toBe(false);
   });
@@ -52,5 +54,66 @@ describe("fee desk (#259)", () => {
   it("rolls weekend screenshots to Monday", () => {
     // Sat 2026-11-07 09:00 HKT
     expect(expectedMarkingDateHkt(new Date("2026-11-07T01:00:00Z"))).toBe("2026-11-09");
+  });
+});
+
+describe("#760 Part 3 — settlement card states", () => {
+  it("maps the fee row onto the card states", () => {
+    expect(settlementCardState({ status: "paid", proof_status: null })).toBe("settled");
+    expect(settlementCardState({ status: "invoiced", proof_status: "none" })).toBe("payment_due");
+    expect(settlementCardState({ status: "invoiced", proof_status: "submitted" })).toBe(
+      "pending_verification",
+    );
+    expect(settlementCardState({ status: "invoiced", proof_status: "rejected" })).toBe("rejected");
+    expect(settlementCardState({ status: "waived", proof_status: null })).toBeNull();
+    expect(settlementCardState({ status: "not_due", proof_status: null })).toBeNull();
+  });
+
+  it("keeps the 10 MB screenshot acceptance (#760)", () => {
+    expect(isAllowedScreenshot("image/png", 10 * 1024 * 1024)).toBe(true);
+    expect(isAllowedScreenshot("image/png", 10 * 1024 * 1024 + 1)).toBe(false);
+  });
+});
+
+describe("#760 Part 3 — 72h overdue soft gate", () => {
+  const now = new Date("2026-11-12T10:00:00Z");
+  const base = {
+    payment_screenshot_path: null,
+    proof_status: "none",
+    proof_rejected_at: null,
+    created_at: "2026-11-08T00:00:00Z",
+  };
+
+  it("flags an invoiced fee unresolved past 72h", () => {
+    // created 2026-11-08, now 11-12 → 4 days open
+    expect(adminFeeOverdue({ status: "invoiced", ...base }, now)).toBe(true);
+  });
+
+  it("never flags fresh fees, paid rows, or accepted proofs", () => {
+    expect(
+      adminFeeOverdue({ status: "invoiced", ...base, created_at: "2026-11-11T00:00:00Z" }, now),
+    ).toBe(false);
+    expect(adminFeeOverdue({ status: "paid", ...base }, now)).toBe(false);
+    expect(adminFeeOverdue({ status: "waived", ...base }, now)).toBe(false);
+    expect(adminFeeOverdue({ status: "invoiced", ...base, proof_status: "submitted" }, now)).toBe(
+      false,
+    );
+  });
+
+  it("a rejected proof resets the clock by +24h, then overdue again", () => {
+    const rejected = {
+      status: "invoiced",
+      ...base,
+      proof_status: "rejected",
+      proof_rejected_at: "2026-11-11T18:00:00Z",
+    };
+    // 16h after rejection → inside the +24h window
+    expect(adminFeeOverdue(rejected, new Date("2026-11-12T10:00:00Z"))).toBe(false);
+    // 30h after rejection → overdue again (fee now ~4.5 days open)
+    expect(adminFeeOverdue(rejected, new Date("2026-11-13T00:00:00Z"))).toBe(true);
+  });
+
+  it("junk timestamps never block", () => {
+    expect(adminFeeOverdue({ status: "invoiced", ...base, created_at: null }, now)).toBe(false);
   });
 });
