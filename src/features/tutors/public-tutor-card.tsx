@@ -37,7 +37,6 @@ import {
 } from "@/features/tutors/engagement-badges";
 import { ExperiencePill } from "@/features/tutors/experience-badge";
 import { VerifiedBadge } from "@/features/tutors/verified-badge";
-import { TutorAvailabilityBadge } from "@/features/tutors/availability-badge";
 import { ScheduleFitBadge } from "@/features/cases/schedule-fit-ui";
 import { TutorRatingBadge } from "@/features/tutors/tutor-rating-badge";
 import { TrophyKpiBanner } from "@/features/tutors/trophy-kpi-banner";
@@ -415,10 +414,10 @@ export function PublicTutorCard({
             <p className="max-w-full whitespace-nowrap text-xs font-semibold text-muted-foreground">
               {formattedCode}
             </p>
-            {/* Issue #715: compact availability pill (slots left / available
-                now / currently full) — first badge in the column so intake
-                state reads before status/SEN/badges. */}
-            <TutorAvailabilityBadge tutor={tutor} />
+            {/* #727 (CEO lock): no "Available · X slot(s) left" / "Available
+                now" pill on discovery cards; the #551 weekly profile grid is
+                the availability UI. A full tutor still shows its status in the
+                footer CTA. */}
             {/* Issues #77/#52: tutor status badge (uni student / full-part-time
                 / examiner) under the tutor code. Wraps to two lines for long
                 labels instead of ellipsizing. */}
@@ -755,7 +754,7 @@ export function PublicTutorCard({
         </section>
       </div>
 
-      <footer className="flex min-w-0 flex-nowrap items-center justify-between gap-2 border-t border-border px-3 py-2 md:gap-3 md:px-4 md:py-2.5 @max-sm:gap-2! @max-sm:px-3!">
+      <footer className="flex min-w-0 flex-nowrap items-center justify-between gap-2 border-t border-border px-3 py-2 md:gap-3 md:px-4 md:py-2.5 @max-sm:gap-2! @max-sm:px-3! @max-[18.5rem]:gap-1.5! @max-[18.5rem]:px-2.5!">
         {price.baseRate > 0 ? (
           <FitText
             as="p"
@@ -777,9 +776,8 @@ export function PublicTutorCard({
                 #114: converted figure when the visitor picked a display
                 currency; tooltip shows the tutor's own quote when it differs. */}
             {convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) ?? `$${price.baseRate}`}
-            {/* #750: on narrow cards "up/hr" sits under the figure so the
-                share icon fits back on the row without shrinking the price. */}
-            <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:mt-0.5 @max-sm:ml-0 @max-sm:block @max-sm:text-[0.66em]!">
+            {/* Owner: "up/hr" stays inline next to the figure on every card. */}
+            <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
               {t("tutor_card.price_up")}
               {priceSuffix}
             </span>
@@ -788,7 +786,7 @@ export function PublicTutorCard({
           // Pricing flagged (issue #125) or unset: the card shows no rate.
           <div className="flex-1" />
         )}
-        <div className="ml-auto flex shrink-0 items-center gap-1.5 md:gap-2 @max-sm:gap-1!">
+        <div className="ml-auto flex shrink-0 items-center gap-1.5 md:gap-2 @max-sm:gap-1! @max-[18.5rem]:gap-0.5!">
           {onCompareToggle ? (
             <TooltipProvider delayDuration={300}>
               <Tooltip>
@@ -800,7 +798,7 @@ export function PublicTutorCard({
                     onClick={handleCompareToggle}
                     onKeyDown={(event) => event.stopPropagation()}
                     className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-7 @max-sm:w-7",
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-7 @max-sm:w-7 @max-[18.5rem]:h-6 @max-[18.5rem]:w-6",
                       compareSelected
                         ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)]"
                         : "text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06]",
@@ -828,7 +826,7 @@ export function PublicTutorCard({
                     onClick={handleShare}
                     onKeyDown={(event) => event.stopPropagation()}
                     // #750: share stays on every card; narrow cards use a 28px icon.
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-7 @max-sm:w-7"
+                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-7 @max-sm:w-7 @max-[18.5rem]:h-6 @max-[18.5rem]:w-6"
                   >
                     <Share2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
                   </button>
@@ -841,7 +839,7 @@ export function PublicTutorCard({
               of the caller's last action (Request tutor / status) is lifted
               to a 44px tap target; its width stays compact so the price
               keeps its size. */}
-          <span className="flex shrink-0 items-center gap-1.5 @max-sm:gap-1 [&>:last-child]:h-11! @max-sm:[&>:last-child]:px-3!">
+          <span className="flex shrink-0 items-center gap-1.5 @max-sm:gap-1 [&>:last-child]:h-11! @max-sm:[&>:last-child]:px-3! @max-[18.5rem]:gap-0.5 @max-[18.5rem]:[&>:last-child]:px-2.5! @max-[18.5rem]:[&>:last-child]:text-xs!">
             {footerAction}
           </span>
         </div>

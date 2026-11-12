@@ -199,11 +199,22 @@ export function ActiveCasesSection({
   const onPrivacy = isOwner ? setEditing : undefined;
   const publicCount = data.activeCount - data.hiddenCount;
 
+  // #727 (CEO lock): public profiles never show an empty "Active Cases · 0"
+  // box; a tutor with nothing to show reads "Open for new students".
+  if (!isOwner && data.activeCount === 0 && data.pastCount === 0) {
+    return (
+      <p className="text-sm font-semibold text-[color:var(--ink)]" data-testid="active-cases">
+        {t("profile.active_cases.open_for_new")}
+      </p>
+    );
+  }
+
   return (
     <section className="space-y-3" data-testid="active-cases">
       <div className="flex flex-wrap items-center gap-2">
         <h2 className="text-lg font-bold tracking-tight text-[color:var(--ink)]">
-          {t("profile.active_cases.title")} · {data.activeCount}
+          {t("profile.active_cases.title")}
+          {isOwner || data.activeCount > 0 ? ` · ${data.activeCount}` : ""}
         </h2>
         {data.recent45d ? (
           <span className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-400">
@@ -234,7 +245,7 @@ export function ActiveCasesSection({
             <CaseCard key={card.caseCode} card={card} onPrivacy={onPrivacy} />
           ))}
         </ul>
-      ) : data.activeCount === 0 ? (
+      ) : data.activeCount === 0 && isOwner ? (
         <p className="rounded-2xl border border-border bg-card p-4 text-sm text-muted-foreground">
           {isOwner ? t("profile.active_cases.owner_empty") : t("profile.active_cases.empty")}
         </p>
