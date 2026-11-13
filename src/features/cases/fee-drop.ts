@@ -35,6 +35,14 @@
 
 export const STANDARD_TOTAL_MULTIPLIER = 1.5;
 export const DROP_PROTECTED_MULTIPLIER = 0.5;
+/**
+ * #760 Part 2 [was #710] 50% Earned-Tuition Protection Cap: a parent-choice
+ * stop right after Lesson 2 (before Lesson 3) waives the L2 tranche — total
+ * due is capped at 1.0×R (tier base stays the ceiling for centre tiers).
+ * Exactly-L2 stops resolve to STOPPED_AFTER_L2_PARENT_CHOICE; the #672
+ * commission-credit rule keeps the 3–4 lesson window.
+ */
+export const STOPPED_AFTER_L2_MULTIPLIER = 1.0;
 export const SHADOWBAN_DAYS = 30;
 /** #525 repeat pattern: this many prior quality-complaint drops voids protection. */
 export const REPEAT_QUALITY_DROP_THRESHOLD = 2;
@@ -96,6 +104,12 @@ export type CaseOutcome =
       verification: DropVerification;
       reasonClass: DropReasonClass;
     }
+  /**
+   * #760: parent (or centre/admin) ends the case right after Lesson 2
+   * completes, before Lesson 3 — the 50% earned-tuition cap applies
+   * (1.0×R; tutor quit uses the same kind with the tutor initiator).
+   */
+  | { kind: "stopped_after_l2"; initiator: DropInitiator }
   /** #672: parent-fault stop during Lessons 2–4 (within 28 days of L1). */
   | {
       kind: "stopped_l2_l4";
@@ -128,6 +142,8 @@ export type FeeRuleId =
   | "FREE_TRIAL_STOP"
   | "NO_SHOW_L1_DUE"
   | "CONTINUED_FULL"
+  | "STOPPED_AFTER_L2_PARENT_CHOICE"
+  | "TUTOR_QUIT_AFTER_L2"
   | "BYPASS_CONFIRMED_FULL"
   | "BYPASS_SUSPECTED_VOID"
   | "VERIFICATION_PENDING"
@@ -187,6 +203,18 @@ export function tierBaseMultiplier(tier: SecondaryTier): number {
 /** The L1 slice of a 1.5 case under the split mode (100_50 → 1.0, 75_75 → 0.75). */
 export function lessonOnePortion(splitMode: SplitMode): number {
   return splitMode === "75_75" ? 0.75 : 1.0;
+}
+
+/**
+ * #760 centre step-down split: Tier 2 bills 0.5×R (L1) + 0.5×R (L2) and
+ * Tier 3 bills 0.5×R (L1) + HK$0 (L2) — so a Tier-2/3 student dropping
+ * after Lesson 1 owes only the 0.5×R L1 portion. Tier 1/primary keeps the
+ * split-mode portion (1.0×R under 100_50); the $0 tier stays $0.
+ */
+export function tierL1Portion(tier: SecondaryTier, splitMode: SplitMode): number {
+  if (tier === "primary" || tier === 1) return lessonOnePortion(splitMode);
+  if (tier === 2 || tier === 3) return 0.5;
+  return 0;
 }
 
 /**
@@ -333,11 +361,13 @@ function resolveStopAfterL1(
     });
   }
   // A tutor-funded discount shrinks what was actually paid for L1; both the
-  // void fee and the protection apply to the PAID amount (#520).
+  // void fee and the protection apply to the PAID amount (#520). The L1
+  // slice is TIER-aware (#760 centre split: Tier 2/3 owe only 0.5×R L1).
   const paidShare =
     input.promoType === "discounted_first" ? 1 - clampPct(input.firstLessonDiscountPct) / 100 : 1;
+  const l1Slice = tierL1Portion(input.tier ?? "primary", input.splitMode ?? "100_50");
   const ctx: StopContext = {
-    voidFee: Math.min(base, lessonOnePortion(input.splitMode ?? "100_50")) * paidShare,
+    voidFee: Math.min(base, l1Slice) * paidShare,
     protectedFee: Math.min(base, DROP_PROTECTED_MULTIPLIER) * paidShare,
     bypass,
     priorQualityDrops: input.priorQualityDrops ?? 0,
@@ -353,6 +383,40 @@ function resolveStopAfterL1(
     : resolveClientStop(outcome, ctx);
 }
 
+/** Parent / centre / admin stop after exactly Lesson 2, before Lesson 3 (#760). */
+function resolveStopAfterL2(
+  input: FeeResolutionInput,
+  outcome: Extract<CaseOutcome, { kind: "stopped_after_l2" }>,
+  base: number,
+): Draft {
+  if (input.bypass === "confirmed") {
+    return draft("BYPASS_CONFIRMED_FULL", base, {
+      opensOwnershipWindow: true,
+      consequences: { banTutor: true },
+    });
+  }
+  if (outcome.initiator === "tutor") {
+    // TUTOR_FAULT_OR_QUIT after L2: the protection cap MUST NOT apply — the
+    // full accrued portion (the tier base) is immediately due + #536 strike /
+    // 30-day shadowban.
+    return draft("TUTOR_QUIT_AFTER_L2", base, {
+      opensOwnershipWindow: true,
+      consequences: {
+        strikeTutor: true,
+        priorityRematch: true,
+        shadowbanTutorDays: SHADOWBAN_DAYS,
+      },
+    });
+  }
+  // Parent / centre / admin choice, no tutor fault: 50% earned-tuition cap —
+  // the L2 tranche (0.5×R) is waived, total due = min(tier base, 1.0×R).
+  const capped = Math.min(base, STOPPED_AFTER_L2_MULTIPLIER);
+  return draft("STOPPED_AFTER_L2_PARENT_CHOICE", capped, {
+    opensOwnershipWindow: true,
+    protectionApplied: capped < base,
+  });
+}
+
 function resolveMultiplier(input: FeeResolutionInput, base: number): Draft {
   const { outcome } = input;
   if (input.packageType === "pro_bono") return draft("PRO_BONO", 0);
@@ -366,7 +430,10 @@ function resolveMultiplier(input: FeeResolutionInput, base: number): Draft {
     case "trial_only_stop":
       return draft("FREE_TRIAL_STOP", 0);
     case "l1_no_show":
-      return draft("NO_SHOW_L1_DUE", Math.min(base, lessonOnePortion(input.splitMode ?? "100_50")));
+      return draft(
+        "NO_SHOW_L1_DUE",
+        Math.min(base, tierL1Portion(input.tier ?? "primary", input.splitMode ?? "100_50")),
+      );
     case "continued":
       return input.bypass === "confirmed"
         ? draft("BYPASS_CONFIRMED_FULL", base, {
@@ -380,6 +447,8 @@ function resolveMultiplier(input: FeeResolutionInput, base: number): Draft {
           });
     case "stopped_after_l1":
       return resolveStopAfterL1(input, outcome, base);
+    case "stopped_after_l2":
+      return resolveStopAfterL2(input, outcome, base);
     case "stopped_l2_l4":
       return resolveStopL2L4(input, outcome, base);
   }
@@ -433,6 +502,10 @@ export const FEE_RULE_LABELS: Record<FeeRuleId, string> = {
   FREE_TRIAL_STOP: "Free online intro only: $0",
   NO_SHOW_L1_DUE: "No-show or late cancel: Lesson 1 portion due",
   CONTINUED_FULL: "Continued past Lesson 2: full tier fee",
+  STOPPED_AFTER_L2_PARENT_CHOICE:
+    "#760 parent stops after Lesson 2 (before L3): 1.0×R total — L2's 0.5×R waived (50% earned-tuition cap)",
+  TUTOR_QUIT_AFTER_L2:
+    "#760 tutor quits after Lesson 2: full tier fee due, strike + 30-day shadowban",
   BYPASS_CONFIRMED_FULL: "Confirmed bypass: full fee due, ban tutor",
   BYPASS_SUSPECTED_VOID: "Suspected bypass: protection void",
   VERIFICATION_PENDING: "Waiting for parent or centre verification",
@@ -455,6 +528,7 @@ export const OUTCOME_KINDS = [
   "l1_no_show",
   "continued",
   "stopped_after_l1",
+  "stopped_after_l2",
   "stopped_l2_l4",
 ] as const;
 export type OutcomeKind = (typeof OUTCOME_KINDS)[number];
@@ -474,13 +548,20 @@ export function suggestOutcomeKind(input: {
 }): OutcomeKind {
   const l1 = input.lessons.find((l) => l.sequence === 1);
   const l2 = input.lessons.find((l) => l.sequence === 2);
-  if (input.parentFaultL2L4 && input.caseEnded && l2?.status === "done") {
-    const doneInWindow = input.lessons.filter(
-      (l) => l.sequence >= 2 && l.sequence <= 4 && l.status === "done",
-    ).length;
-    if (doneInWindow >= 1) return "stopped_l2_l4";
+  if (l2?.status === "done") {
+    if (!input.caseEnded) return "continued";
+    // Ended after L2: #760's exactly-L2 rule (1.0×R cap) vs the #672 credit
+    // window (parent-fault flag + a lesson done at sequence ≥ 3).
+    const donePastL2 = input.lessons.filter((l) => l.status === "done" && l.sequence >= 3).length;
+    if (donePastL2 === 0) return "stopped_after_l2";
+    if (input.parentFaultL2L4) {
+      const doneInWindow = input.lessons.filter(
+        (l) => l.sequence >= 2 && l.sequence <= 4 && l.status === "done",
+      ).length;
+      if (doneInWindow >= 1) return "stopped_l2_l4";
+    }
+    return "continued";
   }
-  if (l2?.status === "done") return "continued";
   if (l1?.status === "no_show" || l1?.status === "late_cancel") return "l1_no_show";
   if (l1?.status === "done") return input.caseEnded ? "stopped_after_l1" : "in_progress";
   return input.caseEnded ? "pre_l1_reject" : "in_progress";
@@ -501,6 +582,9 @@ export function buildOutcome(input: {
       initiator: input.initiator ?? "parent",
       completedLessons: Math.max(2, Number(input.completedLessons) || 2),
     };
+  }
+  if (input.kind === "stopped_after_l2") {
+    return { kind: "stopped_after_l2", initiator: input.initiator ?? "parent" };
   }
   if (input.kind !== "stopped_after_l1") return { kind: input.kind };
   return {
@@ -534,6 +618,7 @@ const ZERO_COUNTERS: TrustCounters = {
 export function trustCountersFor(ruleId: string | null): TrustCounters {
   switch (ruleId) {
     case "TUTOR_FLAKE_VOID":
+    case "TUTOR_QUIT_AFTER_L2":
       return { strikes: 1, tutorDrops: 1, qualityDrops: 0, shadowbanDays: SHADOWBAN_DAYS };
     case "TUTOR_EMERGENCY_VOID":
       return { strikes: 1, tutorDrops: 1, qualityDrops: 0, shadowbanDays: 0 };

@@ -24,8 +24,9 @@ import {
 
 const SCREENSHOTS_BUCKET = "orders-screenshots";
 const SIGNED_URL_SECONDS = 600;
-// base64 of 5 MB is ~6.7M chars; leave headroom for padding.
-const MAX_BASE64_CHARS = 7_200_000;
+// base64 of 10 MB is ~13.4M chars; leave headroom for padding (#760: the
+// settlement card accepts PNG/JPG receipts up to 10 MB).
+const MAX_BASE64_CHARS = 14_400_000;
 
 type FeeRow = {
   id: string;
@@ -35,6 +36,8 @@ type FeeRow = {
   paid_at: string | null;
   receipt_sent_at: string | null;
   payment_screenshot_path: string | null;
+  proof_status: string | null;
+  proof_rejected_at: string | null;
 };
 
 async function tutorIdForUser(db: Db, userId: string): Promise<string> {
@@ -66,7 +69,7 @@ export const uploadCaseFeeScreenshot = createServerFn({ method: "POST" })
       await selectRows<FeeRow>(
         db,
         "case_fees",
-        "id, case_id, status, amount_hkd, paid_at, receipt_sent_at, payment_screenshot_path",
+        "id, case_id, status, amount_hkd, paid_at, receipt_sent_at, payment_screenshot_path, proof_status, proof_rejected_at",
         [{ col: "id", op: "eq", value: data.feeId }],
       )
     )[0];
@@ -79,7 +82,11 @@ export const uploadCaseFeeScreenshot = createServerFn({ method: "POST" })
     );
     if (cases[0]?.matched_tutor_id !== tutorId) throw new Error("FEE_NOT_FOUND");
     if (fee.status !== "invoiced") throw new Error("FEE_NOT_INVOICED");
-    if (fee.payment_screenshot_path) throw new Error("SCREENSHOT_ALREADY_ATTACHED");
+    // #760: one screenshot per proof round — a REPLACEMENT is allowed only
+    // after ops rejected the previous one (Replace Screenshot flow).
+    if (fee.payment_screenshot_path && fee.proof_status !== "rejected") {
+      throw new Error("SCREENSHOT_ALREADY_ATTACHED");
+    }
 
     const bytes = Buffer.from(data.base64Data, "base64");
     if (!isAllowedScreenshot(data.contentType, bytes.byteLength)) {
@@ -95,7 +102,15 @@ export const uploadCaseFeeScreenshot = createServerFn({ method: "POST" })
     const now = new Date();
     const { error } = await db
       .from<Row>("case_fees")
-      .update({ payment_screenshot_path: path, payment_screenshot_at: now.toISOString() })
+      .update({
+        payment_screenshot_path: path,
+        payment_screenshot_at: now.toISOString(),
+        // A replacement re-enters the verification queue; the constraint
+        // pairs proof_status with the reject columns (cleared on submit).
+        proof_status: "submitted",
+        proof_rejected_at: null,
+        proof_reject_note: null,
+      } as Row)
       .eq("id", fee.id);
     if (error) throw new Error(error.message);
     await insertAudit(db, fee.case_id, context.userId, "fee_screenshot_attached", null);
@@ -126,6 +141,57 @@ export const getCaseFeeScreenshotUrl = createServerFn({ method: "POST" })
       .createSignedUrl(fee.payment_screenshot_path, SIGNED_URL_SECONDS);
     if (error || !signed) throw new Error(error?.message || "Failed to sign URL");
     return { signedUrl: signed.signedUrl };
+  });
+
+/**
+ * #760 Part 3 — ops Request Re-upload: the receipt is unreadable / wrong.
+ * proof_status flips to 'rejected' (the tutor's card shows the note and a
+ * Replace Screenshot affordance), and the >72h overdue soft-gate clock gains
+ * +24 hours from this rejection (PROOF_REJECT_CLOCK_RESET_MS). The fee stays
+ * 'invoiced' — nothing is waived.
+ */
+export const rejectFeeScreenshot = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        feeId: z.string().uuid(),
+        note: z.string().trim().min(3).max(300),
+      })
+      .parse(input),
+  )
+  .handler(async ({ context, data }): Promise<{ ok: true }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    await requireAdmin(db, context.userId);
+    const fee = (
+      await selectRows<FeeRow>(
+        db,
+        "case_fees",
+        "id, case_id, status, amount_hkd, paid_at, receipt_sent_at, payment_screenshot_path, proof_status, proof_rejected_at",
+        [{ col: "id", op: "eq", value: data.feeId }],
+      )
+    )[0];
+    if (!fee) throw new Error("FEE_NOT_FOUND");
+    if (fee.status !== "invoiced") throw new Error("FEE_NOT_INVOICED");
+    if (!fee.payment_screenshot_path) throw new Error("NO_SCREENSHOT");
+
+    const nowIso = new Date().toISOString();
+    const { error } = await db
+      .from<Row>("case_fees")
+      .update({
+        proof_status: "rejected",
+        proof_rejected_at: nowIso,
+        proof_reject_note: data.note,
+      } as Row)
+      .eq("id", fee.id);
+    if (error) throw new Error(error.message);
+    await insertAudit(db, fee.case_id, context.userId, "fee_proof_rejected", data.note);
+    const { notifyOps } = await import("@/lib/ops-webhook.server");
+    void notifyOps("case.fee_proof_rejected", { case_id: fee.case_id, fee_id: fee.id }).catch(
+      () => {},
+    );
+    return { ok: true };
   });
 
 /** Throws FPS_REFERENCE_USED when `reference` already closed a fee on another case. */

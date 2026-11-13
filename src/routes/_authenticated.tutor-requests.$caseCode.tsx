@@ -137,6 +137,7 @@ const APPLY_BLOCK_COPY: Record<ApplicationBlockReason, string> = {
   NO_TUTOR_PROFILE: "caseApplications.join_to_apply",
   GENDER_MISMATCH: "caseApplications.gender_mismatch_block",
   SCREENING_CONFIRM_REQUIRED: "caseApplications.screening_required",
+  OVERDUE_ADMIN_FEE: "caseApplications.overdue_admin_fee_block",
 };
 
 /**

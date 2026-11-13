@@ -16,6 +16,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import type { FeeStatus, SorStatus } from "@/features/cases/sor-db";
 import { cancelActionFor, canMarkDone } from "@/features/cases/sor";
+import { shortCaseOverrunError } from "@/features/cases/short-case";
 import { generateSlots, lessonConflicts } from "@/features/cases/slot";
 import {
   checkSlotRequest,
@@ -646,6 +647,25 @@ export const requestSlot = createServerFn({ method: "POST" })
     ) {
       throw new Error("SLOT_CONFLICT");
     }
+
+    // #760 overrun gate: a declared short package (≤5 lessons @ 20%) caps at
+    // its N lessons; the desk converts the case to ongoing to unlock more.
+    const shortRow = await selectRows<{
+      is_short_case: boolean;
+      scheduled_lesson_count: number | null;
+    }>(db, "tutoring_cases", "is_short_case, scheduled_lesson_count", [
+      { col: "id", op: "eq", value: c.id },
+    ]);
+    const caseLive = await selectRows<{ id: string }>(db, "case_lessons", "id", [
+      { col: "case_id", op: "eq", value: c.id },
+      { col: "status", op: "in", value: ["planned", "confirmed", "done"] },
+    ]);
+    const overrun = shortCaseOverrunError({
+      isShortCase: shortRow[0]?.is_short_case === true,
+      scheduledLessonCount: shortRow[0]?.scheduled_lesson_count ?? null,
+      liveLessonCount: caseLive.length,
+    });
+    if (overrun) throw new Error(overrun);
 
     const all = await selectRows<{ sequence: number }>(db, "case_lessons", "sequence", [
       { col: "case_id", op: "eq", value: c.id },

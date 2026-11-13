@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   FEE_RULE_LABELS,
   SHADOWBAN_DAYS,
+  STOPPED_AFTER_L2_MULTIPLIER,
   buildOutcome,
   dropRecordError,
   normalizeBypassFlag,
@@ -13,6 +14,7 @@ import {
   lessonValueFromRate,
   suggestOutcomeKind,
   tierBaseMultiplier,
+  tierL1Portion,
   trustCounterDelta,
   trustCountersFor,
   type CaseOutcome,
@@ -282,7 +284,9 @@ describe("suggestOutcomeKind + buildOutcome", () => {
   const done = (sequence: number) => ({ sequence, status: "done" });
 
   it("suggests from the lesson rows", () => {
-    expect(suggestOutcomeKind({ lessons: [done(1), done(2)], caseEnded: true })).toBe("continued");
+    expect(suggestOutcomeKind({ lessons: [done(1), done(2)], caseEnded: true })).toBe(
+      "stopped_after_l2",
+    );
     expect(suggestOutcomeKind({ lessons: [done(1)], caseEnded: true })).toBe("stopped_after_l1");
     expect(suggestOutcomeKind({ lessons: [done(1)], caseEnded: false })).toBe("in_progress");
     expect(
@@ -392,5 +396,143 @@ describe("normalizers", () => {
     expect(normalizeBypassFlag(undefined)).toBe("none");
     expect(normalizeDropVerification("verified")).toBe("verified");
     expect(normalizeDropVerification(42)).toBe("none");
+  });
+});
+
+describe("#760 Part 2 — 50% earned-tuition cap (stop after Lesson 2)", () => {
+  const stopL2 = (initiator: "parent" | "centre" | "tutor" | "admin" = "parent"): CaseOutcome => ({
+    kind: "stopped_after_l2",
+    initiator,
+  });
+
+  it("parent stops after L2 (R = 400) → 1.0×R (HK$400), L2's 0.5×R waived", () => {
+    const r = resolveCaseFee({ lessonValueHkd: 400, outcome: stopL2() });
+    expect(r.ruleId).toBe("STOPPED_AFTER_L2_PARENT_CHOICE");
+    expect(r.multiplier).toBe(STOPPED_AFTER_L2_MULTIPLIER);
+    expect(r.finalCommissionDueHkd).toBe(400);
+    expect(r.protectionApplied).toBe(true);
+    expect(r.opensOwnershipWindow).toBe(true);
+    // Retained-only: an L2 drop never advances the centre step-down counter.
+    expect(r.advancesRetainedTier).toBe(false);
+    expect(r.consequences).toMatchObject({ strikeTutor: false, shadowbanTutorDays: 0 });
+  });
+
+  it("centre Tier 2 base (1.0×R) already equals the cap; Tier 3 stays 0.5×R; Tier 4 stays $0", () => {
+    expect(
+      resolveCaseFee({ lessonValueHkd: 400, tier: 2, outcome: stopL2() }).finalCommissionDueHkd,
+    ).toBe(400);
+    expect(
+      resolveCaseFee({ lessonValueHkd: 400, tier: 3, outcome: stopL2() }).finalCommissionDueHkd,
+    ).toBe(200);
+    expect(
+      resolveCaseFee({ lessonValueHkd: 400, tier: 4, outcome: stopL2() }).finalCommissionDueHkd,
+    ).toBe(0);
+  });
+
+  it("tutor quit after L2 → full 1.5×R due + strike + 30-day shadowban, cap void", () => {
+    const r = resolveCaseFee({ lessonValueHkd: 400, outcome: stopL2("tutor") });
+    expect(r.ruleId).toBe("TUTOR_QUIT_AFTER_L2");
+    expect(r.finalCommissionDueHkd).toBe(600);
+    expect(r.consequences).toMatchObject({
+      strikeTutor: true,
+      shadowbanTutorDays: SHADOWBAN_DAYS,
+      priorityRematch: true,
+    });
+  });
+
+  it("confirmed bypass after L2 → full fee + ban", () => {
+    const r = resolveCaseFee({
+      lessonValueHkd: 400,
+      bypass: "confirmed",
+      outcome: stopL2(),
+    });
+    expect(r.ruleId).toBe("BYPASS_CONFIRMED_FULL");
+    expect(r.finalCommissionDueHkd).toBe(600);
+    expect(r.consequences.banTutor).toBe(true);
+  });
+
+  it("trust counters for the tutor-quit rule mirror the flake rule", () => {
+    expect(trustCountersFor("TUTOR_QUIT_AFTER_L2")).toMatchObject({
+      strikes: 1,
+      tutorDrops: 1,
+      shadowbanDays: SHADOWBAN_DAYS,
+    });
+  });
+
+  it("every new rule carries desk copy (FEE_RULE_LABELS stays exhaustive)", () => {
+    expect(FEE_RULE_LABELS.STOPPED_AFTER_L2_PARENT_CHOICE).toContain("1.0×R");
+    expect(FEE_RULE_LABELS.TUTOR_QUIT_AFTER_L2).toContain("shadowban");
+  });
+});
+
+describe("#760 Part 2 — centre tier split (Tier 2 = 0.5 L1 + 0.5 L2, Tier 3 = 0.5 L1 + $0)", () => {
+  it("tierL1Portion: primary follows the split mode; Tiers 2/3 owe 0.5×R L1; Tier 4 $0", () => {
+    expect(tierL1Portion("primary", "100_50")).toBe(1.0);
+    expect(tierL1Portion("primary", "75_75")).toBe(0.75);
+    expect(tierL1Portion(2, "100_50")).toBe(0.5);
+    expect(tierL1Portion(3, "100_50")).toBe(0.5);
+    expect(tierL1Portion(4, "100_50")).toBe(0);
+  });
+
+  it("Tier 2 student drops after L1 → 0.5×R protected (not the 1.0×R L1 slice)", () => {
+    const r = resolveCaseFee({
+      lessonValueHkd: 400,
+      tier: 2,
+      outcome: {
+        kind: "stopped_after_l1",
+        initiator: "centre",
+        verification: "verified",
+        reasonClass: "vague",
+      },
+    });
+    expect(r.ruleId).toBe("DROP_PROTECTED");
+    expect(r.finalCommissionDueHkd).toBe(200);
+  });
+
+  it("Tier 3 no-show → 0.5×R L1 portion (never above the tier base)", () => {
+    const r = resolveCaseFee({ lessonValueHkd: 400, tier: 3, outcome: { kind: "l1_no_show" } });
+    expect(r.ruleId).toBe("NO_SHOW_L1_DUE");
+    expect(r.finalCommissionDueHkd).toBe(200);
+  });
+});
+
+describe("#760 Part 2 — desk suggestion at the L2 boundary", () => {
+  const done = (sequence: number) => ({ sequence, status: "done" });
+
+  it("ended with exactly L1+L2 done → stopped_after_l2 (1.0×R cap wins at exactly-L2)", () => {
+    expect(suggestOutcomeKind({ lessons: [done(1), done(2)], caseEnded: true })).toBe(
+      "stopped_after_l2",
+    );
+  });
+
+  it("still-live case past L2 → continued", () => {
+    expect(suggestOutcomeKind({ lessons: [done(1), done(2)], caseEnded: false })).toBe("continued");
+  });
+
+  it("#672 parent-fault flag + a lesson done at sequence ≥ 3 → stopped_l2_l4", () => {
+    expect(
+      suggestOutcomeKind({
+        lessons: [done(1), done(2), done(3)],
+        caseEnded: true,
+        parentFaultL2L4: true,
+      }),
+    ).toBe("stopped_l2_l4");
+  });
+
+  it("ended at 3+ done without the #672 flag → continued (desk annotates)", () => {
+    expect(suggestOutcomeKind({ lessons: [done(1), done(2), done(3)], caseEnded: true })).toBe(
+      "continued",
+    );
+  });
+
+  it("buildOutcome assembles the L2 stop with the parent default", () => {
+    expect(buildOutcome({ kind: "stopped_after_l2" })).toEqual({
+      kind: "stopped_after_l2",
+      initiator: "parent",
+    });
+    expect(buildOutcome({ kind: "stopped_after_l2", initiator: "tutor" })).toEqual({
+      kind: "stopped_after_l2",
+      initiator: "tutor",
+    });
   });
 });

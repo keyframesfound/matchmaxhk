@@ -318,7 +318,8 @@
     "out_of_window": "Out of window",
     "out_of_window_hint": "Their 6-month intro window with this client has closed — a match here earns the platform $0 (the fee engine marks it OWNERSHIP_EXPIRED). Advising them to contact the client directly is fine.",
     "shadowbanned": "Shadowbanned to {{date}}",
-    "shadowbanned_hint": "This tutor quit a Lesson 1 without emergency proof and is shadowbanned for 30 days (#529). You can still approve; prefer active tutors when there is a choice."
+    "shadowbanned_hint": "This tutor quit a Lesson 1 without emergency proof and is shadowbanned for 30 days (#529). You can still approve; prefer active tutors when there is a choice.",
+    "overdue_admin_fee_block": "Please settle your completed case administrative fee (unpaid over 72h) to unlock new case applications. You can still teach and manage existing cases."
   },
   "caseDesk": {
     "tutor_code_label": "Tutor code",
@@ -2403,7 +2404,8 @@
       "open_case": "Open case",
       "fee_invoiced": "Admin fee: Lesson 1 due (L1 100% + L2 50%)",
       "fee_paid": "Admin fee settled (Lesson 1 + 50% of Lesson 2)",
-      "open_for_new": "Open for new students"
+      "open_for_new": "Open for new students",
+      "fee_accruing": "Admin fee accruing — settles after Lesson 2"
     },
     "verified": "Verified",
     "verified_detail": "Transcript checked",
@@ -3561,7 +3563,8 @@
     "nf_wa_copied": "WhatsApp summary copied",
     "nf_wa_copy_failed": "Copy failed — try again",
     "bell_attendance_recorded": "Attendance recorded for {{student}} — {{status}}",
-    "bell_attendance_updated": "Attendance updated for {{student}} — now {{status}}"
+    "bell_attendance_updated": "Attendance updated for {{student}} — now {{status}}",
+    "schedule_next_err_SHORT_CASE_OVERRUN": "All lessons of this short-term package are already scheduled. To continue beyond the package, the case must be converted to Ongoing — ask MatchMax support; only the top-up difference to the standard 1.5-lesson admin fee is payable."
   },
   "cv": {
     "title": "Education CV & Academic Records",
@@ -4057,7 +4060,13 @@
     "uploaded": "Screenshot received. Expected to be marked paid on {{date}}.",
     "upload_failed": "Upload failed. Please try again.",
     "err_FPS_REFERENCE_USED": "This FPS reference already closed another case.",
-    "view_screenshot": "View payment screenshot"
+    "view_screenshot": "View payment screenshot",
+    "proof_verifying": "Verifying FPS receipt (within 24h)",
+    "proof_rejected": "Receipt re-upload requested",
+    "screenshot_replace": "Replace screenshot",
+    "copy_fps": "Copy FPS ID",
+    "copy_reference": "Copy reference",
+    "copied": "Copied"
   },
   "cockpit": {
     "title": "Matching cockpit",
@@ -5040,7 +5049,15 @@
     "engagement_standard_ongoing": "Standard Ongoing (>5 lessons)",
     "engagement_short_course": "Short Course (≤5 lessons)",
     "engagement_locked": "Locked for Matched Cases",
-    "created_toast": "Roster created."
+    "created_toast": "Roster created.",
+    "milestones_title": "MatchMax fee milestones",
+    "milestones_rate": "Rate HK${{rate}}/h",
+    "milestones_empty": "Completed 0 lessons. Milestones update automatically when attendance is marked.",
+    "milestones_amount": "HK${{amount}}",
+    "milestone_lesson_1_100": "Lesson 1 — 100% fee milestone",
+    "milestone_lesson_2_50": "Lesson 2 — 50% fee milestone",
+    "milestone_short_course_20": "Short course — 20% package fee",
+    "package_renewal": "{{remaining}} lesson remaining in current package"
   },
   "claim_roster": {
     "eyebrow": "Attendance claim",
@@ -5067,12 +5084,21 @@
     "state_expired_body": "Ask the educator to send a new link (links last 14 days).",
     "self_claim_error": "Educators cannot claim a parent link for their own roster.",
     "self_claim_note": "You cannot claim a parent link for your own roster. Send the link to the parent.",
-    "preview_banner": "Preview Mode: Send this link to the parent to claim"
+    "preview_banner": "Preview Mode: Send this link to the parent to claim",
+    "lessons_completed": "Lessons completed"
   },
   "locale_suggestion": {
     "prompt": "This page is also available in Chinese.",
     "switch": "Switch",
     "dismiss": "Keep English"
+  },
+  "suggested": {
+    "title": "Suggested for you",
+    "subtitle": "Tailored to your child's curriculum & searches · Tutors taking students · $0 parent matching fee",
+    "reason_search": "Fits your {{value}} search",
+    "reason_complementary": "Popular next subject for {{curriculum}} students",
+    "reason_complementary_plain": "Popular next subject",
+    "for_learner": "{{name}}: {{reason}}"
   },
   "note_upsell": {
     "cta": "Request this tutor for 1-on-1",

@@ -21,6 +21,7 @@ import {
   TUTOR_PLUS_THRESHOLD,
 } from "@/features/cases/sor";
 import { generateSlots, type GeneratedSlot } from "@/features/cases/slot";
+import { shortCaseOverrunError } from "@/features/cases/short-case";
 import {
   caseHasVerifiedLesson,
   validateReviewInput,
@@ -125,6 +126,9 @@ export type TutorCaseItem = {
   fee_id: string | null;
   fee_due_at: string | null;
   fee_has_screenshot: boolean;
+  /** #760 Part 3: none / submitted (verifying) / rejected (re-upload). */
+  fee_proof_status: string | null;
+  fee_proof_reject_note: string | null;
   /** #533: MatchMax Managed (#530 Hybrid) — attendance note gate + credits. */
   managed: boolean;
   lessons: {
@@ -227,9 +231,14 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         status: FeeStatus;
         due_at: string | null;
         payment_screenshot_path?: string | null;
-      }>(db, "case_fees", "id, case_id, amount_hkd, status, due_at, payment_screenshot_path", [
-        { col: "case_id", op: "in", value: caseIds },
-      ]),
+        proof_status: string | null;
+        proof_reject_note: string | null;
+      }>(
+        db,
+        "case_fees",
+        "id, case_id, amount_hkd, status, due_at, payment_screenshot_path, proof_status, proof_reject_note",
+        [{ col: "case_id", op: "in", value: caseIds }],
+      ),
       selectRows<SessionLogRowT>(
         db,
         "tutor_session_logs",
@@ -275,6 +284,8 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         amount_hkd: number;
         due_at: string | null;
         has_screenshot: boolean;
+        proof_status: string | null;
+        proof_reject_note: string | null;
       }
     >();
     for (const f of fees) {
@@ -294,6 +305,8 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
           amount_hkd: f.amount_hkd,
           due_at: f.due_at,
           has_screenshot: Boolean(f.payment_screenshot_path),
+          proof_status: f.proof_status,
+          proof_reject_note: f.proof_reject_note,
         });
       }
     }
@@ -330,6 +343,8 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         fee_id: openFeeByCase.get(c.id)?.id ?? null,
         fee_due_at: openFeeByCase.get(c.id)?.due_at ?? null,
         fee_has_screenshot: openFeeByCase.get(c.id)?.has_screenshot ?? false,
+        fee_proof_status: openFeeByCase.get(c.id)?.proof_status ?? null,
+        fee_proof_reject_note: openFeeByCase.get(c.id)?.proof_reject_note ?? null,
         managed: c.managed === true,
         lessons: lessons
           .filter((l) => l.case_id === c.id)
@@ -410,6 +425,20 @@ export const confirmLessonTutor = createServerFn({ method: "POST" })
     if (lessonRequestExpired(lesson, new Date())) {
       throw new Error("REQUEST_EXPIRED");
     }
+    // #760 overrun gate: confirming a lesson beyond a short package's
+    // declared N requires the desk convert-to-ongoing first.
+    const shortRow = await selectRows<{
+      is_short_case: boolean;
+      scheduled_lesson_count: number | null;
+    }>(db, "tutoring_cases", "is_short_case, scheduled_lesson_count", [
+      { col: "id", op: "eq", value: lesson.case_id },
+    ]);
+    const overrun = shortCaseOverrunError({
+      isShortCase: shortRow[0]?.is_short_case === true,
+      scheduledLessonCount: shortRow[0]?.scheduled_lesson_count ?? null,
+      lessonSequence: lesson.sequence,
+    });
+    if (overrun) throw new Error(overrun);
 
     const parentConfirmed = lesson.confirmed_by_parent_at !== null;
     const nextStatus = parentConfirmed ? "confirmed" : "planned";

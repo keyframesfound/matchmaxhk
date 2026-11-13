@@ -46,6 +46,7 @@ import { dailyTieBreakSort, hktDate } from "@/features/tutors/daily-shuffle";
 import { trackTutorEvent } from "@/features/tracking/engagement-client";
 import { collectEducationValueSets } from "@/features/tutors/education-filters";
 import { supabase } from "@/integrations/supabase/client";
+import { SuggestedTutorsSection } from "@/features/tutors/suggested-tutors-section";
 
 const OG_IMAGE =
   "https://storage.googleapis.com/gpt-engineer-file-uploads/8gNheRvRfCOczS8mI5H1ghF3qLL2/social-images/social-1784777386937-Untitled_design.webp";
@@ -499,7 +500,7 @@ function TrendingTutorsSection({
 }
 
 function Landing() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const navigate = useNavigate();
   const heroVideoRef = useRef<HTMLVideoElement>(null);
   const [homeSearch, setHomeSearch] = useState<HomeTutorSearchState>({});
@@ -784,6 +785,50 @@ function Landing() {
                   Same ≥3-listings guardrail; renders nothing when the gigs
                   RPC is missing or fewer than three services are published. */}
               <HomeGigsRow />
+              {/* #716: signed-in "Suggested for you" above Most Requested;
+                  renders nothing for guests or without an honest pick. */}
+              <SuggestedTutorsSection
+                tutors={publishedTutors}
+                renderCard={(tutor) => {
+                  const inquiry = getTutorInquiryAction(tutor, whatsappNumber, i18n.language);
+                  return (
+                    <PublicTutorCard
+                      tutor={tutor}
+                      priceSuffix={t("featured.per_hour")}
+                      onOpen={openTutorDetail}
+                      compareSelected={compareIds.includes(tutor.id)}
+                      onCompareToggle={() => toggleCompare(tutor)}
+                      footerAction={
+                        <>
+                          <TutorSaveButton tutorId={tutor.id} compact />
+                          {inquiry.kind === "status" ? (
+                            <span className="inline-flex h-9 items-center rounded-sm bg-[color:var(--ink)]/[0.06] px-4 text-[13px] font-bold text-[color:var(--ink)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs">
+                              {inquiry.label}
+                            </span>
+                          ) : (
+                            <Button
+                              asChild
+                              className="h-9 rounded-sm bg-[color:var(--surface-invert)] px-4 text-[13px] font-bold text-[color:var(--surface-invert-fg)] hover:bg-[color:var(--surface-invert-hover)] @max-sm:h-8 @max-sm:px-3 @max-sm:text-xs"
+                            >
+                              <a
+                                href={inquiry.href}
+                                target="_blank"
+                                rel="noreferrer"
+                                onClick={(event) => {
+                                  event.stopPropagation();
+                                  void trackTutorEvent(tutor.id, "inquiry_click");
+                                }}
+                              >
+                                {inquiry.label}
+                              </a>
+                            </Button>
+                          )}
+                        </>
+                      }
+                    />
+                  );
+                }}
+              />
               {/* Issue #151 Option A: trending showcase; hidden entirely
                   (existing page) until 3+ tutors clear the guardrail. */}
               {trendingEntries.length > 0 ? (

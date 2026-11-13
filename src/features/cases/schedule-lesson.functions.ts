@@ -16,6 +16,7 @@ import { asAdminDb } from "@/features/materials/storage-helpers";
 import { insertAudit, selectRows, type Db } from "@/features/cases/desk-db";
 import { format } from "date-fns";
 import { nextLessonSequence, scheduleLessonError } from "@/features/cases/schedule-lesson";
+import { shortCaseOverrunError } from "@/features/cases/short-case";
 import { insertLessonLifecycleEvent } from "@/features/cases/bus.functions";
 
 type Row = Record<string, unknown>;
@@ -98,6 +99,28 @@ export const scheduleNextLesson = createServerFn({ method: "POST" })
       })),
     });
     if (error) throw new Error(error);
+
+    // #760 overrun gate: a declared short package (≤5 lessons @ 20%) caps at
+    // its N lessons — converting to ongoing is the desk's unlock, never a
+    // tutor-side extra booking.
+    const [shortRow, caseLive] = await Promise.all([
+      selectRows<{ is_short_case: boolean; scheduled_lesson_count: number | null }>(
+        db,
+        "tutoring_cases",
+        "is_short_case, scheduled_lesson_count",
+        [{ col: "id", op: "eq", value: c.id }],
+      ),
+      selectRows<{ id: string }>(db, "case_lessons", "id", [
+        { col: "case_id", op: "eq", value: c.id },
+        { col: "status", op: "in", value: LIVE_STATUSES },
+      ]),
+    ]);
+    const overrun = shortCaseOverrunError({
+      isShortCase: shortRow[0]?.is_short_case === true,
+      scheduledLessonCount: shortRow[0]?.scheduled_lesson_count ?? null,
+      liveLessonCount: caseLive.length,
+    });
+    if (overrun) throw new Error(overrun);
 
     for (let attempt = 0; attempt < SEQUENCE_RETRIES; attempt += 1) {
       const existing = await selectRows<{ sequence: number }>(db, "case_lessons", "sequence", [

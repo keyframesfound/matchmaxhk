@@ -22,6 +22,8 @@ import {
   isLegalTransition,
 } from "@/features/cases/sor";
 import { buildCaseFlagRow, type CaseFlagReason } from "@/features/cases/case-flags";
+import { syncCaseFeeMilestones } from "@/features/cases/fee-milestones.server";
+import { shortCaseOverrunError } from "@/features/cases/short-case";
 
 type Row = Record<string, unknown>;
 type Db = ReturnType<typeof asAdminDb>;
@@ -663,6 +665,21 @@ export const lessonAdminLog = createServerFn({ method: "POST" })
     ]);
     if (existing.length > 0) throw new Error("LESSON_EXISTS");
 
+    // #760 overrun gate: desk-logged lessons respect the short package cap
+    // too — convert the case to ongoing to log beyond its declared N.
+    const shortRow = await selectRows<{
+      is_short_case: boolean;
+      scheduled_lesson_count: number | null;
+    }>(db, "tutoring_cases", "is_short_case, scheduled_lesson_count", [
+      { col: "id", op: "eq", value: data.caseId },
+    ]);
+    const overrun = shortCaseOverrunError({
+      isShortCase: shortRow[0]?.is_short_case === true,
+      scheduledLessonCount: shortRow[0]?.scheduled_lesson_count ?? null,
+      lessonSequence: data.sequence,
+    });
+    if (overrun) throw new Error(overrun);
+
     const startsAt = hktFromParts(data.dateKey, data.hour * 60).toISOString();
     const { error } = await db
       .from<Row>("case_lessons")
@@ -706,6 +723,21 @@ export const lessonAdminConfirm = createServerFn({ method: "POST" })
     const lesson = rows[0];
     if (!lesson) throw new Error("LESSON_NOT_FOUND");
     if (lesson.status !== "planned") throw new Error("NOT_PLANNED");
+
+    // #760 overrun gate: confirming a lesson beyond a short package's
+    // declared N requires the desk convert-to-ongoing first.
+    const shortRow = await selectRows<{
+      is_short_case: boolean;
+      scheduled_lesson_count: number | null;
+    }>(db, "tutoring_cases", "is_short_case, scheduled_lesson_count", [
+      { col: "id", op: "eq", value: lesson.case_id },
+    ]);
+    const overrun = shortCaseOverrunError({
+      isShortCase: shortRow[0]?.is_short_case === true,
+      scheduledLessonCount: shortRow[0]?.scheduled_lesson_count ?? null,
+      lessonSequence: lesson.sequence,
+    });
+    if (overrun) throw new Error(overrun);
 
     const patch: Row = {
       [data.side === "parent" ? "confirmed_by_parent_at" : "confirmed_by_tutor_at"]:
@@ -769,6 +801,11 @@ export const lessonAdminMark = createServerFn({ method: "POST" })
       data.status,
       data.reason ?? null,
     );
+    // #760 Part 1: a desk mark of 'done' can deliver the L1/L2 (or short)
+    // fee milestone — recalc the ledger (idempotent, no-op otherwise).
+    if (data.status === "done") {
+      await syncCaseFeeMilestones(db, lesson.case_id, "case_lesson");
+    }
     return { ok: true };
   });
 

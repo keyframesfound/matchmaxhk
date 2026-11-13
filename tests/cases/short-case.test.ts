@@ -8,7 +8,10 @@ import {
   hoursPerLessonFromMinutes,
   shortCaseFeeAmount,
   shortCaseFeeMultiplier,
+  shortCaseIntakeLockError,
+  shortCaseOverrunError,
   shortCasePackageValueHkd,
+  shortCaseTopUpHkd,
   shortCaseConfirmationError,
   shouldInvoiceShortFee,
   sumBilledFeeHkd,
@@ -305,5 +308,99 @@ describe("shortCaseConfirmationError (parent/org WA gate)", () => {
     expect(buildShortCaseConfirmNote("parent_wa", "  YES — 4 lessons  ")).toBe(
       "[short-case confirm · parent_wa] YES — 4 lessons",
     );
+  });
+});
+
+describe("#760 Part 2 — pre-L1 intake lock", () => {
+  it("locks once Lesson 1 is confirmed or done", () => {
+    expect(shortCaseIntakeLockError({ lesson1Status: "confirmed" })).toBe("SHORT_LOCKED_AFTER_L1");
+    expect(shortCaseIntakeLockError({ lesson1Status: "done" })).toBe("SHORT_LOCKED_AFTER_L1");
+  });
+
+  it("still allows declaring while Lesson 1 is only planned or absent", () => {
+    expect(shortCaseIntakeLockError({ lesson1Status: "planned" })).toBeNull();
+    expect(shortCaseIntakeLockError({ lesson1Status: null })).toBeNull();
+    expect(shortCaseIntakeLockError({ lesson1Status: undefined })).toBeNull();
+  });
+});
+
+describe("#760 Part 2 — overrun gate", () => {
+  it("blocks the N+1 lesson once the live count reaches N", () => {
+    expect(
+      shortCaseOverrunError({
+        isShortCase: true,
+        scheduledLessonCount: 4,
+        liveLessonCount: 4,
+      }),
+    ).toBe("SHORT_CASE_OVERRUN");
+    expect(
+      shortCaseOverrunError({
+        isShortCase: true,
+        scheduledLessonCount: 4,
+        liveLessonCount: 3,
+      }),
+    ).toBeNull();
+  });
+
+  it("blocks dual-confirming a pre-existing lesson beyond N by sequence", () => {
+    expect(
+      shortCaseOverrunError({
+        isShortCase: true,
+        scheduledLessonCount: 3,
+        lessonSequence: 4,
+      }),
+    ).toBe("SHORT_CASE_OVERRUN");
+    expect(
+      shortCaseOverrunError({
+        isShortCase: true,
+        scheduledLessonCount: 3,
+        lessonSequence: 3,
+      }),
+    ).toBeNull();
+  });
+
+  it("ongoing cases and junk package shapes never gate", () => {
+    expect(
+      shortCaseOverrunError({
+        isShortCase: false,
+        scheduledLessonCount: null,
+        liveLessonCount: 99,
+      }),
+    ).toBeNull();
+    expect(
+      shortCaseOverrunError({ isShortCase: true, scheduledLessonCount: null, liveLessonCount: 99 }),
+    ).toBeNull();
+  });
+});
+
+describe("#760 Part 2 — convert-to-ongoing top-up (rate basis)", () => {
+  it("equals (1.5 × R) − (N × 0.20 × R) at 1-hour lessons", () => {
+    // R = 400, N = 4: 600 − 320 = 280
+    expect(shortCaseTopUpHkd({ rateHkd: 400, hoursPerLesson: 1, declaredLessonCount: 4 })).toBe(
+      280,
+    );
+    // R = 400, N = 1: 600 − 80 = 520
+    expect(shortCaseTopUpHkd({ rateHkd: 400, hoursPerLesson: 1, declaredLessonCount: 1 })).toBe(
+      520,
+    );
+  });
+
+  it("uses the package-hour basis for the 20% leg and scales by students", () => {
+    // 90-minute lessons, 2 students, N = 2: standard 600×2=1200, short
+    // round(400×1.5×2×2×0.2)=480 → 720
+    expect(
+      shortCaseTopUpHkd({
+        rateHkd: 400,
+        studentCount: 2,
+        hoursPerLesson: 1.5,
+        declaredLessonCount: 2,
+      }),
+    ).toBe(720);
+  });
+
+  it("never goes negative", () => {
+    expect(
+      shortCaseTopUpHkd({ rateHkd: 100, hoursPerLesson: 8, declaredLessonCount: 5 }),
+    ).toBeGreaterThanOrEqual(0);
   });
 });

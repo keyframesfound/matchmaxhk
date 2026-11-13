@@ -21,6 +21,8 @@
  * Amounts round to whole HKD (FPS transfers are whole-dollar, #385 precedent).
  */
 
+import { fullAdminFeeAmount } from "@/features/cases/fee-breakdown";
+
 export const SHORT_CASE_MAX_LESSONS = 5;
 export const SHORT_CASE_FEE_RATE = 0.2;
 
@@ -196,6 +198,79 @@ export function shortCaseConfirmationError(input: {
   const note = (input.confirmedNote ?? "").trim();
   if (note.length < 10) return "CONFIRM_NOTE_REQUIRED";
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// #760 Part 2 [was #710] — intake lock, overrun top-up gate
+// ---------------------------------------------------------------------------
+
+/**
+ * #760 Pre-L1 Intake Lock: the 20% package rate applies ONLY when the 1–5
+ * lesson count is declared before Lesson 1 is confirmed; an ONGOING case is
+ * never reclassified to short retroactively. Once Lesson 1 is confirmed (or
+ * done) the package mode is immutable — toggling OFF short stays allowed
+ * (that is the convert/ongoing direction, which the desk explicitly drives).
+ */
+export function shortCaseIntakeLockError(input: {
+  lesson1Status: string | null | undefined;
+}): "SHORT_LOCKED_AFTER_L1" | null {
+  return input.lesson1Status === "confirmed" || input.lesson1Status === "done"
+    ? "SHORT_LOCKED_AFTER_L1"
+    : null;
+}
+
+/**
+ * #760 overrun gate: a SHORT_FIXED case stays at 20% for exactly the
+ * declared N lessons — Lesson N+1 can neither be scheduled (live lessons
+ * already at N) nor dual-confirmed (a pre-existing row at sequence > N)
+ * until the desk converts the case to the ongoing 1.5-lesson rule. Cancelled
+ * lessons do not count as delivered, so the live count (planned/confirmed/
+ * done) is the right basis.
+ */
+export function shortCaseOverrunError(input: {
+  isShortCase: boolean;
+  scheduledLessonCount: number | null | undefined;
+  /** Live (planned/confirmed/done) lesson count on the case, BEFORE the write. */
+  liveLessonCount?: number;
+  /** Sequence of the specific lesson being confirmed, when gating a confirm. */
+  lessonSequence?: number;
+}): "SHORT_CASE_OVERRUN" | null {
+  if (!input.isShortCase) return null;
+  const n = Number(input.scheduledLessonCount);
+  if (!Number.isInteger(n) || n < 1) return null;
+  if (input.lessonSequence != null) {
+    return Number(input.lessonSequence) > n ? "SHORT_CASE_OVERRUN" : null;
+  }
+  const live = Number(input.liveLessonCount);
+  return Number.isInteger(live) && live >= n ? "SHORT_CASE_OVERRUN" : null;
+}
+
+/**
+ * #760 Convert-to-Ongoing top-up (rate basis): the standard 1.5-lesson fee
+ * minus the 20% package fee already accrued on the declared N lessons. At
+ * 1-hour lessons this is exactly the addendum's (1.5 × R) − (N × 0.20 × R).
+ * Whole-HKD like every other fee surface. The DESK's convert flow bills on
+ * the paid basis (convertBalanceAmountHkd) — this helper is the tutor-facing
+ * "only the difference is payable" figure.
+ */
+export function shortCaseTopUpHkd(input: {
+  rateHkd: number;
+  studentCount?: number;
+  hoursPerLesson: number;
+  declaredLessonCount: number;
+}): number {
+  const count =
+    Number.isInteger(input.studentCount) && (input.studentCount as number) >= 1
+      ? (input.studentCount as number)
+      : 1;
+  const standard = fullAdminFeeAmount(input.rateHkd, count);
+  const short = shortCaseFeeAmount({
+    rateHkd: input.rateHkd * count,
+    hoursPerLesson: input.hoursPerLesson,
+    scheduledLessonCount: input.declaredLessonCount,
+    packageType: "short_20",
+  });
+  return Math.max(0, standard - short);
 }
 
 /**

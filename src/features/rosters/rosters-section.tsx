@@ -11,6 +11,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   BadgeCheck,
   CalendarCheck2,
+  CircleDashed,
   ClipboardCopy,
   Link2,
   Loader2,
@@ -40,6 +41,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
+import { renewalBadgeFor } from "@/features/cases/fee-milestones";
 import { ATTENDANCE_STATUSES, formatHktDateTime } from "@/features/rosters/roster-logic";
 import { CheckInModal } from "@/features/rosters/checkin-modal";
 import {
@@ -859,6 +861,10 @@ function RosterDetailPanel({ rosterId, onBack }: { rosterId: string; onBack: () 
 
       {roster.roster.organizationId != null ? <MarkersPanel roster={roster} /> : null}
 
+      {/* #760 Part 1: tutor-side admin-fee milestones (matched rosters only;
+          SELF_BROUGHT rosters are HK$0 and never render a commission box). */}
+      {roster.feeMilestones ? <FeeMilestoneCard feeMilestones={roster.feeMilestones} /> : null}
+
       {roster.students.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-xl border border-dashed border-border bg-card p-10 text-center">
           <Users className="h-8 w-8 text-muted-foreground" aria-hidden />
@@ -914,8 +920,21 @@ function RosterDetailPanel({ rosterId, onBack }: { rosterId: string; onBack: () 
                         </span>
                       )}
                     </td>
-                    <td className="px-4 py-3 font-mono text-sm text-[color:var(--ink)]">
-                      {lessonsLabel(student)}
+                    <td className="px-4 py-3">
+                      <div className="font-mono text-sm text-[color:var(--ink)]">
+                        {lessonsLabel(student)}
+                      </div>
+                      {renewalBadgeFor(student.packageLessonCount, student.completedLessonCount)
+                        ?.showBadge ? (
+                        <p className="mt-0.5 text-xs font-semibold text-amber-700">
+                          {t("rosters.package_renewal", {
+                            remaining: renewalBadgeFor(
+                              student.packageLessonCount,
+                              student.completedLessonCount,
+                            )?.remaining,
+                          })}
+                        </p>
+                      ) : null}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end">
@@ -951,6 +970,17 @@ function RosterDetailPanel({ rosterId, onBack }: { rosterId: string; onBack: () 
                 <p className="mt-1 text-xs text-muted-foreground">
                   {t("rosters.col_lessons")}: {lessonsLabel(student)}
                 </p>
+                {renewalBadgeFor(student.packageLessonCount, student.completedLessonCount)
+                  ?.showBadge ? (
+                  <p className="mt-1 text-xs font-semibold text-amber-700">
+                    {t("rosters.package_renewal", {
+                      remaining: renewalBadgeFor(
+                        student.packageLessonCount,
+                        student.completedLessonCount,
+                      )?.remaining,
+                    })}
+                  </p>
+                ) : null}
                 <div className="mt-2.5">
                   <StudentActions
                     roster={roster}
@@ -981,6 +1011,60 @@ function RosterDetailPanel({ rosterId, onBack }: { rosterId: string; onBack: () 
       {roster.roster.canManage ? (
         <AddStudentDialog open={addOpen} onOpenChange={setAddOpen} roster={roster} />
       ) : null}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// #760 Part 1: fee milestone ledger card (matched rosters, educator view)
+// ---------------------------------------------------------------------------
+
+function FeeMilestoneCard({
+  feeMilestones,
+}: {
+  feeMilestones: NonNullable<RosterDetail["feeMilestones"]>;
+}) {
+  const { t, i18n } = useTranslation();
+  return (
+    <div className="rounded-xl border border-border bg-card p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 className="text-sm font-bold text-[color:var(--ink)]">
+          {t("rosters.milestones_title")}
+        </h3>
+        {feeMilestones.rateHkd != null ? (
+          <span className="text-xs text-muted-foreground">
+            {t("rosters.milestones_rate", { rate: feeMilestones.rateHkd })}
+          </span>
+        ) : null}
+      </div>
+      {feeMilestones.items.length === 0 ? (
+        <p className="mt-2 text-xs text-muted-foreground">{t("rosters.milestones_empty")}</p>
+      ) : (
+        <ul className="mt-2 space-y-1.5">
+          {feeMilestones.items.map((m) => (
+            <li key={m.kind} className="flex flex-wrap items-center gap-2 text-sm">
+              {m.status === "delivered" ? (
+                <BadgeCheck className="h-4 w-4 shrink-0 text-emerald-600" aria-hidden />
+              ) : (
+                <CircleDashed className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
+              )}
+              <span className="font-medium text-[color:var(--ink)]">
+                {t(`rosters.milestone_${m.kind}`)}
+              </span>
+              {m.amountHkd != null ? (
+                <span className="font-mono text-xs text-muted-foreground">
+                  {t("rosters.milestones_amount", { amount: m.amountHkd })}
+                </span>
+              ) : null}
+              {m.status === "delivered" && m.deliveredAt ? (
+                <span className="text-xs text-muted-foreground">
+                  · {formatHktDateTime(m.deliveredAt, i18n.language)}
+                </span>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

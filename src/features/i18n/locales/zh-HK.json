@@ -318,7 +318,8 @@
     "out_of_window": "已過簡介期",
     "out_of_window_hint": "佢同呢個客嘅 6 個月簡介期已過——再配對平台費會係 $0（費用引擎會標 OWNERSHIP_EXPIRED）。可以建議客戶直接聯絡佢。",
     "shadowbanned": "限制配對至 {{date}}",
-    "shadowbanned_hint": "呢位導師喺第一堂後無緊急證明就退出，限制配對 30 日（#529）。你仍然可以批准，但有選擇時請優先揀其他導師。"
+    "shadowbanned_hint": "呢位導師喺第一堂後無緊急證明就退出，限制配對 30 日（#529）。你仍然可以批准，但有選擇時請優先揀其他導師。",
+    "overdue_admin_fee_block": "請先結清已完成個案之行政費（逾期未繳逾 72 小時），以解鎖申請新學生個案。現有個案的教學與管理不受影響。"
   },
   "caseDesk": {
     "tutor_code_label": "導師編號",
@@ -2403,7 +2404,8 @@
       "open_case": "開啟個案",
       "fee_invoiced": "行政費：第一堂到期（首堂 100% + 第二堂 50%）",
       "fee_paid": "行政費已結算（第一堂 + 第二堂半數）",
-      "open_for_new": "可接收新學生"
+      "open_for_new": "可接收新學生",
+      "fee_accruing": "行政費累計中 — 將於第 2 堂後結算"
     },
     "verified": "已核實",
     "verified_detail": "成績表已核對",
@@ -3561,7 +3563,8 @@
     "nf_wa_copied": "WhatsApp 摘要已複製",
     "nf_wa_copy_failed": "複製失敗，請再試一次",
     "bell_attendance_recorded": "{{student}} 已紀錄課堂點名 — {{status}}",
-    "bell_attendance_updated": "{{student}} 之課堂點名已更新 — 現為 {{status}}"
+    "bell_attendance_updated": "{{student}} 之課堂點名已更新 — 現為 {{status}}",
+    "schedule_next_err_SHORT_CASE_OVERRUN": "此短期套票之全部課堂已安排。如需於套票堂數後繼續上課，請將個案轉為長期課堂（聯絡 MatchMax 客服），導師僅須補回與標準 1.5 堂行政費之差額。"
   },
   "cv": {
     "title": "學習履歷及成績檔案",
@@ -4057,7 +4060,13 @@
     "uploaded": "已收到截圖，預計於 {{date}} 確認付款。",
     "upload_failed": "上載失敗，請再試一次。",
     "err_FPS_REFERENCE_USED": "此轉數快參考編號已用於另一個個案。",
-    "view_screenshot": "查看付款截圖"
+    "view_screenshot": "查看付款截圖",
+    "proof_verifying": "正在核實轉數快收據（24小時內）",
+    "proof_rejected": "收據須重新上傳",
+    "screenshot_replace": "更換截圖",
+    "copy_fps": "複製轉數快 ID",
+    "copy_reference": "複製備註碼",
+    "copied": "已複製"
   },
   "cockpit": {
     "title": "配對控制台",
@@ -5040,7 +5049,15 @@
     "engagement_standard_ongoing": "標準持續（多於5堂）",
     "engagement_short_course": "短期課程（5堂或以內）",
     "engagement_locked": "配對個案不可更改",
-    "created_toast": "名單已建立。"
+    "created_toast": "名單已建立。",
+    "milestones_title": "MatchMax 行政費里程碑",
+    "milestones_rate": "時薪 HK${{rate}}",
+    "milestones_empty": "已完成 0 堂。當完成課堂點名後，里程碑將自動更新。",
+    "milestones_amount": "HK${{amount}}",
+    "milestone_lesson_1_100": "第 1 堂 — 100% 行政費里程碑",
+    "milestone_lesson_2_50": "第 2 堂 — 50% 行政費里程碑",
+    "milestone_short_course_20": "短期課程 — 20% 套票行政費",
+    "package_renewal": "目前套票尚餘 {{remaining}} 堂"
   },
   "claim_roster": {
     "eyebrow": "點名通知綁定",
@@ -5067,12 +5084,21 @@
     "state_expired_body": "請聯絡導師重新發送（連結有效期14天）。",
     "self_claim_error": "導師或中心管理員不能連結自己名單之家長帳戶。",
     "self_claim_note": "您不能連結自己名單的家長連結，請將連結發送給家長。",
-    "preview_banner": "預覽模式：請將此連結發送予家長以完成綁定"
+    "preview_banner": "預覽模式：請將此連結發送予家長以完成綁定",
+    "lessons_completed": "已完成堂數"
   },
   "locale_suggestion": {
     "prompt": "呢個網頁有繁體中文版本。",
     "switch": "切換至繁體中文",
     "dismiss": "繼續用英文"
+  },
+  "suggested": {
+    "title": "為您推薦的導師",
+    "subtitle": "根據子女課程及搜尋紀錄推薦 · 現正招生 · 家長配對費用全免",
+    "reason_search": "符合您的 {{value}} 搜尋需求",
+    "reason_complementary": "{{curriculum}} 學生熱門增修科目",
+    "reason_complementary_plain": "熱門增修科目",
+    "for_learner": "{{name}}：{{reason}}"
   },
   "note_upsell": {
     "cta": "預約此導師 1 對 1 補習",
