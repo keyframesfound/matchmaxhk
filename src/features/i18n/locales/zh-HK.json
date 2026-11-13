@@ -5040,7 +5040,15 @@
     "engagement_standard_ongoing": "標準持續（多於5堂）",
     "engagement_short_course": "短期課程（5堂或以內）",
     "engagement_locked": "配對個案不可更改",
-    "created_toast": "名單已建立。"
+    "created_toast": "名單已建立。",
+    "milestones_title": "MatchMax 行政費里程碑",
+    "milestones_rate": "時薪 HK${{rate}}",
+    "milestones_empty": "已完成 0 堂。當完成課堂點名後，里程碑將自動更新。",
+    "milestones_amount": "HK${{amount}}",
+    "milestone_lesson_1_100": "第 1 堂 — 100% 行政費里程碑",
+    "milestone_lesson_2_50": "第 2 堂 — 50% 行政費里程碑",
+    "milestone_short_course_20": "短期課程 — 20% 套票行政費",
+    "package_renewal": "目前套票尚餘 {{remaining}} 堂"
   },
   "claim_roster": {
     "eyebrow": "點名通知綁定",
@@ -5067,7 +5075,8 @@
     "state_expired_body": "請聯絡導師重新發送（連結有效期14天）。",
     "self_claim_error": "導師或中心管理員不能連結自己名單之家長帳戶。",
     "self_claim_note": "您不能連結自己名單的家長連結，請將連結發送給家長。",
-    "preview_banner": "預覽模式：請將此連結發送予家長以完成綁定"
+    "preview_banner": "預覽模式：請將此連結發送予家長以完成綁定",
+    "lessons_completed": "已完成堂數"
   },
   "locale_suggestion": {
     "prompt": "呢個網頁有繁體中文版本。",

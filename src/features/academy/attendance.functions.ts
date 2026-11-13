@@ -13,6 +13,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import { insertAudit, requireAdmin, selectRows, type Db, type Row } from "@/features/cases/desk-db";
 import { canMarkDone } from "@/features/cases/sor";
+import { syncCaseFeeMilestones } from "@/features/cases/fee-milestones.server";
 import {
   ATTENDANCE_STATUSES,
   NOTE_MIN_SENTENCES,
@@ -181,6 +182,10 @@ export const recordAttendance = createServerFn({ method: "POST" })
       `lesson_${status}`,
       `[#533] ${data.attendance}`,
     );
+
+    // #760 Part 1: the attendance mark may have delivered the L1/L2 (or
+    // short-course) fee milestone — recalc the ledger for this case.
+    await syncCaseFeeMilestones(db, lesson.case_id, "case_lesson");
 
     return {
       status,

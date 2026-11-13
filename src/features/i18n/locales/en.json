@@ -5040,7 +5040,15 @@
     "engagement_standard_ongoing": "Standard Ongoing (>5 lessons)",
     "engagement_short_course": "Short Course (≤5 lessons)",
     "engagement_locked": "Locked for Matched Cases",
-    "created_toast": "Roster created."
+    "created_toast": "Roster created.",
+    "milestones_title": "MatchMax fee milestones",
+    "milestones_rate": "Rate HK${{rate}}/h",
+    "milestones_empty": "Completed 0 lessons. Milestones update automatically when attendance is marked.",
+    "milestones_amount": "HK${{amount}}",
+    "milestone_lesson_1_100": "Lesson 1 — 100% fee milestone",
+    "milestone_lesson_2_50": "Lesson 2 — 50% fee milestone",
+    "milestone_short_course_20": "Short course — 20% package fee",
+    "package_renewal": "{{remaining}} lesson remaining in current package"
   },
   "claim_roster": {
     "eyebrow": "Attendance claim",
@@ -5067,7 +5075,8 @@
     "state_expired_body": "Ask the educator to send a new link (links last 14 days).",
     "self_claim_error": "Educators cannot claim a parent link for their own roster.",
     "self_claim_note": "You cannot claim a parent link for your own roster. Send the link to the parent.",
-    "preview_banner": "Preview Mode: Send this link to the parent to claim"
+    "preview_banner": "Preview Mode: Send this link to the parent to claim",
+    "lessons_completed": "Lessons completed"
   },
   "locale_suggestion": {
     "prompt": "This page is also available in Chinese.",
