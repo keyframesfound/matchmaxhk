@@ -19,9 +19,66 @@ export const MATCHMAX_FPS = {
   bankAccount: "HSBC 563-440361-833",
 } as const;
 
-export const FEE_SCREENSHOT_MAX_BYTES = 5 * 1024 * 1024;
+export const FEE_SCREENSHOT_MAX_BYTES = 10 * 1024 * 1024;
 export const FEE_SCREENSHOT_TYPES = ["image/jpeg", "image/png"] as const;
 export type FeeScreenshotType = (typeof FEE_SCREENSHOT_TYPES)[number];
+
+// ---------------------------------------------------------------------------
+// #760 Part 3 [was #756] — settlement card states + overdue soft gate
+// ---------------------------------------------------------------------------
+
+/** The overdue soft gate: payment_due unresolved for more than 72 hours. */
+export const SETTLEMENT_OVERDUE_MS = 72 * 60 * 60 * 1000;
+/** A rejected (re-upload requested) proof resets the 72h clock by +24 hours. */
+export const PROOF_REJECT_CLOCK_RESET_MS = 24 * 60 * 60 * 1000;
+
+export type SettlementFeeShape = {
+  /** case_fees.status. */
+  status: string;
+  payment_screenshot_path: string | null;
+  /** 'none' | 'submitted' | 'rejected' (#760 migration). */
+  proof_status: string | null;
+  proof_rejected_at: string | null;
+  created_at: string | null;
+};
+
+/**
+ * The tutor-facing settlement card state (#756 §4). `accruing` is decided by
+ * the caller from the #760 Part 1 milestone ledger (delivered milestone, no
+ * fee row yet) — this helper only reads the fee row.
+ */
+export function settlementCardState(fee: {
+  status: string;
+  proof_status: string | null | undefined;
+}): "payment_due" | "pending_verification" | "rejected" | "settled" | null {
+  if (fee.status === "paid") return "settled";
+  if (fee.status !== "invoiced") return null;
+  if (fee.proof_status === "submitted") return "pending_verification";
+  if (fee.proof_status === "rejected") return "rejected";
+  return "payment_due";
+}
+
+/**
+ * True when an open (invoiced, proof not yet accepted) admin fee has been
+ * unresolved past the 72h soft-gate window. A rejected proof resets the
+ * clock by +24h from the rejection (the tutor's re-upload window), per the
+ * #760 addendum. Paid / waived / refunded rows and submitted proofs never
+ * block — an unpaid admin fee must never block lesson logging, only NEW
+ * case applications.
+ */
+export function adminFeeOverdue(fee: SettlementFeeShape, now: Date): boolean {
+  if (fee.status !== "invoiced") return false;
+  if (fee.proof_status === "submitted") return false;
+  const created = fee.created_at ? new Date(fee.created_at).getTime() : NaN;
+  if (!Number.isFinite(created)) return false;
+  if (fee.proof_status === "rejected" && fee.proof_rejected_at) {
+    const rejectedAt = new Date(fee.proof_rejected_at).getTime();
+    if (Number.isFinite(rejectedAt) && now.getTime() - rejectedAt < PROOF_REJECT_CLOCK_RESET_MS) {
+      return false;
+    }
+  }
+  return now.getTime() - created > SETTLEMENT_OVERDUE_MS;
+}
 
 /** Payments received after this HKT hour are marked the next working day. */
 export const FEE_MARKING_CUTOFF_HOUR_HKT = 18;

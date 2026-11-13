@@ -578,6 +578,8 @@ export function TutorCasesSection() {
                     amountHkd={c.fee_amount_hkd}
                     dueAt={c.fee_due_at}
                     hasScreenshot={c.fee_has_screenshot}
+                    proofStatus={c.fee_proof_status}
+                    proofRejectNote={c.fee_proof_reject_note}
                   />
                 )}
                 {c.lessons.length > 0 && (

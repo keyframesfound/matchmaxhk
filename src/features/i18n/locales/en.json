@@ -318,7 +318,8 @@
     "out_of_window": "Out of window",
     "out_of_window_hint": "Their 6-month intro window with this client has closed — a match here earns the platform $0 (the fee engine marks it OWNERSHIP_EXPIRED). Advising them to contact the client directly is fine.",
     "shadowbanned": "Shadowbanned to {{date}}",
-    "shadowbanned_hint": "This tutor quit a Lesson 1 without emergency proof and is shadowbanned for 30 days (#529). You can still approve; prefer active tutors when there is a choice."
+    "shadowbanned_hint": "This tutor quit a Lesson 1 without emergency proof and is shadowbanned for 30 days (#529). You can still approve; prefer active tutors when there is a choice.",
+    "overdue_admin_fee_block": "Please settle your completed case administrative fee (unpaid over 72h) to unlock new case applications. You can still teach and manage existing cases."
   },
   "caseDesk": {
     "tutor_code_label": "Tutor code",
@@ -2403,7 +2404,8 @@
       "open_case": "Open case",
       "fee_invoiced": "Admin fee: Lesson 1 due (L1 100% + L2 50%)",
       "fee_paid": "Admin fee settled (Lesson 1 + 50% of Lesson 2)",
-      "open_for_new": "Open for new students"
+      "open_for_new": "Open for new students",
+      "fee_accruing": "Admin fee accruing — settles after Lesson 2"
     },
     "verified": "Verified",
     "verified_detail": "Transcript checked",
@@ -4058,7 +4060,13 @@
     "uploaded": "Screenshot received. Expected to be marked paid on {{date}}.",
     "upload_failed": "Upload failed. Please try again.",
     "err_FPS_REFERENCE_USED": "This FPS reference already closed another case.",
-    "view_screenshot": "View payment screenshot"
+    "view_screenshot": "View payment screenshot",
+    "proof_verifying": "Verifying FPS receipt (within 24h)",
+    "proof_rejected": "Receipt re-upload requested",
+    "screenshot_replace": "Replace screenshot",
+    "copy_fps": "Copy FPS ID",
+    "copy_reference": "Copy reference",
+    "copied": "Copied"
   },
   "cockpit": {
     "title": "Matching cockpit",
