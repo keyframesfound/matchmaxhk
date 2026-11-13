@@ -72,6 +72,7 @@ const OUTCOME_LABEL: Record<OutcomeKind, string> = {
   l1_no_show: "Parent no-show / cancel < 24h before Lesson 1",
   continued: "Continued past Lesson 2",
   stopped_after_l1: "Stopped after exactly one paid lesson",
+  stopped_after_l2: "#760 Stopped right after Lesson 2 (1.0×R cap, L2 waived)",
   stopped_l2_l4: "#672 Parent-fault stop in Lessons 2–4 (credit overpaid fee)",
 };
 const INITIATOR_LABEL: Record<DropInitiator, string> = {

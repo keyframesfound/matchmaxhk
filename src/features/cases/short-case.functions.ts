@@ -40,6 +40,7 @@ import {
   shortCaseConfirmationError,
   shortCaseFeeAmount,
   shortCaseFeeMultiplier,
+  shortCaseIntakeLockError,
   shouldInvoiceShortFee,
   sumBilledFeeHkd,
   sumPaidFeeHkd,
@@ -306,14 +307,26 @@ export const setShortCase = createServerFn({ method: "POST" })
     // Guard 2 — $0 Pro-Bono wins over the short 20%.
     if (c.package_type === "pro_bono") throw new Error("PRO_BONO_NOT_ALLOWED");
 
-    // Guard 3 — package shape (count 1–5, positive session length).
+    // Guard 3 — #760 Pre-L1 Intake Lock: once Lesson 1 is confirmed (or
+    // done), the package mode is immutable — no retroactive ONGOING →
+    // SHORT_FIXED reclassification (toggling OFF short stays allowed).
+    if (data.isShortCase) {
+      const lesson1 = await selectRows<{ status: string }>(db, "case_lessons", "status", [
+        { col: "case_id", op: "eq", value: c.id },
+        { col: "sequence", op: "eq", value: 1 },
+      ]);
+      const lockError = shortCaseIntakeLockError({ lesson1Status: lesson1[0]?.status ?? null });
+      if (lockError) throw new Error(lockError);
+    }
+
+    // Guard 4 — package shape (count 1–5, positive session length).
     const shapeError = validateShortCaseInputs({
       scheduledLessonCount: data.scheduledLessonCount,
       sessionLengthMinutes: data.sessionLengthMinutes,
     });
     if (shapeError) throw new Error(shapeError);
 
-    // Guard 4 — REQUIRED confirmation (parent WA B2C / org WA B2B / CS note).
+    // Guard 5 — REQUIRED confirmation (parent WA B2C / org WA B2B / CS note).
     const confirmError = shortCaseConfirmationError({
       confirmedBy: data.confirmedBy,
       confirmedNote: data.confirmedNote,

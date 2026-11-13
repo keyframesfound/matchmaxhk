@@ -3561,7 +3561,8 @@
     "nf_wa_copied": "WhatsApp 摘要已複製",
     "nf_wa_copy_failed": "複製失敗，請再試一次",
     "bell_attendance_recorded": "{{student}} 已紀錄課堂點名 — {{status}}",
-    "bell_attendance_updated": "{{student}} 之課堂點名已更新 — 現為 {{status}}"
+    "bell_attendance_updated": "{{student}} 之課堂點名已更新 — 現為 {{status}}",
+    "schedule_next_err_SHORT_CASE_OVERRUN": "此短期套票之全部課堂已安排。如需於套票堂數後繼續上課，請將個案轉為長期課堂（聯絡 MatchMax 客服），導師僅須補回與標準 1.5 堂行政費之差額。"
   },
   "cv": {
     "title": "學習履歷及成績檔案",

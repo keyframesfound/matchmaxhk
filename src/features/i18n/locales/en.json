@@ -3561,7 +3561,8 @@
     "nf_wa_copied": "WhatsApp summary copied",
     "nf_wa_copy_failed": "Copy failed — try again",
     "bell_attendance_recorded": "Attendance recorded for {{student}} — {{status}}",
-    "bell_attendance_updated": "Attendance updated for {{student}} — now {{status}}"
+    "bell_attendance_updated": "Attendance updated for {{student}} — now {{status}}",
+    "schedule_next_err_SHORT_CASE_OVERRUN": "All lessons of this short-term package are already scheduled. To continue beyond the package, the case must be converted to Ongoing — ask MatchMax support; only the top-up difference to the standard 1.5-lesson admin fee is payable."
   },
   "cv": {
     "title": "Education CV & Academic Records",
