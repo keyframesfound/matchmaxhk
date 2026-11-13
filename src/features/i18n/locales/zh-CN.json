@@ -5091,5 +5091,13 @@
     "prompt": "本页面提供简体中文版本。",
     "switch": "切换至简体中文",
     "dismiss": "继续使用英文"
+  },
+  "suggested": {
+    "title": "为您推荐的导师",
+    "subtitle": "根据子女课程及搜索记录推荐 · 现正招生 · 家长配对费用全免",
+    "reason_search": "符合您的 {{value}} 搜索需求",
+    "reason_complementary": "{{curriculum}} 学生热门增修科目",
+    "reason_complementary_plain": "热门增修科目",
+    "for_learner": "{{name}}：{{reason}}"
   }
 }
