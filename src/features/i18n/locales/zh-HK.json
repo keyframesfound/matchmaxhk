@@ -5091,5 +5091,13 @@
     "prompt": "呢個網頁有繁體中文版本。",
     "switch": "切換至繁體中文",
     "dismiss": "繼續用英文"
+  },
+  "suggested": {
+    "title": "為您推薦的導師",
+    "subtitle": "根據子女課程及搜尋紀錄推薦 · 現正招生 · 家長配對費用全免",
+    "reason_search": "符合您的 {{value}} 搜尋需求",
+    "reason_complementary": "{{curriculum}} 學生熱門增修科目",
+    "reason_complementary_plain": "熱門增修科目",
+    "for_learner": "{{name}}：{{reason}}"
   }
 }

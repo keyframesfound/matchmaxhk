@@ -5091,5 +5091,13 @@
     "prompt": "This page is also available in Chinese.",
     "switch": "Switch",
     "dismiss": "Keep English"
+  },
+  "suggested": {
+    "title": "Suggested for you",
+    "subtitle": "Tailored to your child's curriculum & searches · Tutors taking students · $0 parent matching fee",
+    "reason_search": "Fits your {{value}} search",
+    "reason_complementary": "Popular next subject for {{curriculum}} students",
+    "reason_complementary_plain": "Popular next subject",
+    "for_learner": "{{name}}: {{reason}}"
   }
 }
