@@ -5099,5 +5099,17 @@
     "reason_complementary": "{{curriculum}} 學生熱門增修科目",
     "reason_complementary_plain": "熱門增修科目",
     "for_learner": "{{name}}：{{reason}}"
+  },
+  "saved_search": {
+    "save": "儲存搜尋",
+    "saved_state": "已儲存",
+    "saved": "已儲存搜尋！可在「已儲存」一按重用。新配對通知即將推出。",
+    "saved_guest": "已儲存到此裝置。登入後可在有新配對時收到通知。",
+    "removed": "已移除儲存的搜尋",
+    "limit": "最多可儲存 {{count}} 個搜尋，請先在「管理」移除一個。",
+    "title": "已儲存",
+    "manage": "管理",
+    "done": "完成",
+    "remove": "移除儲存的搜尋：{{label}}"
   }
 }
