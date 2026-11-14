@@ -46,6 +46,7 @@ import {
   ShareNoteButton,
   SimilarNotesSection,
 } from "@/features/materials/note-engagement";
+import { NoteTutorUpsellCard } from "@/features/materials/note-tutor-upsell-card";
 
 /**
  * #203 + P8/P14: the public note page, the marketplace's Clastify-style
@@ -489,14 +490,17 @@ function NotePage() {
                   with the author through the normal match intake. The tutor's
                   code rides the URL; no phone number is exposed and no
                   unmoderated chat opens. */}
-              {!isOwner && note.tutorCode ? (
-                <Button asChild variant="solid" color="blue" className="w-full font-bold">
-                  <Link to="/tutor-requests" search={{ post: true, tutor: note.tutorCode }}>
-                    <UserRoundSearch className="mr-2 h-4 w-4" aria-hidden />
-                    {t("notes.trial_cta")}
-                  </Link>
-                </Button>
-              ) : null}
+              {/* #731: eligibility + anti-cannibalization (community sellers,
+                  full tutors, an active case in this subject with another
+                  tutor) live in NoteTutorUpsellCard. */}
+              <NoteTutorUpsellCard
+                tutorCode={note.tutorCode || null}
+                tutorName={note.tutorName}
+                isOwner={isOwner}
+                isCommunitySeller={Boolean(note.isCommunitySeller)}
+                curriculum={note.curriculumTag || null}
+                subject={note.subjectTag || null}
+              />
               {packOnly ? (
                 <Link
                   to="/notes/$slug"

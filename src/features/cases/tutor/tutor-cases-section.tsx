@@ -41,6 +41,7 @@ import { SCHEDULABLE_SOR_STATUSES } from "@/features/cases/schedule-lesson";
 import { NextLessonLine } from "@/features/cases/case-manager/next-lesson-line";
 import { ScheduleNextLessonDialog } from "@/features/cases/tutor/schedule-next-lesson-dialog";
 import { FeePayPanel } from "@/features/cases/tutor/fee-pay-panel";
+import { SuperDrawerControl } from "@/features/cases/super-drawer/super-drawer-trigger";
 import { DemandSidePanel } from "@/features/cases/demand-side/demand-side-panel";
 import { LearnerSnapshotCard } from "@/features/cases/tutor/learner-snapshot-card";
 import { lessonActionsFor } from "@/features/cases/tutor/week-model";
@@ -582,6 +583,15 @@ export function TutorCasesSection() {
                     proofRejectNote={c.fee_proof_reject_note}
                   />
                 )}
+                {/* #767 Super-Drawer: the sole tutor post-lesson write surface
+                    (Log Lesson & Sync CTA + the Add Recap & Tags badge). */}
+                <SuperDrawerControl
+                  caseId={c.id}
+                  caseCode={c.case_code}
+                  studentName={c.student_first_name}
+                  subject={c.subject}
+                  sorStatus={c.sor_status}
+                />
                 {c.lessons.length > 0 && (
                   <ul className="mt-3 space-y-2">
                     {c.lessons.map((l) => (
