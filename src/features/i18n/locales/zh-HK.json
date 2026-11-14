@@ -495,7 +495,8 @@
     "triage_duties_label": "需唔需要導師處理教學以外嘅家務、湊仔或助理職務？",
     "triage_duties_hint": "MatchMax 嘅導師只負責教學——涉及家務或職務嘅個案會交由合規審核。",
     "integrity_precheck": "我了解此個案涉及課程作業或評核術語（TOK / EE / IA / SBA）或單次課堂。導師可以輔助及備試，但 MatchMax 導師絕不會代學生撰寫、完成或提交任何評核作業——導師因學術誠信理由拒絕時，仍保留全部行政費保障。",
-    "notes_tutor_prefill": "指定導師：{{code}}（由此導師嘅筆記頁面申請 1 對 1 試堂）"
+    "notes_tutor_prefill": "指定導師：{{code}}（由此導師嘅筆記頁面申請 1 對 1 試堂）",
+    "notes_time_prefill": "偏好時間：{{slot}}（香港時間）"
   },
   "case_status": {
     "title": "配對進度",
@@ -2442,7 +2443,7 @@
     "not_found_body": "呢個導師編號未有對應嘅已上架導師。",
     "fully_booked": "🔒 已滿額",
     "prefers_prefix": "🕒 偏好：",
-    "time_window_disclaimer": "確實時間喺查詢後協調。通常可以配合自訂時間。",
+    "time_window_disclaimer": "時間仍須導師確認，送出申請後才作實。",
     "time_window_weekday_afternoon": "平日下午",
     "time_window_weekday_evening": "平日晚上",
     "time_window_weekend_morning": "週末上午",
@@ -2473,7 +2474,11 @@
     "rates_inperson": "實體",
     "section_group_classes": "小組班",
     "group_classes_view_all": "查看並報名小組班",
-    "own_listing_disabled": "你唔可以預約自己嘅導師卡。"
+    "own_listing_disabled": "你唔可以預約自己嘅導師卡。",
+    "grid_cell_open": "可約",
+    "grid_cell_occupied": "已佔用",
+    "availability_empty": "尚未設定時間表，請直接聯絡以安排時間.",
+    "grid_timezone_note": "所有時間為香港時間 (HKT)"
   },
   "report": {
     "button_aria": "舉報{{item}}",
@@ -3092,10 +3097,14 @@
       "loading": "載入你嘅時間表…",
       "editor_aria": "每週補習時間表編輯器：㩒格仔切換可補、部分時段可補同不可補。",
       "tap_hint": "㩒一下格仔嚟更改",
-      "empty_hint": "你嘅時間表全部係不可補——標記至少一個時段之前，公開檔案唔會顯示時間表。",
+      "empty_hint": "仲未有任何可約時段——標記至少一格，家長先可以喺你嘅公開檔案見到你有空嘅時間。",
       "saving": "儲存中…",
       "saved": "時間表已更新",
-      "save": "儲存變更"
+      "save": "儲存變更",
+      "hourly_description": "拖曳格仔設定每週可約時段，或點擊一格切換。時間表會顯示喺你嘅公開檔案。",
+      "review_prompt": "請檢查新的每小時時間表",
+      "review_dismiss": "知道了",
+      "drag_hint": "拖曳格仔塗繪可約時段，或點擊一格切換"
     },
     "proofs": {
       "title": "成就相片證明",

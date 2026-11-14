@@ -99,16 +99,19 @@ import {
   kindergartenTopicsInSubjects,
 } from "@/features/tutors/verticals-form";
 import { TrophyCabinet } from "@/features/tutors/trophy-cabinet";
-import { AvailabilityGrid } from "@/features/tutors/availability-grid";
+import { AvailabilityHourlyGrid } from "@/features/tutors/availability-hourly-grid";
 import { TutorReviews } from "@/features/tutors/tutor-reviews";
 import { fetchMaterialsForTutor } from "@/features/materials/queries";
 import { TutorMaterialsSection } from "@/features/materials/tutor-materials-section";
 import { TutorAuthoredNotes } from "@/features/materials/home-notes-row";
 import { InlineReportLink, ReportMenuButton } from "@/features/reports/report-button";
+import { fetchTutorOccupiedHours } from "@/features/tutors/availability-occupancy.functions";
 import {
-  countAvailableCells,
-  parseAvailabilityGrid,
+  emptyHourlyOpenHours,
+  isHourlyGridEmpty,
+  type HourlyOpenHours,
 } from "@/features/tutors/availability-grid-model";
+import { resolvePublicOpenHours } from "@/features/tutors/queries";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { ConnectTutorButton } from "@/features/connections/connect-tutor-button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -385,7 +388,20 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
       queryFn: () => fetchTutorByCode(params.tutorCode),
     });
     if (!tutor) throw notFound();
-    return { tutor };
+    // Issue #768: Occupied overrides derive at READ time from confirmed
+    // bookings (case lessons + roster sessions) — never stored, so editing
+    // base hours never erases them and a cancel restores the slot. Public-safe
+    // integers only (day/hour in HKT).
+    const occupied: HourlyOpenHours = tutor.user_id
+      ? await context.queryClient.ensureQueryData({
+          queryKey: ["tutors", "occupancy", params.tutorCode],
+          queryFn: () =>
+            fetchTutorOccupiedHours({
+              data: { tutorId: tutor.id, tutorUserId: tutor.user_id },
+            }).then((result) => result.occupied),
+        })
+      : emptyHourlyOpenHours();
+    return { tutor, occupied };
   },
   pendingComponent: TutorProfileSkeleton,
   pendingMs: 0,
@@ -464,7 +480,7 @@ function TutorErrorComponent({ error, reset }: { error: Error; reset: () => void
 }
 
 function TutorDetail() {
-  const { tutor } = Route.useLoaderData();
+  const { tutor, occupied } = Route.useLoaderData();
   const navigate = useNavigate();
   const { t: translate, i18n } = useTranslation();
   const { currency: displayCurrency, rates: fxRates } = useDisplayCurrency();
@@ -532,10 +548,11 @@ function TutorDetail() {
   const inquiry = getTutorInquiryAction(t, whatsappNumber, i18n.language);
   const waUrl = waDigits ? inquiry.href : "";
   const availabilityReadiness = getTutorAvailabilityReadiness(t);
-  // Issue #103: macro availability windows for the public profile tags.
-  const preferredTimeWindows = t.preferred_time_windows ?? [];
-  // Issue #116: self-serve weekly grid has at least one non-unavailable cell.
-  const hasAvailabilityGrid = countAvailableCells(parseAvailabilityGrid(t.availability_grid)) > 0;
+  // Issue #768: hourly Open/Occupied calendar is the public availability UI.
+  // "Prefers: ..." macro windows stay private (Settings only) and leave the
+  // public profile with the hourly grid.
+  const openHours = resolvePublicOpenHours(t);
+  const hasOpenHours = !isHourlyGridEmpty(openHours);
   const genderLabel = getTutorGenderLabel(t.gender);
   // Issue #502: the display name (preferred name) is the primary identity in
   // the header — named: "DisplayName • Gender (TutorCode)"; unnamed keeps
@@ -871,23 +888,9 @@ function TutorDetail() {
                     {translate("profile.fully_booked")}
                   </p>
                 ) : null}
-                {inquiry.kind !== "waitlist" && preferredTimeWindows.length > 0 ? (
-                  <div className="mt-3 space-y-1.5">
-                    <p className="inline-flex flex-wrap items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]">
-                      <Clock
-                        className="h-3.5 w-3.5 text-[color:var(--brand-link)]"
-                        aria-hidden="true"
-                      />
-                      {translate("profile.prefers_prefix")}
-                      {preferredTimeWindows
-                        .map((window) => translate(`profile.time_window_${window}`))
-                        .join(" · ")}
-                    </p>
-                    <p className="text-xs text-muted-foreground">
-                      {translate("profile.time_window_disclaimer")}
-                    </p>
-                  </div>
-                ) : null}
+                {/* Issue #768: "Prefers: ..." macro window tags left the public
+                    profile — preferred_time_windows stays a private Settings
+                    note; the hourly grid below is the availability UI. */}
                 {/* Issue #102: social-proof lines, each only above its
                     threshold (selectProfileSocialProof); nothing renders for
                     quiet tutors. No response-time line, no real data (#102). */}
@@ -963,6 +966,18 @@ function TutorDetail() {
                     >
                       <MessageCircle className="mr-2 h-4 w-4" /> {inquiry.label}
                     </a>
+                  </Button>
+                ) : !hasOpenHours ? (
+                  // Issue #768 CEO lock: no Open hours on the grid — Request is
+                  // disabled on this profile only; the card stays in Explore
+                  // and search (never hidden from discovery).
+                  <Button
+                    variant="solid"
+                    color="blue"
+                    disabled
+                    className="mt-3 w-full font-bold sm:w-auto"
+                  >
+                    <MessageCircle className="mr-2 h-4 w-4" /> Request via our team
                   </Button>
                 ) : (
                   <Button
@@ -1294,12 +1309,12 @@ function TutorDetail() {
                 </ProfileSection>
               ) : null}
 
-              {inquiry.kind !== "waitlist" &&
-              (hasAvailabilityGrid || preferredTimeWindows.length > 0) ? (
-                <ProfileSection icon={Clock} title={translate("profile.section_availability")}>
-                  <AvailabilityGrid grid={t.availability_grid} />
-                </ProfileSection>
-              ) : null}
+              {/* Issue #768: the hourly Open/Occupied calendar replaces the
+                  3-hour grid and its hide-when-empty behaviour — the section
+                  stays visible with the empty state when no Open hours exist. */}
+              <ProfileSection icon={Clock} title={translate("profile.section_availability")}>
+                <AvailabilityHourlyGrid openHours={openHours} occupiedHours={occupied} />
+              </ProfileSection>
 
               {/* Issues #83 + #105 (+ reviews half of #116): verified
                   parent/student reviews, admin-curated; hidden when empty. */}

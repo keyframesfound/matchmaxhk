@@ -26,7 +26,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { MarkdownText } from "@/components/ui/markdown-text";
-import { AvailabilityGrid } from "@/features/tutors/availability-grid";
+import { AvailabilityHourlyGrid } from "@/features/tutors/availability-hourly-grid";
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { TutorAuthoredNotes } from "@/features/materials/home-notes-row";
 import { fetchMaterialsForTutor } from "@/features/materials/queries";
@@ -41,13 +41,12 @@ import {
   getTutorGenderLabel,
   getTutorLessonModeLabel,
   getTutorStationsText,
+  resolvePublicOpenHours,
   type Tutor,
 } from "@/features/tutors/queries";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
-import {
-  countAvailableCells,
-  parseAvailabilityGrid,
-} from "@/features/tutors/availability-grid-model";
+import { emptyHourlyOpenHours, isHourlyGridEmpty } from "@/features/tutors/availability-grid-model";
+import { fetchTutorOccupiedHours } from "@/features/tutors/availability-occupancy.functions";
 import {
   formatAvailabilityDate,
   getTutorAvailabilityReadiness,
@@ -299,10 +298,24 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
   const inquiry = getTutorInquiryAction(tutor, whatsappNumber, i18n.language);
   const waUrl = waDigits ? inquiry.href : "";
   const availabilityReadiness = getTutorAvailabilityReadiness(tutor);
-  const preferredTimeWindows = tutor.preferred_time_windows ?? [];
-  // Issue #116: self-serve weekly grid has at least one non-unavailable cell.
-  const hasAvailabilityGrid =
-    countAvailableCells(parseAvailabilityGrid(tutor.availability_grid)) > 0;
+  // Issue #768: hourly Open/Occupied calendar is the public availability UI.
+  // "Prefers: ..." macro windows stay private (Settings only) and leave the
+  // public preview with the hourly grid.
+  const openHours = resolvePublicOpenHours(tutor);
+  const hasOpenHours = !isHourlyGridEmpty(openHours);
+  // Occupied overrides derive at read time from confirmed bookings; the
+  // preview is the owner's own view of the public surface, same integers only.
+  const { data: occupied } = useQuery({
+    queryKey: ["tutors", "occupancy", tutor.tutor_code],
+    queryFn: async () => {
+      if (!tutor.user_id) return emptyHourlyOpenHours();
+      const result = await fetchTutorOccupiedHours({
+        data: { tutorId: tutor.id, tutorUserId: tutor.user_id },
+      });
+      return result.occupied;
+    },
+    enabled: Boolean(tutor.id),
+  });
   const genderLabel = getTutorGenderLabel(tutor.gender);
   const statusKey = getTutorStatusLabelKey(tutor.tutor_status);
   const subjectGroups = getTutorSubjectGroups(tutor).map((group) => {
@@ -505,23 +518,9 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                   {translate("profile.fully_booked")}
                 </p>
               ) : null}
-              {inquiry.kind !== "waitlist" && preferredTimeWindows.length > 0 ? (
-                <div className="mt-3 space-y-1.5">
-                  <p className="inline-flex flex-wrap items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]">
-                    <Clock
-                      className="h-3.5 w-3.5 text-[color:var(--brand-link)]"
-                      aria-hidden="true"
-                    />
-                    {translate("profile.prefers_prefix")}
-                    {preferredTimeWindows
-                      .map((window) => translate(`profile.time_window_${window}`))
-                      .join(" · ")}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {translate("profile.time_window_disclaimer")}
-                  </p>
-                </div>
-              ) : null}
+              {/* Issue #768: "Prefers: ..." macro window tags left the public
+                  preview — preferred_time_windows stays a private Settings
+                  note; the hourly grid below is the availability UI. */}
               {inquiry.kind === "status" ? (
                 <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
                   <Lock className="h-3.5 w-3.5" aria-hidden="true" />
@@ -537,6 +536,17 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                   <a href={waUrl} target="_blank" rel="noopener noreferrer">
                     <MessageCircle className="mr-2 h-4 w-4" /> {inquiry.label}
                   </a>
+                </Button>
+              ) : !hasOpenHours ? (
+                // Issue #768 CEO lock: no Open hours — Request disabled on this
+                // profile only; the card stays visible in Explore and search.
+                <Button
+                  variant="solid"
+                  color="blue"
+                  disabled
+                  className="mt-3 w-full font-bold sm:w-auto"
+                >
+                  <MessageCircle className="mr-2 h-4 w-4" /> Request via our team
                 </Button>
               ) : (
                 <Button
@@ -699,12 +709,15 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
               </ProfileSection>
             ) : null}
 
-            {inquiry.kind !== "waitlist" &&
-            (hasAvailabilityGrid || preferredTimeWindows.length > 0) ? (
-              <ProfileSection icon={Clock} title={translate("profile.section_availability")}>
-                <AvailabilityGrid grid={tutor.availability_grid} />
-              </ProfileSection>
-            ) : null}
+            {/* Issue #768: the hourly Open/Occupied calendar replaces the
+                3-hour grid and its hide-when-empty behaviour — the section
+                stays visible with the empty state when no Open hours exist. */}
+            <ProfileSection icon={Clock} title={translate("profile.section_availability")}>
+              <AvailabilityHourlyGrid
+                openHours={openHours}
+                occupiedHours={occupied ?? emptyHourlyOpenHours()}
+              />
+            </ProfileSection>
 
             {reviews.length > 0 ? (
               <ProfileSection icon={MessageCircle} title={translate("profile.section_reviews")}>
