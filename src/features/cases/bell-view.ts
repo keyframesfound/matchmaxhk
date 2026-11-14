@@ -69,6 +69,14 @@ function str(v: unknown): string | null {
 export function bellLabel(item: BellLabelInput, t: BellTranslate): string {
   const p = item.payload ?? {};
   switch (item.event_type) {
+    // #725: "3 new tutors match your saved search “IB: Physics”".
+    case "search.match_new": {
+      const label = str(p.label);
+      const count = typeof p.count === "number" ? p.count : 1;
+      const key =
+        p.scope === "cases" ? "sor.bell_search_match_cases" : "sor.bell_search_match_tutors";
+      return label ? t(key, { count, label }) : t("sor.bell_search_match");
+    }
     // Schedule Updated (#636/#461): "Schedule updated on {CaseTitle}" /
     // 「{個案標題}」時間表已更新. Producers pass case_code; the sample
     // renders with it. Without it the actor-split static labels stand.
@@ -169,6 +177,8 @@ export function bellLabelKey(item: BellLabelInput): string {
       return "sor.bell_lead_new";
     case "case.match_alert":
       return "sor.bell_case_match";
+    case "search.match_new":
+      return "sor.bell_search_match";
     case "case.already_taken":
       return "sor.bell_case_taken";
     case "case.match_waves_exhausted":

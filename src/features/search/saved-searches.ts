@@ -143,3 +143,12 @@ export function useSavedSearches(scope: SavedSearchScope): SavedSearch[] {
   const all = useSyncExternalStore(subscribe, snapshot, () => EMPTY);
   return all.filter((item) => item.scope === scope);
 }
+
+/** #725 slice 2: device saves to upload after sign-in. */
+export function readLocalSavedSearches(): SavedSearch[] {
+  return readAll();
+}
+
+export function clearLocalSavedSearches() {
+  writeAll([]);
+}

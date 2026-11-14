@@ -49,6 +49,8 @@ export const BUS_EVENT_TYPES = [
   // connect.accepted → the original requester. In-app only.
   "connect.request",
   "connect.accepted",
+  // #725: a saved search found new listings (payload-addressed, in-app).
+  "search.match_new",
   // Accepted but unconsumed (#205): stored as skipped, no message.
   "listing.viewed",
   "listing.saved",
@@ -115,6 +117,8 @@ export const BELL_EVENT_TYPES: readonly string[] = [
   // the payload names the counterpart and the link opens the hub tab).
   "connect.request",
   "connect.accepted",
+  // #725: saved-search new-match alerts.
+  "search.match_new",
 ];
 
 /**
@@ -150,6 +154,8 @@ const RECIPIENT_ROLE_EVENTS: readonly string[] = [
   // (payload.recipient_account_id; context 'learning').
   "attendance.recorded",
   "attendance.updated",
+  // #725: saved-search alerts go to the search's owner.
+  "search.match_new",
 ];
 
 /**
@@ -338,6 +344,8 @@ export const DELIVERY_PLAN: Readonly<
   // no recipient yet; the claim backfill re-emits with their account. --------
   "attendance.recorded": [{ channel: "in_app", role: "recipient" }],
   "attendance.updated": [{ channel: "in_app", role: "recipient" }],
+  // #725 V1: saved-search matches are in-app only (no email / WhatsApp).
+  "search.match_new": [{ channel: "in_app", role: "recipient" }],
   // ---- #617 Tutor Connect graph -------------------------------------------
   // Bell-only website notifications (no email): the payload's tutor_id is
   // the RECIPIENT tutor's id (connect.request) or the original requester's
@@ -431,6 +439,10 @@ export function bellLinkFor(
         : "/tutor-requests";
     case "case.already_taken":
       return "/tutor-requests";
+    case "search.match_new":
+      return typeof payload.link === "string" && payload.link.startsWith("/")
+        ? payload.link
+        : "/tutors";
     case "case.match_waves_exhausted":
       return caseId ? `/admin/cases?case=${caseId}` : "/admin/cases";
     case "case.demand_side_updated":

@@ -726,6 +726,13 @@ export async function drainInternal(db: Db, now: Date = new Date()): Promise<voi
   } catch (err) {
     console.error("[bus] profile gap scan failed", err);
   }
+  // #725: saved-search new-match alerts (throttled per search, deduped).
+  try {
+    const { tickSavedSearchAlerts } = await import("@/features/search/saved-searches.functions");
+    await tickSavedSearchAlerts(db, now);
+  } catch (err) {
+    console.error("[bus] saved search alerts failed", err);
+  }
   try {
     await processPendingEvents(db, now);
   } catch (err) {
