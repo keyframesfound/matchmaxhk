@@ -5099,5 +5099,12 @@
     "reason_complementary": "{{curriculum}} 学生热门增修科目",
     "reason_complementary_plain": "热门增修科目",
     "for_learner": "{{name}}：{{reason}}"
+  },
+  "note_upsell": {
+    "cta": "预约此导师 1 对 1 补习",
+    "subtext": "独立导师 · 1 对 1 补习 HK${{rate}}/小时起 · 家长配对费用全免",
+    "subtext_no_rate": "独立导师 · 家长配对费用全免",
+    "current_tutor": "你的现任导师",
+    "verified": "已认证"
   }
 }

@@ -107,6 +107,9 @@ type CaseBoardSearch = {
   // #709: a Notes-surface "Request 1-on-1 Trial" CTA lands here with the
   // author's public tutor code; the post form pre-fills it into the notes.
   tutor?: string;
+  // #731: the note's curriculum / subject, pre-filled into the request form.
+  req_curriculum?: string;
+  req_subject?: string;
 } & CaseBoardFiltersState;
 
 type CaseBoardFiltersState = {
@@ -154,6 +157,11 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
     // only (MM-T### per lib/tutor-code.ts — no free-form data rides the URL).
     if (typeof search.tutor === "string" && /^MM-T\d{1,6}$/i.test(search.tutor.trim()))
       result.tutor = search.tutor.trim().toUpperCase();
+    // #731: short plain labels only (curriculum / subject from a note).
+    if (typeof search.req_curriculum === "string" && search.req_curriculum.trim())
+      result.req_curriculum = search.req_curriculum.trim().slice(0, 40);
+    if (typeof search.req_subject === "string" && search.req_subject.trim())
+      result.req_subject = search.req_subject.trim().slice(0, 60);
     // Issue #423 ship-order 5: advanced filters. Absent params stay
     // undefined (never null/false) so cold URLs are never rewritten.
     const tier = parseTierParam(search.tier);
@@ -783,6 +791,14 @@ function TutorRequestsPage() {
                   prefillNote={
                     search.tutor
                       ? t("case_request.notes_tutor_prefill", { code: search.tutor })
+                      : undefined
+                  }
+                  prefillStudy={
+                    search.req_curriculum || search.req_subject
+                      ? {
+                          curriculum: search.req_curriculum ?? null,
+                          subjects: search.req_subject ? [search.req_subject] : [],
+                        }
                       : undefined
                   }
                 />

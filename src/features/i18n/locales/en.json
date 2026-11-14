@@ -5099,5 +5099,12 @@
     "reason_complementary": "Popular next subject for {{curriculum}} students",
     "reason_complementary_plain": "Popular next subject",
     "for_learner": "{{name}}: {{reason}}"
+  },
+  "note_upsell": {
+    "cta": "Request this tutor for 1-on-1",
+    "subtext": "Independent tutor · 1-on-1 from HK${{rate}}/hr · $0 matching fee for parents",
+    "subtext_no_rate": "Independent tutor · $0 matching fee for parents",
+    "current_tutor": "Your Active Tutor",
+    "verified": "Verified"
   }
 }
