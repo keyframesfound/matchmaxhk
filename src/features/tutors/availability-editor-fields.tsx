@@ -1,8 +1,6 @@
 import { useTranslation } from "react-i18next";
 
-import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
   GRID_DAYS,
@@ -107,51 +105,10 @@ export function CapacityEditorFields({
         </p>
       </div>
 
-      <div className={cn("space-y-2", status !== "taking" && "opacity-50")}>
-        <Label htmlFor="capacity-slots-input" className="text-[color:var(--ink)]">
-          {t("settings.capacity.slots_label")}
-        </Label>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            aria-label={t("settings.capacity.slots_decrease")}
-            disabled={status !== "taking" || openSlots <= 1}
-            onClick={() => onChange({ ...value, openSlots: Math.max(1, openSlots - 1) })}
-            className="h-10 w-10 shrink-0 p-0 text-base font-bold"
-          >
-            −
-          </Button>
-          <Input
-            id="capacity-slots-input"
-            type="number"
-            inputMode="numeric"
-            min={status === "taking" ? 1 : 0}
-            max={99}
-            value={openSlots}
-            disabled={status !== "taking"}
-            onChange={(event) => {
-              const raw = Number(event.target.value);
-              if (!Number.isFinite(raw)) return;
-              onChange({ ...value, openSlots: Math.min(99, Math.max(1, Math.round(raw))) });
-            }}
-            className="h-10 w-20 bg-[color:var(--surface)] text-center font-bold tabular-nums"
-          />
-          <Button
-            type="button"
-            variant="outline"
-            aria-label={t("settings.capacity.slots_increase")}
-            disabled={status !== "taking" || openSlots >= 99}
-            onClick={() => onChange({ ...value, openSlots: Math.min(99, openSlots + 1) })}
-            className="h-10 w-10 shrink-0 p-0 text-base font-bold"
-          >
-            +
-          </Button>
-          <span className="text-xs text-[color:var(--ink)]/55">
-            {t("settings.capacity.slots_hint")}
-          </span>
-        </div>
-      </div>
+      {/* Issue #768 CEO lock: the numeric "Open slots remaining" stepper is
+          gone — it must not remain a public availability signal, and the
+          Taking/Full/Inactive states above remain the only capacity control
+          (Full sets the stored slot count to 0, Taking restores ≥ 1). */}
 
       <div className="space-y-2">
         <Label className="text-[color:var(--ink)]">{t("settings.capacity.windows_label")}</Label>

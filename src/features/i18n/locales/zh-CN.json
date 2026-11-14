@@ -495,7 +495,8 @@
     "triage_duties_label": "需唔需要导师处理教学以外嘅家务、凑仔或助理职务？",
     "triage_duties_hint": "MatchMax 嘅导师只负责教学——涉及家务或职务嘅个案会交由合规审核。",
     "integrity_precheck": "我了解此个案涉及课程作业或评核术语（TOK / EE / IA / SBA）或单次课堂。导师可以辅助及备考，但 MatchMax 导师绝不会代学生撰写、完成或提交任何评核作业——导师因学术诚信理由拒绝时，仍保留全部行政费保障。",
-    "notes_tutor_prefill": "指定导师：{{code}}（由此导师的笔记页面申请 1 对 1 试堂）"
+    "notes_tutor_prefill": "指定导师：{{code}}（由此导师的笔记页面申请 1 对 1 试堂）",
+    "notes_time_prefill": "偏好时间：{{slot}}（香港时间）"
   },
   "case_status": {
     "title": "配对进度",
@@ -2442,7 +2443,7 @@
     "not_found_body": "呢个导师编号未有对应嘅已上架导师。",
     "fully_booked": "🔒 已满额",
     "prefers_prefix": "🕒 偏好：",
-    "time_window_disclaimer": "确实时间喺查询后协调。通常可以配合自订时间。",
+    "time_window_disclaimer": "时间仍须导师确认，送出申请后才作实。",
     "time_window_weekday_afternoon": "平日下午",
     "time_window_weekday_evening": "平日晚上",
     "time_window_weekend_morning": "周末上午",
@@ -2473,7 +2474,11 @@
     "rates_inperson": "实体",
     "section_group_classes": "小组班",
     "group_classes_view_all": "查看并报名小组班",
-    "own_listing_disabled": "你唔可以预约自己嘅导师卡。"
+    "own_listing_disabled": "你唔可以预约自己嘅导师卡。",
+    "grid_cell_open": "可约",
+    "grid_cell_occupied": "已占用",
+    "availability_empty": "尚未设置时间表，请直接联系以安排时间.",
+    "grid_timezone_note": "所有时间为香港时间 (HKT)"
   },
   "report": {
     "button_aria": "举报{{item}}",
@@ -3092,10 +3097,14 @@
       "loading": "载入你嘅时间表…",
       "editor_aria": "每周补习时间表编辑器：㩒格仔切换可补、部分时段可补同不可补。",
       "tap_hint": "㩒一下格仔嚟更改",
-      "empty_hint": "你嘅时间表全部系不可补——标记至少一个时段之前，公开档案唔会显示时间表。",
+      "empty_hint": "还没有任何可约时段——标记至少一格，家长才能在你的公开档案看到你有空的时间。",
       "saving": "保存中…",
       "saved": "时间表已更新",
-      "save": "保存变更"
+      "save": "保存变更",
+      "hourly_description": "拖动格子设置每周可约时段，或单击一格切换。时间表会显示在你的公开档案。",
+      "review_prompt": "请检查新的每小时时间表",
+      "review_dismiss": "知道了",
+      "drag_hint": "拖动格子涂绘可约时段，或单击一格切换"
     },
     "proofs": {
       "title": "成就相片证明",

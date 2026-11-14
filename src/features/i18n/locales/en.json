@@ -495,7 +495,8 @@
     "triage_duties_label": "Any non-tutoring household, childcare, or staff duties?",
     "triage_duties_hint": "Tutors on MatchMax teach only, requests involving staff or household duties go to a compliance review.",
     "integrity_precheck": "I understand this request involves coursework or assessment terms (TOK / EE / IA / SBA) or a one-off session. Tutors may support and prepare students, but MatchMax tutors never write, complete, or submit assessments on a student's behalf — tutors who refuse academic-integrity grounds keep their full fee protection.",
-    "notes_tutor_prefill": "Referred tutor: {{code}} (1-on-1 trial requested from this tutor's Notes page)"
+    "notes_tutor_prefill": "Referred tutor: {{code}} (1-on-1 trial requested from this tutor's Notes page)",
+    "notes_time_prefill": "Preferred time: {{slot}} (HKT)"
   },
   "case_status": {
     "title": "Match status",
@@ -2442,7 +2443,7 @@
     "not_found_body": "This tutor code doesn't match any published tutor.",
     "fully_booked": "🔒 Fully Booked",
     "prefers_prefix": "🕒 Prefers:",
-    "time_window_disclaimer": "Exact schedules coordinated upon inquiry. Custom times can often be accommodated.",
+    "time_window_disclaimer": "Times are confirmed after you send a request.",
     "time_window_weekday_afternoon": "Weekday Afternoons",
     "time_window_weekday_evening": "Weekday Evenings",
     "time_window_weekend_morning": "Weekend Mornings",
@@ -2473,7 +2474,11 @@
     "rates_inperson": "In person",
     "section_group_classes": "Group classes",
     "group_classes_view_all": "View & book group classes",
-    "own_listing_disabled": "You cannot request your own listing."
+    "own_listing_disabled": "You cannot request your own listing.",
+    "grid_cell_open": "Open",
+    "grid_cell_occupied": "Occupied",
+    "availability_empty": "No availability set. Message to arrange a time.",
+    "grid_timezone_note": "All times in HKT"
   },
   "report": {
     "button_aria": "Report {{item}}",
@@ -3092,10 +3097,14 @@
       "loading": "Loading your availability…",
       "editor_aria": "Weekly availability grid editor: tap cells to switch between available, partially available and unavailable.",
       "tap_hint": "Tap a cell to change it",
-      "empty_hint": "Your grid is fully unavailable, it will stay hidden on your public profile until you mark at least one slot.",
+      "empty_hint": "No Open hours yet — mark at least one hourly cell so parents can see when you are free.",
       "saving": "Saving…",
       "saved": "Availability grid updated",
-      "save": "Save changes"
+      "save": "Save changes",
+      "hourly_description": "Click and drag to set your weekly Open hours, or click a cell to toggle it. This grid shows on your public profile.",
+      "review_prompt": "Review your hourly calendar",
+      "review_dismiss": "Got it",
+      "drag_hint": "Drag across cells to paint Open hours, or click a cell to toggle it"
     },
     "proofs": {
       "title": "Achievement photo proofs",

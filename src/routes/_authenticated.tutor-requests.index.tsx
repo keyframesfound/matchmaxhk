@@ -23,6 +23,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Skeleton } from "@/components/ui/skeleton";
 import { CaseRequestForm } from "@/features/cases/CaseRequestForm";
 import { CaseSaveButton } from "@/features/cases/saved-cases";
+import { hourlyRangeLabel } from "@/features/tutors/availability-grid-model";
 import {
   CasesSearchBar,
   CasesSearchMobile,
@@ -110,6 +111,9 @@ type CaseBoardSearch = {
   // #731: the note's curriculum / subject, pre-filled into the request form.
   req_curriculum?: string;
   req_subject?: string;
+  // #768: a tapped Open cell on the tutor's public hourly grid, pre-filled
+  // into the request notes ("mon".."sun" + HKT start hour 6..23).
+  req_time?: string;
 } & CaseBoardFiltersState;
 
 type CaseBoardFiltersState = {
@@ -162,6 +166,15 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
       result.req_curriculum = search.req_curriculum.trim().slice(0, 40);
     if (typeof search.req_subject === "string" && search.req_subject.trim())
       result.req_subject = search.req_subject.trim().slice(0, 60);
+    // #768: Open-cell tap pre-fill — strictly a grid day code + HKT hour so no
+    // free-form data rides the URL.
+    if (typeof search.req_time === "string") {
+      const match = /^(mon|tue|wed|thu|fri|sat|sun)-(\d{1,2})$/i.exec(search.req_time.trim());
+      const hour = match ? Number(match[2]) : -1;
+      if (match && hour >= 6 && hour <= 23) {
+        result.req_time = `${match[1].toLowerCase()}-${hour}`;
+      }
+    }
     // Issue #423 ship-order 5: advanced filters. Absent params stay
     // undefined (never null/false) so cold URLs are never rewritten.
     const tier = parseTierParam(search.tier);
@@ -493,6 +506,20 @@ function TutorRequestsPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/tutor-requests/" });
   const initialPost = search.post;
+  // #768: an Open-cell tap on the tutor's hourly grid rides in as req_time
+  // ("day-hour", HKT) and lands in the request notes alongside any #709 tutor
+  // pre-attach. No instant-book — the request still waits for tutor confirm.
+  const timePrefill = search.req_time
+    ? t("case_request.notes_time_prefill", {
+        slot: `${t(`profile.grid_day_${search.req_time.split("-")[0]}`)} ${hourlyRangeLabel(
+          Number(search.req_time.split("-")[1]),
+        )}`,
+      })
+    : undefined;
+  const tutorPrefill = search.tutor
+    ? t("case_request.notes_tutor_prefill", { code: search.tutor })
+    : undefined;
+  const prefillNote = [tutorPrefill, timePrefill].filter(Boolean).join(" ") || undefined;
   const [draft, setDraft] = useState<CaseBoardSearch>({ ...search });
   const [formOpen, setFormOpen] = useState(Boolean(initialPost));
   const [noticeOpen, setNoticeOpen] = useState(false);
@@ -786,13 +813,10 @@ function TutorRequestsPage() {
                 </div>
                 <CaseRequestForm
                   idPrefix="tr"
-                  // #709: a Notes detail / Order page trial CTA lands here with
-                  // the author's tutor code pre-attached to the request notes.
-                  prefillNote={
-                    search.tutor
-                      ? t("case_request.notes_tutor_prefill", { code: search.tutor })
-                      : undefined
-                  }
+                  // #709 + #768: a Notes/Order trial CTA pre-attaches the tutor
+                  // code, a tapped Open grid cell pre-attaches the time — both
+                  // into the request notes.
+                  prefillNote={prefillNote}
                   prefillStudy={
                     search.req_curriculum || search.req_subject
                       ? {
