@@ -67,6 +67,7 @@ import {
 import { cn } from "@/lib/utils";
 import { WhoPicker } from "./who-picker";
 import { useOpenSearchEvent } from "./open-search-event";
+import { SavedSearchStrip } from "./saved-search-ui";
 
 export type TutorsSearchState = {
   /** Issue #190: academic-tier tab; default primary_secondary at the route. */
@@ -1098,6 +1099,15 @@ export function TutorsSearchMobile({
 
           {/* #605 §3.3: three guided cards, then More Filters. */}
           {/* #698: who the search is for (soft re-rank, never a filter). */}
+          {/* #725: saved searches (applying one closes the sheet). */}
+          <SavedSearchStrip
+            scope="tutors"
+            onApply={(params) => {
+              setOverlayOpen(false);
+              void navigate({ to: "/tutors", search: params });
+            }}
+          />
+
           <GuidedCard title={t("learner.who_title")}>
             <WhoPicker />
           </GuidedCard>

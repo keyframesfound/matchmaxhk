@@ -97,6 +97,7 @@ import {
   tutorMatchesStatusFilter,
   tutorStatusFilterRank,
 } from "@/features/tutors/status-taxonomy";
+import { SaveSearchButton, SavedSearchStrip } from "@/components/search/saved-search-ui";
 
 const searchSchema = z.object({
   // Issue #190: academic-tier tab (Kindergarten | Primary & Secondary |
@@ -749,6 +750,12 @@ function TutorsDirectory() {
                   onRemove={(chip) => removeChip(chip.patch as Partial<SearchState>)}
                   onClearAll={clearAll}
                 />
+                {/* #725: saved searches, one tap re-applies every filter. */}
+                <SavedSearchStrip
+                  scope="tutors"
+                  className="mb-4"
+                  onApply={(params) => navigate({ search: params as SearchState })}
+                />
                 <div className="mb-6 flex flex-wrap items-center gap-x-4 gap-y-2">
                   {isLoading ? (
                     <Skeleton className="h-4 w-28" />
@@ -757,6 +764,20 @@ function TutorsDirectory() {
                       {t("directory.result_count", { count: filtered.length })}
                     </p>
                   )}
+                  <SaveSearchButton
+                    scope="tutors"
+                    params={search}
+                    label={activeChips
+                      // "IB: Physics" already names the curriculum.
+                      .filter(
+                        (chip) =>
+                          chip.key !== "category" ||
+                          !activeChips.some((other) => other.key.startsWith("subject:")),
+                      )
+                      .slice(0, 3)
+                      .map((chip) => chip.label)
+                      .join(" · ")}
+                  />
                   {/* Issue #217: popular-tag suggestions (3+ tutors) and the
                     active-tag chip with a one-click clear. */}
                   {tagFilter ? (

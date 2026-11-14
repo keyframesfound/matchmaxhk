@@ -5151,5 +5151,17 @@
     "err_REQUEST_ID_REUSED": "该记录已保存。请刷新后重试。",
     "err_SEQUENCE_BUSY": "另一条记录正在保存 — 请稍后再试。",
     "err_generic": "无法保存。请检查网络后重试。"
+  },
+  "saved_search": {
+    "save": "储存搜索",
+    "saved_state": "已储存",
+    "saved": "已储存搜索！可在「已储存」一按重用。新配对通知即将推出。",
+    "saved_guest": "已储存到此设备。登录后可在有新配对时收到通知。",
+    "removed": "已移除储存的搜索",
+    "limit": "最多可储存 {{count}} 个搜索，请先在「管理」移除一个。",
+    "title": "已储存",
+    "manage": "管理",
+    "done": "完成",
+    "remove": "移除储存的搜索：{{label}}"
   }
 }

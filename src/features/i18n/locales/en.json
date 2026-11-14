@@ -5151,5 +5151,17 @@
     "err_REQUEST_ID_REUSED": "This log was already saved. Refresh and try again.",
     "err_SEQUENCE_BUSY": "Another log is being saved — try again in a moment.",
     "err_generic": "Could not save. Check your connection and try again."
+  },
+  "saved_search": {
+    "save": "Save search",
+    "saved_state": "Saved",
+    "saved": "Search saved! Tap it under Saved to reuse it. New-match alerts in Notifications are coming next.",
+    "saved_guest": "Saved to this device. Log in to get alerts when new matches join.",
+    "removed": "Saved search removed",
+    "limit": "You can keep up to {{count}} saved searches. Remove one in Manage first.",
+    "title": "Saved",
+    "manage": "Manage",
+    "done": "Done",
+    "remove": "Remove saved search: {{label}}"
   }
 }

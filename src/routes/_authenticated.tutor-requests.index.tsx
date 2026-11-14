@@ -94,6 +94,7 @@ import {
   listMyAppliedCaseCodes,
   myAppliedCasesQueryKey,
 } from "@/features/cases/applications.functions";
+import { SaveSearchButton, SavedSearchStrip } from "@/components/search/saved-search-ui";
 
 /** Issue #423 ship-order 5: every board filter lives on the URL so chip
  * links (?tag=/q=) and the advanced-filters dialog share one state. */
@@ -869,10 +870,37 @@ function TutorRequestsPage() {
                   Open requests
                 </h2>
                 {hasActiveFilters ? (
-                  <p className="mt-2 text-sm font-semibold text-[color:var(--ink)]/70">
-                    {filteredCases.length} {filteredCases.length === 1 ? "match" : "matches"}
-                  </p>
+                  <div className="mt-2 flex flex-wrap items-center gap-3">
+                    <p className="text-sm font-semibold text-[color:var(--ink)]/70">
+                      {filteredCases.length} {filteredCases.length === 1 ? "match" : "matches"}
+                    </p>
+                    {/* #725: save this case search for 1-tap reuse. */}
+                    <SaveSearchButton
+                      scope="cases"
+                      params={search}
+                      label={[
+                        search.category,
+                        search.subject,
+                        search.district,
+                        search.mode === "online"
+                          ? t("search_ui.mode_online")
+                          : search.mode === "in_person"
+                            ? t("search_ui.mode_in_person")
+                            : null,
+                        search.q ? `“${search.q}”` : null,
+                        search.tag ? `#${search.tag}` : null,
+                      ]
+                        .filter(Boolean)
+                        .slice(0, 3)
+                        .join(" · ")}
+                    />
+                  </div>
                 ) : null}
+                <SavedSearchStrip
+                  scope="cases"
+                  className="mt-4"
+                  onApply={(params) => navigate({ search: params as CaseBoardSearch })}
+                />
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
                   Real tutoring requests from Hong Kong parents. Open a case for the full details
                   and apply for the ones that fit your schedule.
