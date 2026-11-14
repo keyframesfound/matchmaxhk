@@ -3564,7 +3564,14 @@
     "nf_wa_copy_failed": "复制失败，请再试一次",
     "bell_attendance_recorded": "{{student}} 已纪录课堂点名 — {{status}}",
     "bell_attendance_updated": "{{student}} 之课堂点名已更新 — 现为 {{status}}",
-    "schedule_next_err_SHORT_CASE_OVERRUN": "此短期套票之全部课堂已安排。如需于套票堂数后继续上课，请将个案转为长期课堂（联络 MatchMax 客服），导师仅须补回与标准 1.5 堂行政费之差额。"
+    "schedule_next_err_SHORT_CASE_OVERRUN": "此短期套票之全部课堂已安排。如需于套票堂数后继续上课，请将个案转为长期课堂（联络 MatchMax 客服），导师仅须补回与标准 1.5 堂行政费之差额。",
+    "bell_search_match": "有新项目符合你储存的搜索",
+    "bell_search_match_tutors_one": "有 1 位新独立导师符合你储存的搜索「{{label}}」",
+    "bell_search_match_tutors_other": "有 {{count}} 位新独立导师符合你储存的搜索「{{label}}」",
+    "bell_search_match_tutors": "有 {{count}} 位新独立导师符合你储存的搜索「{{label}}」",
+    "bell_search_match_cases_one": "有 1 个新个案符合你储存的搜索「{{label}}」",
+    "bell_search_match_cases_other": "有 {{count}} 个新个案符合你储存的搜索「{{label}}」",
+    "bell_search_match_cases": "有 {{count}} 个新个案符合你储存的搜索「{{label}}」"
   },
   "cv": {
     "title": "学习履历及成绩档案",
@@ -5155,13 +5162,19 @@
   "saved_search": {
     "save": "储存搜索",
     "saved_state": "已储存",
-    "saved": "已储存搜索！可在「已储存」一按重用。新配对通知即将推出。",
+    "saved": "已储存搜索！有新配对时会在「通知」提醒你。",
     "saved_guest": "已储存到此设备。登录后可在有新配对时收到通知。",
     "removed": "已移除储存的搜索",
     "limit": "最多可储存 {{count}} 个搜索，请先在「管理」移除一个。",
     "title": "已储存",
     "manage": "管理",
     "done": "完成",
-    "remove": "移除储存的搜索：{{label}}"
+    "remove": "移除储存的搜索：{{label}}",
+    "error": "出现问题，请再试一次。",
+    "alerts_on": "已开启此搜索的通知",
+    "alerts_off": "已关闭此搜索的通知",
+    "alerts_turn_on": "开启通知：{{label}}",
+    "alerts_turn_off": "关闭通知：{{label}}",
+    "alerts_on_short": "通知已开启"
   }
 }

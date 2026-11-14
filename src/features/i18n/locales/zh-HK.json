@@ -3564,7 +3564,14 @@
     "nf_wa_copy_failed": "複製失敗，請再試一次",
     "bell_attendance_recorded": "{{student}} 已紀錄課堂點名 — {{status}}",
     "bell_attendance_updated": "{{student}} 之課堂點名已更新 — 現為 {{status}}",
-    "schedule_next_err_SHORT_CASE_OVERRUN": "此短期套票之全部課堂已安排。如需於套票堂數後繼續上課，請將個案轉為長期課堂（聯絡 MatchMax 客服），導師僅須補回與標準 1.5 堂行政費之差額。"
+    "schedule_next_err_SHORT_CASE_OVERRUN": "此短期套票之全部課堂已安排。如需於套票堂數後繼續上課，請將個案轉為長期課堂（聯絡 MatchMax 客服），導師僅須補回與標準 1.5 堂行政費之差額。",
+    "bell_search_match": "有新項目符合你儲存的搜尋",
+    "bell_search_match_tutors_one": "有 1 位新獨立導師符合你儲存的搜尋「{{label}}」",
+    "bell_search_match_tutors_other": "有 {{count}} 位新獨立導師符合你儲存的搜尋「{{label}}」",
+    "bell_search_match_tutors": "有 {{count}} 位新獨立導師符合你儲存的搜尋「{{label}}」",
+    "bell_search_match_cases_one": "有 1 個新個案符合你儲存的搜尋「{{label}}」",
+    "bell_search_match_cases_other": "有 {{count}} 個新個案符合你儲存的搜尋「{{label}}」",
+    "bell_search_match_cases": "有 {{count}} 個新個案符合你儲存的搜尋「{{label}}」"
   },
   "cv": {
     "title": "學習履歷及成績檔案",
@@ -5155,13 +5162,19 @@
   "saved_search": {
     "save": "儲存搜尋",
     "saved_state": "已儲存",
-    "saved": "已儲存搜尋！可在「已儲存」一按重用。新配對通知即將推出。",
+    "saved": "已儲存搜尋！有新配對時會在「通知」提醒你。",
     "saved_guest": "已儲存到此裝置。登入後可在有新配對時收到通知。",
     "removed": "已移除儲存的搜尋",
     "limit": "最多可儲存 {{count}} 個搜尋，請先在「管理」移除一個。",
     "title": "已儲存",
     "manage": "管理",
     "done": "完成",
-    "remove": "移除儲存的搜尋：{{label}}"
+    "remove": "移除儲存的搜尋：{{label}}",
+    "error": "出現問題，請再試一次。",
+    "alerts_on": "已開啟此搜尋的通知",
+    "alerts_off": "已關閉此搜尋的通知",
+    "alerts_turn_on": "開啟通知：{{label}}",
+    "alerts_turn_off": "關閉通知：{{label}}",
+    "alerts_on_short": "通知已開啟"
   }
 }

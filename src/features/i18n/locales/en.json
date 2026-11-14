@@ -3564,7 +3564,14 @@
     "nf_wa_copy_failed": "Copy failed — try again",
     "bell_attendance_recorded": "Attendance recorded for {{student}} — {{status}}",
     "bell_attendance_updated": "Attendance updated for {{student}} — now {{status}}",
-    "schedule_next_err_SHORT_CASE_OVERRUN": "All lessons of this short-term package are already scheduled. To continue beyond the package, the case must be converted to Ongoing — ask MatchMax support; only the top-up difference to the standard 1.5-lesson admin fee is payable."
+    "schedule_next_err_SHORT_CASE_OVERRUN": "All lessons of this short-term package are already scheduled. To continue beyond the package, the case must be converted to Ongoing — ask MatchMax support; only the top-up difference to the standard 1.5-lesson admin fee is payable.",
+    "bell_search_match": "New listings match your saved search",
+    "bell_search_match_tutors_one": "1 new independent tutor matches your saved search “{{label}}”",
+    "bell_search_match_tutors_other": "{{count}} new independent tutors match your saved search “{{label}}”",
+    "bell_search_match_tutors": "{{count}} new independent tutors match your saved search “{{label}}”",
+    "bell_search_match_cases_one": "1 new case matches your saved search “{{label}}”",
+    "bell_search_match_cases_other": "{{count}} new cases match your saved search “{{label}}”",
+    "bell_search_match_cases": "{{count}} new cases match your saved search “{{label}}”"
   },
   "cv": {
     "title": "Education CV & Academic Records",
@@ -5155,13 +5162,19 @@
   "saved_search": {
     "save": "Save search",
     "saved_state": "Saved",
-    "saved": "Search saved! Tap it under Saved to reuse it. New-match alerts in Notifications are coming next.",
+    "saved": "Search saved! We'll let you know in Notifications when new matches arrive.",
     "saved_guest": "Saved to this device. Log in to get alerts when new matches join.",
     "removed": "Saved search removed",
     "limit": "You can keep up to {{count}} saved searches. Remove one in Manage first.",
     "title": "Saved",
     "manage": "Manage",
     "done": "Done",
-    "remove": "Remove saved search: {{label}}"
+    "remove": "Remove saved search: {{label}}",
+    "error": "Something went wrong. Please try again.",
+    "alerts_on": "Alerts on for this search",
+    "alerts_off": "Alerts off for this search",
+    "alerts_turn_on": "Turn on alerts: {{label}}",
+    "alerts_turn_off": "Turn off alerts: {{label}}",
+    "alerts_on_short": "Alerts on"
   }
 }

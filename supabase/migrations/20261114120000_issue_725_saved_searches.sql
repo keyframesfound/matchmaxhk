@@ -19,18 +19,26 @@ create index if not exists saved_searches_alert_scan_idx
 
 alter table public.saved_searches enable row level security;
 
-drop policy if exists saved_searches_owner_select on public.saved_searches;
-create policy saved_searches_owner_select on public.saved_searches
-  for select to authenticated using (account_id = auth.uid());
-drop policy if exists saved_searches_owner_insert on public.saved_searches;
-create policy saved_searches_owner_insert on public.saved_searches
-  for insert to authenticated with check (account_id = auth.uid());
-drop policy if exists saved_searches_owner_update on public.saved_searches;
-create policy saved_searches_owner_update on public.saved_searches
-  for update to authenticated using (account_id = auth.uid()) with check (account_id = auth.uid());
-drop policy if exists saved_searches_owner_delete on public.saved_searches;
-create policy saved_searches_owner_delete on public.saved_searches
-  for delete to authenticated using (account_id = auth.uid());
+-- Owner-only access (idempotent, no drops).
+do $$
+begin
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'saved_searches' and policyname = 'saved_searches_owner_select') then
+    create policy saved_searches_owner_select on public.saved_searches
+      for select to authenticated using (account_id = auth.uid());
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'saved_searches' and policyname = 'saved_searches_owner_insert') then
+    create policy saved_searches_owner_insert on public.saved_searches
+      for insert to authenticated with check (account_id = auth.uid());
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'saved_searches' and policyname = 'saved_searches_owner_update') then
+    create policy saved_searches_owner_update on public.saved_searches
+      for update to authenticated using (account_id = auth.uid()) with check (account_id = auth.uid());
+  end if;
+  if not exists (select 1 from pg_policies where schemaname = 'public' and tablename = 'saved_searches' and policyname = 'saved_searches_owner_delete') then
+    create policy saved_searches_owner_delete on public.saved_searches
+      for delete to authenticated using (account_id = auth.uid());
+  end if;
+end $$;
 
 -- Dedupe: at most one alert per (saved search, listing). Service role only.
 create table if not exists public.saved_search_matches (
@@ -39,8 +47,5 @@ create table if not exists public.saved_search_matches (
   created_at timestamptz not null default now(),
   primary key (saved_search_id, entity_id)
 );
+-- RLS with no policies: only the service role (matcher) reads / writes.
 alter table public.saved_search_matches enable row level security;
-revoke all on public.saved_search_matches from anon, authenticated;
-
-grant select, insert, update, delete on public.saved_searches to authenticated;
-revoke all on public.saved_searches from anon;
