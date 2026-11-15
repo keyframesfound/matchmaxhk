@@ -119,7 +119,16 @@ function matchesKind(m: MarketplaceMaterial, kind: KindFilter): boolean {
   }
 }
 
-export function MaterialsDirectory() {
+export function MaterialsDirectory({
+  initialAcademic,
+}: {
+  /**
+   * #771 §2.4: the academic filters carried over from the Tutors tab
+   * (curriculum + first subject). Only values that actually exist on a
+   * listing are seeded, so switching tabs never lands on an empty shop.
+   */
+  initialAcademic?: { curriculum?: string; subject?: string };
+} = {}) {
   const { t } = useTranslation();
   const [query, setQuery] = useState("");
   const [school, setSchool] = useState("");
@@ -205,6 +214,26 @@ export function MaterialsDirectory() {
       ).sort((a, b) => a.localeCompare(b)),
     [materials],
   );
+
+  // #771 §2.4: seed the shared academic filters the Tutors tab carried over.
+  // Matching is exact against the values listings actually use, and it runs
+  // once per mount so a manual pick on this tab is never overwritten.
+  const [academicSeeded, setAcademicSeeded] = useState(false);
+  useEffect(() => {
+    if (academicSeeded) return;
+    if (materials.length === 0) return;
+    const wantCurriculum = initialAcademic?.curriculum?.trim().toLowerCase();
+    const wantSubject = initialAcademic?.subject?.trim().toLowerCase();
+    const nextCurriculum = wantCurriculum
+      ? curricula.find((value) => value.toLowerCase() === wantCurriculum)
+      : undefined;
+    const nextSubject = wantSubject
+      ? subjects.find((value) => value.toLowerCase() === wantSubject)
+      : undefined;
+    if (nextCurriculum) setCurriculum(nextCurriculum);
+    if (nextSubject) setSubject(nextSubject);
+    setAcademicSeeded(true);
+  }, [academicSeeded, curricula, initialAcademic, materials.length, subjects]);
 
   // #605: grade / score bands that listings actually carry (5**, 7, A* …).
   const grades = useMemo(
