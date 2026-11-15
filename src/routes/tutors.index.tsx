@@ -88,6 +88,7 @@ import {
   isAvailabilityActive,
   matchTutorAvailability,
   parseAvailBands,
+  parseAvailDate,
   parseAvailDays,
 } from "@/features/tutors/availability-filter";
 import {
@@ -117,6 +118,20 @@ const searchSchema = z.object({
   // #605 §3.11: soft availability over tutors.availability_grid.
   avail_days: z.string().optional(), // "mon,tue"
   avail_bands: z.string().optional(), // "morning,evening"
+  // #771 §2.2: parent schedule mode (flexible = no slot narrowing at all) and
+  // an optional HKT date range, "YYYY-MM-DD". Total parsing: junk drops.
+  avail_mode: z.preprocess(
+    (value) => (value === "specific" || value === "flexible" ? value : undefined),
+    z.enum(["specific", "flexible"]).optional(),
+  ),
+  avail_date_from: z.preprocess(
+    (value) => (typeof value === "string" ? value : undefined),
+    z.string().optional(),
+  ),
+  avail_date_to: z.preprocess(
+    (value) => (typeof value === "string" ? value : undefined),
+    z.string().optional(),
+  ),
   station: z.string().optional(), // nearest MTR station to the student
   mode: z.string().optional(), // online | in_person | either
   gender: z.string().optional(), // male | female | other
@@ -262,8 +277,24 @@ function TutorsDirectory() {
     .filter(Boolean);
   const subjectMatchAll = draft.subject_match === "and";
   const availPick = useMemo(
-    () => ({ days: parseAvailDays(draft.avail_days), bands: parseAvailBands(draft.avail_bands) }),
-    [draft.avail_days, draft.avail_bands],
+    () => ({
+      days: parseAvailDays(draft.avail_days),
+      bands: parseAvailBands(draft.avail_bands),
+      // #771 §2.2: schedule mode + optional HKT range narrow the soft pick.
+      mode:
+        draft.avail_mode === "specific" || draft.avail_mode === "flexible"
+          ? draft.avail_mode
+          : undefined,
+      dateFrom: parseAvailDate(draft.avail_date_from),
+      dateTo: parseAvailDate(draft.avail_date_to),
+    }),
+    [
+      draft.avail_days,
+      draft.avail_bands,
+      draft.avail_mode,
+      draft.avail_date_from,
+      draft.avail_date_to,
+    ],
   );
   const availActive = isAvailabilityActive(availPick);
   // #659: Case Manager windows drive ranking; session edits never write back.
@@ -352,7 +383,12 @@ function TutorsDirectory() {
     const subjectHits = (tut: Tutor) =>
       allSubjectFilters.filter((wanted) => tut.subjects.some((s) => matchesSubjectQuery(s, wanted)))
         .length;
-    const query = (draft.q ?? "").trim().toLowerCase();
+    // #553 / #771 §2.3: a leading "#" is the tag query language (the Explore
+    // keyword field advertises "#tag"), so "#bio" matches the bio tag instead
+    // of dead-ending on a literal hash. Everything else is a plain keyword.
+    const rawQuery = (draft.q ?? "").trim();
+    const hashtagQuery = rawQuery.startsWith("#") ? normalizeProfileTag(rawQuery) : "";
+    const query = (hashtagQuery || rawQuery).toLowerCase();
     const sort = draft.sort ?? "";
 
     const list = tutors.filter((tut) => {
@@ -456,7 +492,10 @@ function TutorsDirectory() {
           ) ||
           // Issue #217: free-text search also matches a profile tag, so
           // searching "IA review" returns tutors who saved that tag.
-          (tut.profile_tags ?? []).some((tag) => tag.includes(query))
+          (tut.profile_tags ?? []).some((tag) => tag.includes(query)) ||
+          // #771: "#bio" is an exact tag pick, not a literal keyword.
+          (hashtagQuery !== "" &&
+            (tut.profile_tags ?? []).some((tag) => normalizeProfileTag(tag) === hashtagQuery))
         )
       )
         return false;
@@ -641,7 +680,19 @@ function TutorsDirectory() {
   // #131: Tutors | Study Materials directory tab.
   const directoryView = search.view === "materials" ? "materials" : "tutors";
   const setDirectoryView = (next: "tutors" | "materials") => {
-    navigate({ search: next === "materials" ? { view: "materials" } : {} });
+    // #771 §2.4: the shared academic filters (curriculum, subject, #tag,
+    // keyword) survive Tutors ↔ Notes; tutor-only filters (status,
+    // availability, rate, mode) stay on the Tutors side.
+    const shared = {
+      category: search.category,
+      subject: search.subject,
+      subjects_extra: search.subjects_extra,
+      tag: search.tag,
+      q: search.q,
+    };
+    navigate({
+      search: next === "materials" ? { view: "materials", ...shared } : { ...shared },
+    });
   };
 
   return (
@@ -740,7 +791,9 @@ function TutorsDirectory() {
             </StickySearchBar>
           ) : null}
           {directoryView === "materials" ? (
-            <MaterialsDirectory />
+            <MaterialsDirectory
+              initialAcademic={{ curriculum: search.category, subject: search.subject }}
+            />
           ) : (
             <section className="pt-6 pb-12 sm:pt-8">
               <div className="mx-auto max-w-[1536px] px-4 sm:px-6">

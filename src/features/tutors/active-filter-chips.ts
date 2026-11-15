@@ -1,5 +1,10 @@
 import { GRID_DAYS } from "./availability-grid-model";
-import { AVAIL_BANDS, parseAvailBands, parseAvailDays } from "./availability-filter";
+import {
+  AVAIL_BANDS,
+  parseAvailBands,
+  parseAvailDate,
+  parseAvailDays,
+} from "./availability-filter";
 import { parseSelectedStatuses } from "./status-taxonomy";
 
 /**
@@ -31,6 +36,9 @@ export type AppliedTutorSearch = {
   max_price?: number;
   avail_days?: string;
   avail_bands?: string;
+  avail_mode?: "specific" | "flexible";
+  avail_date_from?: string;
+  avail_date_to?: string;
 };
 
 export type ActiveFilterChip = {
@@ -138,7 +146,9 @@ export function buildActiveFilterChips(
 
   const days = parseAvailDays(search.avail_days);
   const bands = parseAvailBands(search.avail_bands);
-  if (days.length > 0 || bands.length > 0) {
+  const dateFrom = parseAvailDate(search.avail_date_from);
+  const dateTo = parseAvailDate(search.avail_date_to);
+  if (days.length > 0 || bands.length > 0 || (dateFrom && dateTo)) {
     const parts = [
       GRID_DAYS.filter((d) => days.includes(d))
         .map((d) => t(`explore_search.day_${d}`))
@@ -146,11 +156,29 @@ export function buildActiveFilterChips(
       AVAIL_BANDS.filter((b) => bands.includes(b))
         .map((b) => t(`explore_search.band_${b}`))
         .join(t("explore_search.list_sep")),
+      dateFrom && dateTo ? `${dateFrom} – ${dateTo}` : "",
     ].filter(Boolean);
     chips.push({
       key: "availability",
       label: t("explore_search.avail_chip", { value: parts.join(" · ") }),
-      patch: { avail_days: undefined, avail_bands: undefined },
+      patch: {
+        avail_days: undefined,
+        avail_bands: undefined,
+        avail_date_from: undefined,
+        avail_date_to: undefined,
+      },
+    });
+  }
+  // #771 §2.2: the parent schedule mode is its own removable chip.
+  if (search.avail_mode === "specific" || search.avail_mode === "flexible") {
+    chips.push({
+      key: "avail_mode",
+      label: t(
+        search.avail_mode === "specific"
+          ? "explore_search.avail_mode_specific"
+          : "explore_search.avail_mode_flexible",
+      ),
+      patch: { avail_mode: undefined },
     });
   }
 

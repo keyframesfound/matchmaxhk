@@ -19,9 +19,10 @@ import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
-import { PanelLabel, SearchBigInput, Segmented, type OptionRow } from "./search-controls";
-import { TutorStatusFilterChips } from "./tutor-status-chips";
+import { PanelLabel, Segmented, type OptionRow } from "./search-controls";
+import { tutorStatusLabelKey, TutorStatusFilterChips } from "./tutor-status-chips";
 import { GuidedCard, MoreFiltersAccordion } from "./guided-card";
+import { ExploreKeywordInput, type ExploreKeywordPicks } from "./keyword-typeahead";
 import {
   AvailabilityFilterContent,
   SubjectMatchToggle,
@@ -33,7 +34,7 @@ import {
   FiltersPillButton,
   FiltersSection,
 } from "./filters-dialog";
-import { KeywordPanelContent, SearchPillBar, type PillSegment } from "./search-pill-bar";
+import { SearchPillBar, type PillSegment } from "./search-pill-bar";
 import { SubjectMultiSelect } from "./subject-multi-select";
 import { MobileSearchOverlay, type MobileSearchTab } from "./mobile-search-overlay";
 import { setSearchSlideDirection } from "./slide-direction";
@@ -109,6 +110,12 @@ export type TutorsSearchState = {
   /** #605 §3.11: soft availability picks, comma-joined. */
   avail_days?: string;
   avail_bands?: string;
+  /** #771 §2.2: parent schedule mode + optional HKT date range (More Filters). */
+  avail_mode?: "specific" | "flexible";
+  avail_date_from?: string;
+  avail_date_to?: string;
+  /** Issue #217 / #771 §2.3: profile tag applied from the keyword typeahead. */
+  tag?: string;
 };
 
 const PRICE_MIN = 100;
@@ -408,6 +415,21 @@ export function useTutorsCompactSegments(draft: TutorsSearchState): CompactSegme
     draft.tier && draft.tier !== "primary_secondary"
       ? [{ id: "tier", text: tierLabel(draft.tier, t) }]
       : [];
+  // #771 §2.1: the collapsed pill carries the status pick only when one is
+  // applied, so the 36rem pill never crowds with a sixth idle segment.
+  const selectedStatuses = getSelectedTutorStatuses(draft);
+  const statusSegment: CompactSegment[] =
+    selectedStatuses.length > 0
+      ? [
+          {
+            id: "status",
+            text:
+              selectedStatuses.length === 1
+                ? t(tutorStatusLabelKey(selectedStatuses[0]))
+                : t("search_ui.status_selected", { n: selectedStatuses.length }),
+          },
+        ]
+      : [];
   return [
     ...tierSegment,
     {
@@ -425,6 +447,7 @@ export function useTutorsCompactSegments(draft: TutorsSearchState): CompactSegme
       // Issue #187: show every selected subject, not just the primary.
       text: selectedSubjects.join(" + ") || t("search_ui.compact_any_subject"),
     },
+    ...statusSegment,
     {
       id: "mode",
       text: draft.mode ? tutorsModeDisplay(draft, t) : t("search_ui.compact_any_mode"),
@@ -502,8 +525,8 @@ export function TutorsSearchBar({
 
   const filterCount = [
     draft.gender,
-    // Issue #658: the whole multi-select status pick is one filter.
-    getSelectedTutorStatuses(draft).length > 0 ? "status" : "",
+    // Issue #658 / #771 §2.1: the status pick now has its own first-screen
+    // pill, so the Filters (n) badge counts only overflow filters.
     draft.verified === true ? "verified" : "",
     // Issue #199: the SEN toggle (with or without category picks) is one filter.
     draft.sen === true ? "sen" : "",
@@ -643,6 +666,58 @@ export function TutorsSearchBar({
             },
           ];
 
+  // #771 §2.3: one hybrid typeahead for every Explore keyword field. Picking
+  // a tag applies it as the grid's tag constraint and closes the panel; tutor
+  // and school hits fill the keyword; a subject joins the multi-select.
+  const keywordPicks = (onDone: () => void): ExploreKeywordPicks => ({
+    onPickTag: (tag) => {
+      onDraftChange({ q: undefined, tag });
+      onApply({ q: undefined, tag });
+      onDone();
+    },
+    onPickSubject: (subject) => {
+      if (!selectedSubjects.includes(subject)) {
+        onDraftChange(setSelectedSubjects(draft, [...selectedSubjects, subject]));
+      }
+    },
+    onPickTutor: (code) => {
+      onDraftChange({ q: code });
+      onApply({ q: code });
+      onDone();
+    },
+    onPickSchool: (school) => {
+      onDraftChange({ q: school });
+      onApply({ q: school });
+      onDone();
+    },
+  });
+
+  const statusDisplay = () => {
+    if (selectedStatuses.length === 0) return t("search_ui.any_value");
+    if (selectedStatuses.length === 1) return t(tutorStatusLabelKey(selectedStatuses[0]));
+    // Two or more codes never fit a pill segment; count them instead.
+    return t("search_ui.status_selected", { n: selectedStatuses.length });
+  };
+
+  // #771 §2.1 (AC5): Tutor Status is a first-screen hybrid-bar segment on
+  // Mac, not Filters-only. Same #658 chips (6 primaries + More, OR, legacy
+  // FT/PT backfill untouched); Filters (n) keeps the overflow filters.
+  const statusSegment: PillSegment = {
+    id: "status",
+    label: t("search_ui.segment_status"),
+    title: t("explore_search.card_status"),
+    display: statusDisplay(),
+    filled: selectedStatuses.length > 0,
+    grow: "flex-[0.9]",
+    content: (
+      <TutorStatusFilterChips
+        selected={selectedStatuses}
+        onToggle={toggleStatus}
+        onClear={() => onDraftChange({ status: undefined, statuses_extra: undefined })}
+      />
+    ),
+  };
+
   const segments: PillSegment[] = [
     {
       id: "keyword",
@@ -656,15 +731,22 @@ export function TutorsSearchBar({
       filled: Boolean(draft.q?.trim()),
       grow: "flex-[1.3]",
       content: (
-        <KeywordPanelContent
+        <ExploreKeywordInput
+          autoFocus
           value={draft.q ?? ""}
           onValueChange={(q) => onDraftChange({ q: q || undefined })}
+          onEnter={() => {
+            onApply();
+            setPillOpenId(null);
+          }}
           placeholder={t("search_panel.keyword_placeholder")}
           ariaLabel={t("search_panel.keyword_aria")}
+          picks={keywordPicks(() => setPillOpenId(null))}
         />
       ),
     },
     ...verticalSegments,
+    statusSegment,
     {
       id: "mode",
       label: t("search_ui.segment_mode"),
@@ -1010,6 +1092,29 @@ export function TutorsSearchMobile({
           : t("explore_search.any_district")),
   ].join(" · ");
 
+  const mobileKeywordPicks = (onDone: () => void): ExploreKeywordPicks => ({
+    onPickTag: (tag) => {
+      onDraftChange({ q: undefined, tag });
+      onApply({ q: undefined, tag });
+      onDone();
+    },
+    onPickSubject: (subject) => {
+      if (!selectedSubjects.includes(subject)) {
+        onDraftChange(setSelectedSubjects(draft, [...selectedSubjects, subject]));
+      }
+    },
+    onPickTutor: (code) => {
+      onDraftChange({ q: code });
+      onApply({ q: code });
+      onDone();
+    },
+    onPickSchool: (school) => {
+      onDraftChange({ q: school });
+      onApply({ q: school });
+      onDone();
+    },
+  });
+
   const overlayTabs: MobileSearchTab[] = [
     {
       id: "tutors",
@@ -1084,12 +1189,15 @@ export function TutorsSearchMobile({
       >
         <div className="space-y-4">
           <div>
-            <SearchBigInput
+            {/* #771 §2.3: the sheet keyword field shares the #553 hybrid
+                typeahead; the Popular chips below keep the cold start. */}
+            <ExploreKeywordInput
               value={draft.q ?? ""}
               onValueChange={(q) => onDraftChange({ q: q || undefined })}
               onEnter={() => onApply()}
               placeholder={t("explore_search.placeholder_tutors")}
               ariaLabel={t("search_panel.keyword_aria")}
+              picks={mobileKeywordPicks(() => setOverlayOpen(false))}
             />
             <div className="mt-3 space-y-2">
               <PanelLabel>{t("explore_search.popular_title")}</PanelLabel>

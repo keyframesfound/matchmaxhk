@@ -19,6 +19,7 @@ import type { PublicCaseBoardItem } from "@/lib/cases.functions";
 import {
   matchCaseAvailability,
   parseAvailBands,
+  parseAvailDate,
   parseAvailDays,
 } from "@/features/tutors/availability-filter";
 
@@ -48,6 +49,10 @@ export type CaseBoardFilters = {
   /** #605 §3.11: soft availability picks over the case's preferred times. */
   avail_days?: string;
   avail_bands?: string;
+  /** #771 §2.2: parent schedule mode + optional HKT date range. */
+  avail_mode?: "specific" | "flexible";
+  avail_date_from?: string;
+  avail_date_to?: string;
   /** #552 Private / Centre / Activity; absent means All. */
   type?: CaseType;
 };
@@ -177,6 +182,9 @@ export function matchesCaseFilters(
     matchCaseAvailability(item.scheduleMode, item.scheduleSlots, {
       days: parseAvailDays(filters.avail_days),
       bands: parseAvailBands(filters.avail_bands),
+      mode: filters.avail_mode,
+      dateFrom: parseAvailDate(filters.avail_date_from),
+      dateTo: parseAvailDate(filters.avail_date_to),
     }) === "miss"
   )
     return false;
@@ -195,6 +203,7 @@ export function countCaseAdvancedFilters(filters: CaseBoardFilters): number {
     filters.rate_min !== undefined ? "rate" : "",
     filters.rate_max !== undefined ? "rate" : "",
     ...getSelectedCaseTags(filters).map(() => "tag"),
-    filters.avail_days || filters.avail_bands ? "availability" : "",
+    filters.avail_days || filters.avail_bands || filters.avail_date_from ? "availability" : "",
+    filters.avail_mode ? "avail_mode" : "",
   ].filter(Boolean).length;
 }

@@ -406,6 +406,89 @@ export const searchTagTypeahead = createServerFn({ method: "GET" })
     return { tags: suggestTags(canonicalTagUsage(usage, overrides), data.prefix) };
   });
 
+// ---- #771 §2.3: Explore keyword typeahead -----------------------------------
+//
+// The Explore keyword fields (phone sheet + Mac Keyword segment) reuse the
+// same #553 suggestion language as /search — one typeahead, not two. Ordering
+// is tags first, then Subjects · Tutors · Schools; every source reads public
+// fields only (no parallel search index, no child sub-profiles).
+
+export type ExploreTypeahead = {
+  tags: string[];
+  subjects: string[];
+  tutors: Array<{ code: string; name: string }>;
+  schools: string[];
+};
+
+const TYPEAHEAD_TAGS = 4;
+const TYPEAHEAD_SUBJECTS = 3;
+const TYPEAHEAD_TUTORS = 3;
+const TYPEAHEAD_SCHOOLS = 2;
+
+const EMPTY_TYPEAHEAD: ExploreTypeahead = { tags: [], subjects: [], tutors: [], schools: [] };
+
+/** Public tutor rows that can contribute a subject / tutor / school hit. */
+async function typeaheadTutorRows(): Promise<AnyRow[]> {
+  const db = await admin();
+  return rows(
+    db
+      .from("tutors")
+      .select("tutor_code, display_name, subjects, secondary_school, owner_account_status")
+      .eq("is_published", true)
+      .limit(SCAN_LIMIT),
+  );
+}
+
+export const searchExploreTypeahead = createServerFn({ method: "GET" })
+  .inputValidator((input: unknown) =>
+    z.object({ prefix: z.string().max(40).default("") }).parse(input ?? {}),
+  )
+  .handler(async ({ data }): Promise<ExploreTypeahead> => {
+    const prefix = data.prefix.trim().toLowerCase();
+    if (prefix.length === 0) return EMPTY_TYPEAHEAD;
+    try {
+      const [usage, overrides, tutorRows] = await Promise.all([
+        loadTagUsage(),
+        loadOverrides(),
+        typeaheadTutorRows(),
+      ]);
+      const visible = tutorRows.filter((t) => t.owner_account_status !== "banned");
+      const subjects = new Set<string>();
+      const schools = new Set<string>();
+      const tutors: Array<{ code: string; name: string }> = [];
+      for (const row of visible) {
+        const code = str(row.tutor_code) ?? "";
+        const name = str(row.display_name) ?? "";
+        if (
+          tutors.length < TYPEAHEAD_TUTORS &&
+          (code.toLowerCase().startsWith(prefix) || name.toLowerCase().includes(prefix))
+        ) {
+          tutors.push({ code, name: name || code });
+        }
+        for (const subject of arr(row.subjects)) {
+          if (subject.toLowerCase().includes(prefix)) subjects.add(subject);
+        }
+        const school = str(row.secondary_school);
+        if (school && school.toLowerCase().includes(prefix)) schools.add(school);
+      }
+      return {
+        tags: suggestTags(
+          canonicalTagUsage(usage, overrides),
+          data.prefix,
+          new Date(),
+          TYPEAHEAD_TAGS,
+        ),
+        subjects: [...subjects].sort((a, b) => a.localeCompare(b)).slice(0, TYPEAHEAD_SUBJECTS),
+        tutors,
+        schools: [...schools].sort((a, b) => a.localeCompare(b)).slice(0, TYPEAHEAD_SCHOOLS),
+      };
+    } catch (e) {
+      // No server env / DB hiccup: an empty list leaves the plain input usable.
+      console.error("[search] explore typeahead unavailable:", e instanceof Error ? e.message : e);
+      return EMPTY_TYPEAHEAD;
+    }
+  });
+
 // ---- Admin: hide / merge tags (CEO 2026-11-01) ------------------------------
 
 async function requireStaff(userId: string): Promise<void> {

@@ -80,7 +80,9 @@ import { parseTierParam } from "@/features/tutors/search-tiers";
 import {
   joinAvailParam,
   parseAvailBands,
+  parseAvailDate,
   parseAvailDays,
+  parseAvailMode,
 } from "@/features/tutors/availability-filter";
 import type { AcademicTier } from "@/features/tutors/verticals";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
@@ -128,6 +130,10 @@ type CaseBoardFiltersState = {
   tags?: string;
   avail_days?: string;
   avail_bands?: string;
+  /** #771 §2.2: schedule mode + optional HKT date range on the case board. */
+  avail_mode?: "specific" | "flexible";
+  avail_date_from?: string;
+  avail_date_to?: string;
 };
 
 // Hover-intent prefetch target for the case board: cached data renders the
@@ -193,6 +199,13 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
     if (availDays) result.avail_days = availDays;
     const availBands = joinAvailParam(parseAvailBands(search.avail_bands));
     if (availBands) result.avail_bands = availBands;
+    // #771 §2.2: schedule mode + optional HKT date range.
+    const availMode = parseAvailMode(search.avail_mode);
+    if (availMode) result.avail_mode = availMode;
+    const availFrom = parseAvailDate(search.avail_date_from);
+    if (availFrom) result.avail_date_from = availFrom;
+    const availTo = parseAvailDate(search.avail_date_to);
+    if (availTo) result.avail_date_to = availTo;
     return result;
   },
   head: () => {
@@ -707,6 +720,8 @@ function TutorRequestsPage() {
     search.sen ||
     search.avail_days ||
     search.avail_bands ||
+    search.avail_mode ||
+    search.avail_date_from ||
     search.type,
   );
 
