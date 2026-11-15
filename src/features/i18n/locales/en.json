@@ -5176,5 +5176,25 @@
     "alerts_turn_on": "Turn on alerts: {{label}}",
     "alerts_turn_off": "Turn off alerts: {{label}}",
     "alerts_on_short": "Alerts on"
+  },
+  "trial_lock": {
+    "title": "Trial lock",
+    "banner": "To ensure fair scheduling for independent tutors, only 1 active trial introduction is open per subject request at a time. Need a rematch? Close your current trial first at HK$0 matching fee.",
+    "locked_button": "Close Current Trial First to Unlock",
+    "active_status": "ACTIVE TRIAL — Lesson 1 Pending",
+    "backup_status": "Shortlisted Backup",
+    "ops_notice": "You have completed 2 trial introductions for this request. Our concierge team is reviewing your preferences to hand-pick your next match.",
+    "attempts_used": "Trial introductions closed: {{count}} of 2",
+    "request_ref": "Request {{code}}",
+    "slot_taken": "Active trial: {{tutor}}",
+    "slot_open": "No active trial — the next shortlisted tutor can unlock",
+    "spent_status": "Previous introduction",
+    "close_pre_l1": "End trial before Lesson 1 (HK$0 matching fee)",
+    "close_after_l1": "Stop after Lesson 1",
+    "closed_toast": "Trial closed — the next shortlisted tutor can unlock.",
+    "close_failed": "Could not close the trial. Try again.",
+    "ops_release": "Review done — release the next tutor",
+    "ops_cleared_toast": "Ops approval cleared — the next tutor can unlock.",
+    "ops_clear_failed": "Could not clear the ops approval."
   }
 }

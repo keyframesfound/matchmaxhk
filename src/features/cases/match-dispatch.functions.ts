@@ -308,11 +308,12 @@ export const matchCaseTutor = createServerFn({ method: "POST" })
         student_level: string | null;
         district: string | null;
         who_for: string | null;
+        sor_status: string | null;
       }
     >(
       db,
       "tutoring_cases",
-      "id, case_code, status, matched_tutor_id, organisation_id, parent_id, subjects, student_level, district, who_for",
+      "id, case_code, status, matched_tutor_id, organisation_id, parent_id, subjects, student_level, district, who_for, sor_status",
       [{ col: "id", op: "eq", value: data.caseId }],
     );
     const c = cases[0];
@@ -321,6 +322,22 @@ export const matchCaseTutor = createServerFn({ method: "POST" })
       // Issue #412: a compliance-held request cannot be matched until staff
       // re-screen and clear the hold.
       throw new Error("COMPLIANCE_HOLD");
+    }
+
+    // #772 Part 1: while this request's trial is live, the matched tutor owns
+    // the slot — re-assigning to a different tutor is the anti-shopping bypass.
+    if (
+      c.matched_tutor_id &&
+      c.matched_tutor_id !== data.tutorId &&
+      (c.sor_status === "introduced" ||
+        c.sor_status === "lesson_1_scheduled" ||
+        c.sor_status === "lesson_1_done")
+    ) {
+      const { loadTrialLock } = await import("@/features/cases/trial-lock.server");
+      const lock = await loadTrialLock(db, c.id);
+      if (lock.active && lock.active.tutorId !== data.tutorId) {
+        throw new Error("LOCKED_BY_ACTIVE_TRIAL");
+      }
     }
 
     const tutors = await selectRows<{ id: string; display_name: string }>(

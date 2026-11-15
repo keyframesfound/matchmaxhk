@@ -52,6 +52,7 @@ import { TagInput } from "@/components/ui/tag-input";
 import { CaseEditDialog } from "@/features/cases/admin/CaseEditDialog";
 import { CaseApplicationsCard } from "@/features/cases/admin/CaseApplicationsCard";
 import { MatchFeePanel } from "@/features/cases/admin/MatchFeePanel";
+import { TrialLockDeskPanel } from "@/features/cases/trial-lock-card";
 import { DeskCockpitPanel } from "@/features/cases/admin/DeskCockpitPanel";
 import { ShortCasePanel } from "@/features/cases/admin/ShortCasePanel";
 import { DropProtectionPanel } from "@/features/cases/admin/DropProtectionPanel";
@@ -813,6 +814,10 @@ export function CaseDetailView({
 
           {/* #443 short-case fee toggle — 20% package rule + confirm gate. */}
           <ShortCasePanel caseId={caseRow.id} />
+
+          {/* #772 Part 1: 1-active-trial anti-shopping lock (mutex + 3rd
+              rematch ops gate + confirmed-trial Busy emission). */}
+          <TrialLockDeskPanel caseId={caseRow.id} />
 
           <MatchFeePanel caseRow={caseRow} onPatched={invalidateCase} />
           {/* #454: matching cockpit (fee/FPS, macros, pins, Parallel Ping). */}

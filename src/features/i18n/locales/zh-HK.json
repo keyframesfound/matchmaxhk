@@ -5176,5 +5176,25 @@
     "alerts_turn_on": "開啟通知：{{label}}",
     "alerts_turn_off": "關閉通知：{{label}}",
     "alerts_on_short": "通知已開啟"
+  },
+  "trial_lock": {
+    "title": "試堂鎖定",
+    "banner": "為保障獨立導師之時間安排，每項科目申請同一時間僅限開啟 1 個配對試堂。如需免費更換導師，請先結束目前之試堂個案（配對費 HK$0）。",
+    "locked_button": "請先結束現有試堂以解鎖",
+    "active_status": "試堂進行中",
+    "backup_status": "備選導師",
+    "ops_notice": "此科目申請已進行 2 次試堂配對。我們的顧問團隊正審視您的需求，以為您人工篩選最合適的下一位導師。",
+    "attempts_used": "已結束試堂配對：{{count}} / 2",
+    "request_ref": "申請 {{code}}",
+    "slot_taken": "進行中試堂：{{tutor}}",
+    "slot_open": "沒有進行中試堂 — 下一位備選導師可以解鎖",
+    "spent_status": "已結束的配對",
+    "close_pre_l1": "第一堂前結束試堂（配對費 HK$0）",
+    "close_after_l1": "第一堂後停止",
+    "closed_toast": "試堂已結束 — 下一位備選導師可以解鎖。",
+    "close_failed": "未能結束試堂，請再試一次。",
+    "ops_release": "已審視 — 解鎖下一位導師",
+    "ops_cleared_toast": "已解除顧問審批 — 下一位導師可以解鎖。",
+    "ops_clear_failed": "未能解除顧問審批。"
   }
 }
