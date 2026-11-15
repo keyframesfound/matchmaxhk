@@ -69,6 +69,17 @@ function str(v: unknown): string | null {
 export function bellLabel(item: BellLabelInput, t: BellTranslate): string {
   const p = item.payload ?? {};
   switch (item.event_type) {
+    // #726: "Someone saved your tutor profile (MM-T003)" — never who.
+    case "engagement.saved": {
+      const label = str(p.label);
+      const key =
+        p.entity_type === "material"
+          ? "sor.bell_saved_note"
+          : p.entity_type === "case"
+            ? "sor.bell_saved_case"
+            : "sor.bell_saved_profile";
+      return label ? t(key, { label }) : t("sor.bell_saved_generic");
+    }
     // #725: "3 new tutors match your saved search “IB: Physics”".
     case "search.match_new": {
       const label = str(p.label);
@@ -179,6 +190,8 @@ export function bellLabelKey(item: BellLabelInput): string {
       return "sor.bell_case_match";
     case "search.match_new":
       return "sor.bell_search_match";
+    case "engagement.saved":
+      return "sor.bell_saved_generic";
     case "case.already_taken":
       return "sor.bell_case_taken";
     case "case.match_waves_exhausted":

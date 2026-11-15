@@ -3580,7 +3580,11 @@
     "bell_search_match_tutors": "{{count}} new independent tutors match your saved search “{{label}}”",
     "bell_search_match_cases_one": "1 new case matches your saved search “{{label}}”",
     "bell_search_match_cases_other": "{{count}} new cases match your saved search “{{label}}”",
-    "bell_search_match_cases": "{{count}} new cases match your saved search “{{label}}”"
+    "bell_search_match_cases": "{{count}} new cases match your saved search “{{label}}”",
+    "bell_saved_profile": "Someone saved your tutor profile ({{label}}). Keep your availability updated!",
+    "bell_saved_note": "Someone saved your note “{{label}}”",
+    "bell_saved_case": "A tutor saved your case {{label}}",
+    "bell_saved_generic": "Someone saved your listing on MatchMax"
   },
   "cv": {
     "title": "Education CV & Academic Records",
