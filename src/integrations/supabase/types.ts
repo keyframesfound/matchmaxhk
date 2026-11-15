@@ -1408,6 +1408,8 @@ export type Database = {
           is_accepting_students: boolean;
           preferred_time_windows: string[];
           availability_grid: Json;
+          availability_grid_hourly: Json;
+          availability_grid_hourly_reviewed_at: string | null;
           deletion_requested_at: string | null;
           portfolio_images: string[];
           approved_grade_labels: string[];
@@ -1475,6 +1477,8 @@ export type Database = {
           updated_at?: string;
           user_id?: string | null;
           availability_grid?: Json;
+          availability_grid_hourly?: Json;
+          availability_grid_hourly_reviewed_at?: string | null;
           deletion_requested_at?: string | null;
           portfolio_images?: string[];
           approved_grade_labels?: string[];
@@ -1545,6 +1549,8 @@ export type Database = {
           is_accepting_students?: boolean;
           preferred_time_windows?: string[];
           availability_grid?: Json;
+          availability_grid_hourly?: Json;
+          availability_grid_hourly_reviewed_at?: string | null;
           deletion_requested_at?: string | null;
           portfolio_images?: string[];
           approved_grade_labels?: string[];
@@ -1659,6 +1665,7 @@ export type Database = {
     Functions: {
       claim_org_memberships: { Args: never; Returns: number };
       confirm_my_availability_fresh: { Args: never; Returns: undefined };
+      confirm_my_availability_hourly_reviewed: { Args: never; Returns: undefined };
       get_trending_tutors: {
         Args: { p_candidate_limit?: number };
         Returns: {
@@ -1747,6 +1754,10 @@ export type Database = {
         Returns: undefined;
       };
       update_my_availability_grid: {
+        Args: { _grid: Json };
+        Returns: undefined;
+      };
+      update_my_availability_grid_hourly: {
         Args: { _grid: Json };
         Returns: undefined;
       };

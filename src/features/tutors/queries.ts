@@ -7,6 +7,12 @@ import { orderBySimilarIds, type SimilarFilters, type SimilarReason } from "./si
 import { normalizeExamResults, type ExamResult } from "./examSystems";
 import type { TutorReview } from "./tutor-reviews";
 import type { EducationValueRow } from "./education-filters";
+import {
+  isHourlyGridEmpty,
+  mapLegacyGridToHourly,
+  parseHourlyOpenHours,
+  type HourlyOpenHours,
+} from "./availability-grid-model";
 
 export const MAX_TUTOR_ACHIEVEMENTS = 3;
 export const TUTOR_ACHIEVEMENT_SHORT_TEXT_LIMIT = 60;
@@ -191,6 +197,13 @@ export type Tutor = {
   preferred_time_windows: PreferredTimeWindow[];
   /** Issue #116: self-serve weekly availability grid (raw JSONB, parsed downstream). */
   availability_grid: unknown;
+  /**
+   * Issue #768: weekly HOURLY Open hours (raw JSONB of day → Open start
+   * hours), plus the one-time review stamp. The hourly column is the public
+   * SoT; availability_grid above stays as the fallback read until cutover.
+   */
+  availability_grid_hourly: unknown;
+  availability_grid_hourly_reviewed_at: string | null;
   /** Issue #97: Trophy Cabinet public portfolio photo URLs; empty = hidden. */
   portfolio_images: string[];
   /** Issue #217: up to 5 free-text profile tags (lowercase, no hash). */
@@ -245,7 +258,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, university_year_of_study, university_gpa, university_courses, course_specific_grades, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, portfolio_images, profile_tags, user_id, owner_account_status, sen_enabled, sen_categories, sen_experience, is_fast_responder, approved_grade_labels, custom_headline_en, custom_headline_zh, offers_free_trial, offers_first_lesson_discount, first_lesson_discount_pct";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, university_year_of_study, university_gpa, university_courses, course_specific_grades, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, availability_grid_hourly, availability_grid_hourly_reviewed_at, portfolio_images, profile_tags, user_id, owner_account_status, sen_enabled, sen_categories, sen_experience, is_fast_responder, approved_grade_labels, custom_headline_en, custom_headline_zh, offers_free_trial, offers_first_lesson_discount, first_lesson_discount_pct";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -497,6 +510,12 @@ function normalize(
       typeof row.is_accepting_students === "boolean" ? row.is_accepting_students : null,
     preferred_time_windows: normalizePreferredTimeWindows(row.preferred_time_windows),
     availability_grid: row.availability_grid ?? null,
+    // Issue #768: tolerate missing columns pre-migration (same pattern as #97).
+    availability_grid_hourly: row.availability_grid_hourly ?? null,
+    availability_grid_hourly_reviewed_at:
+      typeof row.availability_grid_hourly_reviewed_at === "string"
+        ? row.availability_grid_hourly_reviewed_at
+        : null,
     // Issue #97: Trophy Cabinet URLs; tolerate missing column pre-migration.
     portfolio_images: Array.isArray(row.portfolio_images)
       ? row.portfolio_images.filter((url): url is string => typeof url === "string" && url !== "")
@@ -880,3 +899,25 @@ export const HK_DISTRICTS = [
   "Tung Chung",
   "Discovery Bay",
 ];
+
+/**
+ * Issue #768 (slice 1): base weekly Open hours for the public hourly grid.
+ *
+ * The hourly column is the SoT; until cutover a tutor whose hourly column is
+ * still unset (e.g. they joined through the 3-hour join form) falls back to
+ * the legacy 3-hour cells with the SAME auto-map the migration applied
+ * ('a' blocks open, 'p'/'u' never invent hours). A tutor who has saved the
+ * hourly grid at least once (review stamp set) owns their hourly grid outright:
+ * an intentionally empty grid is NOT resurrected from the legacy column.
+ */
+export function resolvePublicOpenHours(
+  tutor: Pick<
+    Tutor,
+    "availability_grid_hourly" | "availability_grid_hourly_reviewed_at" | "availability_grid"
+  >,
+): HourlyOpenHours {
+  const hourly = parseHourlyOpenHours(tutor.availability_grid_hourly);
+  if (!isHourlyGridEmpty(hourly)) return hourly;
+  if (tutor.availability_grid_hourly_reviewed_at) return hourly;
+  return mapLegacyGridToHourly(tutor.availability_grid);
+}

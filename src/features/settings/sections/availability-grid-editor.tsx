@@ -8,32 +8,43 @@ import { SettingsCard } from "@/features/settings/option-card";
 import { useAuth } from "@/features/auth/useAuth";
 import {
   GRID_DAYS,
-  parseAvailabilityGrid,
-  type GridCellState,
-  type GridDay,
+  isHourlyGridEmpty,
+  mapLegacyGridToHourly,
+  parseHourlyOpenHours,
+  type HourlyOpenHours,
 } from "@/features/tutors/availability-grid-model";
-import { EditableAvailabilityGrid } from "@/features/tutors/availability-editor-fields";
+import { HourlyAvailabilityEditor } from "@/features/tutors/availability-hourly-editor";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Issue #116: tutor self-serve weekly availability grid, in Dashboard →
- * Availability below the existing capacity card. Tap a cell to cycle
- * available → partial → unavailable (matches the TutorCircle reference's
- * three states). Saves through the update_my_availability_grid RPC so the
- * tutor can only touch this one column on their own card. The grid UI itself
- * is shared with the admin TutorEditor (availability-editor-fields.tsx).
+ * Issue #768 (slice 1): the tutor's weekly HOURLY availability editor in
+ * Dashboard → Availability. Saves through the update_my_availability_grid_hourly
+ * RPC so the tutor can only touch the hourly column on their own card.
+ *
+ * One-time "Review your hourly calendar" prompt: after the migration auto-maps
+ * the old 3-hour cells (and for tutors whose hours still live only in the
+ * legacy grid, whose cells are pre-filled here with the same auto-map rule),
+ * the prompt shows until the tutor saves the hourly grid or dismisses it
+ * (confirm_my_availability_hourly_reviewed). Tutors with nothing auto-mapped
+ * never see it.
  */
+
+type TutorHourlyRow = {
+  availability_grid_hourly: unknown;
+  availability_grid_hourly_reviewed_at: string | null;
+  availability_grid: unknown;
+};
 
 export function AvailabilityGridEditor({ className }: { className?: string }) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [grid, setGrid] = useState<Record<GridDay, GridCellState[]>>(() =>
-    parseAvailabilityGrid(null),
-  );
+  const [openHours, setOpenHours] = useState<HourlyOpenHours>(() => parseHourlyOpenHours(null));
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
+  const [reviewPrompt, setReviewPrompt] = useState(false);
+  const [dismissing, setDismissing] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -41,17 +52,29 @@ export function AvailabilityGridEditor({ className }: { className?: string }) {
     void (async () => {
       const { data, error } = await supabase
         .from("tutors")
-        .select("availability_grid")
+        .select("availability_grid_hourly, availability_grid_hourly_reviewed_at, availability_grid")
         .eq("user_id", user.id)
         .maybeSingle();
       if (!mounted) return;
       if (error) {
         toast.error(error.message);
       } else if (data) {
-        setGrid(
-          parseAvailabilityGrid(
-            (data as unknown as { availability_grid: unknown }).availability_grid,
-          ),
+        const row = data as unknown as TutorHourlyRow;
+        const hourly = parseHourlyOpenHours(row.availability_grid_hourly);
+        // Legacy fallback (#768 cutover): a tutor whose hours still live only
+        // in the 3-hour grid (e.g. they joined via the 3-hour join form)
+        // starts the hourly editor pre-filled with the same auto-map the
+        // migration applied to existing rows — 'a' blocks open, 'p'/'u' closed.
+        const fromLegacy = isHourlyGridEmpty(hourly)
+          ? mapLegacyGridToHourly(row.availability_grid)
+          : null;
+        const effective = fromLegacy ?? hourly;
+        setOpenHours(effective);
+        // One-time prompt: something was auto-mapped to review and the tutor
+        // has not saved/dismissed the hourly grid yet.
+        setReviewPrompt(
+          fromLegacy !== null ||
+            (!isHourlyGridEmpty(hourly) && !row.availability_grid_hourly_reviewed_at),
         );
       }
       setLoaded(true);
@@ -63,8 +86,8 @@ export function AvailabilityGridEditor({ className }: { className?: string }) {
 
   async function save() {
     setSaving(true);
-    const { error } = await supabase.rpc("update_my_availability_grid", {
-      _grid: Object.fromEntries(GRID_DAYS.map((day) => [day, grid[day]])),
+    const { error } = await supabase.rpc("update_my_availability_grid_hourly", {
+      _grid: Object.fromEntries(GRID_DAYS.map((day) => [day, openHours[day]])),
     });
     setSaving(false);
     if (error) {
@@ -72,27 +95,64 @@ export function AvailabilityGridEditor({ className }: { className?: string }) {
       return;
     }
     setDirty(false);
+    setReviewPrompt(false);
     await queryClient.invalidateQueries({ queryKey: ["tutors"] });
     toast.success(t("settings.grid.saved"));
   }
 
+  async function dismissReview() {
+    setDismissing(true);
+    const { error } = await supabase.rpc("confirm_my_availability_hourly_reviewed");
+    setDismissing(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setReviewPrompt(false);
+  }
+
+  const gridEmpty = isHourlyGridEmpty(openHours);
+
   return (
     <SettingsCard
       title={t("settings.grid.title")}
-      description={t("settings.grid.description")}
+      description={t("settings.grid.hourly_description")}
       className={className}
     >
       {!loaded ? (
         <p className="text-sm text-[color:var(--ink)]/60">{t("settings.grid.loading")}</p>
       ) : (
         <div className="space-y-4">
-          <EditableAvailabilityGrid
-            grid={grid}
+          {reviewPrompt ? (
+            <div className="flex flex-wrap items-center gap-3 rounded-sm border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/10 px-4 py-3">
+              <p className="text-sm font-bold text-[color:var(--ink)]">
+                {t("settings.grid.review_prompt")}
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                disabled={dismissing}
+                onClick={() => void dismissReview()}
+                className="ml-auto h-8 px-3 text-xs font-bold"
+              >
+                {t("settings.grid.review_dismiss")}
+              </Button>
+            </div>
+          ) : null}
+
+          <HourlyAvailabilityEditor
+            value={openHours}
             onChange={(next) => {
-              setGrid(next);
+              setOpenHours(next);
               setDirty(true);
             }}
           />
+
+          {gridEmpty ? (
+            <p className="text-xs text-amber-700 dark:text-amber-400">
+              {t("settings.grid.empty_hint")}
+            </p>
+          ) : null}
 
           <Button
             type="button"

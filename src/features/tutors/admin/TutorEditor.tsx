@@ -1574,6 +1574,12 @@ export function TutorEditor({
       is_accepting_students: form.is_accepting_students,
       preferred_time_windows: form.preferred_time_windows,
       availability_grid: form.availability_grid,
+      // #768: the admin preview reads the hourly grid through the same legacy
+      // fallback as the public route; the admin 3-hour editor keeps writing the
+      // legacy column, so the preview hourly column stays unset here.
+      availability_grid_hourly: initialData?.availability_grid_hourly ?? null,
+      availability_grid_hourly_reviewed_at:
+        initialData?.availability_grid_hourly_reviewed_at ?? null,
       university_year_of_study: normalizeUniversityYear(form.university_year_of_study),
       university_gpa: normalizeUniversityGpa(form.university_gpa),
       university_courses: normalizeUniversityCourses(form.university_courses),
@@ -1585,9 +1591,12 @@ export function TutorEditor({
       form,
       initialData?.id,
       initialData?.created_at,
+      initialData?.user_id,
       initialData?.offers_free_trial,
       initialData?.offers_first_lesson_discount,
       initialData?.first_lesson_discount_pct,
+      initialData?.availability_grid_hourly,
+      initialData?.availability_grid_hourly_reviewed_at,
     ],
   );
 
