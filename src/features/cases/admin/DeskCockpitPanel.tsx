@@ -117,6 +117,13 @@ export function DeskCockpitPanel({ caseId }: { caseId: string }) {
   const pivot = useMutation({
     mutationFn: () => createRematchCase({ data: { failedCaseId: caseId } }),
     onSuccess: (res) => {
+      // #772 Part 1: a 3rd introduction never auto-unlocks — the request is
+      // flagged REQUIRES_OPS_APPROVAL and the lock panel shows the notice.
+      if (res.opsApprovalRequired) {
+        toast.error(t("trial_lock.ops_notice"));
+        void invalidate();
+        return;
+      }
       const next = res.nextTutors.map((n) => `${n.display_name} (${n.tutor_code})`).join(", ");
       toast.success(t("cockpit.pivot_done", { code: res.caseCode, next: next || "—" }));
     },

@@ -303,10 +303,16 @@ export const transitionCase = createServerFn({ method: "POST" })
     await requireAdmin(db, context.userId);
 
     const rows = await selectRows<
-      Pick<SorCaseRow, "id" | "sor_status" | "hourly_rate_hkd" | "student_count" | "is_short_case">
-    >(db, "tutoring_cases", "id, sor_status, hourly_rate_hkd, student_count, is_short_case", [
-      { col: "id", op: "eq", value: data.caseId },
-    ]);
+      Pick<
+        SorCaseRow,
+        "id" | "sor_status" | "hourly_rate_hkd" | "student_count" | "is_short_case"
+      > & { matched_tutor_id: string | null }
+    >(
+      db,
+      "tutoring_cases",
+      "id, sor_status, hourly_rate_hkd, student_count, is_short_case, matched_tutor_id",
+      [{ col: "id", op: "eq", value: data.caseId }],
+    );
     const c = rows[0];
     if (!c) throw new Error("CASE_NOT_FOUND");
     if (!c.sor_status) throw new Error("NOT_A_SOR_CASE");
@@ -321,12 +327,48 @@ export const transitionCase = createServerFn({ method: "POST" })
     }
 
     const nowIso = new Date().toISOString();
+
+    // #772 Part 1: the SoR transition INTO the trial states is the unlock, so
+    // the mutex is enforced here (SoR desk + match panel both land on this fn).
+    // A second tutor cannot be introduced while another trial is active on the
+    // request, and a 3rd introduction needs ops approval first.
+    const { claimTrialIntro, closeTrialIntro, derivedCloseKind } =
+      await import("@/features/cases/trial-lock.server");
+    if (to === "introduced") {
+      if (!c.matched_tutor_id) throw new Error("NO_MATCHED_TUTOR");
+      const claim = await claimTrialIntro(db, {
+        caseId: c.id,
+        tutorId: c.matched_tutor_id,
+        source: "in_app",
+      });
+      if (!claim.ok) throw new Error(claim.reason);
+    }
+
     const { error } = await db
       .from<Row>("tutoring_cases")
       .update({ sor_status: to, sor_status_at: nowIso })
       .eq("id", c.id);
     if (error) throw new Error(error.message);
     await insertAudit(db, c.id, context.userId, c.sor_status, to, data.reason ?? null);
+
+    // #772 Part 1: leaving the trial states spends the introduction, which is
+    // what unlocks the next shortlisted tutor (pre-L1 cancel = HK$0 matching
+    // fee; stop-after-L1 leaves the #760 fee path untouched).
+    const wasActiveTrial =
+      c.sor_status === "introduced" ||
+      c.sor_status === "lesson_1_scheduled" ||
+      c.sor_status === "lesson_1_done";
+    if (wasActiveTrial && (to === "closed" || to === "replaced")) {
+      const closeKind =
+        to === "replaced" ? "replaced" : await derivedCloseKind(db, c.id, c.sor_status);
+      try {
+        await closeTrialIntro(db, { caseId: c.id, closeKind, actorId: context.userId });
+      } catch (closeError) {
+        // Never block the SoR close on the ledger: the desk's close is the
+        // product action, a stale ledger row is repaired by the next claim.
+        console.error("[#772] trial intro close failed:", closeError);
+      }
+    }
 
     // Issue #412 F: the engagement summary is created (or version-bumped)
     // when the case reaches the engagement stage. Fail-open, a summary

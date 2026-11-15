@@ -26,6 +26,7 @@ import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "@/lib/money";
 import { sanitizeCaseFreeText } from "@/lib/contact-filter";
 import { screenCaseRequest } from "@/features/trust/safety-screen";
 import { buildCaseTitle as buildStructuredTitle } from "@/features/cases/case-title";
+import { DUPLICATE_SUBJECT_ERROR_PREFIX } from "@/features/cases/trial-lock";
 
 /**
  * #412 E: parent B2C triage routing. Exported for the vitest suite. A
@@ -692,6 +693,25 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
         [{ col: "parent_user_id", op: "eq", value: context.userId }],
       );
       studentId = ownedChildIdOrNull(data.studentId, owned);
+    }
+
+    // #772 Part 1 (acceptance §1.7): a duplicate-subject submit must not
+    // INSERT. The SAME shared signal #759's post-auth guard and #716 use
+    // answers "active trial or confirmed case in this subject (and child, if
+    // set)"; #759 owns the toast/redirect to the #735 workspace, so this only
+    // refuses the row and hands back the subject + existing case code.
+    const { activeTrialOrCaseSignal } = await import("@/features/cases/trial-lock.server");
+    for (const subject of tierConsistent.subjects ?? []) {
+      const signal = await activeTrialOrCaseSignal(asAdminDb(supabaseAdmin), {
+        userId: context.userId,
+        subject,
+        childId: studentId,
+      });
+      if (signal.active) {
+        throw new Error(
+          `${DUPLICATE_SUBJECT_ERROR_PREFIX}${signal.subject}:${signal.caseCode ?? ""}`,
+        );
+      }
     }
 
     const insertRow = {

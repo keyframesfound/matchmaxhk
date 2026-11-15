@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { MatchStatusCard } from "@/features/cases/parent/match-status-card";
+import { TrialLockCard } from "@/features/cases/trial-lock-card";
 import { MatchedTutorSafetyCard } from "@/features/cases/parent/matched-tutor-card";
 import { ShareFirstVisitCard } from "@/features/safety/share-first-visit-card";
 import { NextLessonLine } from "@/features/cases/case-manager/next-lesson-line";
@@ -137,6 +138,11 @@ function ParentCaseDetailPage() {
               matchedTutorId={data.matched_tutor_id}
               sorStatus={data.sor_status}
             />
+
+            {/* #772 Part 1: one active trial per subject request. Shows the
+                anti-shopping banner, the active trial status and the 3rd
+                rematch ops notice; the mutex itself is enforced server-side. */}
+            <TrialLockCard caseId={caseId} activeTutorLabel={data.tutor_code} />
 
             {/* #529 bait-and-switch card: who to expect at the first lesson. */}
             {data.matched_tutor ? <MatchedTutorSafetyCard tutor={data.matched_tutor} /> : null}

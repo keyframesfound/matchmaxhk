@@ -35,6 +35,39 @@ async function selectRows<T extends Row>(
   return (data ?? []) as T[];
 }
 
+/**
+ * #772 Part 1: a bilateral End Case from inside the trial states spends the
+ * trial introduction, which is what unlocks the next shortlisted tutor.
+ * Fail-open — ending the case is the product action, a stale ledger row is
+ * repaired by the next claim — and only the trial states count (a case that
+ * ended after Lesson 2+ never held a trial slot in this ledger).
+ */
+async function spendTrialIntroOnEnd(
+  db: Db,
+  caseId: string,
+  sorStatus: SorStatus | null,
+  actorId: string,
+): Promise<void> {
+  if (
+    sorStatus !== "introduced" &&
+    sorStatus !== "lesson_1_scheduled" &&
+    sorStatus !== "lesson_1_done"
+  ) {
+    return;
+  }
+  try {
+    const { closeTrialIntro, derivedCloseKind } =
+      await import("@/features/cases/trial-lock.server");
+    await closeTrialIntro(db, {
+      caseId,
+      closeKind: await derivedCloseKind(db, caseId, sorStatus),
+      actorId,
+    });
+  } catch (closeError) {
+    console.error("[#772] trial intro close on end-case failed:", closeError);
+  }
+}
+
 async function resolveTutorId(db: Db, userId: string): Promise<string | null> {
   const rows = await selectRows<{ id: string }>(db, "tutors", "id", [
     { col: "user_id", op: "eq", value: userId },
@@ -132,6 +165,8 @@ export const endCase = createServerFn({ method: "POST" })
         } catch (funnelError) {
           console.warn("[end-case] funnel log failed:", funnelError);
         }
+        // #772: ending inside the trial states unlocks the next tutor.
+        await spendTrialIntroOnEnd(db, c.id, c.sor_status, context.userId);
         return { ended: true, myMarked: true, sorStatus: "closed" };
       }
 
@@ -181,6 +216,8 @@ export const endCase = createServerFn({ method: "POST" })
             })
             .select("id")
             .single();
+          // #772: the race-healed close also spends the trial introduction.
+          await spendTrialIntroOnEnd(db, c.id, now2.sor_status, context.userId);
           return { ended: true, myMarked: true, sorStatus: "closed" };
         }
 

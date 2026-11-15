@@ -28,6 +28,9 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
+import { insertAudit } from "@/features/cases/desk-db";
+import { loadTrialLock } from "@/features/cases/trial-lock.server";
+import { FREE_TRIAL_INTRODUCTIONS } from "@/features/cases/trial-lock";
 
 type Row = Record<string, unknown>;
 type Db = ReturnType<typeof asAdminDb>;
@@ -100,6 +103,13 @@ export type CreateRematchResult = {
   existing: boolean;
   failedCaseCode: string;
   nextTutors: RematchNextTutor[];
+  /**
+   * #772 Part 1 rematch gate: the 3rd introduction on this request
+   * (trial_attempt_count >= 2) never auto-unlocks — the request is flagged
+   * REQUIRES_OPS_APPROVAL and no replacement case / shortlist is created until
+   * the concierge releases it (clearCaseTrialOpsApproval).
+   */
+  opsApprovalRequired: boolean;
 };
 
 export const createRematchCase = createServerFn({ method: "POST" })
@@ -139,6 +149,39 @@ export const createRematchCase = createServerFn({ method: "POST" })
         existing: true,
         failedCaseCode: String(failed.case_code),
         nextTutors: [],
+        opsApprovalRequired: false,
+      };
+    }
+
+    // #772 Part 1 rematch gate (§1.3.3): introductions #1 and #2 unlock
+    // cleanly; after two closed trials the next ask is the 3rd and needs the
+    // concierge. Flag the REQUEST and stop — never auto-unlock Tutor C.
+    const trialLock = await loadTrialLock(db, String(failed.id));
+    if (trialLock.requiresOpsApproval || trialLock.trialAttemptCount >= FREE_TRIAL_INTRODUCTIONS) {
+      if (!trialLock.requiresOpsApproval) {
+        const { error: flagError } = await db
+          .from<Row>("tutoring_cases")
+          .update({
+            requires_ops_approval: true,
+            ops_approval_requested_at: new Date().toISOString(),
+          })
+          .eq("id", trialLock.requestId);
+        if (flagError) throw new Error(flagError.message ?? "ops approval flag failed");
+      }
+      await insertAudit(
+        db,
+        String(failed.id),
+        context.userId,
+        "trial_requires_ops_approval",
+        `#772 3rd trial introduction requested (${trialLock.trialAttemptCount} closed) — ops review required`,
+      );
+      return {
+        caseId: "",
+        caseCode: "",
+        existing: false,
+        failedCaseCode: String(failed.case_code),
+        nextTutors: [],
+        opsApprovalRequired: true,
       };
     }
 
@@ -183,6 +226,7 @@ export const createRematchCase = createServerFn({ method: "POST" })
             existing: true,
             failedCaseCode: String(failed.case_code),
             nextTutors: [],
+            opsApprovalRequired: false,
           };
         }
       }
@@ -236,5 +280,6 @@ export const createRematchCase = createServerFn({ method: "POST" })
       existing: false,
       failedCaseCode: String(failed.case_code),
       nextTutors,
+      opsApprovalRequired: false,
     };
   });

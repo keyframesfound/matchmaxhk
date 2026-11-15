@@ -5189,5 +5189,25 @@
     "alerts_turn_on": "开启通知：{{label}}",
     "alerts_turn_off": "关闭通知：{{label}}",
     "alerts_on_short": "通知已开启"
+  },
+  "trial_lock": {
+    "title": "试堂锁定",
+    "banner": "为保障独立导师之时间安排，每项科目申请同一时间仅限开启 1 个配对试堂。如需免费更换导师，请先结束目前之试堂个案（配对费 HK$0）。",
+    "locked_button": "请先结束现有试堂以解锁",
+    "active_status": "试堂进行中",
+    "backup_status": "备选导师",
+    "ops_notice": "此科目申请已进行 2 次试堂配对。我们的顾问团队正审视您的需求，以为您人工筛选最合适的下一位导师。",
+    "attempts_used": "已结束试堂配对：{{count}} / 2",
+    "request_ref": "申请 {{code}}",
+    "slot_taken": "进行中试堂：{{tutor}}",
+    "slot_open": "没有进行中试堂 — 下一位备选导师可以解锁",
+    "spent_status": "已结束的配对",
+    "close_pre_l1": "第一堂前结束试堂（配对费 HK$0）",
+    "close_after_l1": "第一堂后停止",
+    "closed_toast": "试堂已结束 — 下一位备选导师可以解锁。",
+    "close_failed": "未能结束试堂，请再试一次。",
+    "ops_release": "已审视 — 解锁下一位导师",
+    "ops_cleared_toast": "已解除顾问审批 — 下一位导师可以解锁。",
+    "ops_clear_failed": "未能解除顾问审批。"
   }
 }

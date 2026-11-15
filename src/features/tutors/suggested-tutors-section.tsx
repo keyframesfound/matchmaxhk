@@ -15,6 +15,7 @@ import {
   type RecentSearchSignals,
 } from "@/features/children/learner-context";
 import { getMyParentCases } from "@/features/cases/parent.functions";
+import { ACTIVE_SUBJECT_SOR } from "@/features/cases/trial-lock";
 import type { Tutor } from "@/features/tutors/queries";
 import { getTutorInquiryAction } from "@/features/tutors/tutor-display";
 import {
@@ -23,17 +24,12 @@ import {
   type SuggestionTarget,
 } from "@/features/tutors/suggested-tutors";
 
-/** SoR states where a subject counts as actively matched (trial onwards). */
-const ACTIVE_SOR = new Set([
-  "introduced",
-  "lesson_1_scheduled",
-  "lesson_1_done",
-  "lesson_2_scheduled",
-  "lesson_2_done",
-  "fee_invoiced",
-  "fee_paid",
-  "active",
-]);
+/**
+ * #716 exclusion set — now the SHARED #772 definition (ACTIVE_SUBJECT_SOR in
+ * trial-lock.ts) so "Suggested for you", the submit guard and the #759
+ * post-auth duplicate-subject guard can never drift apart.
+ */
+const ACTIVE_SOR = new Set<string>(ACTIVE_SUBJECT_SOR);
 
 /**
  * #716: "Suggested for you" row on the landing page for signed-in parents
