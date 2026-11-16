@@ -13,13 +13,21 @@ import { JoinChooser } from "@/features/tutor-application/join-chooser";
 import { ApplicationForm } from "@/features/tutor-application/ApplicationForm";
 import { supabase } from "@/integrations/supabase/client";
 import { REFERRAL_CODE_PATTERN, storeReferralCode } from "@/lib/referral";
+import { stripPendingCompleteParam } from "@/lib/pending-submit";
 
 const joinSearch = z.object({
   path: z.enum(["tutor"]).optional().catch(undefined),
   ref: z.string().optional().catch(undefined),
+  // #759 Part 1 (was #732): the end-of-flow Google OAuth callback lands back
+  // here so the guest's tutor intake auto-commits after sign-in. The marker
+  // rides as "1" (urlWithPendingComplete), so coerce rather than z.boolean().
+  complete_pending_submit: z
+    .preprocess((value) => (value === true || value === "1" || value === "true" ? true : undefined), z.boolean())
+    .optional()
+    .catch(undefined),
 });
 
-export const Route = createFileRoute("/_authenticated/join")({
+export const Route = createFileRoute("/join")({
   validateSearch: joinSearch,
   head: () => ({
     meta: [
@@ -49,15 +57,26 @@ export const Route = createFileRoute("/_authenticated/join")({
  * (ApplicationForm) as the Tutor path — one submission collects the core
  * matching data, availability and status fields, deferring only credential
  * verification to the existing post-submit flow.
+ *
+ * #759 Part 1 (was #732): this page is now PUBLIC — guests open and fill the
+ * whole intake with zero login wall, and Google OAuth runs only when they
+ * click Submit (the matchmax_pending_submission_v1 handoff). Signed-in
+ * tutors submit directly. An existing tutor adding roles from the chooser
+ * still lands on their Channel Profile editor.
  */
 function JoinPage() {
   const { t } = useTranslation();
-  const { path, ref } = Route.useSearch();
+  const { path, ref, complete_pending_submit: completePending } = Route.useSearch();
   // Referral links land here; the code travels with the eventual activation.
   useEffect(() => {
     const code = ref?.trim();
     if (code && REFERRAL_CODE_PATTERN.test(code)) storeReferralCode(code);
   }, [ref]);
+  // The completion marker only matters for the first hydration pass; strip
+  // it afterwards so a refresh never re-triggers the auto-submit.
+  useEffect(() => {
+    if (completePending) stripPendingCompleteParam();
+  }, [completePending]);
   const tutorPath = path === "tutor";
 
   // An existing tutor adds roles from the chooser, but never re-activates a card.
@@ -94,7 +113,11 @@ function JoinPage() {
         meta={t("join.new_to_market")}
       />
       <PageContainer className="py-5 sm:py-6" width="wide">
-        {tutorPath ? <ApplicationForm /> : <JoinChooser />}
+        {tutorPath ? (
+          <ApplicationForm completePending={completePending === true} />
+        ) : (
+          <JoinChooser />
+        )}
       </PageContainer>
     </PublicPage>
   );

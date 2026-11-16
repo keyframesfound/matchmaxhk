@@ -232,6 +232,8 @@ export type DuplicateSubjectError = {
   code: "DUPLICATE_SUBJECT_ACTIVE";
   subject: string;
   caseCode: string | null;
+  /** #759 Part 1: workspace redirect target (/account/cases/$caseId). */
+  caseId: string | null;
 };
 
 export function parseDuplicateSubjectError(
@@ -241,10 +243,11 @@ export function parseDuplicateSubjectError(
   const payload = message.slice(
     message.indexOf(DUPLICATE_SUBJECT_ERROR_PREFIX) + DUPLICATE_SUBJECT_ERROR_PREFIX.length,
   );
-  const [subject, caseCode] = payload.split(":");
+  const [subject, caseCode, caseId] = payload.split(":");
   return {
     code: "DUPLICATE_SUBJECT_ACTIVE",
     subject: (subject ?? "").trim(),
     caseCode: caseCode && caseCode.trim() ? caseCode.trim() : null,
+    caseId: caseId && caseId.trim() ? caseId.trim() : null,
   };
 }

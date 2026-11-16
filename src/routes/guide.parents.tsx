@@ -176,9 +176,7 @@ function GuideParentsPage() {
             variant="outline"
             className="h-auto w-full rounded-xl px-6 py-3.5"
           >
-            <Link to="/tutor-requests" search={{ post: true }}>
-              {t("guide.parents.cta_request")}
-            </Link>
+            <Link to="/case-request">{t("guide.parents.cta_request")}</Link>
           </Button>
         </GuideCtaRow>
       </section>

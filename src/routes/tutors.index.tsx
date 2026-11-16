@@ -987,9 +987,7 @@ function TutorsDirectory() {
                         </Button>
                       ) : null}
                       <Button asChild variant="solid" color="blue" className="font-bold">
-                        <Link to="/tutor-requests" search={{ post: true }}>
-                          {t("directory.empty_case")}
-                        </Link>
+                        <Link to="/case-request">{t("directory.empty_case")}</Link>
                       </Button>
                     </div>
                   </div>

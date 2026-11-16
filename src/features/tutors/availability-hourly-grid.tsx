@@ -108,8 +108,8 @@ export function AvailabilityHourlyGrid({
                       return (
                         <td key={day} className="h-6">
                           <Link
-                            to="/tutor-requests"
-                            search={{ post: true, req_time: `${day}-${hour}` }}
+                            to="/case-request"
+                            search={{ req_time: `${day}-${hour}` }}
                             aria-label={`${t(`profile.grid_day_${day}`)} ${hourlyRangeLabel(hour)}: ${t("profile.grid_cell_open")}`}
                             className={cn(
                               "flex h-6 w-full rounded-[4px] border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",

@@ -823,11 +823,7 @@ function AccountPage() {
           ) : shownCases.length === 0 ? (
             <div className="rounded-xl border border-dashed border-border bg-card p-10 text-center text-sm text-muted-foreground">
               {t("account.no_cases")}{" "}
-              <Link
-                to="/tutor-requests"
-                search={{ post: true }}
-                className="text-[color:var(--brand-link)] hover:underline"
-              >
+              <Link to="/case-request" className="text-[color:var(--brand-link)] hover:underline">
                 {t("account.create_case")}
               </Link>
             </div>

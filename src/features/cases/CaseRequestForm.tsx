@@ -1,7 +1,17 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Hash, Plus, Send, X } from "lucide-react";
+import { Link, useNavigate } from "@tanstack/react-router";
+import {
+  AlertCircle,
+  ArrowLeft,
+  ArrowRight,
+  Check,
+  CheckCircle2,
+  Hash,
+  Plus,
+  Send,
+  X,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -11,6 +21,7 @@ import { approxHkdText } from "@/features/currency/convert";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES, toCurrencyCode } from "@/lib/money";
 
 import { Button } from "@/components/ui/button";
+import { GoogleGIcon } from "@/components/brand/GoogleGIcon";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -83,6 +94,16 @@ import {
 } from "@/features/cases/case-verticals";
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
+import { useAuth } from "@/features/auth/useAuth";
+import { useGateOverlayPending } from "@/features/auth/gate-overlay";
+import {
+  clearPendingSubmission,
+  readPendingSubmission,
+  startPendingSubmission,
+  stripPendingCompleteParam,
+  type PendingSourceIssue,
+} from "@/lib/pending-submit";
+import { parseDuplicateSubjectError } from "@/features/cases/trial-lock";
 import { buildCaseTitle } from "@/features/cases/case-title";
 import { cn } from "@/lib/utils";
 import {
@@ -326,6 +347,16 @@ type CaseRequestFormProps = {
   prefillNote?: string;
   /** #731: curriculum / subject carried from a Marketplace note. */
   prefillStudy?: { curriculum: string | null; subjects: string[] };
+  /** #731/#759: the public tutor code this request pre-filled, when any —
+   * drives the concierge success copy. */
+  tutorCode?: string | null;
+  /** #759 Part 1: which surface triggered the submit (the end-of-flow
+   * Google handoff envelope's source_issue). */
+  sourceIssue?: PendingSourceIssue;
+  /** #759 Part 1: true when the URL carries ?complete_pending_submit=1 —
+   * the OAuth callback landed back on this form and a validated draft is
+   * waiting to auto-commit. */
+  completePending?: boolean;
 };
 
 export function CaseRequestForm({
@@ -333,9 +364,16 @@ export function CaseRequestForm({
   onSubmitted,
   prefillNote,
   prefillStudy,
+  tutorCode,
+  sourceIssue = "#049",
+  completePending = false,
 }: CaseRequestFormProps) {
   const { t } = useTranslation();
   const senCategoryLabels = useSenCategoryLabels();
+  // #759 Part 1: guests fill the whole form; Google OAuth runs on Submit.
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+  const gatePending = useGateOverlayPending();
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
@@ -375,7 +413,13 @@ export function CaseRequestForm({
     if (parts.length === 0) return null;
     return parts.join(" – ");
   }, [form.budgetMin, form.budgetMax, form.budgetCurrency, fxRates]);
-  const { restored, saveDraft, clearDraft } = useFormDraft<FormState>("case-request-v6");
+  const { restored, saveDraft, flushDraft, clearDraft } =
+    useFormDraft<FormState>("case-request-v6");
+  // #759 Part 1: end-of-flow Google sign-in state. The draft-restore pass
+  // must land before the auto-commit fires, so its completion is tracked.
+  const [draftApplied, setDraftApplied] = useState(false);
+  const [pendingNotice, setPendingNotice] = useState<"cancelled" | null>(null);
+  const [autoSubmitStage, setAutoSubmitStage] = useState<"idle" | "fire" | "done">("idle");
   // Issue #186: deep link to the MatchMax hotline with a summary of the
   // request once the case code exists (enabled only after a successful
   // submit so the message can include it).
@@ -540,7 +584,76 @@ export function CaseRequestForm({
       locationEstate: str(restored.locationEstate, 80),
       learnerNickname: str(restored.learnerNickname, 40),
     }));
+    // #759 Part 1: the auto-commit waits for this restore pass to land.
+    setDraftApplied(true);
   }, [restored]);
+
+  // #759 Part 1 (was #732): end-of-flow Google sign-in on submit.
+  // The OAuth callback re-enters this form with ?complete_pending_submit=1
+  // and a valid session. Block until the account gates (onboarding / ToS)
+  // clear, consume the pending envelope, then auto-commit the restored draft.
+  useEffect(() => {
+    if (!completePending) return;
+    if (authLoading || gatePending) return;
+    if (!user) {
+      // Google came back without a session — the visitor closed or cancelled
+      // the consent screen. Keep the draft, show the non-destructive banner.
+      clearPendingSubmission();
+      stripPendingCompleteParam();
+      setPendingNotice("cancelled");
+      return;
+    }
+    if (autoSubmitStage !== "idle") return;
+    const envelope = readPendingSubmission();
+    if (!envelope || envelope.form_type !== "case_request") {
+      // Stale (30-min TTL) or foreign payload — silently purged per ticket.
+      clearPendingSubmission();
+      stripPendingCompleteParam();
+      setAutoSubmitStage("done");
+      return;
+    }
+    // Ticket hard rule: clear the envelope BEFORE any RPC runs so a refresh
+    // of the callback URL can never double-submit, and strip the marker.
+    clearPendingSubmission();
+    stripPendingCompleteParam();
+    setStep(3);
+    setAutoSubmitStage("fire");
+  }, [completePending, authLoading, user, gatePending, autoSubmitStage]);
+
+  // #759 Part 1: run the same validation + submit path a manual press would,
+  // once the restored draft is in state and the blocking gates are gone.
+  useEffect(() => {
+    if (autoSubmitStage !== "fire") return;
+    if (restored && !draftApplied) return;
+    setAutoSubmitStage("done");
+    const merged = {
+      ...validateStep(1),
+      ...validateStep(2),
+      ...validateStep(3),
+    };
+    setErrors(merged);
+    if (Object.keys(merged).length > 0) {
+      toast.info(t("pending_submit.restored_invalid"));
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      return;
+    }
+    const clashes =
+      fitSchedule && form.scheduleMode === "specific"
+        ? findClashes(
+            form.scheduleSlots.map((slot) => {
+              const [day, period] = slot.split("-");
+              return { day, period };
+            }),
+            fitSchedule,
+          )
+        : [];
+    if (clashes.length > 0) {
+      setClashLines(clashes);
+      return;
+    }
+    submitMutation.mutate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot fire after hydration
+  }, [autoSubmitStage, restored, draftApplied]);
 
   // #698: pre-fill from the learner picked in search ("Who is learning?").
   // Runs after the draft restore; only empty or still-pre-filled fields
@@ -972,6 +1085,29 @@ export function CaseRequestForm({
       onSubmitted?.(data);
     },
     onError: (e: Error) => {
+      // #759 Part 1 (server guard from #772 Part 1): the parent already has
+      // an active trial (#711) or confirmed case (#615) in this subject —
+      // the row was refused, so clear the draft + pending envelope, toast
+      // the locked copy, and take them to their Case Workspace (#735).
+      const duplicate = parseDuplicateSubjectError(e.message);
+      if (duplicate) {
+        clearDraft();
+        clearPendingSubmission();
+        setResult(null);
+        toast.error(t("pending_submit.duplicate_toast", { subject: duplicate.subject }), {
+          duration: 4000,
+        });
+        if (duplicate.caseId) {
+          void navigate({
+            to: "/account/cases/$caseId",
+            params: { caseId: duplicate.caseId },
+            replace: true,
+          });
+        } else {
+          void navigate({ to: "/account/cases", replace: true });
+        }
+        return;
+      }
       const issues = parseValidationIssues(e.message);
       if (issues) {
         const first = issues[0];
@@ -991,6 +1127,28 @@ export function CaseRequestForm({
       toast.error(e.message.startsWith("PHONE_") ? t(`phone_otp.err_${e.message}`) : e.message);
     },
   });
+
+  // #759 Part 1: the shared final-submit entry (used by the button and the
+  // schedule-clash proceed). A guest gets the Google OAuth handoff instead
+  // of an anonymous insert (#081: rows always get a verified owner).
+  const runFinalSubmit = () => {
+    if (!user) {
+      // Validation has passed. Flush the debounced draft synchronously so
+      // the last keystrokes survive the full-page OAuth redirect, store the
+      // trigger envelope, then leave for Google. The OAuth redirectTo lands
+      // on /case-request?complete_pending_submit=1, which auto-commits.
+      flushDraft(form);
+      const returnPath =
+        typeof window !== "undefined" && window.location.pathname === "/case-request"
+          ? `${window.location.pathname}${window.location.search}`
+          : "/case-request";
+      startPendingSubmission("case_request", sourceIssue, returnPath).catch((err: unknown) => {
+        toast.error(err instanceof Error ? err.message : t("pending_submit.oauth_error"));
+      });
+      return;
+    }
+    submitMutation.mutate();
+  };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -1019,7 +1177,7 @@ export function CaseRequestForm({
       setClashLines(clashes);
       return;
     }
-    submitMutation.mutate();
+    runFinalSubmit();
   };
 
   const resetForm = () => {
@@ -1045,6 +1203,13 @@ export function CaseRequestForm({
         <p className="mt-4 font-mono text-2xl font-bold tracking-tight text-[color:var(--ink)]">
           {result.caseCode}
         </p>
+        {/* #759 Part 4 (was #751): the concierge line for tutor-prefilled
+            (#731) requests. */}
+        {tutorCode ? (
+          <p className="mx-auto mt-3 max-w-md text-sm leading-relaxed text-muted-foreground">
+            {t("pending_submit.success_tutor_line", { tutor: tutorCode })}
+          </p>
+        ) : null}
         {/* #466: match-status card at the RECEIVED stage */}
         <div className="mx-auto mt-6 max-w-md">
           <MatchStatusCard status="new" matchedTutorId={null} sorStatus={null} />
@@ -1108,6 +1273,20 @@ export function CaseRequestForm({
             {t("learner.clear")}
           </button>
         </p>
+      ) : null}
+      {/* #759 Part 1: OAuth came back without a session (cancelled consent)
+          — non-destructive, the draft is still in sessionStorage. */}
+      {pendingNotice === "cancelled" ? (
+        <div className="mb-5 flex items-start gap-2 rounded-sm border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+          <span>{t("pending_submit.cancelled_banner")}</span>
+        </div>
+      ) : null}
+      {autoSubmitStage === "fire" ? (
+        <div className="mb-5 flex items-start gap-2 rounded-sm border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+          <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 animate-pulse" aria-hidden />
+          <span>{t("pending_submit.hydrating")}</span>
+        </div>
       ) : null}
       {/* Progress header */}
       <ol className="mb-8 flex items-center gap-2 sm:gap-3" aria-label="Form progress">
@@ -2573,7 +2752,7 @@ export function CaseRequestForm({
         onBack={() => setClashLines([])}
         onProceed={() => {
           setClashLines([]);
-          submitMutation.mutate();
+          runFinalSubmit();
         }}
       />
       {step === 3 && (
@@ -2582,6 +2761,12 @@ export function CaseRequestForm({
         </div>
       )}
       <div className="mt-6 flex flex-col gap-3 border-t border-border pt-6">
+        {/* #759 Part 1: guests sign in with Google at the moment of submit. */}
+        {!user && step === 3 ? (
+          <p className="text-center text-xs leading-relaxed text-muted-foreground sm:text-sm">
+            {t("pending_submit.helper_notice")}
+          </p>
+        ) : null}
         <div className="flex items-center justify-between gap-3">
           <Button
             type="button"
@@ -2597,20 +2782,27 @@ export function CaseRequestForm({
           </Button>
           <Button
             type="submit"
-            disabled={submitMutation.isPending}
+            disabled={submitMutation.isPending || autoSubmitStage === "fire"}
             variant="solid"
             color="blue"
             className="h-12 rounded-sm px-8 font-bold"
           >
-            {submitMutation.isPending ? (
+            {autoSubmitStage === "fire" ? (
+              t("pending_submit.hydrating")
+            ) : submitMutation.isPending ? (
               "Submitting…"
             ) : step < 3 ? (
               <>
                 Next <ArrowRight className="ml-2 h-5 w-5" />
               </>
-            ) : (
+            ) : user ? (
               <>
                 <Send className="mr-2 h-5 w-5" /> Submit case
+              </>
+            ) : (
+              <>
+                <GoogleGIcon className="mr-2 h-4 w-4" />
+                {t("pending_submit.guest_cta_case")}
               </>
             )}
           </Button>

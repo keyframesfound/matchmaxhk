@@ -5223,5 +5223,18 @@
     "ops_release": "Review done — release the next tutor",
     "ops_cleared_toast": "Ops approval cleared — the next tutor can unlock.",
     "ops_clear_failed": "Could not clear the ops approval."
+  },
+  "pending_submit": {
+    "guest_cta_case": "Continue with Google & Submit Request",
+    "guest_cta_tutor": "Continue with Google & Publish Profile",
+    "helper_notice": "No password needed. Your filled answers will be submitted automatically right after Google sign-in.",
+    "duplicate_toast": "You already have an active trial or case in {{subject}}. Taking you to your Case Workspace.",
+    "cancelled_banner": "Sign-in was cancelled. Your form answers are saved—click Submit whenever you are ready.",
+    "hydrating": "Verifying your account & submitting your request...",
+    "restored_invalid": "Your saved answers were restored — review the highlighted fields and click Submit.",
+    "oauth_error": "Google sign-in failed. Please try again.",
+    "success_tutor_line": "Request received! Our concierge desk (08:30–21:30 HKT) is confirming {{tutor}}'s schedule and will message you on WhatsApp shortly.",
+    "guest_email_hint": "Fills automatically when you sign in with Google to submit",
+    "turnstile_slow": "The security check is taking longer than expected — press Submit to finish."
   }
 }

@@ -31,7 +31,7 @@ function nextActionLink(next: NextAction, handle: string | null) {
     case "publish":
       return channelEdit("profile");
     case "post_case":
-      return { to: "/tutor-requests", search: { post: true } } as const;
+      return { to: "/case-request" } as const;
     case "briefing":
       return { to: "/account/cases" } as const;
     case "preferred_times":

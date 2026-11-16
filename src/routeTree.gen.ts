@@ -18,6 +18,7 @@ import { Route as CopyrightRouteImport } from './routes/copyright'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as GroupClassesRouteImport } from './routes/group-classes'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as JoinRouteImport } from './routes/join'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as PricingRouteImport } from './routes/pricing'
 import { Route as PrivacyPolicyRouteImport } from './routes/privacy-policy'
@@ -30,7 +31,6 @@ import { Route as AuthenticatedActivityRouteImport } from './routes/_authenticat
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated.admin'
 import { Route as AuthenticatedCalendarRouteImport } from './routes/_authenticated.calendar'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated.dashboard'
-import { Route as AuthenticatedJoinRouteImport } from './routes/_authenticated.join'
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
 import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authenticated.saved-posts'
 import { Route as BusinessSlugRouteImport } from './routes/business.$slug'
@@ -143,6 +143,11 @@ const HowItWorksRoute = HowItWorksRouteImport.update({
   path: '/how-it-works',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JoinRoute = JoinRouteImport.update({
+  id: '/join',
+  path: '/join',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MeRoute = MeRouteImport.update({
   id: '/me',
   path: '/me',
@@ -201,11 +206,6 @@ const AuthenticatedCalendarRoute = AuthenticatedCalendarRouteImport.update({
 const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   id: '/dashboard',
   path: '/dashboard',
-  getParentRoute: () => AuthenticatedRoute,
-} as any)
-const AuthenticatedJoinRoute = AuthenticatedJoinRouteImport.update({
-  id: '/join',
-  path: '/join',
   getParentRoute: () => AuthenticatedRoute,
 } as any)
 const AuthenticatedNotificationsRoute =
@@ -590,6 +590,7 @@ export interface FileRoutesByFullPath {
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/join': typeof JoinRoute
   '/me': typeof MeRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
@@ -602,7 +603,6 @@ export interface FileRoutesByFullPath {
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/join': typeof AuthenticatedJoinRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
@@ -680,6 +680,7 @@ export interface FileRoutesByTo {
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/join': typeof JoinRoute
   '/me': typeof MeRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
@@ -691,7 +692,6 @@ export interface FileRoutesByTo {
   '/activity': typeof AuthenticatedActivityRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
-  '/join': typeof AuthenticatedJoinRoute
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
@@ -771,6 +771,7 @@ export interface FileRoutesById {
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/join': typeof JoinRoute
   '/me': typeof MeRoute
   '/pricing': typeof PricingRoute
   '/privacy-policy': typeof PrivacyPolicyRoute
@@ -783,7 +784,6 @@ export interface FileRoutesById {
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/calendar': typeof AuthenticatedCalendarRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
-  '/_authenticated/join': typeof AuthenticatedJoinRoute
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
@@ -863,6 +863,7 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/group-classes'
     | '/how-it-works'
+    | '/join'
     | '/me'
     | '/pricing'
     | '/privacy-policy'
@@ -875,7 +876,6 @@ export interface FileRouteTypes {
     | '/admin'
     | '/calendar'
     | '/dashboard'
-    | '/join'
     | '/notifications'
     | '/saved-posts'
     | '/business/$slug'
@@ -953,6 +953,7 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/group-classes'
     | '/how-it-works'
+    | '/join'
     | '/me'
     | '/pricing'
     | '/privacy-policy'
@@ -964,7 +965,6 @@ export interface FileRouteTypes {
     | '/activity'
     | '/calendar'
     | '/dashboard'
-    | '/join'
     | '/notifications'
     | '/saved-posts'
     | '/business/$slug'
@@ -1043,6 +1043,7 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/group-classes'
     | '/how-it-works'
+    | '/join'
     | '/me'
     | '/pricing'
     | '/privacy-policy'
@@ -1055,7 +1056,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin'
     | '/_authenticated/calendar'
     | '/_authenticated/dashboard'
-    | '/_authenticated/join'
     | '/_authenticated/notifications'
     | '/_authenticated/saved-posts'
     | '/business/$slug'
@@ -1135,6 +1135,7 @@ export interface RootRouteChildren {
   FeedbackRoute: typeof FeedbackRoute
   GroupClassesRoute: typeof GroupClassesRoute
   HowItWorksRoute: typeof HowItWorksRoute
+  JoinRoute: typeof JoinRoute
   MeRoute: typeof MeRoute
   PricingRoute: typeof PricingRoute
   PrivacyPolicyRoute: typeof PrivacyPolicyRoute
@@ -1235,6 +1236,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HowItWorksRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/join': {
+      id: '/join'
+      path: '/join'
+      fullPath: '/join'
+      preLoaderRoute: typeof JoinRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/me': {
       id: '/me'
       path: '/me'
@@ -1317,13 +1325,6 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
-    '/_authenticated/join': {
-      id: '/_authenticated/join'
-      path: '/join'
-      fullPath: '/join'
-      preLoaderRoute: typeof AuthenticatedJoinRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
     '/_authenticated/notifications': {
@@ -1895,7 +1896,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedCalendarRoute: typeof AuthenticatedCalendarRoute
   AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
-  AuthenticatedJoinRoute: typeof AuthenticatedJoinRoute
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedSavedPostsRoute: typeof AuthenticatedSavedPostsRoute
   AuthenticatedBusinessCoursesRoute: typeof AuthenticatedBusinessCoursesRoute
@@ -1916,7 +1916,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedCalendarRoute: AuthenticatedCalendarRoute,
   AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
-  AuthenticatedJoinRoute: AuthenticatedJoinRoute,
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedSavedPostsRoute: AuthenticatedSavedPostsRoute,
   AuthenticatedBusinessCoursesRoute: AuthenticatedBusinessCoursesRoute,
@@ -1947,6 +1946,7 @@ const rootRouteChildren: RootRouteChildren = {
   FeedbackRoute: FeedbackRoute,
   GroupClassesRoute: GroupClassesRoute,
   HowItWorksRoute: HowItWorksRoute,
+  JoinRoute: JoinRoute,
   MeRoute: MeRoute,
   PricingRoute: PricingRoute,
   PrivacyPolicyRoute: PrivacyPolicyRoute,

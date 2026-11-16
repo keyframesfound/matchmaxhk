@@ -5223,5 +5223,18 @@
     "ops_release": "已審視 — 解鎖下一位導師",
     "ops_cleared_toast": "已解除顧問審批 — 下一位導師可以解鎖。",
     "ops_clear_failed": "未能解除顧問審批。"
+  },
+  "pending_submit": {
+    "guest_cta_case": "以 Google 登入並提交配對申請",
+    "guest_cta_tutor": "以 Google 登入並提交導師申請",
+    "helper_notice": "無需設定密碼。完成 Google 登入後，系統會自動提交你已填妥的表格。",
+    "duplicate_toast": "你已有進行中的 {{subject}} 試堂或補習個案，現正為你跳轉至課堂工作區。",
+    "cancelled_banner": "登入已取消。你填寫的資料已保留，隨時可再次點擊提交。",
+    "hydrating": "正在核實帳戶並提交你的申請...",
+    "restored_invalid": "已恢復你填寫的資料——請檢查標示的欄位後再次點擊提交。",
+    "oauth_error": "Google 登入失敗，請再試一次。",
+    "success_tutor_line": "已收到配對申請！客服專員（08:30–21:30 HKT）正為你確認導師時間，稍後將透過 WhatsApp 聯絡你。",
+    "guest_email_hint": "點擊提交並以 Google 登入後自動填入",
+    "turnstile_slow": "安全檢查耗時較長——請點擊提交以完成。"
   }
 }

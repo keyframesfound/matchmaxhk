@@ -23,6 +23,7 @@ import { toast } from "sonner";
 
 import { WhatsAppIcon } from "@/components/layout/WhatsAppFloatButton";
 import { Button } from "@/components/ui/button";
+import { GoogleGIcon } from "@/components/brand/GoogleGIcon";
 import { useAuth } from "@/features/auth/useAuth";
 import { DatePicker, dateToIso, isoToDate } from "@/components/ui/date-picker";
 import {
@@ -55,6 +56,14 @@ import {
   buildAcademicHeadline,
 } from "@/lib/academic-headline";
 import { useFormDraft } from "@/lib/use-form-draft";
+import {
+  clearPendingSubmission,
+  readPendingSubmission,
+  startPendingSubmission,
+  type PendingSourceIssue,
+} from "@/lib/pending-submit";
+import { stashPendingFile, takePendingFile } from "@/lib/pending-files";
+import { useGateOverlayPending } from "@/features/auth/gate-overlay";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
@@ -1012,11 +1021,20 @@ type ApplicationDraft = {
   timeWindows: PreferredTimeWindow[];
 };
 
-export function ApplicationForm() {
+/** #759 Part 1: IndexedDB key for the optional profile photo across OAuth. */
+const PHOTO_PENDING_KEY = "tutor-application:photo";
+
+const PENDING_SOURCE_ISSUE: PendingSourceIssue = "#718";
+
+export function ApplicationForm({ completePending = false }: { completePending?: boolean }) {
   const { t } = useTranslation();
   const senCategoryLabels = useSenCategoryLabels();
   const submit = useServerFn(submitTutorApplication);
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const gatePending = useGateOverlayPending();
+  // #759 Part 1: OAuth-cancelled notice + auto-commit staging.
+  const [pendingNotice, setPendingNotice] = useState<"cancelled" | null>(null);
+  const [autoSubmitStage, setAutoSubmitStage] = useState<"idle" | "fire" | "done">("idle");
   // Issue #718: the account email pre-fills the intake (read-only field); the
   // server also pins the stored application email to the account email.
   useEffect(() => {
@@ -1284,6 +1302,7 @@ export function ApplicationForm() {
     restored: restoredDraft,
     savedAt: draftSavedAt,
     saveDraft,
+    flushDraft,
     clearDraft,
   } = useFormDraft<ApplicationDraft>("tutor-application");
   const draftAppliedRef = useRef(false);
@@ -1293,6 +1312,65 @@ export function ApplicationForm() {
   // AFTER the restored value, freezing the wrong headline. Suppress that one
   // pass; the next pass runs against the restored state and honours the flag.
   const skipHeadlineAutofillRef = useRef(false);
+  // #759 Part 1: guard timer for the auto-commit while Turnstile re-solves.
+  const pendingFireTimer = useRef<number | null>(null);
+
+  // #759 Part 1: the OAuth callback re-enters with ?complete_pending_submit=1.
+  // Wait for the session + account gates (onboarding / ToS / commitment),
+  // consume the pending envelope, restore the stashed photo, then auto-commit.
+  useEffect(() => {
+    if (!completePending) return;
+    if (authLoading || gatePending) return;
+    if (!user) {
+      // Google came back without a session — consent cancelled or denied.
+      // The draft keeps every typed answer; show the non-destructive banner.
+      clearPendingSubmission();
+      setPendingNotice("cancelled");
+      return;
+    }
+    if (autoSubmitStage !== "idle") return;
+    const envelope = readPendingSubmission();
+    if (!envelope || envelope.form_type !== "tutor_intake") {
+      // Stale (30-min TTL) or foreign payload — silently purged per ticket.
+      clearPendingSubmission();
+      setAutoSubmitStage("done");
+      return;
+    }
+    // Ticket hard rule: clear BEFORE any RPC so refreshing the callback URL
+    // can never double-submit (#357 / #359 guard).
+    clearPendingSubmission();
+    // Best-effort photo re-attach (10-minute TTL, optional field).
+    void takePendingFile(PHOTO_PENDING_KEY).then((file) => {
+      if (file) setBaseField("photo", file);
+    });
+    setAutoSubmitStage("fire");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot arm on the callback state
+  }, [completePending, authLoading, user, gatePending, autoSubmitStage]);
+
+  // #759 Part 1: fire the same submitForm a manual press would, once the
+  // draft + account email are in state and Turnstile has re-solved. A
+  // timeout drops to manual if the security check never returns a token.
+  useEffect(() => {
+    if (autoSubmitStage !== "fire") return;
+    if (restoredDraft && !draftAppliedRef.current) return;
+    if (!user?.email) return;
+    if (!captcha) {
+      if (pendingFireTimer.current) return;
+      pendingFireTimer.current = window.setTimeout(() => {
+        pendingFireTimer.current = null;
+        setAutoSubmitStage((stage) => (stage === "fire" ? "done" : stage));
+        toast.info(t("pending_submit.turnstile_slow"));
+      }, 20_000);
+      return;
+    }
+    if (pendingFireTimer.current) {
+      window.clearTimeout(pendingFireTimer.current);
+      pendingFireTimer.current = null;
+    }
+    setAutoSubmitStage("done");
+    void submitForm();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot fire after hydration
+  }, [autoSubmitStage, restoredDraft, user?.email, captcha]);
 
   useEffect(() => {
     if (!restoredDraft) return;
@@ -1363,9 +1441,10 @@ export function ApplicationForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [restoredDraft]);
 
-  useEffect(() => {
-    if (restoredDraft && !draftAppliedRef.current) return;
-    saveDraft({
+  // #759 Part 1: one draft shape for the debounced auto-save and the
+  // synchronous flush that precedes the end-of-flow Google redirect.
+  function buildDraft(): ApplicationDraft {
+    return {
       step,
       base: {
         ...base,
@@ -1389,7 +1468,15 @@ export function ApplicationForm() {
       acceptingStudents,
       openSlots,
       timeWindows,
-    });
+    };
+  }
+
+  // buildDraft() closes over exactly the states listed below; keeping the
+  // dep list explicit (not the function) preserves the original semantics.
+  useEffect(() => {
+    if (restoredDraft && !draftAppliedRef.current) return;
+    saveDraft(buildDraft());
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- buildDraft closes over the deps listed below
   }, [
     restoredDraft,
     saveDraft,
@@ -1704,7 +1791,10 @@ export function ApplicationForm() {
       rejectContact("preferredName", base.preferredName);
       rejectContact("graduationYear", base.graduationYear);
       required("phone", base.phone.trim());
-      required("email", base.email.trim());
+      // #759 Part 1: a guest's email arrives with the Google account at the
+      // OAuth callback (the server pins the account email), so it is not
+      // required to validate the guest-side submit handoff.
+      if (user) required("email", base.email.trim());
       required("country", base.country.trim());
       if (base.country === "Other") required("countryOther", base.countryOther.trim());
       required("status", base.status);
@@ -1730,7 +1820,7 @@ export function ApplicationForm() {
       }
       if (!next.phone && base.phone.trim() && !PHONE_REGEX.test(base.phone.trim()))
         next.phone = "Enter a valid phone / WhatsApp number (e.g. +852 9123 4567)";
-      if (!next.email && base.email.trim() && !EMAIL_REGEX.test(base.email.trim()))
+      if (user && !next.email && base.email.trim() && !EMAIL_REGEX.test(base.email.trim()))
         next.email = "Enter a valid email address";
       if (professional) {
         required("roles", roles);
@@ -1939,6 +2029,27 @@ export function ApplicationForm() {
 
   async function submitForm() {
     if (!validateCurrentStep()) return;
+    // #759 Part 1 (was #732): a guest gets the end-of-flow Google handoff —
+    // the validated answers flush into the sessionStorage draft, the
+    // optional photo parks in IndexedDB (10-minute TTL), and the browser
+    // leaves for Google OAuth. The callback lands back on
+    // /join?path=tutor&complete_pending_submit=1 and auto-commits.
+    if (!user) {
+      setSubmitting(true);
+      try {
+        flushDraft(buildDraft());
+        if (base.photo) await stashPendingFile(PHOTO_PENDING_KEY, base.photo);
+        await startPendingSubmission("tutor_intake", PENDING_SOURCE_ISSUE, "/join?path=tutor");
+      } catch (reason) {
+        setError(
+          reason instanceof Error ? reason.message : "Google sign-in failed. Please try again.",
+        );
+        scrollToStepperTop();
+      } finally {
+        setSubmitting(false);
+      }
+      return;
+    }
     setSubmitting(true);
     setError(null);
     try {
@@ -2656,19 +2767,25 @@ export function ApplicationForm() {
                   </Field>
                   <Field
                     label="Email"
-                    required
+                    required={Boolean(user)}
                     error={fieldErrors.email}
-                    hint={t("join.account_email_hint")}
+                    hint={
+                      user ? t("join.account_email_hint") : t("pending_submit.guest_email_hint")
+                    }
                   >
                     {/* Issue #718: the card + claim are keyed on the ACCOUNT
                         email (publish RPC email lock + confirm_tutor_claim),
-                        so the intake shows the account email read-only. */}
+                        so the intake shows the account email read-only.
+                        #759 Part 1: for guests it fills from the Google
+                        account the moment they sign in to submit. */}
                     <Input
                       type="email"
                       readOnly
                       value={base.email}
                       onChange={(event) => setBaseField("email", event.target.value)}
-                      placeholder="hauzton.chan@gmail.com"
+                      placeholder={
+                        user ? "hauzton.chan@gmail.com" : t("pending_submit.guest_email_hint")
+                      }
                     />
                   </Field>
                   <Field label="Country / Region" required error={fieldErrors.country}>
@@ -4182,6 +4299,22 @@ export function ApplicationForm() {
 
         {/* Footer */}
         <div className="mt-6 flex flex-col gap-3 border-t border-border pt-6">
+          {/* #759 Part 1: guests sign in with Google at the moment of submit. */}
+          {!user && step === stepTitles.length ? (
+            <p className="text-center text-xs leading-relaxed text-muted-foreground sm:text-sm">
+              {t("pending_submit.helper_notice")}
+            </p>
+          ) : null}
+          {pendingNotice === "cancelled" ? (
+            <p className="rounded-sm border border-border bg-muted/40 p-3 text-center text-sm text-muted-foreground">
+              {t("pending_submit.cancelled_banner")}
+            </p>
+          ) : null}
+          {autoSubmitStage === "fire" ? (
+            <p className="rounded-sm border border-border bg-muted/40 p-3 text-center text-sm text-muted-foreground">
+              {t("pending_submit.hydrating")}
+            </p>
+          ) : null}
           <div className="flex items-center justify-between gap-3">
             <Button
               type="button"
@@ -4194,20 +4327,27 @@ export function ApplicationForm() {
             </Button>
             <Button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || autoSubmitStage === "fire"}
               variant="solid"
               color="blue"
               className="h-12 rounded-sm px-8 font-bold"
             >
-              {submitting ? (
+              {autoSubmitStage === "fire" ? (
+                t("pending_submit.hydrating")
+              ) : submitting ? (
                 "Submitting…"
               ) : step < stepTitles.length ? (
                 <>
                   Next <ArrowRight className="ml-2 h-5 w-5" />
                 </>
-              ) : (
+              ) : user ? (
                 <>
                   <Send className="mr-2 h-5 w-5" /> Submit application
+                </>
+              ) : (
+                <>
+                  <GoogleGIcon className="mr-2 h-4 w-4" />
+                  {t("pending_submit.guest_cta_tutor")}
                 </>
               )}
             </Button>

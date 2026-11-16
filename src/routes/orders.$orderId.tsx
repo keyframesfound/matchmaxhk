@@ -400,10 +400,7 @@ function OrderPage() {
                     {t("orders.trial_upsell_body", { code: order.authorTutorCode })}
                   </p>
                   <Button asChild variant="solid" color="blue" className="w-full font-bold">
-                    <Link
-                      to="/tutor-requests"
-                      search={{ post: true, tutor: order.authorTutorCode }}
-                    >
+                    <Link to="/case-request" search={{ tutor: order.authorTutorCode }}>
                       <ShieldCheck className="mr-2 h-4 w-4" aria-hidden />
                       {t("orders.trial_upsell_cta")}
                     </Link>
