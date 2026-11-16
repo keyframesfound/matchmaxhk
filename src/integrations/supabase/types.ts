@@ -573,6 +573,8 @@ export type Database = {
       };
       profiles: {
         Row: {
+          last_automated_digest_sent_at: string | null
+          marketing_email_opt_in: boolean
           account_status: string;
           account_status_at: string | null;
           account_status_reason: string | null;
@@ -600,6 +602,8 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
+          last_automated_digest_sent_at?: string | null
+          marketing_email_opt_in?: boolean
           account_status?: string;
           account_status_at?: string | null;
           account_status_reason?: string | null;
@@ -627,6 +631,8 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
+          last_automated_digest_sent_at?: string | null
+          marketing_email_opt_in?: boolean
           account_status?: string;
           account_status_at?: string | null;
           account_status_reason?: string | null;

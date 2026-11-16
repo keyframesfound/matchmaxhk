@@ -2875,7 +2875,9 @@
       "saved": "Notification preferences saved.",
       "save_error": "Unable to save your notification preferences.",
       "case_match_alerts": "Case match alerts",
-      "case_match_alerts_desc": "When a newly posted case fits what you teach. We alert a few tutors at a time."
+      "case_match_alerts_desc": "When a newly posted case fits what you teach. We alert a few tutors at a time.",
+      "marketing_email": "Marketing emails",
+      "marketing_email_desc": "Tutor suggestions and MatchMax news by email. At most one every 7 days, never about a subject you already have an active trial or case in. Off unless you turn it on; unsubscribe in one click."
     },
     "privacy": {
       "export_title": "Download your data",

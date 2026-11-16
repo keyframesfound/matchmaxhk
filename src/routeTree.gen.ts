@@ -82,6 +82,7 @@ import { Route as AuthenticatedBusinessSettingsRouteImport } from './routes/_aut
 import { Route as AuthenticatedBusinessTeamRouteImport } from './routes/_authenticated.business.team'
 import { Route as AuthenticatedTutorRequestsIndexRouteImport } from './routes/_authenticated.tutor-requests.index'
 import { Route as AuthenticatedTutorRequestsCaseCodeRouteImport } from './routes/_authenticated.tutor-requests.$caseCode'
+import { Route as ApiEmailUnsubscribeRouteImport } from './routes/api/email/unsubscribe'
 import { Route as ApiTrustWaIngestRouteImport } from './routes/api/trust/wa-ingest'
 import { Route as HelpCategoryIndexRouteImport } from './routes/help.$category.index'
 import { Route as HelpCategorySlugRouteImport } from './routes/help.$category.$slug'
@@ -488,6 +489,11 @@ const AuthenticatedTutorRequestsCaseCodeRoute =
     path: '/tutor-requests/$caseCode',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
+const ApiEmailUnsubscribeRoute = ApiEmailUnsubscribeRouteImport.update({
+  id: '/api/email/unsubscribe',
+  path: '/api/email/unsubscribe',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiTrustWaIngestRoute = ApiTrustWaIngestRouteImport.update({
   id: '/api/trust/wa-ingest',
   path: '/api/trust/wa-ingest',
@@ -650,6 +656,7 @@ export interface FileRoutesByFullPath {
   '/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/business/team': typeof AuthenticatedBusinessTeamRoute
   '/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
+  '/api/email/unsubscribe': typeof ApiEmailUnsubscribeRoute
   '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
@@ -739,6 +746,7 @@ export interface FileRoutesByTo {
   '/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/business/team': typeof AuthenticatedBusinessTeamRoute
   '/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
+  '/api/email/unsubscribe': typeof ApiEmailUnsubscribeRoute
   '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
@@ -831,6 +839,7 @@ export interface FileRoutesById {
   '/_authenticated/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/_authenticated/business/team': typeof AuthenticatedBusinessTeamRoute
   '/_authenticated/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
+  '/api/email/unsubscribe': typeof ApiEmailUnsubscribeRoute
   '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
@@ -923,6 +932,7 @@ export interface FileRouteTypes {
     | '/business/settings'
     | '/business/team'
     | '/tutor-requests/$caseCode'
+    | '/api/email/unsubscribe'
     | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
     | '/admin/'
@@ -1012,6 +1022,7 @@ export interface FileRouteTypes {
     | '/business/settings'
     | '/business/team'
     | '/tutor-requests/$caseCode'
+    | '/api/email/unsubscribe'
     | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
     | '/admin'
@@ -1103,6 +1114,7 @@ export interface FileRouteTypes {
     | '/_authenticated/business/settings'
     | '/_authenticated/business/team'
     | '/_authenticated/tutor-requests/$caseCode'
+    | '/api/email/unsubscribe'
     | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
     | '/_authenticated/admin/'
@@ -1163,6 +1175,7 @@ export interface RootRouteChildren {
   GuideIndexRoute: typeof GuideIndexRoute
   HelpIndexRoute: typeof HelpIndexRoute
   TutorsIndexRoute: typeof TutorsIndexRoute
+  ApiEmailUnsubscribeRoute: typeof ApiEmailUnsubscribeRoute
   ApiTrustWaIngestRoute: typeof ApiTrustWaIngestRoute
   HelpCategorySlugRoute: typeof HelpCategorySlugRoute
   HelpCategoryIndexRoute: typeof HelpCategoryIndexRoute
@@ -1684,6 +1697,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedTutorRequestsCaseCodeRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
+    '/api/email/unsubscribe': {
+      id: '/api/email/unsubscribe'
+      path: '/api/email/unsubscribe'
+      fullPath: '/api/email/unsubscribe'
+      preLoaderRoute: typeof ApiEmailUnsubscribeRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/trust/wa-ingest': {
       id: '/api/trust/wa-ingest'
       path: '/api/trust/wa-ingest'
@@ -1973,6 +1993,7 @@ const rootRouteChildren: RootRouteChildren = {
   GuideIndexRoute: GuideIndexRoute,
   HelpIndexRoute: HelpIndexRoute,
   TutorsIndexRoute: TutorsIndexRoute,
+  ApiEmailUnsubscribeRoute: ApiEmailUnsubscribeRoute,
   ApiTrustWaIngestRoute: ApiTrustWaIngestRoute,
   HelpCategorySlugRoute: HelpCategorySlugRoute,
   HelpCategoryIndexRoute: HelpCategoryIndexRoute,

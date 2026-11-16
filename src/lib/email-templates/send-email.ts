@@ -2,6 +2,7 @@ import * as React from "react";
 import { render } from "@react-email/render";
 import { Resend } from "resend";
 import { TEMPLATES } from "./registry";
+import { emailClassFor, signUnsubscribeToken } from "./email-policy";
 
 // Server-only: reads RESEND_API_KEY. Never import from client components.
 
@@ -28,14 +29,21 @@ function getResend(): Resend {
 }
 
 export type SendTemplateEmailResult =
-  { sent: true } | { sent: false; reason: "recipient_suppressed" };
+  { sent: true } | { sent: false; reason: "recipient_suppressed" | "capped_or_opted_out" };
 
 export interface SendTemplateEmailOptions {
   templateData?: Record<string, unknown>;
   /** Dedupes retries of the same logical send; defaults to a random UUID (no dedupe). */
   idempotencyKey?: string;
   replyTo?: string;
+  /**
+   * #783 §2.3: required for automated-marketing templates. The account must
+   * have opted in and must not have had an automated email in 7 days.
+   */
+  marketingUserId?: string;
 }
+
+const SITE_URL = "https://matchmax.hk";
 
 /**
  * Renders a registered template and sends it through Resend.
@@ -68,7 +76,30 @@ export async function sendTemplateEmail(
     throw new Error("Recipient is required (the template defines no fixed recipient)");
   }
 
-  const templateData = options.templateData ?? {};
+  const templateData: Record<string, unknown> = { ...(options.templateData ?? {}) };
+
+  // #783 §2.3: marketing mail = opt-in + max one automated email per 7 days
+  // (atomic DB claim). Transactional mail is never capped.
+  const headers: Record<string, string> = {};
+  if (emailClassFor(templateName) === "automated_marketing") {
+    if (!options.marketingUserId) {
+      throw new Error(`Template '${templateName}' is marketing mail and needs marketingUserId`);
+    }
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: claimed, error: claimError } = await supabaseAdmin.rpc(
+      "claim_automated_digest_slot" as never,
+      { _user: options.marketingUserId } as never,
+    );
+    if (claimError || claimed !== true) return { sent: false, reason: "capped_or_opted_out" };
+    const secret = process.env.EMAIL_UNSUBSCRIBE_SECRET ?? process.env.SUPABASE_SERVICE_ROLE_KEY;
+    if (secret) {
+      const token = await signUnsubscribeToken(options.marketingUserId, secret);
+      const url = `${SITE_URL}/api/email/unsubscribe?token=${encodeURIComponent(token)}`;
+      templateData.unsubscribeUrl = url;
+      headers["List-Unsubscribe"] = `<${url}>`;
+      headers["List-Unsubscribe-Post"] = "List-Unsubscribe=One-Click";
+    }
+  }
   const element = React.createElement(template.component, templateData);
   const html = await render(element);
   const text = await render(element, { plainText: true });
@@ -82,7 +113,13 @@ export async function sendTemplateEmail(
     html,
     text,
     replyTo: options.replyTo,
-    headers: options.idempotencyKey ? { "Idempotency-Key": options.idempotencyKey } : undefined,
+    headers:
+      options.idempotencyKey || Object.keys(headers).length > 0
+        ? {
+            ...headers,
+            ...(options.idempotencyKey ? { "Idempotency-Key": options.idempotencyKey } : {}),
+          }
+        : undefined,
   });
 
   if (error) {

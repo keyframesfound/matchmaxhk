@@ -49,6 +49,8 @@ export type SettingsProfile = {
   locale: string;
   notification_preferences: unknown;
   tos_accepted_at: string | null;
+  /** #783 §2.3: explicit marketing-email opt-in (default off). */
+  marketing_email_opt_in?: boolean;
 };
 
 export type SettingsCategory =
@@ -104,6 +106,7 @@ export type SettingsProfileUpdate = {
   phone?: string | null;
   locale?: string;
   notification_preferences?: NotificationPrefs;
+  marketing_email_opt_in?: boolean;
 };
 
 /** Contract every settings section receives from the page shell. */

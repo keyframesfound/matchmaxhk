@@ -2875,7 +2875,9 @@
       "saved": "通知偏好設定已儲存。",
       "save_error": "無法儲存你嘅通知偏好設定。",
       "case_match_alerts": "個案配對通知",
-      "case_match_alerts_desc": "當新個案配合您的教學範圍時通知您。我們每次只通知幾位導師。"
+      "case_match_alerts_desc": "當新個案配合您的教學範圍時通知您。我們每次只通知幾位導師。",
+      "marketing_email": "推廣電郵",
+      "marketing_email_desc": "以電郵接收導師推薦及 MatchMax 消息。每 7 天最多一封，亦不會推薦你已有進行中試堂或個案的科目。預設關閉，可一按取消訂閱。"
     },
     "privacy": {
       "export_title": "下載你嘅資料",
