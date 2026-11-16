@@ -1,12 +1,14 @@
 import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
-import { Building2, ShieldCheck } from "lucide-react";
+import { AlertCircle, Building2, ShieldCheck } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
+import { GoogleGIcon } from "@/components/brand/GoogleGIcon";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -24,12 +26,33 @@ import { createOrganization } from "@/features/business/business.functions";
 import { HK_DISTRICTS } from "@/features/tutors/queries";
 import { FEE_TERMS_VERSION } from "@/features/legal/terms";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
+import { useAuth } from "@/features/auth/useAuth";
+import { useGateOverlayPending } from "@/features/auth/gate-overlay";
+import { useFormDraft } from "@/lib/use-form-draft";
+import {
+  clearPendingSubmission,
+  readPendingSubmission,
+  startPendingSubmission,
+  stripPendingCompleteParam,
+} from "@/lib/pending-submit";
 
-export const Route = createFileRoute("/_authenticated/business/join")({
+export const Route = createFileRoute("/business/join")({
   beforeLoad: () => {
     if (!CENTRE_MARKET_ENABLED) throw notFound();
   },
-  validateSearch: z.object({ plan: z.string().optional() }),
+  validateSearch: z.object({
+    plan: z.string().optional(),
+    // #759 Part 1: the end-of-flow Google OAuth callback lands back here so
+    // a guest's centre application auto-commits after sign-in. The marker
+    // rides as "1" (urlWithPendingComplete) — coerce, don't z.boolean().
+    complete_pending_submit: z
+      .preprocess(
+        (value) => (value === true || value === "1" || value === "true" ? true : undefined),
+        z.boolean(),
+      )
+      .optional()
+      .catch(undefined),
+  }),
   head: () => ({
     meta: [
       { title: "Create your Education Partner account | MatchMax" },
@@ -47,71 +70,135 @@ export const Route = createFileRoute("/_authenticated/business/join")({
 // Issue #412: never label this an "Employer Account", Education Partner /
 // Organisation Account only, and the page must not read as a recruitment or
 // vacancy funnel (Cap. 57 EA-safe posture).
+const INITIAL_BUSINESS_JOIN_FORM = {
+  name: "",
+  tagline: "",
+  description: "",
+  district: "",
+  website_url: "",
+  // Legal identity (#412 B)
+  legal_entity_name: "",
+  trading_name: "",
+  br_number: "",
+  org_type: "",
+  edb_identifier: "",
+  charity_identifier: "",
+  // Authorised representative
+  rep_name: "",
+  rep_role: "",
+  // Verified contact (#412 B field 5)
+  contact_email: "",
+  contact_phone: "",
+  whatsapp_number: "",
+  // Consents (#412 D), unticked by default
+  authorityAck: false,
+  termsAck: false,
+  feeAck: false,
+  marketingAck: false,
+};
+
+type BusinessJoinForm = typeof INITIAL_BUSINESS_JOIN_FORM;
+
 function BusinessJoinPage() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const search = Route.useSearch();
   const createOrgFn = useServerFn(createOrganization);
+  // #759 Part 1 (coherence addendum): the centre join form is guest-fillable
+  // — Google runs only on Submit, same handoff as the Case Request / Tutor
+  // Intake forms.
+  const { user, loading: authLoading } = useAuth();
+  const gatePending = useGateOverlayPending();
+  const [pendingNotice, setPendingNotice] = useState<"cancelled" | null>(null);
+  const [autoSubmitStage, setAutoSubmitStage] = useState<"idle" | "fire" | "done">("idle");
+  const [draftApplied, setDraftApplied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [form, setForm] = useState({
-    name: "",
-    tagline: "",
-    description: "",
-    district: "",
-    website_url: "",
-    // Legal identity (#412 B)
-    legal_entity_name: "",
-    trading_name: "",
-    br_number: "",
-    org_type: "",
-    edb_identifier: "",
-    charity_identifier: "",
-    // Authorised representative
-    rep_name: "",
-    rep_role: "",
-    // Verified contact (#412 B field 5)
-    contact_email: "",
-    contact_phone: "",
-    whatsapp_number: "",
-    // Consents (#412 D), unticked by default
-    authorityAck: false,
-    termsAck: false,
-    feeAck: false,
-    marketingAck: false,
+  const [form, setForm] = useState<BusinessJoinForm>(INITIAL_BUSINESS_JOIN_FORM);
+  const { restored, flushDraft, clearDraft } = useFormDraft<BusinessJoinForm>("business-join");
+
+  useEffect(() => {
+    if (!restored) return;
+    setForm((prev) => ({ ...prev, ...restored }));
+    setDraftApplied(true);
+  }, [restored]);
+
+  // The completion marker only matters for the first hydration pass.
+  useEffect(() => {
+    if (search.complete_pending_submit) stripPendingCompleteParam();
+  }, [search.complete_pending_submit]);
+
+  useEffect(() => {
+    if (!search.complete_pending_submit) return;
+    if (authLoading || gatePending) return;
+    if (!user) {
+      clearPendingSubmission();
+      setPendingNotice("cancelled");
+      return;
+    }
+    if (autoSubmitStage !== "idle") return;
+    const envelope = readPendingSubmission();
+    if (!envelope || envelope.form_type !== "centre_join") {
+      // Stale (30-min TTL) or foreign payload — silently purged per ticket.
+      clearPendingSubmission();
+      setAutoSubmitStage("done");
+      return;
+    }
+    // Clear BEFORE any RPC so a callback refresh can never double-submit.
+    clearPendingSubmission();
+    if (!restored) setDraftApplied(true);
+    setAutoSubmitStage("fire");
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one-shot arm on the callback state
+  }, [search.complete_pending_submit, authLoading, user, gatePending, autoSubmitStage]);
+
+  useEffect(() => {
+    if (autoSubmitStage !== "fire") return;
+    if (restored && !draftApplied) return;
+    setAutoSubmitStage("done");
+    void handleSubmitRef.current?.();
+  }, [autoSubmitStage, restored, draftApplied]);
+
+  const setField = (patch: Partial<BusinessJoinForm>) => setForm((prev) => ({ ...prev, ...patch }));
+
+  const buildOrgInput = () => ({
+    name: form.name.trim(),
+    tagline: form.tagline.trim() || undefined,
+    description: form.description.trim() || undefined,
+    district: form.district || undefined,
+    website_url: form.website_url.trim() || undefined,
+    // Legal identity
+    legal_entity_name: form.legal_entity_name.trim(),
+    trading_name: form.trading_name.trim() || undefined,
+    br_number: form.br_number.trim(),
+    rep_name: form.rep_name.trim(),
+    rep_role: form.rep_role.trim(),
+    org_type: form.org_type as "tutorial_centre" | "day_school" | "ngo",
+    edb_identifier: form.edb_identifier.trim() || undefined,
+    charity_identifier: form.charity_identifier.trim() || undefined,
+    contact_email: form.contact_email.trim(),
+    contact_phone: form.contact_phone.trim(),
+    whatsapp_number: form.whatsapp_number.trim() || undefined,
+    // Fail-closed literals, the server zod schema rejects without them.
+    authorityAck: form.authorityAck as true,
+    termsAck: form.termsAck as true,
+    feeTermsAck: form.feeAck as true,
+    marketingAck: form.marketingAck,
   });
 
-  const setField = (patch: Partial<typeof form>) => setForm((prev) => ({ ...prev, ...patch }));
-
-  const handleSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
+  const handleSubmit = async (event?: React.FormEvent) => {
+    event?.preventDefault();
     if (!form.name.trim()) return;
     setSubmitting(true);
     try {
-      await createOrgFn({
-        data: {
-          name: form.name.trim(),
-          tagline: form.tagline.trim() || undefined,
-          description: form.description.trim() || undefined,
-          district: form.district || undefined,
-          website_url: form.website_url.trim() || undefined,
-          // Legal identity
-          legal_entity_name: form.legal_entity_name.trim(),
-          trading_name: form.trading_name.trim() || undefined,
-          br_number: form.br_number.trim(),
-          rep_name: form.rep_name.trim(),
-          rep_role: form.rep_role.trim(),
-          org_type: form.org_type as "tutorial_centre" | "day_school" | "ngo",
-          edb_identifier: form.edb_identifier.trim() || undefined,
-          charity_identifier: form.charity_identifier.trim() || undefined,
-          contact_email: form.contact_email.trim(),
-          contact_phone: form.contact_phone.trim(),
-          whatsapp_number: form.whatsapp_number.trim() || undefined,
-          // Fail-closed literals, the server zod schema rejects without them.
-          authorityAck: form.authorityAck as true,
-          termsAck: form.termsAck as true,
-          feeTermsAck: form.feeAck as true,
-          marketingAck: form.marketingAck,
-        },
-      });
+      // #759 Part 1: a guest gets the Google OAuth handoff — flush the
+      // draft synchronously (it restores verbatim on the callback), store
+      // the trigger envelope, then leave for Google.
+      if (!user) {
+        flushDraft(form);
+        await startPendingSubmission("centre_join", "#578", "/business/join");
+        return;
+      }
+      await createOrgFn({ data: buildOrgInput() });
+      clearDraft();
       toast.success("Organization created, pending activation");
       navigate({ to: "/business", search: { tab: undefined } });
     } catch (error) {
@@ -120,6 +207,11 @@ function BusinessJoinPage() {
       setSubmitting(false);
     }
   };
+
+  // The auto-commit effect fires the same handler; keep a stable ref so the
+  // effect deps stay minimal while the handler closes over fresh state.
+  const handleSubmitRef = useRef(handleSubmit);
+  handleSubmitRef.current = handleSubmit;
 
   const consentInvalid = !form.authorityAck || !form.termsAck || !form.feeAck || !form.org_type;
 
@@ -403,14 +495,43 @@ function BusinessJoinPage() {
               </label>
             </div>
 
+            {/* #759 Part 1: OAuth-cancelled / hydrating notices. */}
+            {pendingNotice === "cancelled" ? (
+              <p className="flex items-start gap-2 rounded-sm border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden />
+                <span>{t("pending_submit.cancelled_banner")}</span>
+              </p>
+            ) : null}
+            {autoSubmitStage === "fire" ? (
+              <p className="flex items-start gap-2 rounded-sm border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 animate-pulse" aria-hidden />
+                <span>{t("pending_submit.hydrating")}</span>
+              </p>
+            ) : null}
+            {!user ? (
+              <p className="text-center text-xs leading-relaxed text-muted-foreground">
+                {t("pending_submit.helper_notice")}
+              </p>
+            ) : null}
             <Button
               type="submit"
-              disabled={submitting || consentInvalid}
+              disabled={submitting || consentInvalid || autoSubmitStage === "fire"}
               variant="solid"
               color="blue"
               className="h-11 w-full font-bold"
             >
-              {submitting ? "Creating account…" : "Create Education Partner account"}
+              {autoSubmitStage === "fire" ? (
+                t("pending_submit.hydrating")
+              ) : submitting ? (
+                "Creating account…"
+              ) : user ? (
+                "Create Education Partner account"
+              ) : (
+                <>
+                  <GoogleGIcon className="mr-2 h-4 w-4" />
+                  {t("pending_submit.guest_cta_centre")}
+                </>
+              )}
             </Button>
             {consentInvalid ? (
               <p className="text-center text-xs text-muted-foreground">

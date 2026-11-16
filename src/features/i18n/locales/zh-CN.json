@@ -5235,6 +5235,7 @@
     "oauth_error": "Google 登录失败，请重试。",
     "success_tutor_line": "已收到配对申请！客服专员（08:30–21:30 HKT）正在为你确认导师时间，稍后将透过 WhatsApp 联络你。",
     "guest_email_hint": "点击提交并以 Google 登录后自动填入",
-    "turnstile_slow": "安全检查耗时较长——请点击提交以完成。"
+    "turnstile_slow": "安全检查耗时较长——请点击提交以完成。",
+    "guest_cta_centre": "以 Google 登录并提交申请"
   }
 }
