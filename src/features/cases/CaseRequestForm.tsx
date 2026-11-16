@@ -2767,7 +2767,7 @@ export function CaseRequestForm({
             {t("pending_submit.helper_notice")}
           </p>
         ) : null}
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-col-reverse gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Button
             type="button"
             variant="outline"
@@ -2785,7 +2785,7 @@ export function CaseRequestForm({
             disabled={submitMutation.isPending || autoSubmitStage === "fire"}
             variant="solid"
             color="blue"
-            className="h-12 rounded-sm px-8 font-bold"
+            className="h-12 w-full rounded-sm px-8 font-bold sm:w-auto"
           >
             {autoSubmitStage === "fire" ? (
               t("pending_submit.hydrating")
