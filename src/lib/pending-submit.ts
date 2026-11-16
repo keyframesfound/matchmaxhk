@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 /**
  * #759 Part 1 (was #732) — end-of-flow Google sign-in on form submit.
  *
- * Guests fill the Case Request (#049 / #751 / #731) and Tutor Intake (#718)
- * forms completely before authenticating. When a guest clicks the final
+ * Guests fill the Case Request (#049 / #751 / #731), Tutor Intake (#718) and
+ * Centre / Organisation join (#578) forms completely before authenticating.
+ * When a guest clicks the final
  * Submit, the (already validated) form stores a lightweight ENVELOPE here —
  * the field values themselves ride the forms' own sessionStorage drafts
  * (useFormDraft) — and the page redirects into Google OAuth. The OAuth
@@ -25,8 +26,8 @@ export const PENDING_SUBMISSION_KEY = "matchmax_pending_submission_v1";
 export const COMPLETE_PENDING_PARAM = "complete_pending_submit";
 export const PENDING_TTL_MS = 30 * 60 * 1000;
 
-export type PendingFormType = "case_request" | "tutor_intake";
-export type PendingSourceIssue = "#731" | "#751" | "#049" | "#718";
+export type PendingFormType = "case_request" | "tutor_intake" | "centre_join";
+export type PendingSourceIssue = "#731" | "#751" | "#049" | "#718" | "#578";
 
 export type PendingSubmission = {
   form_type: PendingFormType;
@@ -38,7 +39,9 @@ function isPendingSubmission(value: unknown): value is PendingSubmission {
   if (!value || typeof value !== "object") return false;
   const raw = value as Record<string, unknown>;
   return (
-    (raw.form_type === "case_request" || raw.form_type === "tutor_intake") &&
+    (raw.form_type === "case_request" ||
+      raw.form_type === "tutor_intake" ||
+      raw.form_type === "centre_join") &&
     typeof raw.source_issue === "string" &&
     (raw.source_issue as PendingSourceIssue).startsWith("#") &&
     typeof raw.created_at_ms === "number" &&

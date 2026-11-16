@@ -5235,6 +5235,7 @@
     "oauth_error": "Google 登入失敗，請再試一次。",
     "success_tutor_line": "已收到配對申請！客服專員（08:30–21:30 HKT）正為你確認導師時間，稍後將透過 WhatsApp 聯絡你。",
     "guest_email_hint": "點擊提交並以 Google 登入後自動填入",
-    "turnstile_slow": "安全檢查耗時較長——請點擊提交以完成。"
+    "turnstile_slow": "安全檢查耗時較長——請點擊提交以完成。",
+    "guest_cta_centre": "以 Google 登入並提交申請"
   }
 }

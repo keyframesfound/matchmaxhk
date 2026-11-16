@@ -5235,6 +5235,7 @@
     "oauth_error": "Google sign-in failed. Please try again.",
     "success_tutor_line": "Request received! Our concierge desk (08:30–21:30 HKT) is confirming {{tutor}}'s schedule and will message you on WhatsApp shortly.",
     "guest_email_hint": "Fills automatically when you sign in with Google to submit",
-    "turnstile_slow": "The security check is taking longer than expected — press Submit to finish."
+    "turnstile_slow": "The security check is taking longer than expected — press Submit to finish.",
+    "guest_cta_centre": "Continue with Google & Submit Application"
   }
 }

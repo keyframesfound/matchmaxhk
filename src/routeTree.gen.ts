@@ -34,6 +34,7 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as AuthenticatedNotificationsRouteImport } from './routes/_authenticated.notifications'
 import { Route as AuthenticatedSavedPostsRouteImport } from './routes/_authenticated.saved-posts'
 import { Route as BusinessSlugRouteImport } from './routes/business.$slug'
+import { Route as BusinessJoinRouteImport } from './routes/business.join'
 import { Route as ClaimRosterTokenRouteImport } from './routes/claim-roster.$token'
 import { Route as CoursesIndexRouteImport } from './routes/courses.index'
 import { Route as CoursesCourseIdRouteImport } from './routes/courses.$courseId'
@@ -77,7 +78,6 @@ import { Route as AuthenticatedAdminTutorsRouteImport } from './routes/_authenti
 import { Route as AuthenticatedAdminUsersRouteImport } from './routes/_authenticated.admin.users'
 import { Route as AuthenticatedBusinessIndexRouteImport } from './routes/_authenticated.business.index'
 import { Route as AuthenticatedBusinessCoursesRouteImport } from './routes/_authenticated.business.courses'
-import { Route as AuthenticatedBusinessJoinRouteImport } from './routes/_authenticated.business.join'
 import { Route as AuthenticatedBusinessSettingsRouteImport } from './routes/_authenticated.business.settings'
 import { Route as AuthenticatedBusinessTeamRouteImport } from './routes/_authenticated.business.team'
 import { Route as AuthenticatedTutorRequestsIndexRouteImport } from './routes/_authenticated.tutor-requests.index'
@@ -222,6 +222,11 @@ const AuthenticatedSavedPostsRoute = AuthenticatedSavedPostsRouteImport.update({
 const BusinessSlugRoute = BusinessSlugRouteImport.update({
   id: '/business/$slug',
   path: '/business/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BusinessJoinRoute = BusinessJoinRouteImport.update({
+  id: '/business/join',
+  path: '/business/join',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ClaimRosterTokenRoute = ClaimRosterTokenRouteImport.update({
@@ -459,12 +464,6 @@ const AuthenticatedBusinessCoursesRoute =
     path: '/business/courses',
     getParentRoute: () => AuthenticatedRoute,
   } as any)
-const AuthenticatedBusinessJoinRoute =
-  AuthenticatedBusinessJoinRouteImport.update({
-    id: '/business/join',
-    path: '/business/join',
-    getParentRoute: () => AuthenticatedRoute,
-  } as any)
 const AuthenticatedBusinessSettingsRoute =
   AuthenticatedBusinessSettingsRouteImport.update({
     id: '/business/settings',
@@ -606,6 +605,7 @@ export interface FileRoutesByFullPath {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
+  '/business/join': typeof BusinessJoinRoute
   '/claim-roster/$token': typeof ClaimRosterTokenRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/guide/notes': typeof GuideNotesRoute
@@ -647,7 +647,6 @@ export interface FileRoutesByFullPath {
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/business/courses': typeof AuthenticatedBusinessCoursesRoute
-  '/business/join': typeof AuthenticatedBusinessJoinRoute
   '/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/business/team': typeof AuthenticatedBusinessTeamRoute
   '/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
@@ -695,6 +694,7 @@ export interface FileRoutesByTo {
   '/notifications': typeof AuthenticatedNotificationsRoute
   '/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
+  '/business/join': typeof BusinessJoinRoute
   '/claim-roster/$token': typeof ClaimRosterTokenRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/guide/notes': typeof GuideNotesRoute
@@ -736,7 +736,6 @@ export interface FileRoutesByTo {
   '/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/admin/users': typeof AuthenticatedAdminUsersRoute
   '/business/courses': typeof AuthenticatedBusinessCoursesRoute
-  '/business/join': typeof AuthenticatedBusinessJoinRoute
   '/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/business/team': typeof AuthenticatedBusinessTeamRoute
   '/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
@@ -787,6 +786,7 @@ export interface FileRoutesById {
   '/_authenticated/notifications': typeof AuthenticatedNotificationsRoute
   '/_authenticated/saved-posts': typeof AuthenticatedSavedPostsRoute
   '/business/$slug': typeof BusinessSlugRoute
+  '/business/join': typeof BusinessJoinRoute
   '/claim-roster/$token': typeof ClaimRosterTokenRoute
   '/courses/$courseId': typeof CoursesCourseIdRoute
   '/guide/notes': typeof GuideNotesRoute
@@ -828,7 +828,6 @@ export interface FileRoutesById {
   '/_authenticated/admin/tutors': typeof AuthenticatedAdminTutorsRoute
   '/_authenticated/admin/users': typeof AuthenticatedAdminUsersRoute
   '/_authenticated/business/courses': typeof AuthenticatedBusinessCoursesRoute
-  '/_authenticated/business/join': typeof AuthenticatedBusinessJoinRoute
   '/_authenticated/business/settings': typeof AuthenticatedBusinessSettingsRoute
   '/_authenticated/business/team': typeof AuthenticatedBusinessTeamRoute
   '/_authenticated/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
@@ -879,6 +878,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/saved-posts'
     | '/business/$slug'
+    | '/business/join'
     | '/claim-roster/$token'
     | '/courses/$courseId'
     | '/guide/notes'
@@ -920,7 +920,6 @@ export interface FileRouteTypes {
     | '/admin/tutors'
     | '/admin/users'
     | '/business/courses'
-    | '/business/join'
     | '/business/settings'
     | '/business/team'
     | '/tutor-requests/$caseCode'
@@ -968,6 +967,7 @@ export interface FileRouteTypes {
     | '/notifications'
     | '/saved-posts'
     | '/business/$slug'
+    | '/business/join'
     | '/claim-roster/$token'
     | '/courses/$courseId'
     | '/guide/notes'
@@ -1009,7 +1009,6 @@ export interface FileRouteTypes {
     | '/admin/tutors'
     | '/admin/users'
     | '/business/courses'
-    | '/business/join'
     | '/business/settings'
     | '/business/team'
     | '/tutor-requests/$caseCode'
@@ -1059,6 +1058,7 @@ export interface FileRouteTypes {
     | '/_authenticated/notifications'
     | '/_authenticated/saved-posts'
     | '/business/$slug'
+    | '/business/join'
     | '/claim-roster/$token'
     | '/courses/$courseId'
     | '/guide/notes'
@@ -1100,7 +1100,6 @@ export interface FileRouteTypes {
     | '/_authenticated/admin/tutors'
     | '/_authenticated/admin/users'
     | '/_authenticated/business/courses'
-    | '/_authenticated/business/join'
     | '/_authenticated/business/settings'
     | '/_authenticated/business/team'
     | '/_authenticated/tutor-requests/$caseCode'
@@ -1144,6 +1143,7 @@ export interface RootRouteChildren {
   TosRoute: typeof TosRoute
   TutorPlaybookRoute: typeof TutorPlaybookRoute
   BusinessSlugRoute: typeof BusinessSlugRoute
+  BusinessJoinRoute: typeof BusinessJoinRoute
   ClaimRosterTokenRoute: typeof ClaimRosterTokenRoute
   CoursesCourseIdRoute: typeof CoursesCourseIdRoute
   GuideNotesRoute: typeof GuideNotesRoute
@@ -1346,6 +1346,13 @@ declare module '@tanstack/react-router' {
       path: '/business/$slug'
       fullPath: '/business/$slug'
       preLoaderRoute: typeof BusinessSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/business/join': {
+      id: '/business/join'
+      path: '/business/join'
+      fullPath: '/business/join'
+      preLoaderRoute: typeof BusinessJoinRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/claim-roster/$token': {
@@ -1649,13 +1656,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedBusinessCoursesRouteImport
       parentRoute: typeof AuthenticatedRoute
     }
-    '/_authenticated/business/join': {
-      id: '/_authenticated/business/join'
-      path: '/business/join'
-      fullPath: '/business/join'
-      preLoaderRoute: typeof AuthenticatedBusinessJoinRouteImport
-      parentRoute: typeof AuthenticatedRoute
-    }
     '/_authenticated/business/settings': {
       id: '/_authenticated/business/settings'
       path: '/business/settings'
@@ -1899,7 +1899,6 @@ interface AuthenticatedRouteChildren {
   AuthenticatedNotificationsRoute: typeof AuthenticatedNotificationsRoute
   AuthenticatedSavedPostsRoute: typeof AuthenticatedSavedPostsRoute
   AuthenticatedBusinessCoursesRoute: typeof AuthenticatedBusinessCoursesRoute
-  AuthenticatedBusinessJoinRoute: typeof AuthenticatedBusinessJoinRoute
   AuthenticatedBusinessSettingsRoute: typeof AuthenticatedBusinessSettingsRoute
   AuthenticatedBusinessTeamRoute: typeof AuthenticatedBusinessTeamRoute
   AuthenticatedTutorRequestsCaseCodeRoute: typeof AuthenticatedTutorRequestsCaseCodeRoute
@@ -1919,7 +1918,6 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedNotificationsRoute: AuthenticatedNotificationsRoute,
   AuthenticatedSavedPostsRoute: AuthenticatedSavedPostsRoute,
   AuthenticatedBusinessCoursesRoute: AuthenticatedBusinessCoursesRoute,
-  AuthenticatedBusinessJoinRoute: AuthenticatedBusinessJoinRoute,
   AuthenticatedBusinessSettingsRoute: AuthenticatedBusinessSettingsRoute,
   AuthenticatedBusinessTeamRoute: AuthenticatedBusinessTeamRoute,
   AuthenticatedTutorRequestsCaseCodeRoute:
@@ -1955,6 +1953,7 @@ const rootRouteChildren: RootRouteChildren = {
   TosRoute: TosRoute,
   TutorPlaybookRoute: TutorPlaybookRoute,
   BusinessSlugRoute: BusinessSlugRoute,
+  BusinessJoinRoute: BusinessJoinRoute,
   ClaimRosterTokenRoute: ClaimRosterTokenRoute,
   CoursesCourseIdRoute: CoursesCourseIdRoute,
   GuideNotesRoute: GuideNotesRoute,
