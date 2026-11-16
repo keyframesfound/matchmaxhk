@@ -18,6 +18,7 @@ import { AccountStatusBanners } from "@/features/auth/AccountStatusBanners";
 import { ThemeProvider } from "@/features/theme/ThemeProvider";
 import { DisplayCurrencyProvider } from "@/features/currency/display-currency-context";
 
+import { CookieConsentBanner } from "@/components/layout/CookieConsentBanner";
 import { BackToTopButton } from "@/components/layout/BackToTopButton";
 import { LocaleSuggestionBanner } from "@/components/layout/LocaleSuggestionBanner";
 import { ReferralCapture } from "@/components/layout/ReferralCapture";
@@ -221,6 +222,8 @@ function RootComponent() {
                   <CompareSelectionReset />
                 </CommunityCommitmentGate>
               </OnboardingGate>
+              {/* #783 §2.2: first-visit cookie choice (non-blocking). */}
+              <CookieConsentBanner />
               <Toaster />
             </ThemeProvider>
           </DisplayCurrencyProvider>
