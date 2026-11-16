@@ -92,9 +92,8 @@ export function NoteTutorUpsellCard({
       </p>
       <Button asChild variant="solid" color="blue" className="w-full font-bold">
         <Link
-          to="/tutor-requests"
+          to="/case-request"
           search={{
-            post: true,
             tutor: tutorCode ?? undefined,
             req_curriculum: curriculum || undefined,
             req_subject: subject || undefined,

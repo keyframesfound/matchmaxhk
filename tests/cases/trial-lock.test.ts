@@ -214,16 +214,28 @@ describe("#772 shared duplicate-subject signal", () => {
   });
 
   it("round-trips the submit-guard error contract for #759", () => {
-    const message = `${DUPLICATE_SUBJECT_ERROR_PREFIX}Biology:REQ-882`;
+    // #759 Part 1: the error now carries subject:caseCode:caseId so the
+    // client can toast-redirect straight to the #735 Case Workspace.
+    const message = `${DUPLICATE_SUBJECT_ERROR_PREFIX}Biology:REQ-882:11111111-1111-4111-8111-111111111111`;
     expect(parseDuplicateSubjectError(message)).toEqual({
       code: "DUPLICATE_SUBJECT_ACTIVE",
       subject: "Biology",
       caseCode: "REQ-882",
+      caseId: "11111111-1111-4111-8111-111111111111",
     });
     expect(parseDuplicateSubjectError(`${DUPLICATE_SUBJECT_ERROR_PREFIX}Mathematics:`)).toEqual({
       code: "DUPLICATE_SUBJECT_ACTIVE",
       subject: "Mathematics",
       caseCode: null,
+      caseId: null,
+    });
+    expect(
+      parseDuplicateSubjectError(`${DUPLICATE_SUBJECT_ERROR_PREFIX}Mathematics::`),
+    ).toEqual({
+      code: "DUPLICATE_SUBJECT_ACTIVE",
+      subject: "Mathematics",
+      caseCode: null,
+      caseId: null,
     });
     expect(parseDuplicateSubjectError("Submission could not be accepted.")).toBeNull();
     expect(parseDuplicateSubjectError(null)).toBeNull();

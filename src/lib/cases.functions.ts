@@ -708,8 +708,10 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
         childId: studentId,
       });
       if (signal.active) {
+        // #759 Part 1: subject:caseCode:caseId — the client renders the locked
+        // duplicate toast and redirects to the #735 workspace (/account/cases/$caseId).
         throw new Error(
-          `${DUPLICATE_SUBJECT_ERROR_PREFIX}${signal.subject}:${signal.caseCode ?? ""}`,
+          `${DUPLICATE_SUBJECT_ERROR_PREFIX}${signal.subject}:${signal.caseCode ?? ""}:${signal.caseId ?? ""}`,
         );
       }
     }

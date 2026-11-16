@@ -58,5 +58,21 @@ export function useFormDraft<T>(key: string) {
     setSavedAt(null);
   }, [storageKey]);
 
-  return { restored, savedAt, saveDraft, clearDraft };
+  // #759 end-of-flow submit: the debounced saveDraft can drop the last
+  // keystrokes when the guest submits right after typing and the page is
+  // about to navigate away into Google OAuth. flushDraft writes synchronously.
+  const flushDraft = useCallback(
+    (value: T) => {
+      if (timer.current) window.clearTimeout(timer.current);
+      try {
+        sessionStorage.setItem(storageKey, JSON.stringify({ value, at: Date.now() }));
+        setSavedAt(Date.now());
+      } catch {
+        // Storage unavailable, drafts are best-effort.
+      }
+    },
+    [storageKey],
+  );
+
+  return { restored, savedAt, saveDraft, flushDraft, clearDraft };
 }

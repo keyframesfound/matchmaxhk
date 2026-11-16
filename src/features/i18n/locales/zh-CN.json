@@ -5223,5 +5223,18 @@
     "ops_release": "已审视 — 解锁下一位导师",
     "ops_cleared_toast": "已解除顾问审批 — 下一位导师可以解锁。",
     "ops_clear_failed": "未能解除顾问审批。"
+  },
+  "pending_submit": {
+    "guest_cta_case": "以 Google 登录并提交配对申请",
+    "guest_cta_tutor": "以 Google 登录并提交导师申请",
+    "helper_notice": "无需设置密码。完成 Google 登录后，系统会自动提交你已填妥的表格。",
+    "duplicate_toast": "你已有进行中的 {{subject}} 试课或补习个案，正在为你跳转至课堂工作区。",
+    "cancelled_banner": "登录已取消。你填写的资料已保留，随时可再次点击提交。",
+    "hydrating": "正在核实账户并提交你的申请...",
+    "restored_invalid": "已恢复你填写的资料——请检查标示的字段后再次点击提交。",
+    "oauth_error": "Google 登录失败，请重试。",
+    "success_tutor_line": "已收到配对申请！客服专员（08:30–21:30 HKT）正在为你确认导师时间，稍后将透过 WhatsApp 联络你。",
+    "guest_email_hint": "点击提交并以 Google 登录后自动填入",
+    "turnstile_slow": "安全检查耗时较长——请点击提交以完成。"
   }
 }

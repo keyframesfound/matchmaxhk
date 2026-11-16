@@ -986,7 +986,7 @@ function TutorDetail() {
                     color="blue"
                     className="mt-3 w-full font-bold sm:w-auto"
                   >
-                    <Link to="/tutor-requests" search={{ post: true }}>
+                    <Link to="/case-request">
                       <MessageCircle className="mr-2 h-4 w-4" /> Request via our team
                     </Link>
                   </Button>
@@ -1451,7 +1451,7 @@ function TutorDetail() {
                   </span>
                 </p>
                 <Button asChild variant="solid" color="blue" className="mt-3 font-bold">
-                  <Link to="/tutor-requests" search={{ post: true }}>
+                  <Link to="/case-request" search={{ tutor: tutor.tutor_code }}>
                     {translate("profile.submit_case")}
                   </Link>
                 </Button>

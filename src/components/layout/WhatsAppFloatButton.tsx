@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "motion/react";
 import { useCompareBarVisible } from "@/lib/compare-bar";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { buildWhatsAppPrefill } from "@/features/tutors/tutor-display";
+import { learnerCurriculumLabel } from "@/features/children/learner-context";
 import i18n from "@/features/i18n/config";
 
 // Custom SVG since Lucide doesn't include brand icons
@@ -33,10 +34,37 @@ export function WhatsAppFloatButton() {
   const prefersReducedMotion = useReducedMotion();
   const isHelpRoute = pathname === "/help" || pathname.startsWith("/help/");
   const digits = useWhatsAppNumber(!isHelpRoute && pathname !== "/join");
+  // #759 Part 4 (was #751): the float rides along with any Explore search
+  // filters the parent already applied (curriculum, subject(s), mode, MTR
+  // station) — the same zero-retype contract the tutor-card CTAs honour.
+  // No tutor identity: the float is the general help entry (#454 §1).
+  const searchParams = useRouterState({ select: (state) => state.location.search }) as Record<
+    string,
+    unknown
+  >;
   if (isHelpRoute || pathname === "/join" || compareBarVisible || !digits) return null;
 
-  // #454 §1: general CTA = structured blanks without tutor identity.
-  const message = buildWhatsAppPrefill({ language: i18n.language });
+  const category = typeof searchParams.category === "string" ? searchParams.category : "";
+  const subject = typeof searchParams.subject === "string" ? searchParams.subject.trim() : "";
+  const subjectsExtra =
+    typeof searchParams.subjects_extra === "string" ? searchParams.subjects_extra : "";
+  const mode = typeof searchParams.mode === "string" ? searchParams.mode : "";
+  const station = typeof searchParams.station === "string" ? searchParams.station.trim() : "";
+  const subjects = [subject, ...subjectsExtra.split("||")]
+    .map((value) => value.trim())
+    .filter(Boolean);
+  const hasSearchContext = Boolean(category || subjects.length > 0 || mode || station);
+  const message = buildWhatsAppPrefill({
+    language: i18n.language,
+    search: hasSearchContext
+      ? {
+          curriculum: category ? learnerCurriculumLabel(category) : null,
+          subjects,
+          mode: mode === "in_person" ? "in_person" : mode === "online" ? "online" : null,
+          station: mode === "in_person" ? station : null,
+        }
+      : null,
+  });
   const href = `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 
   return (
