@@ -34,7 +34,23 @@ import {
   decideOrderDispute,
   type AdminOrderRow,
 } from "@/features/materials/orders-desk.functions";
-import { validateDisputeRefundAmount, disputeReasonLabelKey } from "@/features/materials/lifecycle";
+import {
+  DISPUTE_RUBRIC_ITEMS,
+  disputeReasonLabelKey,
+  disputeRefundTarget,
+  rubricComplete,
+  rubricFindsSellerFault,
+  validateDisputeRefundAmount,
+  type DisputeRubric,
+  type DisputeRubricItem,
+} from "@/features/materials/lifecycle";
+
+// Static locale map so the i18n guard sees every key.
+const RUBRIC_LABEL_KEYS: Record<DisputeRubricItem, string> = {
+  log_checked: "orders.desk_rubric_log_checked",
+  matches_preview: "orders.desk_rubric_matches_preview",
+  no_banned_content: "orders.desk_rubric_no_banned_content",
+};
 import {
   getGigOrderSourceUrl,
   listGigDeskOrders,
@@ -122,6 +138,12 @@ export function MaterialsOrdersDesk() {
   // #429 dispute decision dialog (notes orders).
   const [disputeTarget, setDisputeTarget] = useState<AdminOrderRow | null>(null);
   const [disputeAmount, setDisputeAmount] = useState("");
+  // #783 §2.1: 3-point rubric answers + strike toggle for the open dispute.
+  const [rubric, setRubric] = useState<DisputeRubric>({});
+  const [recordStrike, setRecordStrike] = useState(false);
+  const rubricDone = rubricComplete(rubric);
+  const sellerFault = rubricFindsSellerFault(rubric);
+  const refundAllowed = disputeTarget ? disputeRefundTarget(disputeTarget.status) !== null : false;
 
   const ordersQuery = useQuery({
     queryKey: ["admin", "material-orders"],
@@ -207,13 +229,18 @@ export function MaterialsOrdersDesk() {
       orderId: string;
       decision: "refund" | "reject";
       refundAmountHkd?: number;
+      rubric: DisputeRubric;
+      recordStrike: boolean;
     }) => decideOrderDispute({ data: input }),
-    onSuccess: (_data, variables) => {
+    onSuccess: (result, variables) => {
       toast.success(
         variables.decision === "refund"
           ? t("orders.desk_dispute_decided_refund")
           : t("orders.desk_dispute_decided_reject"),
       );
+      if (result.strikeCount != null) {
+        toast.message(t("orders.desk_rubric_strike_recorded", { count: result.strikeCount }));
+      }
       setDisputeTarget(null);
       void invalidate();
     },
@@ -404,6 +431,8 @@ export function MaterialsOrdersDesk() {
                             size="sm"
                             onClick={() => {
                               setDisputeAmount(Number(order.gross_hkd).toFixed(2));
+                              setRubric({});
+                              setRecordStrike(false);
                               setDisputeTarget(order);
                             }}
                           >
@@ -755,6 +784,69 @@ export function MaterialsOrdersDesk() {
               <Eye className="mr-2 h-4 w-4" aria-hidden />
               {t("orders.desk_dispute_evidence")}
             </Button>
+            <fieldset className="space-y-2 rounded-lg border border-[color:var(--ink)]/10 p-3">
+              <legend className="px-1 text-xs font-semibold">
+                {t("orders.desk_rubric_title")}
+              </legend>
+              {DISPUTE_RUBRIC_ITEMS.map((item) => (
+                <div key={item} className="flex items-center justify-between gap-2">
+                  <span className="text-sm">{t(RUBRIC_LABEL_KEYS[item])}</span>
+                  <div
+                    className="flex shrink-0 gap-1"
+                    role="radiogroup"
+                    aria-label={t(RUBRIC_LABEL_KEYS[item])}
+                  >
+                    {(["pass", "fail"] as const).map((answer) => (
+                      <Button
+                        key={answer}
+                        type="button"
+                        size="sm"
+                        role="radio"
+                        aria-checked={rubric[item] === answer}
+                        variant={
+                          rubric[item] === answer
+                            ? answer === "fail"
+                              ? "destructive"
+                              : "default"
+                            : "outline"
+                        }
+                        onClick={() => {
+                          const next = { ...rubric, [item]: answer };
+                          setRubric(next);
+                          setRecordStrike(rubricFindsSellerFault(next));
+                        }}
+                      >
+                        {answer === "pass"
+                          ? t("orders.desk_rubric_pass")
+                          : t("orders.desk_rubric_fail")}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              ))}
+              {rubricDone ? (
+                <p className="text-xs text-muted-foreground">
+                  {sellerFault
+                    ? t("orders.desk_rubric_seller_fault")
+                    : t("orders.desk_rubric_all_pass")}
+                </p>
+              ) : null}
+              {sellerFault ? (
+                <label className="flex items-center gap-2 text-sm">
+                  <input
+                    type="checkbox"
+                    checked={recordStrike}
+                    onChange={(event) => setRecordStrike(event.target.checked)}
+                  />
+                  {t("orders.desk_rubric_record_strike")}
+                </label>
+              ) : null}
+            </fieldset>
+            {!refundAllowed ? (
+              <p className="rounded-lg bg-[color:var(--ink)]/5 p-2 text-xs">
+                {t("orders.desk_rubric_refund_locked")}
+              </p>
+            ) : null}
             <div className="space-y-1.5">
               <Label htmlFor="dispute-amount">{t("orders.desk_dispute_amount_label")}</Label>
               <Input
@@ -778,12 +870,14 @@ export function MaterialsOrdersDesk() {
             </Button>
             <Button
               variant="outline"
-              disabled={decideDisputeMutation.isPending}
+              disabled={decideDisputeMutation.isPending || !rubricDone}
               onClick={() =>
                 disputeTarget &&
                 decideDisputeMutation.mutate({
                   orderId: disputeTarget.id,
                   decision: "reject",
+                  rubric,
+                  recordStrike: false,
                 })
               }
             >
@@ -793,6 +887,8 @@ export function MaterialsOrdersDesk() {
               className="font-bold"
               disabled={
                 decideDisputeMutation.isPending ||
+                !rubricDone ||
+                !refundAllowed ||
                 (() => {
                   if (!disputeTarget) return true;
                   const amount = Number(disputeAmount);
@@ -808,6 +904,8 @@ export function MaterialsOrdersDesk() {
                   orderId: disputeTarget.id,
                   decision: "refund",
                   refundAmountHkd: Number(Number(disputeAmount).toFixed(2)),
+                  rubric,
+                  recordStrike: sellerFault && recordStrike,
                 })
               }
             >
