@@ -36,8 +36,8 @@ export function HouseholdSummary() {
         {data.map((row) => (
           <li key={row.caseId}>
             <Link
-              to="/account/cases/$caseId"
-              params={{ caseId: row.caseId }}
+              to="/calendar"
+              search={{ case: row.caseCode }}
               className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2.5 text-sm hover:underline"
             >
               <span className="min-w-0 font-medium text-[color:var(--ink)]">

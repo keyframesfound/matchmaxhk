@@ -4341,7 +4341,15 @@
     "edit_done": "{{n}} lessons updated.",
     "edit_done_partial": "{{n}} lessons updated. {{failed}} left unchanged because they clash.",
     "edit_select_hint": "Tick the lessons you want to change.",
-    "schedule_error": "Could not update the schedule. Please try again."
+    "schedule_error": "Could not update the schedule. Please try again.",
+    "view_toggle_aria": "Calendar view",
+    "view_month": "Month",
+    "view_week": "Week",
+    "week_aria": "This week",
+    "prev_week": "Previous week",
+    "next_week": "Next week",
+    "this_week": "This week",
+    "today_label": "Today"
   },
   "account_hub": {
     "title": "Account",
