@@ -7,6 +7,7 @@ import { asAdminDb, type AdminDb } from "@/features/materials/storage-helpers";
 import {
   canOpenDispute,
   disputeRefundTarget,
+  validateDisputeDecision,
   disputeRejectTarget,
   holdWindowHours,
   isHoldExpired,
@@ -266,6 +267,13 @@ export const decideOrderDispute = createServerFn({ method: "POST" })
         orderId: z.string().uuid(),
         decision: z.enum(["refund", "reject"]),
         refundAmountHkd: z.number().positive().optional(),
+        // #783 §2.1: the 3-point marking rubric + optional seller strike.
+        rubric: z.object({
+          log_checked: z.enum(["pass", "fail"]).optional(),
+          matches_preview: z.enum(["pass", "fail"]).optional(),
+          no_banned_content: z.enum(["pass", "fail"]).optional(),
+        }),
+        recordStrike: z.boolean().default(false),
       })
       .refine((v) => v.decision !== "refund" || v.refundAmountHkd != null, {
         message: "refundAmountHkd is required for a refund decision",
@@ -276,12 +284,19 @@ export const decideOrderDispute = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     if (!(await isAdmin(db, context.userId))) throw new Error("Forbidden");
+    const decisionProblem = validateDisputeDecision(data);
+    if (decisionProblem) throw new Error(decisionProblem);
+    const audit = { dispute_rubric: data.rubric, dispute_strike_recorded: data.recordStrike };
 
     const { data: order } = await db
-      .from<{ id: string; status: string; gross_hkd: number; dispute_status: string | null }>(
-        "material_orders",
-      )
-      .select("id, status, gross_hkd, dispute_status")
+      .from<{
+        id: string;
+        status: string;
+        gross_hkd: number;
+        dispute_status: string | null;
+        tutor_id: string | null;
+      }>("material_orders")
+      .select("id, status, gross_hkd, dispute_status, tutor_id")
       .eq("id", data.orderId)
       .maybeSingle();
     if (!order) throw new Error("Order not found.");
@@ -312,6 +327,7 @@ export const decideOrderDispute = createServerFn({ method: "POST" })
             decided_at: now,
             decided_by: context.userId,
             decided_by_text: context.userId,
+            ...audit,
           },
           { count: "exact" },
         )
@@ -322,7 +338,16 @@ export const decideOrderDispute = createServerFn({ method: "POST" })
       if ((count ?? 0) === 0) {
         throw new Error("A dispute was already decided on this order.");
       }
-      return { ok: true, status: "refunded_from_hold" as const };
+      // Strikes persist on the seller's profile across temporary suspensions.
+      let strikeCount: number | null = null;
+      if (data.recordStrike && order.tutor_id) {
+        const { data: next, error: strikeError } = await db.rpc("record_seller_strike", {
+          _user: order.tutor_id,
+        });
+        if (strikeError) throw new Error(strikeError.message);
+        strikeCount = typeof next === "number" ? next : null;
+      }
+      return { ok: true, status: "refunded_from_hold" as const, strikeCount };
     }
 
     const target = disputeRejectTarget(order.status);
@@ -338,12 +363,14 @@ export const decideOrderDispute = createServerFn({ method: "POST" })
             dispute_status: "rejected",
             decided_at: now,
             decided_by: context.userId,
+            ...audit,
           }
         : {
             dispute_status: "rejected",
             decided_at: now,
             decided_by: context.userId,
             decided_by_text: context.userId,
+            ...audit,
           };
     const { count, error } = await db
       .from<never>("material_orders")
@@ -355,5 +382,5 @@ export const decideOrderDispute = createServerFn({ method: "POST" })
     if ((count ?? 0) === 0) {
       throw new Error("A dispute was already decided on this order.");
     }
-    return { ok: true, status: target };
+    return { ok: true, status: target, strikeCount: null };
   });

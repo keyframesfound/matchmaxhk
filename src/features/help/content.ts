@@ -196,6 +196,16 @@ const HELP_CATEGORY_LIST: HelpCategory[] = [
     audience: "centre",
     order: 1,
   },
+  // #783 §2.1 (AC-559-3): notes-marketplace disputes and community rules
+  // concern buyers and sellers alike, so it shows on every audience tab.
+  {
+    slug: "disputes-community",
+    name: "Disputes, Refunds & Community Rules",
+    blurb: "Study-notes disputes, when refunds apply, and the seller strike rules. 中英對照。",
+    icon: "shield-check",
+    audience: "all",
+    order: 7,
+  },
   // Parent categories (issue #500: six-topic parent directory, 3-col × 2-row grid).
   {
     slug: "parent-getting-started",

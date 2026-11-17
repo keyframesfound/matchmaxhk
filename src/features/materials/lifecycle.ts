@@ -359,6 +359,46 @@ export function disputeRefundTarget(current: string): string | null {
   return current === "held" ? "refunded_from_hold" : null;
 }
 
+/**
+ * Staff may only decide a dispute when the rubric is fully answered. A strike
+ * goes only with a refund AND a failed point; a reject with a strike, or a
+ * strike on an all-pass rubric, is refused.
+ */
+export function validateDisputeDecision(input: {
+  decision: "refund" | "reject";
+  rubric: DisputeRubric;
+  recordStrike: boolean;
+}): string | null {
+  if (!rubricComplete(input.rubric)) return "Answer all three rubric points first.";
+  if (input.recordStrike && input.decision !== "refund") {
+    return "A strike can only be recorded with a seller-fault refund.";
+  }
+  if (input.recordStrike && !rubricFindsSellerFault(input.rubric)) {
+    return "A strike needs at least one failed rubric point.";
+  }
+  return null;
+}
+
+/** #783 §2.1 (AC-559-2): the 3-point marking rubric staff answer before deciding a dispute. */
+export const DISPUTE_RUBRIC_ITEMS = [
+  "log_checked",
+  "matches_preview",
+  "no_banned_content",
+] as const;
+export type DisputeRubricItem = (typeof DISPUTE_RUBRIC_ITEMS)[number];
+export type DisputeRubricAnswer = "pass" | "fail";
+export type DisputeRubric = Partial<Record<DisputeRubricItem, DisputeRubricAnswer>>;
+
+/** Every rubric point has a pass / fail answer. */
+export function rubricComplete(rubric: DisputeRubric): boolean {
+  return DISPUTE_RUBRIC_ITEMS.every((item) => rubric[item] === "pass" || rubric[item] === "fail");
+}
+
+/** Any failed point points at seller fault (refund + strike). */
+export function rubricFindsSellerFault(rubric: DisputeRubric): boolean {
+  return DISPUTE_RUBRIC_ITEMS.some((item) => rubric[item] === "fail");
+}
+
 export function disputeRejectTarget(current: string): "released" | "delivered" | null {
   if (current === "held") return "released";
   if (current === "delivered") return "delivered"; // legacy row: close the dispute only
