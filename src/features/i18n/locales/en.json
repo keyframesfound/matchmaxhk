@@ -5237,5 +5237,17 @@
     "guest_email_hint": "Fills automatically when you sign in with Google to submit",
     "turnstile_slow": "The security check is taking longer than expected — press Submit to finish.",
     "guest_cta_centre": "Continue with Google & Submit Application"
+  },
+  "cookie_consent": {
+    "title": "Cookies on MatchMax",
+    "body": "We use essential cookies to keep you signed in and remember your language. With your OK we also keep an anonymous key to count tutor views. No ads, no cross-site tracking.",
+    "learn_more": "Learn more",
+    "essential": "Essential only",
+    "accept_all": "Accept all",
+    "settings_title": "Your cookie choice",
+    "settings_body": "Change it any time. Essential only keeps just what the site needs to work.",
+    "current_all": "Current choice: Accept all",
+    "current_essential": "Current choice: Essential only",
+    "current_none": "Current choice: not chosen yet (Essential only applies)"
   }
 }

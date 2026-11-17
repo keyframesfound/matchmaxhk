@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 
 import type { EngagementSummary } from "@/features/tutors/engagement";
 import { supabase } from "@/integrations/supabase/client";
+import { allowsNonEssential } from "@/features/legal/cookie-consent";
 
 // Issues #102/#151: client-side engagement tracking + summary fetching.
 // Anonymous-only: the viewer is identified by a random localStorage UUID —
@@ -13,13 +14,18 @@ const VIEWER_KEY_STORAGE = "matchmax.viewer_key";
 
 export type TutorEngagementEventType = "profile_view" | "inquiry_click" | "request_click";
 
-/** Stable anonymous viewer key (created on first use). */
+/**
+ * Anonymous viewer key. #783: only a visitor who chose "Accept all" keeps a
+ * long-lived key; the default (Essential only) uses a per-tab key that is
+ * gone when the tab closes, so counts still work without a persistent ID.
+ */
 export function getViewerKey(): string {
   try {
-    const existing = window.localStorage.getItem(VIEWER_KEY_STORAGE);
+    const store = allowsNonEssential() ? window.localStorage : window.sessionStorage;
+    const existing = store.getItem(VIEWER_KEY_STORAGE);
     if (existing) return existing;
     const generated = crypto.randomUUID();
-    window.localStorage.setItem(VIEWER_KEY_STORAGE, generated);
+    store.setItem(VIEWER_KEY_STORAGE, generated);
     return generated;
   } catch {
     // Storage unavailable (private mode etc.), the RPC dedupes this shared

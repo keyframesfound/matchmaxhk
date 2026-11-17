@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BecomeATutorRouteImport } from './routes/become-a-tutor'
 import { Route as CaseRequestRouteImport } from './routes/case-request'
+import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as CopyrightRouteImport } from './routes/copyright'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as GroupClassesRouteImport } from './routes/group-classes'
@@ -121,6 +122,11 @@ const BecomeATutorRoute = BecomeATutorRouteImport.update({
 const CaseRequestRoute = CaseRequestRouteImport.update({
   id: '/case-request',
   path: '/case-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CookiesRoute = CookiesRouteImport.update({
+  id: '/cookies',
+  path: '/cookies',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CopyrightRoute = CopyrightRouteImport.update({
@@ -585,6 +591,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
+  '/cookies': typeof CookiesRoute
   '/copyright': typeof CopyrightRoute
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
@@ -675,6 +682,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
+  '/cookies': typeof CookiesRoute
   '/copyright': typeof CopyrightRoute
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
@@ -766,6 +774,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
+  '/cookies': typeof CookiesRoute
   '/copyright': typeof CopyrightRoute
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
@@ -858,6 +867,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
+    | '/cookies'
     | '/copyright'
     | '/feedback'
     | '/group-classes'
@@ -948,6 +958,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
+    | '/cookies'
     | '/copyright'
     | '/feedback'
     | '/group-classes'
@@ -1038,6 +1049,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
+    | '/cookies'
     | '/copyright'
     | '/feedback'
     | '/group-classes'
@@ -1130,6 +1142,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BecomeATutorRoute: typeof BecomeATutorRoute
   CaseRequestRoute: typeof CaseRequestRoute
+  CookiesRoute: typeof CookiesRoute
   CopyrightRoute: typeof CopyrightRoute
   FeedbackRoute: typeof FeedbackRoute
   GroupClassesRoute: typeof GroupClassesRoute
@@ -1206,6 +1219,13 @@ declare module '@tanstack/react-router' {
       path: '/case-request'
       fullPath: '/case-request'
       preLoaderRoute: typeof CaseRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/cookies': {
+      id: '/cookies'
+      path: '/cookies'
+      fullPath: '/cookies'
+      preLoaderRoute: typeof CookiesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/copyright': {
@@ -1940,6 +1960,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BecomeATutorRoute: BecomeATutorRoute,
   CaseRequestRoute: CaseRequestRoute,
+  CookiesRoute: CookiesRoute,
   CopyrightRoute: CopyrightRoute,
   FeedbackRoute: FeedbackRoute,
   GroupClassesRoute: GroupClassesRoute,

@@ -5237,5 +5237,17 @@
     "guest_email_hint": "點擊提交並以 Google 登入後自動填入",
     "turnstile_slow": "安全檢查耗時較長——請點擊提交以完成。",
     "guest_cta_centre": "以 Google 登入並提交申請"
+  },
+  "cookie_consent": {
+    "title": "MatchMax 的 Cookies",
+    "body": "我們使用必要 Cookies 以保持你的登入狀態及記住語言設定。經你同意後，我們亦會保留一個匿名識別碼以統計導師檔案瀏覽次數。不設廣告，亦不作跨網站追蹤。",
+    "learn_more": "了解更多",
+    "essential": "僅必要Cookies",
+    "accept_all": "全部接受",
+    "settings_title": "你的 Cookies 選擇",
+    "settings_body": "你可隨時更改。「僅必要Cookies」只保留網站運作所需的資料。",
+    "current_all": "目前選擇：全部接受",
+    "current_essential": "目前選擇：僅必要Cookies",
+    "current_none": "目前選擇：尚未選擇（以僅必要Cookies處理）"
   }
 }

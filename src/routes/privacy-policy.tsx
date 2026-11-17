@@ -3,6 +3,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { localeLinks } from "@/features/i18n/seo";
+import { CookieSettingsPanel } from "@/components/layout/CookieConsentBanner";
 
 export const Route = createFileRoute("/privacy-policy")({
   head: () => ({
@@ -212,6 +213,14 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
         kind: "p",
         text: "You can manage cookies through your browser; blocking them may disable functions. Additional tracking, if used, will be explained through an appropriate notice, with consent obtained where required.",
       },
+      {
+        kind: "p",
+        text: "**Essential only (default).** On your first visit we ask you to choose. Until you do, and if you choose Essential only, we keep only what the site needs to work: your sign-in session, language and display-currency preferences, and on-device drafts and saved searches. Tutor profile views and enquiry clicks are counted with a temporary random key that is erased when the browser tab closes.",
+      },
+      {
+        kind: "p",
+        text: "**Accept all.** If you choose Accept all, that random key is kept on your device so repeat visits are counted once. It is not linked to your account, name, IP address or device details. We do not use advertising or cross-site tracking cookies. You can change your choice at any time below.",
+      },
     ],
   },
   {
@@ -363,7 +372,8 @@ function PrivacyPolicyPage() {
             {SECTIONS.map((section) => (
               <article
                 key={section.title}
-                className="border-b border-border pb-12 last:border-b-0 last:pb-0"
+                id={section.title.startsWith("8.") ? "cookies" : undefined}
+                className="scroll-mt-24 border-b border-border pb-12 last:border-b-0 last:pb-0"
               >
                 <h2 className="text-2xl font-bold text-foreground sm:text-3xl">{section.title}</h2>
                 <div className="mt-5 space-y-5 text-base leading-7 text-muted-foreground">
@@ -385,6 +395,8 @@ function PrivacyPolicyPage() {
                       </p>
                     ),
                   )}
+                  {/* #783 §2.2: change the cookie choice (EN + 繁中). */}
+                  {section.title.startsWith("8.") ? <CookieSettingsPanel /> : null}
                 </div>
               </article>
             ))}
