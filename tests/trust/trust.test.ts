@@ -17,11 +17,10 @@ import {
 } from "../../src/features/trust/trust";
 
 const baseReveal: RevealInput = {
-  isMatchedTutor: true,
+  isCaseParty: true,
   caseClosed: false,
   openFlagTypes: [],
-  introFeeSettled: false,
-  tutorVerifiedHours: 0,
+  introFeePaid: false,
 };
 
 describe("hmacPhone", () => {
@@ -59,24 +58,20 @@ describe("masking", () => {
 });
 
 describe("canRevealParentContact (#535 progressive reveal)", () => {
-  it("masks for a new tutor until the intro fee is settled", () => {
+  it("hides phones until the admin fee is paid (#783 §2.5, AC-255-1)", () => {
     expect(canRevealParentContact(baseReveal)).toEqual({
       reveal: false,
-      reason: "FEE_OR_HOURS_REQUIRED",
+      reason: "FEE_REQUIRED",
     });
-    expect(canRevealParentContact({ ...baseReveal, introFeeSettled: true })).toEqual({
+    expect(canRevealParentContact({ ...baseReveal, introFeePaid: true })).toEqual({
       reveal: true,
     });
-  });
-
-  it("reveals for established tutors (≥ 3 verified hours)", () => {
-    expect(canRevealParentContact({ ...baseReveal, tutorVerifiedHours: 3 }).reveal).toBe(true);
   });
 
   it("blocking risk flags revoke reveal for everyone", () => {
     const r = canRevealParentContact({
       ...baseReveal,
-      introFeeSettled: true,
+      introFeePaid: true,
       openFlagTypes: ["SCAM_OVERPAYMENT"],
     });
     expect(r).toEqual({ reveal: false, reason: "RISK_HOLD" });
@@ -85,18 +80,18 @@ describe("canRevealParentContact (#535 progressive reveal)", () => {
   it("advisory-only flags do not revoke reveal", () => {
     const r = canRevealParentContact({
       ...baseReveal,
-      introFeeSettled: true,
+      introFeePaid: true,
       openFlagTypes: ["TUTOR_GHOST_RISK"],
     });
     expect(r.reveal).toBe(true);
   });
 
   it("never reveals to a non-matched tutor or on a closed case", () => {
-    expect(canRevealParentContact({ ...baseReveal, isMatchedTutor: false })).toMatchObject({
+    expect(canRevealParentContact({ ...baseReveal, isCaseParty: false })).toMatchObject({
       reason: "NOT_MATCHED",
     });
     expect(
-      canRevealParentContact({ ...baseReveal, introFeeSettled: true, caseClosed: true }),
+      canRevealParentContact({ ...baseReveal, introFeePaid: true, caseClosed: true }),
     ).toMatchObject({ reason: "CASE_CLOSED" });
   });
 

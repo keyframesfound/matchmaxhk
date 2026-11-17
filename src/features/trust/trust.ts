@@ -10,9 +10,9 @@
  *     reason enum and the source case. Checked on case intake.
  *   * case_risk_flags — many flags per case (enum + confidence + source), so
  *     the later classifier writes rows without a schema rewrite.
- *   * Progressive reveal — parent contact stays masked for new / part-time
- *     tutors until the intro fee is settled or they hold verified hours, and
- *     for everyone while a blocking risk flag is open.
+ *   * Contact reveal — both parties' phones stay masked until the admin fee
+ *     is paid (#783 §2.5), and for everyone while a blocking risk flag is
+ *     open.
  *   * New-tutor concurrency cap — under 3 verified hours a tutor holds at
  *     most N open first lessons (default 2, app_settings override).
  *
@@ -135,34 +135,41 @@ export function maskName(raw: string | null | undefined): string | null {
   return `${parts[0]} ${parts[1][0]}.`;
 }
 
-export type RevealBlockReason =
-  "NOT_MATCHED" | "CASE_CLOSED" | "RISK_HOLD" | "FEE_OR_HOURS_REQUIRED";
+export type RevealBlockReason = "NOT_MATCHED" | "CASE_CLOSED" | "RISK_HOLD" | "FEE_REQUIRED";
 
 export type RevealInput = {
-  /** The tutor is the matched tutor (accepted the case + fee terms). */
-  isMatchedTutor: boolean;
+  /** The viewer is a party on this case (the matched tutor or the parent). */
+  isCaseParty: boolean;
   caseClosed: boolean;
   /** Unresolved case_risk_flags types on the case. */
   openFlagTypes: readonly string[];
-  /** Intro fee row paid or waived. */
-  introFeeSettled: boolean;
-  tutorVerifiedHours: number;
+  /** The admin fee row is PAID. Waived / refunded do not count. */
+  introFeePaid: boolean;
 };
 
 export type RevealResult = { reveal: true } | { reveal: false; reason: RevealBlockReason };
 
-/** The progressive reveal gate (#535 / #529 A3 "Tutor anti-poach"). */
+/**
+ * #783 §2.5 (was #255) "Contact after the fee, not a chat": before the admin
+ * fee is marked paid, neither side sees the other's phone. After it is paid,
+ * both parties on THAT case may. A waive or refund hides it again, as do a
+ * closed case and an open blocking risk flag (#535 / #529 A3). The #535
+ * verified-hours shortcut is retired: AC-255-1 keeps phones hidden on any
+ * case that is not fee-paid. One gate for both directions.
+ */
 export function canRevealParentContact(input: RevealInput): RevealResult {
-  if (!input.isMatchedTutor) return { reveal: false, reason: "NOT_MATCHED" };
+  if (!input.isCaseParty) return { reveal: false, reason: "NOT_MATCHED" };
   if (input.caseClosed) return { reveal: false, reason: "CASE_CLOSED" };
   const isHeld = input.openFlagTypes.some((f) =>
     (REVEAL_BLOCKING_FLAGS as readonly string[]).includes(f),
   );
   if (isHeld) return { reveal: false, reason: "RISK_HOLD" };
-  if (input.introFeeSettled) return { reveal: true };
-  if (input.tutorVerifiedHours >= NEW_TUTOR_VERIFIED_HOURS) return { reveal: true };
-  return { reveal: false, reason: "FEE_OR_HOURS_REQUIRED" };
+  if (input.introFeePaid) return { reveal: true };
+  return { reveal: false, reason: "FEE_REQUIRED" };
 }
+
+/** Same gate, named for the parent → tutor direction. */
+export const canRevealCaseContact = canRevealParentContact;
 
 export type ParentContactView = {
   revealed: boolean;

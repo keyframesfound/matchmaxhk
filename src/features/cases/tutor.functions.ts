@@ -36,7 +36,6 @@ import {
   parentContactView,
   type ParentContactView,
 } from "@/features/trust/trust";
-import { tutorVerifiedHours } from "@/features/trust/trust-db";
 import {
   countActiveStudents,
   firstNameOf,
@@ -157,9 +156,9 @@ export type TutorCaseItem = {
   ended_by_parent_at: string | null;
   ended_by_tutor_at: string | null;
   /**
-   * #535 progressive reveal: parent contact, masked until the intro fee is
-   * settled or the tutor holds verified hours, and while a blocking risk
-   * flag is open. Never unmasked server-side unless the gate clears.
+   * #783 §2.5: parent contact, masked until the admin fee is PAID (a waive
+   * or refund hides it again) and while a blocking risk flag is open. Never
+   * unmasked server-side unless the gate clears.
    */
   parent_contact: ParentContactView;
 };
@@ -203,7 +202,7 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
     if (mine.length === 0) return [];
 
     const caseIds = mine.map((c) => c.id);
-    const [lessons, fees, sessionLogs, riskFlags, verifiedHours] = await Promise.all([
+    const [lessons, fees, sessionLogs, riskFlags] = await Promise.all([
       selectRows<{
         id: string;
         case_id: string;
@@ -252,7 +251,6 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         "case_id, flag_type, resolved_at",
         [{ col: "case_id", op: "in", value: caseIds }],
       ),
-      tutorVerifiedHours(db, tutorId),
     ]);
     const openFlagsByCase = new Map<string, string[]>();
     for (const f of riskFlags) {
@@ -313,17 +311,14 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
 
     return mine.map((c) => {
       const revealGate = canRevealParentContact({
-        isMatchedTutor: true,
+        isCaseParty: true,
         caseClosed: c.sor_status === "closed" || c.sor_status === "replaced",
         openFlagTypes: openFlagsByCase.get(c.id) ?? [],
-        introFeeSettled:
-          openFeeByCase.get(c.id)?.status === "paid" ||
-          openFeeByCase.get(c.id)?.status === "waived",
-        tutorVerifiedHours: verifiedHours,
+        introFeePaid: openFeeByCase.get(c.id)?.status === "paid",
       });
       // #529: the lesson location / link is part of what a matched tutor
       // accepted, so only a safety hold or an ended case hides it.
-      const hidesLocation = !revealGate.reveal && revealGate.reason !== "FEE_OR_HOURS_REQUIRED";
+      const hidesLocation = !revealGate.reveal && revealGate.reason !== "FEE_REQUIRED";
       return {
         id: c.id,
         case_code: c.case_code,

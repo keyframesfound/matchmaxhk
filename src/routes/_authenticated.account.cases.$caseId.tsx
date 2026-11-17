@@ -30,6 +30,7 @@ import {
   submitParentReview,
   type ParentCaseDetail,
 } from "@/features/cases/parent.functions";
+import { CaseContactLine } from "@/features/cases/case-contact-line";
 import { disputeSession } from "@/features/cases/experience.functions";
 import { disputeHoursLeft } from "@/features/tutors/experience";
 import { ParentHoursSection } from "@/features/hours/parent-hours-section";
@@ -146,6 +147,10 @@ function ParentCaseDetailPage() {
 
             {/* #529 bait-and-switch card: who to expect at the first lesson. */}
             {data.matched_tutor ? <MatchedTutorSafetyCard tutor={data.matched_tutor} /> : null}
+            {/* #783 §2.5: the tutor's phone on this case, after the fee is paid. */}
+            {data.tutor_contact ? (
+              <CaseContactLine contact={data.tutor_contact} counterparty="tutor" />
+            ) : null}
 
             {/* #650 Safety lite: share the first home-visit window with the
                 trusted contact (soft auto-prompt once per case, manual share

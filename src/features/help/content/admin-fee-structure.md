@@ -9,7 +9,7 @@ icon: wallet
 tags: [fees, admin fee, billing, policies, payments]
 order: 1
 status: published
-updated: 2026-10-29
+updated: 2026-11-17
 replaces: Guide redirect stub
 dedupes: Folded Playbook fee-explainer topics
 ---
@@ -24,14 +24,14 @@ This is the definition used in section 15 of the MatchMax Terms of Service, whic
 
 ## Fee table by situation
 
-| Situation | Admin fee (tutor pays) |
-| --- | --- |
-| Private (B2C) match, per enrolled student / case | 1.5 lessons (100% of Lesson 1 + 50% of Lesson 2) |
-| Short package of 5 lessons or fewer (declared at booking, before Lesson 1) | 20% of the package value |
-| Partner centre intro, 1st student | 1.5 lessons |
-| Same centre within 6 months, 2nd student | 1.0 lesson (billed 0.5 at Lesson 1 + 0.5 at Lesson 2) |
-| Same centre within 6 months, 3rd student | 0.5 lesson (billed 0.5 at Lesson 1 + $0 at Lesson 2) |
-| Same centre within 6 months, 4th student or later | $0 (about 3.0 lessons max per centre introduction) |
+| Situation                                                                  | Admin fee (tutor pays)                                |
+| -------------------------------------------------------------------------- | ----------------------------------------------------- |
+| Private (B2C) match, per enrolled student / case                           | 1.5 lessons (100% of Lesson 1 + 50% of Lesson 2)      |
+| Short package of 5 lessons or fewer (declared at booking, before Lesson 1) | 20% of the package value                              |
+| Partner centre intro, 1st student                                          | 1.5 lessons                                           |
+| Same centre within 6 months, 2nd student                                   | 1.0 lesson (billed 0.5 at Lesson 1 + 0.5 at Lesson 2) |
+| Same centre within 6 months, 3rd student                                   | 0.5 lesson (billed 0.5 at Lesson 1 + $0 at Lesson 2)  |
+| Same centre within 6 months, 4th student or later                          | $0 (about 3.0 lessons max per centre introduction)    |
 
 A centre's step-down tier only advances when a student completes **both** Lesson 1 and Lesson 2 (or finishes a declared short package) — a student who drops after Lesson 1 does not move the centre to the next tier. Short packages (≤5 lessons) must be declared at booking before Lesson 1; an ongoing case cannot be re-labelled as a short package once Lesson 1 has started, and a short package cannot continue past its declared lessons until it is converted to the ongoing 1.5-lesson rule (only the top-up difference to 1.5 lessons is payable).
 
@@ -55,7 +55,13 @@ Once the admin fee is settled, you keep 100% of the agreed tuition for every lat
 
 ## Unlocking parent phone contact
 
-In the current version of the platform, parent phone contact unlocks once the admin fee is settled. Until then, please keep communicating through the MatchMax chat, which is monitored for quality and safety. To unlock as early as possible:
+Phone numbers are shared after the fee, not before:
+
+- **Before the admin fee is marked paid**, neither you nor the parent sees the other's phone, email or WhatsApp. Arrange early lessons through MatchMax and Case Manager. MatchMax does not run an in-app chat.
+- **Once the admin fee is paid**, you see the parent's phone on that case, and the parent sees yours. Lessons after that are arranged directly between you.
+- **If the fee is waived or refunded**, or the case is closed or under a safety review, the phone is hidden again.
+
+To get there as early as possible:
 
 1. Report Lesson 1 and Lesson 2 completion to MatchMax Admin promptly after each session.
 2. Report completed hours accurately and on time. Your report is what triggers the fee calculation and the contact unlock, so late or inaccurate reports delay the process for everyone.

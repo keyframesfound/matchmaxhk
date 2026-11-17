@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { dateFnsLocale } from "@/lib/relative-time";
+import { CaseContactLine } from "@/features/cases/case-contact-line";
 import { Bell, CalendarClock, Check, Loader2, Sparkles, Star, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -592,6 +593,8 @@ export function TutorCasesSection() {
                   subject={c.subject}
                   sorStatus={c.sor_status}
                 />
+                {/* #783 §2.5: the parent's phone on this case, after the fee is paid. */}
+                <CaseContactLine contact={c.parent_contact} counterparty="parent" />
                 {c.lessons.length > 0 && (
                   <ul className="mt-3 space-y-2">
                     {c.lessons.map((l) => (
