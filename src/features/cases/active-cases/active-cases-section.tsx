@@ -164,7 +164,7 @@ function CaseCard({
       {card.partyView && card.feeMilestone && card.feeMilestone !== "none" ? (
         <p className="flex items-center gap-1.5 text-xs">
           <CircleDollarSign
-            className={`h-3.5 w-3.5 shrink-0 ${card.feeMilestone === "paid" ? "text-emerald-600" : "text-amber-600"}`}
+            className={`h-3.5 w-3.5 shrink-0 ${card.feeMilestone === "paid" || card.feeMilestone === "waived" ? "text-emerald-600" : "text-amber-600"}`}
             aria-hidden="true"
           />
           <span className="font-medium">{t(`profile.active_cases.fee_${card.feeMilestone}`)}</span>

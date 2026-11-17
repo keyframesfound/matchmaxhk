@@ -5,6 +5,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { useAuth } from "@/features/auth/useAuth";
 import { RostersPanel } from "@/features/rosters/rosters-section";
+import { ByosInviteCard } from "@/features/cases/byos-invite-card";
 
 /**
  * #613 §4.1 — Rosters & Attendance (點名及學生名單), the educator surface for
@@ -57,6 +58,7 @@ function RostersPage() {
       <SiteHeader />
       <PageContainer>
         <div className="mx-auto max-w-4xl py-8">
+          <ByosInviteCard />
           <RostersPanel
             prefillCourseId={search.course}
             autoCreate={search.create === "1"}

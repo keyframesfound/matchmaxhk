@@ -87,6 +87,7 @@ import { Route as ApiEmailUnsubscribeRouteImport } from './routes/api/email/unsu
 import { Route as ApiTrustWaIngestRouteImport } from './routes/api/trust/wa-ingest'
 import { Route as HelpCategoryIndexRouteImport } from './routes/help.$category.index'
 import { Route as HelpCategorySlugRouteImport } from './routes/help.$category.$slug'
+import { Route as InviteCaseTokenRouteImport } from './routes/invite.case.$token'
 import { Route as AuthenticatedAccountCasesCaseIdRouteImport } from './routes/_authenticated.account.cases.$caseId'
 import { Route as AuthenticatedAccountCoursesNewRouteImport } from './routes/_authenticated.account.courses.new'
 import { Route as AuthenticatedAccountFoldersNewRouteImport } from './routes/_authenticated.account.folders.new'
@@ -515,6 +516,11 @@ const HelpCategorySlugRoute = HelpCategorySlugRouteImport.update({
   path: '/help/$category/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InviteCaseTokenRoute = InviteCaseTokenRouteImport.update({
+  id: '/invite/case/$token',
+  path: '/invite/case/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthenticatedAccountCasesCaseIdRoute =
   AuthenticatedAccountCasesCaseIdRouteImport.update({
     id: '/$caseId',
@@ -666,6 +672,7 @@ export interface FileRoutesByFullPath {
   '/api/email/unsubscribe': typeof ApiEmailUnsubscribeRoute
   '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
+  '/invite/case/$token': typeof InviteCaseTokenRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/business/': typeof AuthenticatedBusinessIndexRoute
   '/tutor-requests/': typeof AuthenticatedTutorRequestsIndexRoute
@@ -757,6 +764,7 @@ export interface FileRoutesByTo {
   '/api/email/unsubscribe': typeof ApiEmailUnsubscribeRoute
   '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
+  '/invite/case/$token': typeof InviteCaseTokenRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/business': typeof AuthenticatedBusinessIndexRoute
   '/tutor-requests': typeof AuthenticatedTutorRequestsIndexRoute
@@ -851,6 +859,7 @@ export interface FileRoutesById {
   '/api/email/unsubscribe': typeof ApiEmailUnsubscribeRoute
   '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
+  '/invite/case/$token': typeof InviteCaseTokenRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/business/': typeof AuthenticatedBusinessIndexRoute
   '/_authenticated/tutor-requests/': typeof AuthenticatedTutorRequestsIndexRoute
@@ -945,6 +954,7 @@ export interface FileRouteTypes {
     | '/api/email/unsubscribe'
     | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
+    | '/invite/case/$token'
     | '/admin/'
     | '/business/'
     | '/tutor-requests/'
@@ -1036,6 +1046,7 @@ export interface FileRouteTypes {
     | '/api/email/unsubscribe'
     | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
+    | '/invite/case/$token'
     | '/admin'
     | '/business'
     | '/tutor-requests'
@@ -1129,6 +1140,7 @@ export interface FileRouteTypes {
     | '/api/email/unsubscribe'
     | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
+    | '/invite/case/$token'
     | '/_authenticated/admin/'
     | '/_authenticated/business/'
     | '/_authenticated/tutor-requests/'
@@ -1191,6 +1203,7 @@ export interface RootRouteChildren {
   ApiEmailUnsubscribeRoute: typeof ApiEmailUnsubscribeRoute
   ApiTrustWaIngestRoute: typeof ApiTrustWaIngestRoute
   HelpCategorySlugRoute: typeof HelpCategorySlugRoute
+  InviteCaseTokenRoute: typeof InviteCaseTokenRoute
   HelpCategoryIndexRoute: typeof HelpCategoryIndexRoute
   LovableEmailAuthPreviewRoute: typeof LovableEmailAuthPreviewRoute
   LovableEmailAuthWebhookRoute: typeof LovableEmailAuthWebhookRoute
@@ -1745,6 +1758,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof HelpCategorySlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/invite/case/$token': {
+      id: '/invite/case/$token'
+      path: '/invite/case/$token'
+      fullPath: '/invite/case/$token'
+      preLoaderRoute: typeof InviteCaseTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/_authenticated/account/cases/$caseId': {
       id: '/_authenticated/account/cases/$caseId'
       path: '/$caseId'
@@ -2017,6 +2037,7 @@ const rootRouteChildren: RootRouteChildren = {
   ApiEmailUnsubscribeRoute: ApiEmailUnsubscribeRoute,
   ApiTrustWaIngestRoute: ApiTrustWaIngestRoute,
   HelpCategorySlugRoute: HelpCategorySlugRoute,
+  InviteCaseTokenRoute: InviteCaseTokenRoute,
   HelpCategoryIndexRoute: HelpCategoryIndexRoute,
   LovableEmailAuthPreviewRoute: LovableEmailAuthPreviewRoute,
   LovableEmailAuthWebhookRoute: LovableEmailAuthWebhookRoute,
