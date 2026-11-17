@@ -16,10 +16,26 @@ export function NotificationsSection({ profile, updateProfile }: SettingsSection
   const { t } = useTranslation();
   const { hasRole } = useAuth();
   const [prefs, setPrefs] = useState<NotificationPrefs | null>(null);
+  // #783 §2.3: explicit, unchecked-by-default marketing email opt-in.
+  const [marketing, setMarketing] = useState(false);
 
   useEffect(() => {
-    if (profile) setPrefs(sanitizeNotificationPrefs(profile.notification_preferences));
+    if (profile) {
+      setPrefs(sanitizeNotificationPrefs(profile.notification_preferences));
+      setMarketing(profile.marketing_email_opt_in === true);
+    }
   }, [profile]);
+
+  async function toggleMarketing(next: boolean) {
+    setMarketing(next);
+    const ok = await updateProfile({ marketing_email_opt_in: next });
+    if (!ok) {
+      setMarketing(!next);
+      toast.error(t("settings.notifications.save_error"));
+      return;
+    }
+    toast.success(t("settings.notifications.saved"));
+  }
 
   async function togglePref(key: keyof NotificationPrefs, next: boolean) {
     if (!prefs) return;
@@ -103,6 +119,24 @@ export function NotificationsSection({ profile, updateProfile }: SettingsSection
               />
             </div>
           ))}
+          <div className="flex items-center justify-between gap-6 py-4 last:pb-0">
+            <div className="min-w-0">
+              <Label
+                htmlFor="notif-marketing-email"
+                className="text-sm font-bold text-[color:var(--ink)]"
+              >
+                {t("settings.notifications.marketing_email")}
+              </Label>
+              <p className="mt-0.5 text-xs leading-5 text-[color:var(--ink)]/60">
+                {t("settings.notifications.marketing_email_desc")}
+              </p>
+            </div>
+            <Switch
+              id="notif-marketing-email"
+              checked={marketing}
+              onCheckedChange={(checked) => void toggleMarketing(checked)}
+            />
+          </div>
         </div>
       ) : (
         <div className="space-y-4" aria-hidden>

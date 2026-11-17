@@ -237,7 +237,7 @@ export function SettingsPage() {
       const { data, error } = await supabase
         .from("profiles")
         .select(
-          "display_name, handle, phone, locale, notification_preferences, tos_accepted_at, date_of_birth",
+          "display_name, handle, phone, locale, notification_preferences, tos_accepted_at, date_of_birth, marketing_email_opt_in",
         )
         .eq("id", userId)
         .maybeSingle();
