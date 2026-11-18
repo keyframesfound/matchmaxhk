@@ -4354,7 +4354,15 @@
     "edit_done": "已更新 {{n}} 堂。",
     "edit_done_partial": "已更新 {{n}} 堂，{{failed}} 堂因时间相撞而未有更改。",
     "edit_select_hint": "请勾选要更改的课堂。",
-    "schedule_error": "无法更新时间表，请再试一次。"
+    "schedule_error": "无法更新时间表，请再试一次。",
+    "view_toggle_aria": "日历视图",
+    "view_month": "月",
+    "view_week": "周",
+    "week_aria": "本周",
+    "prev_week": "上一周",
+    "next_week": "下一周",
+    "this_week": "本周",
+    "today_label": "今天"
   },
   "account_hub": {
     "title": "账户",
