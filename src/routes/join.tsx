@@ -22,7 +22,10 @@ const joinSearch = z.object({
   // here so the guest's tutor intake auto-commits after sign-in. The marker
   // rides as "1" (urlWithPendingComplete), so coerce rather than z.boolean().
   complete_pending_submit: z
-    .preprocess((value) => (value === true || value === "1" || value === "true" ? true : undefined), z.boolean())
+    .preprocess(
+      (value) => (value === true || value === "1" || value === "true" ? true : undefined),
+      z.boolean(),
+    )
     .optional()
     .catch(undefined),
 });
@@ -90,14 +93,29 @@ function JoinPage() {
         supabase.from("tutors").select("id").eq("user_id", user!.id).maybeSingle(),
         supabase.from("profiles").select("handle").eq("id", user!.id).maybeSingle(),
       ]);
-      return { hasCard: Boolean(card.data), handle: profile.data?.handle ?? null };
+      const handle = profile.data?.handle ?? null;
+      // #759 P0: the channel page resolves profiles case-insensitively while
+      // some legacy rows store mixed-case handles, so a blind redirect can
+      // land on "Channel not found". Verify the channel exists (and use the
+      // stored spelling) before redirecting — otherwise stay on the form.
+      let channelHandle: string | null = null;
+      if (handle) {
+        const { data: channel } = await supabase
+          .from("profiles")
+          .select("handle")
+          .ilike("handle", handle)
+          .maybeSingle();
+        channelHandle = channel?.handle ?? null;
+      }
+      return { hasCard: Boolean(card.data), channelHandle };
     },
   });
   useEffect(() => {
-    if (!owned.data?.hasCard || !owned.data.handle) return;
+    const channelHandle = owned.data?.channelHandle;
+    if (!owned.data?.hasCard || !channelHandle) return;
     void navigate({
       to: "/u/$handle",
-      params: { handle: owned.data.handle },
+      params: { handle: channelHandle },
       search: { edit: "open" },
       replace: true,
     });

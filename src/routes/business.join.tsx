@@ -1,4 +1,4 @@
-import { createFileRoute, notFound, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { z } from "zod";
@@ -25,7 +25,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { createOrganization } from "@/features/business/business.functions";
 import { HK_DISTRICTS } from "@/features/tutors/queries";
 import { FEE_TERMS_VERSION } from "@/features/legal/terms";
-import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 import { useAuth } from "@/features/auth/useAuth";
 import { useGateOverlayPending } from "@/features/auth/gate-overlay";
 import { useFormDraft } from "@/lib/use-form-draft";
@@ -37,9 +36,12 @@ import {
 } from "@/lib/pending-submit";
 
 export const Route = createFileRoute("/business/join")({
-  beforeLoad: () => {
-    if (!CENTRE_MARKET_ENABLED) throw notFound();
-  },
+  // #759 P0: the Join chooser's Organisation option linked here while this
+  // route 404'd under the global centre-market flag — an empty 404. The
+  // 60-second organisation application (#412/#577) is safe to expose on its
+  // own; the full centre shop / vacancy / payout surfaces stay parked behind
+  // CENTRE_MARKET_ENABLED (courses.index, pricing, saved-posts keep gates).
+  beforeLoad: () => {},
   validateSearch: z.object({
     plan: z.string().optional(),
     // #759 Part 1: the end-of-flow Google OAuth callback lands back here so
