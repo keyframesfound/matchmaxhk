@@ -48,6 +48,14 @@ describe("#783 cookie consent", () => {
     expect(allowsNonEssential()).toBe(false);
   });
 
+  it("#783: Essential only also removes the business analytics session id", () => {
+    const w = (globalThis as unknown as { window: { localStorage: MemoryStorage } }).window;
+    w.localStorage.setItem("mm-track-session", "s-1");
+    setCookieConsent("essential");
+    expect(w.localStorage.getItem("mm-track-session")).toBeNull();
+    expect(allowsNonEssential()).toBe(false);
+  });
+
   it("reset asks again", () => {
     setCookieConsent("all");
     resetCookieConsent();

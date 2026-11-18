@@ -1,18 +1,24 @@
 import { useCallback } from "react";
 import { useServerFn } from "@tanstack/react-start";
 
+import { allowsNonEssential } from "@/features/legal/cookie-consent";
+
 import { trackBusinessEvents, type AnalyticsEventType } from "./business.functions";
 
 function getSessionId(): string {
   try {
     const key = "mm-track-session";
-    let id = localStorage.getItem(key);
+    // #783 §2.2: the cross-session analytics id persists only for visitors
+    // who chose "Accept all"; the default (Essential only) uses a per-tab key
+    // that is erased when the tab closes — same rule as the tutor viewer key.
+    const store = allowsNonEssential() ? window.localStorage : window.sessionStorage;
+    let id = store.getItem(key);
     if (!id) {
       id =
         typeof crypto !== "undefined" && "randomUUID" in crypto
           ? crypto.randomUUID()
           : `s-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-      localStorage.setItem(key, id);
+      store.setItem(key, id);
     }
     return id;
   } catch {

@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useTranslation } from "react-i18next";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
@@ -28,9 +29,11 @@ Address: Shop T163, 3/F, The Capital, 61–65 Chatham Road South, Tsim Sha Tsui,
 Privacy contact: MatchMax Data Protection Contact
 Email: contact@matchmax.hk`;
 
-type Block = { kind: "p"; text: string } | { kind: "ul"; items: string[] };
+type Block =
+  | { kind: "p"; text?: string; i18nKey?: string }
+  | { kind: "ul"; items: string[] };
 
-const SECTIONS: { title: string; blocks: Block[] }[] = [
+const SECTIONS: { title: string; id?: string; blocks: Block[] }[] = [
   {
     title: "1. Scope and collection notices",
     blocks: [
@@ -204,23 +207,14 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
   },
   {
     title: "8. Cookies",
+    // #783 §2.2: bilingual like the banner — EN + 繁中 / 简中 via
+    // legal.privacy_cookies.* (the rest of the long-form policy stays EN).
+    id: "cookies",
     blocks: [
-      {
-        kind: "p",
-        text: "We may use cookies and similar technologies for sign-in, session management, security and preferences, and collect technical and usage information for troubleshooting and administration. Relevant service providers may process this information under Sections 6–7.",
-      },
-      {
-        kind: "p",
-        text: "You can manage cookies through your browser; blocking them may disable functions. Additional tracking, if used, will be explained through an appropriate notice, with consent obtained where required.",
-      },
-      {
-        kind: "p",
-        text: "**Essential only (default).** On your first visit we ask you to choose. Until you do, and if you choose Essential only, we keep only what the site needs to work: your sign-in session, language and display-currency preferences, and on-device drafts and saved searches. Tutor profile views and enquiry clicks are counted with a temporary random key that is erased when the browser tab closes.",
-      },
-      {
-        kind: "p",
-        text: "**Accept all.** If you choose Accept all, that random key is kept on your device so repeat visits are counted once. It is not linked to your account, name, IP address or device details. We do not use advertising or cross-site tracking cookies. You can change your choice at any time below.",
-      },
+      { kind: "p", i18nKey: "legal.privacy_cookies.uses" },
+      { kind: "p", i18nKey: "legal.privacy_cookies.manage" },
+      { kind: "p", i18nKey: "legal.privacy_cookies.essential_default" },
+      { kind: "p", i18nKey: "legal.privacy_cookies.accept_all" },
     ],
   },
   {
@@ -354,6 +348,7 @@ function renderInline(text: string) {
 }
 
 function PrivacyPolicyPage() {
+  const { t } = useTranslation();
   return (
     <PublicPage>
       <PageIntro
@@ -372,7 +367,7 @@ function PrivacyPolicyPage() {
             {SECTIONS.map((section) => (
               <article
                 key={section.title}
-                id={section.title.startsWith("8.") ? "cookies" : undefined}
+                id={section.id ?? undefined}
                 className="scroll-mt-24 border-b border-border pb-12 last:border-b-0 last:pb-0"
               >
                 <h2 className="text-2xl font-bold text-foreground sm:text-3xl">{section.title}</h2>
@@ -391,12 +386,12 @@ function PrivacyPolicyPage() {
                       </ul>
                     ) : (
                       <p key={index} className="whitespace-pre-wrap">
-                        {renderInline(block.text)}
+                        {renderInline(block.i18nKey ? t(block.i18nKey) : (block.text ?? ""))}
                       </p>
                     ),
                   )}
                   {/* #783 §2.2: change the cookie choice (EN + 繁中). */}
-                  {section.title.startsWith("8.") ? <CookieSettingsPanel /> : null}
+                  {section.id === "cookies" ? <CookieSettingsPanel /> : null}
                 </div>
               </article>
             ))}

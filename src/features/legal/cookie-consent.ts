@@ -3,8 +3,9 @@ import { useSyncExternalStore } from "react";
 /**
  * #783 §2.2: cookie / analytics consent. "essential" is the default until
  * the visitor chooses; only "all" lets non-essential storage persist (today:
- * the anonymous engagement viewer key). Stored per browser; changeable any
- * time from Privacy → Cookies.
+ * the anonymous engagement viewer key and the business-page analytics
+ * session id). Stored per browser; changeable any time from Privacy →
+ * Cookies.
  */
 
 export type CookieConsent = "all" | "essential";
@@ -12,7 +13,7 @@ export type CookieConsent = "all" | "essential";
 const STORAGE_KEY = "mm_cookie_consent_v1";
 const EVENT = "mm-cookie-consent";
 /** Non-essential keys removed when the visitor picks Essential only. */
-const NON_ESSENTIAL_KEYS = ["matchmax.viewer_key"];
+const NON_ESSENTIAL_KEYS = ["matchmax.viewer_key", "mm-track-session"];
 
 function read(): CookieConsent | null {
   if (typeof window === "undefined") return null;
