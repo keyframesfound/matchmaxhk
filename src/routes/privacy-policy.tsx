@@ -29,9 +29,7 @@ Address: Shop T163, 3/F, The Capital, 61–65 Chatham Road South, Tsim Sha Tsui,
 Privacy contact: MatchMax Data Protection Contact
 Email: contact@matchmax.hk`;
 
-type Block =
-  | { kind: "p"; text?: string; i18nKey?: string }
-  | { kind: "ul"; items: string[] };
+type Block = { kind: "p"; text?: string; i18nKey?: string } | { kind: "ul"; items: string[] };
 
 const SECTIONS: { title: string; id?: string; blocks: Block[] }[] = [
   {
