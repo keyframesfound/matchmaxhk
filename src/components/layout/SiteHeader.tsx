@@ -1,10 +1,8 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  Bookmark,
   Building2,
   BookOpen,
   CircleHelp,
-  Compass,
   Globe,
   Menu,
   Moon,
@@ -38,7 +36,6 @@ import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { useTheme } from "@/features/theme/ThemeProvider";
-import { requestTour, TOUR_STORAGE_KEYS } from "@/features/tours/tour-requests";
 import { CENTRE_MARKET_ENABLED } from "@/lib/feature-flags";
 import { cn } from "@/lib/utils";
 
@@ -102,18 +99,22 @@ function DesktopTab({
       {...(search ? { search: search as never } : {})}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group relative flex h-full items-center gap-1.5 whitespace-nowrap px-2 text-[15px] font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-3 2xl:gap-2 2xl:px-4 2xl:text-base",
+        "group relative flex h-full items-center gap-2 whitespace-nowrap px-2.5 text-[15px] font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:gap-2.5 xl:px-3 xl:text-base 2xl:px-4",
         active
           ? "text-[color:var(--ink)]"
           : "text-[color:var(--ink)]/60 hover:text-[color:var(--ink)]",
       )}
     >
+      {/* #793 §2.1: Airbnb category weight — 36×36 glyphs from xl (1280)
+          through 1920, with 16px labels so the tabs are not timid beside the
+          compact search pill. Flat text only; membership/destinations
+          unchanged (Find · Case · Marketplace · Manage · Saved). */}
       <img
         src={icon}
         alt=""
         aria-hidden="true"
         draggable={false}
-        className="h-7 w-7 shrink-0 dark:invert-[0.85] dark:hue-rotate-180 xl:h-8 xl:w-8"
+        className="h-8 w-8 shrink-0 dark:invert-[0.85] dark:hue-rotate-180 xl:h-9 xl:w-9"
       />
       {children}
       {/* Active underline + hover sweep: 2px ink bar that scales in from the
@@ -382,16 +383,41 @@ export function SiteHeader({
                 align="end"
                 className="w-80 overflow-hidden rounded-2xl border-[color:var(--ink)]/10 bg-[color:var(--surface)] p-0"
               >
-                {user ? (
+                {/* #793 §2.5 (2026-11-18): lean, Airbnb-style Mac menu. The
+                    Join MatchMax card leads; Saved Posts (a duplicate of the
+                    center Saved tab and the phone bottom bar) and the
+                    Dashboard tour row are dropped; Language / currency /
+                    Dark mode stay secondary rows. Guide stays menu-only —
+                    never a center tab. Phone /me keeps its own, richer
+                    inventory. */}
+                {!user && (
                   <div className="px-1.5 py-1.5">
                     <DropdownMenuItem asChild className={menuLinkClassName}>
-                      <Link to="/saved-posts">
-                        <MenuIcon>
-                          <Bookmark className="size-5" />
-                        </MenuIcon>
-                        {t("nav.saved_posts")}
-                      </Link>
+                      <Link to="/auth">{t("nav.sign_in")}</Link>
                     </DropdownMenuItem>
+                  </div>
+                )}
+                <div className="px-1.5 py-1.5">
+                  <DropdownMenuItem asChild className={menuCardClassName}>
+                    <Link to="/join">
+                      <span className="min-w-0 flex-1">
+                        <span className="block font-medium leading-5">{t("nav.become_tutor")}</span>
+                        <span className="mt-1 block text-[13px] font-normal leading-4 text-[color:var(--ink)]/60">
+                          {t("nav.become_tutor_subtitle")}
+                        </span>
+                      </span>
+                      <img
+                        src="/nav-become-tutor.png"
+                        alt=""
+                        aria-hidden="true"
+                        draggable={false}
+                        className="h-12 w-12 shrink-0 object-contain dark:invert-[0.85] dark:hue-rotate-180"
+                      />
+                    </Link>
+                  </DropdownMenuItem>
+                </div>
+                {user && (
+                  <div className="px-1.5 py-1.5">
                     {/* #459 §B: centres are a Workspace link, never a third mode. */}
                     {hasOrg && (
                       <p className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground">
@@ -442,21 +468,6 @@ export function SiteHeader({
                         {t("nav.settings")}
                       </Link>
                     </DropdownMenuItem>
-                    {/* Launch/replay the tutor dashboard tour from any page. */}
-                    {(hasRole("tutor") || isAdmin) && (
-                      <DropdownMenuItem
-                        onSelect={() => {
-                          requestTour(TOUR_STORAGE_KEYS.tutor);
-                          void navigate({ to: "/dashboard", hash: "my-tutor" });
-                        }}
-                        className={menuLinkClassName}
-                      >
-                        <MenuIcon>
-                          <Compass className="size-5" />
-                        </MenuIcon>
-                        {t("nav.dashboard_tour")}
-                      </DropdownMenuItem>
-                    )}
                     {isAdmin && (
                       <DropdownMenuItem asChild className={menuLinkClassName}>
                         <Link to="/admin">
@@ -467,12 +478,6 @@ export function SiteHeader({
                         </Link>
                       </DropdownMenuItem>
                     )}
-                  </div>
-                ) : (
-                  <div className="px-1.5 py-1.5">
-                    <DropdownMenuItem asChild className={menuLinkClassName}>
-                      <Link to="/auth">{t("nav.sign_in")}</Link>
-                    </DropdownMenuItem>
                   </div>
                 )}
                 <MenuDivider />
@@ -513,26 +518,6 @@ export function SiteHeader({
                         <CircleHelp className="size-5" />
                       </MenuIcon>
                       {t("nav.help")}
-                    </Link>
-                  </DropdownMenuItem>
-                </div>
-                <MenuDivider />
-                <div className="px-1.5 py-1.5">
-                  <DropdownMenuItem asChild className={menuCardClassName}>
-                    <Link to="/join">
-                      <span className="min-w-0 flex-1">
-                        <span className="block font-medium leading-5">{t("nav.become_tutor")}</span>
-                        <span className="mt-1 block text-[13px] font-normal leading-4 text-[color:var(--ink)]/60">
-                          {t("nav.become_tutor_subtitle")}
-                        </span>
-                      </span>
-                      <img
-                        src="/nav-become-tutor.png"
-                        alt=""
-                        aria-hidden="true"
-                        draggable={false}
-                        className="h-12 w-12 shrink-0 object-contain dark:invert-[0.85] dark:hue-rotate-180"
-                      />
                     </Link>
                   </DropdownMenuItem>
                 </div>

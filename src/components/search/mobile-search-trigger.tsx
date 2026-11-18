@@ -6,10 +6,10 @@ import { cn } from "@/lib/utils";
 
 /**
  * Mobile Airbnb-style search entry: a shadow-elevated "Start your search"
- * bar above the quick-nav pills row (Marketplace / Case / Calendar / Become a Tutor)
- * that doubles as the mobile top navigation. The block bleeds to the true
- * screen edges (canceling the parent px-4/px-6 container) and the pills row
- * scrolls with cut-off pills touching the screen edge, like Airbnb. The
+ * bar above the quick-nav pills row (Marketplace / Case / Join MatchMax /
+ * Manage) that doubles as the mobile top navigation. The block bleeds to the
+ * true screen edges (canceling the parent px-4/px-6 container) and the pills
+ * row scrolls with cut-off pills touching the screen edge, like Airbnb. The
  * pill shadows live in styles.css (`.pill-elevate*`), the one sanctioned
  * exception to the flat-design rule.
  */
@@ -33,8 +33,10 @@ export function MobileSearchTrigger({
   const search = useRouterState({ select: (state) => state.location.searchStr ?? "" });
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
 
-  // #594 CEO lock (2026-11-03), owner order: phone pills L→R Marketplace ·
-  // Case · Manage · Become a Tutor (Manage = Case Manager, /calendar). Guide lives in the menu / Help (as on Mac).
+  // #793 §2.2 CEO lock (2026-11-18): phone pills L→R Marketplace ·
+  // Case · Join MatchMax · Manage (Manage = Case Manager, /calendar). The
+  // Join pill carries the uniform nav.become_tutor label and stays on this
+  // row as the tutor-entry CTA. Guide lives in the menu / Help (as on Mac).
   const notesActive = pathname === "/tutors" && search.includes("view=materials");
   const navPills: {
     key: string;
@@ -60,18 +62,18 @@ export function MobileSearchTrigger({
       active: isActive("/tutor-requests"),
     },
     {
-      key: "calendar",
-      label: t("nav.tab_calendar"),
-      to: "/calendar",
-      icon: "/nav-manage.png",
-      active: isActive("/calendar"),
-    },
-    {
       key: "join",
       label: t("nav.become_tutor"),
       to: "/join",
       icon: "/nav-become-tutor.png",
       active: isActive("/join"),
+    },
+    {
+      key: "calendar",
+      label: t("nav.tab_calendar"),
+      to: "/calendar",
+      icon: "/nav-manage.png",
+      active: isActive("/calendar"),
     },
   ];
 
@@ -123,7 +125,7 @@ export function MobileSearchTrigger({
               {...(pill.search ? { search: pill.search } : {})}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "pill-elevate flex shrink-0 items-center justify-center rounded-full border px-3.5 py-2.5 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "pill-elevate flex shrink-0 items-center justify-center rounded-full border px-4 py-3 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 active &&
                   "pill-elevate-strong border-transparent bg-muted font-bold text-[color:var(--ink)] dark:border-[color:var(--foreground)] dark:bg-card",
                 !active &&
@@ -131,12 +133,14 @@ export function MobileSearchTrigger({
               )}
             >
               <span className="flex items-center justify-center gap-2">
+                {/* #793 §2.2: 24px glyphs + py-3 keep the tap target (~48px)
+                    from reading timid next to the search trigger bar. */}
                 <img
                   src={pill.icon}
                   alt=""
                   aria-hidden="true"
                   draggable={false}
-                  className="h-[22px] w-[22px] shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
+                  className="h-6 w-6 shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
                 />
                 <span>{pill.label}</span>
               </span>
