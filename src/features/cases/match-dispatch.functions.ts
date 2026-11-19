@@ -309,11 +309,12 @@ export const matchCaseTutor = createServerFn({ method: "POST" })
         district: string | null;
         who_for: string | null;
         sor_status: string | null;
+        mode: string | null;
       }
     >(
       db,
       "tutoring_cases",
-      "id, case_code, status, matched_tutor_id, organisation_id, parent_id, subjects, student_level, district, who_for, sor_status",
+      "id, case_code, status, matched_tutor_id, organisation_id, parent_id, subjects, student_level, district, who_for, sor_status, mode",
       [{ col: "id", op: "eq", value: data.caseId }],
     );
     const c = cases[0];
@@ -322,6 +323,24 @@ export const matchCaseTutor = createServerFn({ method: "POST" })
       // Issue #412: a compliance-held request cannot be matched until staff
       // re-screen and clear the hold.
       throw new Error("COMPLIANCE_HOLD");
+    }
+
+    // #783 §2.6 (#529 item 9): a serial hopper's next dispatch is an online
+    // trial only. Staff either set the case to online or resolve the flag
+    // (a human decision). MatchMax never takes an L1 deposit instead.
+    if (c.mode !== "online") {
+      const hopperFlags = await selectRows<{ resolved_at: string | null }>(
+        db,
+        "case_risk_flags",
+        "resolved_at",
+        [
+          { col: "case_id", op: "eq", value: c.id },
+          { col: "flag_type", op: "eq", value: "SERIAL_HOPPER_PARENT" },
+        ],
+      );
+      if (hopperFlags.some((f) => f.resolved_at === null)) {
+        throw new Error("SERIAL_HOPPER_ONLINE_ONLY");
+      }
     }
 
     // #772 Part 1: while this request's trial is live, the matched tutor owns

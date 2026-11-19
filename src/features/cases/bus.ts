@@ -14,6 +14,8 @@ export const BUS_EVENT_TYPES = [
   "case.demand_side_updated",
   "lesson.done",
   "lesson.reminder_due",
+  // #783 §2.6: T-16h Lesson 1 "confirm contact" nudge (tutor only).
+  "lesson.contact_nudge",
   "admin_fee.invoiced",
   "admin_fee.unpaid",
   "note_order.delivered",
@@ -82,6 +84,8 @@ export const BELL_EVENT_TYPES: readonly string[] = [
   "admin_fee.invoiced",
   "admin_fee.unpaid",
   "lesson.reminder_due",
+  // #783 §2.6: T-16h Lesson 1 "confirm contact" nudge (tutor only).
+  "lesson.contact_nudge",
   "lesson.review_prompt",
   "experience.session_logged",
   // #503 soft prompt after one side taps End Case.
@@ -236,6 +240,7 @@ export const DELIVERY_PLAN: Readonly<
     { channel: "in_app", role: "parent" },
     { channel: "in_app", role: "tutor" },
   ],
+  "lesson.contact_nudge": [{ channel: "in_app", role: "tutor" }],
   // #259 / #444 tutor-pays: the payer of the admin fee is the matched tutor,
   // so invoice + due-date reminders reach the tutor, never the parent.
   "admin_fee.invoiced": [{ channel: "in_app", role: "tutor" }],
@@ -415,6 +420,8 @@ export function bellLinkFor(
     case "case.end_requested_by_tutor":
       if (role === "tutor") return tutorHome;
       return caseId ? `/account/cases/${caseId}` : "/account";
+    case "lesson.contact_nudge":
+      return tutorHome;
     case "lesson.reminder_due":
       if (role === "tutor") return tutorHome;
       return caseId ? `/account/cases/${caseId}` : "/account";

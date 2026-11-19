@@ -8,6 +8,11 @@ import {
   REVIEW_PROMPT_DELAY_MS,
   SKIPPED_EVENT_TYPES,
 } from "../../src/features/cases/bus";
+import {
+  eventKey,
+  shouldCreateContactNudge,
+  type ContactNudgeLesson,
+} from "../../src/features/cases/bus-pure";
 
 describe("bus planning (#205/#292)", () => {
   it("plans in-app for the bell events", () => {
@@ -139,5 +144,50 @@ describe("bus planning (#205/#292)", () => {
     expect(redactBellPayload("admin_fee.invoiced", { amount_hkd: 750 }, "parent")).toEqual({
       amount_hkd: 750,
     });
+  });
+});
+
+describe("#783 §2.6 T-16h contact nudge", () => {
+  const now = new Date("2026-11-19T00:00:00Z");
+  const lesson = (over: Partial<ContactNudgeLesson>): ContactNudgeLesson => ({
+    id: "l1",
+    starts_at: "2026-11-19T10:00:00Z",
+    status: "planned",
+    sequence: 1,
+    confirmed_by_tutor_at: null,
+    ...over,
+  });
+
+  it("nudges an unconfirmed Lesson 1 inside 16h, once", () => {
+    expect(shouldCreateContactNudge(lesson({}), now, new Set())).toBe(true);
+    expect(
+      shouldCreateContactNudge(lesson({}), now, new Set([eventKey("lesson.contact_nudge", "l1")])),
+    ).toBe(false);
+  });
+
+  it("skips confirmed, later, past or non-L1 lessons", () => {
+    expect(
+      shouldCreateContactNudge(
+        lesson({ confirmed_by_tutor_at: now.toISOString() }),
+        now,
+        new Set(),
+      ),
+    ).toBe(false);
+    expect(
+      shouldCreateContactNudge(lesson({ starts_at: "2026-11-19T17:00:00Z" }), now, new Set()),
+    ).toBe(false);
+    expect(
+      shouldCreateContactNudge(lesson({ starts_at: "2026-11-18T23:00:00Z" }), now, new Set()),
+    ).toBe(false);
+    expect(shouldCreateContactNudge(lesson({ sequence: 2 }), now, new Set())).toBe(false);
+    expect(shouldCreateContactNudge(lesson({ status: "cancelled" }), now, new Set())).toBe(false);
+  });
+
+  it("goes to the tutor bell only and links to the tutor home", () => {
+    const res = planDeliveriesForEvent("lesson.contact_nudge");
+    expect(res).toEqual({ kind: "deliver", deliveries: [{ channel: "in_app", role: "tutor" }] });
+    expect(bellLinkFor("lesson.contact_nudge", { case_id: "c1" }, "tutor")).toBe(
+      "/dashboard#lessons",
+    );
   });
 });

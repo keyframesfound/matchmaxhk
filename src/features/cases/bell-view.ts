@@ -158,6 +158,8 @@ export function bellLabelKey(item: BellLabelInput): string {
       return "sor.bell_review_prompt";
     case "lesson.reminder_due":
       return "sor.bell_lesson_tomorrow";
+    case "lesson.contact_nudge":
+      return "sor.bell_contact_nudge";
     case "experience.session_logged":
       return "sor.bell_session_logged";
     case "case.end_requested_by_parent":
@@ -234,7 +236,11 @@ export function bellIcon(eventType: string): LucideIcon {
   if (eventType === "connect.request" || eventType === "connect.accepted") return Users;
   if (eventType === "review.published" || eventType === "lesson.review_prompt") return Star;
   if (eventType.startsWith("lesson.cancelled")) return CalendarX;
-  if (eventType.startsWith("lesson.scheduled") || eventType === "lesson.reminder_due")
+  if (
+    eventType.startsWith("lesson.scheduled") ||
+    eventType === "lesson.reminder_due" ||
+    eventType === "lesson.contact_nudge"
+  )
     return CalendarClock;
   if (eventType === "experience.session_logged") return GraduationCap;
   // #613 roster attendance (single commented block; inbox chrome is #614).

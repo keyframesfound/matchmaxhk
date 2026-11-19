@@ -47,6 +47,30 @@ export function shouldCreateReminder(
   return !existingEventKeys.has(eventKey("lesson.reminder_due", lesson.id));
 }
 
+/**
+ * #783 §2.6 (#529 item 6): T-16h "confirmed contact" nudge. Lesson 1 starts
+ * within this many hours and the tutor has not confirmed it yet → one bell
+ * to the tutor. The T-12h desk alert (isGhostRisk) is the escalation.
+ */
+export const CONTACT_NUDGE_HOURS = 16;
+
+export type ContactNudgeLesson = ReminderLesson & {
+  sequence: number;
+  confirmed_by_tutor_at: string | null;
+};
+
+export function shouldCreateContactNudge(
+  lesson: ContactNudgeLesson,
+  now: Date,
+  existingEventKeys: ReadonlySet<string>,
+): boolean {
+  if (lesson.sequence !== 1 || lesson.confirmed_by_tutor_at) return false;
+  if (lesson.status !== "planned" && lesson.status !== "confirmed") return false;
+  const startsIn = Date.parse(lesson.starts_at) - now.getTime();
+  if (!(startsIn > 0 && startsIn <= CONTACT_NUDGE_HOURS * 60 * 60 * 1000)) return false;
+  return !existingEventKeys.has(eventKey("lesson.contact_nudge", lesson.id));
+}
+
 export type DoneEvent = {
   id: string;
   payload: Record<string, unknown>;

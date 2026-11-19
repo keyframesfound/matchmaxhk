@@ -31,9 +31,11 @@ import {
   eventKey,
   debounceCutoffIso,
   shouldCreateConciergeDigest,
+  shouldCreateContactNudge,
   shouldCreateParentFeeReminder,
   shouldCreateReminder,
   shouldCreateReviewPrompt,
+  type ContactNudgeLesson,
   type DoneEvent,
   type OpenFee,
   type ReminderLesson,
@@ -153,6 +155,37 @@ async function generateReminderEvents(db: Db, now: Date): Promise<void> {
       l.id,
     );
     keys.add(eventKey("lesson.reminder_due", l.id));
+  }
+}
+
+/** #783 §2.6: one T-16h nudge per unconfirmed Lesson 1 (tutor bell). */
+async function generateContactNudges(db: Db, now: Date): Promise<void> {
+  const lessons = await selectRows<ContactNudgeLesson & { case_id: string }>(
+    db,
+    "case_lessons",
+    "id, case_id, starts_at, status, sequence, confirmed_by_tutor_at",
+    [
+      { col: "status", op: "in", value: ["planned", "confirmed"] },
+      { col: "sequence", op: "eq", value: 1 },
+    ],
+  );
+  const candidates = lessons.filter((l) => shouldCreateContactNudge(l, now, new Set()));
+  if (candidates.length === 0) return;
+
+  const existing = await selectRows<{ source_id: string | null }>(db, "case_events", "source_id", [
+    { col: "event_type", op: "eq", value: "lesson.contact_nudge" },
+    { col: "source_id", op: "in", value: candidates.map((l) => l.id) },
+  ]);
+  const keys = new Set(existing.map((e) => eventKey("lesson.contact_nudge", e.source_id)));
+  for (const l of candidates) {
+    if (!shouldCreateContactNudge(l, now, keys)) continue;
+    await insertEvent(
+      db,
+      "lesson.contact_nudge",
+      { case_id: l.case_id, lesson_id: l.id, starts_at: l.starts_at },
+      l.id,
+    );
+    keys.add(eventKey("lesson.contact_nudge", l.id));
   }
 }
 
@@ -703,6 +736,11 @@ export async function drainInternal(db: Db, now: Date = new Date()): Promise<voi
     console.error("[bus] reminder generation failed", err);
   }
   try {
+    await generateContactNudges(db, now);
+  } catch (err) {
+    console.error("[bus] contact nudge generation failed", err);
+  }
+  try {
     await generateReviewPrompts(db, now);
   } catch (err) {
     console.error("[bus] review prompt generation failed", err);
@@ -886,6 +924,8 @@ export const getMyBell = createServerFn({ method: "POST" })
             roleHint = "tutor";
           } else if (eventType === "case.end_requested_by_tutor") {
             roleHint = "parent";
+          } else if (eventType === "lesson.contact_nudge") {
+            roleHint = "tutor";
           } else if (eventType === "lesson.reminder_due") {
             const caseId = typeof payload.case_id === "string" ? payload.case_id : null;
             roleHint =

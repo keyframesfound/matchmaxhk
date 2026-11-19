@@ -167,6 +167,12 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
         toast.error("Compliance hold: re-screen this request before matching a tutor.");
         return;
       }
+      if (e.message === "SERIAL_HOPPER_ONLINE_ONLY") {
+        toast.error(
+          "Serial hopper flag: the next dispatch must be an online trial. Set the case to online, or resolve the flag in Trust & Safety.",
+        );
+        return;
+      }
       toast.error(e.message);
     },
   });
