@@ -46,6 +46,8 @@ export const REPORT_TARGET_TYPES = [
 ] as const;
 
 export const REPORT_REASONS = [
+  // #782 §2.4: Urgent Safety / Illegal Activity / contraband (P0, listed first).
+  "urgent_safety",
   "contact_details",
   "inappropriate_image",
   "copyright",
@@ -81,6 +83,8 @@ export type ReportRow = {
 /** Staff-side row: adds the reporter identity + email (never tutor-facing). */
 export type AdminReportRow = ReportRow & {
   reporter_id: string;
+  /** #782 §2.4: the reported tutor card (staff Emergency Suspend target). */
+  tutor_id?: string | null;
   reporter_email: string | null;
 };
 
@@ -257,6 +261,18 @@ export const submitReport = createServerFn({ method: "POST" })
       throw new Error(error.message || "Failed to submit report");
     }
 
+    // #782 §2.4: Urgent Safety auto-quarantine (1 verified-matched or 3
+    // distinct unmatched reporters). Never throws; the report is filed.
+    if (data.reason === "urgent_safety") {
+      const { applyUrgentSafetyRules } = await import("@/features/trust/quarantine.functions");
+      await applyUrgentSafetyRules({
+        reporterId: context.userId,
+        targetType: data.targetType,
+        targetId: data.targetId,
+        tutorId,
+      });
+    }
+
     // #573 / SOP §4.1: a published listing with 3 open P1 reports (copyright,
     // contact details, impersonation) hides itself until staff review. The
     // owner cannot unhide while a P1 report is open (setNoteHidden).
@@ -350,7 +366,7 @@ export const listReportsAdmin = createServerFn({ method: "POST" })
             opts: { ascending: boolean },
           ) => {
             limit: (n: number) => Promise<{
-              data: Array<ReportRow & { reporter_id: string }> | null;
+              data: Array<ReportRow & { reporter_id: string; tutor_id?: string | null }> | null;
               error?: { message?: string };
             }>;
           };
@@ -359,7 +375,7 @@ export const listReportsAdmin = createServerFn({ method: "POST" })
     };
     const { data, error } = await admin
       .from("reports")
-      .select("id, target_type, target_id, reason, note, status, created_at, reporter_id")
+      .select("id, target_type, target_id, reason, note, status, created_at, reporter_id, tutor_id")
       .order("created_at", { ascending: false })
       .limit(200);
     if (error) throw new Error(error.message);

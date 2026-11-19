@@ -476,7 +476,9 @@ function ReportDialog({
               {t("report.sent_title")}
             </DialogTitle>
             <DialogDescription className="mt-2 max-w-[280px] text-sm leading-relaxed text-muted-foreground">
-              {t("report.sent_description")}
+              {reason === "urgent_safety"
+                ? t("report.sent_urgent_description")
+                : t("report.sent_description")}
             </DialogDescription>
             <Button
               type="button"

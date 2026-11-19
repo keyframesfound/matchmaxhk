@@ -351,7 +351,13 @@ export function deliveredFooterText(input: {
 // ---------------------------------------------------------------------------
 
 /** Report reasons that are P1 for notes listings (24h, interim hide). */
-export const P1_REPORT_REASONS = ["copyright", "contact_details", "impersonation"] as const;
+export const P1_REPORT_REASONS = [
+  "copyright",
+  "contact_details",
+  "impersonation",
+  // #782 §2.4: an open urgent safety report also keeps a listing hidden.
+  "urgent_safety",
+] as const;
 export const P1_AUTO_HIDE_OPEN_REPORTS = 3;
 
 export function isP1ReportReason(reason: string): boolean {

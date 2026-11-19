@@ -21,6 +21,10 @@ import {
   type TrustQueueRow,
 } from "@/features/trust/trust-queue.functions";
 import { resolveCaseRiskFlag } from "@/features/trust/trust.functions";
+import {
+  listSafetyQuarantines,
+  releaseSafetyQuarantine,
+} from "@/features/trust/quarantine.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/trust-safety")({
   head: () => ({
@@ -182,6 +186,7 @@ function AdminTrustSafety() {
           </ConsoleTableBody>
         </ConsoleTable>
       </section>
+      <QuarantineSection />
       <ContrabandHitsSection />
     </div>
   );
@@ -232,6 +237,106 @@ function ContrabandHitsSection() {
                 <ConsoleTd>{row.surface}</ConsoleTd>
                 <ConsoleTd>
                   <span className="font-mono text-xs">{row.user_id?.slice(0, 8) ?? "—"}</span>
+                </ConsoleTd>
+              </tr>
+            ))
+          )}
+        </ConsoleTableBody>
+      </ConsoleTable>
+    </section>
+  );
+}
+
+const TRIGGER_LABELS: Record<string, string> = {
+  verified_report: "Auto: matched reporter",
+  unmatched_threshold: "Auto: 3 unmatched reporters",
+  emergency_suspend: "Emergency Suspend",
+};
+
+/** #782 §2.4: quarantined profiles / listings and Emergency Suspends; staff release. */
+function QuarantineSection() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const list = useQuery({
+    queryKey: ["admin", "safety-quarantines"],
+    queryFn: () => listSafetyQuarantines(),
+    enabled: Boolean(user),
+  });
+  const release = useMutation({
+    mutationFn: (quarantineId: string) => releaseSafetyQuarantine({ data: { quarantineId } }),
+    onSuccess: () => {
+      toast.success("Released. The profile / listing is visible again.");
+      void queryClient.invalidateQueries({ queryKey: ["admin", "safety-quarantines"] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Release failed."),
+  });
+  const rows = list.data ?? [];
+  const open = rows.filter((r) => !r.released_at).length;
+  return (
+    <section className="mt-10">
+      <h3 className="pb-1 text-sm font-semibold tracking-tight">
+        Quarantine &amp; Emergency Suspend ({open} active)
+      </h3>
+      <p className="pb-3 text-xs text-muted-foreground">
+        Urgent Safety reports auto-quarantine on 1 matched reporter or 3 unmatched reporters.
+        Review, then release or keep. Reporter identity is never shown to the tutor.
+      </p>
+      <ConsoleTable minTableWidth="760px">
+        <ConsoleTableHead>
+          <tr>
+            <ConsoleTh>When</ConsoleTh>
+            <ConsoleTh>Trigger</ConsoleTh>
+            <ConsoleTh>Tutor</ConsoleTh>
+            <ConsoleTh>Note</ConsoleTh>
+            <ConsoleTh align="right">Actions</ConsoleTh>
+          </tr>
+        </ConsoleTableHead>
+        <ConsoleTableBody>
+          {list.isLoading ? (
+            <ConsoleTableSkeletonRows columns={5} />
+          ) : rows.length === 0 ? (
+            <ConsoleTableEmpty
+              colSpan={5}
+              icon={ShieldAlert}
+              title="Nothing quarantined"
+              description="Auto-quarantines and Emergency Suspends appear here."
+            />
+          ) : (
+            rows.map((row) => (
+              <tr key={row.id}>
+                <ConsoleTd>{new Date(row.created_at).toLocaleString("en-HK")}</ConsoleTd>
+                <ConsoleTd>
+                  {TRIGGER_LABELS[row.trigger_kind] ?? row.trigger_kind}
+                  {row.material_id ? " · listing" : ""}
+                </ConsoleTd>
+                <ConsoleTd>
+                  {row.tutors?.tutor_code ? (
+                    <Link
+                      to="/tutors/$tutorCode"
+                      params={{ tutorCode: row.tutors.tutor_code }}
+                      className="underline"
+                    >
+                      {row.tutors.tutor_code}
+                    </Link>
+                  ) : (
+                    "—"
+                  )}
+                </ConsoleTd>
+                <ConsoleTd className="max-w-[240px] truncate">{row.note ?? "—"}</ConsoleTd>
+                <ConsoleTd align="right">
+                  {row.released_at ? (
+                    <span className="text-xs text-muted-foreground">Released</span>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-8 px-3 text-xs font-bold"
+                      disabled={release.isPending}
+                      onClick={() => release.mutate(row.id)}
+                    >
+                      Release
+                    </Button>
+                  )}
                 </ConsoleTd>
               </tr>
             ))

@@ -31,6 +31,7 @@ import {
   type ParentCaseDetail,
 } from "@/features/cases/parent.functions";
 import { CaseContactLine } from "@/features/cases/case-contact-line";
+import { ReportButton } from "@/features/reports/report-button";
 import { disputeSession } from "@/features/cases/experience.functions";
 import { disputeHoursLeft } from "@/features/tutors/experience";
 import { ParentHoursSection } from "@/features/hours/parent-hours-section";
@@ -147,6 +148,16 @@ function ParentCaseDetailPage() {
 
             {/* #529 bait-and-switch card: who to expect at the first lesson. */}
             {data.matched_tutor ? <MatchedTutorSafetyCard tutor={data.matched_tutor} /> : null}
+            {/* #782 §2.4: Report Safety / Illegal Activity from the case. */}
+            {data.matched_tutor_id ? (
+              <div className="flex justify-end">
+                <ReportButton
+                  targetType="tutor_card"
+                  targetId={data.matched_tutor_id}
+                  label={t("report.case_tutor_label")}
+                />
+              </div>
+            ) : null}
             {/* #783 §2.5: the tutor's phone on this case, after the fee is paid. */}
             {data.tutor_contact ? (
               <CaseContactLine contact={data.tutor_contact} counterparty="tutor" />
