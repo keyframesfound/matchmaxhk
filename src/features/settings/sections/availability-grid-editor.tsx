@@ -6,31 +6,55 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { SettingsCard } from "@/features/settings/option-card";
 import { useAuth } from "@/features/auth/useAuth";
+import { AvailabilityHoursEditor } from "@/features/tutors/availability-hours-editor";
 import {
-  GRID_DAYS,
-  parseAvailabilityGrid,
-  type GridCellState,
-  type GridDay,
-} from "@/features/tutors/availability-grid-model";
-import { EditableAvailabilityGrid } from "@/features/tutors/availability-editor-fields";
+  isHourlyEmpty,
+  parseHourlyGrid,
+  projectLegacyGrid,
+  type HourlyGrid,
+} from "@/features/tutors/availability-hours-model";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
- * Issue #116: tutor self-serve weekly availability grid, in Dashboard →
- * Availability below the existing capacity card. Tap a cell to cycle
- * available → partial → unavailable (matches the TutorCircle reference's
- * three states). Saves through the update_my_availability_grid RPC so the
- * tutor can only touch this one column on their own card. The grid UI itself
- * is shared with the admin TutorEditor (availability-editor-fields.tsx).
+ * Issue #768 Part 1: tutor self-serve weekly availability, in Dashboard →
+ * Availability below the existing capacity card. Hourly cells (7 days ×
+ * 06:00–24:00) with click-and-drag plus a keyboard-only equivalent, so hours
+ * are settable without a pointer drag.
+ *
+ * Reads tutors.availability_hours and falls back to projecting the legacy 7×6
+ * grid (tutors.availability_grid) so a tutor with only legacy data sees their
+ * hours on first load. Saves through update_my_availability_hours, which only
+ * touches this one column on the tutor's own card.
  */
+
+/**
+ * The generated Database types predate availability_hours and its RPC, so both
+ * calls are typed narrowly here instead of widening the whole client.
+ */
+type HoursRow = { availability_grid: unknown; availability_hours: unknown };
+type HoursResult = { data: HoursRow | null; error: { message: string } | null };
+
+type TutorsHoursQuery = {
+  select: (columns: string) => {
+    eq: (
+      column: string,
+      value: string,
+    ) => {
+      maybeSingle: () => PromiseLike<HoursResult>;
+    };
+  };
+};
+
+type AvailabilityHoursRpc = (
+  fn: "update_my_availability_hours",
+  args: { _hours: HourlyGrid; _mark_reviewed: boolean },
+) => PromiseLike<{ error: { message: string } | null }>;
 
 export function AvailabilityGridEditor({ className }: { className?: string }) {
   const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
-  const [grid, setGrid] = useState<Record<GridDay, GridCellState[]>>(() =>
-    parseAvailabilityGrid(null),
-  );
+  const [grid, setGrid] = useState<HourlyGrid>(() => parseHourlyGrid(null));
   const [loaded, setLoaded] = useState(false);
   const [saving, setSaving] = useState(false);
   const [dirty, setDirty] = useState(false);
@@ -39,20 +63,17 @@ export function AvailabilityGridEditor({ className }: { className?: string }) {
     if (!user) return;
     let mounted = true;
     void (async () => {
-      const { data, error } = await supabase
-        .from("tutors")
-        .select("availability_grid")
+      const tutors = supabase.from("tutors") as unknown as TutorsHoursQuery;
+      const { data, error } = await tutors
+        .select("availability_grid, availability_hours")
         .eq("user_id", user.id)
         .maybeSingle();
       if (!mounted) return;
       if (error) {
         toast.error(error.message);
       } else if (data) {
-        setGrid(
-          parseAvailabilityGrid(
-            (data as unknown as { availability_grid: unknown }).availability_grid,
-          ),
-        );
+        const hours = parseHourlyGrid(data.availability_hours);
+        setGrid(isHourlyEmpty(hours) ? projectLegacyGrid(data.availability_grid) : hours);
       }
       setLoaded(true);
     })();
@@ -63,8 +84,10 @@ export function AvailabilityGridEditor({ className }: { className?: string }) {
 
   async function save() {
     setSaving(true);
-    const { error } = await supabase.rpc("update_my_availability_grid", {
-      _grid: Object.fromEntries(GRID_DAYS.map((day) => [day, grid[day]])),
+    const rpc = supabase.rpc as unknown as AvailabilityHoursRpc;
+    const { error } = await rpc("update_my_availability_hours", {
+      _hours: grid,
+      _mark_reviewed: false,
     });
     setSaving(false);
     if (error) {
@@ -86,8 +109,9 @@ export function AvailabilityGridEditor({ className }: { className?: string }) {
         <p className="text-sm text-[color:var(--ink)]/60">{t("settings.grid.loading")}</p>
       ) : (
         <div className="space-y-4">
-          <EditableAvailabilityGrid
-            grid={grid}
+          <AvailabilityHoursEditor
+            value={grid}
+            disabled={saving}
             onChange={(next) => {
               setGrid(next);
               setDirty(true);
