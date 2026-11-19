@@ -4258,12 +4258,12 @@
   },
   "home_promo": {
     "aria": "Get more from MatchMax",
-    "referral_title": "Refer a tutor · 15% cash bonus",
-    "referral_cta": "Refer a friend",
-    "impact_title": "Support free pro-bono tutoring",
+    "referral_title": "Refer a tutor — earn 15% cash",
+    "referral_cta": "See how",
+    "impact_title": "Tutor students in need",
     "impact_cta": "Learn how",
-    "upload_title": "Upload notes · sell on Marketplace",
-    "upload_cta": "Upload notes"
+    "upload_title": "Sell your study materials",
+    "upload_cta": "Upload"
   },
   "banner": {
     "value_prop": "Free for parents. Fair for tutors. Keep more with a low 1.5-lesson admin fee.",

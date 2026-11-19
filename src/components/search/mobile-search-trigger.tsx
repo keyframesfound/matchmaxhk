@@ -33,8 +33,10 @@ export function MobileSearchTrigger({
   const search = useRouterState({ select: (state) => state.location.searchStr ?? "" });
   const isActive = (to: string) => pathname === to || pathname.startsWith(`${to}/`);
 
-  // #594 CEO lock (2026-11-03), owner order: phone pills L→R Marketplace ·
-  // Case · Manage · Become a Tutor (Manage = Case Manager, /calendar). Guide lives in the menu / Help (as on Mac).
+  // #793 §2.2 CEO lock (2026-11-18): phone pills L→R Marketplace · Case ·
+  // Join MatchMax · Manage (Manage = Case Manager, /calendar). The Join pill
+  // keeps the uniform nav.become_tutor label and /join. Guide lives in the
+  // menu / Help (as on Mac).
   const notesActive = pathname === "/tutors" && search.includes("view=materials");
   const navPills: {
     key: string;
@@ -60,18 +62,18 @@ export function MobileSearchTrigger({
       active: isActive("/tutor-requests"),
     },
     {
-      key: "calendar",
-      label: t("nav.tab_calendar"),
-      to: "/calendar",
-      icon: "/nav-manage.png",
-      active: isActive("/calendar"),
-    },
-    {
       key: "join",
       label: t("nav.become_tutor"),
       to: "/join",
       icon: "/nav-become-tutor.png",
       active: isActive("/join"),
+    },
+    {
+      key: "calendar",
+      label: t("nav.tab_calendar"),
+      to: "/calendar",
+      icon: "/nav-manage.png",
+      active: isActive("/calendar"),
     },
   ];
 
@@ -123,7 +125,7 @@ export function MobileSearchTrigger({
               {...(pill.search ? { search: pill.search } : {})}
               aria-current={active ? "page" : undefined}
               className={cn(
-                "pill-elevate flex shrink-0 items-center justify-center rounded-full border px-3.5 py-2.5 text-sm whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "pill-elevate flex shrink-0 items-center justify-center rounded-full border px-4 py-2.5 text-[15px] whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
                 active &&
                   "pill-elevate-strong border-transparent bg-muted font-bold text-[color:var(--ink)] dark:border-[color:var(--foreground)] dark:bg-card",
                 !active &&
@@ -136,7 +138,7 @@ export function MobileSearchTrigger({
                   alt=""
                   aria-hidden="true"
                   draggable={false}
-                  className="h-[22px] w-[22px] shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
+                  className="h-6 w-6 shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
                 />
                 <span>{pill.label}</span>
               </span>

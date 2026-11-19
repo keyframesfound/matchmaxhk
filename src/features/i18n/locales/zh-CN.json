@@ -4258,12 +4258,12 @@
   },
   "home_promo": {
     "aria": "MatchMax 更多功能",
-    "referral_title": "推荐导师 · 15% 现金奖赏",
-    "referral_cta": "立即推荐",
-    "impact_title": "支持基层免费义务补习",
+    "referral_title": "推荐导师 — 赚取 15% 现金",
+    "referral_cta": "了解详情",
+    "impact_title": "为有需要学生补习",
     "impact_cta": "了解详情",
-    "upload_title": "上传笔记 · 在市集出售",
-    "upload_cta": "上传笔记"
+    "upload_title": "出售你的学习材料",
+    "upload_cta": "上传"
   },
   "banner": {
     "value_prop": "家长免费，导师公平。低至 1.5 课行政费，保留更多收入。",

@@ -4258,12 +4258,12 @@
   },
   "home_promo": {
     "aria": "MatchMax 更多功能",
-    "referral_title": "推薦導師 · 15% 現金獎賞",
-    "referral_cta": "立即推薦",
-    "impact_title": "支持基層免費義務補習",
+    "referral_title": "推薦導師 — 賺取 15% 現金",
+    "referral_cta": "了解詳情",
+    "impact_title": "為有需要學生補習",
     "impact_cta": "了解詳情",
-    "upload_title": "上載筆記 · 在市集出售",
-    "upload_cta": "上載筆記"
+    "upload_title": "出售你的學習材料",
+    "upload_cta": "上載"
   },
   "banner": {
     "value_prop": "家長免費，導師公平。低至 1.5 課行政費，保留更多收入。",
