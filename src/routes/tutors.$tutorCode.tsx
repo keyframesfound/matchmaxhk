@@ -97,6 +97,7 @@ import {
 } from "@/features/tutors/verticals-form";
 import { TrophyCabinet } from "@/features/tutors/trophy-cabinet";
 import { AvailabilityGrid } from "@/features/tutors/availability-grid";
+import { fetchTutorPublicAvailability } from "@/features/tutors/availability-public";
 import { TutorReviews } from "@/features/tutors/tutor-reviews";
 import { fetchMaterialsForTutor } from "@/features/materials/queries";
 import { TutorMaterialsSection } from "@/features/materials/tutor-materials-section";
@@ -493,6 +494,14 @@ function TutorDetail() {
   const { data: materials = [] } = useQuery({
     queryKey: ["tutor", "materials", t.id],
     queryFn: () => fetchMaterialsForTutor(t.id),
+  });
+
+  // Issue #768: merged Open/Occupied matrix. Resolves null when the RPC is
+  // unavailable, in which case the grid falls back to the legacy projection.
+  const { data: publicAvailability } = useQuery({
+    queryKey: ["tutor", "availability", t.id],
+    queryFn: () => fetchTutorPublicAvailability(t.id),
+    staleTime: 60_000,
   });
 
   const { data: allPublished = [] } = useQuery({
@@ -1266,6 +1275,7 @@ function TutorDetail() {
                 <ProfileSection icon={Clock} title={translate("profile.section_availability")}>
                   <AvailabilityGrid
                     grid={t.availability_grid}
+                    states={publicAvailability}
                     onPickHour={(day, hour) => {
                       const search = { post: true as const, day, hour: String(hour) };
                       void navigate({ to: "/tutor-requests", search });
