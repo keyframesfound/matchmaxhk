@@ -115,18 +115,16 @@ import {
   type PricingTier,
   type TutorAchievement,
 } from "@/features/tutors/queries";
+import { GRID_DAYS } from "@/features/tutors/availability-grid-model";
 import {
-  GRID_DAYS,
-  GRID_SLOTS,
-  emptyAvailabilityGrid,
-  parseAvailabilityGrid,
-  type GridCellState,
-  type GridDay,
-} from "@/features/tutors/availability-grid-model";
-import {
-  CapacityEditorFields,
-  EditableAvailabilityGrid,
-} from "@/features/tutors/availability-editor-fields";
+  emptyHourlyGrid,
+  isHourlyEmpty,
+  parseHourlyGrid,
+  projectLegacyGrid,
+  type HourlyGrid,
+} from "@/features/tutors/availability-hours-model";
+import { CapacityEditorFields } from "@/features/tutors/availability-editor-fields";
+import { AvailabilityHoursEditor } from "@/features/tutors/availability-hours-editor";
 import {
   EXAM_PAPER_LABELS,
   EXAM_SYSTEMS,
@@ -315,18 +313,17 @@ export const tutorFormSchema = z.object({
   is_accepting_students: z.boolean(),
   remaining_student_slots: z.coerce.number().int().min(0).max(99),
   preferred_time_windows: z.array(z.enum(PREFERRED_TIME_WINDOWS)),
-  // Always built by parseAvailabilityGrid/emptyAvailabilityGrid (full 7×6
-  // matrix), so a structural check is enough, zod records over enum keys
-  // infer Partial and fight the grid model's types.
-  availability_grid: z.custom<Record<GridDay, GridCellState[]>>((value) => {
+  // Issue #768: hourly availability is the source of truth the admin edits.
+  // Always built by parseHourlyGrid/emptyHourlyGrid (full 7×24 boolean
+  // matrix), so a structural check is enough, zod records over enum keys infer
+  // Partial and fight the grid model's types.
+  availability_hours: z.custom<HourlyGrid>((value) => {
     if (!value || typeof value !== "object") return false;
     const source = value as Record<string, unknown>;
     return GRID_DAYS.every((day) => {
       const row = source[day];
       return (
-        Array.isArray(row) &&
-        row.length === GRID_SLOTS.length &&
-        row.every((cell) => cell === "a" || cell === "p" || cell === "u")
+        Array.isArray(row) && row.length === 24 && row.every((cell) => typeof cell === "boolean")
       );
     });
   }),
@@ -421,7 +418,7 @@ export const emptyTutorForm: TutorFormData = {
   is_accepting_students: true,
   remaining_student_slots: 2,
   preferred_time_windows: [],
-  availability_grid: emptyAvailabilityGrid(),
+  availability_hours: emptyHourlyGrid(),
   languages: ["English", "Cantonese"],
   gender: "female",
   tutor_status: "",
@@ -442,6 +439,13 @@ export const emptyTutorForm: TutorFormData = {
 };
 
 export function tutorToFormData(t: Tutor): TutorFormData {
+  // Issue #768: hourly availability wins; a row the hourly editor has never
+  // touched (empty column) projects its legacy 7×6 grid so admins still see
+  // the tutor's existing hours instead of an empty grid.
+  const hourlyFromRow = parseHourlyGrid((t as { availability_hours?: unknown }).availability_hours);
+  const availabilityHours = isHourlyEmpty(hourlyFromRow)
+    ? projectLegacyGrid(t.availability_grid)
+    : hourlyFromRow;
   return {
     headline: t.headline ?? "",
     card_highlights: normalizeTutorCardHighlights(t.card_highlights, t.headline)
@@ -483,7 +487,7 @@ export function tutorToFormData(t: Tutor): TutorFormData {
     is_accepting_students: t.is_accepting_students ?? true,
     remaining_student_slots: t.remaining_student_slots ?? 2,
     preferred_time_windows: normalizePreferredTimeWindows(t.preferred_time_windows),
-    availability_grid: parseAvailabilityGrid(t.availability_grid),
+    availability_hours: availabilityHours,
     languages: t.languages ?? ["English"],
     gender: ["male", "female", "other"].includes(
       (t as unknown as { gender?: string | null }).gender ?? "",
@@ -616,7 +620,8 @@ export function formDataToPayload(v: TutorFormData) {
     is_accepting_students: v.is_accepting_students,
     remaining_student_slots: v.remaining_student_slots,
     preferred_time_windows: v.preferred_time_windows,
-    availability_grid: v.availability_grid,
+    // Issue #768: the hourly grid replaces the legacy 7×6 column on save.
+    availability_hours: v.availability_hours,
     languages: v.languages,
     gender: v.gender,
     tutor_status: v.tutor_status || null,
@@ -1457,8 +1462,10 @@ export function TutorEditor({
   // Track if form has changed
   const isEditing = Boolean(initialData);
 
-  // Live preview tutor object
-  const previewTutor = React.useMemo<Tutor>(
+  // Live preview tutor object. Issue #768: the hourly grid is what Save writes,
+  // so the preview carries the live hourly value; `availability_grid` keeps the
+  // last saved legacy grid (there is no honest hourly → legacy reverse map).
+  const previewTutor = React.useMemo<Tutor & { availability_hours: HourlyGrid }>(
     () => ({
       id: initialData?.id ?? "preview-tutor",
       created_at: initialData?.created_at ?? new Date().toISOString(),
@@ -1547,7 +1554,8 @@ export function TutorEditor({
       remaining_student_slots: form.remaining_student_slots,
       is_accepting_students: form.is_accepting_students,
       preferred_time_windows: form.preferred_time_windows,
-      availability_grid: form.availability_grid,
+      availability_hours: form.availability_hours,
+      availability_grid: initialData?.availability_grid ?? null,
       university_year_of_study: normalizeUniversityYear(form.university_year_of_study),
       university_gpa: normalizeUniversityGpa(form.university_gpa),
       university_courses: normalizeUniversityCourses(form.university_courses),
@@ -2163,12 +2171,12 @@ export function TutorEditor({
                   Weekly availability grid
                 </p>
                 <p className="text-xs text-muted-foreground">
-                  Tap a cell to cycle: available → partially available → unavailable. An empty grid
+                  Tap an hour to mark it open. Confirmed lessons show as occupied. An empty grid
                   stays hidden on the public profile.
                 </p>
-                <EditableAvailabilityGrid
-                  grid={form.availability_grid}
-                  onChange={(grid) => setForm({ ...form, availability_grid: grid })}
+                <AvailabilityHoursEditor
+                  value={form.availability_hours}
+                  onChange={(hours) => setForm({ ...form, availability_hours: hours })}
                 />
               </div>
             </EditorSection>

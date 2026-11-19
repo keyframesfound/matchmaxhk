@@ -331,16 +331,16 @@ export function MyTutorProfileSection() {
     }) => {
       // Reuse the admin editor's normalization, minus fields the tutor must
       // never change: tutor_code (their public slug) and field state. Capacity
-      // and the availability grid are omitted too, they have their own
-      // self-serve editors in the Availability section (update_my_capacity /
-      // update_my_availability_grid RPCs) and this form doesn't read them, so
+      // and availability are omitted too, they have their own self-serve
+      // editors in the Availability section (update_my_capacity /
+      // update_my_availability_hours RPCs) and this form doesn't read them, so
       // carrying them through would overwrite real values with defaults.
       const {
         tutor_code: _keepCode,
         remaining_student_slots: _slots,
         is_accepting_students: _accepting,
         preferred_time_windows: _windows,
-        availability_grid: _grid,
+        availability_hours: _hours,
         ...rest
       } = formDataToPayload(data);
       // Epic #280 P2: preferred name is owner-set, not derived from the code.

@@ -13,6 +13,7 @@
 // given Hong Kong day and flips at HKT midnight. No ML re-rank, no
 // personalisation (#627 stays parked).
 import { countAvailableCells, parseAvailabilityGrid } from "./availability-grid-model";
+import { isHourlyEmpty, parseHourlyGrid, projectLegacyGrid } from "./availability-hours-model";
 import { dailyTieKey } from "./daily-shuffle";
 import type { RankedTrending } from "./engagement";
 import type { TutorPublicStats } from "./most-requested-stats";
@@ -50,7 +51,25 @@ function isProfileComplete(tutor: Tutor): boolean {
   );
 }
 
+/**
+ * Issue #768: the hourly grid is the availability source of truth, so a tutor
+ * counts as available when
+ *   - `availability_hours` has at least one open hour, OR
+ *   - the legacy 3-state grid still projects to at least one open hour, OR
+ *   - the row has no hourly hours at all and the legacy grid carries any
+ *     non-"u" cell (pre-#768 behaviour, which also counts "p" / partial).
+ * Rows whose only signal is the hourly column therefore stay eligible instead
+ * of silently dropping off the rail.
+ */
 function hasOpenAvailability(tutor: Tutor): boolean {
+  // tutors.availability_hours is not in the generated Database types yet
+  // (#768 Part 1 owns that file), so the column is read defensively here.
+  const rawHours = (tutor as { availability_hours?: unknown }).availability_hours;
+  const hourly = parseHourlyGrid(rawHours);
+  if (!isHourlyEmpty(hourly)) return true;
+  if (!isHourlyEmpty(projectLegacyGrid(tutor.availability_grid))) return true;
+  // Known-empty hourly hours by now: preserve the legacy semantics for
+  // un-migrated rows, where "a" and "p" both mean the tutor still has room.
   return countAvailableCells(parseAvailabilityGrid(tutor.availability_grid)) > 0;
 }
 
