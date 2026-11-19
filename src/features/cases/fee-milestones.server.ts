@@ -66,6 +66,7 @@ type CaseSnapshot = {
   session_length_minutes: number | null;
   package_type: string | null;
   sor_status: string | null;
+  admin_fee_waived: boolean | null;
 };
 
 /**
@@ -82,11 +83,14 @@ export async function syncCaseFeeMilestones(
   const cases = await selectRows<CaseSnapshot>(
     db,
     "tutoring_cases",
-    "id, hourly_rate_hkd, student_count, is_short_case, scheduled_lesson_count, session_length_minutes, package_type, sor_status",
+    "id, hourly_rate_hkd, student_count, is_short_case, scheduled_lesson_count, session_length_minutes, package_type, sor_status, admin_fee_waived",
     [{ col: "id", op: "eq", value: caseId }],
   );
   const kase = cases[0];
   if (!kase) return;
+  // #783 §2.4: a BYOS_DIRECT case carries a HK$0 admin fee — no milestones,
+  // no auto-invoice (like a SELF_BROUGHT roster student).
+  if (kase.admin_fee_waived === true) return;
 
   // Enrollment source: a linked roster decides MATCHMAX_MATCHED vs
   // SELF_BROUGHT (#613); a case with no roster is a platform match (fees

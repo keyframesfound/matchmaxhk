@@ -28,7 +28,7 @@ const SubjectSchema = z.discriminatedUnion("kind", [
 export type ActiveCasesSubject = z.infer<typeof SubjectSchema>;
 
 const CASE_COLUMNS =
-  "id, case_code, created_at, sor_status, sor_status_at, case_type, organisation_id, subjects, exam_system, student_level, mode, district, hourly_rate_hkd, rate_unit, learner_nickname, parent_id, matched_tutor_id";
+  "id, case_code, created_at, sor_status, sor_status_at, case_type, organisation_id, subjects, exam_system, student_level, mode, district, hourly_rate_hkd, rate_unit, learner_nickname, parent_id, matched_tutor_id, admin_fee_waived";
 
 type CaseRow = {
   id: string;
@@ -48,6 +48,7 @@ type CaseRow = {
   learner_nickname: string | null;
   parent_id: string | null;
   matched_tutor_id: string | null;
+  admin_fee_waived?: boolean | null;
 };
 
 type TutorRow = {
@@ -206,6 +207,10 @@ async function buildProjection(
   const profile = await resolveProfile(db, subject);
   if (!profile) return EMPTY_PROJECTION;
   const rows = await toRows(db, profile.cases);
+  // #783 §2.4: BYOS_DIRECT cases carry a HK$0 admin fee.
+  const waivedCaseIds = new Set(
+    profile.cases.filter((c) => c.admin_fee_waived === true).map((c) => c.id),
+  );
   const visibility = await loadVisibility(
     db,
     rows.map((row) => row.id),
@@ -252,8 +257,9 @@ async function buildProjection(
         // The single 1.5-lesson admin-fee row: invoiced = Lesson 1 due, paid
         // = L1/L2 settled. Parents never see this (tutor-pays, #461).
         const feeStatus = feeByCase.get(row.id) ?? "none";
-        const milestone: ActiveCaseCard["feeMilestone"] =
-          feeStatus === "invoiced"
+        const milestone: ActiveCaseCard["feeMilestone"] = waivedCaseIds.has(row.id)
+          ? "waived"
+          : feeStatus === "invoiced"
             ? "invoiced"
             : feeStatus === "paid"
               ? "paid"

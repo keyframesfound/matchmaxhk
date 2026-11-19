@@ -23,6 +23,7 @@ import {
 } from "@/features/cases/sor";
 import { buildCaseFlagRow, type CaseFlagReason } from "@/features/cases/case-flags";
 import { syncCaseFeeMilestones } from "@/features/cases/fee-milestones.server";
+import { assertAdminFeeNotWaived } from "@/features/cases/fee-waiver.server";
 import { shortCaseOverrunError } from "@/features/cases/short-case";
 
 type Row = Record<string, unknown>;
@@ -386,6 +387,7 @@ export const transitionCase = createServerFn({ method: "POST" })
 
     // Side effects (#201 flow steps 8–9).
     if (to === "fee_invoiced") {
+      await assertAdminFeeNotWaived(db, c.id);
       const open = await selectRows<{ id: string }>(db, "case_fees", "id", [
         { col: "case_id", op: "eq", value: c.id },
         { col: "status", op: "in", value: ["not_due", "invoiced", "paid"] },
@@ -460,6 +462,7 @@ export const feeInvoiceCustom = createServerFn({ method: "POST" })
       { col: "id", op: "eq", value: data.caseId },
     ]);
     if (!rows[0]) throw new Error("CASE_NOT_FOUND");
+    await assertAdminFeeNotWaived(db, data.caseId);
     if (rows[0].hourly_rate_hkd == null) throw new Error("NO_RATE_ON_CASE");
     // #443: a short case's only legal fee is the 20% package fee from the
     // Short case panel — a custom multiplier here would stack a second rule

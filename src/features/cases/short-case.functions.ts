@@ -30,6 +30,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
+import { assertAdminFeeNotWaived } from "@/features/cases/fee-waiver.server";
 import type { FeeStatus } from "@/features/cases/sor-db";
 import { feeDueAtFrom } from "@/features/cases/sor";
 import { fullAdminFeeAmount } from "@/features/cases/fee-breakdown";
@@ -266,6 +267,7 @@ export const setShortCase = createServerFn({ method: "POST" })
     const db = asAdminDb(supabaseAdmin);
     await requireAdmin(db, context.userId);
     const c = await loadShortCase(db, data.caseId);
+    await assertAdminFeeNotWaived(db, data.caseId);
 
     if (!data.isShortCase) {
       // Toggle off (or convert will handle the invoice side) — clear the
@@ -395,6 +397,7 @@ export const invoiceShortCaseFee = createServerFn({ method: "POST" })
     const db = asAdminDb(supabaseAdmin);
     await requireAdmin(db, context.userId);
     const c = await loadShortCase(db, data.caseId);
+    await assertAdminFeeNotWaived(db, data.caseId);
 
     if (!c.is_short_case) throw new Error("NOT_SHORT_CASE");
     if (c.package_type === "pro_bono") throw new Error("PRO_BONO_NOT_ALLOWED");
@@ -483,6 +486,7 @@ export const convertShortCaseToStandard = createServerFn({ method: "POST" })
       const db = asAdminDb(supabaseAdmin);
       await requireAdmin(db, context.userId);
       const c = await loadShortCase(db, data.caseId);
+      await assertAdminFeeNotWaived(db, data.caseId);
       if (!c.is_short_case) throw new Error("NOT_SHORT_CASE");
       if (c.hourly_rate_hkd == null) throw new Error("NO_RATE_ON_CASE");
 
