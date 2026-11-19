@@ -3821,6 +3821,9 @@
     }
   },
   "tutor_card": {
+    "last_slot": "最後 1 個名額",
+    "active_students": "{{count}} 名在學學生",
+    "saved_by_parents": "{{count}} 位家長已收藏",
     "verified_fallback": "學術資料屬自行申報",
     "academic_achievements": "學術成績",
     "status_uni_student": "大學生",

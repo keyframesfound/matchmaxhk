@@ -3821,6 +3821,9 @@
     }
   },
   "tutor_card": {
+    "last_slot": "Last slot",
+    "active_students": "{{count}} active students",
+    "saved_by_parents": "Saved by {{count}} parents",
     "verified_fallback": "Self-reported academic profile",
     "academic_achievements": "Academic achievements",
     "status_uni_student": "Uni Student",

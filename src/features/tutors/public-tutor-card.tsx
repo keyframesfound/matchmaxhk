@@ -26,6 +26,10 @@ import {
 } from "@/features/tutors/tutor-display";
 import { groupRateFloor } from "@/features/tutors/rates";
 import {
+  selectTutorCardSocialProof,
+  type TutorCardSocialProofInput,
+} from "@/features/tutors/card-social-proof";
+import {
   isParentFavorite,
   selectDemandBadge,
   type EngagementSummary,
@@ -142,6 +146,9 @@ type PublicTutorCardProps = {
   engagement?: EngagementSummary | null;
   /** #659: Schedule Fit Score for the signed-in parent; absent shows no badge. */
   scheduleFit?: number | null;
+  /** Issue #768: strict-threshold card social proof (muted lines only). When
+   *  absent nothing extra renders, so existing call sites are unchanged. */
+  socialProof?: TutorCardSocialProofInput | null;
 };
 
 export function PublicTutorCard({
@@ -158,6 +165,7 @@ export function PublicTutorCard({
   tourId,
   engagement,
   scheduleFit,
+  socialProof,
 }: PublicTutorCardProps) {
   const { t, i18n } = useTranslation();
   // Issue #114: honor the visitor's display currency; the native-figure
@@ -215,13 +223,18 @@ export function PublicTutorCard({
   const statusKey = getTutorStatusLabelKey(tutor.tutor_status);
   // Issues #102/#151: dynamic demand badge (null = hidden, empty-restaurant
   // guard) + Parent Favorite, computed from the engagement summary prop.
-  const demandBadge = engagement
+  // Issue #768: `one_slot_left` is derived from remaining_student_slots, which
+  // the ticket forbids as a public signal; the muted "Last slot" line below
+  // replaces it, fed from the #551 calendar via the socialProof prop.
+  const selectedDemandBadge = engagement
     ? selectDemandBadge({
         remaining_student_slots: tutor.remaining_student_slots,
         inquiries_7d: engagement.inquiries_7d,
         saves_total: engagement.saves_total,
       })
     : null;
+  const demandBadge = selectedDemandBadge === "one_slot_left" ? null : selectedDemandBadge;
+  const cardSocialProof = selectTutorCardSocialProof(socialProof);
   const showParentFavorite = engagement ? isParentFavorite(engagement) : false;
   const statusLabel = statusKey ? t(statusKey) : "";
   // Issue #502: the preferred/display name is the tutor's public identity on
@@ -756,6 +769,29 @@ export function PublicTutorCard({
           ) : null}
         </section>
       </div>
+
+      {/* Issue #768: muted social proof only — no badge, pill, border or accent
+          colour. "Last slot" sits just above the footer; nothing renders when
+          all three values are absent. */}
+      {cardSocialProof.lastSlot ||
+      cardSocialProof.activeStudents !== null ||
+      cardSocialProof.savedByParents !== null ? (
+        <div className="flex flex-col gap-0.5 border-t border-border px-3 pt-2 md:px-4">
+          {cardSocialProof.lastSlot ? (
+            <p className="text-xs text-muted-foreground">{t("tutor_card.last_slot")}</p>
+          ) : null}
+          {cardSocialProof.activeStudents !== null ? (
+            <p className="text-xs text-muted-foreground">
+              {t("tutor_card.active_students", { count: cardSocialProof.activeStudents })}
+            </p>
+          ) : null}
+          {cardSocialProof.savedByParents !== null ? (
+            <p className="text-xs text-muted-foreground">
+              {t("tutor_card.saved_by_parents", { count: cardSocialProof.savedByParents })}
+            </p>
+          ) : null}
+        </div>
+      ) : null}
 
       <footer className="flex min-w-0 flex-nowrap items-center justify-between gap-2 border-t border-border px-3 py-2 md:gap-3 md:px-4 md:py-2.5 @max-sm:gap-2! @max-sm:px-3! @max-[18.5rem]:gap-1.5! @max-[18.5rem]:px-2.5!">
         {price.baseRate > 0 ? (
