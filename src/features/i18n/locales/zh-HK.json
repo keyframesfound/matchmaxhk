@@ -2366,7 +2366,7 @@
     "not_found_body": "呢個導師編號未有對應嘅已上架導師。",
     "fully_booked": "🔒 已滿額",
     "prefers_prefix": "🕒 偏好：",
-    "time_window_disclaimer": "確實時間喺查詢後協調。通常可以配合自訂時間。",
+    "time_window_disclaimer": "時間仍須導師確認，送出申請後才作實。",
     "time_window_weekday_afternoon": "平日下午",
     "time_window_weekday_evening": "平日晚上",
     "time_window_weekend_morning": "週末上午",
@@ -2382,6 +2382,7 @@
     "grid_day_sun": "日",
     "grid_cell_available": "一般有空",
     "grid_cell_unavailable": "唔提供",
+    "grid_empty": "尚未設定時間表，請直接聯絡以安排時間。",
     "section_reviews": "學生評價",
     "reviews_rating_aria": "{{rating}} 星（滿分 {{max}} 星）",
     "reviews_disclaimer": "評價嚟自試堂後嘅已驗證家長同學生，經 MatchMax 審核後先會刊登。",
@@ -3614,6 +3615,9 @@
     }
   },
   "tutor_card": {
+    "last_slot": "最後 1 個名額",
+    "active_students": "{{count}} 名在學學生",
+    "saved_by_parents": "{{count}} 位家長已收藏",
     "verified_fallback": "學術資料屬自行申報",
     "academic_achievements": "學術成績",
     "status_uni_student": "大學生",

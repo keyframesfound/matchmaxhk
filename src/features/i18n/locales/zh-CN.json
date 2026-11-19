@@ -2366,7 +2366,7 @@
     "not_found_body": "呢个导师编号未有对应嘅已上架导师。",
     "fully_booked": "🔒 已满额",
     "prefers_prefix": "🕒 偏好：",
-    "time_window_disclaimer": "确实时间喺查询后协调。通常可以配合自订时间。",
+    "time_window_disclaimer": "时间仍须导师确认，送出申请后才作实。",
     "time_window_weekday_afternoon": "平日下午",
     "time_window_weekday_evening": "平日晚上",
     "time_window_weekend_morning": "周末上午",
@@ -2382,6 +2382,7 @@
     "grid_day_sun": "日",
     "grid_cell_available": "一般有空",
     "grid_cell_unavailable": "唔提供",
+    "grid_empty": "尚未设定时间表，请直接联络以安排时间。",
     "section_reviews": "学生评价",
     "reviews_rating_aria": "{{rating}} 星（满分 {{max}} 星）",
     "reviews_disclaimer": "评价嚟自试堂后嘅已验证家长同学生，经 MatchMax 审核后先会刊登。",
@@ -3614,6 +3615,9 @@
     }
   },
   "tutor_card": {
+    "last_slot": "最后 1 个名额",
+    "active_students": "{{count}} 名在读学生",
+    "saved_by_parents": "{{count}} 位家长已收藏",
     "verified_fallback": "学术资料属自行申报",
     "academic_achievements": "学术成绩",
     "status_uni_student": "大学生",

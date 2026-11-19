@@ -2366,7 +2366,7 @@
     "not_found_body": "This tutor code doesn't match any published tutor.",
     "fully_booked": "🔒 Fully Booked",
     "prefers_prefix": "🕒 Prefers:",
-    "time_window_disclaimer": "Exact schedules coordinated upon inquiry. Custom times can often be accommodated.",
+    "time_window_disclaimer": "Times are confirmed after you send a request.",
     "time_window_weekday_afternoon": "Weekday Afternoons",
     "time_window_weekday_evening": "Weekday Evenings",
     "time_window_weekend_morning": "Weekend Mornings",
@@ -2382,6 +2382,7 @@
     "grid_day_sun": "Sun",
     "grid_cell_available": "Generally available",
     "grid_cell_unavailable": "Not offered",
+    "grid_empty": "No availability set. Message to arrange a time.",
     "section_reviews": "Reviews",
     "reviews_rating_aria": "{{rating}} out of {{max}} stars",
     "reviews_disclaimer": "Reviews are collected from verified parents and students after their trial lessons, and published by MatchMax after review.",
@@ -3614,6 +3615,9 @@
     }
   },
   "tutor_card": {
+    "last_slot": "Last slot",
+    "active_students": "{{count}} active students",
+    "saved_by_parents": "Saved by {{count}} parents",
     "verified_fallback": "Self-reported academic profile",
     "academic_achievements": "Academic achievements",
     "status_uni_student": "Uni Student",
