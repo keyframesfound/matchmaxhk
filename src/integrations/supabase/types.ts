@@ -1701,6 +1701,16 @@ export type Database = {
           saves_30d: number;
         }[];
       };
+      get_tutor_public_stats: {
+        Args: { p_tutor_ids: string[] };
+        Returns: {
+          tutor_id: string;
+          active_cases: number;
+          engagement_count: number;
+          requests_14d: number;
+          saves_14d: number;
+        }[];
+      };
       record_tutor_engagement: {
         Args: { p_tutor_id: string; p_event_type: string; p_viewer_key: string };
         Returns: undefined;
