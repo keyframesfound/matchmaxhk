@@ -81,6 +81,7 @@ import {
 import { ConsolePanel } from "@/components/ui/console-panel";
 import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { cn } from "@/lib/utils";
+import { BehaviourReportPanel } from "@/features/trust/behaviour-report-panel";
 import {
   CASE_STATUSES,
   DESK_LANGUAGE_LABEL,
@@ -825,6 +826,8 @@ export function CaseDetailView({
 
           {/* Epic #537: Drop-Protection, ownership window, trust flags (#536 engine). */}
           <DropProtectionPanel caseId={caseRow.id} />
+          {/* #782 §2.5: private pre-lesson behaviour reports + concierge strikes. */}
+          <BehaviourReportPanel caseId={caseRow.id} />
 
           {/* #657: ranked match alert waves and staff overrides. */}
           <CaseMatchWavesPanel caseId={caseRow.id} />
