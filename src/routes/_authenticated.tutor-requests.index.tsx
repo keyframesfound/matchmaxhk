@@ -67,6 +67,7 @@ import {
   parseCaseTagsParam,
 } from "@/features/cases/case-filters";
 import { parseTierParam } from "@/features/tutors/search-tiers";
+import { parseAvailabilityPrefill } from "@/features/tutors/availability-prefill";
 import type { AcademicTier } from "@/features/tutors/verticals";
 import { getPublicCaseBoard, type PublicCaseBoardItem } from "@/lib/cases.functions";
 import { useAuth } from "@/features/auth/useAuth";
@@ -84,6 +85,11 @@ type CaseBoardSearch = {
   district?: string;
   tag?: string;
   open?: true;
+  // Tutor profile slot link: /tutor-requests?post=true&day=mon&hour=14.
+  // Optional strings; malformed values are stripped by validateSearch, never
+  // passed through (see parseAvailabilityPrefill).
+  day?: string;
+  hour?: string;
 } & CaseBoardFiltersState;
 
 type CaseBoardFiltersState = {
@@ -147,6 +153,13 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
     if (search.sen === true || search.sen === "true") result.sen = true;
     const tags = parseCaseTagsParam(search.tags);
     if (tags) result.tags = tags;
+    // Tutor profile slot link (#768): the prefill pair is all-or-nothing, an
+    // unknown day or an hour outside 06..23 drops both params.
+    const availability = parseAvailabilityPrefill(search);
+    if (availability) {
+      result.day = availability.day;
+      result.hour = String(availability.hour);
+    }
     return result;
   },
   head: () => {
@@ -363,6 +376,13 @@ function TutorRequestsPage() {
   const search = Route.useSearch();
   const navigate = useNavigate({ from: "/tutor-requests/" });
   const initialPost = search.post;
+  // Tutor profile slot link (#768): prefill the request form's requested time.
+  // validateSearch already canonicalised day/hour, this re-parses so the form
+  // only ever receives a slot inside the teaching window.
+  const availabilityPrefill = useMemo(() => {
+    const parsed = parseAvailabilityPrefill({ day: search.day, hour: search.hour });
+    return parsed ? { day: parsed.day, hour: parsed.hour } : null;
+  }, [search.day, search.hour]);
   const [draft, setDraft] = useState<CaseBoardSearch>({ ...search });
   const [formOpen, setFormOpen] = useState(Boolean(initialPost));
   const [noticeOpen, setNoticeOpen] = useState(false);
@@ -603,7 +623,7 @@ function TutorRequestsPage() {
                     this board so qualified tutors can apply directly.
                   </p>
                 </div>
-                <CaseRequestForm idPrefix="tr" />
+                <CaseRequestForm idPrefix="tr" prefill={availabilityPrefill} />
               </PageContainer>
             </div>
           ) : null}

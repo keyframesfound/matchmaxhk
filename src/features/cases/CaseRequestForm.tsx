@@ -1,7 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, Check, CheckCircle2, Hash, Send } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  CalendarClock,
+  Check,
+  CheckCircle2,
+  Hash,
+  Send,
+} from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 
@@ -69,9 +77,25 @@ import {
 import { useFormDraft } from "@/lib/use-form-draft";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
 import { buildCaseTitle } from "@/features/cases/case-title";
+import {
+  parseAvailabilityPrefill,
+  prefillLabel,
+  type AvailabilityPrefill,
+} from "@/features/tutors/availability-prefill";
 import { cn } from "@/lib/utils";
 
 const PHONE_REGEX = /^[+(\d][\d\s()./+-]{4,19}\d$/;
+
+/** #768: canonical FormState token for the requested slot, "mon-14" / "". */
+function slotToken(prefill: AvailabilityPrefill): string {
+  return prefill ? `${prefill.day}-${prefill.hour}` : "";
+}
+
+/** Inverse of slotToken: unknown or tampered tokens parse back to null. */
+function slotPrefill(token: string): AvailabilityPrefill {
+  const [day, hour] = token.split("-");
+  return parseAvailabilityPrefill({ day, hour });
+}
 
 const labelClassName =
   "mb-1.5 block text-sm font-bold text-[color:var(--ink)] after:ml-0.5 after:text-[color:var(--muted-foreground)]";
@@ -174,6 +198,11 @@ type FormState = {
   // Issue #412 E: parent B2C triage (compliance screening).
   engager: string;
   nonTutoringDuties: string;
+  // #768 slot-link prefill: the requested lesson time as the canonical
+  // "mon-14" token ("" when the visitor did not arrive from a tutor profile
+  // slot). Read-only summary on the form, `submitCaseRequest` has no server
+  // field for a preferred time so it is never sent.
+  requestedSlot: string;
 };
 
 const INITIAL_FORM: FormState = {
@@ -227,6 +256,7 @@ const INITIAL_FORM: FormState = {
   feeAgreed: false,
   engager: "",
   nonTutoringDuties: "no",
+  requestedSlot: "",
 };
 
 /** Issue #311: the preset tag seeds shown as one-tap chips on the case form
@@ -264,13 +294,30 @@ const TUTOR_GENDER_OPTIONS = [
 type CaseRequestFormProps = {
   idPrefix?: string;
   onSubmitted?: (result: { caseCode: string }) => void;
+  /** #768: availability prefill from a tutor profile slot link. A preference
+   * only, the tutor still confirms the slot. */
+  prefill?: { day: string; hour: number } | null;
 };
 
-export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFormProps) {
+export function CaseRequestForm({ idPrefix = "cr", onSubmitted, prefill }: CaseRequestFormProps) {
   const { t } = useTranslation();
   const senCategoryLabels = useSenCategoryLabels();
   const [step, setStep] = useState(1);
-  const [form, setForm] = useState<FormState>(INITIAL_FORM);
+  // #768: freeze the prefill at mount. Later prop changes (a navigation that
+  // rewrites day/hour) never rewrite half-filled form state.
+  const prefillAtMount = useRef<AvailabilityPrefill>(
+    parseAvailabilityPrefill({
+      day: prefill?.day,
+      hour: typeof prefill?.hour === "number" ? String(prefill.hour) : undefined,
+    }),
+  );
+  // Set once the draft restore has applied, so the restored draft wins from
+  // the second application onward (see the restore effect below).
+  const prefillApplied = useRef(false);
+  const [form, setForm] = useState<FormState>(() => ({
+    ...INITIAL_FORM,
+    requestedSlot: slotToken(prefillAtMount.current),
+  }));
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
   const [result, setResult] = useState<{ caseCode: string } | null>(null);
   // Issue #114: pre-fill the budget currency from the visitor's active
@@ -401,6 +448,17 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
     )
       ? restored.tutorGenderPreference
       : "any";
+    // #768: prefill vs draft precedence. On the first restore of this mount a
+    // slot-link prefill wins, so a live draft from an earlier visit can never
+    // swallow the slot the visitor just clicked. From the second application
+    // on, the restored draft wins (its slot was itself seeded by a prefill and
+    // then carried the visitor's own progress forward).
+    const restoredSlot = typeof restored.requestedSlot === "string" ? restored.requestedSlot : "";
+    const requestedSlot =
+      !prefillApplied.current && prefillAtMount.current
+        ? slotToken(prefillAtMount.current)
+        : restoredSlot;
+    prefillApplied.current = true;
     setForm((prev) => ({
       ...prev,
       ...restored,
@@ -420,6 +478,7 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
       tutorGenderPreference,
       instructionLanguage: languages,
       tags,
+      requestedSlot,
     }));
   }, [restored]);
 
@@ -441,7 +500,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
         // Issue #437: demographics defaults are the blank state.
         (key === "whoFor" && v === "") ||
         (key === "studentGender" && v === "") ||
-        (key === "tutorGenderPreference" && v === "any"),
+        (key === "tutorGenderPreference" && v === "any") ||
+        // #768: an empty requested slot is the blank state (the token is a
+        // preference, never a user-authored field).
+        (key === "requestedSlot" && v === ""),
     );
 
   const update = (patch: Partial<FormState>) => {
@@ -459,6 +521,10 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
   };
 
   const isAdmissions = form.supportType === "admissions";
+  // #768: the slot-link preference as a read-only line. submitCaseRequest has
+  // no preferred-time field, so the choice is surfaced on the form and never
+  // silently dropped from the submission.
+  const requestedSlotLabel = prefillLabel(slotPrefill(form.requestedSlot), t);
   // Issue #423 (sections 2+3): the title is no longer typed, it is this
   // live preview, generated from the structured fields in the #411
   // dual-language pattern. Parents never type a title for new cases.
@@ -894,6 +960,26 @@ export function CaseRequestForm({ idPrefix = "cr", onSubmitted }: CaseRequestFor
           );
         })}
       </ol>
+
+      {/* #768: the requested slot carried from a tutor profile link. Read-only
+          preference, never a booking, and never a form field the visitor can
+          lose track of. */}
+      {requestedSlotLabel ? (
+        <div className="mb-8 flex items-start gap-2.5 rounded-sm border border-border bg-muted/40 p-3">
+          <CalendarClock
+            className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground"
+            aria-hidden="true"
+          />
+          <div className="min-w-0">
+            <p className="text-sm text-[color:var(--ink)]">
+              Requested time: <span className="font-semibold">{requestedSlotLabel}</span>
+            </p>
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              {t("profile.time_window_disclaimer")}
+            </p>
+          </div>
+        </div>
+      ) : null}
 
       {/* Issue #423: live auto-title preview, replaces manual title typing.
           Shown from step 2 on, once the structured fields exist. */}
