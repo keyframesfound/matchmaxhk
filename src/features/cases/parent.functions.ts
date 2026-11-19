@@ -13,6 +13,11 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import {
+  canRevealCaseContact,
+  parentContactView,
+  type ParentContactView,
+} from "@/features/trust/trust";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import type { FeeStatus, SorStatus } from "@/features/cases/sor-db";
 import { cancelActionFor, canMarkDone } from "@/features/cases/sor";
@@ -202,6 +207,8 @@ export type ParentCaseDetail = {
   ended_by_parent_at: string | null;
   ended_by_tutor_at: string | null;
   fee: { status: FeeStatus; amount_hkd: number } | null;
+  /** #783 §2.5: the matched tutor's phone, masked until the fee is paid. */
+  tutor_contact: ParentContactView;
   /** #649 review-hold copy: is the case's admin fee settled right now? A
    * review still held under pending_fee_settlement while this is true is
    * actually waiting for Lesson 2 (the lazy publish never rewrites the
@@ -373,6 +380,51 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
     // under pending_lesson_threshold until the second lesson lands.
     const mine = myReviews.find((r) => r.author_account_id === context.userId) ?? null;
     const openFee = fees.find((f) => f.status === "invoiced" || f.status === "paid") ?? null;
+
+    // #783 §2.5: the tutor's phone, shown to the parent on THIS case only
+    // once the admin fee is PAID (same gate as the tutor side; a waive,
+    // refund, closed case or blocking risk flag hides it again).
+    let tutorContact: ParentContactView = {
+      revealed: false,
+      name: null,
+      phone: null,
+      reason: "NOT_MATCHED",
+    };
+    const tutorRowId = head?.matched_tutor_id ?? null;
+    if (tutorRowId) {
+      const [riskFlags, tutorRows] = await Promise.all([
+        selectRows<{ flag_type: string; resolved_at: string | null }>(
+          db,
+          "case_risk_flags",
+          "flag_type, resolved_at",
+          [{ col: "case_id", op: "eq", value: c.id }],
+        ),
+        selectRows<{ user_id: string | null; display_name: string | null }>(
+          db,
+          "tutors",
+          "user_id, display_name",
+          [{ col: "id", op: "eq", value: tutorRowId }],
+        ),
+      ]);
+      const gate = canRevealCaseContact({
+        isCaseParty: true,
+        caseClosed: c.sor_status === "closed" || c.sor_status === "replaced",
+        openFlagTypes: riskFlags.filter((f) => f.resolved_at === null).map((f) => f.flag_type),
+        introFeePaid: fees.some((f) => f.status === "paid"),
+      });
+      const tutorUserId = tutorRows[0]?.user_id ?? null;
+      // Only read the phone when the gate is open, so it never leaves the DB otherwise.
+      const phoneRows =
+        gate.reveal && tutorUserId
+          ? await selectRows<{ phone: string | null }>(db, "profiles", "phone", [
+              { col: "id", op: "eq", value: tutorUserId },
+            ])
+          : [];
+      tutorContact = parentContactView(
+        { name: tutorRows[0]?.display_name ?? null, phone: phoneRows[0]?.phone ?? null },
+        gate,
+      );
+    }
     let myReviewStatus = mine?.status ?? null;
     // #386 settled rule includes the fee-row proof (paid/waived), so reviews on
     // cases that closed AFTER settlement publish here too, see isCaseFeeSettled.
@@ -429,6 +481,7 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
       ended_by_parent_at: head?.ended_by_parent_at ?? null,
       ended_by_tutor_at: head?.ended_by_tutor_at ?? null,
       fee: openFee ? { status: openFee.status, amount_hkd: openFee.amount_hkd } : null,
+      tutor_contact: tutorContact,
       review_fee_settled: isCaseFeeSettled(c.sor_status, fees),
       lessons: lessons.map((l) => ({
         id: l.id,
