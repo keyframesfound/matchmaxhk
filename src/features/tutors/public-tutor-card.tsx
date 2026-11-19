@@ -32,6 +32,10 @@ import {
   type EngagementSummary,
 } from "@/features/tutors/engagement";
 import {
+  selectTutorCardSocialProof,
+  type TutorCardSocialProofInput,
+} from "@/features/tutors/card-social-proof";
+import {
   DemandBadge,
   GroupClassBadge,
   ParentFavoriteBadge,
@@ -137,6 +141,9 @@ type PublicTutorCardProps = {
   /** Issues #102/#151: engagement summary from get_tutor_engagement. When
    *  absent (or null) no demand / Parent Favorite badges render. */
   engagement?: EngagementSummary | null;
+  /** Issue #768: strict-threshold card social proof (muted lines only). When
+   *  absent nothing extra renders, so existing call sites are unchanged. */
+  socialProof?: TutorCardSocialProofInput | null;
 };
 
 export function PublicTutorCard({
@@ -152,6 +159,7 @@ export function PublicTutorCard({
   tagQuery,
   tourId,
   engagement,
+  socialProof,
 }: PublicTutorCardProps) {
   const { t, i18n } = useTranslation();
   // Issue #114: honor the visitor's display currency; the native-figure
@@ -209,14 +217,21 @@ export function PublicTutorCard({
   const statusKey = getTutorStatusLabelKey(tutor.tutor_status);
   // Issues #102/#151: dynamic demand badge (null = hidden, empty-restaurant
   // guard) + Parent Favorite, computed from the engagement summary prop.
-  const demandBadge = engagement
+  // Issue #768: `one_slot_left` (derived from tutor.remaining_student_slots) is
+  // no longer a public availability signal — availability surfaces only as the
+  // muted "Last slot" line below, fed by the socialProof prop. The
+  // high_demand / popular branches are unchanged.
+  const selectedDemandBadge = engagement
     ? selectDemandBadge({
         remaining_student_slots: tutor.remaining_student_slots,
         inquiries_7d: engagement.inquiries_7d,
         saves_total: engagement.saves_total,
       })
     : null;
+  const demandBadge = selectedDemandBadge === "one_slot_left" ? null : selectedDemandBadge;
   const showParentFavorite = engagement ? isParentFavorite(engagement) : false;
+  // Issue #768: at most one muted social-proof line plus the "Last slot" line.
+  const cardSocialProof = selectTutorCardSocialProof(socialProof);
   const statusLabel = statusKey ? t(statusKey) : "";
   // Issue #502: the preferred/display name is the primary identity under the
   // photo; the tutor code stays visible as secondary meta so parents can
@@ -734,86 +749,113 @@ export function PublicTutorCard({
         </section>
       </div>
 
-      <footer className="flex min-w-0 flex-nowrap items-center justify-between gap-2 border-t border-border px-3 py-2 md:gap-3 md:px-4 md:py-2.5">
-        {price.baseRate > 0 ? (
-          <FitText
-            as="p"
-            maxLines={1}
-            contentKey={`${price.baseRate}-${priceSuffix}`}
-            className="min-w-0 flex-1 whitespace-nowrap text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!"
-            title={
-              displayCurrency !== DEFAULT_CURRENCY &&
-              convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) &&
-              toCurrencyCode(tutor.currency) !== displayCurrency
-                ? t("currency.base_price_tooltip", {
-                    amount: formatMoney(tutor.hourly_rate, toCurrencyCode(tutor.currency)),
-                  })
-                : undefined
-            }
-          >
-            {/* Issue #319: one "$X up/hr" figure, the base rate floor. Extra
+      <footer className="min-w-0 border-t border-border px-3 py-2 md:px-4 md:py-2.5">
+        {/* Issue #768: muted social proof only — no badge, pill, border,
+            background or accent colour. "Last slot" sits above the one
+            social-proof line; nothing renders when all three are empty. */}
+        {cardSocialProof.lastSlot ||
+        cardSocialProof.activeStudents !== null ||
+        cardSocialProof.savedByParents !== null ? (
+          <div className="mb-1.5 flex flex-col gap-0.5">
+            {cardSocialProof.lastSlot ? (
+              <p className="text-xs text-muted-foreground">{t("tutor_card.last_slot")}</p>
+            ) : null}
+            {cardSocialProof.activeStudents !== null ? (
+              <p className="text-xs text-muted-foreground">
+                {t("tutor_card.active_students", { count: cardSocialProof.activeStudents })}
+              </p>
+            ) : null}
+            {cardSocialProof.savedByParents !== null ? (
+              <p className="text-xs text-muted-foreground">
+                {t("tutor_card.saved_by_parents", { count: cardSocialProof.savedByParents })}
+              </p>
+            ) : null}
+          </div>
+        ) : null}
+        <div className="flex min-w-0 flex-nowrap items-center justify-between gap-2 md:gap-3">
+          {price.baseRate > 0 ? (
+            <FitText
+              as="p"
+              maxLines={1}
+              contentKey={`${price.baseRate}-${priceSuffix}`}
+              className="min-w-0 flex-1 whitespace-nowrap text-xl font-bold leading-none text-[color:var(--ink)] md:text-3xl @max-sm:text-lg!"
+              title={
+                displayCurrency !== DEFAULT_CURRENCY &&
+                convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) &&
+                toCurrencyCode(tutor.currency) !== displayCurrency
+                  ? t("currency.base_price_tooltip", {
+                      amount: formatMoney(tutor.hourly_rate, toCurrencyCode(tutor.currency)),
+                    })
+                  : undefined
+              }
+            >
+              {/* Issue #319: one "$X up/hr" figure, the base rate floor. Extra
                 rate rows never appear here, so they can never lower it.
                 #114: converted figure when the visitor picked a display
                 currency; tooltip shows the tutor's own quote when it differs. */}
-            {convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) ?? `$${price.baseRate}`}
-            <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
-              {t("tutor_card.price_up")}
-              {priceSuffix}
-            </span>
-          </FitText>
-        ) : (
-          // Pricing flagged (issue #125) or unset: the card shows no rate.
-          <div className="flex-1" />
-        )}
-        <div className="ml-auto flex shrink-0 items-center gap-1.5 md:gap-2">
-          {onCompareToggle ? (
-            <TooltipProvider delayDuration={300}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    aria-pressed={compareSelected ?? false}
-                    aria-label={compareLabel(compareSelected ?? false)}
-                    onClick={handleCompareToggle}
-                    onKeyDown={(event) => event.stopPropagation()}
-                    className={cn(
-                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8",
-                      compareSelected
-                        ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)]"
-                        : "text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06]",
-                    )}
-                  >
-                    {compareSelected ? (
-                      <Check className="h-4 w-4" strokeWidth={2.8} aria-hidden="true" />
-                    ) : (
-                      <Columns2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
-                    )}
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top">{compareLabel(Boolean(compareSelected))}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ) : null}
-          {saveAction}
-          {shareable ? (
-            <TooltipProvider delayDuration={300}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    aria-label={`${t("share.share_tutor")} (${formatTutorCode(tutor.tutor_code)})`}
-                    onClick={handleShare}
-                    onKeyDown={(event) => event.stopPropagation()}
-                    className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8"
-                  >
-                    <Share2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent side="top">{t("share.share_tutor")}</TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
-          ) : null}
-          {footerAction}
+              {convertedTextFromHkd(price.baseRate, displayCurrency, fxRates) ??
+                `$${price.baseRate}`}
+              <span className="ml-1 text-[0.6em] font-medium text-muted-foreground md:text-[0.4em] @max-sm:text-[0.66em]!">
+                {t("tutor_card.price_up")}
+                {priceSuffix}
+              </span>
+            </FitText>
+          ) : (
+            // Pricing flagged (issue #125) or unset: the card shows no rate.
+            <div className="flex-1" />
+          )}
+          <div className="ml-auto flex shrink-0 items-center gap-1.5 md:gap-2">
+            {onCompareToggle ? (
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-pressed={compareSelected ?? false}
+                      aria-label={compareLabel(compareSelected ?? false)}
+                      onClick={handleCompareToggle}
+                      onKeyDown={(event) => event.stopPropagation()}
+                      className={cn(
+                        "flex h-10 w-10 shrink-0 items-center justify-center rounded-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8",
+                        compareSelected
+                          ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)]"
+                          : "text-[color:var(--ink)] hover:bg-[color:var(--foreground)]/[0.06]",
+                      )}
+                    >
+                      {compareSelected ? (
+                        <Check className="h-4 w-4" strokeWidth={2.8} aria-hidden="true" />
+                      ) : (
+                        <Columns2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
+                      )}
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    {compareLabel(Boolean(compareSelected))}
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : null}
+            {saveAction}
+            {shareable ? (
+              <TooltipProvider delayDuration={300}>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      aria-label={`${t("share.share_tutor")} (${formatTutorCode(tutor.tutor_code)})`}
+                      onClick={handleShare}
+                      onKeyDown={(event) => event.stopPropagation()}
+                      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.06] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] @max-sm:h-8 @max-sm:w-8"
+                    >
+                      <Share2 className="h-4 w-4" strokeWidth={2.4} aria-hidden="true" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">{t("share.share_tutor")}</TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            ) : null}
+            {footerAction}
+          </div>
         </div>
       </footer>
     </article>
