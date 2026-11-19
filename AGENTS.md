@@ -61,6 +61,12 @@ buckets, so every free agent above competes for the same limit per model ID.
 
 - Cap concurrent children at **8**, not 25, when they share one free model. Widen
   only by adding a different model, never by adding another child to the same one.
+- **The free lane is a per-session budget, not just a concurrency cap.** Measured
+  2026-11-19: after roughly 6-8 free child dispatches in one session, every further
+  free child fails immediately with "Free usage limit reached" — including ones that
+  never started. A failure of that shape is not a bad prompt and not a transient
+  throttle; retrying it on the free lane wastes a round trip. Escalate to the `-go`
+  variant straight away and say the free budget is exhausted.
 - Only `opencode/deepseek-v4.1-flash-free` is verified as a live free lane in this
   project. Do not cite other `*-free` model IDs from memory: a free model being
   listed on models.dev does not mean this project can call it, and
