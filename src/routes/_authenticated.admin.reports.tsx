@@ -15,6 +15,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 import {
   ConsoleTable,
   ConsoleTableBody,
@@ -26,6 +27,10 @@ import {
 } from "@/components/ui/console-table";
 import { useAuth } from "@/features/auth/useAuth";
 import { formatPostedAgo } from "@/lib/relative-time";
+import {
+  liftQuarantine,
+  suspendTutorAccount,
+} from "@/features/reports/emergency-suspend.functions";
 import {
   listReportsAdmin,
   resolveReport,
@@ -56,6 +61,7 @@ const REASON_LABELS: Record<string, string> = {
   spam: "Spam",
   impersonation: "Impersonation",
   other: "Other",
+  urgent_safety: "Urgent safety / illegal activity",
 };
 
 const TARGET_LABELS: Record<string, string> = {
@@ -83,6 +89,9 @@ function AdminReports() {
     row: AdminReportRow;
     action: "uphold" | "reject";
   } | null>(null);
+  // #782 §2.4: one-click Emergency Suspend (note required, audited).
+  const [suspendTarget, setSuspendTarget] = useState<AdminReportRow | null>(null);
+  const [suspendNote, setSuspendNote] = useState("");
 
   const reportsQuery = useQuery({
     queryKey: ["admin", "reports"],
@@ -104,6 +113,34 @@ function AdminReports() {
       toast.error(error instanceof Error ? error.message : "Failed to resolve report.");
       setResolvingId(null);
     },
+  });
+
+  // #782 §2.4: lift the auto-quarantine after staff review (reversible), and
+  // the one-click Emergency Suspend on the owning tutor account (audited).
+  const liftQuarantineMutation = useMutation({
+    mutationFn: (input: { targetType: "tutor" | "material"; targetId: string }) =>
+      liftQuarantine({ data: input }),
+    onSuccess: () => {
+      toast.success("Quarantine removed, the target is public again.");
+      void queryClient.invalidateQueries({ queryKey: ["admin", "reports"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "emergency-actions"] });
+    },
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : "Failed to remove quarantine."),
+  });
+  const suspendMutation = useMutation({
+    mutationFn: (input: { tutorId: string; note: string }) => suspendTutorAccount({ data: input }),
+    onSuccess: () => {
+      toast.success(
+        "Account suspended: profile unpublished, listings hidden, new accepts and uploads blocked.",
+      );
+      void queryClient.invalidateQueries({ queryKey: ["admin", "reports"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "emergency-actions"] });
+      setSuspendTarget(null);
+      setSuspendNote("");
+    },
+    onError: (error) =>
+      toast.error(error instanceof Error ? error.message : "Failed to suspend account."),
   });
 
   const rows = reportsQuery.data ?? [];
@@ -152,6 +189,14 @@ function AdminReports() {
                   row={row}
                   busy={resolvingId === row.id}
                   onAct={(action) => setPending({ row, action })}
+                  onLiftQuarantine={() =>
+                    liftQuarantineMutation.mutate({
+                      targetType: row.target_type.startsWith("tutor") ? "tutor" : "material",
+                      targetId: row.target_id,
+                    })
+                  }
+                  onSuspend={() => setSuspendTarget(row)}
+                  suspending={suspendMutation.isPending}
                 />
               ))
             )}
@@ -230,6 +275,43 @@ function AdminReports() {
           </AlertDialogContent>
         </AlertDialog>
       ) : null}
+
+      {suspendTarget ? (
+        <AlertDialog open onOpenChange={(open) => (!open ? setSuspendTarget(null) : null)}>
+          <AlertDialogContent>
+            <AlertDialogHeader>
+              <AlertDialogTitle>Emergency suspend this account?</AlertDialogTitle>
+              <AlertDialogDescription>
+                One click: the tutor&apos;s public profile and every published listing unpublish
+                immediately, and new accepts, uploads and publishes are blocked. The staff note is
+                written to the audit log. Use it for urgent safety only; copyright and
+                not-as-described disputes stay on this desk.
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <Textarea
+              value={suspendNote}
+              onChange={(event) => setSuspendNote(event.target.value)}
+              maxLength={1000}
+              rows={3}
+              placeholder="Staff note (required)"
+            />
+            <AlertDialogFooter>
+              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                disabled={suspendNote.trim().length === 0 || !suspendTarget.tutor_id}
+                onClick={() => {
+                  suspendMutation.mutate({
+                    tutorId: suspendTarget.tutor_id as string,
+                    note: suspendNote.trim(),
+                  });
+                }}
+              >
+                Emergency suspend
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
+      ) : null}
     </div>
   );
 }
@@ -237,11 +319,17 @@ function AdminReports() {
 function ReportRowView({
   row,
   busy,
+  suspending,
   onAct,
+  onLiftQuarantine,
+  onSuspend,
 }: {
   row: AdminReportRow;
   busy: boolean;
+  suspending: boolean;
   onAct: (action: "uphold" | "reject") => void;
+  onLiftQuarantine: () => void;
+  onSuspend: () => void;
 }) {
   return (
     <tr>
@@ -258,6 +346,11 @@ function ReportRowView({
             {row.target_label}
           </span>
         ) : null}
+        {row.target_quarantined ? (
+          <span className="mt-1 inline-flex items-center rounded-full border border-[color:var(--ink)]/20 bg-muted px-2 py-0.5 text-[11px] font-semibold text-[color:var(--ink)]">
+            QUARANTINED
+          </span>
+        ) : null}
       </ConsoleTd>
       <ConsoleTd className="text-xs">{REASON_LABELS[row.reason] ?? row.reason}</ConsoleTd>
       <ConsoleTd className="max-w-[240px] text-xs text-muted-foreground">
@@ -268,6 +361,27 @@ function ReportRowView({
       </ConsoleTd>
       <ConsoleTd align="right">
         <div className="flex justify-end gap-2">
+          {row.target_quarantined ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 px-3 text-xs font-bold"
+              onClick={onLiftQuarantine}
+            >
+              Remove quarantine
+            </Button>
+          ) : null}
+          {row.reason === "urgent_safety" && row.tutor_id ? (
+            <Button
+              type="button"
+              variant="outline"
+              className="h-8 px-3 text-xs font-bold"
+              disabled={suspending}
+              onClick={onSuspend}
+            >
+              Emergency suspend
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="outline"

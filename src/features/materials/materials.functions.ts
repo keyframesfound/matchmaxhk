@@ -209,6 +209,9 @@ export const uploadStudyMaterial = createServerFn({ method: "POST" })
     const { assertSafetyAttestation } =
       await import("@/features/trust/safety-attestation.functions");
     await assertSafetyAttestation(context.userId);
+    // #782 §2.4: Emergency Suspend blocks new uploads immediately.
+    const { assertNotSuspended } = await import("@/features/trust/emergency-suspend");
+    await assertNotSuspended(context.userId);
     // Admins add listings on behalf of any tutor ("like we add tutors");
     // plain tutors upload only against their own linked account.
     let tutor: { id: string; display_name: string };

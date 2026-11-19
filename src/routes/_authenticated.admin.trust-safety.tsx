@@ -14,6 +14,7 @@ import {
   ConsoleTh,
 } from "@/components/ui/console-table";
 import { useAuth } from "@/features/auth/useAuth";
+import { EmergencySuspendCard } from "@/features/reports/admin/emergency-suspend-card";
 import { CASE_RISK_FLAG_LABELS, isCaseRiskFlagType } from "@/features/trust/trust";
 import { listTrustQueue, type TrustQueueRow } from "@/features/trust/trust-queue.functions";
 import { resolveCaseRiskFlag } from "@/features/trust/trust.functions";
@@ -178,6 +179,8 @@ function AdminTrustSafety() {
           </ConsoleTableBody>
         </ConsoleTable>
       </section>
+
+      <EmergencySuspendCard />
     </div>
   );
 }

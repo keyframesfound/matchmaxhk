@@ -58,7 +58,7 @@ export type SearchGroups = {
 export type SearchResults = { query: string; tags: string[]; groups: SearchGroups };
 
 type AnyRow = Record<string, unknown>;
-type QueryResult = { data: AnyRow[] | null; error: { message: string } | null };
+type QueryResult = { data: AnyRow[] | null; error: { code?: string; message: string } | null };
 type QueryChain = PromiseLike<QueryResult> & {
   eq: (c: string, v: unknown) => QueryChain;
   not: (c: string, op: string, v: unknown) => QueryChain;
@@ -78,6 +78,30 @@ async function admin(): Promise<SearchDb> {
 
 async function rows(chain: QueryChain): Promise<AnyRow[]> {
   const { data, error } = await chain;
+  if (error) throw new Error(error.message);
+  return data ?? [];
+}
+
+/**
+ * #782 §2.4: quarantined (auto-quarantine) or suspended (Emergency Suspend)
+ * rows leave public search. The stamp columns may not exist yet on a
+ * pre-migration database, so the select carries them first and steps back to
+ * the plain column set on 42703 instead of erroring the whole endpoint.
+ */
+const hiddenByTrust = (row: AnyRow): boolean =>
+  (typeof row.quarantined_at === "string" && row.quarantined_at.length > 0) ||
+  (typeof row.suspended_at === "string" && row.suspended_at.length > 0);
+
+async function rowsSteppingBack(
+  attempts: string[],
+  exec: (cols: string) => QueryChain,
+): Promise<AnyRow[]> {
+  let result = await exec(attempts[0]);
+  for (const attempt of attempts.slice(1)) {
+    if (result.error?.code !== "42703") break;
+    result = await exec(attempt);
+  }
+  const { data, error } = result;
   if (error) throw new Error(error.message);
   return data ?? [];
 }
@@ -131,18 +155,16 @@ const finish = (ranked: Ranked[]): SearchHit[] => rankGroup(ranked).map((r) => r
 
 async function searchTutors(q: ParsedQuery, overrides: TagOverride[]): Promise<SearchHit[]> {
   const db = await admin();
-  const data = await rows(
-    db
-      .from("tutors")
-      .select(
-        "id, tutor_code, display_name, headline, subjects, secondary_school, undergrad_university, achievements, profile_tags, owner_account_status, card_hidden_by_ban",
-      )
-      .eq("is_published", true)
-      .limit(SCAN_LIMIT),
+  const TUTOR_COLS =
+    "id, tutor_code, display_name, headline, subjects, secondary_school, undergrad_university, achievements, profile_tags, owner_account_status, card_hidden_by_ban";
+  const data = await rowsSteppingBack(
+    [`${TUTOR_COLS}, quarantined_at, suspended_at`, TUTOR_COLS],
+    (cols) => db.from("tutors").select(cols).eq("is_published", true).limit(SCAN_LIMIT),
   );
   return finish(
     data.flatMap((t) => {
       if (t.card_hidden_by_ban === true || t.owner_account_status === "banned") return [];
+      if (hiddenByTrust(t)) return [];
       const tags = canonical(arr(t.profile_tags), overrides);
       const code = str(t.tutor_code) ?? "";
       return toHit(
@@ -173,15 +195,13 @@ async function searchTutors(q: ParsedQuery, overrides: TagOverride[]): Promise<S
 
 async function searchNotes(q: ParsedQuery, overrides: TagOverride[]): Promise<SearchHit[]> {
   const db = await admin();
-  const data = await rows(
-    db
-      .from("digital_materials")
-      .select("id, slug, title, subject_tag, curriculum_tag, topic, search_tags")
-      .eq("status", "published")
-      .limit(SCAN_LIMIT),
+  const NOTE_COLS = "id, slug, title, subject_tag, curriculum_tag, topic, search_tags";
+  const data = await rowsSteppingBack([`${NOTE_COLS}, quarantined_at`, NOTE_COLS], (cols) =>
+    db.from("digital_materials").select(cols).eq("status", "published").limit(SCAN_LIMIT),
   );
   return finish(
     data.flatMap((m) => {
+      if (hiddenByTrust(m)) return [];
       const tags = canonical(arr(m.search_tags), overrides);
       return toHit(
         scoreEntity(
@@ -430,12 +450,9 @@ const EMPTY_TYPEAHEAD: ExploreTypeahead = { tags: [], subjects: [], tutors: [], 
 /** Public tutor rows that can contribute a subject / tutor / school hit. */
 async function typeaheadTutorRows(): Promise<AnyRow[]> {
   const db = await admin();
-  return rows(
-    db
-      .from("tutors")
-      .select("tutor_code, display_name, subjects, secondary_school, owner_account_status")
-      .eq("is_published", true)
-      .limit(SCAN_LIMIT),
+  const COLS = "tutor_code, display_name, subjects, secondary_school, owner_account_status";
+  return rowsSteppingBack([`${COLS}, quarantined_at, suspended_at`, COLS], (cols) =>
+    db.from("tutors").select(cols).eq("is_published", true).limit(SCAN_LIMIT),
   );
 }
 
@@ -452,7 +469,9 @@ export const searchExploreTypeahead = createServerFn({ method: "GET" })
         loadOverrides(),
         typeaheadTutorRows(),
       ]);
-      const visible = tutorRows.filter((t) => t.owner_account_status !== "banned");
+      const visible = tutorRows.filter(
+        (t) => t.owner_account_status !== "banned" && !hiddenByTrust(t),
+      );
       const subjects = new Set<string>();
       const schools = new Set<string>();
       const tutors: Array<{ code: string; name: string }> = [];

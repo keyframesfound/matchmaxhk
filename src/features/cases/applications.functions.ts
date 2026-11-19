@@ -99,6 +99,9 @@ export const applyToCase = createServerFn({ method: "POST" })
     const { assertSafetyAttestation } =
       await import("@/features/trust/safety-attestation.functions");
     await assertSafetyAttestation(context.userId);
+    // #782 §2.4: Emergency Suspend blocks new accepts immediately.
+    const { assertNotSuspended } = await import("@/features/trust/emergency-suspend");
+    await assertNotSuspended(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
 

@@ -144,20 +144,29 @@ function materialsTable(): MaterialsQuery["from"] extends never
 
 /** Published materials for one tutor's public profile (newest first). */
 export async function fetchMaterialsForTutor(tutorId: string): Promise<StudyMaterial[]> {
-  const { data, error } = await materialsTable()
-    .select(MATERIAL_COLS)
-    .eq("tutor_id", tutorId)
-    .eq("status", "published")
-    // Freestyle gigs (#326) AND the #392 shop kinds (folders / courses) are
-    // NOT authored notes, they render only through the shop directory and
-    // their own detail pages, never inside the profile notes block.
-    .not("material_type", "in", `(${SUPPORTED_PROFILE_TYPES_CSV})`)
-    .order("created_at", { ascending: false });
+  // #782 §2.4: carry the quarantine stamp when it exists (42703 steps back,
+  // pre-migration databases simply select the plain columns).
+  const run = (withQuarantine: boolean) =>
+    materialsTable()
+      .select(`${MATERIAL_COLS}${withQuarantine ? ", quarantined_at" : ""}`)
+      .eq("tutor_id", tutorId)
+      .eq("status", "published")
+      // Freestyle gigs (#326) AND the #392 shop kinds (folders / courses) are
+      // NOT authored notes, they render only through the shop directory and
+      // their own detail pages, never inside the profile notes block.
+      .not("material_type", "in", `(${SUPPORTED_PROFILE_TYPES_CSV})`)
+      .order("created_at", { ascending: false });
+  let result = await run(true);
+  if (result.error?.code === "42703") result = await run(false);
+  const { data, error } = result;
   if (error) {
     if (isMissingRelation(error)) return [];
     throw error;
   }
-  return (data ?? []).map((row) => mapMaterial(row)).filter((m) => m.id);
+  return (data ?? [])
+    .filter((row) => !(typeof row.quarantined_at === "string" && row.quarantined_at.length > 0))
+    .map((row) => mapMaterial(row))
+    .filter((m) => m.id);
 }
 
 /** The whole published marketplace, used by the /study-materials directory. */
@@ -190,7 +199,15 @@ export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]
       .order("created_at", { ascending: false });
   // 42703 = a newer column does not exist yet; step back one migration.
   // #557 browse cards: the gallery supplies the card photo.
-  let result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}, preview_image_paths`, true);
+  // #782 §2.4: the first attempt also carries the quarantine stamp so a
+  // quarantined listing drops out below; pre-migration DBs step back.
+  let result = await run(
+    `${MATERIAL_COLS}, ${MATERIAL_V2_COLS}, preview_image_paths, quarantined_at`,
+    true,
+  );
+  if (result.error?.code === "42703") {
+    result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}, preview_image_paths`, true);
+  }
   if (result.error?.code === "42703") {
     result = await run(`${MATERIAL_COLS}, ${MATERIAL_V2_COLS}`, true);
   }
@@ -204,6 +221,13 @@ export async function fetchMarketplaceMaterials(): Promise<MarketplaceMaterial[]
     throw error;
   }
   return (data ?? [])
+    .filter(
+      (raw) =>
+        !(
+          typeof (raw as { quarantined_at?: unknown }).quarantined_at === "string" &&
+          ((raw as { quarantined_at?: unknown }).quarantined_at as string).length > 0
+        ),
+    )
     .map((raw) => {
       const row = raw as Record<string, unknown>;
       const tutor = row.tutors as Record<string, unknown> | null;

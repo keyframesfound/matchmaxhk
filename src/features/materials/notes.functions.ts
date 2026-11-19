@@ -110,6 +110,9 @@ export function mapPublicNote(row: NoteRow): PublicNote | null {
   const tutor = row.tutors ?? null;
   const tutorCode = typeof tutor?.tutor_code === "string" ? tutor.tutor_code : "";
   if (!id || !tutorCode) return null;
+  // #782 §2.4: a quarantined listing is public-invisible on every surface
+  // (index rails, detail page 404s, tutor profile notes block).
+  if (typeof row.quarantined_at === "string" && row.quarantined_at.length > 0) return null;
   return {
     id,
     slug: typeof row.slug === "string" ? row.slug : null,
@@ -194,8 +197,15 @@ export async function fetchPublicNoteRows(
   };
   // Newest schema first; each 42703 (undefined column) steps back one
   // migration so the public pages never break before migrations land.
+  // #782 §2.4: the first two variants also carry the quarantine stamp so a
+  // quarantined listing drops out at mapPublicNote (pre-migration DBs step
+  // back to the plain variants, nothing quarantined exists yet).
   const variants: [string, boolean][] = [
-    [`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_V2_COLUMNS}, ${PUBLIC_NOTE_RICH_COLUMNS}`, true],
+    [
+      `${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_V2_COLUMNS}, ${PUBLIC_NOTE_RICH_COLUMNS}, quarantined_at`,
+      true,
+    ],
+    [`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_V2_COLUMNS}, quarantined_at`, true],
     [`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_V2_COLUMNS}`, true],
     [`${PUBLIC_NOTE_COLUMNS}, ${PUBLIC_NOTE_V2_COLUMNS}`, false],
     [PUBLIC_NOTE_COLUMNS, false],

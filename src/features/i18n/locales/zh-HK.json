@@ -2542,7 +2542,8 @@
     "rate_limited": "你近期已提交咗幾個舉報，請稍候再試。",
     "self_report": "唔可以舉報自己嘅項目。如有問題需要修改，請聯絡我哋。",
     "failed": "舉報未能提交，請再試一次。",
-    "self_own_profile": "唔可以舉報自己嘅檔案。"
+    "self_own_profile": "唔可以舉報自己嘅檔案。",
+    "reason_urgent_safety": "緊急安全／違規活動"
   },
   "risk": {
     "flag_none": "無",
@@ -3812,7 +3813,27 @@
     "students": "成功配對學生",
     "tutors": "活躍導師",
     "subjects": "補習科目",
-    "districts": "服務地區"
+    "districts": "服務地區",
+    "emergency_suspend": {
+      "title": "緊急停權",
+      "description": "一鍵終止：即時下架導師檔案及所有上架教材，並封鎖新的接案、上載及發佈；同時寫入審核紀錄及員工備註。只適用於緊急安全情況；版權或「貨不對辦」等一般爭議留在舉報工作台處理。",
+      "lift_note_label": "解除時的員工備註（解除停權必填）",
+      "lift_note_placeholder": "為何解除此停權或隔離？",
+      "col_tutor": "導師",
+      "col_state": "狀態",
+      "col_last_note": "最後員工備註",
+      "col_actions": "操作",
+      "empty_title": "暫無被停權或隔離的導師",
+      "empty_description": "自動隔離與緊急停權會顯示在這裡。",
+      "badge_suspended": "已停權",
+      "badge_quarantined": "已隔離",
+      "remove_quarantine": "解除隔離",
+      "lift_suspension": "解除停權",
+      "lift_note_required": "解除停權必須填寫員工備註",
+      "lift_success": "已解除停權，檔案及教材已恢復。",
+      "quarantine_lift_success": "已解除隔離。",
+      "failed": "操作失敗，請重試。"
+    }
   },
   "tutor": {
     "fastResponder": {
@@ -5347,5 +5368,10 @@
     "mode_online": "網上",
     "mode_f2f": "面授",
     "error_mode": "請選擇網上或面授。"
+  },
+  "reports": {
+    "urgent_safety": {
+      "confirm_note": "已收到。緊急安全舉報會立即審核。如屬危急情況，請同時致電 999 報警。"
+    }
   }
 }

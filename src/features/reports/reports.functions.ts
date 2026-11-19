@@ -9,6 +9,7 @@ import type { AdminDb } from "@/features/materials/storage-helpers";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAccountActive } from "@/lib/account-status-enforcement";
+import { decideUrgentQuarantine, isUrgentSafetyReason } from "@/features/reports/quarantine";
 
 /**
  * Issue #216: Report button, one report form for a tutor card, a photo, an
@@ -55,6 +56,10 @@ export const REPORT_REASONS = [
   "spam",
   "impersonation",
   "other",
+  // #782 §2.4: the P0 urgent safety / illegal activity reason. Appended, the
+  // existing reasons keep their positions; auto-quarantine rules in
+  // quarantine.ts fire only for this one.
+  "urgent_safety",
 ] as const;
 
 /** Spam guard: how many OPEN reports one account may have per rolling hour. */
@@ -76,6 +81,10 @@ export type ReportRow = {
   created_at: string;
   /** Resolved display label of the reported item (queue-side, staff only). */
   target_label: string | null;
+  /** #782 §2.4: owning tutor, for the Emergency Suspend action on the desk. */
+  tutor_id: string | null;
+  /** #782 §2.4: the target is currently quarantined (queue flag). */
+  target_quarantined?: boolean;
 };
 
 /** Staff-side row: adds the reporter identity + email (never tutor-facing). */
@@ -277,6 +286,91 @@ export const submitReport = createServerFn({ method: "POST" })
       }
     }
 
+    // #782 §2.4: urgent safety auto-quarantine. 1 verified-matched report
+    // (reporter is a party on a real case with the reported tutor) or the 3rd
+    // authentic unmatched report on the same target quarantines the public
+    // profile (tutors.quarantined_at) or the storefront listing
+    // (digital_materials.quarantined_at) immediately, no staff wait. The
+    // duplicate / self-report / rate-limit guards above already ran, so every
+    // report reaching this point is an authentic signed-in report. Failures
+    // are logged, never thrown: filing the report must still succeed.
+    let quarantined = false;
+    if (isUrgentSafetyReason(data.reason) && tutorId) {
+      try {
+        const { asAdminDb } = await import("@/features/materials/storage-helpers");
+        const db = asAdminDb(supabaseAdmin);
+
+        // Verified-matched: the reporter is parent or student on a real
+        // (matched) case whose tutor is the reported one.
+        const matchedCases = await db
+          .from<{ id: string }>("tutoring_cases")
+          .select("id")
+          .eq("matched_tutor_id", tutorId)
+          .or(`parent_id.eq.${context.userId},student_id.eq.${context.userId}`)
+          .or("matched_at.not.is.null")
+          .limit(1);
+        const verifiedMatched = (matchedCases.data?.length ?? 0) > 0;
+
+        // Distinct prior unmatched reporters with an open urgent safety
+        // report on the SAME target (one-open-per-reporter is a unique
+        // index, so open rows are already one per reporter).
+        const priorRows = await db
+          .from<{ reporter_id: string }>("reports")
+          .select("reporter_id")
+          .eq("target_type", data.targetType)
+          .eq("target_id", data.targetId)
+          .eq("status", "open")
+          .eq("reason", data.reason)
+          .neq("reporter_id", context.userId);
+        const priorIds = [...new Set((priorRows.data ?? []).map((r) => r.reporter_id))];
+        let priorUnmatched = 0;
+        for (const reporterId of priorIds) {
+          const matched = await db
+            .from<{ id: string }>("tutoring_cases")
+            .select("id")
+            .eq("matched_tutor_id", tutorId)
+            .or(`parent_id.eq.${reporterId},student_id.eq.${reporterId}`)
+            .or("matched_at.not.is.null")
+            .limit(1);
+          if ((matched.data?.length ?? 0) === 0) priorUnmatched += 1;
+        }
+
+        const decision = decideUrgentQuarantine({
+          reason: data.reason,
+          verifiedMatched,
+          priorUnmatchedReporters: priorUnmatched,
+        });
+        if (decision.quarantine) {
+          const stamp = new Date().toISOString();
+          if (data.targetType === "material") {
+            await db
+              .from<never>("digital_materials")
+              .update({ quarantined_at: stamp })
+              .eq("id", data.targetId);
+          } else {
+            await db.from<never>("tutors").update({ quarantined_at: stamp }).eq("id", tutorId);
+          }
+          // Audit row (staff review trail); never shown to the reported party.
+          await db.from<never>("trust_suspensions").insert({
+            action: "quarantine",
+            tutor_id: tutorId,
+            target_user_id: null,
+            actor_id: context.userId,
+            actor_email: null,
+            note: `Auto-quarantine (${decision.basis}); filed from report on ${data.targetType}.`,
+            metadata: {
+              target_type: data.targetType,
+              target_id: data.targetId,
+              basis: decision.basis,
+            },
+          });
+          quarantined = true;
+        }
+      } catch (quarantineError) {
+        console.warn("[reports] urgent safety auto-quarantine failed:", quarantineError);
+      }
+    }
+
     // #542 Trigger 7 / #561: the reported owner learns their item is under
     // review. Strict anonymity — no reporter id, handle or count in the
     // payload; uq_ar_open dedupes repeat reports while one is open.
@@ -328,7 +422,7 @@ export const submitReport = createServerFn({ method: "POST" })
     } catch (arError) {
       console.warn("[reports] owner notice failed:", arError);
     }
-    return { ok: true };
+    return { ok: true, quarantined };
   });
 
 /**
@@ -359,7 +453,7 @@ export const listReportsAdmin = createServerFn({ method: "POST" })
     };
     const { data, error } = await admin
       .from("reports")
-      .select("id, target_type, target_id, reason, note, status, created_at, reporter_id")
+      .select("id, target_type, target_id, reason, note, status, created_at, reporter_id, tutor_id")
       .order("created_at", { ascending: false })
       .limit(200);
     if (error) throw new Error(error.message);
@@ -420,30 +514,38 @@ export const listReportsAdmin = createServerFn({ method: "POST" })
             col: string,
             values: string[],
           ) => Promise<{
-            data: Array<{ id: string; display_name: string | null; title: string | null }> | null;
-            error?: { message?: string };
+            data: Array<{
+              id: string;
+              display_name?: string | null;
+              title?: string | null;
+              quarantined_at?: string | null;
+            }> | null;
+            error?: { message?: string } | null;
           }>;
         };
       };
     };
 
     const labels = new Map<string, string>();
+    const quarantinedTargets = new Set<string>();
     if (tutorIds.length > 0) {
       const { data: tutors } = await admin2
         .from("tutors")
-        .select("id, display_name")
+        .select("id, display_name, quarantined_at")
         .in("id", tutorIds);
       for (const tutor of tutors ?? []) {
         labels.set(tutor.id, tutor.display_name ?? "Tutor");
+        if (tutor.quarantined_at) quarantinedTargets.add(tutor.id);
       }
     }
     if (materialIds.length > 0) {
       const { data: materials } = await admin2
         .from("digital_materials")
-        .select("id, title")
+        .select("id, title, quarantined_at")
         .in("id", materialIds);
       for (const material of materials ?? []) {
         labels.set(material.id, material.title ?? "Note");
+        if (material.quarantined_at) quarantinedTargets.add(material.id);
       }
     }
 
@@ -452,6 +554,7 @@ export const listReportsAdmin = createServerFn({ method: "POST" })
       target_label:
         labels.get(row.target_id) ??
         (row.target_type === "material_review" ? "Notes review" : null),
+      target_quarantined: quarantinedTargets.has(row.target_id),
       reporter_email: emails.get(row.reporter_id) ?? null,
     })) satisfies AdminReportRow[];
   });
@@ -614,8 +717,9 @@ async function countUpheldReports(tutorId: string): Promise<number> {
   return count ?? 0;
 }
 
-/** Shared has_role gate (admin | super_admin), same pattern as r2.functions. */
-async function assertAdminClient(context: { userId: string; supabase: unknown }) {
+/** Shared has_role gate (admin | super_admin), same pattern as r2.functions.
+ *  Exported for the #782 §2.4 Emergency Suspend fns (emergency-suspend.functions.ts). */
+export async function assertAdminClient(context: { userId: string; supabase: unknown }) {
   const client = context.supabase as {
     rpc: (
       fn: string,

@@ -478,6 +478,11 @@ function ReportDialog({
             <DialogDescription className="mt-2 max-w-[280px] text-sm leading-relaxed text-muted-foreground">
               {t("report.sent_description")}
             </DialogDescription>
+            {reason === "urgent_safety" ? (
+              <p className="mt-3 max-w-[300px] rounded-sm border border-[color:var(--warning)] bg-muted/50 px-3 py-2 text-xs leading-relaxed text-[color:var(--ink)]">
+                {t("reports.urgent_safety.confirm_note")}
+              </p>
+            ) : null}
             <Button
               type="button"
               variant="solid"

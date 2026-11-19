@@ -234,6 +234,13 @@ export type Tutor = {
    */
   owner_account_status?: string;
   /**
+   * #782 §2.4: auto-quarantine / Emergency Suspend stamps. Optional so
+   * pre-migration rows and fallback selects type-check; a non-null stamp
+   * keeps the profile off every public surface (isTutorHiddenByTrust).
+   */
+  quarantined_at?: string | null;
+  suspended_at?: string | null;
+  /**
    * Issue #309: labels of staff-APPROVED tutor_grades rows, kept in sync by a
    * DB trigger. Drives the one Verified badge and the public grade line —
    * labels only, never the slip file. Optional pre-migration; [] = no badge.
@@ -260,7 +267,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, university_year_of_study, university_gpa, university_courses, course_specific_grades, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, availability_grid_hourly, availability_grid_hourly_reviewed_at, portfolio_images, profile_tags, user_id, owner_account_status, sen_enabled, sen_categories, sen_experience, is_fast_responder, approved_grade_labels, custom_headline_en, custom_headline_zh, offers_free_trial, offers_first_lesson_discount, first_lesson_discount_pct, scrc_ready";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, university_year_of_study, university_gpa, university_courses, course_specific_grades, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, availability_grid_hourly, availability_grid_hourly_reviewed_at, portfolio_images, profile_tags, user_id, owner_account_status, sen_enabled, sen_categories, sen_experience, is_fast_responder, approved_grade_labels, custom_headline_en, custom_headline_zh, offers_free_trial, offers_first_lesson_discount, first_lesson_discount_pct, scrc_ready, quarantined_at, suspended_at";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -298,6 +305,23 @@ function publicAvailabilityFilter(): string {
 }
 
 const AVAILABILITY_FILTER_COLUMNS = ["start_immediately", "earliest_start_date"] as const;
+
+/**
+ * #782 §2.4: a quarantined (auto-quarantine) or suspended (Emergency Suspend)
+ * profile leaves every public surface, no matter its is_published state.
+ * The columns ride the select-fallback, so an un-migrated database simply
+ * yields undefined stamps and nothing hides.
+ */
+export function isTutorHiddenByTrust(
+  tutor: Pick<Tutor, "quarantined_at" | "suspended_at"> | Record<string, unknown>,
+): boolean {
+  const quarantinedAt = (tutor as { quarantined_at?: unknown }).quarantined_at;
+  const suspendedAt = (tutor as { suspended_at?: unknown }).suspended_at;
+  return (
+    (typeof quarantinedAt === "string" && quarantinedAt.length > 0) ||
+    (typeof suspendedAt === "string" && suspendedAt.length > 0)
+  );
+}
 
 async function withTutorSelectFallback<T>(
   run: (
@@ -615,7 +639,12 @@ export async function fetchTopWeeklyTutors(limit = 3): Promise<Tutor[]> {
       .map((row) => normalize(row, defaults))
       // Issue #715: the home featured row is a discovery carousel — full
       // tutors (paused or 0 slots) must never surface here.
-      .filter((tutor) => isTutorPubliclyListed(tutor) && !isTutorFullyBooked(tutor)),
+      .filter(
+        (tutor) =>
+          !isTutorHiddenByTrust(tutor) &&
+          isTutorPubliclyListed(tutor) &&
+          !isTutorFullyBooked(tutor),
+      ),
   );
 }
 
@@ -643,7 +672,12 @@ export async function fetchSimilarTutors(
     (data ?? [])
       .map((row) => normalize(row, defaults))
       // Issue #715: recommendation feed — exclude fully booked tutors.
-      .filter((tutor) => isTutorPubliclyListed(tutor) && !isTutorFullyBooked(tutor)),
+      .filter(
+        (tutor) =>
+          !isTutorHiddenByTrust(tutor) &&
+          isTutorPubliclyListed(tutor) &&
+          !isTutorFullyBooked(tutor),
+      ),
   );
   return orderBySimilarIds(tutors, rows).slice(0, 3);
 }
@@ -660,7 +694,8 @@ export async function fetchPublishedTutors(): Promise<Tutor[]> {
   return attachGroupCohortRates(
     (data ?? [])
       .map((row) => normalize(row, defaults))
-      .filter((tutor) => isTutorPubliclyListed(tutor)),
+      // #782 §2.4: quarantined / suspended profiles leave the public directory.
+      .filter((tutor) => !isTutorHiddenByTrust(tutor) && isTutorPubliclyListed(tutor)),
   );
 }
 
@@ -703,6 +738,9 @@ export async function fetchTutorByCode(code: string): Promise<Tutor | null> {
   // loader's `if (!tutor) throw notFound()` never fired and SSR shipped a 200
   // soft-404. A row lookup must return null whenever there is no row.
   if (!data || Array.isArray(data) || Object.keys(data).length === 0) return null;
+  // #782 §2.4: a quarantined / suspended profile 404s off the public site
+  // (same shape as the unknown-code soft-404 above).
+  if (isTutorHiddenByTrust(data as Record<string, unknown>)) return null;
   const [tutor] = await attachGroupCohortRates([normalize(data, defaults)]);
   return tutor;
 }

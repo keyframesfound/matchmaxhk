@@ -34,6 +34,8 @@ type Row = {
   subject_tag: string | null;
   subcategory?: string | null;
   page_count: number | null;
+  /** #782 §2.4 quarantine stamp (absent pre-migration). */
+  quarantined_at?: string | null;
 };
 
 export const getNotePriceGuide = createServerFn({ method: "GET" })
@@ -56,21 +58,25 @@ export const getNotePriceGuide = createServerFn({ method: "GET" })
         .eq("material_type", data.materialType)
         .limit(1000);
     };
-    let result = await run(`${base}, subcategory`, true);
+    let result = await run(`${base}, subcategory, quarantined_at`, true);
+    if (result.error?.code === "42703") result = await run(`${base}, subcategory`, true);
     if (result.error?.code === "42703") result = await run(`${base}, subcategory`, false);
     if (result.error?.code === "42703") result = await run(base, false);
     const rows = result.error ? [] : (result.data ?? []);
-    const pool: ComparableListing[] = rows.map((row) => ({
-      id: row.id,
-      slug: row.slug,
-      title: row.title,
-      priceHkd: Number(row.price_hkd ?? 0),
-      materialType: row.material_type,
-      curriculumTag: row.curriculum_tag ?? "",
-      subjectTag: row.subject_tag,
-      subcategory: row.subcategory ?? null,
-      pageCount: row.page_count,
-    }));
+    // #782 §2.4: quarantined listings leave the public price guide.
+    const pool: ComparableListing[] = rows
+      .filter((row) => !(typeof row.quarantined_at === "string" && row.quarantined_at.length > 0))
+      .map((row) => ({
+        id: row.id,
+        slug: row.slug,
+        title: row.title,
+        priceHkd: Number(row.price_hkd ?? 0),
+        materialType: row.material_type,
+        curriculumTag: row.curriculum_tag ?? "",
+        subjectTag: row.subject_tag,
+        subcategory: row.subcategory ?? null,
+        pageCount: row.page_count,
+      }));
     return buildPriceGuide(
       {
         materialType: data.materialType,

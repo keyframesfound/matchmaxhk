@@ -89,11 +89,13 @@ export const getPublicListing = createServerFn({ method: "GET" })
     const db = asAdminDb(supabaseAdmin);
 
     const isUuid = /^[0-9a-f-]{36}$/i.test(data.slug);
-    const run = (community: boolean) => {
+    const run = (community: boolean, withQuarantine = true) => {
       const base = db
         .from<Record<string, unknown>>("digital_materials")
         .select(
-          `${PUBLIC_NOTE_COLUMNS}, ${community ? PUBLIC_NOTE_TUTOR_JOIN_V2 : PUBLIC_NOTE_TUTOR_JOIN}`,
+          `${PUBLIC_NOTE_COLUMNS}, ${community ? PUBLIC_NOTE_TUTOR_JOIN_V2 : PUBLIC_NOTE_TUTOR_JOIN}${
+            withQuarantine ? ", quarantined_at" : ""
+          }`,
         )
         .eq("status", "published");
       return (
@@ -104,12 +106,18 @@ export const getPublicListing = createServerFn({ method: "GET" })
         .eq(isUuid ? "id" : "slug", data.slug)
         .limit(1);
     };
+    // #782 §2.4: the stamp may not exist yet on a pre-migration database;
+    // step back through the community/tutor variants, then drop the stamp.
     let result = await run(true);
     if (result.error?.code === "42703") result = await run(false);
+    if (result.error?.code === "42703") result = await run(true, false);
+    if (result.error?.code === "42703") result = await run(false, false);
     const { data: rows, error } = result;
     if (error) throw new Error(error.message);
     const row = rows?.[0];
     if (!row) return null;
+    // #782 §2.4: a quarantined listing 404s off the public site.
+    if (typeof row.quarantined_at === "string" && row.quarantined_at.length > 0) return null;
     const listing = mapPublicNote(row);
     if (!listing) return null;
 

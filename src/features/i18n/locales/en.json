@@ -2542,7 +2542,8 @@
     "rate_limited": "You've submitted several reports recently. Please wait a little before reporting again.",
     "self_report": "You can't report your own listing. Contact us if something needs fixing.",
     "failed": "Could not submit the report. Please try again.",
-    "self_own_profile": "You cannot report your own profile."
+    "self_own_profile": "You cannot report your own profile.",
+    "reason_urgent_safety": "Urgent safety / illegal activity"
   },
   "risk": {
     "flag_none": "None",
@@ -3812,7 +3813,27 @@
     "students": "Students matched",
     "tutors": "Active tutors",
     "subjects": "Subjects covered",
-    "districts": "Districts served"
+    "districts": "Districts served",
+    "emergency_suspend": {
+      "title": "Emergency suspend",
+      "description": "One-click kill-switch: it unpublishes the tutor's profile and listings and blocks new accepts, uploads and publishes, with an audit row and your staff note. Use it for urgent safety only; copyright and not-as-described disputes stay on the reports desk.",
+      "lift_note_label": "Staff note for lifting (required to lift a suspension)",
+      "lift_note_placeholder": "Why is the suspension or quarantine being lifted?",
+      "col_tutor": "Tutor",
+      "col_state": "State",
+      "col_last_note": "Last staff note",
+      "col_actions": "Actions",
+      "empty_title": "No suspended or quarantined tutors",
+      "empty_description": "Auto-quarantines and Emergency Suspend actions appear here.",
+      "badge_suspended": "Suspended",
+      "badge_quarantined": "Quarantined",
+      "remove_quarantine": "Remove quarantine",
+      "lift_suspension": "Lift suspension",
+      "lift_note_required": "A staff note is required to lift a suspension",
+      "lift_success": "Suspension lifted, the profile and listings are restored.",
+      "quarantine_lift_success": "Quarantine removed.",
+      "failed": "Action failed. Try again."
+    }
   },
   "tutor": {
     "fastResponder": {
@@ -5347,5 +5368,10 @@
     "mode_online": "Online",
     "mode_f2f": "In person",
     "error_mode": "Choose online or in person."
+  },
+  "reports": {
+    "urgent_safety": {
+      "confirm_note": "Thank you. Urgent safety reports are reviewed immediately. If this is an emergency, contact the police (999) as well."
+    }
   }
 }

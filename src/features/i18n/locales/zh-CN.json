@@ -2542,7 +2542,8 @@
     "rate_limited": "你近期已提交咗几个举报，请稍候再试。",
     "self_report": "唔可以举报自己嘅项目。如有问题需要修改，请联络我哋。",
     "failed": "举报未能提交，请再试一次。",
-    "self_own_profile": "唔可以举报自己嘅档案。"
+    "self_own_profile": "唔可以举报自己嘅档案。",
+    "reason_urgent_safety": "紧急安全/违规活动"
   },
   "risk": {
     "flag_none": "无",
@@ -3812,7 +3813,27 @@
     "students": "成功配对学生",
     "tutors": "活跃导师",
     "subjects": "补习科目",
-    "districts": "服务地区"
+    "districts": "服务地区",
+    "emergency_suspend": {
+      "title": "紧急停权",
+      "description": "一键终止：立即下架导师档案及所有上架教材，并封锁新的接案、上传和发布；同时写入审计记录及员工备注。仅适用于紧急安全情况；版权或「货不对板」等一般争议留在举报工作台处理。",
+      "lift_note_label": "解除时的员工备注（解除停权必填）",
+      "lift_note_placeholder": "为何解除此停权或隔离？",
+      "col_tutor": "导师",
+      "col_state": "状态",
+      "col_last_note": "最后员工备注",
+      "col_actions": "操作",
+      "empty_title": "暂无被停权或隔离的导师",
+      "empty_description": "自动隔离与紧急停权会显示在这里。",
+      "badge_suspended": "已停权",
+      "badge_quarantined": "已隔离",
+      "remove_quarantine": "解除隔离",
+      "lift_suspension": "解除停权",
+      "lift_note_required": "解除停权必须填写员工备注",
+      "lift_success": "已解除停权，档案及教材已恢复。",
+      "quarantine_lift_success": "已解除隔离。",
+      "failed": "操作失败，请重试。"
+    }
   },
   "tutor": {
     "fastResponder": {
@@ -5347,5 +5368,10 @@
     "mode_online": "网上",
     "mode_f2f": "面授",
     "error_mode": "请选择网上或面授。"
+  },
+  "reports": {
+    "urgent_safety": {
+      "confirm_note": "已收到。紧急安全举报会立即审核。如属危急情况，请同时致电 999 报警。"
+    }
   }
 }

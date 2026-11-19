@@ -734,6 +734,9 @@ export const uploadNotePdf = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
+    // #782 §2.4: Emergency Suspend blocks new uploads immediately.
+    const { assertNotSuspended } = await import("@/features/trust/emergency-suspend");
+    await assertNotSuspended(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const tutor = await myTutorRow(db, context.userId);
@@ -880,6 +883,9 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
     const { assertSafetyAttestation } =
       await import("@/features/trust/safety-attestation.functions");
     await assertSafetyAttestation(context.userId);
+    // #782 §2.4: Emergency Suspend blocks new submissions immediately.
+    const { assertNotSuspended } = await import("@/features/trust/emergency-suspend");
+    await assertNotSuspended(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const tutor = await ensureSellerRow(db, context.userId);

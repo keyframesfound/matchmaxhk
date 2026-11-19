@@ -1364,6 +1364,8 @@ export type Database = {
           badge: string | null;
           card_hidden_by_ban: boolean;
           owner_account_status: string;
+          quarantined_at: string | null;
+          suspended_at: string | null;
           created_at: string;
           created_by: string | null;
           currency: Database["public"]["Enums"]["supported_currency"];
@@ -1437,6 +1439,8 @@ export type Database = {
           badge?: string | null;
           card_hidden_by_ban?: boolean;
           owner_account_status?: string;
+          quarantined_at?: string | null;
+          suspended_at?: string | null;
           created_at?: string;
           created_by?: string | null;
           currency?: Database["public"]["Enums"]["supported_currency"];
@@ -1507,6 +1511,8 @@ export type Database = {
           badge?: string | null;
           card_hidden_by_ban?: boolean;
           owner_account_status?: string;
+          quarantined_at?: string | null;
+          suspended_at?: string | null;
           created_at?: string;
           created_by?: string | null;
           currency?: Database["public"]["Enums"]["supported_currency"];
