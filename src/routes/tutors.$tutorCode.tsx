@@ -1260,10 +1260,17 @@ function TutorDetail() {
               ) : null}
 
               {/* Issue #768: always visible for non-waitlist profiles; an
-                  all-empty grid renders the copy empty state. */}
+                  all-empty grid renders the copy empty state. Activating an
+                  Open hour pre-fills the request form with that slot. */}
               {inquiry.kind !== "waitlist" ? (
                 <ProfileSection icon={Clock} title={translate("profile.section_availability")}>
-                  <AvailabilityGrid grid={t.availability_grid} />
+                  <AvailabilityGrid
+                    grid={t.availability_grid}
+                    onPickHour={(day, hour) => {
+                      const search = { post: true as const, day, hour: String(hour) };
+                      void navigate({ to: "/tutor-requests", search });
+                    }}
+                  />
                 </ProfileSection>
               ) : null}
 
