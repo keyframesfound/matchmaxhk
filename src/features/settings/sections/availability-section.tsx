@@ -45,6 +45,19 @@ function hasHourlyHours(hours: unknown): boolean {
 }
 
 /**
+ * Issue #768: the backfill fills EVERY tutor row with a 7×24 object, so "has a
+ * non-empty object" is not a review signal — 137 of 142 tutors had no hours to
+ * migrate and would be told to review a grid they never set. Only prompt when
+ * at least one hour is actually Open, i.e. when there is something to confirm.
+ */
+function hasOpenHour(hours: unknown): boolean {
+  if (!hours || typeof hours !== "object" || Array.isArray(hours)) return false;
+  return Object.values(hours as Record<string, unknown>).some(
+    (day) => Array.isArray(day) && day.some((cell) => cell === true || cell === 1),
+  );
+}
+
+/**
  * "Availability", tutor self-serve start date (issue #106). Saves through the
  * update_my_availability RPC so the tutor can only ever touch these two
  * fields on their own card, with no admin review cycle.
@@ -165,7 +178,7 @@ export function AvailabilitySection() {
     current &&
     !reviewDismissed &&
     !current.availability_hours_reviewed_at &&
-    hasHourlyHours(current.availability_hours),
+    hasOpenHour(current.availability_hours),
   );
   const readiness = current
     ? getTutorAvailabilityReadiness({
