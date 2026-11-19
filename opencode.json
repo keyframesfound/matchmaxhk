@@ -4,7 +4,7 @@
   "default_agent": "orchestrator",
   "agents": {
     "title": {
-      "model": "opencode/deepseek-v4.1-flash-free#low"
+      "model": "opencode-go/deepseek-v4.1-flash"
     }
   },
   "mcp": {

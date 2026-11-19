@@ -1,7 +1,7 @@
 ---
 description: Fast read-only recon. Finds files, symbols, and call sites and reports paths with line numbers.
 mode: subagent
-model: "opencode/deepseek-v4.1-flash-free#low"
+model: "opencode-go/deepseek-v4.1-flash"
 steps: 15
 color: "#38bdf8"
 permissions:

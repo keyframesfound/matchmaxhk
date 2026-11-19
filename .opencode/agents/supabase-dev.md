@@ -1,7 +1,7 @@
 ---
 description: Supabase schema, RLS policies, migrations, and typed queries for MatchMax.
 mode: subagent
-model: "opencode/deepseek-v4.1-flash-free#high"
+model: "opencode-go/deepseek-v4.1-flash"
 steps: 30
 color: "#2dd4bf"
 ---

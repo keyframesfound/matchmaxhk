@@ -1,7 +1,7 @@
 ---
 description: Reproduces a failure, finds the root cause, and fixes it. No fix without a confirmed cause.
 mode: subagent
-model: "opencode/deepseek-v4.1-flash-free#high"
+model: "opencode-go/deepseek-v4.1-flash"
 steps: 30
 color: "#f87171"
 ---

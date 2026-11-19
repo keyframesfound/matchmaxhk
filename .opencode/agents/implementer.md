@@ -1,7 +1,7 @@
 ---
 description: Implements one scoped MatchMax coding task. Needs exact owned files and a definition of done.
 mode: subagent
-model: "opencode/deepseek-v4.1-flash-free#high"
+model: "opencode-go/deepseek-v4.1-flash"
 steps: 30
 color: "#34d399"
 ---

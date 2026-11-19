@@ -1,7 +1,7 @@
 ---
 description: Writes READMEs, ADRs, changelog entries, and code comments from the actual diff and code.
 mode: subagent
-model: "opencode/deepseek-v4.1-flash-free#low"
+model: "opencode-go/deepseek-v4.1-flash"
 steps: 20
 color: "#94a3b8"
 ---

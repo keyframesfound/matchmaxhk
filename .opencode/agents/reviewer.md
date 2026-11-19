@@ -1,7 +1,7 @@
 ---
 description: Read-only review of the current diff for correctness, regressions, i18n, and design-rule violations. Never edits.
 mode: subagent
-model: "opencode/deepseek-v4.1-flash-free#high"
+model: "opencode-go/deepseek-v4.1-flash"
 steps: 20
 color: "#fb7185"
 permissions:

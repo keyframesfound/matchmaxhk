@@ -1,7 +1,7 @@
 ---
 description: Turns a goal into an ordered, file-level plan with parallel groups. Read-only. Use before multi-file work.
 mode: subagent
-model: "opencode/deepseek-v4.1-flash-free#high"
+model: "opencode-go/deepseek-v4.1-flash"
 steps: 20
 color: "#a78bfa"
 permissions:

@@ -1,7 +1,7 @@
 ---
 description: Cloudflare Workers/Nitro build, Bun frozen-lockfile, env, and Resend delivery checks.
 mode: subagent
-model: "opencode/deepseek-v4.1-flash-free#high"
+model: "opencode-go/deepseek-v4.1-flash"
 steps: 25
 color: "#fb923c"
 ---

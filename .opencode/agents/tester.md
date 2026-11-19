@@ -1,7 +1,7 @@
 ---
 description: Writes and runs MatchMax tests, then reports failures with evidence. Does not change production code.
 mode: subagent
-model: "opencode/deepseek-v4.1-flash-free#high"
+model: "opencode-go/deepseek-v4.1-flash"
 steps: 30
 color: "#fbbf24"
 ---

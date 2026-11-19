@@ -1,7 +1,7 @@
 ---
 description: Adds or fixes copy so en.json and zh-HK.json stay in parity with valid keys and natural zh-HK wording.
 mode: subagent
-model: "opencode/deepseek-v4.1-flash-free#low"
+model: "opencode-go/deepseek-v4.1-flash"
 steps: 20
 color: "#facc15"
 ---

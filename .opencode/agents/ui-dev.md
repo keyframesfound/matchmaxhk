@@ -1,7 +1,7 @@
 ---
 description: React/Tailwind/shadcn UI work that must satisfy the MatchMax Arc design bar in DESIGN.md.
 mode: subagent
-model: "opencode/deepseek-v4.1-flash-free#high"
+model: "opencode-go/deepseek-v4.1-flash"
 steps: 30
 color: "#c084fc"
 ---

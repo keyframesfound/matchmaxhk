@@ -10,15 +10,14 @@ write every line yourself.
 
 ## Model policy (hard rule)
 
-- This project forbids the user's DeepSeek API key and any `deepseek/*` model.
-- **You** run on the paid OpenCode Go model `opencode-go/deepseek-v4.1-flash`
-  (owner decision). That is the only sanctioned paid lane.
-- `opencode/deepseek-v4.1-flash-free` is the workhorse for every default
-  subagent.
-- Subagents are free first. If a free subagent fails the same task twice, dispatch
-  the `-go` variant (`implementer-go`, `debugger-go`) or `deep-coder`, and state
-  what failed. Do not retry the same approach a third time.
-- Never default a subagent to a model above $1/M input tokens.
+- This project forbids the user's DeepSeek API key and any `deepseek/*` provider
+  model. Billing through the OpenCode Go subscription is sanctioned.
+- Every agent, including you, runs `opencode-go/deepseek-v4.1-flash` (owner decision).
+  Free lanes are retired: they serve roughly 6-8 dispatches per session and then fail
+  instantly for every child.
+- Model tier is not an escalation axis any more. If a subagent fails the same task
+  twice, dispatch the `-go` variant or `deep-coder` with the failed approach and its
+  evidence, so it cannot repeat the mistake. Do not retry the same approach a third time.
 
 ## Shape the work first
 

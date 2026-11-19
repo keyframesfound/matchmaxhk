@@ -1,42 +1,46 @@
 <!-- MODEL POLICY:BEGIN -->
 > [!IMPORTANT]
 > **MatchMax model policy — overrides any global/default agent model config.**
-> Never use the user's DeepSeek API key or any `deepseek/*` model while working in this
-> project (including subagents). The orchestrator runs on the paid OpenCode Go model
-> `opencode-go/deepseek-v4.1-flash`; every other agent runs a free OpenCode model.
-> Do not set, export, or reference `DEEPSEEK_API_KEY` here. If a task seems to need any
-> other paid model, stop and ask instead of falling back to it.
+> Every agent in this project, primary and subagent, runs the paid OpenCode Go model
+> `opencode-go/deepseek-v4.1-flash` (owner decision). Free lanes are retired here: the
+> free tier is a per-session budget that exhausts after roughly 6-8 dispatches.
+> Never use the user's DeepSeek API key, or any `deepseek/*` provider model: billing
+> through the OpenCode Go subscription is sanctioned, the DeepSeek API key is not.
+> Do not set, export, or reference `DEEPSEEK_API_KEY` here. Any model other than the
+> sanctioned Go one needs explicit owner approval first.
 <!-- MODEL POLICY:END -->
 
-## Subagent dispatch (free first)
+## Subagent dispatch
 
 Project agents live in `.opencode/agents/` and override global agents of the same name.
-The `orchestrator` is the one paid lane, on `opencode-go/deepseek-v4.1-flash`. Every
-dispatched agent defaults to the free workhorse `opencode/deepseek-v4.1-flash-free`;
-additional `opencode-go/*` use is escalation only, inside the $10 Go plan.
+Every project agent runs the paid `opencode-go/deepseek-v4.1-flash` on the OpenCode Go
+plan. There is no free lane in this project any more: the free tier is a per-session
+budget that dies after roughly 6-8 dispatches, so a free-first ladder just burns round
+trips.
 
 | Agent | Model | Use |
 | --- | --- | --- |
 | `orchestrator` | `opencode-go/deepseek-v4.1-flash` | default primary; decompose, dispatch, verify |
-| `scout` | free `#low` | read-only recon before planning |
-| `planner` | free `#high` | ordered file-level plan, read-only |
-| `implementer` | free `#high` | one scoped coding task |
-| `ui-dev` | free `#high` | React/Tailwind/shadcn work against DESIGN.md |
-| `supabase-dev` | free `#high` | schema, RLS, migrations, queries |
-| `i18n-guard` | free `#low` | en/zh-HK copy parity |
-| `tester` | free `#high` | write and run tests |
-| `reviewer` | free `#high` | read-only diff review |
-| `debugger` | free `#high` | reproduce, localize, fix |
-| `docs` | free `#low` | READMEs, ADRs, comments |
-| `deploy-ops` | free `#high` | Cloudflare/Nitro build, Bun lockfile, env |
-| `implementer-go` | `opencode-go/deepseek-v4.1-flash` | escalation after two free failures |
-| `debugger-go` | `opencode-go/deepseek-v4.1-flash` | escalation after two free failures |
+| `scout` | `opencode-go/deepseek-v4.1-flash` | read-only recon before planning |
+| `planner` | `opencode-go/deepseek-v4.1-flash` | ordered file-level plan, read-only |
+| `implementer` | `opencode-go/deepseek-v4.1-flash` | one scoped coding task |
+| `ui-dev` | `opencode-go/deepseek-v4.1-flash` | React/Tailwind/shadcn work against DESIGN.md |
+| `supabase-dev` | `opencode-go/deepseek-v4.1-flash` | schema, RLS, migrations, queries |
+| `i18n-guard` | `opencode-go/deepseek-v4.1-flash` | en/zh-HK copy parity |
+| `tester` | `opencode-go/deepseek-v4.1-flash` | write and run tests |
+| `reviewer` | `opencode-go/deepseek-v4.1-flash` | read-only diff review |
+| `debugger` | `opencode-go/deepseek-v4.1-flash` | reproduce, localize, fix |
+| `docs` | `opencode-go/deepseek-v4.1-flash` | READMEs, ADRs, comments |
+| `deploy-ops` | `opencode-go/deepseek-v4.1-flash` | Cloudflare/Nitro build, Bun lockfile, env |
+| `implementer-go` | `opencode-go/deepseek-v4.1-flash` | escalation after two failed attempts |
+| `debugger-go` | `opencode-go/deepseek-v4.1-flash` | escalation after two failed attempts |
 | `deep-coder` | `opencode-go/deepseek-v4.1-flash` | hard or ambiguous work, fresh approach |
 
-Rules: retry a failed free task at most once. On the second failure, dispatch the
-`-go` variant with the failed approach and evidence in the prompt. Never retry the
-same approach a third time. The orchestrator's own Go model is the single sanctioned
-default above the free tier; no dispatched agent may default above $1/M input tokens.
+Rules: retry a failed task at most once. On the second failure, dispatch the `-go`
+variant or `deep-coder` with the failed approach and its evidence in the prompt, so it
+cannot repeat the same mistake. Never retry the same approach a third time. Model tier
+is no longer the escalation axis — every agent is on the same paid model, so escalation
+means a different approach, more context, or a smaller scope, never "a stronger model".
 
 ### GitHub issue hygiene
 
@@ -56,28 +60,21 @@ default above the free tier; no dispatched agent may default above $1/M input to
 
 ### Rate limits
 
-Free models are shared-quota. `#high`/`#low` are reasoning effort, not separate
-buckets, so every free agent above competes for the same limit per model ID.
+Every agent shares one model (`opencode-go/deepseek-v4.1-flash`) on one Go subscription,
+so concurrency draws on a single quota.
 
-- Cap concurrent children at **8**, not 25, when they share one free model. Widen
-  only by adding a different model, never by adding another child to the same one.
-- **The free lane is a per-session budget, not just a concurrency cap.** Measured
-  2026-11-19: after roughly 6-8 free child dispatches in one session, every further
-  free child fails immediately with "Free usage limit reached" — including ones that
-  never started. A failure of that shape is not a bad prompt and not a transient
-  throttle; retrying it on the free lane wastes a round trip. Escalate to the `-go`
-  variant straight away and say the free budget is exhausted.
-- Only `opencode/deepseek-v4.1-flash-free` is verified as a live free lane in this
-  project. Do not cite other `*-free` model IDs from memory: a free model being
-  listed on models.dev does not mean this project can call it, and
-  `opencode debug config` does not enumerate the free registry (it reports
-  `opencode-go` with zero models even while Go-plan models resolve and run).
-  Before spreading a wave onto a second lane, prove that lane resolves *and*
-  completes one trivial task, then record the evidence next to the ID. Where no
-  second lane is proven, narrow the wave instead of inventing one.
-- A 429 or quota error is an **escalation trigger, not a retry trigger**. Move that
-  task to the `-go` variant or another free lane and say which limit was hit. Do
-  not resubmit the same request to the same model and hope.
+- Cap concurrent children at **8**. Widen only by adding a genuinely different model,
+  never by adding another child to the same one.
+- Free lanes are retired. Measured 2026-11-19: the free tier serves roughly 6-8 child
+  dispatches per session, then every further free child fails instantly with "Free usage
+  limit reached" — including children that never started. That shape is not a bad prompt
+  and not a transient throttle.
+- A 429 or quota error is an **escalation trigger, not a retry trigger**. Do not resend
+  the same request to the same model and hope. Either narrow the waves (fewer children,
+  larger scopes) or tell the owner the Go budget is the constraint.
+- `opencode debug config` does not enumerate the free registry — it reports
+  `opencode-go` with zero models even while Go-plan models resolve and run. Use
+  `opencode debug agents` to confirm what an agent will actually call.
 - On repeated throttling, narrow the wave rather than re-running it: fewer children
   with larger scopes beat a 25-wide wave that half-fails.
 
