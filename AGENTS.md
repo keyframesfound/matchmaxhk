@@ -1,3 +1,80 @@
+<!-- MODEL POLICY:BEGIN -->
+> [!IMPORTANT]
+> **MatchMax model policy — overrides any global/default agent model config.**
+> Never use the user's DeepSeek API key or any `deepseek/*` model while working in this
+> project (including subagents). The orchestrator runs on the paid OpenCode Go model
+> `opencode-go/deepseek-v4.1-flash`; every other agent runs a free OpenCode model.
+> Do not set, export, or reference `DEEPSEEK_API_KEY` here. If a task seems to need any
+> other paid model, stop and ask instead of falling back to it.
+<!-- MODEL POLICY:END -->
+
+## Subagent dispatch (free first)
+
+Project agents live in `.opencode/agents/` and override global agents of the same name.
+The `orchestrator` is the one paid lane, on `opencode-go/deepseek-v4.1-flash`. Every
+dispatched agent defaults to the free workhorse `opencode/deepseek-v4.1-flash-free`;
+additional `opencode-go/*` use is escalation only, inside the $10 Go plan.
+
+| Agent | Model | Use |
+| --- | --- | --- |
+| `orchestrator` | `opencode-go/deepseek-v4.1-flash` | default primary; decompose, dispatch, verify |
+| `scout` | free `#low` | read-only recon before planning |
+| `planner` | free `#high` | ordered file-level plan, read-only |
+| `implementer` | free `#high` | one scoped coding task |
+| `ui-dev` | free `#high` | React/Tailwind/shadcn work against DESIGN.md |
+| `supabase-dev` | free `#high` | schema, RLS, migrations, queries |
+| `i18n-guard` | free `#low` | en/zh-HK copy parity |
+| `tester` | free `#high` | write and run tests |
+| `reviewer` | free `#high` | read-only diff review |
+| `debugger` | free `#high` | reproduce, localize, fix |
+| `docs` | free `#low` | READMEs, ADRs, comments |
+| `deploy-ops` | free `#high` | Cloudflare/Nitro build, Bun lockfile, env |
+| `implementer-go` | `opencode-go/deepseek-v4.1-flash` | escalation after two free failures |
+| `debugger-go` | `opencode-go/deepseek-v4.1-flash` | escalation after two free failures |
+| `deep-coder` | `opencode-go/deepseek-v4.1-flash` | hard or ambiguous work, fresh approach |
+
+Rules: retry a failed free task at most once. On the second failure, dispatch the
+`-go` variant with the failed approach and evidence in the prompt. Never retry the
+same approach a third time. The orchestrator's own Go model is the single sanctioned
+default above the free tier; no dispatched agent may default above $1/M input tokens.
+
+### GitHub issue hygiene
+
+- **Never close or resolve an umbrella issue while any acceptance criterion, packed
+  part, or linked child inside it is unfinished.** A packed ticket like #768 is only
+  closable when every in-body AC checkbox in every Part is satisfied and every
+  historical child listed in its Part 3 has actually been closed against it.
+- Track completion as an explicit ledger (AC → status → evidence), not as a feeling
+  that "most of it shipped". Partial progress is reported as partial.
+- Out-of-scope items explicitly delegated to another ticket are recorded as
+  "owned elsewhere", never silently counted as done and never counted as a blocker.
+- Closing requires evidence per AC: a command result, a test name, or a merged PR.
+  "Implemented" without a verifiable check is not done.
+- Land verified work by committing directly to the active branch. Pull requests are
+  not required in this project unless explicitly asked for; do not open one by default.
+  Committing a slice is not closing its issue — the closure rule above still applies.
+
+### Rate limits
+
+Free models are shared-quota. `#high`/`#low` are reasoning effort, not separate
+buckets, so every free agent above competes for the same limit per model ID.
+
+- Cap concurrent children at **8**, not 25, when they share one free model. Widen
+  only by adding a different model, never by adding another child to the same one.
+- Only `opencode/deepseek-v4.1-flash-free` is verified as a live free lane in this
+  project. Do not cite other `*-free` model IDs from memory: a free model being
+  listed on models.dev does not mean this project can call it, and
+  `opencode debug config` does not enumerate the free registry (it reports
+  `opencode-go` with zero models even while Go-plan models resolve and run).
+  Before spreading a wave onto a second lane, prove that lane resolves *and*
+  completes one trivial task, then record the evidence next to the ID. Where no
+  second lane is proven, narrow the wave instead of inventing one.
+- A 429 or quota error is an **escalation trigger, not a retry trigger**. Move that
+  task to the `-go` variant or another free lane and say which limit was hit. Do
+  not resubmit the same request to the same model and hope.
+- On repeated throttling, narrow the wave rather than re-running it: fewer children
+  with larger scopes beat a 25-wide wave that half-fails.
+
 <!-- STACK:BEGIN -->
 > [!IMPORTANT]
 > This project is deployed and powered by Resend, Supabase, and Cloudflare
