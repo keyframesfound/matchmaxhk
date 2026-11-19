@@ -1393,6 +1393,8 @@ export type Database = {
           is_accepting_students: boolean;
           preferred_time_windows: string[];
           availability_grid: Json;
+          availability_hours: Json;
+          availability_hours_reviewed_at: string | null;
           deletion_requested_at: string | null;
           portfolio_images: string[];
           approved_grade_labels: string[];
@@ -1460,6 +1462,8 @@ export type Database = {
           updated_at?: string;
           user_id?: string | null;
           availability_grid?: Json;
+          availability_hours?: Json;
+          availability_hours_reviewed_at?: string | null;
           deletion_requested_at?: string | null;
           portfolio_images?: string[];
           approved_grade_labels?: string[];
@@ -1530,6 +1534,8 @@ export type Database = {
           is_accepting_students?: boolean;
           preferred_time_windows?: string[];
           availability_grid?: Json;
+          availability_hours?: Json;
+          availability_hours_reviewed_at?: string | null;
           deletion_requested_at?: string | null;
           portfolio_images?: string[];
           approved_grade_labels?: string[];
@@ -1678,6 +1684,19 @@ export type Database = {
       update_my_availability_grid: {
         Args: { _grid: Json };
         Returns: undefined;
+      };
+      update_my_availability_hours: {
+        Args: { _hours: Json; _mark_reviewed?: boolean };
+        Returns: undefined;
+      };
+      get_tutor_public_availability: {
+        Args: { p_tutor_ids: string[] };
+        Returns: {
+          tutor_id: string;
+          day_of_week: number;
+          hour: number;
+          state: string;
+        }[];
       };
       get_org_role: {
         Args: { _org_id: string; _user_id?: string };
