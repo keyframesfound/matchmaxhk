@@ -3612,7 +3612,8 @@
     "bell_saved_profile": "有人收藏了你的導師檔案（{{label}}），記得更新可上課時間！",
     "bell_saved_note": "有人收藏了「{{label}}」",
     "bell_saved_case": "有導師收藏了你的個案 {{label}}",
-    "bell_saved_generic": "有人在 MatchMax 收藏了你的項目"
+    "bell_saved_generic": "有人在 MatchMax 收藏了你的項目",
+    "bell_contact_nudge": "第一堂將於 16 小時內開始，但仍未確認。請立即確認。"
   },
   "cv": {
     "title": "學習履歷及成績檔案",

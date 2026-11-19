@@ -272,7 +272,7 @@ export async function runIntakeTrustChecks(input: {
     if (!isSerialHopper(drops, new Date())) return;
     await flag(
       "SERIAL_HOPPER_PARENT",
-      `${drops.length} early drops on record. Next dispatch: online trial only or L1 deposit.`,
+      `${drops.length} early drops in 30 days. Next dispatch: online trial only (no L1 deposit is ever taken).`,
     );
   });
 }
