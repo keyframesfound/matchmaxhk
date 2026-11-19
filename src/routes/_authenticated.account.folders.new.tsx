@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useAuth } from "@/features/auth/useAuth";
 import { SellTypePills } from "@/features/materials/sell-type-pills";
 import { FolderEditorForm } from "@/features/folders/folder-editor";
+import { withSafetyAttestationGate } from "@/features/trust/safety-attestation-gate";
 
 /**
  * #392: new Topic Folder, everything is optional until submit; a draft
@@ -17,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/account/folders/new")({
   head: () => ({
     meta: [{ title: "New topic folder | MatchMax" }, { name: "robots", content: "noindex" }],
   }),
-  component: NewFolderPage,
+  component: withSafetyAttestationGate(NewFolderPage),
 });
 
 function NewFolderPage() {

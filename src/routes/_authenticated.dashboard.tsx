@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 
 import { SettingsPage } from "@/features/settings/settings-page";
+import { withSafetyAttestationGate } from "@/features/trust/safety-attestation-gate";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({
@@ -10,5 +11,5 @@ export const Route = createFileRoute("/_authenticated/dashboard")({
       { name: "robots", content: "noindex" },
     ],
   }),
-  component: SettingsPage,
+  component: withSafetyAttestationGate(SettingsPage),
 });

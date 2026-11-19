@@ -81,6 +81,7 @@ import { caseAcademicTier } from "@/features/tutors/verticals";
 import { kindergartenTopicLabel } from "@/features/tutors/verticals-labels";
 import { useDisplayCurrency } from "@/features/currency/display-currency-context";
 import { useTutorDisplayCurrency } from "@/features/currency/tutor-currency";
+import { withSafetyAttestationGate } from "@/features/trust/safety-attestation-gate";
 
 type CaseDetailData = { item: PublicCaseBoardItem; whatsappNumber: string };
 
@@ -111,7 +112,7 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/$caseCode")
       ],
     };
   },
-  component: CaseDetailPage,
+  component: withSafetyAttestationGate(CaseDetailPage),
 });
 
 function CheckItem({ children }: { children: React.ReactNode }) {

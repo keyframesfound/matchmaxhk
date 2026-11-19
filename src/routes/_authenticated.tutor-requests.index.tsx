@@ -98,6 +98,7 @@ import {
   myAppliedCasesQueryKey,
 } from "@/features/cases/applications.functions";
 import { SaveSearchButton, SavedSearchStrip } from "@/components/search/saved-search-ui";
+import { withSafetyAttestationGate } from "@/features/trust/safety-attestation-gate";
 
 /** Issue #423 ship-order 5: every board filter lives on the URL so chip
  * links (?tag=/q=) and the advanced-filters dialog share one state. */
@@ -249,7 +250,7 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
       links: localeLinks("/tutor-requests"),
     };
   },
-  component: TutorRequestsPage,
+  component: withSafetyAttestationGate(TutorRequestsPage),
 });
 
 /**

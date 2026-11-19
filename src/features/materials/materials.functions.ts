@@ -205,6 +205,10 @@ export const uploadStudyMaterial = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => UploadMaterialInput.parse(data))
   .handler(async ({ data, context }): Promise<UploadMaterialResult> => {
+    // #782 §2.1: tutors complete the one-time Safety Attestation first.
+    const { assertSafetyAttestation } =
+      await import("@/features/trust/safety-attestation.functions");
+    await assertSafetyAttestation(context.userId);
     // Admins add listings on behalf of any tutor ("like we add tutors");
     // plain tutors upload only against their own linked account.
     let tutor: { id: string; display_name: string };

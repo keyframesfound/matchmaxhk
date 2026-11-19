@@ -3615,6 +3615,22 @@
     "bell_saved_generic": "Someone saved your listing on MatchMax",
     "bell_contact_nudge": "Lesson 1 starts within 16 hours and is not confirmed yet. Please confirm it now."
   },
+  "safety_attestation": {
+    "title": "Safety, Clean Record & Legal Conduct Declaration",
+    "intro": "Before you take cases or sell on MatchMax, please make this one-time declaration. Tick all three to continue.",
+    "clean_record_title": "Clean Criminal & Child-Safety Record / 清潔刑事及兒童安全紀錄",
+    "clean_record_body": "I have never been convicted of a sexual offence, child abuse, a violent crime or an indictable offence in Hong Kong or any other jurisdiction, and I have no pending criminal prosecutions.",
+    "zero_illegal_title": "Zero Illegal Activities / Contraband / 絕不用於非法活動或違禁品",
+    "zero_illegal_body": "I will never use MatchMax to promote, sell, solicit or distribute illegal substances (drugs, controlled pharmaceuticals, vapes), contraband, weapons, pirated exam papers or unlawful services.",
+    "independent_operator_title": "Independent Operator Indemnity / 獨立營運者確認及彌償",
+    "independent_operator_body": "I operate as an independent tutor, not an employee or agent of MatchMax. A false declaration is fraud and grounds for immediate termination, and I agree to indemnify MatchMax against claims arising from my conduct or misrepresentation.",
+    "footnote": "This is an in-product acknowledgement. The published Terms and Conditions govern. No certificate or ID is collected.",
+    "agree": "I Declare & Agree / 本人聲明並同意",
+    "cancel": "Cancel",
+    "saved": "Declaration recorded. Thank you.",
+    "error": "Could not save your declaration. Please try again.",
+    "required_error": "Please complete the one-time Safety Declaration first."
+  },
   "cv": {
     "title": "Education CV & Academic Records",
     "learner": "Learner",

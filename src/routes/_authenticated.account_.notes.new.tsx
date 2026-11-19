@@ -6,6 +6,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useAuth } from "@/features/auth/useAuth";
 import { SellTypePills } from "@/features/materials/sell-type-pills";
 import { NoteEditorForm } from "@/features/materials/note-editor-form";
+import { withSafetyAttestationGate } from "@/features/trust/safety-attestation-gate";
 
 /**
  * P8 (#288): new note, everything is optional until submit; a draft with
@@ -18,7 +19,7 @@ export const Route = createFileRoute("/_authenticated/account_/notes/new")({
   head: () => ({
     meta: [{ title: "Add a note | MatchMax" }, { name: "robots", content: "noindex" }],
   }),
-  component: NewNotePage,
+  component: withSafetyAttestationGate(NewNotePage),
 });
 
 function NewNotePage() {

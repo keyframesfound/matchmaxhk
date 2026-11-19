@@ -876,6 +876,10 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => SubmitForReviewInput.parse(data))
   .handler(async ({ data, context }) => {
+    // #782 §2.1: tutors complete the one-time Safety Attestation first.
+    const { assertSafetyAttestation } =
+      await import("@/features/trust/safety-attestation.functions");
+    await assertSafetyAttestation(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const tutor = await ensureSellerRow(db, context.userId);
