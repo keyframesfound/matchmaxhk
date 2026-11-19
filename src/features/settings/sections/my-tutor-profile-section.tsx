@@ -25,6 +25,7 @@ import { MAX_ACADEMIC_HEADLINE, academicHeadlineError } from "@/lib/academic-hea
 import { MAX_CUSTOM_HEADLINE } from "@/features/tutors/custom-headline";
 import { draftChineseHeadline } from "@/features/tutors/headline-translate";
 import { Switch } from "@/components/ui/switch";
+import { ScrcReadyCard } from "@/features/trust/scrc-ready";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { MtrStationMultiSelect } from "@/components/ui/mtr-station-select";
@@ -855,6 +856,9 @@ export function MyTutorProfileSection() {
 
           {/* Issue #528: optional teaching fit tags (soft matching hint). */}
           {user ? <TeachingFitCard userId={user.id} /> : null}
+
+          {/* #782 §2.2: optional SCRC Ready self-declaration (no file stored). */}
+          {user ? <ScrcReadyCard userId={user.id} /> : null}
 
           {/* Issue #101: instant visibility toggle, reuses is_published. */}
           <div className="flex items-center justify-between gap-4 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 py-3">

@@ -153,6 +153,8 @@ export type Tutor = {
   tutor_status: string | null;
   /** Issue #142: tier_2_verified = transcripts + HKID passed manual review. */
   verification_tier: string | null;
+  /** #782 §2.2: self-declared SCRC Ready (boolean only, no file). */
+  scrc_ready?: boolean;
   lesson_mode: "online" | "in_person" | "either";
   hourly_rate: number;
   pricing_tiers: PricingTier[];
@@ -258,7 +260,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, university_year_of_study, university_gpa, university_courses, course_specific_grades, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, availability_grid_hourly, availability_grid_hourly_reviewed_at, portfolio_images, profile_tags, user_id, owner_account_status, sen_enabled, sen_categories, sen_experience, is_fast_responder, approved_grade_labels, custom_headline_en, custom_headline_zh, offers_free_trial, offers_first_lesson_discount, first_lesson_discount_pct";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, university_year_of_study, university_gpa, university_courses, course_specific_grades, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, availability_grid_hourly, availability_grid_hourly_reviewed_at, portfolio_images, profile_tags, user_id, owner_account_status, sen_enabled, sen_categories, sen_experience, is_fast_responder, approved_grade_labels, custom_headline_en, custom_headline_zh, offers_free_trial, offers_first_lesson_discount, first_lesson_discount_pct, scrc_ready";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -476,6 +478,7 @@ function normalize(
     ia_ee_tok_notes: typeof row.ia_ee_tok_notes === "string" ? row.ia_ee_tok_notes : null,
     tutor_status: typeof row.tutor_status === "string" ? row.tutor_status : null,
     verification_tier: typeof row.verification_tier === "string" ? row.verification_tier : null,
+    scrc_ready: row.scrc_ready === true,
     start_immediately: typeof row.start_immediately === "boolean" ? row.start_immediately : null,
     earliest_start_date:
       typeof row.earliest_start_date === "string" ? row.earliest_start_date : null,

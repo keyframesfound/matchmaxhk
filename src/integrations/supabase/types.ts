@@ -573,8 +573,8 @@ export type Database = {
       };
       profiles: {
         Row: {
-          last_automated_digest_sent_at: string | null
-          marketing_email_opt_in: boolean
+          last_automated_digest_sent_at: string | null;
+          marketing_email_opt_in: boolean;
           account_status: string;
           account_status_at: string | null;
           account_status_reason: string | null;
@@ -602,8 +602,8 @@ export type Database = {
           updated_at: string;
         };
         Insert: {
-          last_automated_digest_sent_at?: string | null
-          marketing_email_opt_in?: boolean
+          last_automated_digest_sent_at?: string | null;
+          marketing_email_opt_in?: boolean;
           account_status?: string;
           account_status_at?: string | null;
           account_status_reason?: string | null;
@@ -631,8 +631,8 @@ export type Database = {
           updated_at?: string;
         };
         Update: {
-          last_automated_digest_sent_at?: string | null
-          marketing_email_opt_in?: boolean
+          last_automated_digest_sent_at?: string | null;
+          marketing_email_opt_in?: boolean;
           account_status?: string;
           account_status_at?: string | null;
           account_status_reason?: string | null;
@@ -1071,6 +1071,7 @@ export type Database = {
       };
       tutoring_cases: {
         Row: {
+          prefer_scrc_tutor: boolean;
           assigned_to: string | null;
           class_format_preference: string | null;
           group_cohort_id: string | null;
@@ -1105,10 +1106,10 @@ export type Database = {
           preferred_gender: Database["public"]["Enums"]["case_gender_pref"];
           requester_type: string | null;
           schedule_note: string | null;
-          learner_nickname: string | null
-          location_estate: string | null
-          schedule_mode: string | null
-          schedule_slots: Json
+          learner_nickname: string | null;
+          location_estate: string | null;
+          schedule_mode: string | null;
+          schedule_slots: Json;
           school_type: string | null;
           sen_categories: string[];
           sen_details: string | null;
@@ -1152,6 +1153,7 @@ export type Database = {
           short_case_confirmed_at: string | null;
         };
         Insert: {
+          prefer_scrc_tutor?: boolean;
           assigned_to?: string | null;
           class_format_preference?: string | null;
           group_cohort_id?: string | null;
@@ -1186,10 +1188,10 @@ export type Database = {
           preferred_gender?: Database["public"]["Enums"]["case_gender_pref"];
           requester_type?: string | null;
           schedule_note?: string | null;
-          learner_nickname?: string | null
-          location_estate?: string | null
-          schedule_mode?: string | null
-          schedule_slots?: Json
+          learner_nickname?: string | null;
+          location_estate?: string | null;
+          schedule_mode?: string | null;
+          schedule_slots?: Json;
           school_type?: string | null;
           session_length_minutes?: number;
           sessions_per_week?: number;
@@ -1233,6 +1235,7 @@ export type Database = {
           short_case_confirmed_at?: string | null;
         };
         Update: {
+          prefer_scrc_tutor?: boolean;
           assigned_to?: string | null;
           class_format_preference?: string | null;
           group_cohort_id?: string | null;
@@ -1269,10 +1272,10 @@ export type Database = {
           preferred_gender?: Database["public"]["Enums"]["case_gender_pref"];
           requester_type?: string | null;
           schedule_note?: string | null;
-          learner_nickname?: string | null
-          location_estate?: string | null
-          schedule_mode?: string | null
-          schedule_slots?: Json
+          learner_nickname?: string | null;
+          location_estate?: string | null;
+          schedule_mode?: string | null;
+          schedule_slots?: Json;
           school_type?: string | null;
           sen_categories?: string[];
           sen_details?: string | null;
@@ -1353,6 +1356,7 @@ export type Database = {
       };
       tutors: {
         Row: {
+          scrc_ready: boolean;
           achievements: Json;
           academic_headline: string | null;
           custom_headline_en: string | null;
@@ -1425,6 +1429,7 @@ export type Database = {
           course_specific_grades: Json;
         };
         Insert: {
+          scrc_ready?: boolean;
           achievements?: Json;
           academic_headline?: string | null;
           custom_headline_en?: string | null;
@@ -1494,6 +1499,7 @@ export type Database = {
           course_specific_grades?: Json;
         };
         Update: {
+          scrc_ready?: boolean;
           achievements?: Json;
           academic_headline?: string | null;
           custom_headline_en?: string | null;

@@ -31,3 +31,16 @@ export function attestationRequired(input: {
   if (!input.hasTutorCard || input.isCommunitySellerOnly) return false;
   return !input.acceptedVersions.includes(input.currentVersion ?? SAFETY_ATTESTATION_VERSION);
 }
+
+/**
+ * #782 §2.2: the parent's "prefer an SCRC tutor" option applies only to
+ * face-to-face K-12 requests (hidden for online-only and university).
+ * Soft preference: it ranks, it never hides or blocks.
+ */
+export function scrcPreferenceApplies(input: { academicLevel: string; mode: string }): boolean {
+  const k12 =
+    input.academicLevel === "Kindergarten" ||
+    input.academicLevel === "Primary" ||
+    input.academicLevel === "Secondary";
+  return k12 && input.mode !== "" && input.mode !== "online";
+}

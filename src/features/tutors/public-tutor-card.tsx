@@ -37,6 +37,7 @@ import {
 } from "@/features/tutors/engagement-badges";
 import { ExperiencePill } from "@/features/tutors/experience-badge";
 import { VerifiedBadge } from "@/features/tutors/verified-badge";
+import { ScrcReadyPill } from "@/features/trust/scrc-ready";
 import { ScheduleFitBadge } from "@/features/cases/schedule-fit-ui";
 import { TutorRatingBadge } from "@/features/tutors/tutor-rating-badge";
 import { TrophyKpiBanner } from "@/features/tutors/trophy-kpi-banner";
@@ -448,6 +449,8 @@ export function PublicTutorCard({
                 the status/SEN/Verified badges above). */}
             {demandBadge ? <DemandBadge kind={demandBadge} /> : null}
             {showParentFavorite ? <ParentFavoriteBadge /> : null}
+            {/* #782 §2.2: SCRC Ready pill (distinct from the Blue Tick). */}
+            {tutor.scrc_ready ? <ScrcReadyPill /> : null}
             {/* Issue #391: group-classes availability pill (rate rows +
                 open cohorts). */}
             {groupRate !== null ? <GroupClassBadge rate={groupRate} /> : null}

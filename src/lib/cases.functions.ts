@@ -1,6 +1,7 @@
 import { parentTrustByCase, type ParentTrust, type TrustDb } from "@/features/cases/parent-trust";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
+import { scrcPreferenceApplies } from "@/features/trust/safety-attestation";
 
 import { mergeCaseTags } from "@/features/tutors/profile-tags";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
@@ -55,6 +56,8 @@ const CaseRequestInput = z
     studentGender: z.enum(["female", "male", "prefer_not_to_say"]),
     // Case-level hard tutor gender preference (board dims Apply on mismatch).
     tutorGenderPreference: z.enum(["any", "male", "female"]).default("any"),
+    // #782 §2.2: soft SCRC preference (re-checked server-side below).
+    preferScrcTutor: z.boolean().default(false),
     parentName: z.string().trim().min(1, "Name is required.").max(80),
     contactPhone: z.string().trim().regex(phoneRegex, "Please enter a valid phone number."),
     supportType: z.enum(["subject_tutoring", "admissions"]),
@@ -760,6 +763,9 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       who_for: data.whoFor,
       student_gender: data.studentGender,
       preferred_gender: data.tutorGenderPreference,
+      prefer_scrc_tutor:
+        data.preferScrcTutor &&
+        scrcPreferenceApplies({ academicLevel: data.academicLevel, mode: data.mode }),
       support_type: data.supportType,
       specific_component:
         data.supportType === "subject_tutoring" ? (data.specificComponent ?? null) : null,

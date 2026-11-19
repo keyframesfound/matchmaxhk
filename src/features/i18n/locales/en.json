@@ -3631,6 +3631,16 @@
     "error": "Could not save your declaration. Please try again.",
     "required_error": "Please complete the one-time Safety Declaration first."
   },
+  "scrc": {
+    "pill": "SCRC Ready",
+    "pill_hint": "This tutor holds a valid HKPF Sexual Conviction Record Check or will provide one on request. Self-declared; MatchMax does not hold the record. Not the same as Verified.",
+    "toggle_label": "I hold a valid HKPF Sexual Conviction Record Check (SCRC) or am willing to provide one upon parent request",
+    "toggle_hint": "Optional. Shows an \"SCRC Ready\" pill on your profile. Never upload the certificate or your enquiry code: MatchMax does not collect them.",
+    "on_toast": "SCRC Ready is on.",
+    "off_toast": "SCRC Ready is off.",
+    "request_label": "Prefer a tutor who can provide an HKPF SCRC check",
+    "request_hint": "Optional. We rank SCRC Ready tutors higher; other tutors can still be matched."
+  },
   "cv": {
     "title": "Education CV & Academic Records",
     "learner": "Learner",

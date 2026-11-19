@@ -41,7 +41,7 @@ const NEW_RUN_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
 const CLOSED_STATUSES = new Set(["matched", "closed", "rejected", "compliance_hold", "released"]);
 
 const CASE_COLUMNS =
-  "id, case_code, status, board_published_at, subjects, student_level, academic_tier, exam_system, district, mode, preferred_gender, tutor_background, tags, parent_id, matched_tutor_id, replacement_of_case_id, start_timing";
+  "id, case_code, status, board_published_at, subjects, student_level, academic_tier, exam_system, district, mode, preferred_gender, tutor_background, tags, parent_id, matched_tutor_id, replacement_of_case_id, start_timing, prefer_scrc_tutor";
 
 type CaseRow = {
   id: string;
@@ -55,6 +55,7 @@ type CaseRow = {
   district: string | null;
   mode: string | null;
   preferred_gender: string | null;
+  prefer_scrc_tutor?: boolean | null;
   tutor_background: string | null;
   tags: string[] | null;
   parent_id: string | null;
@@ -96,6 +97,7 @@ function toMatchCase(c: CaseRow): MatchCase {
     district: c.district,
     mode: c.mode,
     preferredGender: c.preferred_gender,
+    preferScrc: c.prefer_scrc_tutor === true,
     tutorBackground: c.tutor_background,
     tags: c.tags ?? [],
     parentId: c.parent_id,
@@ -116,6 +118,7 @@ async function loadMatchTutors(db: Db, excludeIds: string[], now: Date): Promise
     target_students: string[] | null;
     profile_tags: string[] | null;
     is_accepting_students: boolean | null;
+    scrc_ready?: boolean | null;
     owner_account_status: string | null;
     photo_url: string | null;
     headline: string | null;
@@ -123,7 +126,7 @@ async function loadMatchTutors(db: Db, excludeIds: string[], now: Date): Promise
   }>(
     db,
     "tutors",
-    "id, tutor_code, user_id, subjects, stations, district, lesson_mode, gender, tutor_status, target_students, profile_tags, is_accepting_students, owner_account_status, photo_url, headline, updated_at",
+    "id, tutor_code, user_id, subjects, stations, district, lesson_mode, gender, tutor_status, target_students, profile_tags, is_accepting_students, owner_account_status, photo_url, headline, updated_at, scrc_ready",
     [{ col: "is_published", op: "eq", value: true }],
   );
   const tutors = rows.filter((row) => !excludeIds.includes(row.id));
@@ -170,6 +173,7 @@ async function loadMatchTutors(db: Db, excludeIds: string[], now: Date): Promise
     updatedAt: row.updated_at,
     matchAlertsMuted: Boolean(row.user_id && muted.has(row.user_id)),
     shadowbanned: shadowbans.has(row.id),
+    scrcReady: row.scrc_ready === true,
   }));
 }
 

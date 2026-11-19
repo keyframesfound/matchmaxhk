@@ -174,3 +174,15 @@ describe("caseMatchFingerprint (#657)", () => {
     ).not.toBe(a);
   });
 });
+
+describe("#782 §2.2 SCRC soft preference", () => {
+  it("ranks SCRC Ready tutors higher but never excludes others (AC-755-S2)", () => {
+    const withPref = score({ scrcReady: true }, { preferScrc: true });
+    const without = score({ scrcReady: false }, { preferScrc: true });
+    expect(without).not.toBeNull();
+    expect((withPref ?? 0) - (without ?? 0)).toBeGreaterThan(0);
+    expect(score({ scrcReady: true }, { preferScrc: false })).toBe(
+      score({ scrcReady: false }, { preferScrc: false }),
+    );
+  });
+});

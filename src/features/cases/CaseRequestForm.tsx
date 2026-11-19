@@ -23,6 +23,7 @@ import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES, toCurrencyCode } from "@/lib/mo
 import { Button } from "@/components/ui/button";
 import { GoogleGIcon } from "@/components/brand/GoogleGIcon";
 import { Checkbox } from "@/components/ui/checkbox";
+import { scrcPreferenceApplies } from "@/features/trust/safety-attestation";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -205,6 +206,8 @@ type FormState = {
   // Issue #437: tutor gender preference is a case-level hard preference
   // (No preference / Male / Female), the board dims Apply on hard mismatch.
   tutorGenderPreference: string;
+  /** #782 §2.2: soft "prefer an SCRC Ready tutor" (face-to-face K-12 only). */
+  preferScrcTutor: boolean;
   notes: string;
   // Issue #199: SEN support requirements (step 3).
   senRequired: boolean;
@@ -287,6 +290,7 @@ const INITIAL_FORM: FormState = {
   budgetCurrency: DEFAULT_CURRENCY,
   tutorBackground: "any",
   tutorGenderPreference: "any",
+  preferScrcTutor: false,
   notes: "",
   senRequired: false,
   senCategories: [],
@@ -996,6 +1000,9 @@ export function CaseRequestForm({
           studentId: form.whoFor === "my_child" ? form.studentId || null : null,
           studentGender: form.studentGender as "female" | "male" | "prefer_not_to_say",
           tutorGenderPreference: (form.tutorGenderPreference || "any") as "any" | "male" | "female",
+          preferScrcTutor:
+            form.preferScrcTutor &&
+            scrcPreferenceApplies({ academicLevel: form.academicLevel, mode: form.deliveryMode }),
           parentName: form.parentName,
           contactPhone: form.contactPhone,
           supportType: form.supportType as "subject_tutoring" | "admissions",
@@ -2448,6 +2455,29 @@ export function CaseRequestForm({
                 className={controlClassName}
               />
             </div>
+            {/* #782 §2.2: soft SCRC preference, face-to-face K-12 only. */}
+            {scrcPreferenceApplies({
+              academicLevel: form.academicLevel,
+              mode: form.deliveryMode,
+            }) ? (
+              <label
+                htmlFor={`${idPrefix}-prefer-scrc`}
+                className="flex cursor-pointer items-start gap-3 rounded-lg border border-[color:var(--ink)]/10 p-3 text-sm"
+              >
+                <Checkbox
+                  id={`${idPrefix}-prefer-scrc`}
+                  className="mt-0.5"
+                  checked={form.preferScrcTutor}
+                  onCheckedChange={(v) => update({ preferScrcTutor: v === true })}
+                />
+                <span>
+                  <span className="block font-medium">{t("scrc.request_label")}</span>
+                  <span className="mt-0.5 block text-xs text-muted-foreground">
+                    {t("scrc.request_hint")}
+                  </span>
+                </span>
+              </label>
+            ) : null}
             {/* Issue #412 E: parent B2C compliance triage. A third-party
                 engager or non-tutoring duties puts the request on
                 compliance_hold for staff re-screening before matching. */}

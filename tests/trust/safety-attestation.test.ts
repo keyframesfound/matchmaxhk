@@ -4,6 +4,7 @@ import {
   allChecksTicked,
   attestationRequired,
   SAFETY_ATTESTATION_VERSION,
+  scrcPreferenceApplies,
 } from "../../src/features/trust/safety-attestation";
 
 describe("#782 §2.1 Safety Attestation", () => {
@@ -46,5 +47,16 @@ describe("#782 §2.1 Safety Attestation", () => {
         acceptedVersions: [],
       }),
     ).toBe(false);
+  });
+});
+
+describe("#782 §2.2 SCRC preference", () => {
+  it("applies only to face-to-face K-12 requests (AC-755-S2)", () => {
+    expect(scrcPreferenceApplies({ academicLevel: "Primary", mode: "offline" })).toBe(true);
+    expect(scrcPreferenceApplies({ academicLevel: "Secondary", mode: "both" })).toBe(true);
+    expect(scrcPreferenceApplies({ academicLevel: "Kindergarten", mode: "in_person" })).toBe(true);
+    expect(scrcPreferenceApplies({ academicLevel: "Secondary", mode: "online" })).toBe(false);
+    expect(scrcPreferenceApplies({ academicLevel: "University", mode: "offline" })).toBe(false);
+    expect(scrcPreferenceApplies({ academicLevel: "Primary", mode: "" })).toBe(false);
   });
 });
