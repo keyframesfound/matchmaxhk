@@ -24,7 +24,25 @@ type TutorAvailability = {
   remaining_student_slots: number | null;
   is_accepting_students: boolean | null;
   preferred_time_windows: string[] | null;
+  availability_hours: Record<string, unknown> | null;
+  availability_hours_reviewed_at: string | null;
 };
+
+/**
+ * Issue #768 hourly-grid migration: the generated Database types predate this
+ * RPC, so the call is typed here rather than widening the whole client (same
+ * pattern as most-requested-stats.ts).
+ */
+type UpdateHoursRpc = (
+  fn: "update_my_availability_hours",
+  args: { _hours: Record<string, unknown>; _mark_reviewed: boolean },
+) => PromiseLike<{ data: unknown; error: { message?: string } | null }>;
+
+/** A migrated tutor has at least one day of hourly slots; `{}` means untouched. */
+function hasHourlyHours(hours: unknown): boolean {
+  if (!hours || typeof hours !== "object" || Array.isArray(hours)) return false;
+  return Object.keys(hours as Record<string, unknown>).length > 0;
+}
 
 /**
  * "Availability", tutor self-serve start date (issue #106). Saves through the
@@ -45,6 +63,9 @@ export function AvailabilitySection() {
   const [timeWindows, setTimeWindows] = useState<PreferredTimeWindow[]>([]);
   const [capacitySaving, setCapacitySaving] = useState(false);
   const [capacityDirty, setCapacityDirty] = useState(false);
+  // Issue #768: one-time "review your hourly calendar" prompt after migration.
+  const [reviewDismissed, setReviewDismissed] = useState(false);
+  const [reviewSaving, setReviewSaving] = useState(false);
 
   const availabilityQuery = useQuery({
     queryKey: ["settings", "availability", user?.id],
@@ -52,7 +73,7 @@ export function AvailabilitySection() {
       const { data, error } = await supabase
         .from("tutors")
         .select(
-          "start_immediately, earliest_start_date, remaining_student_slots, is_accepting_students, preferred_time_windows",
+          "start_immediately, earliest_start_date, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_hours, availability_hours_reviewed_at",
         )
         .eq("user_id", user!.id)
         .maybeSingle();
@@ -115,7 +136,37 @@ export function AvailabilitySection() {
     toast.success(t("settings.capacity.saved"));
   }
 
+  async function markHourlyReviewed() {
+    const hours = availabilityQuery.data?.availability_hours;
+    if (!hasHourlyHours(hours)) {
+      setReviewDismissed(true);
+      return;
+    }
+    setReviewSaving(true);
+    const rpc = supabase.rpc as unknown as UpdateHoursRpc;
+    const { error } = await rpc("update_my_availability_hours", {
+      _hours: hours as Record<string, unknown>,
+      _mark_reviewed: true,
+    });
+    setReviewSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    setReviewDismissed(true);
+    await queryClient.invalidateQueries({
+      queryKey: ["settings", "availability", user?.id],
+    });
+    toast.success(t("settings.capacity.saved"));
+  }
+
   const current = availabilityQuery.data;
+  const needsHourlyReview = Boolean(
+    current &&
+    !reviewDismissed &&
+    !current.availability_hours_reviewed_at &&
+    hasHourlyHours(current.availability_hours),
+  );
   const readiness = current
     ? getTutorAvailabilityReadiness({
         start_immediately: current.start_immediately,
@@ -156,6 +207,40 @@ export function AvailabilitySection() {
           }}
           className="space-y-5"
         >
+          {needsHourlyReview ? (
+            <div
+              role="status"
+              className="space-y-3 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 py-4"
+            >
+              <div className="space-y-1">
+                <p className="text-sm font-bold text-[color:var(--ink)]">
+                  {t("settings.capacity.hourly_review_title")}
+                </p>
+                <p className="text-xs leading-5 text-[color:var(--ink)]/70">
+                  {t("settings.capacity.hourly_review_body")}
+                </p>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
+                <Button
+                  type="button"
+                  size="sm"
+                  disabled={reviewSaving}
+                  onClick={() => void markHourlyReviewed()}
+                >
+                  {t("settings.capacity.hourly_review_cta")}
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="ghost"
+                  disabled={reviewSaving}
+                  onClick={() => setReviewDismissed(true)}
+                >
+                  {t("settings.my_tutor.notice_dismiss")}
+                </Button>
+              </div>
+            </div>
+          ) : null}
           <div className="space-y-2">
             <Label className="text-[color:var(--ink)]">{t("settings.availability.question")}</Label>
             <RadioGroup
