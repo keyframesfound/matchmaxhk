@@ -1,5 +1,12 @@
 {
   "$schema": "https://opencode.ai/config.json",
+  "model": "opencode-go/deepseek-v4.1-flash",
+  "default_agent": "orchestrator",
+  "agents": {
+    "title": {
+      "model": "opencode-go/deepseek-v4.1-flash"
+    }
+  },
   "mcp": {
     "shadcn": {
       "type": "local",

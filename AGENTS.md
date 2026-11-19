@@ -1,3 +1,78 @@
+<!-- MODEL POLICY:BEGIN -->
+> [!IMPORTANT]
+> **MatchMax model policy — overrides any global/default agent model config.**
+> Every agent in this project, primary and subagent, runs the paid OpenCode Go model
+> `opencode-go/deepseek-v4.1-flash` (owner decision). Free lanes are retired here: the
+> free tier is a per-session budget that exhausts after roughly 6-8 dispatches.
+> Never use the user's DeepSeek API key, or any `deepseek/*` provider model: billing
+> through the OpenCode Go subscription is sanctioned, the DeepSeek API key is not.
+> Do not set, export, or reference `DEEPSEEK_API_KEY` here. Any model other than the
+> sanctioned Go one needs explicit owner approval first.
+<!-- MODEL POLICY:END -->
+
+## Start every session from the latest main
+
+**This repo moves fast: `main` gained 259 commits between 2026-11-19 12:00 and 18:00.**
+On that date an entire feature (#768 hourly availability) was re-implemented from
+scratch on a branch that had forked 259 commits earlier, duplicating work that was
+already shipped. Do not let that recur — run this before planning or dispatching:
+
+```sh
+git fetch origin --prune
+git rev-list --left-right --count origin/main...HEAD   # <behind> <ahead>
+```
+
+- If `behind` is anything other than 0, **stop** and sync before writing code:
+  `git checkout main && git pull --ff-only`, then branch fresh from `main`.
+- Never start work on a branch whose base predates today without checking what already
+  landed. Before building a feature, prove it does not already exist:
+  `git log --oneline origin/main -- <likely path>` and
+  `git ls-tree -r --name-only origin/main | grep -i <feature>`.
+- A tracker issue body can be stale. The code on `main` is the authority on what is
+  shipped; the issue and the ticket text are not.
+- Prefer many small branches merged same-day over one long-lived branch. A branch older
+  than a day is a merge conflict factory in this repo.
+
+## Subagent dispatch
+
+Project agents live in `.opencode/agents/` and override global agents of the same name.
+Every project agent runs the paid `opencode-go/deepseek-v4.1-flash` on the OpenCode Go
+plan.
+
+| Agent | Model | Use |
+| --- | --- | --- |
+| `orchestrator` | `opencode-go/deepseek-v4.1-flash` | default primary; decompose, dispatch, verify |
+| `scout` | same | read-only recon before planning |
+| `planner` | same | ordered file-level plan, read-only |
+| `implementer` | same | one scoped coding task |
+| `ui-dev` | same | React/Tailwind/shadcn work against DESIGN.md |
+| `supabase-dev` | same | schema, RLS, migrations, queries |
+| `i18n-guard` | same | en/zh-HK copy parity |
+| `tester` | same | write and run tests |
+| `reviewer` | same | read-only diff review |
+| `debugger` | same | reproduce, localize, fix |
+| `docs` | same | READMEs, ADRs, comments |
+| `deploy-ops` | same | Cloudflare/Nitro build, Bun lockfile, env |
+| `implementer-go` / `debugger-go` / `deep-coder` | same | escalation: different approach, never "a stronger model" |
+
+- Cap concurrent children at **8**. File partitioning is the binding constraint: every
+  child owns a disjoint set of paths. Widen by splitting work, never by sharing a file.
+- Retry a failed task at most once. On the second failure dispatch the `-go` variant or
+  `deep-coder` with the failed approach and its evidence, so it cannot repeat it.
+- A 429 or quota error is an **escalation trigger, not a retry trigger**.
+
+## GitHub issue hygiene
+
+- **Never close or resolve an umbrella issue while any acceptance criterion, packed
+  part, or linked child inside it is unfinished.**
+- Track completion as an explicit ledger (AC → status → evidence), not as a feeling that
+  "most of it shipped". Report partial progress as partial.
+- Out-of-scope items delegated to another ticket are recorded as "owned elsewhere".
+- Closing requires evidence per AC: a command result, a test name, a merged PR, or a row
+  returned from the live database. "Implemented" without a verifiable check is not done.
+- Land verified work by committing directly to the active branch; PRs are not required
+  unless asked. Committing a slice is not closing its issue.
+
 <!-- STACK:BEGIN -->
 > [!IMPORTANT]
 > This project is deployed and powered by Resend, Supabase, and Cloudflare
