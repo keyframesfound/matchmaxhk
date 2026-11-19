@@ -48,6 +48,11 @@ import {
 } from "@/features/tutors/queries";
 import { matchesSenFilter } from "@/features/tutors/sen";
 import { normalizeProfileTag, popularProfileTags } from "@/features/tutors/profile-tags";
+import { mostRequestedCandidateIds } from "@/features/tutors/most-requested";
+import {
+  fetchTutorPublicStats,
+  type TutorPublicStats,
+} from "@/features/tutors/most-requested-stats";
 import { matchesCategoryFilter, matchesSubjectQuery } from "@/features/tutors/subjects";
 import {
   collectEducationValueSets,
@@ -188,6 +193,20 @@ async function fetchWhatsappNumber(): Promise<string> {
   return typeof value === "string" ? value : "";
 }
 
+// Issue #768: the card's social-proof footer takes camelCase counts while the
+// stats row is snake_case. A missing row yields null so the card renders no
+// footer rather than a zero claim.
+type TutorCardSocialProof = { activeCasesCount: number; engagementCount: number };
+
+function socialProofForTutor(
+  byId: ReadonlyMap<string, TutorPublicStats>,
+  tutorId: string,
+): TutorCardSocialProof | null {
+  const stats = byId.get(tutorId);
+  if (!stats) return null;
+  return { activeCasesCount: stats.active_cases, engagementCount: stats.engagement_count };
+}
+
 // Hover-intent prefetch target: the directory list (shared cache key with
 // the landing page) resolves before paint instead of flashing skeletons.
 const tutorsLoader = async ({ context }: { context: { queryClient: QueryClient } }) => {
@@ -261,6 +280,26 @@ function TutorsDirectory() {
   // Education dropdown options = the distinct values that actually appear on
   // tutor profiles (issue #130), refreshed whenever the tutor list does.
   const educationValues = useMemo(() => collectEducationValueSets(tutors), [tutors]);
+
+  // Issue #768: per-tutor demand stats for the card social-proof footer. Every
+  // published tutor can be rendered here, so the id list is the published rows
+  // (sorted for a stable query key).
+  const socialProofTutorIds = useMemo(() => mostRequestedCandidateIds(tutors, []), [tutors]);
+
+  // Tolerant fetch: any RPC failure, including the function not being deployed
+  // yet, resolves to an empty list, so cards simply render without a footer.
+  // No loading state or gate is needed.
+  const { data: tutorPublicStats = [] } = useQuery({
+    queryKey: ["tutors", "public_stats", socialProofTutorIds],
+    queryFn: () => fetchTutorPublicStats(socialProofTutorIds),
+    enabled: socialProofTutorIds.length > 0,
+  });
+
+  const socialProofById = useMemo(() => {
+    const map = new Map<string, TutorPublicStats>();
+    for (const row of tutorPublicStats) map.set(row.tutor_id, row);
+    return map;
+  }, [tutorPublicStats]);
 
   const { data: whatsappNumber = "" } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
@@ -918,6 +957,7 @@ function TutorsDirectory() {
                                 key={tut.id}
                                 tutor={tut}
                                 engagement={engagementSummaries?.get(tut.id) ?? null}
+                                socialProof={socialProofForTutor(socialProofById, tut.id)}
                                 priceSuffix={t("featured.per_hour")}
                                 onOpen={openTutorDetail}
                                 footerAction={
@@ -1013,6 +1053,7 @@ function TutorsDirectory() {
                             key={tut.id}
                             tutor={tut}
                             engagement={engagementSummaries?.get(tut.id) ?? null}
+                            socialProof={socialProofForTutor(socialProofById, tut.id)}
                             priceSuffix={t("featured.per_hour")}
                             onOpen={openTutorDetail}
                             onCompareToggle={() => toggleCompare(tut)}
