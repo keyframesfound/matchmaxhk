@@ -63,8 +63,14 @@ means a different approach, more context, or a smaller scope, never "a stronger 
 Every agent shares one model (`opencode-go/deepseek-v4.1-flash`) on one Go subscription,
 so concurrency draws on a single quota.
 
-- Cap concurrent children at **8**. Widen only by adding a genuinely different model,
-  never by adding another child to the same one.
+- Cap concurrent children at **8**. That is my standing choice, not a provider limit:
+  eight is wide enough for the real parallel groups in this repo, while keeping local
+  `tsc`/`vitest` runs from thrashing each other and keeping the report backlog small
+  enough to actually verify every claim. The binding constraint is file partitioning,
+  not model quota: every child must own a disjoint set of paths, so widen the wave by
+  splitting work into more independent units, never by letting two children share a file.
+- Prefer many small, fully-specified dispatches over a few large ones. A wide wave with
+  exact contracts beats a narrow wave with vague ones.
 - Free lanes are retired. Measured 2026-11-19: the free tier serves roughly 6-8 child
   dispatches per session, then every further free child fails instantly with "Free usage
   limit reached" — including children that never started. That shape is not a bad prompt
