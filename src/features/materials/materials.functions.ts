@@ -205,6 +205,9 @@ export const uploadStudyMaterial = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => UploadMaterialInput.parse(data))
   .handler(async ({ data, context }): Promise<UploadMaterialResult> => {
+    // #782 §2.3: banned terms / dangerous file types are rejected, never dropped.
+    const { assertNoContraband } = await import("@/features/trust/contraband.server");
+    await assertNoContraband(context.userId, "uploadStudyMaterial", data);
     // #782 §2.1: tutors complete the one-time Safety Attestation first.
     const { assertSafetyAttestation } =
       await import("@/features/trust/safety-attestation.functions");

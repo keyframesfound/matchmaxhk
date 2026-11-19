@@ -131,6 +131,9 @@ export const assignHomework = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ context, data }): Promise<{ id: string }> => {
+    // #782 §2.3: banned terms / dangerous file types are rejected, never dropped.
+    const { assertNoContraband } = await import("@/features/trust/contraband.server");
+    await assertNoContraband(context.userId, "assignHomework", data);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const { c, role } = await writableParty(db, data.caseId, context.userId);
@@ -166,6 +169,9 @@ export const submitHomework = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ context, data }): Promise<{ submittedAt: string }> => {
+    // #782 §2.3: banned terms / dangerous file types are rejected, never dropped.
+    const { assertNoContraband } = await import("@/features/trust/contraband.server");
+    await assertNoContraband(context.userId, "submitHomework", data);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const { c, role } = await writableParty(db, data.caseId, context.userId);

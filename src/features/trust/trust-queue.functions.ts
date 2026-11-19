@@ -166,3 +166,28 @@ export const listTrustQueue = createServerFn({ method: "POST" })
     });
     return { rows, ghostRaised };
   });
+
+export type ContrabandHitRow = {
+  id: string;
+  user_id: string | null;
+  surface: string;
+  category: string;
+  matched_term: string | null;
+  created_at: string;
+};
+
+/** #782 §2.3: staff-visible log of saves the contraband filter blocked. */
+export const listContrabandHits = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<ContrabandHitRow[]> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    await requireAdmin(db, context.userId);
+    const { data, error } = await db
+      .from<ContrabandHitRow>("contraband_hits")
+      .select("id, user_id, surface, category, matched_term, created_at")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    if (error) throw new Error(error.message);
+    return (data ?? []) as ContrabandHitRow[];
+  });

@@ -231,6 +231,9 @@ export const syncSuperDrawerLog = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((input: unknown) => syncInput.parse(input))
   .handler(async ({ context, data }): Promise<SuperDrawerSyncResult> => {
+    // #782 §2.3: banned terms / dangerous file types are rejected, never dropped.
+    const { assertNoContraband } = await import("@/features/trust/contraband.server");
+    await assertNoContraband(context.userId, "syncSuperDrawerLog", data);
     const db = await adminDb();
     const { kase } = await requireDrawerAccess(db, data.caseId, context.userId);
     if (!kase.sor_status || PAST_SOR_STATUSES.has(kase.sor_status)) {
@@ -472,6 +475,9 @@ export const completeSuperDrawerLog = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((input: unknown) => completeInput.parse(input))
   .handler(async ({ context, data }): Promise<{ ok: true }> => {
+    // #782 §2.3: banned terms / dangerous file types are rejected, never dropped.
+    const { assertNoContraband } = await import("@/features/trust/contraband.server");
+    await assertNoContraband(context.userId, "completeSuperDrawerLog", data);
     const db = await adminDb();
     const logs = await selectRows<Pick<DrawerLogRow, "id" | "case_id" | "recap_status">>(
       db,

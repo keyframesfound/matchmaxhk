@@ -15,7 +15,11 @@ import {
 } from "@/components/ui/console-table";
 import { useAuth } from "@/features/auth/useAuth";
 import { CASE_RISK_FLAG_LABELS, isCaseRiskFlagType } from "@/features/trust/trust";
-import { listTrustQueue, type TrustQueueRow } from "@/features/trust/trust-queue.functions";
+import {
+  listContrabandHits,
+  listTrustQueue,
+  type TrustQueueRow,
+} from "@/features/trust/trust-queue.functions";
 import { resolveCaseRiskFlag } from "@/features/trust/trust.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/trust-safety")({
@@ -178,6 +182,62 @@ function AdminTrustSafety() {
           </ConsoleTableBody>
         </ConsoleTable>
       </section>
+      <ContrabandHitsSection />
     </div>
+  );
+}
+
+/** #782 §2.3: blocked saves (category + matched term only, never the content). */
+function ContrabandHitsSection() {
+  const { user } = useAuth();
+  const hits = useQuery({
+    queryKey: ["admin", "contraband-hits"],
+    queryFn: () => listContrabandHits(),
+    enabled: Boolean(user),
+  });
+  const rows = hits.data ?? [];
+  return (
+    <section className="mt-10">
+      <h3 className="pb-1 text-sm font-semibold tracking-tight">Blocked saves ({rows.length})</h3>
+      <p className="pb-3 text-xs text-muted-foreground">
+        Listings, bios and Case Workspace text the contraband filter rejected. Review false
+        positives with the user; the filter never bans on its own.
+      </p>
+      <ConsoleTable minTableWidth="760px">
+        <ConsoleTableHead>
+          <tr>
+            <ConsoleTh>When</ConsoleTh>
+            <ConsoleTh>Category</ConsoleTh>
+            <ConsoleTh>Matched</ConsoleTh>
+            <ConsoleTh>Where</ConsoleTh>
+            <ConsoleTh>User</ConsoleTh>
+          </tr>
+        </ConsoleTableHead>
+        <ConsoleTableBody>
+          {hits.isLoading ? (
+            <ConsoleTableSkeletonRows columns={5} />
+          ) : rows.length === 0 ? (
+            <ConsoleTableEmpty
+              colSpan={5}
+              icon={ShieldAlert}
+              title="No blocked saves"
+              description="Banned terms and dangerous file types are logged here."
+            />
+          ) : (
+            rows.map((row) => (
+              <tr key={row.id}>
+                <ConsoleTd>{new Date(row.created_at).toLocaleString("en-HK")}</ConsoleTd>
+                <ConsoleTd>{row.category}</ConsoleTd>
+                <ConsoleTd>{row.matched_term ?? "—"}</ConsoleTd>
+                <ConsoleTd>{row.surface}</ConsoleTd>
+                <ConsoleTd>
+                  <span className="font-mono text-xs">{row.user_id?.slice(0, 8) ?? "—"}</span>
+                </ConsoleTd>
+              </tr>
+            ))
+          )}
+        </ConsoleTableBody>
+      </ConsoleTable>
+    </section>
   );
 }

@@ -212,6 +212,9 @@ export const createGigDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => GigMetaInput.parse(data))
   .handler(async ({ data, context }) => {
+    // #782 §2.3: banned terms / dangerous file types are rejected, never dropped.
+    const { assertNoContraband } = await import("@/features/trust/contraband.server");
+    await assertNoContraband(context.userId, "createGigDraft", data);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const tutor = await myTutorRow(db, context.userId);
@@ -273,6 +276,9 @@ export const updateGigDraft = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => UpdateGigDraftInput.parse(data))
   .handler(async ({ data, context }) => {
+    // #782 §2.3: banned terms / dangerous file types are rejected, never dropped.
+    const { assertNoContraband } = await import("@/features/trust/contraband.server");
+    await assertNoContraband(context.userId, "updateGigDraft", data);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const tutor = await myTutorRow(db, context.userId);
@@ -345,6 +351,9 @@ export const submitGig = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth, requireAccountActive])
   .inputValidator((data: unknown) => SubmitGigInput.parse(data))
   .handler(async ({ data, context }) => {
+    // #782 §2.3: banned terms / dangerous file types are rejected, never dropped.
+    const { assertNoContraband } = await import("@/features/trust/contraband.server");
+    await assertNoContraband(context.userId, "submitGig", data);
     // #782 §2.1: tutors complete the one-time Safety Attestation first.
     const { assertSafetyAttestation } =
       await import("@/features/trust/safety-attestation.functions");
