@@ -156,3 +156,140 @@ export function isGhostRisk(
   const startsIn = Date.parse(lesson.startsAt) - now.getTime();
   return startsIn > 0 && startsIn <= GHOST_RISK_HOURS * 60 * 60 * 1000;
 }
+
+// ---------------------------------------------------------------------------
+// #782 §2.3 (was #755 / #215): synchronous contraband & illegal-content block.
+// Runs before a storefront listing, profile bio or Case Workspace text saves.
+// Study topics must still save ("drug development" in Biology, "nuclear
+// weapons" in History, probability in Maths), so generic words only block
+// next to a trade / solicitation verb; unambiguous slang blocks on its own.
+// ---------------------------------------------------------------------------
+
+export type ContrabandCategory = "drugs" | "weapons" | "gambling" | "explicit" | "pirated_exams";
+
+const TRADE =
+  "(?:\\b(?:sell(?:ing)?|for\\s+sale|buy(?:ing)?|order|deliver(?:y)?|supply|supplier|dealer|cheap|wholesale)\\b|出售|有售|買|买|賣|卖|代購|代购|送貨|送货|批發|批发|平價|平价)";
+
+const CONTRABAND_RULES: { category: ContrabandCategory; pattern: RegExp }[] = [
+  {
+    category: "drugs",
+    pattern: new RegExp(
+      [
+        // Unambiguous slang / products.
+        "太空油|依托咪酯|etomidate|k\\s*仔|冰毒|大麻油|大麻糖|thc\\s*(?:carts?|vapes?|oil|gumm(?:y|ies))|cbd\\s*(?:oil|vapes?|gumm(?:y|ies))|vape\\s*juice|電子煙油|电子烟油|weed\\s*(?:delivery|for\\s+sale)|420\\s*friendly",
+        // Generic substances, only next to a trade verb.
+        `${TRADE}.{0,20}(?:\\b(?:cannabis|marijuana|weed|cocaine|ketamine|meth|mdma|ecstasy|lsd|xanax|vapes?)\\b|電子煙|电子烟|大麻|可卡因|搖頭丸|摇头丸|毒品)`,
+        `(?:\\b(?:cannabis|marijuana|weed|cocaine|ketamine|meth|mdma|ecstasy|lsd|xanax|vapes?)\\b|電子煙|电子烟|大麻|可卡因|搖頭丸|摇头丸|毒品).{0,20}${TRADE}`,
+      ].join("|"),
+      "i",
+    ),
+  },
+  {
+    category: "weapons",
+    pattern: new RegExp(
+      [
+        "電槍|电枪|伸縮棍|伸缩棍|攻擊性武器出售|攻击性武器出售|槍械出售|枪械出售|3d\\s*printed\\s*guns?|ghost\\s*guns?",
+        `${TRADE}.{0,20}(?:\\b(?:guns?|pistols?|rifles?|ammo|ammunition|tasers?|stun\\s*guns?|pepper\\s*spray|knuckle\\s*dusters?|switchblades?)\\b|槍|枪|子彈|子弹|武器)`,
+      ].join("|"),
+      "i",
+    ),
+  },
+  {
+    category: "gambling",
+    pattern:
+      /online\s*casino|sports?\s*betting|betting\s*tips|bet365|百家樂|百家乐|外圍波|外围波|網上賭場|网上赌场|賭場代理|赌场代理|賭波貼士|赌波贴士/i,
+  },
+  {
+    category: "explicit",
+    pattern:
+      /\bporn(?:o|ography)?\b|\bnsfw\b|\bnudes?\b|\bonlyfans\b|escort\s*service|\b18\+\s*(?:content|videos?|pics?)|援交|色情|裸照|成人影片/i,
+  },
+  {
+    category: "pirated_exams",
+    pattern:
+      /leaked\s*(?:exam|paper|questions?|answers?)|exam\s*leak|pirated\s*(?:exam|papers?|textbooks?)|real\s*exam\s*questions?\s*before|洩題|泄题|泄題|試卷外洩|试卷外泄|偷題|偷题|盜版試卷|盗版试卷/i,
+  },
+];
+
+export type ContrabandHit = { category: ContrabandCategory; term: string };
+
+/** First banned-term hit across the given text fields, else null. */
+export function screenContraband(
+  texts: readonly (string | null | undefined)[],
+): ContrabandHit | null {
+  const haystack = texts.filter(Boolean).join("\n");
+  if (!haystack) return null;
+  for (const rule of CONTRABAND_RULES) {
+    const match = haystack.match(rule.pattern);
+    if (match) return { category: rule.category, term: match[0].slice(0, 60) };
+  }
+  return null;
+}
+
+/**
+ * Executable / script / archive-as-payload types are never a study file. The
+ * notes allow-list (PDF, .apkg) stays the source for VALID types; this only
+ * rejects the dangerous ones wherever a filename is accepted.
+ */
+const BLOCKED_FILE_EXTENSIONS = [
+  "exe",
+  "msi",
+  "bat",
+  "cmd",
+  "com",
+  "scr",
+  "pif",
+  "cpl",
+  "vbs",
+  "vbe",
+  "js",
+  "jse",
+  "wsf",
+  "ps1",
+  "psm1",
+  "sh",
+  "bash",
+  "command",
+  "app",
+  "dmg",
+  "pkg",
+  "apk",
+  "ipa",
+  "jar",
+  "dll",
+  "lnk",
+  "reg",
+  "iso",
+  "img",
+  "zip",
+  "rar",
+  "7z",
+  "tar",
+  "gz",
+  "tgz",
+  "bz2",
+  "xz",
+] as const;
+
+export function isBlockedFileName(name: string | null | undefined): boolean {
+  const lowerName = (name ?? "").trim().toLowerCase();
+  const ext = lowerName.includes(".") ? lowerName.slice(lowerName.lastIndexOf(".") + 1) : "";
+  return (BLOCKED_FILE_EXTENSIONS as readonly string[]).includes(ext);
+}
+
+const CATEGORY_COPY: Record<ContrabandCategory, { en: string; zh: string }> = {
+  drugs: { en: "drugs or vapes", zh: "毒品或電子煙" },
+  weapons: { en: "weapons", zh: "武器" },
+  gambling: { en: "gambling", zh: "賭博" },
+  explicit: { en: "explicit / 18+ content", zh: "色情或成人內容" },
+  pirated_exams: { en: "leaked or pirated exam papers", zh: "外洩或盜版試卷" },
+};
+
+/** Bilingual rejection reason (EN + 繁中) shown to the person saving. */
+export function contrabandMessage(category: ContrabandCategory | "file_type"): string {
+  if (category === "file_type") {
+    return "This file type is not allowed. Please upload a PDF. / 不接受此檔案類型，請上載 PDF。";
+  }
+  const copy = CATEGORY_COPY[category];
+  return `This can't be saved: it mentions ${copy.en}, which MatchMax does not allow. If you think this is a mistake, contact support. / 未能儲存：內容涉及${copy.zh}，MatchMax 不容許此類內容。如認為有誤，請聯絡客服。`;
+}

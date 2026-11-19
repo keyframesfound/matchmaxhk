@@ -26,6 +26,7 @@ import { MAX_CUSTOM_HEADLINE } from "@/features/tutors/custom-headline";
 import { draftChineseHeadline } from "@/features/tutors/headline-translate";
 import { Switch } from "@/components/ui/switch";
 import { ScrcReadyCard } from "@/features/trust/scrc-ready";
+import { contrabandMessage, screenContraband } from "@/features/trust/safety-screen";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SearchableSelect } from "@/components/ui/searchable-select";
 import { MtrStationMultiSelect } from "@/components/ui/mtr-station-select";
@@ -237,6 +238,14 @@ function suggestCurriculaFor(form: TutorFormData): string[] {
   }
   for (const tier of form.pricing_tiers) push(tier.curriculum);
   return out;
+}
+
+/** #215 contact filter + #782 §2.3 contraband block for public profile text. */
+function profileTextError(text: string): string | null {
+  const contact = contactFilterError(text);
+  if (contact) return contact;
+  const hit = screenContraband([text]);
+  return hit ? contrabandMessage(hit.category) : null;
 }
 
 export function MyTutorProfileSection() {
@@ -540,25 +549,25 @@ export function MyTutorProfileSection() {
       // owner contact guard so the tutor sees the reason inline.
       {
         field: "custom_headline_en" as const,
-        error: contactFilterError(form.custom_headline_en ?? ""),
+        error: profileTextError(form.custom_headline_en ?? ""),
       },
       {
         field: "custom_headline_zh" as const,
-        error: contactFilterError(form.custom_headline_zh ?? ""),
+        error: profileTextError(form.custom_headline_zh ?? ""),
       },
       {
         field: "qualifications_summary" as const,
-        error: contactFilterError(form.qualifications_summary ?? ""),
+        error: profileTextError(form.qualifications_summary ?? ""),
       },
       {
         field: "self_introduction" as const,
-        error: contactFilterError(form.self_introduction ?? ""),
+        error: profileTextError(form.self_introduction ?? ""),
       },
       // Issue #190: course tags and graded course codes are public text —
       // the DB owner guard scans them, mirror it here for inline UX.
       {
         field: "university_courses" as const,
-        error: contactFilterError(
+        error: profileTextError(
           [
             ...(form.university_courses ?? []),
             ...form.course_grade_rows.map((row) => row.course),
