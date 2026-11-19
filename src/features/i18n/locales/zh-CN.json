@@ -2389,6 +2389,8 @@
     "grid_slot_am": "上午",
     "grid_slot_pm": "下午",
     "grid_cell_partial": "部分时段可补",
+    "grid_cell_open": "可约",
+    "grid_cell_occupied": "已占用",
     "claim_banner": {
       "text": "呢张系你嘅导师卡？认领之后就可以编辑你嘅公开档案。",
       "cta": "认领呢张卡"
@@ -2855,7 +2857,10 @@
       "status_inactive": "暂停",
       "status_taking_hint": "你张卡会接收新申请。下方「剩余名额」系你仲可以接收几多位学生。",
       "status_full_hint": "已达上限 — 你张卡会显示「已满」并隐藏申请按钮。调高名额即可再接收学生。",
-      "status_inactive_hint": "你张卡仍然可见，但会显示「暂停」并隐藏申请按钮，直至你重新启用。"
+      "status_inactive_hint": "你张卡仍然可见，但会显示「暂停」并隐藏申请按钮，直至你重新启用。",
+      "hourly_review_title": "请检查新的每小时时间表",
+      "hourly_review_body": "你嘅每周可约时间已改为逐小时。请检查仍然可以补习嘅时段，然后保存。",
+      "hourly_review_cta": "明白"
     },
     "my_tutor": {
       "probono_title": "义教与支持设定",
@@ -3616,7 +3621,7 @@
   },
   "tutor_card": {
     "last_slot": "最后 1 个名额",
-    "active_students": "{{count}} 名在读学生",
+    "active_students": "{{count}} 名在学学生",
     "saved_by_parents": "{{count}} 位家长已收藏",
     "verified_fallback": "学术资料属自行申报",
     "academic_achievements": "学术成绩",

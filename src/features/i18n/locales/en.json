@@ -2389,6 +2389,8 @@
     "grid_slot_am": "AM",
     "grid_slot_pm": "PM",
     "grid_cell_partial": "Partially available",
+    "grid_cell_open": "Open",
+    "grid_cell_occupied": "Occupied",
     "claim_banner": {
       "text": "Is this your card? Claim it to edit your public profile.",
       "cta": "Claim this card"
@@ -2855,7 +2857,10 @@
       "status_inactive": "Inactive",
       "status_taking_hint": "Your card accepts new requests. Slots below is how many students you can still take.",
       "status_full_hint": "At your cap, your card shows “Full” and hides the request button. Raise the slots to take more students.",
-      "status_inactive_hint": "Your card stays visible but shows “Inactive” and hides the request button until you reactivate it."
+      "status_inactive_hint": "Your card stays visible but shows “Inactive” and hides the request button until you reactivate it.",
+      "hourly_review_title": "Review your hourly calendar",
+      "hourly_review_body": "Your weekly availability moved to hourly slots. Check the hours you can still teach, then save.",
+      "hourly_review_cta": "Got it"
     },
     "my_tutor": {
       "probono_title": "Impact & Pro-Bono Preferences",

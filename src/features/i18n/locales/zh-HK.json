@@ -2389,6 +2389,8 @@
     "grid_slot_am": "上午",
     "grid_slot_pm": "下午",
     "grid_cell_partial": "部分時段可補",
+    "grid_cell_open": "可約",
+    "grid_cell_occupied": "已佔用",
     "claim_banner": {
       "text": "呢張係你嘅導師卡？認領之後就可以編輯你嘅公開檔案。",
       "cta": "認領呢張卡"
@@ -2855,7 +2857,10 @@
       "status_inactive": "暫停",
       "status_taking_hint": "你張卡會接收新申請。下方「剩餘名額」係你仲可以接收幾多位學生。",
       "status_full_hint": "已達上限 — 你張卡會顯示「已滿」並隱藏申請按鈕。調高名額即可再接收學生。",
-      "status_inactive_hint": "你張卡仍然可見，但會顯示「暫停」並隱藏申請按鈕，直至你重新啟用。"
+      "status_inactive_hint": "你張卡仍然可見，但會顯示「暫停」並隱藏申請按鈕，直至你重新啟用。",
+      "hourly_review_title": "請檢查新的每小時時間表",
+      "hourly_review_body": "你嘅每週可約時間已改為逐小時。請檢查仍然可以補習嘅時段，然後儲存。",
+      "hourly_review_cta": "明白"
     },
     "my_tutor": {
       "probono_title": "義教與支援設定",
