@@ -95,6 +95,10 @@ export const applyToCase = createServerFn({ method: "POST" })
       .parse(input),
   )
   .handler(async ({ context, data }): Promise<{ applied: boolean; alreadyApplied: boolean }> => {
+    // #782 §2.1: tutors complete the one-time Safety Attestation first.
+    const { assertSafetyAttestation } =
+      await import("@/features/trust/safety-attestation.functions");
+    await assertSafetyAttestation(context.userId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
 

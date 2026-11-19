@@ -3615,6 +3615,22 @@
     "bell_saved_generic": "有人在 MatchMax 收藏了你的项目",
     "bell_contact_nudge": "第一堂将于 16 小时内开始，但仍未确认。请立即确认。"
   },
+  "safety_attestation": {
+    "title": "安全、清白记录及合法行为声明",
+    "intro": "在 MatchMax 接个案或出售材料前，请作出此一次性声明。须勾选全部三项方可继续。",
+    "clean_record_title": "Clean Criminal & Child-Safety Record / 清潔刑事及兒童安全紀錄",
+    "clean_record_body": "本人从未在香港或任何其他司法管辖区被裁定犯有性罪行、虐待儿童、暴力罪行或可公诉罪行，亦没有任何待决的刑事检控。",
+    "zero_illegal_title": "Zero Illegal Activities / Contraband / 絕不用於非法活動或違禁品",
+    "zero_illegal_body": "本人绝不会利用 MatchMax 推广、出售、招揽或分发非法物品（毒品、受管制药物、电子烟）、违禁品、武器、盗版试卷或非法服务。",
+    "independent_operator_title": "Independent Operator Indemnity / 獨立營運者確認及彌償",
+    "independent_operator_body": "本人以独立导师身份经营，并非 MatchMax 的雇员或代理人。虚假声明属欺诈，并构成即时终止的理由；本人同意就因本人行为或失实陈述而引起的索偿向 MatchMax 作出弥偿。",
+    "footnote": "此为产品内的确认。一切以已公布的条款及细则为准。我们不会收集任何证明书或身份证明文件。",
+    "agree": "I Declare & Agree / 本人聲明並同意",
+    "cancel": "取消",
+    "saved": "已记录你的声明，多谢。",
+    "error": "未能保存你的声明，请再试一次。",
+    "required_error": "请先完成一次性的安全声明。"
+  },
   "cv": {
     "title": "学习履历及成绩档案",
     "learner": "学习者",

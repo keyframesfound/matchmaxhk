@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useAuth } from "@/features/auth/useAuth";
 import { SellTypePills } from "@/features/materials/sell-type-pills";
 import { CourseEditorForm } from "@/features/courses/course-editor";
+import { withSafetyAttestationGate } from "@/features/trust/safety-attestation-gate";
 
 /**
  * #392: new Video / General Course, everything is optional until submit;
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/account/courses/new")({
   head: () => ({
     meta: [{ title: "New course | MatchMax" }, { name: "robots", content: "noindex" }],
   }),
-  component: NewCoursePage,
+  component: withSafetyAttestationGate(NewCoursePage),
 });
 
 function NewCoursePage() {

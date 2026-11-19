@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getMyCreatorStudio } from "@/features/account/studio.functions";
+import { withSafetyAttestationGate } from "@/features/trust/safety-attestation-gate";
 
 /**
  * Issue #585 — Creator & Account Studio (owner-only). Earnings buckets over
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/_authenticated/account/studio")({
   head: () => ({
     meta: [{ title: "Creator Studio | MatchMax" }, { name: "robots", content: "noindex" }],
   }),
-  component: StudioPage,
+  component: withSafetyAttestationGate(StudioPage),
 });
 
 const money = (v: number) => `HK$${v.toFixed(2)}`;

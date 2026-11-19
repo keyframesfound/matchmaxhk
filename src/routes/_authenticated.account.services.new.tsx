@@ -7,6 +7,7 @@ import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useAuth } from "@/features/auth/useAuth";
 import { SellTypePills } from "@/features/materials/sell-type-pills";
 import { GigEditorForm } from "@/features/gigs/gig-editor-form";
+import { withSafetyAttestationGate } from "@/features/trust/safety-attestation-gate";
 
 /**
  * #326: new freestyle service gig, everything is optional until submit;
@@ -19,7 +20,7 @@ export const Route = createFileRoute("/_authenticated/account/services/new")({
   head: () => ({
     meta: [{ title: "Add a service | MatchMax" }, { name: "robots", content: "noindex" }],
   }),
-  component: NewServicePage,
+  component: withSafetyAttestationGate(NewServicePage),
 });
 
 function NewServicePage() {
