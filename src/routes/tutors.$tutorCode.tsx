@@ -82,6 +82,7 @@ import {
 import { PublicTutorCard } from "@/features/tutors/public-tutor-card";
 import { ExperienceLine } from "@/features/tutors/experience-badge";
 import { VerifiedBadge } from "@/features/tutors/verified-badge";
+import { ScrcReadyPill } from "@/features/trust/scrc-ready";
 import { AchievementProof } from "@/features/tutors/achievement-proof";
 import { CompletedCasesLine } from "@/features/tutors/completed-cases-line";
 import { VerifiedHoursLine } from "@/features/tutors/verified-hours-line";
@@ -764,6 +765,8 @@ function TutorDetail() {
                   {(t.approved_grade_labels?.length ?? 0) > 0 ? (
                     <VerifiedBadge className="h-4 w-4" />
                   ) : null}
+                  {/* #782 §2.2: SCRC Ready pill (distinct from the Blue Tick). */}
+                  {t.scrc_ready ? <ScrcReadyPill /> : null}
                   {/* Issues #77/#52: tutor status badge on the profile header. */}
                   {statusKey ? (
                     <span className="inline-flex items-center gap-1 rounded-md bg-muted px-2 py-1 text-xs font-semibold text-[color:var(--ink)]">

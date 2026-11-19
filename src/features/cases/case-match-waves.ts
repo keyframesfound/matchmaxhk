@@ -26,6 +26,8 @@ export type MatchCase = {
   tutorBackground: string | null;
   tags: string[];
   parentId: string | null;
+  /** #782 §2.2: soft "prefer an SCRC Ready tutor" (face-to-face K-12). */
+  preferScrc?: boolean;
 };
 
 export type MatchTutor = {
@@ -47,6 +49,8 @@ export type MatchTutor = {
   updatedAt: string | null;
   matchAlertsMuted: boolean;
   shadowbanned: boolean;
+  /** #782 §2.2: self-declared SCRC Ready. */
+  scrcReady?: boolean;
 };
 
 export type RankedTutor = { tutorId: string; tutorCode: string; score: number };
@@ -107,6 +111,12 @@ function softBonus(c: MatchCase, t: MatchTutor): number {
   return sharesTag || fitsBackground ? 5 : 0;
 }
 
+/** #782 §2.2: ranks SCRC Ready tutors higher; never excludes anyone. */
+export const SCRC_PREFERENCE_BONUS = 10;
+function scrcBonus(c: MatchCase, t: MatchTutor): number {
+  return c.preferScrc === true && t.scrcReady === true ? SCRC_PREFERENCE_BONUS : 0;
+}
+
 /** Score 0 to 100, or null when a hard key or eligibility rule excludes the tutor. */
 export function scoreTutorForCase(c: MatchCase, t: MatchTutor, now: Date): number | null {
   if (!isReachable(c, t) || !teachesSubject(c, t) || !stageFits(c, t)) return null;
@@ -116,7 +126,15 @@ export function scoreTutorForCase(c: MatchCase, t: MatchTutor, now: Date): numbe
   const recent =
     t.updatedAt && now.getTime() - Date.parse(t.updatedAt) <= RECENT_ACTIVITY_MS ? 5 : 0;
   const incomplete = t.hasPhoto && t.hasHeadline ? 0 : 10;
-  const total = 40 + stageBonus(c, t) + modeArea + gender + softBonus(c, t) + recent - incomplete;
+  const total =
+    40 +
+    stageBonus(c, t) +
+    modeArea +
+    gender +
+    softBonus(c, t) +
+    scrcBonus(c, t) +
+    recent -
+    incomplete;
   return Math.max(0, Math.min(100, total));
 }
 
