@@ -40,6 +40,12 @@ import {
 } from "@/features/tutors/engagement";
 import { fetchTrendingTutorSummaries } from "@/features/tutors/trending";
 import { buildHomeCurriculumRails } from "@/features/tutors/home-rails";
+import {
+  buildMostRequestedTutorIds,
+  emptyRankedEngagement,
+  mostRequestedCandidateIds,
+} from "@/features/tutors/most-requested";
+import { fetchTutorPublicStats } from "@/features/tutors/most-requested-stats";
 import { dailyTieBreakSort, hktDate } from "@/features/tutors/daily-shuffle";
 import { trackTutorEvent } from "@/features/tracking/engagement-client";
 import { collectEducationValueSets } from "@/features/tutors/education-filters";
@@ -553,6 +559,21 @@ function Landing() {
     queryFn: fetchPublishedTutors,
   });
 
+  // Issue #768: per-tutor demand + capacity stats for the Most Requested rail.
+  // Same key as landingLoader's pre-warm, so a cold load renders from cache.
+  // An empty row set (RPC not deployed, or a failure) leaves the rail on its
+  // pre-#768 ranking instead of blanking it.
+  const statsTutorIds = useMemo(
+    () => mostRequestedCandidateIds(publishedTutors, trendingCandidates),
+    [publishedTutors, trendingCandidates],
+  );
+
+  const { data: tutorPublicStats = [] } = useQuery({
+    queryKey: ["landing", "tutor_public_stats", statsTutorIds],
+    queryFn: () => fetchTutorPublicStats(statsTutorIds),
+    enabled: publishedTutors.length > 0,
+  });
+
   // Issue #151 Option A: merge the RPC's base-score candidates with the full
   // Tutor rows already fetched for the curriculum rails (no new SELECT),
   // re-rank with the quality multipliers and keep the top 8. qualityFor keys
@@ -571,11 +592,33 @@ function Landing() {
         topScorer: isTopScorer(tutor?.approved_grade_labels),
       };
     };
-    const eligible = rankTrending(
+    const rankedCandidates = rankTrending(
       trendingCandidates.filter((candidate) => tutorById.has(candidate.tutor_id)),
       qualityFor,
     ).filter((candidate) => candidate.popularity_score > 0);
-    if (eligible.length < TRENDING_MIN_ELIGIBLE) return [];
+    // Issue #768 Part 2 §3.C: deterministic 50/50 blend of trailing-14-day
+    // demand and profile completeness, rotated by the HKT calendar day. A
+    // `null` result means the stats RPC gave us nothing trustworthy, so the
+    // pre-#768 ranking below still runs untouched.
+    const blendedIds = buildMostRequestedTutorIds({
+      tutors: publishedTutors,
+      stats: tutorPublicStats,
+      railLength: TRENDING_TUTOR_LIMIT,
+      day: hktDate(),
+    });
+    if (blendedIds) {
+      const candidateById = new Map(rankedCandidates.map((c) => [c.tutor_id, c]));
+      return blendedIds.flatMap((tutorId) => {
+        const tutor = tutorById.get(tutorId);
+        if (!tutor) return [];
+        // A completeness-half tutor may have no trending row at all; zeroed
+        // engagement keeps the card badge-free rather than inventing demand.
+        return [
+          { tutor, engagement: candidateById.get(tutorId) ?? emptyRankedEngagement(tutorId) },
+        ];
+      });
+    }
+    if (rankedCandidates.length < TRENDING_MIN_ELIGIBLE) return [];
     // Issue #485 Phase B: rankTrending already ordered by popularity_score
     // desc, then requests_30d desc. This pass re-orders ONLY exact ties on
     // BOTH keys (never different engagement tiers) by the daily HKT hash,
@@ -583,7 +626,7 @@ function Landing() {
     // sticking to query order all week. Slice AFTER the tie-break so the
     // TRENDING_TUTOR_LIMIT cut itself is what rotates.
     const tieBroken = dailyTieBreakSort(
-      eligible,
+      rankedCandidates,
       (a, b) => b.popularity_score - a.popularity_score || b.requests_30d - a.requests_30d,
       (candidate) => candidate.tutor_id,
       hktDate(),
@@ -592,7 +635,7 @@ function Landing() {
       const tutor = tutorById.get(candidate.tutor_id);
       return tutor ? [{ tutor, engagement: candidate }] : [];
     });
-  }, [publishedTutors, trendingCandidates]);
+  }, [publishedTutors, trendingCandidates, tutorPublicStats]);
 
   // Issue #485 Phase A: one card per home layout. The old per-category
   // tutorsForCategory() built every rail independently, so multi-tag tutors
