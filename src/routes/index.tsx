@@ -45,7 +45,10 @@ import {
   emptyRankedEngagement,
   mostRequestedCandidateIds,
 } from "@/features/tutors/most-requested";
-import { fetchTutorPublicStats } from "@/features/tutors/most-requested-stats";
+import {
+  fetchTutorPublicStats,
+  type TutorPublicStats,
+} from "@/features/tutors/most-requested-stats";
 import { dailyTieBreakSort, hktDate } from "@/features/tutors/daily-shuffle";
 import { trackTutorEvent } from "@/features/tracking/engagement-client";
 import { collectEducationValueSets } from "@/features/tutors/education-filters";
@@ -84,6 +87,20 @@ const TRENDING_TUTOR_LIMIT = 8;
 const TRENDING_MIN_ELIGIBLE = 3;
 
 type TrendingEntry = { tutor: Tutor; engagement: RankedTrending };
+
+// Issue #768: the card's social-proof footer takes camelCase counts while the
+// stats row is snake_case. One converter keeps both public rails consistent,
+// and a missing row yields null so the card renders no footer at all.
+type TutorCardSocialProof = { activeCasesCount: number; engagementCount: number };
+
+function socialProofForTutor(
+  byId: ReadonlyMap<string, TutorPublicStats>,
+  tutorId: string,
+): TutorCardSocialProof | null {
+  const stats = byId.get(tutorId);
+  if (!stats) return null;
+  return { activeCasesCount: stats.active_cases, engagementCount: stats.engagement_count };
+}
 
 async function fetchWhatsappNumber(): Promise<string> {
   const { data, error } = await supabase
@@ -186,6 +203,7 @@ function CurriculumTutorSection({
   onOpen,
   compareSelectedIds,
   onCompareToggle,
+  socialProofById,
 }: {
   label: string;
   category: string;
@@ -196,6 +214,7 @@ function CurriculumTutorSection({
   onOpen: (tutorCode: string) => void;
   compareSelectedIds: string[];
   onCompareToggle: (tutor: Tutor) => void;
+  socialProofById: ReadonlyMap<string, TutorPublicStats>;
 }) {
   const { t, i18n } = useTranslation();
   const [page, setPage] = useState(0);
@@ -219,6 +238,7 @@ function CurriculumTutorSection({
           tutor={tutor}
           priceSuffix={priceSuffix}
           onOpen={onOpen}
+          socialProof={socialProofForTutor(socialProofById, tutor.id)}
           compareSelected={compareSelectedIds.includes(tutor.id)}
           onCompareToggle={() => onCompareToggle(tutor)}
           footerAction={
@@ -373,6 +393,7 @@ function TrendingTutorsSection({
   onOpen,
   compareSelectedIds,
   onCompareToggle,
+  socialProofById,
 }: {
   entries: TrendingEntry[];
   priceSuffix: string;
@@ -380,6 +401,7 @@ function TrendingTutorsSection({
   onOpen: (tutorCode: string) => void;
   compareSelectedIds: string[];
   onCompareToggle: (tutor: Tutor) => void;
+  socialProofById: ReadonlyMap<string, TutorPublicStats>;
 }) {
   const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion();
@@ -462,6 +484,7 @@ function TrendingTutorsSection({
                 engagement={entry.engagement}
                 priceSuffix={priceSuffix}
                 onOpen={onOpen}
+                socialProof={socialProofForTutor(socialProofById, tutor.id)}
                 compareSelected={compareSelectedIds.includes(tutor.id)}
                 onCompareToggle={() => onCompareToggle(tutor)}
                 footerAction={
@@ -573,6 +596,15 @@ function Landing() {
     queryFn: () => fetchTutorPublicStats(statsTutorIds),
     enabled: publishedTutors.length > 0,
   });
+
+  // Issue #768: keyed lookup for the card social-proof footer. The card owns
+  // the thresholds (2+ active cases, else 3+ saves); this only pipes the row
+  // through, and a tutor with no row renders no footer.
+  const socialProofById = useMemo(() => {
+    const map = new Map<string, TutorPublicStats>();
+    for (const row of tutorPublicStats) map.set(row.tutor_id, row);
+    return map;
+  }, [tutorPublicStats]);
 
   // Issue #151 Option A: merge the RPC's base-score candidates with the full
   // Tutor rows already fetched for the curriculum rails (no new SELECT),
@@ -821,6 +853,7 @@ function Landing() {
                   onOpen={openTutorDetail}
                   compareSelectedIds={compareIds}
                   onCompareToggle={toggleCompare}
+                  socialProofById={socialProofById}
                 />
               ) : null}
               {CURRICULUM_CATEGORIES.map(({ label, value }) => {
@@ -842,6 +875,7 @@ function Landing() {
                     onOpen={openTutorDetail}
                     compareSelectedIds={compareIds}
                     onCompareToggle={toggleCompare}
+                    socialProofById={socialProofById}
                   />
                 );
               })}
