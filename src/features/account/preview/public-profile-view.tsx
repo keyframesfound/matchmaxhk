@@ -45,10 +45,6 @@ import {
 } from "@/features/tutors/queries";
 import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import {
-  countAvailableCells,
-  parseAvailabilityGrid,
-} from "@/features/tutors/availability-grid-model";
-import {
   formatAvailabilityDate,
   getTutorAvailabilityReadiness,
   getTutorInquiryAction,
@@ -299,10 +295,6 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
   const inquiry = getTutorInquiryAction(tutor, whatsappNumber, i18n.language);
   const waUrl = waDigits ? inquiry.href : "";
   const availabilityReadiness = getTutorAvailabilityReadiness(tutor);
-  const preferredTimeWindows = tutor.preferred_time_windows ?? [];
-  // Issue #116: self-serve weekly grid has at least one non-unavailable cell.
-  const hasAvailabilityGrid =
-    countAvailableCells(parseAvailabilityGrid(tutor.availability_grid)) > 0;
   const genderLabel = getTutorGenderLabel(tutor.gender);
   const statusKey = getTutorStatusLabelKey(tutor.tutor_status);
   const subjectGroups = getTutorSubjectGroups(tutor).map((group) => {
@@ -505,23 +497,6 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                   {translate("profile.fully_booked")}
                 </p>
               ) : null}
-              {inquiry.kind !== "waitlist" && preferredTimeWindows.length > 0 ? (
-                <div className="mt-3 space-y-1.5">
-                  <p className="inline-flex flex-wrap items-center gap-1.5 text-xs font-semibold text-[color:var(--ink)]">
-                    <Clock
-                      className="h-3.5 w-3.5 text-[color:var(--brand-link)]"
-                      aria-hidden="true"
-                    />
-                    {translate("profile.prefers_prefix")}
-                    {preferredTimeWindows
-                      .map((window) => translate(`profile.time_window_${window}`))
-                      .join(" · ")}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {translate("profile.time_window_disclaimer")}
-                  </p>
-                </div>
-              ) : null}
               {inquiry.kind === "status" ? (
                 <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
                   <Lock className="h-3.5 w-3.5" aria-hidden="true" />
@@ -699,8 +674,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
               </ProfileSection>
             ) : null}
 
-            {inquiry.kind !== "waitlist" &&
-            (hasAvailabilityGrid || preferredTimeWindows.length > 0) ? (
+            {inquiry.kind !== "waitlist" ? (
               <ProfileSection icon={Clock} title={translate("profile.section_availability")}>
                 <AvailabilityGrid grid={tutor.availability_grid} />
               </ProfileSection>

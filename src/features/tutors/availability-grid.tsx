@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import {
   GRID_DAYS,
   GRID_SLOTS,
-  countAvailableCells,
   gridSlotLabel,
   isGridEmpty,
   parseAvailabilityGrid,
@@ -42,7 +41,14 @@ export function AvailabilityGrid({
   const { t } = useTranslation();
   const grid = parseAvailabilityGrid(rawGrid);
 
-  if (isGridEmpty(grid) || countAvailableCells(grid) === 0) return null;
+  // Issue #768: the availability section is always visible on the public
+  // profile, so an all-unavailable grid shows a copy empty state instead of
+  // collapsing the section away.
+  if (isGridEmpty(grid)) {
+    return (
+      <p className="text-sm leading-relaxed text-muted-foreground">{t("profile.grid_empty")}</p>
+    );
+  }
 
   return (
     <div className={className}>
