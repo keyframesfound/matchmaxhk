@@ -31,6 +31,7 @@ import {
   resolveReport,
   type AdminReportRow,
 } from "@/features/reports/reports.functions";
+import { emergencySuspendAccount } from "@/features/trust/quarantine.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({
@@ -47,6 +48,7 @@ export const Route = createFileRoute("/_authenticated/admin/reports")({
 });
 
 const REASON_LABELS: Record<string, string> = {
+  urgent_safety: "URGENT safety / illegal activity",
   contact_details: "Contact details",
   inappropriate_image: "Inappropriate image",
   copyright: "Copyright",
@@ -268,6 +270,9 @@ function ReportRowView({
       </ConsoleTd>
       <ConsoleTd align="right">
         <div className="flex justify-end gap-2">
+          {row.reason === "urgent_safety" && row.tutor_id ? (
+            <EmergencySuspendButton tutorId={row.tutor_id} reportId={row.id} />
+          ) : null}
           <Button
             type="button"
             variant="outline"
@@ -290,6 +295,37 @@ function ReportRowView({
         </div>
       </ConsoleTd>
     </tr>
+  );
+}
+
+/**
+ * #782 §2.4: staff 1-click Freeze & Suspend (Emergency Suspend). Suspends the
+ * account, unpublishes the card(s), hides live listings; audited and
+ * reversible from Trust & Safety.
+ */
+function EmergencySuspendButton({ tutorId, reportId }: { tutorId: string; reportId: string }) {
+  const queryClient = useQueryClient();
+  const suspend = useMutation({
+    mutationFn: (note: string) => emergencySuspendAccount({ data: { tutorId, reportId, note } }),
+    onSuccess: (res) => {
+      toast.success(`Account frozen. ${res.hiddenListings} listing(s) hidden.`);
+      void queryClient.invalidateQueries({ queryKey: ["admin", "safety-quarantines"] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Suspend failed."),
+  });
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      className="h-8 border-destructive/50 px-3 text-xs font-bold text-destructive"
+      disabled={suspend.isPending}
+      onClick={() => {
+        const note = window.prompt("Freeze & Suspend this account? Add a staff note (required):");
+        if (note && note.trim().length >= 3) suspend.mutate(note.trim());
+      }}
+    >
+      {suspend.isPending ? "Freezing…" : "Freeze & Suspend"}
+    </Button>
   );
 }
 

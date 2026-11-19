@@ -2542,7 +2542,10 @@
     "rate_limited": "你近期已提交咗几个举报，请稍候再试。",
     "self_report": "唔可以举报自己嘅项目。如有问题需要修改，请联络我哋。",
     "failed": "举报未能提交，请再试一次。",
-    "self_own_profile": "唔可以举报自己嘅档案。"
+    "self_own_profile": "唔可以举报自己嘅档案。",
+    "reason_urgent_safety": "紧急安全问题／非法活动或违禁品",
+    "sent_urgent_description": "已收到。紧急安全举报会立即审核。如属危急情况，请同时致电 999 报警。",
+    "case_tutor_label": "这位导师"
   },
   "risk": {
     "flag_none": "无",

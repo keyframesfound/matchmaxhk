@@ -2542,7 +2542,10 @@
     "rate_limited": "You've submitted several reports recently. Please wait a little before reporting again.",
     "self_report": "You can't report your own listing. Contact us if something needs fixing.",
     "failed": "Could not submit the report. Please try again.",
-    "self_own_profile": "You cannot report your own profile."
+    "self_own_profile": "You cannot report your own profile.",
+    "reason_urgent_safety": "Urgent safety / illegal activity or contraband",
+    "sent_urgent_description": "Thank you. Urgent safety reports are reviewed immediately. If this is an emergency, contact the police (999) as well.",
+    "case_tutor_label": "this tutor"
   },
   "risk": {
     "flag_none": "None",

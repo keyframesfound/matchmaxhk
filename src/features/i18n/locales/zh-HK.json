@@ -2542,7 +2542,10 @@
     "rate_limited": "你近期已提交咗幾個舉報，請稍候再試。",
     "self_report": "唔可以舉報自己嘅項目。如有問題需要修改，請聯絡我哋。",
     "failed": "舉報未能提交，請再試一次。",
-    "self_own_profile": "唔可以舉報自己嘅檔案。"
+    "self_own_profile": "唔可以舉報自己嘅檔案。",
+    "reason_urgent_safety": "緊急安全問題／非法活動或違禁品",
+    "sent_urgent_description": "已收到。緊急安全舉報會立即審核。如屬危急情況，請同時致電 999 報警。",
+    "case_tutor_label": "這位導師"
   },
   "risk": {
     "flag_none": "無",
