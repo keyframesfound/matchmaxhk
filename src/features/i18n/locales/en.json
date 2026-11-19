@@ -3015,11 +3015,11 @@
     },
     "grid": {
       "title": "Weekly availability grid",
-      "description": "Tap a cell to cycle: available → partially available → unavailable. This grid shows on your public profile.",
+      "description": "Click or drag to mark the hours you can teach. This grid shows on your public profile.",
       "loading": "Loading your availability…",
-      "editor_aria": "Weekly availability grid editor: tap cells to switch between available, partially available and unavailable.",
-      "tap_hint": "Tap a cell to change it",
-      "empty_hint": "Your grid is fully unavailable, it will stay hidden on your public profile until you mark at least one slot.",
+      "editor_aria": "Weekly availability editor: click, drag or use the arrow keys to set the hours you can teach.",
+      "tap_hint": "Click or drag to change hours",
+      "empty_hint": "No hours are open yet. Your public profile shows a message asking parents to get in touch until you open at least one hour.",
       "saving": "Saving…",
       "saved": "Availability grid updated",
       "save": "Save changes"
