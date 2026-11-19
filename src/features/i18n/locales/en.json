@@ -3812,7 +3812,49 @@
     "students": "Students matched",
     "tutors": "Active tutors",
     "subjects": "Subjects covered",
-    "districts": "Districts served"
+    "districts": "Districts served",
+    "behaviour_report": {
+      "title": "Behaviour reports",
+      "description": "Private pre-lesson behaviour concerns filed by concierge ops. Internal only: never shown on tutor cards or parent profiles. Filing a report records one strike but triggers no automatic consequence; urgent safety issues still go through emergency suspend.",
+      "form": {
+        "case_code": "Case code",
+        "case_code_placeholder": "e.g. MM-1234",
+        "subject": "Concern about",
+        "party": {
+          "parent": "Parent",
+          "tutor": "Tutor"
+        },
+        "severity_label": "Severity",
+        "severity": {
+          "low": "Low",
+          "medium": "Medium",
+          "high": "High"
+        },
+        "concern": "Concern",
+        "concern_placeholder": "What happened before the lesson? Keep it factual and staff only.",
+        "submit": "File behaviour report",
+        "internal_note": "Internal only. One strike is recorded. No automatic quarantine or rematch block."
+      },
+      "strikes": {
+        "title": "Concierge strikes",
+        "parent_count": "Parent: {{count}} strikes",
+        "tutor_count": "Tutor: {{count}} strikes"
+      },
+      "list": {
+        "raised": "Raised",
+        "case": "Case",
+        "subject": "Subject",
+        "severity": "Severity",
+        "concern": "Concern",
+        "filed_by": "Filed by",
+        "empty": "No behaviour reports",
+        "empty_description": "Pre-lesson behaviour concerns filed by ops land here, staff only."
+      },
+      "toast": {
+        "saved": "Behaviour report filed",
+        "error": "Could not file the report."
+      }
+    }
   },
   "tutor": {
     "fastResponder": {

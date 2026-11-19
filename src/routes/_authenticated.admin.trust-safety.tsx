@@ -17,6 +17,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import { CASE_RISK_FLAG_LABELS, isCaseRiskFlagType } from "@/features/trust/trust";
 import { listTrustQueue, type TrustQueueRow } from "@/features/trust/trust-queue.functions";
 import { resolveCaseRiskFlag } from "@/features/trust/trust.functions";
+import { BehaviourReportPanel } from "@/features/trust/behaviour-report-panel";
 
 export const Route = createFileRoute("/_authenticated/admin/trust-safety")({
   head: () => ({
@@ -178,6 +179,9 @@ function AdminTrustSafety() {
           </ConsoleTableBody>
         </ConsoleTable>
       </section>
+
+      {/* Issue #782 §2.5 — private pre-lesson behaviour reports + concierge strikes (staff only). */}
+      <BehaviourReportPanel />
     </div>
   );
 }

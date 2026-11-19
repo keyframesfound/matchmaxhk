@@ -3812,7 +3812,49 @@
     "students": "成功配对学生",
     "tutors": "活跃导师",
     "subjects": "补习科目",
-    "districts": "服务地区"
+    "districts": "服务地区",
+    "behaviour_report": {
+      "title": "行为报告",
+      "description": "由匹配专员记录的课前行为关注，仅内部使用：不会显示于导师卡片或家长档案。提交报告会记录一次提醒，但不会自动触发任何后果；紧急安全事宜仍须通过紧急停用处理。",
+      "form": {
+        "case_code": "案件编号",
+        "case_code_placeholder": "例如 MM-1234",
+        "subject": "关注对象",
+        "party": {
+          "parent": "家长",
+          "tutor": "导师"
+        },
+        "severity_label": "严重程度",
+        "severity": {
+          "low": "低",
+          "medium": "中",
+          "high": "高"
+        },
+        "concern": "关注事项",
+        "concern_placeholder": "课前发生了什么？请保持事实陈述，仅限员工查阅。",
+        "submit": "提交行为报告",
+        "internal_note": "仅内部使用。会记录一次提醒，但不会自动停用或封锁匹配。"
+      },
+      "strikes": {
+        "title": "专员提醒次数",
+        "parent_count": "家长：{{count}} 次提醒",
+        "tutor_count": "导师：{{count}} 次提醒"
+      },
+      "list": {
+        "raised": "提交时间",
+        "case": "案件",
+        "subject": "对象",
+        "severity": "严重程度",
+        "concern": "关注事项",
+        "filed_by": "提交人",
+        "empty": "暂无行为报告",
+        "empty_description": "专员记录的课前行为关注会显示于此，仅限员工查阅。"
+      },
+      "toast": {
+        "saved": "行为报告已提交",
+        "error": "提交失败，请重试。"
+      }
+    }
   },
   "tutor": {
     "fastResponder": {

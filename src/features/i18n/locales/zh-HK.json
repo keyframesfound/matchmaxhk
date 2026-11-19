@@ -3812,7 +3812,49 @@
     "students": "成功配對學生",
     "tutors": "活躍導師",
     "subjects": "補習科目",
-    "districts": "服務地區"
+    "districts": "服務地區",
+    "behaviour_report": {
+      "title": "行為報告",
+      "description": "由配對專員記錄的課前行為關注，僅內部使用：不會顯示於導師卡或家長檔案。提交報告會記錄一次提醒，但不會自動觸發任何後果；緊急安全事宜仍須經緊急停用處理。",
+      "form": {
+        "case_code": "個案編號",
+        "case_code_placeholder": "例如 MM-1234",
+        "subject": "關注對象",
+        "party": {
+          "parent": "家長",
+          "tutor": "導師"
+        },
+        "severity_label": "嚴重程度",
+        "severity": {
+          "low": "低",
+          "medium": "中",
+          "high": "高"
+        },
+        "concern": "關注事項",
+        "concern_placeholder": "課前發生了甚麼？請保持事實陳述，僅限員工查閱。",
+        "submit": "提交行為報告",
+        "internal_note": "僅內部使用。會記錄一次提醒，但不會自動停用或封鎖配對。"
+      },
+      "strikes": {
+        "title": "專員提醒次數",
+        "parent_count": "家長：{{count}} 次提醒",
+        "tutor_count": "導師：{{count}} 次提醒"
+      },
+      "list": {
+        "raised": "提交時間",
+        "case": "個案",
+        "subject": "對象",
+        "severity": "嚴重程度",
+        "concern": "關注事項",
+        "filed_by": "提交人",
+        "empty": "暫無行為報告",
+        "empty_description": "專員記錄的課前行為關注會顯示於此，僅限員工查閱。"
+      },
+      "toast": {
+        "saved": "行為報告已提交",
+        "error": "提交失敗，請重試。"
+      }
+    }
   },
   "tutor": {
     "fastResponder": {
