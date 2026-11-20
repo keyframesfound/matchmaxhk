@@ -7,6 +7,7 @@
  */
 
 import { createServerFn } from "@tanstack/react-start";
+import { saveCaseRatingCore } from "@/features/cases/rating-core.server";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
@@ -22,11 +23,7 @@ import {
 } from "@/features/cases/sor";
 import { generateSlots, type GeneratedSlot } from "@/features/cases/slot";
 import { shortCaseOverrunError } from "@/features/cases/short-case";
-import {
-  caseHasVerifiedLesson,
-  validateReviewInput,
-  type LessonConfirmRow,
-} from "@/features/cases/case-reviews";
+import {} from "@/features/cases/case-reviews";
 import { sweepDueSessionLogs, type SessionLogRowT } from "@/features/cases/experience.functions";
 import { format } from "date-fns";
 import { insertLessonLifecycleEvent } from "@/features/cases/bus.functions";
@@ -851,6 +848,11 @@ export const registerTutorPlusInterest = createServerFn({ method: "POST" })
 // display line is the tutor's code-side identity.
 // ---------------------------------------------------------------------------
 
+/**
+ * #794 §2.1 tutor→parent review. Own stars + text, private to the other party
+ * and the desk — never a public parent page, never Explore. Same shared core as
+ * the parent direction (one row per case, 14-day window, private desk note).
+ */
 export const submitTutorReview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -858,86 +860,22 @@ export const submitTutorReview = createServerFn({ method: "POST" })
       .object({
         caseId: z.string().uuid(),
         rating: z.number().int().min(1).max(5),
-        comment: z.string(),
+        comment: z.string().default(""),
+        deskNote: z.string().max(500).default(""),
       })
       .parse(input),
   )
   .handler(async ({ context, data }): Promise<{ status: "visible" | "held" }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    const tutorId = await myTutorId(db, context.userId);
-
-    const rows = await selectRows<{ sor_status: SorStatus | null }>(
-      db,
-      "tutoring_cases",
-      "sor_status",
-      [
-        { col: "id", op: "eq", value: data.caseId },
-        { col: "matched_tutor_id", op: "eq", value: tutorId },
-      ],
-    );
-    if (rows.length === 0) throw new Error("CASE_NOT_FOUND");
-    // #503 stop condition: an ENDED case's ratings are final.
-    if (rows[0].sor_status === "closed") throw new Error("CASE_ENDED");
-
-    const [lessons, mine] = await Promise.all([
-      selectRows<LessonConfirmRow>(
-        db,
-        "case_lessons",
-        "status, confirmed_by_parent_at, confirmed_by_tutor_at",
-        [{ col: "case_id", op: "eq", value: data.caseId }],
-      ),
-      selectRows<{ id: string; status: string; author_account_id: string }>(
-        db,
-        "case_reviews",
-        "id, status, author_account_id",
-        [{ col: "case_id", op: "eq", value: data.caseId }],
-      ),
-    ]);
-
-    // Same rules as the parent direction, mirrored: one bilaterally confirmed
-    // lesson required (#503 — not tutor-logged-alone), 20–400 bound (#287),
-    // holds on contact details, one visible per case.
-    if (!caseHasVerifiedLesson(lessons)) throw new Error("NO_VERIFIED_LESSON");
-    const validity = validateReviewInput("tutor_to_parent", data.rating, data.comment);
-    if (!validity.ok) throw new Error(validity.message);
-    const status: "visible" | "held" = validity.heldReasons.length > 0 ? "held" : "visible";
-    const heldReason =
-      validity.heldReasons.length > 0 ? `held: ${validity.heldReasons.join(", ")}` : null;
-
-    const myExisting = mine.filter((r) => r.author_account_id === context.userId);
-    const held = myExisting.find((r) => r.status === "held");
-    const visible = myExisting.find((r) => r.status === "visible");
-    if (visible) {
-      await db
-        .from<Row>("case_reviews")
-        .update({ status: "replaced", updated_at: new Date().toISOString() })
-        .eq("id", visible.id);
-    }
-
-    const row = {
-      case_id: data.caseId,
-      lesson_id: null as string | null,
-      direction: "tutor_to_parent" as const,
-      author_account_id: context.userId,
-      tutor_id: tutorId,
+    const result = await saveCaseRatingCore(db, context.userId, {
+      caseId: data.caseId,
+      direction: "tutor_to_parent",
       rating: data.rating,
-      comment: data.comment.trim(),
-      author_display_line: "Tutor",
-      status,
-      held_reason: heldReason,
-    };
-    if (held) {
-      const { error } = await db
-        .from<Row>("case_reviews")
-        .update({ ...row, updated_at: new Date().toISOString() })
-        .eq("id", held.id);
-      if (error) throw new Error(error.message);
-    } else {
-      const { error } = await db.from<Row>("case_reviews").insert(row).select("id").single();
-      if (error) throw new Error(error.message);
-    }
-    return { status };
+      comment: data.comment,
+      deskNote: data.deskNote,
+    });
+    return { status: result.status };
   });
 
 /** Re-exported for the components (hktFromParts used in slot sanity display). */

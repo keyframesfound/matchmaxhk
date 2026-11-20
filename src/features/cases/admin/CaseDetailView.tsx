@@ -82,6 +82,7 @@ import { ConsolePanel } from "@/components/ui/console-panel";
 import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { cn } from "@/lib/utils";
 import { BehaviourReportPanel } from "@/features/trust/behaviour-report-panel";
+import { DeskReportsPanel } from "@/features/cases/admin/DeskReportsPanel";
 import {
   CASE_STATUSES,
   DESK_LANGUAGE_LABEL,
@@ -674,6 +675,8 @@ export function CaseDetailView({
 
         {/* Right column: handling */}
         <div className="space-y-6">
+          {/* #794 §2.1: private participant reports (pre-lesson stops). */}
+          <DeskReportsPanel caseId={caseRow.id} />
           {/* Issue #412: compliance hold banner, the case is locked out of
               matching/circulation until staff re-screen the triage answers. */}
           {caseRow.status === "compliance_hold" ? (
