@@ -920,6 +920,12 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
     // Owner (2026-11-03): any format is fine; uploaded files / links count
     // as the note's file when there is no PDF.
     const hasExtras = existing ? await materialHasFiles(db, existing.id) : false;
+    // #784 §2.2 (AC-585-1): paid listings need payout details; free ones don't.
+    {
+      const { assertPayoutDetailsForPaidListing } =
+        await import("@/features/materials/payout-gate.server");
+      await assertPayoutDetailsForPaidListing(db, context.userId, Number(merged.priceHkd ?? 0));
+    }
     // #543 / #573: free (HK$0) or HK$20 to HK$5,000.
     const priceProblem = validateListingPrice(Number(merged.priceHkd ?? 0), kinds.materialType);
     if (priceProblem) {

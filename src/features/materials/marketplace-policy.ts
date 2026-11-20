@@ -32,6 +32,10 @@ export const OPTION_A_COPY = {
   "hiw.billing_faq.notes.a": "notes_option_a.billing_notes_a",
   "tour.tutor.shop_body": "notes_option_a.tour_shop",
   "notes.shop_terms_ack": "notes_option_a.no_cooling_off",
+  // #784: Studio payout copy follows the live contract (cashier until Stripe).
+  "studio.payout_note": "notes_option_a.studio_payout_note",
+  "studio.in_hold_hint": "notes_option_a.studio_in_hold_hint",
+  "studio.available_hint": "notes_option_a.studio_available_hint",
 } as const;
 
 export function optionACopyKey(key: string, live: boolean = NOTES_OPTION_A_LIVE): string {

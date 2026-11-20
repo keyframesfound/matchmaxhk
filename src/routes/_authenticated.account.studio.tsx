@@ -8,6 +8,8 @@ import { toast } from "sonner";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { getMyCreatorStudio } from "@/features/account/studio.functions";
+import { PayoutDetailsCard } from "@/features/account/payout-details-card";
+import { optionACopyKey } from "@/features/materials/marketplace-policy";
 import { withSafetyAttestationGate } from "@/features/trust/safety-attestation-gate";
 
 /**
@@ -94,12 +96,12 @@ function StudioPage() {
               <div className="flex flex-col gap-3 sm:flex-row">
                 <Bucket
                   title={t("studio.in_hold")}
-                  hint={t("studio.in_hold_hint")}
+                  hint={t(optionACopyKey("studio.in_hold_hint"))}
                   amount={money(data.inHoldHkd)}
                 />
                 <Bucket
                   title={t("studio.available")}
-                  hint={t("studio.available_hint")}
+                  hint={t(optionACopyKey("studio.available_hint"))}
                   amount={money(data.availableHkd)}
                   accent
                 />
@@ -109,15 +111,12 @@ function StudioPage() {
                   amount={money(data.totalPaidHkd)}
                 />
               </div>
-              <p className="text-xs text-muted-foreground">{t("studio.payout_note")}</p>
-              <Link
-                to="/dashboard"
-                hash="referrals"
-                className="inline-block text-sm font-semibold text-[color:var(--brand-link)] hover:underline"
-              >
-                {t("studio.payout_settings")}
-              </Link>
+              <p className="text-xs text-muted-foreground">
+                {t(optionACopyKey("studio.payout_note"))}
+              </p>
             </section>
+            {/* #784 §2.2: private payout details (needed for paid listings). */}
+            <PayoutDetailsCard />
 
             <section className="space-y-3 rounded-[var(--radius-panel)] border border-border bg-card p-5">
               <h2 className="flex items-center gap-2 text-base font-bold">
