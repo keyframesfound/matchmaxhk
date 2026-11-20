@@ -61,6 +61,16 @@ export function assertTransition(from: SorStatus, to: SorStatus): void {
   }
 }
 
+/**
+ * #785 2.2: a case is "live" until the SoR closes or replaces it; a null status
+ * (not yet introduced) still counts as live. Case Manager keys its empty shell
+ * and Active Cases list off this, so a tutor whose only cases ended still gets
+ * the hub shape instead of a blank page.
+ */
+export function isLiveCase(sorStatus: string | null): boolean {
+  return !sorStatus || (sorStatus !== "closed" && sorStatus !== "replaced");
+}
+
 // ---------------------------------------------------------------------------
 // Admin fee (#201)
 // ---------------------------------------------------------------------------

@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CircleHelp, Loader2, X } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
@@ -20,6 +20,7 @@ import { BlockedTimes } from "@/features/cases/case-manager/blocked-times";
 import { ActiveCaseList, ProposedList } from "@/features/cases/case-manager/hub-sections";
 import { ThinCalendar } from "@/features/cases/case-manager/thin-calendar";
 import { caseCodeFromParam, caseTabFromParam, type CaseTab } from "@/features/cases/case-schedule";
+import { isLiveCase } from "@/features/cases/sor";
 import {
   confirmMyAvailabilityFresh,
   getCaseManagerSchedule,
@@ -158,14 +159,20 @@ function FreshnessBanner({ confirmedAt }: { confirmedAt: string | null }) {
   );
 }
 
-/** #594: empty Case Manager still shows the shape of the hub. */
-function EmptyCases() {
+/**
+ * #594 / #785 2.2: empty Case Manager still shows the shape of the hub.
+ * Three dashed Active Case placeholders (the locked 2–3 count), the existing
+ * `case_manager.empty_body` line, and a role-aware CTA — parents / students get
+ * Find a tutor + Post a case, tutors get Browse cases. The cards themselves are
+ * placeholders, never fake named clients.
+ */
+function EmptyCases({ role }: { role?: "tutor" | "parent" }) {
   const { t } = useTranslation();
   return (
     <section className="space-y-3 rounded-[var(--radius-panel)] border border-border bg-card p-5">
       <h2 className="text-lg font-bold">{t("case_manager.active_cases")}</h2>
       <div aria-hidden className="space-y-2">
-        {[0, 1].map((i) => (
+        {[0, 1, 2].map((i) => (
           <div
             key={i}
             className="flex items-center gap-3 rounded-xl border border-dashed border-border p-3 opacity-60"
@@ -180,15 +187,20 @@ function EmptyCases() {
       </div>
       <p className="text-sm text-muted-foreground">{t("case_manager.empty_body")}</p>
       <div className="flex flex-wrap gap-2">
-        <Button asChild variant="solid" color="neutral" size="sm">
-          <Link to="/tutors">{t("case_manager.cta_find")}</Link>
-        </Button>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/case-request">{t("case_manager.cta_post")}</Link>
-        </Button>
-        <Button asChild variant="outline" size="sm">
-          <Link to="/tutor-requests">{t("case_manager.cta_browse")}</Link>
-        </Button>
+        {role === "tutor" ? (
+          <Button asChild variant="solid" color="neutral" size="sm">
+            <Link to="/tutor-requests">{t("case_manager.cta_browse")}</Link>
+          </Button>
+        ) : (
+          <>
+            <Button asChild variant="solid" color="neutral" size="sm">
+              <Link to="/tutors">{t("case_manager.cta_find")}</Link>
+            </Button>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/case-request">{t("case_manager.cta_post")}</Link>
+            </Button>
+          </>
+        )}
       </div>
     </section>
   );
@@ -258,7 +270,16 @@ function CalendarPage() {
       // private mode: the tip just shows again next time
     }
   };
-  const hasCases = Boolean(data?.tutor || data?.parent);
+  // #785 2.2: the empty shell answers "no live case yet", not "no account data
+  // yet" — a tutor whose only cases closed still gets the placeholders and CTA.
+  const liveCases = useMemo(
+    () => (schedule.data?.cases ?? []).filter((c) => isLiveCase(c.sorStatus)),
+    [schedule.data],
+  );
+  const scheduleLoaded = Boolean(schedule.data);
+  const noLiveCases = scheduleLoaded && liveCases.length === 0;
+  const brandNew = Boolean(data) && !data?.tutor && !data?.parent;
+  const hubRole = data?.isTutor ? "tutor" : "parent";
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -319,12 +340,12 @@ function CalendarPage() {
           </>
         )}
         {data?.parent && <SummarySection summary={data.parent} role="parent" />}
-        {data && !hasCases ? <EmptyCases /> : null}
-        {data && !hasCases && schedule.data?.isTutor ? <ProfileStrengthSection /> : null}
-        {data && !hasCases ? <HomeworkSamplePreview /> : null}
-        {data && !hasCases ? <ProgressSamplePreview /> : null}
-        {data && !hasCases ? <BillingSamplePreview /> : null}
-        {isError ? <EmptyCases /> : null}
+        {noLiveCases ? <EmptyCases role={hubRole} /> : null}
+        {brandNew && schedule.data?.isTutor ? <ProfileStrengthSection /> : null}
+        {brandNew ? <HomeworkSamplePreview /> : null}
+        {brandNew ? <ProgressSamplePreview /> : null}
+        {brandNew ? <BillingSamplePreview /> : null}
+        {isError ? <EmptyCases role={hubRole} /> : null}
         <HowToUse open={howToOpen} onOpenChange={setHowToOpen} />
         {openCase && schedule.data ? (
           <CaseDrawer
