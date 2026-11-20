@@ -389,6 +389,12 @@ export const submitGig = createServerFn({ method: "POST" })
       integrityConfirmed:
         data.integrityConfirmed ?? (existing.integrity_confirmed_at != null ? true : null),
     };
+    // #784 §2.2 (AC-585-1): paid listings need payout details; free ones don't.
+    {
+      const { assertPayoutDetailsForPaidListing } =
+        await import("@/features/materials/payout-gate.server");
+      await assertPayoutDetailsForPaidListing(db, context.userId, Number(merged.priceHkd ?? 0));
+    }
 
     const errors = validateGigForSubmit(merged);
     if (errors.length > 0) throw new Error(errors.join(" "));

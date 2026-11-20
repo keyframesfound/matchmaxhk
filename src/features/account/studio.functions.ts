@@ -60,7 +60,8 @@ export const getMyCreatorStudio = createServerFn({ method: "GET" })
         "tutor_net_hkd",
         [
           { col: "tutor_id", op: "eq", value: tutors[0].id },
-          { col: "status", op: "in", value: ["paid_held", "delivered_held"] },
+          // #784: live FPS-cashier orders sit in "held"; Stripe ones in paid/delivered_held.
+          { col: "status", op: "in", value: ["held", "paid_held", "delivered_held"] },
         ],
       );
       inHoldHkd =
