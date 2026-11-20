@@ -129,7 +129,14 @@ async function loadMatchTutors(db: Db, excludeIds: string[], now: Date): Promise
     "id, tutor_code, user_id, subjects, stations, district, lesson_mode, gender, tutor_status, target_students, profile_tags, is_accepting_students, owner_account_status, photo_url, headline, updated_at, scrc_ready",
     [{ col: "is_published", op: "eq", value: true }],
   );
-  const tutors = rows.filter((row) => !excludeIds.includes(row.id));
+  // #782: unattested tutors and tutors paused by the AC-703-3 strike ladder
+  // get no new match alerts (they could not be introduced anyway).
+  const { tutorIntroBlocks } = await import("@/features/trust/match-eligibility.server");
+  const introBlocks = await tutorIntroBlocks(
+    db,
+    rows.map((row) => row.id),
+  );
+  const tutors = rows.filter((row) => !excludeIds.includes(row.id) && !introBlocks.has(row.id));
   const userIds = tutors.flatMap((row) => (row.user_id ? [row.user_id] : []));
   const profiles = userIds.length
     ? await selectRows<{ id: string; notification_preferences: unknown }>(
@@ -183,6 +190,14 @@ async function appendToQueue(db: Db, c: CaseRow, now: Date): Promise<number> {
     { col: "case_id", op: "eq", value: c.id },
   ]);
   const queued = new Set(existing.map((row) => row.tutor_id));
+  // #782 AC-703-3: a parent paused by the strike ladder gets no new matches.
+  const { ladderByAccount } = await import("@/features/trust/match-eligibility.server");
+  if (
+    c.parent_id &&
+    (await ladderByAccount(db, [c.parent_id], now)).get(c.parent_id)?.matchPaused
+  ) {
+    return 0;
+  }
   const failedTutorId = await replacedCaseTutor(db, c);
   const tutors = await loadMatchTutors(db, failedTutorId ? [failedTutorId] : [], now);
   const fresh = rankTutorsForCase(toMatchCase(c), tutors, now).filter(

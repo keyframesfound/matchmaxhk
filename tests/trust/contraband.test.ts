@@ -30,6 +30,8 @@ describe("#782 §2.3 contraband filter", () => {
       "Probability: gambling problems in Maths",
       "Recreational drugs and the brain (Psychology)",
       "IB Biology cannabis policy essay",
+      "IB Biology tutor, drug delivery and cannabis policy essays.",
+      "Order of operations; supply and demand of vapes in Economics",
       "DSE past paper walkthrough",
     ]) {
       expect(screenContraband([text]), text).toBeNull();

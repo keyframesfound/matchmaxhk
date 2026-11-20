@@ -96,6 +96,10 @@ export const createByosInvite = createServerFn({ method: "POST" })
     const db = await adminDb();
     const tutor = await myTutor(db, context.userId);
     if (!tutor) throw new Error("NOT_A_TUTOR");
+    // #782: Safety Attestation + strike pause before any new case.
+    const { assertTutorCanBeIntroduced } =
+      await import("@/features/trust/match-eligibility.server");
+    await assertTutorCanBeIntroduced(db, tutor.id);
 
     const token = newInviteToken();
     const { error } = await db
@@ -264,6 +268,12 @@ export const claimByosInvite = createServerFn({ method: "POST" })
       prior: await priorContactWith(db, invite.tutor_id, context.userId, profile?.phone ?? null),
     });
     if (refusal) return { outcome: "refused", reason: refusal };
+    {
+      const { assertTutorCanBeIntroduced, assertParentCanBeMatched } =
+        await import("@/features/trust/match-eligibility.server");
+      await assertTutorCanBeIntroduced(db, invite.tutor_id);
+      await assertParentCanBeMatched(db, context.userId);
+    }
 
     // Spend the one-time token first; a concurrent claim loses here.
     const now = new Date().toISOString();

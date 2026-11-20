@@ -104,6 +104,12 @@ export const applyToCase = createServerFn({ method: "POST" })
 
     const tutor = await findMyTutor(db, context.userId);
     if (!tutor) throw new Error("JOIN_AS_TUTOR");
+    // #782 AC-703-3: a tutor paused by the strike ladder cannot take new cases.
+    const { ladderByAccount } = await import("@/features/trust/match-eligibility.server");
+    if ((await ladderByAccount(db, [context.userId])).get(context.userId)?.matchPaused) {
+      const { INTRO_BLOCK_MESSAGES } = await import("@/features/trust/strike-ladder");
+      throw new Error(INTRO_BLOCK_MESSAGES.MATCH_PAUSED_STRIKES);
+    }
     // #529: tutor sensitive action — verified +852 phone when the OTP gate is on.
     const { assertPhoneGate } = await import("@/features/trust/phone-otp.functions");
     await assertPhoneGate(context.userId);

@@ -22,9 +22,11 @@ import {
 } from "@/features/trust/trust-queue.functions";
 import { resolveCaseRiskFlag } from "@/features/trust/trust.functions";
 import {
+  emergencySuspendAccount,
   listSafetyQuarantines,
   releaseSafetyQuarantine,
 } from "@/features/trust/quarantine.functions";
+import { listStrikeLadderReviews } from "@/features/trust/behaviour-reports.functions";
 
 export const Route = createFileRoute("/_authenticated/admin/trust-safety")({
   head: () => ({
@@ -186,6 +188,7 @@ function AdminTrustSafety() {
           </ConsoleTableBody>
         </ConsoleTable>
       </section>
+      <StrikeLadderSection />
       <QuarantineSection />
       <ContrabandHitsSection />
     </div>
@@ -335,6 +338,96 @@ function QuarantineSection() {
                       onClick={() => release.mutate(row.id)}
                     >
                       Release
+                    </Button>
+                  )}
+                </ConsoleTd>
+              </tr>
+            ))
+          )}
+        </ConsoleTableBody>
+      </ConsoleTable>
+    </section>
+  );
+}
+
+/** #782 AC-703-3 level 3: staff decide Freeze & Suspend (never automatic). */
+function StrikeLadderSection() {
+  const { user } = useAuth();
+  const queryClient = useQueryClient();
+  const list = useQuery({
+    queryKey: ["admin", "strike-ladder"],
+    queryFn: () => listStrikeLadderReviews(),
+    enabled: Boolean(user),
+  });
+  const freeze = useMutation({
+    mutationFn: (input: { accountId: string; note: string }) =>
+      emergencySuspendAccount({ data: input }),
+    onSuccess: () => {
+      toast.success("Account frozen and suspended.");
+      void queryClient.invalidateQueries({ queryKey: ["admin", "strike-ladder"] });
+      void queryClient.invalidateQueries({ queryKey: ["admin", "safety-quarantines"] });
+    },
+    onError: (e) => toast.error(e instanceof Error ? e.message : "Freeze failed."),
+  });
+  const rows = list.data ?? [];
+  return (
+    <section className="mt-10">
+      <h3 className="pb-1 text-sm font-semibold tracking-tight">
+        Strike ladder: Freeze decisions ({rows.filter((r) => !r.suspended).length})
+      </h3>
+      <p className="pb-3 text-xs text-muted-foreground">
+        3+ concierge strikes (no-reply, no-show, bad behaviour). New matches are already paused;
+        decide whether to Freeze &amp; Suspend. The system never does this on its own.
+      </p>
+      <ConsoleTable minTableWidth="640px">
+        <ConsoleTableHead>
+          <tr>
+            <ConsoleTh>Account</ConsoleTh>
+            <ConsoleTh>Strikes</ConsoleTh>
+            <ConsoleTh>Last strike</ConsoleTh>
+            <ConsoleTh align="right">Decision</ConsoleTh>
+          </tr>
+        </ConsoleTableHead>
+        <ConsoleTableBody>
+          {list.isLoading ? (
+            <ConsoleTableSkeletonRows columns={4} />
+          ) : rows.length === 0 ? (
+            <ConsoleTableEmpty
+              colSpan={4}
+              icon={ShieldAlert}
+              title="No account at 3 strikes"
+              description="Accounts reaching the third concierge strike appear here."
+            />
+          ) : (
+            rows.map((row) => (
+              <tr key={row.accountId}>
+                <ConsoleTd>
+                  {row.displayName ?? "—"}{" "}
+                  <span className="font-mono text-xs text-muted-foreground">
+                    {row.accountId.slice(0, 8)}
+                  </span>
+                </ConsoleTd>
+                <ConsoleTd>{row.strikes}</ConsoleTd>
+                <ConsoleTd>{new Date(row.lastStrikeAt).toLocaleString("en-HK")}</ConsoleTd>
+                <ConsoleTd align="right">
+                  {row.suspended ? (
+                    <span className="text-xs text-muted-foreground">Suspended</span>
+                  ) : (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="h-8 border-destructive/50 px-3 text-xs font-bold text-destructive"
+                      disabled={freeze.isPending}
+                      onClick={() => {
+                        const note = window.prompt(
+                          "Freeze & Suspend this account? Add a staff note (required):",
+                        );
+                        if (note && note.trim().length >= 3) {
+                          freeze.mutate({ accountId: row.accountId, note: note.trim() });
+                        }
+                      }}
+                    >
+                      Freeze &amp; Suspend
                     </Button>
                   )}
                 </ConsoleTd>

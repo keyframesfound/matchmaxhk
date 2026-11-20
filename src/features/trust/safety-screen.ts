@@ -168,7 +168,7 @@ export function isGhostRisk(
 export type ContrabandCategory = "drugs" | "weapons" | "gambling" | "explicit" | "pirated_exams";
 
 const TRADE =
-  "(?:\\b(?:sell(?:ing)?|for\\s+sale|buy(?:ing)?|order|deliver(?:y)?|supply|supplier|dealer|cheap|wholesale)\\b|出售|有售|買|买|賣|卖|代購|代购|送貨|送货|批發|批发|平價|平价)";
+  "(?:\\b(?:sell(?:ing)?|for\\s+sale|buy(?:ing)?|supplier|dealer|cheap|wholesale)\\b|出售|有售|買|买|賣|卖|代購|代购|送貨|送货|批發|批发|平價|平价)";
 
 const CONTRABAND_RULES: { category: ContrabandCategory; pattern: RegExp }[] = [
   {

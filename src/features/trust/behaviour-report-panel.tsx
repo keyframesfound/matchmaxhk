@@ -3,6 +3,8 @@ import { ClipboardList } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 
+import { isStrikeCategory, type StrikeLadderState } from "@/features/trust/strike-ladder";
+
 import { Button } from "@/components/ui/button";
 import {
   BEHAVIOUR_CATEGORIES,
@@ -13,11 +15,12 @@ import {
 } from "@/features/trust/behaviour-reports.functions";
 
 const CATEGORY_LABEL: Record<BehaviourCategory, string> = {
-  unresponsive: "Unresponsive / no-show on comms",
-  hostile: "Hostile or rude",
-  boundary: "Boundary concern",
-  safety_concern: "Safety concern (not urgent)",
-  other: "Other",
+  unresponsive: "Unresponsive before the lesson (失聯)",
+  no_show: "No-show (爽約)",
+  hostile: "Hostile or rude (不良行為)",
+  boundary: "Boundary concern (不良行為)",
+  safety_concern: "Safety concern, not urgent (no strike)",
+  other: "Other (no strike)",
 };
 
 /**
@@ -38,7 +41,9 @@ export function BehaviourReportPanel({ caseId }: { caseId: string }) {
   const refresh = () => void queryClient.invalidateQueries({ queryKey });
   const file = useMutation({
     mutationFn: () =>
-      fileBehaviourReport({ data: { caseId, subject, category, note: note.trim(), strike } }),
+      fileBehaviourReport({
+        data: { caseId, subject, category, note: note.trim(), strike: strike && strikeAllowed },
+      }),
     onSuccess: () => {
       toast.success("Private behaviour report saved");
       setNote("");
@@ -53,7 +58,8 @@ export function BehaviourReportPanel({ caseId }: { caseId: string }) {
   });
 
   const reports = list.data?.reports ?? [];
-  const strikes = list.data?.strikes ?? { parent: 0, tutor: 0 };
+  const ladder = list.data?.ladder;
+  const strikeAllowed = isStrikeCategory(category);
 
   return (
     <div className="mt-3 space-y-2 rounded-xl border border-[color:var(--ink)]/[0.07] px-3 py-2.5">
@@ -61,9 +67,13 @@ export function BehaviourReportPanel({ caseId }: { caseId: string }) {
         <ClipboardList className="h-3.5 w-3.5" aria-hidden="true" /> Behaviour reports (private)
       </p>
       <p className="text-[11px] text-muted-foreground">
-        Concierge strikes, all cases: parent {strikes.parent} · tutor {strikes.tutor}. Staff only,
-        never shown on cards or profiles.
+        Staff only, never shown on cards or profiles. Separate from Urgent Safety and the Notes shop
+        strikes.
       </p>
+      <div className="grid gap-1 text-[11px] sm:grid-cols-2">
+        <LadderLine who="Parent" state={ladder?.parent} />
+        <LadderLine who="Tutor" state={ladder?.tutor} />
+      </div>
       <div className="grid gap-2 sm:grid-cols-2">
         <select
           className="h-8 rounded-md border border-border bg-[color:var(--surface)] px-2 text-xs"
@@ -96,7 +106,12 @@ export function BehaviourReportPanel({ caseId }: { caseId: string }) {
       />
       <div className="flex items-center justify-between gap-2">
         <label className="flex items-center gap-1.5 text-[11px]">
-          <input type="checkbox" checked={strike} onChange={(e) => setStrike(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={strike && strikeAllowed}
+            disabled={!strikeAllowed}
+            onChange={(e) => setStrike(e.target.checked)}
+          />
           Count as a concierge strike
         </label>
         <Button
@@ -139,5 +154,25 @@ export function BehaviourReportPanel({ caseId }: { caseId: string }) {
         </ul>
       ) : null}
     </div>
+  );
+}
+
+/** AC-703-3 ladder: 1 warning · 2 pause 14 days · 3 staff decide Freeze & Suspend. */
+function LadderLine({ who, state }: { who: string; state: StrikeLadderState | undefined }) {
+  const strikes = state?.strikes ?? 0;
+  const text =
+    strikes === 0
+      ? "no strikes"
+      : state?.level === 1
+        ? "1 strike · warning only"
+        : state?.level === 2
+          ? state.matchPaused && state.pausedUntil
+            ? `2 strikes · new matches paused until ${new Date(state.pausedUntil).toLocaleDateString("en-HK")}`
+            : "2 strikes · 14-day pause ended"
+          : `${strikes} strikes · paused · decide Freeze & Suspend on Trust & Safety`;
+  return (
+    <p className={state?.level === 3 ? "font-semibold text-[color:var(--destructive)]" : ""}>
+      {who}: {text}
+    </p>
   );
 }
