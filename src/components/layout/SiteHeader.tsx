@@ -1,6 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import {
-  Bookmark,
   Building2,
   BookOpen,
   CircleHelp,
@@ -102,7 +101,7 @@ function DesktopTab({
       {...(search ? { search: search as never } : {})}
       aria-current={active ? "page" : undefined}
       className={cn(
-        "group relative flex h-full items-center gap-1.5 whitespace-nowrap px-2 text-[15px] font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-3 2xl:gap-2 2xl:px-4 2xl:text-base",
+        "group relative flex h-full items-center gap-1.5 whitespace-nowrap px-2 text-base font-semibold transition-colors duration-200 focus-visible:text-[color:var(--ink)] xl:px-3 2xl:gap-2 2xl:px-4",
         active
           ? "text-[color:var(--ink)]"
           : "text-[color:var(--ink)]/60 hover:text-[color:var(--ink)]",
@@ -113,7 +112,7 @@ function DesktopTab({
         alt=""
         aria-hidden="true"
         draggable={false}
-        className="h-7 w-7 shrink-0 dark:invert-[0.85] dark:hue-rotate-180 xl:h-8 xl:w-8"
+        className="h-9 w-9 shrink-0 dark:invert-[0.85] dark:hue-rotate-180"
       />
       {children}
       {/* Active underline + hover sweep: 2px ink bar that scales in from the
@@ -384,15 +383,11 @@ export function SiteHeader({
               >
                 {user ? (
                   <div className="px-1.5 py-1.5">
-                    <DropdownMenuItem asChild className={menuLinkClassName}>
-                      <Link to="/saved-posts">
-                        <MenuIcon>
-                          <Bookmark className="size-5" />
-                        </MenuIcon>
-                        {t("nav.saved_posts")}
-                      </Link>
-                    </DropdownMenuItem>
-                    {/* #459 §B: centres are a Workspace link, never a third mode. */}
+                    {/* #594 §2.5 (2026-11-02/03 KEEP/DROP): Saved Posts and
+                        Upload notes are gone from this menu -- Saved is the
+                        center nav button and the seller path lives under
+                        Marketplace / Account. #459 §B: centres are a
+                        Workspace link, never a third mode. */}
                     {hasOrg && (
                       <p className="px-3 pt-2 pb-1 text-xs font-semibold text-muted-foreground">
                         {t("nav.workspaces")}
