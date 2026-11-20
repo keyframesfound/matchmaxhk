@@ -125,6 +125,19 @@ export async function claimTrialIntro(
     lessonId?: string | null;
   },
 ): Promise<ClaimIntroResult> {
+  // #782 (CEO 2026-11-20): every new introduction passes the same hard gate
+  // (Safety Attestation + AC-703-3 strike pause, tutor and parent).
+  const { assertTutorCanBeIntroduced, assertParentCanBeMatched } =
+    await import("@/features/trust/match-eligibility.server");
+  await assertTutorCanBeIntroduced(db, input.tutorId);
+  const caseRows = await selectRowsOrEmpty<{ parent_id: string | null }>(
+    db,
+    "tutoring_cases",
+    "parent_id",
+    [{ col: "id", op: "eq", value: input.caseId }],
+  );
+  await assertParentCanBeMatched(db, caseRows[0]?.parent_id ?? null);
+
   const { data, error } = await db.rpc("claim_case_trial_intro", {
     _case_id: input.caseId,
     _tutor_id: input.tutorId,

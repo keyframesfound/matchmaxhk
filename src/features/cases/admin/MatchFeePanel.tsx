@@ -26,6 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { formatMoneyFromCents } from "@/lib/money";
 import type { CaseRow } from "./shared";
+import { INTRO_BLOCK_MESSAGES } from "@/features/trust/strike-ladder";
 
 // Fee policy comparisons happen in HKD (issue #112), so a tutor quoting in
 // another currency is judged on the HKD-normalized snapshot.
@@ -178,6 +179,11 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
   });
 
   const onHitClick = (tutor: CaseTutorHit) => {
+    // #782: hard block, shown before the server is even asked.
+    if (tutor.introBlock) {
+      toast.error(INTRO_BLOCK_MESSAGES[tutor.introBlock]);
+      return;
+    }
     // Issue #412: client-side guard mirrors the server check for instant UX.
     if (caseRow.status === "compliance_hold") {
       toast.error("Compliance hold: re-screen this request before matching a tutor.");
@@ -348,6 +354,13 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
                           {hit.referrerName ? ` · referred by ${hit.referrerName}` : ""}
                         </span>
                       </span>
+                      {hit.introBlock ? (
+                        <span className="rounded-full bg-[color:var(--destructive)]/10 px-2 py-0.5 text-[10px] font-semibold text-[color:var(--destructive)]">
+                          {hit.introBlock === "SAFETY_ATTESTATION_REQUIRED"
+                            ? "需先完成安全聲明 · Declaration required"
+                            : "暫停新配對 · Strikes pause"}
+                        </span>
+                      ) : null}
                       {hit.shadowbanUntil ? (
                         <span
                           className="shrink-0 text-[11px] font-bold text-muted-foreground"

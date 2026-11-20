@@ -46,6 +46,8 @@ export type CaseTutorHit = {
   warning: string | null;
   /** ISO end of a running #529 tutor-flake shadowban; null when none. */
   shadowbanUntil: string | null;
+  /** #782: why this tutor cannot be introduced right now (hard block). */
+  introBlock?: "SAFETY_ATTESTATION_REQUIRED" | "MATCH_PAUSED_STRIKES" | null;
 };
 
 type CaseParty = {
@@ -222,6 +224,12 @@ export const searchCaseTutorsForMatch = createServerFn({ method: "POST" })
       now,
     );
 
+    const { tutorIntroBlocks } = await import("@/features/trust/match-eligibility.server");
+    const introBlocks = await tutorIntroBlocks(
+      db,
+      tutorHits.map((t) => t.id),
+    );
+
     const hits: CaseTutorHit[] = tutorHits.map((t) => {
       // The fkey embed's runtime shape oscillates between object and array
       // depending on the generated client; normalize both.
@@ -236,13 +244,15 @@ export const searchCaseTutorsForMatch = createServerFn({ method: "POST" })
         referrerName: referrer?.display_name ?? null,
         ...windowFlagFor(firstL1ByTutor.get(t.id), now),
         shadowbanUntil: shadowbans.get(t.id) ?? null,
+        introBlock: introBlocks.get(t.id) ?? null,
       };
     });
     // Active hits first: the shortlist must read as if out-of-window tutors
     // were excluded, while still being findable for the "centre asks by name"
     // path (#508 dispatch filter). Shadowbanned tutors (#529) sit below the
     // active ones but stay matchable.
-    const rank = (h: CaseTutorHit) => (h.outOfWindow ? 2 : h.shadowbanUntil ? 1 : 0);
+    const rank = (h: CaseTutorHit) =>
+      h.introBlock ? 3 : h.outOfWindow ? 2 : h.shadowbanUntil ? 1 : 0;
     hits.sort((a, b) => rank(a) - rank(b));
     return { hits };
   });
@@ -367,6 +377,16 @@ export const matchCaseTutor = createServerFn({ method: "POST" })
     );
     const tutor = tutors[0];
     if (!tutor) throw new Error("TUTOR_NOT_FOUND");
+
+    // #782 (CEO 2026-11-20): hard block, never "match now, attest later".
+    // Unattested tutors and parties paused by the AC-703-3 strike ladder get
+    // no NEW introductions; existing cases are untouched.
+    if (c.matched_tutor_id !== tutor.id) {
+      const { assertTutorCanBeIntroduced, assertParentCanBeMatched } =
+        await import("@/features/trust/match-eligibility.server");
+      await assertTutorCanBeIntroduced(db, tutor.id);
+      await assertParentCanBeMatched(db, c.parent_id);
+    }
 
     const party = counterpartyOf(c);
     let overrideNote: string | null = null;

@@ -940,6 +940,11 @@ export const createSorCase = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     await requireAdmin(db, context.userId);
+    // #782: a new case with an assigned tutor is an introduction.
+    const { assertTutorCanBeIntroduced, assertParentCanBeMatched } =
+      await import("@/features/trust/match-eligibility.server");
+    await assertTutorCanBeIntroduced(db, data.assignedTutorId);
+    await assertParentCanBeMatched(db, data.parentAccountId ?? null);
 
     const { data: caseId, error } = await db.rpc("admin_create_sor_case", {
       _payload: {

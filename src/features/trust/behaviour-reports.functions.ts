@@ -13,9 +13,15 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import { selectRows, type Db, type Row } from "@/features/cases/desk-db";
+import {
+  FREEZE_REVIEW_STRIKES,
+  isStrikeCategory,
+  type StrikeLadderState,
+} from "@/features/trust/strike-ladder";
 
 export const BEHAVIOUR_CATEGORIES = [
   "unresponsive",
+  "no_show",
   "hostile",
   "boundary",
   "safety_concern",
@@ -73,6 +79,7 @@ export const getCaseBehaviourReports = createServerFn({ method: "POST" })
     }): Promise<{
       reports: BehaviourReportRow[];
       strikes: { parent: number; tutor: number };
+      ladder: { parent: StrikeLadderState; tutor: StrikeLadderState };
     }> => {
       const db = await staffDb(context.userId);
       const parties = await caseParties(db, data.caseId);
@@ -83,22 +90,25 @@ export const getCaseBehaviourReports = createServerFn({ method: "POST" })
         [{ col: "case_id", op: "eq", value: data.caseId }],
         { col: "created_at", asc: false },
       );
-      const strikesFor = async (accountId: string | null) =>
-        accountId
-          ? countStrikes(
-              await selectRows<{ strike: boolean; voided_at: string | null }>(
-                db,
-                "behaviour_reports",
-                "strike, voided_at",
-                [{ col: "subject_account_id", op: "eq", value: accountId }],
-              ),
-            )
-          : 0;
+      const { ladderByAccount } = await import("@/features/trust/match-eligibility.server");
+      const ids = [parties.parent, parties.tutor].filter((v): v is string => Boolean(v));
+      const ladders = await ladderByAccount(db, ids);
+      const none: StrikeLadderState = {
+        strikes: 0,
+        level: 0,
+        matchPaused: false,
+        pausedUntil: null,
+        needsFreezeReview: false,
+      };
       return {
         reports,
         strikes: {
-          parent: await strikesFor(parties.parent),
-          tutor: await strikesFor(parties.tutor),
+          parent: parties.parent ? (ladders.get(parties.parent)?.strikes ?? 0) : 0,
+          tutor: parties.tutor ? (ladders.get(parties.tutor)?.strikes ?? 0) : 0,
+        },
+        ladder: {
+          parent: (parties.parent && ladders.get(parties.parent)) || none,
+          tutor: (parties.tutor && ladders.get(parties.tutor)) || none,
         },
       };
     },
@@ -120,17 +130,40 @@ export const fileBehaviourReport = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const db = await staffDb(context.userId);
     const parties = await caseParties(db, data.caseId);
+    const subjectId = data.subject === "parent" ? parties.parent : parties.tutor;
+    // AC-703-3: only no-reply / no-show / bad-behaviour reports count on the
+    // ladder; non-urgent safety notes and "other" never become strikes.
+    const strike = data.strike && isStrikeCategory(data.category);
     const { error } = await db.from<Row>("behaviour_reports").insert({
       case_id: data.caseId,
       subject_role: data.subject,
-      subject_account_id: data.subject === "parent" ? parties.parent : parties.tutor,
+      subject_account_id: subjectId,
       category: data.category,
       note: data.note,
-      strike: data.strike,
+      strike,
       created_by: context.userId,
     });
     if (error) throw new Error(error.message);
-    return { ok: true };
+
+    // Level 3: tell the Trust & Safety desk to decide on Freeze & Suspend.
+    // The system never freezes or bans on its own.
+    if (strike && subjectId) {
+      const { ladderByAccount } = await import("@/features/trust/match-eligibility.server");
+      const state = (await ladderByAccount(db, [subjectId])).get(subjectId);
+      if (state && state.strikes === FREEZE_REVIEW_STRIKES) {
+        try {
+          const { notifyOps } = await import("@/lib/ops-webhook.server");
+          void notifyOps("safety.strike_ladder_level_3", {
+            case_id: data.caseId,
+            subject_role: data.subject,
+          }).catch(() => {});
+        } catch {
+          // advisory
+        }
+      }
+      return { ok: true, ladder: state ?? null };
+    }
+    return { ok: true, ladder: null };
   });
 
 export const voidBehaviourReport = createServerFn({ method: "POST" })
@@ -144,4 +177,56 @@ export const voidBehaviourReport = createServerFn({ method: "POST" })
       .eq("id", data.reportId);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+export type LadderReviewRow = {
+  accountId: string;
+  displayName: string | null;
+  strikes: number;
+  lastStrikeAt: string;
+  suspended: boolean;
+};
+
+/** AC-703-3 level 3: accounts waiting for a staff Freeze & Suspend decision. */
+export const listStrikeLadderReviews = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<LadderReviewRow[]> => {
+    const db = await staffDb(context.userId);
+    const rows = await selectRows<{
+      subject_account_id: string | null;
+      strike: boolean;
+      voided_at: string | null;
+      created_at: string;
+    }>(db, "behaviour_reports", "subject_account_id, strike, voided_at, created_at", [
+      { col: "strike", op: "eq", value: true },
+    ]);
+    const byAccount = new Map<string, string[]>();
+    for (const r of rows) {
+      if (!r.subject_account_id || r.voided_at) continue;
+      byAccount.set(r.subject_account_id, [
+        ...(byAccount.get(r.subject_account_id) ?? []),
+        r.created_at,
+      ]);
+    }
+    const due = [...byAccount.entries()].filter(
+      ([, times]) => times.length >= FREEZE_REVIEW_STRIKES,
+    );
+    if (due.length === 0) return [];
+    const profiles = await selectRows<{
+      id: string;
+      display_name: string | null;
+      account_status: string | null;
+    }>(db, "profiles", "id, display_name, account_status", [
+      { col: "id", op: "in", value: due.map(([id]) => id) },
+    ]);
+    const byId = new Map(profiles.map((p) => [p.id, p]));
+    return due
+      .map(([accountId, times]) => ({
+        accountId,
+        displayName: byId.get(accountId)?.display_name ?? null,
+        strikes: times.length,
+        lastStrikeAt: [...times].sort().at(-1) ?? "",
+        suspended: byId.get(accountId)?.account_status === "suspended",
+      }))
+      .sort((a, b) => b.lastStrikeAt.localeCompare(a.lastStrikeAt));
   });
