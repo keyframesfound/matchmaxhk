@@ -66,11 +66,11 @@ function stateOf(
 async function requireClaimableChild(db: Db, userId: string, studentId: string) {
   const rows = await selectRows<{
     id: string;
-    nickname: string;
+    display_name: string | null;
     status: string;
     archived_at: string | null;
     owner_user_id: string | null;
-  }>(db, "students", "id, nickname, status, archived_at, owner_user_id", [
+  }>(db, "students", "id, display_name, status, archived_at, owner_user_id", [
     { col: "id", op: "eq", value: studentId },
     { col: "parent_user_id", op: "eq", value: userId },
   ]);
@@ -196,9 +196,12 @@ export const getChildClaimPreview = createServerFn({ method: "POST" })
     if (!token) return { state: "not_found", nickname: null, verifiedHours: null };
 
     const state = stateOf(token, new Date());
-    const students = await selectRows<{ nickname: string }>(db, "students", "nickname", [
-      { col: "id", op: "eq", value: token.student_id },
-    ]);
+    const students = await selectRows<{ display_name: string | null }>(
+      db,
+      "students",
+      "display_name",
+      [{ col: "id", op: "eq", value: token.student_id }],
+    );
     const hours = await db
       .from<{ duration_hours: number | string; status: string }>("verified_hours_ledger")
       .select("duration_hours, status")
@@ -209,7 +212,7 @@ export const getChildClaimPreview = createServerFn({ method: "POST" })
 
     return {
       state,
-      nickname: students[0]?.nickname ?? null,
+      nickname: students[0]?.display_name ?? null,
       verifiedHours: Math.round(verified * 100) / 100,
     };
   });
@@ -232,12 +235,12 @@ export const acceptChildClaim = createServerFn({ method: "POST" })
     // §15.3 edge: the signed-in account must not be the parent themself.
     if (context.userId === token.parent_user_id) throw new Error("CLAIM_SELF_PARENT");
 
-    const students = await selectRows<{ nickname: string; owner_user_id: string | null }>(
-      db,
-      "students",
-      "nickname, owner_user_id",
-      [{ col: "id", op: "eq", value: token.student_id }],
-    );
+    const students = await selectRows<{
+      display_name: string | null;
+      owner_user_id: string | null;
+    }>(db, "students", "display_name, owner_user_id", [
+      { col: "id", op: "eq", value: token.student_id },
+    ]);
     const child = students[0];
     if (!child) throw new Error("CLAIM_INVALID");
     if (child.owner_user_id) throw new Error("CLAIM_USED");
@@ -313,5 +316,5 @@ export const acceptChildClaim = createServerFn({ method: "POST" })
       .eq("student_id", token.student_id);
     if (casesError) console.error("[child-claim] case migration failed:", casesError.message);
 
-    return { nickname: child.nickname };
+    return { nickname: child.display_name ?? "" };
   });
