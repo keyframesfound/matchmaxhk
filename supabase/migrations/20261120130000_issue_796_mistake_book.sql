@@ -153,7 +153,7 @@ as $$
     left join public.students s on s.id = c.student_id
     where lower(_subject) = any (
         select lower(subject_value)
-        from unnest(coalesce(c.subjects, array[]::text[]) || array[c.subject]) as subject_value
+        from unnest(coalesce(c.subjects, array[]::text[])) as subject_value
       )
       and (
         (_student_id is not null and _student_id = c.student_id)

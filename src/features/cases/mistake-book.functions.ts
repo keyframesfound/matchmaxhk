@@ -50,7 +50,6 @@ type CaseRow = {
   parent_id: string | null;
   student_id: string | null;
   matched_tutor_id: string | null;
-  subject: string;
   subjects: string[] | null;
   sor_status: string | null;
 };
@@ -109,7 +108,7 @@ async function loadAccess(db: Db, caseId: string, userId: string): Promise<Mista
   const cases = await selectRows<CaseRow>(
     db,
     "tutoring_cases",
-    "id, case_code, parent_id, student_id, matched_tutor_id, subject, subjects, sor_status",
+    "id, case_code, parent_id, student_id, matched_tutor_id, subjects, sor_status",
     [{ col: "id", op: "eq", value: caseId }],
   );
   const kase = cases[0];
@@ -142,7 +141,7 @@ async function loadAccess(db: Db, caseId: string, userId: string): Promise<Mista
 
 /** Subjects the book is scoped by: the case's subject list plus its primary. */
 function caseSubjects(kase: CaseRow): string[] {
-  const list = [...(kase.subjects ?? []), kase.subject]
+  const list = [...(kase.subjects ?? [])]
     .map((s) => (s ?? "").trim())
     .filter(Boolean);
   return [...new Set(list)];
@@ -274,7 +273,7 @@ export const getCaseMistakeBook = createServerFn({ method: "GET" })
 
     return {
       role: access.role,
-      subject: access.kase.subject,
+      subject: caseSubjects(access.kase)[0] ?? "general",
       revealed: mistakeBookRevealed(lessons.filter((lesson) => lesson.status === "done").length),
       tags: await caseTags(db, access.kase, rows),
       counts: mistakeCounts(rows),
