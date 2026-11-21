@@ -4061,6 +4061,14 @@
     "managed_badge": "Managed"
   },
   "children": {
+    "availability": {
+      "title": "每周可约时间",
+      "hint": "默认私人。只有你同导师有进行中个案时，导师先会见到呢啲时段。",
+      "loading": "载入可约时间…",
+      "empty": "仲未设定可约时段。",
+      "save": "保存可约时间",
+      "saved": "可约时间已保存"
+    },
     "title": "我的子女",
     "desc": "每位子女加一次，佢哋嘅个案同堂数就会分开记录。",
     "add": "加子女",
@@ -4371,6 +4379,11 @@
     "share_state_error": "无法更新——请再试一次。"
   },
   "case_manager": {
+    "child_availability": {
+      "title": "学生可约时间",
+      "hint": "家长为呢个进行中个案分享。",
+      "none": "家长尚未设定每周可约时间。"
+    },
     "title": "个案管理",
     "calendar_aria": "本月",
     "active_cases": "进行中的个案",

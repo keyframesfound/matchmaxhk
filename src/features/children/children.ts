@@ -1,5 +1,10 @@
 import { z } from "zod";
 
+import {
+  parseHourlyOpenHours,
+  type HourlyOpenHours,
+} from "@/features/tutors/availability-grid-model";
+
 /**
  * Issue #459 slice 2: child sub-profiles live in public.students (created by
  * #530 as the per-student pack holder, "#459 will own the full profile").
@@ -89,7 +94,24 @@ export type ChildProfile = {
   /** #459 §4.4: what the parent keeps once the child claims the profile. */
   canViewSchedule: boolean;
   canManageBilling: boolean;
+  /**
+   * #768: the child's private weekly hourly availability (mon..sun × Open
+   * START hours 6..23, HKT). Empty until the parent — or the child once they
+   * claim the profile — sets it; it is only shared with tutors on active case
+   * leads, never on the public side.
+   */
+  availabilityGridHourly: HourlyOpenHours;
 };
+
+/**
+ * #768: students.availability_grid_hourly is untrusted JSONB on read (written
+ * only through the sanitising RPC, but older rows and half-written data must
+ * still render). Reuses the tutor hourly model so both grids degrade the same
+ * way: unknown keys, non-integer and out-of-range hours collapse to closed.
+ */
+export function parseChildAvailability(value: unknown): HourlyOpenHours {
+  return parseHourlyOpenHours(value);
+}
 
 export function shouldWarnChildCount(count: number): boolean {
   return count > CHILD_SOFT_LIMIT;

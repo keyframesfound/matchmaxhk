@@ -4069,6 +4069,14 @@
     "managed_badge": "Managed"
   },
   "children": {
+    "availability": {
+      "title": "Weekly availability",
+      "hint": "Private by default. A tutor sees these hours only when you have an active case with them.",
+      "loading": "Loading availability…",
+      "empty": "No Open hours yet.",
+      "save": "Save availability",
+      "saved": "Availability saved"
+    },
     "title": "My children",
     "desc": "Add each child once so their cases and lessons stay separate.",
     "add": "Add child",
@@ -4379,6 +4387,11 @@
     "share_state_error": "Couldn't update — please try again."
   },
   "case_manager": {
+    "child_availability": {
+      "title": "Student availability",
+      "hint": "Shared by the parent for this active case.",
+      "none": "The parent has not set weekly availability yet."
+    },
     "title": "Case Manager",
     "calendar_aria": "This month",
     "active_cases": "Active cases",

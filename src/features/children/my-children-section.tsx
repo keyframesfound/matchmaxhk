@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
-import { Mail, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronDown, Mail, Pencil, Plus, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,15 @@ import {
   setChildRetain,
 } from "@/features/children/children.functions";
 import { startChildClaim } from "@/features/children/claim.functions";
+import { HourlyAvailabilityEditor } from "@/features/tutors/availability-hourly-editor";
+import {
+  emptyHourlyOpenHours,
+  isHourlyGridEmpty,
+  parseHourlyOpenHours,
+  type HourlyOpenHours,
+} from "@/features/tutors/availability-grid-model";
+import { supabase } from "@/integrations/supabase/client";
+import { cn } from "@/lib/utils";
 
 export const CHILDREN_QUERY_KEY = ["account", "children"] as const;
 
@@ -138,56 +147,59 @@ export function MyChildrenSection() {
               />
             </li>
           ) : (
-            <li key={child.id} className="flex items-center justify-between gap-3 py-3">
-              <div className="min-w-0">
-                <p className="truncate font-semibold text-[color:var(--ink)]">{child.nickname}</p>
-                <p className="truncate text-sm text-muted-foreground">
-                  {[
-                    child.school,
-                    child.curriculum,
-                    child.gradYear,
-                    learnerLevelLabel(child.level, t),
-                    (child.subjects ?? []).join(", "),
-                  ]
-                    .filter(Boolean)
-                    .join(" · ")}
-                </p>
-                {child.status === "claimed_independent" ? <RetainToggles child={child} /> : null}
-              </div>
-              <div className="flex shrink-0 gap-1">
-                {/* #459 slice 6: managed children only — claimed ones own
+            <li key={child.id} className="py-3">
+              <div className="flex items-center justify-between gap-3">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-[color:var(--ink)]">{child.nickname}</p>
+                  <p className="truncate text-sm text-muted-foreground">
+                    {[
+                      child.school,
+                      child.curriculum,
+                      child.gradYear,
+                      learnerLevelLabel(child.level, t),
+                      (child.subjects ?? []).join(", "),
+                    ]
+                      .filter(Boolean)
+                      .join(" · ")}
+                  </p>
+                  {child.status === "claimed_independent" ? <RetainToggles child={child} /> : null}
+                </div>
+                <div className="flex shrink-0 gap-1">
+                  {/* #459 slice 6: managed children only — claimed ones own
                     their account already. */}
-                {child.status === "managed_by_parent" ? (
+                  {child.status === "managed_by_parent" ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setInviting(child.id)}
+                    >
+                      <Mail className="h-4 w-4" aria-hidden />
+                      {t("children.claim.invite_cta")}
+                    </Button>
+                  ) : null}
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    onClick={() => setInviting(child.id)}
+                    onClick={() => setEditing(child.id)}
                   >
-                    <Mail className="h-4 w-4" aria-hidden />
-                    {t("children.claim.invite_cta")}
+                    <Pencil className="h-4 w-4" aria-hidden />
+                    {t("children.edit")}
                   </Button>
-                ) : null}
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setEditing(child.id)}
-                >
-                  <Pencil className="h-4 w-4" aria-hidden />
-                  {t("children.edit")}
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  disabled={archiveMutation.isPending}
-                  onClick={() => confirmArchive(child)}
-                >
-                  <Trash2 className="h-4 w-4" aria-hidden />
-                  {t("children.archive")}
-                </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    disabled={archiveMutation.isPending}
+                    onClick={() => confirmArchive(child)}
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden />
+                    {t("children.archive")}
+                  </Button>
+                </div>
               </div>
+              <ChildAvailability child={child} isFetching={childrenQuery.isFetching} />
             </li>
           ),
         )}
@@ -209,6 +221,110 @@ export function MyChildrenSection() {
         </DialogContent>
       </Dialog>
     </section>
+  );
+}
+
+/**
+ * #768: `update_my_child_availability` ships with a parallel change, so the
+ * generated Supabase types do not know the function yet. Same narrow cast the
+ * home-notes reads use (src/features/materials/home-notes.queries.ts) so this
+ * call site is not blocked on a types regeneration.
+ */
+type ChildAvailabilityRpc = {
+  rpc: (
+    fn: string,
+    args: Record<string, unknown>,
+  ) => Promise<{ data: unknown; error: { message: string } | null }>;
+};
+
+/**
+ * #768: the grid arrives with the children list, but `listMyChildren` may
+ * legitimately omit it (older rows, or a server that has not shipped the
+ * column yet), so fall back to an empty grid rather than crash the card.
+ */
+function childAvailabilityGrid(child: ChildProfile): HourlyOpenHours {
+  return parseHourlyOpenHours(child.availabilityGridHourly ?? emptyHourlyOpenHours());
+}
+
+/**
+ * #768 AC: a parent sets a child's weekly Open hours here. The grid stays
+ * private by default and only reaches a tutor once there is an active case,
+ * which the hint states plainly.
+ */
+function ChildAvailability({ child, isFetching }: { child: ChildProfile; isFetching: boolean }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const storedGrid = childAvailabilityGrid(child);
+  const storedKey = JSON.stringify(storedGrid);
+  // The server value wins when it actually changes (React's adjust-state-
+  // during-render pattern), so an identical refetch never wipes an edit while
+  // a refetch that carries new hours replaces the grid.
+  const [draft, setDraft] = useState({ key: storedKey, grid: storedGrid });
+  if (draft.key !== storedKey) setDraft({ key: storedKey, grid: storedGrid });
+  const grid = draft.grid;
+
+  // Nothing to show while the first fetch that would carry the grid is still
+  // in flight; once it lands this is false and the editor takes over.
+  const awaitingGrid = isFetching && !child.availabilityGridHourly;
+
+  async function save() {
+    setSaving(true);
+    const { data, error } = await (supabase as unknown as ChildAvailabilityRpc).rpc(
+      "update_my_child_availability",
+      { _student_id: child.id, _grid: grid },
+    );
+    setSaving(false);
+    if (error) {
+      toast.error(error.message);
+      return;
+    }
+    // The RPC answers with the sanitised grid; adopt it and leave the child's
+    // other fields untouched.
+    setDraft({ key: storedKey, grid: parseHourlyOpenHours(data) });
+    toast.success(t("children.availability.saved"));
+    void queryClient.invalidateQueries({ queryKey: CHILDREN_QUERY_KEY });
+  }
+
+  return (
+    <div className="mt-2">
+      <button
+        type="button"
+        className="flex items-center gap-1 text-sm font-medium text-muted-foreground transition-colors hover:text-[color:var(--ink)] focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] focus-visible:ring-offset-2 focus-visible:outline-none"
+        aria-expanded={open}
+        aria-controls={`child-availability-${child.id}`}
+        onClick={() => setOpen((prev) => !prev)}
+      >
+        <ChevronDown className={cn("h-4 w-4", open && "rotate-180")} aria-hidden />
+        {t("children.availability.title")}
+      </button>
+      {open ? (
+        <div id={`child-availability-${child.id}`} className="mt-3 space-y-3">
+          <p className="text-muted-foreground text-xs">{t("children.availability.hint")}</p>
+          {awaitingGrid ? (
+            <p className="text-muted-foreground text-sm">{t("children.availability.loading")}</p>
+          ) : (
+            <>
+              {isHourlyGridEmpty(grid) ? (
+                <p className="text-muted-foreground text-sm">{t("children.availability.empty")}</p>
+              ) : null}
+              <HourlyAvailabilityEditor
+                value={grid}
+                onChange={(next) => setDraft((prev) => ({ ...prev, grid: next }))}
+                disabled={saving}
+              />
+              <div className="flex justify-end">
+                <Button type="button" size="sm" disabled={saving} onClick={() => void save()}>
+                  {t("children.availability.save")}
+                </Button>
+              </div>
+            </>
+          )}
+        </div>
+      ) : null}
+    </div>
   );
 }
 

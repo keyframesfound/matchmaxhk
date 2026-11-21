@@ -16,6 +16,7 @@ import { selectRows, type Db } from "@/features/cases/desk-db";
 import {
   CHILD_LEVELS,
   ChildInput,
+  parseChildAvailability,
   type ChildLevel,
   type ChildProfile,
 } from "@/features/children/children";
@@ -33,10 +34,12 @@ type StudentRow = {
   created_at: string;
   can_view_schedule: boolean;
   can_manage_billing: boolean;
+  /** #768: raw JSONB; parsed through parseChildAvailability on the way out. */
+  availability_grid_hourly: unknown;
 };
 
 const STUDENT_COLS =
-  "id, display_name, school, curriculum, grad_year, level, subjects, status, archived_at, created_at, can_view_schedule, can_manage_billing";
+  "id, display_name, school, curriculum, grad_year, level, subjects, status, archived_at, created_at, can_view_schedule, can_manage_billing, availability_grid_hourly";
 
 function toChildProfile(row: StudentRow): ChildProfile {
   return {
@@ -52,6 +55,7 @@ function toChildProfile(row: StudentRow): ChildProfile {
     status: row.status,
     canViewSchedule: row.can_view_schedule !== false,
     canManageBilling: row.can_manage_billing !== false,
+    availabilityGridHourly: parseChildAvailability(row.availability_grid_hourly),
   };
 }
 
@@ -91,6 +95,9 @@ export const saveChild = createServerFn({ method: "POST" })
   )
   .handler(async ({ context, data }): Promise<ChildProfile> => {
     const db = await adminDb();
+    // #768: availability_grid_hourly is deliberately NOT in this payload — the
+    // editor writes it through the update_my_child_availability RPC, so a
+    // profile save (nickname/school/level/...) never clobbers it.
     const fields = {
       display_name: data.child.nickname,
       school: data.child.school,
