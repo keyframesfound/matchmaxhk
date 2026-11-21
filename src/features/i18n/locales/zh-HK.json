@@ -1677,6 +1677,13 @@
   },
   "join": {
     "form": {
+      "remove_course_grade": "移除課程成績",
+      "gpa_hint": "以 0 – 4.3 計，可選。",
+      "course_grades_hint": "可選：填你打算補習嘅課程成績。",
+      "starting_station": "出發港鐵站",
+      "travel_time": "預計港鐵車程",
+      "per_curriculum_pricing": "按課程定價",
+      "standardize_rate_label": "統一所有年級嘅時薪",
       "country_region_specify": "國家／地區（請註明）",
       "current_status_specify": "現時身份（請註明）",
       "portfolio_consent": "獎盃櫃相片授權",

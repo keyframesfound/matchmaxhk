@@ -1677,6 +1677,13 @@
   },
   "join": {
     "form": {
+      "remove_course_grade": "Remove course grade",
+      "gpa_hint": "Scale 0 – 4.3, optional.",
+      "course_grades_hint": "Optional, grades you received in the courses you intend to tutor.",
+      "starting_station": "Starting MTR station",
+      "travel_time": "Estimated MTR travel time",
+      "per_curriculum_pricing": "Per-curriculum pricing",
+      "standardize_rate_label": "Standardize my hourly rate across all levels",
       "country_region_specify": "Country / Region, specify",
       "current_status_specify": "Current Status, specify",
       "portfolio_consent": "Trophy cabinet photo consent",

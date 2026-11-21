@@ -787,7 +787,7 @@ function CourseGradeEditor({
             type="button"
             onClick={() => onChange(rows.filter((_, i) => i !== index))}
             className="text-muted-foreground hover:text-destructive"
-            aria-label="Remove course grade"
+            aria-label={t("join.form.remove_course_grade")}
           >
             <X className="h-4 w-4" />
           </button>
@@ -3229,7 +3229,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       inputMode="decimal"
                       placeholder="e.g. 3.85"
                     />
-                    <Hint>Scale 0 – 4.3, optional.</Hint>
+                    <Hint>{t("join.form.gpa_hint")}</Hint>
                   </Field>
                   <div className="sm:col-span-2">
                     <Field
@@ -3262,7 +3262,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                           clearFieldError("courseGrades");
                         }}
                       />
-                      <Hint>Optional, grades you received in the courses you intend to tutor.</Hint>
+                      <Hint>{t("join.form.course_grades_hint")}</Hint>
                     </Field>
                   </div>
                 </div>
@@ -3690,7 +3690,9 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     >
                       <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
                         <div className="grid gap-2">
-                          <label className={labelClassName}>Starting MTR station</label>
+                          <label className={labelClassName}>
+                            {t("join.form.starting_station")}
+                          </label>
                           <SearchableSelect
                             value={originStation}
                             onChange={setOrigin}
@@ -3718,7 +3720,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                         </p>
                       ) : null}
                       <div className="grid gap-2">
-                        <label className={labelClassName}>Estimated MTR travel time</label>
+                        <label className={labelClassName}>{t("join.form.travel_time")}</label>
                         <div className="flex flex-wrap gap-2">
                           {["10", "20", "30"].map((budget) => (
                             <button
@@ -4315,7 +4317,9 @@ export function ApplicationForm({ completePending = false }: { completePending?:
               <div className="rounded-md border border-border p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <p className="text-sm font-semibold text-foreground">Per-curriculum pricing</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {t("join.form.per_curriculum_pricing")}
+                    </p>
                     <p className="mt-0.5 text-xs text-muted-foreground">
                       Charge different rates for different curriculum levels, or keep one flat rate
                       across everything you teach.
@@ -4329,7 +4333,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       }
                       aria-label={t("join.form.standardize_rate")}
                     />
-                    <span>Standardize my hourly rate across all levels</span>
+                    <span>{t("join.form.standardize_rate_label")}</span>
                   </label>
                 </div>
                 {!base.pricingStandardized ? (
