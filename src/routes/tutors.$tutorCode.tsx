@@ -37,6 +37,7 @@ import { useTranslation } from "react-i18next";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { ReviewSummaryBlock } from "@/features/tutors/review-summary-block";
+import { useTutorReviewSummary } from "@/features/tutors/use-tutor-review-summary";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { supabase } from "@/integrations/supabase/client";
@@ -513,6 +514,10 @@ function TutorDetail() {
     queryKey: ["tutor", "reviews", t.id],
     queryFn: () => fetchTutorReviews(t.id),
   });
+
+  // #794 §2.1: the in-platform aggregate hides entirely at zero published
+  // reviews — the section only renders when there is at least one.
+  const { summary: caseReviewSummary } = useTutorReviewSummary(t.id);
 
   // Issues #131/#134: published study-materials listings for this tutor.
   const { data: materials = [] } = useQuery({
@@ -1327,11 +1332,14 @@ function TutorDetail() {
                 </ProfileSection>
               ) : null}
 
-              {/* #205 + #287: in-platform case reviews (avg, count, latest 5);
-                  "New tutor" when none. */}
-              <ProfileSection icon={Star} title={translate("sor.case_reviews_title")}>
-                <ReviewSummaryBlock tutorId={t.id} />
-              </ProfileSection>
+              {/* #205 + #287 + #794 §2.1: in-platform case reviews, average +
+                  count from the FIRST published parent→tutor review with a
+                  "New" cue until three; the whole block hides at zero. */}
+              {caseReviewSummary && caseReviewSummary.count > 0 ? (
+                <ProfileSection icon={Star} title={translate("sor.case_reviews_title")}>
+                  <ReviewSummaryBlock tutorId={t.id} summary={caseReviewSummary} />
+                </ProfileSection>
+              ) : null}
 
               {/* Issues #131/#134: study materials marketplace listings;
                   hidden entirely when the tutor has none. */}

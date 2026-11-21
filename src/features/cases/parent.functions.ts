@@ -23,17 +23,13 @@ import type { FeeStatus, SorStatus } from "@/features/cases/sor-db";
 import { cancelActionFor, canMarkDone } from "@/features/cases/sor";
 import { shortCaseOverrunError } from "@/features/cases/short-case";
 import { generateSlots, lessonConflicts } from "@/features/cases/slot";
+import { checkSlotRequest } from "@/features/cases/parent/review-flow";
+import { saveCaseRatingCore } from "@/features/cases/rating-core.server";
 import {
-  checkSlotRequest,
-  decideReviewSubmit,
-  parentDisplayLineFromCase,
-} from "@/features/cases/parent/review-flow";
-import {
-  canPublishHeldReview,
-  isCaseFeeSettled,
+  FEE_SETTLEMENT_HOLD_REASON,
+  PENDING_LESSON_HOLD_REASON,
   publicRatingLessonEligible,
 } from "@/features/cases/case-reviews";
-import type { LessonConfirmRow } from "@/features/cases/case-reviews";
 import { sweepDueSessionLogs, type SessionLogRowT } from "@/features/cases/experience.functions";
 import { insertLessonLifecycleEvent } from "@/features/cases/bus.functions";
 import type { HoursLedgerRowT } from "@/features/hours/hours.functions";
@@ -209,11 +205,6 @@ export type ParentCaseDetail = {
   fee: { status: FeeStatus; amount_hkd: number } | null;
   /** #783 §2.5: the matched tutor's phone, masked until the fee is paid. */
   tutor_contact: ParentContactView;
-  /** #649 review-hold copy: is the case's admin fee settled right now? A
-   * review still held under pending_fee_settlement while this is true is
-   * actually waiting for Lesson 2 (the lazy publish never rewrites the
-   * reason), so the UI must not show fee-pending copy. */
-  review_fee_settled: boolean;
   lessons: {
     id: string;
     sequence: number;
@@ -230,7 +221,15 @@ export type ParentCaseDetail = {
     rating: number;
     comment: string;
     held_reason: string | null;
+    /** #794: last save (the 14-day edit window anchor). */
+    updated_at: string | null;
+    /** #794: completed lessons at the last save (a new lesson reopens edits). */
+    completed_lessons_at_write: number | null;
   } | null;
+  /** #794: when the case ended — the flat 14-day post-end window starts here. */
+  case_ended_at: string | null;
+  /** #794: the tutor's private rating of this family (other party + desk only). */
+  tutorReview: { rating: number; comment: string } | null;
   /** #387 tutor-logged sessions for this case (any status). */
   session_logs: SessionLogRowT[];
   /** #459 verified-hours rows for this case (parent review queue). */
@@ -299,10 +298,12 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         held_reason: string | null;
         direction: string;
         author_account_id: string;
+        updated_at: string | null;
+        completed_lessons_at_write: number | null;
       }>(
         db,
         "case_reviews",
-        "id, status, rating, comment, held_reason, direction, author_account_id",
+        "id, status, rating, comment, held_reason, direction, author_account_id, updated_at, completed_lessons_at_write",
         [{ col: "case_id", op: "eq", value: c.id }],
       ),
       // #650: the parent's display name for the share template.
@@ -371,13 +372,11 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
     }
     const slotDays = [...new Set(slots.map((s) => s.startsAt.slice(0, 10)))];
 
-    // #386 lazy publish on read (lazy-cancel precedent): once the case's
-    // applicable admin fee is settled, held parent→tutor reviews that are
-    // held PURELY for the fee settlement flip to visible in this request.
-    // Contact-holds (phone/email/WhatsApp) never auto-publish.
-    // #649 CEO LOCK N = 2: the flip ALSO needs lesson N reached — a
-    // fee-settled short case (waived/1.0x after L1) keeps the draft held
-    // under pending_lesson_threshold until the second lesson lands.
+    // #794 §2.1 lazy publish on read: a LEGACY held row (pending_fee_settlement
+    // / pending_lesson_threshold) flips as soon as the case has one eligible
+    // COMPLETED lesson. Fee settlement is no longer a gate, and a contact hold
+    // (`held: …` / `comment_held: …`) never auto-publishes. The public RPC
+    // applies the same rule — this keeps the parent's own view in step.
     const mine = myReviews.find((r) => r.author_account_id === context.userId) ?? null;
     const openFee = fees.find((f) => f.status === "invoiced" || f.status === "paid") ?? null;
 
@@ -426,14 +425,14 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
       );
     }
     let myReviewStatus = mine?.status ?? null;
-    // #386 settled rule includes the fee-row proof (paid/waived), so reviews on
-    // cases that closed AFTER settlement publish here too, see isCaseFeeSettled.
-    if (isCaseFeeSettled(c.sor_status, fees) && publicRatingLessonEligible(lessons)) {
+    // #794: one eligible completed lesson is the only publication condition.
+    if (publicRatingLessonEligible(lessons)) {
       const eligible = myReviews.filter(
         (r) =>
           r.direction === "parent_to_tutor" &&
           r.status === "held" &&
-          canPublishHeldReview(r.held_reason),
+          (r.held_reason === FEE_SETTLEMENT_HOLD_REASON ||
+            r.held_reason === PENDING_LESSON_HOLD_REASON),
       );
       for (const r of eligible) {
         const { error } = await db
@@ -446,6 +445,11 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
       const mineId = mine?.id;
       if (mineId != null && eligible.some((r) => r.id === mineId)) myReviewStatus = "visible";
     }
+
+    // #794: the tutor's rating OF THIS FAMILY is readable by the parent (the
+    // other party) on the private case page — never on any public parent page.
+    const tutorReviewRow =
+      myReviews.find((r) => r.direction === "tutor_to_parent" && r.status === "visible") ?? null;
 
     return {
       id: c.id,
@@ -482,7 +486,6 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
       ended_by_tutor_at: head?.ended_by_tutor_at ?? null,
       fee: openFee ? { status: openFee.status, amount_hkd: openFee.amount_hkd } : null,
       tutor_contact: tutorContact,
-      review_fee_settled: isCaseFeeSettled(c.sor_status, fees),
       lessons: lessons.map((l) => ({
         id: l.id,
         sequence: l.sequence,
@@ -500,7 +503,19 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
             rating: mine.rating,
             comment: mine.comment,
             held_reason: mine.held_reason,
+            updated_at: mine.updated_at ?? null,
+            completed_lessons_at_write: mine.completed_lessons_at_write ?? null,
           }
+        : null,
+      case_ended_at:
+        c.sor_status === "closed"
+          ? ([head?.ended_by_parent_at, head?.ended_by_tutor_at]
+              .filter((v): v is string => typeof v === "string")
+              .sort()
+              .pop() ?? null)
+          : null,
+      tutorReview: tutorReviewRow
+        ? { rating: tutorReviewRow.rating, comment: tutorReviewRow.comment }
         : null,
       session_logs: await selectRows<SessionLogRowT>(
         db,
@@ -770,6 +785,12 @@ export const requestSlot = createServerFn({ method: "POST" })
 // Review submission (#205 parent→tutor + P7 gating)
 // ---------------------------------------------------------------------------
 
+/**
+ * #794 §2.1 parent→tutor review. Kept as a thin compatibility wrapper over the
+ * shared core (the rating sheet calls saveCaseRating directly) so any older
+ * caller still goes through the CEO-lock gates: one eligible completed lesson,
+ * one row per case, 14-day edit window, private desk note.
+ */
 export const submitParentReview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -777,7 +798,8 @@ export const submitParentReview = createServerFn({ method: "POST" })
       .object({
         caseId: z.string().uuid(),
         rating: z.number().int().min(1).max(5),
-        comment: z.string(),
+        comment: z.string().default(""),
+        deskNote: z.string().max(500).default(""),
       })
       .parse(input),
   )
@@ -788,101 +810,27 @@ export const submitParentReview = createServerFn({ method: "POST" })
     }): Promise<{ status: "visible" | "held"; heldReason: string | null }> => {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const db = asAdminDb(supabaseAdmin);
-      const c = await myCase(db, data.caseId, context.userId);
-      if (!c.matched_tutor_id) throw new Error("NO_TUTOR");
-      // #503 stop condition: once the case ENDED (staff force-end or bilateral
-      // End Case), ratings are final — no insert, edit or replace gets through.
-      if (c.sor_status === "closed") throw new Error("CASE_ENDED");
-
-      const [lessons, headRows, mine, feeRows] = await Promise.all([
-        selectRows<LessonConfirmRow>(
-          db,
-          "case_lessons",
-          "status, confirmed_by_parent_at, confirmed_by_tutor_at",
-          [{ col: "case_id", op: "eq", value: c.id }],
-        ),
-        selectRows<{
-          student_level: string | null;
-          student_grade_current: string | null;
-          exam_system: string | null;
-          subjects: string[] | null;
-        }>(db, "tutoring_cases", "student_level, student_grade_current, exam_system, subjects", [
-          { col: "id", op: "eq", value: c.id },
-        ]),
-        selectRows<{ id: string; status: string; author_account_id: string }>(
-          db,
-          "case_reviews",
-          "id, status, author_account_id",
-          [{ col: "case_id", op: "eq", value: c.id }],
-        ),
-        // #386: a settled fee row (paid/waived) proves settlement even when the
-        // case has moved on to 'closed', see isCaseFeeSettled in case-reviews.
-        selectRows<{ status: string }>(db, "case_fees", "status", [
-          { col: "case_id", op: "eq", value: c.id },
-        ]),
-      ]);
-
-      const decision = decideReviewSubmit({
-        lessons,
+      const result = await saveCaseRatingCore(db, context.userId, {
+        caseId: data.caseId,
+        direction: "parent_to_tutor",
         rating: data.rating,
         comment: data.comment,
-        feeSettled: isCaseFeeSettled(c.sor_status, feeRows),
-        existingMine: mine
-          .filter((r) => r.author_account_id === context.userId)
-          .map((r) => ({
-            id: r.id,
-            status: r.status as "visible" | "held" | "hidden" | "replaced",
-            author_account_id: r.author_account_id,
-          })),
+        deskNote: data.deskNote,
       });
-      if (decision.action === "reject") throw new Error(decision.message);
-
-      if (decision.action === "replace") {
-        await db
-          .from<Row>("case_reviews")
-          .update({ status: "replaced", updated_at: new Date().toISOString() })
-          .eq("id", decision.oldReviewId);
-      }
-
-      const displayLine = parentDisplayLineFromCase(headRows[0] ?? {});
-      const row = {
-        case_id: c.id,
-        lesson_id: null as string | null,
-        direction: "parent_to_tutor" as const,
-        author_account_id: context.userId,
-        tutor_id: c.matched_tutor_id,
-        rating: data.rating,
-        comment: data.comment.trim(),
-        author_display_line: displayLine,
-        status: decision.status,
-        held_reason: decision.heldReason ?? null,
-      };
-
-      if (decision.action === "update") {
-        const { error } = await db
-          .from<Row>("case_reviews")
-          .update({ ...row, updated_at: new Date().toISOString() })
-          .eq("id", decision.reviewId);
-        if (error) throw new Error(error.message);
-      } else {
-        const { error } = await db.from<Row>("case_reviews").insert(row).select("id").single();
-        if (error) throw new Error(error.message);
-        // #428 Phase 1: verified review milestone (the P7 fee gate already
-        // decided `visible` upstream; held rows are not counted).
-        if (decision.status === "visible") {
-          try {
-            const { logFunnelEvent } = await import("@/features/cases/funnel-events");
-            await logFunnelEvent(
-              db,
-              { case_id: data.caseId, event_type: "verified_review_published" },
-              context.userId,
-            );
-          } catch (funnelError) {
-            console.warn("[parent] funnel log failed:", funnelError);
-          }
+      if (result.status === "visible" && result.heldReason === null) {
+        // #428 Phase 1: verified review milestone (published only).
+        try {
+          const { logFunnelEvent } = await import("@/features/cases/funnel-events");
+          await logFunnelEvent(
+            db,
+            { case_id: data.caseId, event_type: "verified_review_published" },
+            context.userId,
+          );
+        } catch (funnelError) {
+          console.warn("[parent] funnel log failed:", funnelError);
         }
       }
-      return { status: decision.status, heldReason: decision.heldReason ?? null };
+      return { status: result.status, heldReason: result.heldReason };
     },
   );
 

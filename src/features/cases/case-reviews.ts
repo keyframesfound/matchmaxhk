@@ -13,20 +13,20 @@
  * confirm columns set), stay editable while the case is ongoing, and freeze
  * once the case ends (sor_status 'closed') — enforced in the submit fns.
  *
- * #649 (Trust): CEO LOCK N = 2 — the post-lesson rating PROMPT fires after
- * two eligible lessons; the L1 write unlock stays as the soft-draft path
- * (draft rows are held, never public before N). CEO LOCK threshold = 3
- * published parent→tutor reviews before a public average shows on the
- * Explore TutorCard / tutor profile; below threshold the card shows
- * "New" (zero reviews) or a count-only line (1–2) — never a fake average
- * and never "0.0".
+ * #794 §2.1 (CEO lock 2026-11-18, supersedes #649 N=2): ONE eligible
+ * completed lesson unlocks the 1-tap rating sheet AND publication. No second
+ * lesson, no admin-fee settlement gate. The public aggregate shows the
+ * average + count from the FIRST published parent→tutor review and keeps a
+ * "New / 新" cue until three; zero published reviews hides the block — never a
+ * bare average, never "0.0". One row per case per direction, edited in place
+ * (see rating-window.ts for the 14-day edit window).
  */
 
 import { CONTACT_EMAIL_PATTERN } from "@/lib/contact-filter";
 
 export type ReviewDirection = "parent_to_tutor" | "tutor_to_parent";
 
-export const REVIEW_COMMENT_MIN = 20;
+export const REVIEW_COMMENT_MIN = 0;
 export const REVIEW_COMMENT_MAX_PARENT = 600;
 export const REVIEW_COMMENT_MAX_TUTOR = 400;
 /** #205: a new review after 30 days replaces the public one; the old row stays in admin. */
@@ -39,7 +39,11 @@ export function reviewCommentMax(direction: ReviewDirection): number {
 export type ReviewHeldReason = "phone" | "email" | "whatsapp";
 
 // ---------------------------------------------------------------------------
-// #386 fee-settlement publish gate (parent→tutor reviews).
+// #386 fee-settlement gate — LEGACY ONLY.
+// #794 §2.1 (2026-11-18 CEO lock) removes fee settlement as a publish gate:
+// fee remains a money issue (#760), never a ratings gate. The helpers below
+// stay because the desk/case-detail copy still classifies legacy held rows
+// written before this lock; NO submit path consults them any more.
 // ---------------------------------------------------------------------------
 
 /** #386: a parent→tutor review is HELD under this reason until the case's
@@ -131,7 +135,14 @@ export type ValidateReviewInputResult =
   | { ok: true; heldReasons: ReviewHeldReason[] }
   | { ok: false; field: "comment" | "rating"; message: string };
 
-/** Server-side gate for a submitted review. heldReasons non-empty → store as held. */
+/**
+ * Server-side gate for a submitted review. heldReasons non-empty → the row is
+ * stored with its star and WITHOUT the public text (contact details never
+ * publish; the desk still sees the flagged reason).
+ *
+ * #794 §2.1: the short text is OPTIONAL (stars 1–5 → optional text → optional
+ * private desk note → Save). Only the upper bound stays enforced.
+ */
 export function validateReviewInput(
   direction: ReviewDirection,
   rating: number,
@@ -141,18 +152,11 @@ export function validateReviewInput(
     return { ok: false, field: "rating", message: "rating must be 1–5" };
   }
   const trimmed = comment.trim();
-  if (trimmed.length < REVIEW_COMMENT_MIN) {
-    return {
-      ok: false,
-      field: "comment",
-      message: `comment must be at least ${REVIEW_COMMENT_MIN} characters`,
-    };
-  }
   const max = reviewCommentMax(direction);
   if (trimmed.length > max) {
     return { ok: false, field: "comment", message: `comment must be at most ${max} characters` };
   }
-  return { ok: true, heldReasons: findReviewHolds(trimmed) };
+  return { ok: true, heldReasons: trimmed.length > 0 ? findReviewHolds(trimmed) : [] };
 }
 
 /** #205/#287: "Parent of G11 IB Physics", built from the case snapshot fields. */
@@ -173,14 +177,10 @@ export function buildParentDisplayLine(parts: {
 }
 
 /**
- * #503 eligibility gate: ratings open after BOTH parties have confirmed at
- * least one lesson on the case — the existing dual-confirm semantics (a
- * lesson is 'confirmed' exactly when confirmed_by_parent_at AND
- * confirmed_by_tutor_at are both set, per confirmLessonParent /
- * confirmLessonTutor). "Tutor logged alone" (a done lesson marked from
- * 'planned' with no parent confirm) does NOT unlock ratings, per the issue.
- * The lesson must still be live-or-done (confirmed/done); a later cancel,
- * late-cancel or no-show unwinds it.
+ * #794 §2.1 eligibility (CEO lock 2026-11-18): a lesson counts once it is
+ * COMPLETED — Mark done / attendance 'done' on its own is enough, and the
+ * legacy #503 bilateral-confirm path still qualifies a 'confirmed' lesson.
+ * A planned, cancelled, late-cancel or no-show lesson never counts.
  */
 export type LessonConfirmRow = {
   status: string;
@@ -188,14 +188,11 @@ export type LessonConfirmRow = {
   confirmed_by_tutor_at: string | null;
 };
 
-/** One lesson counts toward the rating gates when it is live-or-done AND
- * bilaterally confirmed (#503 semantics; the Attendance / desk-confirmed
- * variant arrives with #612 — until then both gates share this predicate). */
+/** One lesson counts toward the rating gates when it is COMPLETED. */
 export function isEligibleReviewLesson(l: LessonConfirmRow): boolean {
+  if (l.status === "done") return true;
   return (
-    (l.status === "confirmed" || l.status === "done") &&
-    l.confirmed_by_parent_at != null &&
-    l.confirmed_by_tutor_at != null
+    l.status === "confirmed" && l.confirmed_by_parent_at != null && l.confirmed_by_tutor_at != null
   );
 }
 
@@ -210,20 +207,27 @@ export function parentCanReviewCase(lessons: LessonConfirmRow[]): boolean {
 }
 
 // ---------------------------------------------------------------------------
-// #649 Trust gates (CEO locks, 2026-11-04 HKT).
+// #794 §2.1 rating gates (CEO lock 2026-11-18 HKT — supersedes #649 N=2).
 // ---------------------------------------------------------------------------
 
-/** CEO LOCK N = 2: the post-lesson prompt fires after two eligible lessons;
- * a PUBLIC-facing rating also needs two (the L1 write unlock stays as the
- * soft-draft path — draft rows are held, never published before N). */
-export const RATING_PROMPT_LESSON_N = 2;
+/** CEO LOCK: the rating sheet fires after ONE eligible completed lesson, and
+ * that same lesson unlocks publication. This is the single source the prompt,
+ * the submit fns and the lazy-publish RPC agree on. */
+export const RATING_PROMPT_LESSON_N = 1;
 
-/** CEO LOCK threshold = 3: published parent→tutor reviews before an average
- * shows on the Explore TutorCard / tutor profile. */
-export const RATING_PUBLIC_THRESHOLD = 3;
+/** CEO LOCK: a published-review count below three also carries the
+ * "New / 新" thin-sample cue. It NEVER hides the average (the average + count
+ * show from the first published review) and never gates publication. */
+export const RATING_NEW_CUE_THRESHOLD = 3;
 
-/** #649 prompt gate: has the case reached lesson N (CEO LOCK N = 2)? The
- * write unlock (parentCanReviewCase) stays at one lesson for the soft draft. */
+/** Legacy alias kept for call sites that only need "how many before the thin
+ * -sample cue clears". NOT a hidden-average threshold any more. */
+export const RATING_PUBLIC_THRESHOLD = RATING_NEW_CUE_THRESHOLD;
+
+/** CEO LOCK: 14 days after each save, and 14 days after the case ends. */
+export const RATING_EDIT_WINDOW_DAYS = 14;
+
+/** #794 prompt gate: has the case completed its first eligible lesson? */
 export function ratingPromptDue(
   lessons: LessonConfirmRow[],
   n: number = RATING_PROMPT_LESSON_N,
@@ -231,9 +235,8 @@ export function ratingPromptDue(
   return eligibleReviewLessonCount(lessons) >= n;
 }
 
-/** #649 public gate: a rating may go out PUBLICLY (status 'visible') only
- * once lesson N is reached. Pair with isCaseFeeSettled — the publish gate is
- * fee-settled AND N lessons (see decideReviewSubmit + the lazy-publish RPC). */
+/** #794 public gate: a rating may go out PUBLICLY (status 'visible') from the
+ * first eligible completed lesson. No fee-settlement condition exists. */
 export function publicRatingLessonEligible(
   lessons: LessonConfirmRow[],
   n: number = RATING_PROMPT_LESSON_N,
@@ -241,16 +244,33 @@ export function publicRatingLessonEligible(
   return eligibleReviewLessonCount(lessons) >= n;
 }
 
-/** #649 aggregate display state from a PUBLISHED-review count (held/hidden
- * rows never count): 'new' (zero reviews → "New", never 0.0), 'count_only'
- * (1–2 → count without an average) or 'full' (≥3 → average + count). */
+/** #794 aggregate display state from a PUBLISHED-review count (held/hidden
+ * rows never count):
+ *  - 0        → 'new'         : the card's "New / 新" pill, the reviews block
+ *                               itself stays hidden (never "0.0")
+ *  - 1–2      → 'fresh'       : average + count + the "New / 新" cue
+ *  - ≥3       → 'established' : average + count
+ * There is no bare-average state: every non-zero state carries the count. */
 export function tutorRatingBadgeState(
   publishedCount: number,
-  threshold: number = RATING_PUBLIC_THRESHOLD,
-): "new" | "count_only" | "full" {
+  newCueThreshold: number = RATING_NEW_CUE_THRESHOLD,
+): "new" | "fresh" | "established" {
   if (publishedCount <= 0) return "new";
-  if (publishedCount < threshold) return "count_only";
-  return "full";
+  if (publishedCount < newCueThreshold) return "fresh";
+  return "established";
+}
+
+/** #794: the average may render only with at least one published review. */
+export function ratingShowsAverage(publishedCount: number): boolean {
+  return publishedCount >= 1;
+}
+
+/** #794: the thin-sample "New / 新" cue rides along until three. */
+export function ratingShowsNewCue(
+  publishedCount: number,
+  newCueThreshold: number = RATING_NEW_CUE_THRESHOLD,
+): boolean {
+  return publishedCount < newCueThreshold;
 }
 
 /** Direction-shared alias for the tutor submit fn (#503: same gate both ways). */

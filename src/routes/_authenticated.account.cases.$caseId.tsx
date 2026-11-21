@@ -45,17 +45,10 @@ function sorActionError(message: string): string {
   if (isTimeClashError(message)) return i18n.t("sor.err_TIME_CLASH");
   return message;
 }
-import {
-  feeHoldKind,
-  PENDING_LESSON_HOLD_REASON,
-  parentCanReviewCase,
-  ratingPromptDue,
-  RATING_PROMPT_LESSON_N,
-  REVIEW_COMMENT_MAX_PARENT,
-  REVIEW_COMMENT_MIN,
-} from "@/features/cases/case-reviews";
+import { parentCanReviewCase } from "@/features/cases/case-reviews";
+import { completedLessonCount, evaluateRatingWindow } from "@/features/cases/rating-window";
+import { DeskReportSheet, PrivateRatingLine, RatingSheet } from "@/features/cases/rating-sheet";
 import { EndCaseControl } from "@/features/cases/end-case-control";
-import { ReviewStepHeader } from "@/features/cases/review-step-header";
 
 export const Route = createFileRoute("/_authenticated/account/cases/$caseId")({
   ssr: false,
@@ -83,11 +76,22 @@ function ParentCaseDetailPage() {
     queryClient.invalidateQueries({ queryKey: ["sor", "parent-cases"] });
   };
 
+  // #794 §2.1: the 1-tap rating sheet opens the moment a lesson becomes
+  // eligible (dual-confirm completing it), plus the private desk-report path.
+  const [ratingOpen, setRatingOpen] = useState(false);
+  const [deskReportOpen, setDeskReportOpen] = useState(false);
+
   const confirm = useMutation({
     mutationFn: (lessonId: string) => confirmLessonParent({ data: { lessonId } }),
-    onSuccess: () => {
+    onSuccess: (_res, lessonId) => {
       toast.success(t("sor.tutor_confirmed"));
       invalidate();
+      const lesson = data?.lessons.find((l) => l.id === lessonId);
+      const becomesEligible =
+        lesson != null &&
+        (lesson.status === "done" ||
+          (lesson.status === "confirmed" && lesson.confirmed_by_tutor_at !== null));
+      if (becomesEligible) setRatingOpen(true);
     },
     onError: (e) => toast.error(sorActionError(e.message)),
   });
@@ -310,7 +314,26 @@ function ParentCaseDetailPage() {
               onDone={invalidate}
             />
 
-            <ReviewSection caseId={caseId} detail={data} onChanged={invalidate} />
+            <ReviewSection
+              detail={data}
+              onRate={() => setRatingOpen(true)}
+              onDeskReport={() => setDeskReportOpen(true)}
+            />
+
+            {/* #794 §2.1: one row per case per direction, edited in place. */}
+            <RatingSheet
+              open={ratingOpen}
+              onOpenChange={setRatingOpen}
+              caseId={caseId}
+              direction="parent_to_tutor"
+              counterpartyName={data.matched_tutor?.displayName ?? null}
+              onSaved={invalidate}
+            />
+            <DeskReportSheet
+              open={deskReportOpen}
+              onOpenChange={setDeskReportOpen}
+              caseId={caseId}
+            />
 
             {/* #387: tutor-logged sessions, one-click dispute + 72h hint */}
             <SessionLogsSection logs={data.session_logs} onChanged={invalidate} />
@@ -429,137 +452,83 @@ function SessionLogsSection({
   );
 }
 
+/**
+ * #794 §2.1 ratings loop, parent side.
+ *
+ *  - no eligible completed lesson yet → no public review, private desk report
+ *    only (reasons: no-show / rude or unsafe / never confirmed / other);
+ *  - one eligible completed lesson → "Rate your tutor" opens the 1-tap sheet
+ *    (stars → optional text → optional private desk note → Save);
+ *  - a saved review shows in place with its window state; edits always hit the
+ *    SAME row (14 days after each save, reopened by a new completed lesson,
+ *    frozen 14 days after the case ends).
+ *  - the tutor's rating of this family is private: shown here to the other
+ *    party only, never on a public parent page.
+ */
 function ReviewSection({
-  caseId,
   detail,
-  onChanged,
+  onRate,
+  onDeskReport,
 }: {
-  caseId: string;
   detail: ParentCaseDetail;
-  onChanged: () => void;
+  onRate: () => void;
+  onDeskReport: () => void;
 }) {
   const { t } = useTranslation();
-  const [rating, setRating] = useState(0);
-  const [comment, setComment] = useState("");
-  const [editing, setEditing] = useState(false);
-  const [step, setStep] = useState(1);
-  // #503: ratings unlock after at least one BILATERALLY confirmed lesson —
-  // not "tutor logged alone". Same gate the server fn enforces.
-  const reviewUnlocked = parentCanReviewCase(detail.lessons);
-  // #649 CEO LOCK N = 2: the post-lesson prompt (with the tutor's first name)
-  // replaces the generic heading once lesson N is reached; the L1 soft draft
-  // keeps the generic title.
-  const promptDue = ratingPromptDue(detail.lessons);
-  // #649 review: the prompt names the tutor only when a real first name
-  // exists — no matched tutor / blank card name (rendered as "—") must not
-  // produce "How was your lesson with ?" or "with —?".
-  const tutorFirstName =
-    detail.matched_tutor?.displayName.trim().split(/\s+/)[0] || detail.tutor_code || "";
-  const heading =
-    promptDue && tutorFirstName && tutorFirstName !== "—"
-      ? t("sor.rating_prompt_title", { tutorFirstName })
-      : t("sor.parent_review_title");
-  const caseEnded = detail.sor_status === "closed";
+  const eligibleLessons = completedLessonCount(detail.lessons);
   const myReview = detail.myReview;
-  const hasVisibleOrHeld =
-    myReview !== null && (myReview.status === "visible" || myReview.status === "held");
-  // #386: a review held ONLY for the fee settlement publishes automatically
-  // once the case admin fee settles; a contact-hold does not. A COMBINED
-  // reason (fee + contact filter) explains both halves in its own copy.
-  // #649: a PURE lesson-threshold hold (fee settled, lesson N not reached)
-  // waits for the second lesson instead.
-  const holdKind = feeHoldKind(myReview?.held_reason);
-  const lessonHold = myReview?.held_reason === PENDING_LESSON_HOLD_REASON;
-  // #649: a COMBINED lesson-threshold hold (L2 wait + contact filter) needs
-  // its own copy branch, mirroring the fee+contact combination.
-  const lessonHoldCombined =
-    myReview?.held_reason?.startsWith(`${PENDING_LESSON_HOLD_REASON} + `) ?? false;
-
-  const submit = useMutation({
-    mutationFn: () => submitParentReview({ data: { caseId, rating, comment } }),
-    onSuccess: (res) => {
-      if (res.status === "visible") {
-        toast.success(t("sor.parent_review_thanks"));
-      } else if (res.heldReason === PENDING_LESSON_HOLD_REASON) {
-        // #649: fee settled but lesson N not reached — draft waits for L2.
-        toast.success(t("sor.rating_pending_lesson_state", { n: RATING_PROMPT_LESSON_N }));
-      } else if (res.heldReason?.startsWith(`${PENDING_LESSON_HOLD_REASON} + `)) {
-        // #649: L2 wait + contact filter, both halves explained.
-        toast.success(t("sor.parent_review_lesson_hold_combined", { n: RATING_PROMPT_LESSON_N }));
-      } else if (feeHoldKind(res.heldReason) === "pure") {
-        // #649 confirmation copy for the fee-settlement hold.
-        toast.success(t("sor.rating_publish_pending_fee"));
-      } else if (feeHoldKind(res.heldReason) === "combined") {
-        // #386: fee hold + contact filter, both halves must be explained.
-        toast.success(t("sor.parent_review_fee_hold_combined"));
-      } else {
-        toast.success(t("sor.parent_review_held"));
-      }
-      setRating(0);
-      setComment("");
-      setEditing(false);
-      setStep(1);
-      onChanged();
-    },
-    onError: (e) => toast.error(t(`sor.err_${e.message}`, { defaultValue: e.message })),
+  const window = evaluateRatingWindow({
+    now: new Date(),
+    caseEndedAt: detail.case_ended_at,
+    lastSavedAt: myReview?.updated_at ?? null,
+    eligibleLessonsNow: eligibleLessons,
+    eligibleLessonsAtSave: myReview?.completed_lessons_at_write ?? null,
   });
 
-  const canSubmit =
-    rating >= 1 &&
-    comment.trim().length >= REVIEW_COMMENT_MIN &&
-    comment.trim().length <= REVIEW_COMMENT_MAX_PARENT;
-
-  // #503 acceptance: no rating UI until the bilateral-lesson gate opens — and
-  // once the case ENDED the rating is final (a written review stays readable
-  // as a frozen snapshot; no new or edited review gets in).
-  if (!reviewUnlocked || (caseEnded && !hasVisibleOrHeld)) {
-    return null;
-  }
-
-  // Ended with a written review: frozen final rating, no edit path.
-  if (caseEnded) {
+  if (!parentCanReviewCase(detail.lessons)) {
     return (
       <section id="review" className="space-y-2">
         <h2 className="text-sm font-semibold text-muted-foreground">
-          {t("sor.parent_review_title")}
+          {t("sor.rate_no_lesson_title")}
         </h2>
-        <p className="text-sm text-muted-foreground">
-          {t("sor.parent_review_submitted_state", { rating: myReview?.rating ?? 0 })}{" "}
-          {t("sor.review_final_note")}
-        </p>
+        <p className="text-sm text-muted-foreground">{t("sor.rate_no_lesson_body")}</p>
+        <Button size="sm" variant="outline" onClick={onDeskReport}>
+          {t("sor.desk_report_cta")}
+        </Button>
       </section>
     );
   }
 
-  if (myReview && hasVisibleOrHeld && !editing) {
-    return (
-      <section id="review" className="space-y-2">
-        <h2 className="text-sm font-semibold text-muted-foreground">{heading}</h2>
-        <div className="space-y-2">
-          <p className="text-sm text-muted-foreground">
+  return (
+    <section id="review" className="space-y-3">
+      <h2 className="text-sm font-semibold text-muted-foreground">
+        {t("sor.parent_review_title")}
+      </h2>
+
+      {myReview ? (
+        <div className="space-y-2 rounded-[var(--radius-panel)] border border-border bg-card p-4">
+          <PrivateRatingLine rating={myReview.rating} comment={myReview.comment} />
+          <p className="text-xs text-muted-foreground">
             {myReview.status === "held"
-              ? holdKind === "pure" && detail.review_fee_settled
-                ? // #649: fee already settled — the review is actually waiting
-                  // for Lesson 2 (the lazy publish never rewrites the reason).
-                  t("sor.rating_pending_lesson_state", { n: RATING_PROMPT_LESSON_N })
-                : holdKind === "pure"
-                  ? t("sor.parent_review_fee_pending_state")
-                  : holdKind === "combined" && detail.review_fee_settled
-                    ? // Fee half already settled — only the contact check blocks.
-                      t("sor.parent_review_pending_state")
-                    : holdKind === "combined"
-                      ? t("sor.parent_review_fee_pending_combined_state")
-                      : lessonHoldCombined
-                        ? t("sor.parent_review_lesson_pending_combined_state", {
-                            n: RATING_PROMPT_LESSON_N,
-                          })
-                        : lessonHold
-                          ? t("sor.rating_pending_lesson_state", { n: RATING_PROMPT_LESSON_N })
-                          : t("sor.parent_review_pending_state")
-              : t("sor.parent_review_submitted_state", { rating: myReview.rating })}
+              ? t("sor.rate_state_held")
+              : myReview.held_reason?.startsWith("comment_held")
+                ? t("sor.rate_state_text_held")
+                : t("sor.rate_state_published")}
           </p>
-          {/* #649: after a low rating, the soft desk rematch/replace line
-              (Cap.57-safe — a matching promise, never an automatic refund). */}
+          {window.canWrite ? (
+            <div className="flex flex-wrap items-center gap-2">
+              <Button size="sm" variant="outline" onClick={onRate}>
+                {t("sor.parent_review_edit")}
+              </Button>
+              {window.freezeAt ? (
+                <span className="text-xs text-muted-foreground">
+                  {t("sor.rate_window_days_left", { days: window.daysLeft ?? 0 })}
+                </span>
+              ) : null}
+            </div>
+          ) : (
+            <p className="text-xs text-muted-foreground">{t("sor.rate_frozen_note")}</p>
+          )}
           {myReview.rating <= 2 ? (
             <p className="text-xs text-muted-foreground">
               <Link
@@ -570,92 +539,31 @@ function ReviewSection({
               </Link>
             </p>
           ) : null}
-          {/* #386: edits update the single case review (never a second one).
-              #503: editable any time while the case is still active. */}
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => {
-              setRating(myReview.rating);
-              setComment(myReview.comment);
-              setEditing(true);
-              setStep(1);
-            }}
-          >
-            {t("sor.parent_review_edit")}
-          </Button>
         </div>
-      </section>
-    );
-  }
+      ) : (
+        <div className="space-y-2 rounded-[var(--radius-panel)] border border-border bg-card p-4">
+          <p className="text-sm text-muted-foreground">{t("sor.rate_invite_body")}</p>
+          <Button size="sm" onClick={onRate} disabled={!window.canWrite}>
+            {t("sor.rate_cta")}
+          </Button>
+          {!window.canWrite ? (
+            <p className="text-xs text-muted-foreground">{t("sor.rate_frozen_note")}</p>
+          ) : null}
+        </div>
+      )}
 
-  // Carousel-like step flow (same anatomy as the live case-request stepper):
-  // one step per card, Rating first, then the comment.
-  const stepLabels = [t("sor.review_step_rating"), t("sor.review_step_comment")];
-
-  return (
-    <section id="review" className="space-y-2">
-      <h2 className="text-sm font-semibold text-muted-foreground">{heading}</h2>
-      <div className="rounded-[var(--radius-panel)] border border-border bg-card p-5">
-        <ReviewStepHeader labels={stepLabels} step={step} onStepClick={(s) => setStep(s)} />
-
-        {step === 1 ? (
-          <div>
-            <div className="flex items-center gap-1">
-              {[1, 2, 3, 4, 5].map((s) => (
-                <button key={s} type="button" aria-label={`${s}/5`} onClick={() => setRating(s)}>
-                  <Star
-                    className={cn(
-                      "h-7 w-7",
-                      s <= rating ? "fill-current text-amber-500" : "text-muted-foreground",
-                    )}
-                  />
-                </button>
-              ))}
-            </div>
-            {/* #649 helper: one rating per case, editable while lessons run. */}
-            <p className="mt-3 text-xs text-muted-foreground">{t("sor.rating_prompt_helper")}</p>
-            <div className="mt-4 flex justify-end">
-              <Button size="sm" disabled={rating < 1} onClick={() => setStep(2)}>
-                {t("sor.review_step_next")}
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <div>
-            <textarea
-              className="w-full rounded-md border border-[color:var(--ink)]/15 bg-transparent p-2 text-sm"
-              rows={4}
-              maxLength={REVIEW_COMMENT_MAX_PARENT}
-              placeholder={t("sor.parent_review_placeholder", {
-                min: REVIEW_COMMENT_MIN,
-                max: REVIEW_COMMENT_MAX_PARENT,
-              })}
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-            />
-            <div className="mt-2 flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">
-                {comment.trim().length}/{REVIEW_COMMENT_MAX_PARENT} ·{" "}
-                {t("sor.parent_review_hold_note")}
-              </span>
-              <div className="flex items-center gap-2">
-                <Button size="sm" variant="ghost" onClick={() => setStep(1)}>
-                  {t("sor.review_step_back")}
-                </Button>
-                <Button
-                  size="sm"
-                  disabled={!canSubmit || submit.isPending}
-                  onClick={() => submit.mutate()}
-                >
-                  {submit.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                  {t("sor.parent_review_submit")}
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      {detail.tutorReview ? (
+        <div className="space-y-1 rounded-[var(--radius-panel)] border border-border p-4">
+          <p className="text-xs font-semibold text-muted-foreground">
+            {t("sor.rate_tutor_private_title")}
+          </p>
+          <PrivateRatingLine
+            rating={detail.tutorReview.rating}
+            comment={detail.tutorReview.comment}
+          />
+          <p className="text-xs text-muted-foreground">{t("sor.rate_tutor_private_hint")}</p>
+        </div>
+      ) : null}
     </section>
   );
 }

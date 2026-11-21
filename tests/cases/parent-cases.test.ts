@@ -32,162 +32,91 @@ const plannedLesson = {
 };
 const cleanComment = "Great tutor, very clear explanations.";
 
-describe("review submit state machine (#205/#287)", () => {
-  it("rejects without a bilaterally confirmed lesson (#503)", () => {
+describe("review submit state machine (#794 §2.1 — one lesson publishes)", () => {
+  it("rejects without any completed lesson", () => {
     const res = decideReviewSubmit({
       lessons: [plannedLesson],
       rating: 5,
       comment: cleanComment,
       existingMine: [],
-      feeSettled: false,
     });
-    expect(res).toEqual({ action: "reject", message: "NO_VERIFIED_LESSON" });
+    expect(res).toEqual({ action: "reject", message: "NO_ELIGIBLE_LESSON" });
   });
 
-  it("rejects a tutor-only done lesson (parent never confirmed, #503)", () => {
+  it("accepts a Mark-done lesson on its own (CEO lock: completion unlocks)", () => {
     const res = decideReviewSubmit({
       lessons: [{ status: "done", confirmed_by_parent_at: null, confirmed_by_tutor_at: "t" }],
       rating: 5,
       comment: cleanComment,
       existingMine: [],
-      feeSettled: true,
     });
-    expect(res).toEqual({ action: "reject", message: "NO_VERIFIED_LESSON" });
+    expect(res).toMatchObject({ action: "insert", status: "visible" });
   });
 
-  it("inserts visible when clean, no prior review, fee settled + lesson N=2 (#649)", () => {
-    const res = decideReviewSubmit({
-      lessons: [doneLesson, secondDoneLesson],
-      rating: 5,
-      comment: "Explained IB Physics paper 2 clearly.",
-      existingMine: [],
-      feeSettled: true,
-    });
-    expect(res).toEqual({ action: "insert", status: "visible" });
-  });
-
-  it("holds a fee-settled clean review under pending_lesson_threshold at only ONE lesson (#649)", () => {
+  it("inserts visible after ONE eligible lesson — no fee settlement, no N=2", () => {
     const res = decideReviewSubmit({
       lessons: [doneLesson],
       rating: 5,
       comment: "Explained IB Physics paper 2 clearly.",
       existingMine: [],
-      feeSettled: true,
     });
     expect(res).toEqual({
       action: "insert",
-      status: "held",
-      heldReason: PENDING_LESSON_HOLD_REASON,
+      status: "visible",
+      heldReason: undefined,
+      comment: "Explained IB Physics paper 2 clearly.",
     });
   });
 
-  it("holds when the comment carries contact details (fee + N reached)", () => {
+  it("publishes the stars but strips contact text (#205 hold)", () => {
     const res = decideReviewSubmit({
-      lessons: [doneLesson, secondDoneLesson],
+      lessons: [doneLesson],
       rating: 4,
       comment: "Reach me on 9123 4567 anytime.",
       existingMine: [],
-      feeSettled: true,
     });
-    expect(res).toEqual({
+    expect(res).toMatchObject({
       action: "insert",
-      status: "held",
-      heldReason: "held: phone",
+      status: "visible",
+      heldReason: "comment_held: phone",
+      comment: "",
     });
   });
 
-  it("replaces a visible review (old row stays)", () => {
-    const res = decideReviewSubmit({
-      lessons: [doneLesson, secondDoneLesson],
-      rating: 3,
-      comment: "Updated opinion after more lessons.",
-      existingMine: [{ id: "r1", status: "visible", author_account_id: "p1" }],
-      feeSettled: true,
-    });
-    expect(res).toEqual({ action: "replace", oldReviewId: "r1", status: "visible" });
+  it("updates the single existing row in place — never a second public review", () => {
+    for (const status of ["visible", "held", "hidden"] as const) {
+      const res = decideReviewSubmit({
+        lessons: [doneLesson, secondDoneLesson],
+        rating: 3,
+        comment: "Updated opinion after more lessons.",
+        existingMine: [{ id: "r1", status, author_account_id: "p1" }],
+      });
+      expect(res).toEqual({
+        action: "update",
+        reviewId: "r1",
+        status: "visible",
+        heldReason: undefined,
+        comment: "Updated opinion after more lessons.",
+      });
+    }
   });
 
-  it("updates a held review instead of inserting a second", () => {
-    const res = decideReviewSubmit({
-      lessons: [doneLesson, secondDoneLesson],
-      rating: 5,
-      comment: "Clean text this time.",
-      existingMine: [{ id: "r2", status: "held", author_account_id: "p1" }],
-      feeSettled: true,
+  it("accepts an empty comment (text is optional) and rejects the bounds", () => {
+    const base = { lessons: [doneLesson], existingMine: [] as never[] };
+    expect(decideReviewSubmit({ ...base, rating: 5, comment: "" })).toMatchObject({
+      action: "insert",
+      comment: "",
     });
-    expect(res).toEqual({ action: "update", reviewId: "r2", status: "visible" });
-  });
-
-  it("rejects invalid ratings and comment bounds", () => {
-    const base = { lessons: [doneLesson], existingMine: [] as never[], feeSettled: true };
     expect(decideReviewSubmit({ ...base, rating: 6, comment: "x".repeat(50) }).action).toBe(
       "reject",
     );
-    expect(decideReviewSubmit({ ...base, rating: 5, comment: "short" }).action).toBe("reject");
     expect(decideReviewSubmit({ ...base, rating: 5, comment: "x".repeat(601) }).action).toBe(
       "reject",
     );
   });
 });
 
-describe("fee-settlement hold (#386)", () => {
-  it("holds a clean review under pending_fee_settlement while the fee is unsettled", () => {
-    const res = decideReviewSubmit({
-      lessons: [doneLesson],
-      rating: 5,
-      comment: cleanComment,
-      existingMine: [],
-      feeSettled: false,
-    });
-    expect(res).toEqual({
-      action: "insert",
-      status: "held",
-      heldReason: FEE_SETTLEMENT_HOLD_REASON,
-    });
-  });
-
-  it("combines the fee hold with contact holds (contact still blocks publish)", () => {
-    const res = decideReviewSubmit({
-      lessons: [doneLesson],
-      rating: 4,
-      comment: "Reach me on 9123 4567 anytime.",
-      existingMine: [],
-      feeSettled: false,
-    });
-    expect(res).toEqual({
-      action: "insert",
-      status: "held",
-      heldReason: `${FEE_SETTLEMENT_HOLD_REASON} + held: phone`,
-    });
-  });
-
-  it("updates the existing held row (never a second review) while fee-held", () => {
-    const res = decideReviewSubmit({
-      lessons: [doneLesson],
-      rating: 5,
-      comment: cleanComment,
-      existingMine: [{ id: "r3", status: "held", author_account_id: "p1" }],
-      feeSettled: false,
-    });
-    expect(res).toEqual({
-      action: "update",
-      reviewId: "r3",
-      status: "held",
-      heldReason: FEE_SETTLEMENT_HOLD_REASON,
-    });
-  });
-
-  it("replaces a visible review as fee-held when the fee is unsettled", () => {
-    const res = decideReviewSubmit({
-      lessons: [doneLesson],
-      rating: 5,
-      comment: cleanComment,
-      existingMine: [{ id: "r4", status: "visible", author_account_id: "p1" }],
-      feeSettled: false,
-    });
-    expect(res).toMatchObject({ action: "replace", oldReviewId: "r4", status: "held" });
-  });
-
+describe("legacy fee-settlement helpers (#386/#649 — kept for old rows only)", () => {
   it("settled-rule matrix: only fee-settlement SoR states count", () => {
     expect(isCaseFeeSettledStatus("fee_paid")).toBe(true);
     expect(isCaseFeeSettledStatus("active")).toBe(true);
@@ -201,8 +130,9 @@ describe("fee-settlement hold (#386)", () => {
     expect(isCaseFeeSettledStatus(undefined)).toBe(false);
   });
 
-  it("only a PURE fee-settlement hold is publishable", () => {
+  it("only a PURE legacy hold is publishable", () => {
     expect(canPublishHeldReview(FEE_SETTLEMENT_HOLD_REASON)).toBe(true);
+    expect(canPublishHeldReview(PENDING_LESSON_HOLD_REASON)).toBe(true);
     expect(canPublishHeldReview(`${FEE_SETTLEMENT_HOLD_REASON} + held: phone`)).toBe(false);
     expect(canPublishHeldReview("held: phone")).toBe(false);
     expect(canPublishHeldReview(null)).toBe(false);
@@ -210,58 +140,27 @@ describe("fee-settlement hold (#386)", () => {
   });
 });
 
-describe("#649 lesson-N gate + public aggregate (CEO locks, 2026-11-04 HKT)", () => {
-  it("the fee hold wins while BOTH conditions are missing (fee is the primary reason)", () => {
-    const res = decideReviewSubmit({
-      lessons: [doneLesson], // only 1 eligible lesson, fee unsettled
-      rating: 5,
-      comment: cleanComment,
-      existingMine: [],
-      feeSettled: false,
-    });
-    expect(res).toMatchObject({ status: "held", heldReason: FEE_SETTLEMENT_HOLD_REASON });
-  });
-
-  it("combines the lesson-threshold hold with contact holds (contact still blocks publish)", () => {
-    const res = decideReviewSubmit({
-      lessons: [doneLesson], // fee settled, lesson N not reached, contact in text
-      rating: 4,
-      comment: "Reach me on 9123 4567 anytime.",
-      existingMine: [],
-      feeSettled: true,
-    });
-    expect(res).toEqual({
-      action: "insert",
-      status: "held",
-      heldReason: `${PENDING_LESSON_HOLD_REASON} + held: phone`,
-    });
-  });
-
-  it("two bilaterally confirmed lessons reach N; one does not", () => {
-    expect(publicRatingLessonEligible([doneLesson])).toBe(false);
+describe("#794 §2.1 gates + public aggregate", () => {
+  it("one completed lesson reaches the prompt and the public gate", () => {
+    expect(publicRatingLessonEligible([doneLesson])).toBe(true);
     expect(publicRatingLessonEligible([doneLesson, secondDoneLesson])).toBe(true);
-    // A planned or single-side-confirmed lesson never counts toward N.
+    // A planned or cancelled lesson never counts.
+    expect(publicRatingLessonEligible([plannedLesson])).toBe(false);
     expect(
       publicRatingLessonEligible([
-        doneLesson,
-        { status: "done", confirmed_by_parent_at: null, confirmed_by_tutor_at: "t" },
+        { status: "cancelled", confirmed_by_parent_at: null, confirmed_by_tutor_at: null },
       ]),
     ).toBe(false);
-    expect(ratingPromptDue([doneLesson])).toBe(false);
-    expect(ratingPromptDue([doneLesson, secondDoneLesson])).toBe(true);
+    expect(ratingPromptDue([doneLesson])).toBe(true);
+    expect(ratingPromptDue([plannedLesson])).toBe(false);
   });
 
-  it("only a PURE lesson-threshold hold is publishable; combined stays held", () => {
-    expect(canPublishHeldReview(PENDING_LESSON_HOLD_REASON)).toBe(true);
-    expect(canPublishHeldReview(`${PENDING_LESSON_HOLD_REASON} + held: phone`)).toBe(false);
-  });
-
-  it("badge state: 0 → new, 1–2 → count_only, ≥3 → full (never a fake average)", () => {
+  it("badge state: 0 → new, 1–2 → fresh (average + New cue), ≥3 → established", () => {
     expect(tutorRatingBadgeState(0)).toBe("new");
-    expect(tutorRatingBadgeState(1)).toBe("count_only");
-    expect(tutorRatingBadgeState(2)).toBe("count_only");
-    expect(tutorRatingBadgeState(3)).toBe("full");
-    expect(tutorRatingBadgeState(10)).toBe("full");
+    expect(tutorRatingBadgeState(1)).toBe("fresh");
+    expect(tutorRatingBadgeState(2)).toBe("fresh");
+    expect(tutorRatingBadgeState(3)).toBe("established");
+    expect(tutorRatingBadgeState(10)).toBe("established");
   });
 });
 
