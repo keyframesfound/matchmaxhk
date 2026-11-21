@@ -87,6 +87,11 @@ import type { PreferredTimeWindow } from "@/features/tutors/queries";
 import { PREFERRED_TIME_WINDOWS } from "@/features/tutors/queries";
 import { ACTIVATION_GENDERS } from "@/features/tutor-application/activation";
 import {
+  COUNTRY_DEFAULT_TIME_ZONE,
+  isValidIanaTimeZone,
+  suggestTimeZone,
+} from "@/features/tutor-application/time-zone";
+import {
   COURSE_GRADE_OPTIONS,
   KINDERGARTEN_TOPICS,
   MAX_UNIVERSITY_COURSES,
@@ -231,6 +236,21 @@ const COUNTRY_OPTIONS = [
   "Australia",
   "Other",
 ];
+// Issue #798: datalist suggestions for the confirmed time zone input; the
+// country default is prepended at render time. Never a closed list — the tutor
+// can type any valid IANA zone.
+const TIME_ZONE_OPTIONS = [
+  "Asia/Hong_Kong",
+  "Asia/Shanghai",
+  "Asia/Singapore",
+  "Asia/Tokyo",
+  "Europe/London",
+  "Europe/Paris",
+  "America/New_York",
+  "America/Los_Angeles",
+  "America/Toronto",
+  "Australia/Sydney",
+];
 const COUNTRY_DIAL_CODES: Record<string, string> = {
   "Hong Kong": "+852",
   "Mainland China": "+86",
@@ -267,12 +287,20 @@ const invalidInputClassName =
   "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30";
 
 function RequiredFlag() {
-  return <span className="ml-2 align-middle text-xs font-medium text-destructive">Required</span>;
+  const { t } = useTranslation();
+  return (
+    <span className="ml-2 align-middle text-xs font-medium text-destructive">
+      {t("join.form.required")}
+    </span>
+  );
 }
 
 function OptionalFlag() {
+  const { t } = useTranslation();
   return (
-    <span className="ml-2 align-middle text-xs font-medium text-muted-foreground">Optional</span>
+    <span className="ml-2 align-middle text-xs font-medium text-muted-foreground">
+      {t("join.form.optional")}
+    </span>
   );
 }
 
@@ -413,6 +441,7 @@ function TrophyCabinetUpload({
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const full = files.length >= MAX_PORTFOLIO_FILES;
+  const { t } = useTranslation();
 
   const addFiles = (candidates: FileList | null | undefined) => {
     if (!candidates || candidates.length === 0) return;
@@ -432,9 +461,9 @@ function TrophyCabinetUpload({
       accepted.push(candidate);
     }
     if (rejectedType) {
-      setError("Photos must be JPG, PNG, or WebP images.");
+      setError(t("join.form.portfolio_type_error"));
     } else if (rejectedSize) {
-      setError(`Each photo must be no larger than ${readableFileSize(MAX_FILE_BYTES)}.`);
+      setError(t("join.form.portfolio_size_error", { size: readableFileSize(MAX_FILE_BYTES) }));
     } else if (files.length + accepted.length >= MAX_PORTFOLIO_FILES) {
       setError(null);
     } else {
@@ -471,8 +500,11 @@ function TrophyCabinetUpload({
           <Upload className="h-4 w-4 text-[color:var(--muted-foreground)]" />
           <span>
             {files.length === 0
-              ? "Drop photos here or choose files"
-              : `Add more (${files.length}/${MAX_PORTFOLIO_FILES})`}
+              ? t("join.form.portfolio_drop")
+              : t("join.form.portfolio_add_more", {
+                  count: files.length,
+                  max: MAX_PORTFOLIO_FILES,
+                })}
           </span>
           <input
             type="file"
@@ -487,7 +519,7 @@ function TrophyCabinetUpload({
         </label>
       ) : (
         <p className="text-xs font-semibold text-muted-foreground">
-          Maximum of {MAX_PORTFOLIO_FILES} photos reached. Remove one to add another.
+          {t("join.form.portfolio_max_reached", { max: MAX_PORTFOLIO_FILES })}
         </p>
       )}
       {files.length > 0 ? (
@@ -511,7 +543,7 @@ function TrophyCabinetUpload({
                 type="button"
                 size="icon"
                 variant="ghost"
-                aria-label={`Remove ${file.name}`}
+                aria-label={t("join.form.remove_named", { name: file.name })}
                 className="absolute right-1 top-1 h-7 w-7 bg-[color:var(--surface)]/85 text-[color:var(--ink)] hover:bg-[color:var(--surface)]"
                 onClick={() => removeFile(index)}
               >
@@ -539,6 +571,7 @@ function ProfilePhotoUpload({
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!file) {
@@ -553,11 +586,11 @@ function ProfilePhotoUpload({
   const selectFile = (candidate: File | undefined) => {
     if (!candidate) return;
     if (!isProfilePhoto(candidate)) {
-      setError("Please choose a JPG or PNG image.");
+      setError(t("join.form.photo_type_error"));
       return;
     }
     if (candidate.size > MAX_FILE_BYTES) {
-      setError(`Photo is too large. Maximum ${readableFileSize(MAX_FILE_BYTES)}.`);
+      setError(t("join.form.photo_size_error", { size: readableFileSize(MAX_FILE_BYTES) }));
       return;
     }
     setError(null);
@@ -588,13 +621,15 @@ function ProfilePhotoUpload({
           {previewUrl ? (
             <img
               src={previewUrl}
-              alt="Profile photo preview"
+              alt={t("join.form.photo_preview_alt")}
               className="h-full w-full object-cover"
             />
           ) : (
             <span className="grid justify-items-center gap-1">
               <User className="h-6 w-6" aria-hidden="true" />
-              <span className="text-[11px] font-semibold leading-none">Add photo</span>
+              <span className="text-[11px] font-semibold leading-none">
+                {t("join.form.add_photo")}
+              </span>
             </span>
           )}
           <input
@@ -941,6 +976,10 @@ type ApplicationBaseState = {
   photo: File | null;
   country: string;
   countryOther: string;
+  // Issue #798: city / locality + the tutor-confirmed IANA time zone, both
+  // required at intake and persisted on the tutors row after publish.
+  city: string;
+  timeZone: string;
   graduationYear: string;
   startImmediately: boolean;
   startDate: string;
@@ -1080,6 +1119,18 @@ export function ApplicationForm({ completePending = false }: { completePending?:
   const [locating, setLocating] = useState(false);
   const [locationMessage, setLocationMessage] = useState("");
   const [suggestionStatus, setSuggestionStatus] = useState<"idle" | "adding" | "done">("idle");
+  // Issue #798: the browser zone is a HINT only. It seeds the suggestion when
+  // the country has no unambiguous default, and timeZoneTouched freezes the
+  // value the moment the tutor edits it, so no later re-derivation can
+  // overwrite a confirmed zone.
+  const [browserZone] = useState(() => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch {
+      return "";
+    }
+  });
+  const [timeZoneTouched, setTimeZoneTouched] = useState(false);
   const [base, setBase] = useState<ApplicationBaseState>({
     name: "",
     preferredName: "",
@@ -1088,6 +1139,10 @@ export function ApplicationForm({ completePending = false }: { completePending?:
     photo: null,
     country: "Hong Kong",
     countryOther: "",
+    // Issue #798: defaults follow the default country (Hong Kong); the zone is
+    // re-derived from the country on change until the tutor confirms one.
+    city: "Hong Kong",
+    timeZone: "Asia/Hong_Kong",
     graduationYear: "",
     startImmediately: true,
     startDate: "",
@@ -1281,6 +1336,17 @@ export function ApplicationForm({ completePending = false }: { completePending?:
     .filter((rate) => Number.isFinite(rate) && rate > 0);
   const rateFloor = filledBaseRates.length ? String(Math.min(...filledBaseRates)) : "";
 
+  // Issue #798: the datalist suggests the country default plus common zones;
+  // the input stays free-text so any valid IANA name is accepted. The browser
+  // hint only shows while the value is still an unconfirmed suggestion.
+  const countryDefaultZone: string | undefined = COUNTRY_DEFAULT_TIME_ZONE[base.country];
+  const timeZoneOptions = countryDefaultZone
+    ? Array.from(new Set([countryDefaultZone, ...TIME_ZONE_OPTIONS]))
+    : TIME_ZONE_OPTIONS;
+  const showBrowserZoneHint =
+    !timeZoneTouched &&
+    suggestTimeZone({ country: base.country, browserZone }).source === "browser";
+
   function updateRateRow(index: number, patch: Partial<{ label: string; rate: string }>) {
     setBaseField(
       "rateRows",
@@ -1381,6 +1447,19 @@ export function ApplicationForm({ completePending = false }: { completePending?:
       ...restoredDraft.base,
       photo: null,
     }));
+    // Issue #798: a restored zone that differs from the automatic suggestion
+    // was chosen by the tutor, so freeze it; a zone that still equals the
+    // suggestion keeps tracking country changes. Drafts saved before this
+    // change carry no zone and simply resolve on the next country change.
+    const restoredZone =
+      typeof restoredDraft.base?.timeZone === "string" ? restoredDraft.base.timeZone.trim() : "";
+    if (restoredZone) {
+      const automaticZone = suggestTimeZone({
+        country: restoredDraft.base.country,
+        browserZone,
+      }).zone;
+      if (restoredZone !== automaticZone) setTimeZoneTouched(true);
+    }
     if (Array.isArray(restoredDraft.roles)) setRoles(restoredDraft.roles);
     if (Array.isArray(restoredDraft.boards)) setBoards(restoredDraft.boards);
     if (Array.isArray(restoredDraft.credentials)) setCredentials(restoredDraft.credentials);
@@ -1764,12 +1843,20 @@ export function ApplicationForm({ completePending = false }: { completePending?:
   function setCountry(country: string) {
     const dialCode = COUNTRY_DIAL_CODES[country];
     const phoneWithoutDialCode = base.phone.replace(/^\+(?:852|853|86|65|44|61|1)\s*/, "");
+    // Issue #798: re-derive the time zone from the new country (or the browser
+    // hint) ONLY while the tutor has not confirmed a value. An edit sets
+    // timeZoneTouched, so this branch can never clobber it.
+    const suggestion = timeZoneTouched ? null : suggestTimeZone({ country, browserZone });
     setBase((previous) => ({
       ...previous,
       country,
       phone: dialCode ? `${dialCode} ${phoneWithoutDialCode}`.trimEnd() : phoneWithoutDialCode,
+      // A country with no unambiguous default and no usable browser hint
+      // leaves the field empty rather than keeping another country's zone.
+      ...(suggestion ? { timeZone: suggestion.zone ?? "" } : {}),
     }));
     clearFieldError("country");
+    clearFieldError("timeZone");
   }
 
   function validateCurrentStep() {
@@ -1797,6 +1884,13 @@ export function ApplicationForm({ completePending = false }: { completePending?:
       if (user) required("email", base.email.trim());
       required("country", base.country.trim());
       if (base.country === "Other") required("countryOther", base.countryOther.trim());
+      // Issue #798: city / locality is required, and the time zone must be a
+      // valid IANA name the tutor can confirm or correct.
+      required("city", base.city.trim());
+      required("timeZone", base.timeZone.trim());
+      if (!next.timeZone && !isValidIanaTimeZone(base.timeZone.trim())) {
+        next.timeZone = t("join.time_zone_invalid");
+      }
       required("status", base.status);
       required("medium", base.medium);
       // Issue #718: gender is required (one tap, matching data).
@@ -2210,7 +2304,16 @@ export function ApplicationForm({ completePending = false }: { completePending?:
       // Issue #214: the client gate above (validateCurrentStep) only reaches
       // this line with the terms gate checked, so legalAgreed: true is the
       // contract the server fn re-validates before storing anything.
-      const submitResult = await submit({ data: { ...parsed.data, legalAgreed: true } });
+      const submitResult = await submit({
+        data: {
+          ...parsed.data,
+          // Issue #798: locality + the confirmed IANA zone ride along with the
+          // validated application (they are not part of the card mapper).
+          city: base.city.trim(),
+          timeZone: base.timeZone.trim(),
+          legalAgreed: true,
+        },
+      });
       setApplicationRef(submitResult?.applicationId ?? "");
       // Issue #310: the card is published at submit, keep its public path
       // so the success screen can link straight to the live card.
@@ -2657,7 +2760,10 @@ export function ApplicationForm({ completePending = false }: { completePending?:
         </aside>
       ) : null}
       <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-5 sm:p-8">
-        <ol className="mb-8 flex items-center gap-2 sm:gap-3" aria-label="Form progress">
+        <ol
+          className="mb-8 flex items-center gap-2 sm:gap-3"
+          aria-label={t("join.form.form_progress")}
+        >
           {stepTitles.map((label, index) => {
             const stepNumber = index + 1;
             const isComplete = stepNumber < step;
@@ -2730,7 +2836,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                 step={1}
                 title={professional ? "Basic Details & Professional Status" : "Basic Details"}
               />
-              <Field label="Profile Photo" optional className="sm:col-span-2">
+              <Field label={t("join.form.profile_photo")} optional className="sm:col-span-2">
                 <ProfilePhotoUpload
                   file={base.photo}
                   onSelect={(photo) => setBaseField("photo", photo)}
@@ -2745,7 +2851,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid content-start gap-4">
-                  <Field label="Full Name" required error={fieldErrors.name}>
+                  <Field label={t("join.form.full_name")} required error={fieldErrors.name}>
                     <Input
                       value={base.name}
                       onChange={(event) => setBaseField("name", event.target.value)}
@@ -2766,7 +2872,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     />
                   </Field>
                   <Field
-                    label="Email"
+                    label={t("join.form.email")}
                     required={Boolean(user)}
                     error={fieldErrors.email}
                     hint={
@@ -2788,7 +2894,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       }
                     />
                   </Field>
-                  <Field label="Country / Region" required error={fieldErrors.country}>
+                  <Field label={t("join.form.country_region")} required error={fieldErrors.country}>
                     <SearchableSelect
                       value={base.country}
                       onChange={setCountry}
@@ -2819,9 +2925,57 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       </div>
                     ) : null}
                   </Field>
+                  {/* Issue #798: City / locality sits directly under Country. */}
+                  <Field
+                    label={t("join.city")}
+                    required
+                    error={fieldErrors.city}
+                    hint={t("join.city_hint")}
+                  >
+                    <Input
+                      value={base.city}
+                      onChange={(event) => setBaseField("city", event.target.value)}
+                      autoComplete="address-level2"
+                      maxLength={80}
+                    />
+                  </Field>
+                  {/* Issue #798: the confirmed IANA zone. The datalist is a
+                      suggestion list only; the field accepts any valid zone. */}
+                  <Field
+                    label={t("join.time_zone")}
+                    required
+                    error={fieldErrors.timeZone}
+                    hint={
+                      <>
+                        <span className="block">{t("join.time_zone_hint")}</span>
+                        {showBrowserZoneHint ? (
+                          <span className="block">{t("join.time_zone_hint_browser")}</span>
+                        ) : null}
+                      </>
+                    }
+                  >
+                    <Input
+                      list="tutor-time-zone-options"
+                      value={base.timeZone}
+                      onChange={(event) => {
+                        // A manual edit confirms the value; suggestions never
+                        // overwrite it again (see setCountry).
+                        setTimeZoneTouched(true);
+                        setBaseField("timeZone", event.target.value);
+                      }}
+                      autoComplete="off"
+                      spellCheck={false}
+                      maxLength={64}
+                    />
+                  </Field>
+                  <datalist id="tutor-time-zone-options">
+                    {timeZoneOptions.map((zone) => (
+                      <option key={zone} value={zone} />
+                    ))}
+                  </datalist>
                 </div>
                 <div className="grid content-start gap-4">
-                  <Field label="Phone / WhatsApp Number" required error={fieldErrors.phone}>
+                  <Field label={t("join.form.phone_whatsapp")} required error={fieldErrors.phone}>
                     <Input
                       inputMode="tel"
                       value={base.phone}
@@ -2829,7 +2983,11 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       placeholder="+852 9123 4567"
                     />
                   </Field>
-                  <Field label="Medium of Instruction" required error={fieldErrors.medium}>
+                  <Field
+                    label={t("join.form.medium_of_instruction")}
+                    required
+                    error={fieldErrors.medium}
+                  >
                     <Choices
                       options={LANGUAGES}
                       values={base.medium}
@@ -2853,7 +3011,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       labelFor={(gender) => t(`join_flow.gender_${gender}`)}
                     />
                   </Field>
-                  <Field label="Graduation Year" error={fieldErrors.graduationYear}>
+                  <Field label={t("join.form.graduation_year")} error={fieldErrors.graduationYear}>
                     <Input
                       value={base.graduationYear}
                       onChange={(event) => setBaseField("graduationYear", event.target.value)}
@@ -2861,7 +3019,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     />
                   </Field>
                   <Field
-                    label="Earliest Availability"
+                    label={t("join.form.earliest_availability")}
                     required
                     error={fieldErrors.startDate}
                     hint="Parents see this on your profile, pick when you can truly start."
@@ -2879,7 +3037,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     {!base.startImmediately ? (
                       <div className="mt-2">
                         <DatePicker
-                          label="Earliest Availability"
+                          label={t("join.form.earliest_availability")}
                           className={controlClassName}
                           invalid={Boolean(fieldErrors.startDate)}
                           value={isoToDate(base.startDate)}
@@ -2896,7 +3054,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                   </Field>
                 </div>
                 <Field
-                  label="Current Status"
+                  label={t("join.form.current_status")}
                   required
                   error={fieldErrors.status}
                   className="sm:col-span-2"

@@ -23,6 +23,17 @@ const PUBLIC_SITE_URL = "https://matchmax.hk";
  */
 const TermsGateInput = z.object({ legalAgreed: z.literal(true) });
 
+/**
+ * Issue #798 (AC-8 / AC-9 storage half): city / locality and the IANA time
+ * zone the tutor confirmed. They are not part of the card-mapping schema, so
+ * `tutorApplicationSchema` strips them; this parse keeps them explicit before
+ * they are written onto the published tutors row.
+ */
+const LocalityInput = z.object({
+  city: z.string().trim().max(80).optional(),
+  timeZone: z.string().trim().max(64).optional(),
+});
+
 const publishResultSchema = z.object({
   tutor_id: z.string().uuid(),
   tutor_code: z.string().min(1),
@@ -228,7 +239,9 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
     // #214: validate the terms gate FIRST so a missing/unchecked checkbox is
     // rejected before any application field is even parsed.
     TermsGateInput.parse(input);
-    return tutorApplicationSchema.parse(input);
+    const parsed = tutorApplicationSchema.parse(input);
+    const locality = LocalityInput.parse(input);
+    return { ...parsed, city: locality.city ?? "", timeZone: locality.timeZone ?? "" };
   })
   .handler(async ({ data, context }) => {
     const { turnstileToken, ...application } = data;
@@ -319,6 +332,22 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
         .eq("id", published.tutorId);
       if (genderError)
         console.warn("[submit-tutor-application] gender failed:", genderError.message);
+    }
+
+    // Issue #798: city / locality and the confirmed IANA time zone land
+    // directly on the tutor row (the card mapper has no locality columns).
+    // Only the fields the application actually carried are written.
+    const localityUpdate: { city?: string; time_zone?: string } = {};
+    if (application.city) localityUpdate.city = application.city;
+    if (application.timeZone) localityUpdate.time_zone = application.timeZone;
+    if (Object.keys(localityUpdate).length > 0) {
+      const { error: localityError } = await asAdminDb(supabaseAdmin)
+        .from<{ id: string }>("tutors")
+        .update(localityUpdate)
+        .eq("id", published.tutorId);
+      if (localityError) {
+        console.warn("[submit-tutor-application] locality failed:", localityError.message);
+      }
     }
 
     // Backfill the account phone from the intake answer (same as the quick

@@ -1676,6 +1676,36 @@
     "item5_desc": "我哋會按你嘅需要，配對喺各大公開考試及學科中取得優異成績嘅導師，透過一對一補習，陪你一步一步進步"
   },
   "join": {
+    "form": {
+      "form_progress": "表格進度",
+      "profile_photo": "個人相片",
+      "full_name": "全名",
+      "email": "電郵",
+      "country_region": "國家／地區",
+      "phone_whatsapp": "電話／WhatsApp 號碼",
+      "medium_of_instruction": "教學語言",
+      "graduation_year": "畢業年份",
+      "earliest_availability": "最早可開始",
+      "current_status": "現時身份",
+      "required": "必填",
+      "optional": "可選",
+      "portfolio_type_error": "相片必須係 JPG、PNG 或 WebP 格式。",
+      "portfolio_size_error": "每張相唔可以大過 {{size}}。",
+      "portfolio_drop": "將相片拖到呢度，或者揀檔案",
+      "portfolio_add_more": "再加（{{count}}/{{max}}）",
+      "portfolio_max_reached": "最多 {{max}} 張，已經滿咗。移除一張先可以再加。",
+      "remove_named": "移除 {{name}}",
+      "photo_type_error": "請揀 JPG 或 PNG 圖片。",
+      "photo_size_error": "相片太大，最大 {{size}}。",
+      "photo_preview_alt": "個人相片預覽",
+      "add_photo": "加相片"
+    },
+    "time_zone_invalid": "請選擇有效嘅時區。",
+    "time_zone_hint_browser": "呢個係根據你嘅瀏覽器建議，請確認。",
+    "time_zone_hint": "我哋會用嚟對課堂時間，同配對時區相近嘅學生。",
+    "time_zone": "時區",
+    "city_hint": "必填。香港導師可以保留「Hong Kong」。",
+    "city": "城市／地區",
     "academics": {
       "headline": "學術標題",
       "headline_hint": "系統根據上方課程及成績自動填寫——你可自行輸入修改；清空後點選其他欄位即會重新帶出建議。"
@@ -2981,6 +3011,10 @@
       "status_inactive_hint": "你張卡仍然可見，但會顯示「暫停」並隱藏申請按鈕，直至你重新啟用。"
     },
     "my_tutor": {
+      "bio_starters": "開頭句子",
+      "bio_starter_1": "我會逐步講解每個課題，確認你明白先繼續。",
+      "bio_starter_2": "我會安排短練習，下一堂先同你檢討錯處。",
+      "bio_starter_3": "每堂之後我會同家長簡單交代進度。",
       "probono_title": "義教與支援設定",
       "probono_hint": "這些設定會顯示於您的公開頻道，只顯示名額數目，絕不顯示學生身份。",
       "probono_free": "接受義教（$0）供有經濟需要的學生",

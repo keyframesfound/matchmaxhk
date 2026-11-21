@@ -58,6 +58,7 @@ import { ProfileTagsField } from "@/features/tutors/profile-tags-field";
 import { TutorGradesEditor } from "@/features/settings/sections/tutor-grades-editor";
 import { FirstLessonOffersCard } from "@/features/settings/sections/first-lesson-offers-card";
 import { TeachingFitCard } from "@/features/settings/sections/teaching-fit-card";
+import { appendBioSentence } from "@/features/tutors/bio-starters";
 import { getSystem } from "@/features/tutors/examSystems";
 import { GRADE_SLIP_ACCEPT_ATTRIBUTE } from "@/features/tutors/grades";
 import {
@@ -256,6 +257,8 @@ export function MyTutorProfileSection() {
   const queryClient = useQueryClient();
   const [form, setForm] = React.useState<TutorFormData | null>(null);
   const [preferredName, setPreferredName] = React.useState("");
+  // #798: one-step Undo for a starter sentence appended to the bio.
+  const [previousBio, setPreviousBio] = React.useState<string | null>(null);
   const [errors, setErrors] = React.useState<Record<string, string>>({});
   const [rates, setRates] = React.useState<RatesDraft | null>(null);
   // Issue #319 review: a mid-edit refetch (window focus, invalidation) must
@@ -1215,6 +1218,44 @@ export function MyTutorProfileSection() {
             <p className="text-xs text-[color:var(--ink)]/55">
               {t("settings.my_tutor.self_introduction_hint")}
             </p>
+            {/* #798 AC-TUTOR-FORM-3: starters only ever append; Undo restores
+                whatever the tutor had written before the tap. */}
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-[11px] text-muted-foreground">
+                {t("settings.my_tutor.bio_starters")}
+              </span>
+              {(["bio_starter_1", "bio_starter_2", "bio_starter_3"] as const).map((key) => (
+                <button
+                  key={key}
+                  type="button"
+                  className="rounded-full border border-border px-2.5 py-1 text-[11px] hover:bg-muted"
+                  onClick={() => {
+                    setPreviousBio(form.self_introduction ?? "");
+                    setForm({
+                      ...form,
+                      self_introduction: appendBioSentence(
+                        form.self_introduction ?? "",
+                        t(`settings.my_tutor.${key}`),
+                      ),
+                    });
+                  }}
+                >
+                  + {t(`settings.my_tutor.${key}`).slice(0, 42)}…
+                </button>
+              ))}
+              {previousBio !== null ? (
+                <button
+                  type="button"
+                  className="text-[11px] font-semibold underline"
+                  onClick={() => {
+                    setForm({ ...form, self_introduction: previousBio });
+                    setPreviousBio(null);
+                  }}
+                >
+                  {t("notes.helpers.undo")}
+                </button>
+              ) : null}
+            </div>
           </div>
 
           {/* Issue #309: per-grade slip upload + staff review status, replacing

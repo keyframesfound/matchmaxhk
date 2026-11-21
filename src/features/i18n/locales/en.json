@@ -1676,6 +1676,36 @@
     "item5_desc": "We match you with experienced top scorers in these programs and fields, where you can learn to excel just like them, through tailored 1-on-1 tutoring."
   },
   "join": {
+    "form": {
+      "form_progress": "Form progress",
+      "profile_photo": "Profile Photo",
+      "full_name": "Full Name",
+      "email": "Email",
+      "country_region": "Country / Region",
+      "phone_whatsapp": "Phone / WhatsApp Number",
+      "medium_of_instruction": "Medium of Instruction",
+      "graduation_year": "Graduation Year",
+      "earliest_availability": "Earliest Availability",
+      "current_status": "Current Status",
+      "required": "Required",
+      "optional": "Optional",
+      "portfolio_type_error": "Photos must be JPG, PNG, or WebP images.",
+      "portfolio_size_error": "Each photo must be no larger than {{size}}.",
+      "portfolio_drop": "Drop photos here or choose files",
+      "portfolio_add_more": "Add more ({{count}}/{{max}})",
+      "portfolio_max_reached": "Maximum of {{max}} photos reached. Remove one to add another.",
+      "remove_named": "Remove {{name}}",
+      "photo_type_error": "Please choose a JPG or PNG image.",
+      "photo_size_error": "Photo is too large. Maximum {{size}}.",
+      "photo_preview_alt": "Profile photo preview",
+      "add_photo": "Add photo"
+    },
+    "time_zone_invalid": "Choose a valid time zone.",
+    "time_zone_hint_browser": "Suggested from this browser. Please confirm.",
+    "time_zone_hint": "We use this for lesson times and to match you with students in a compatible zone.",
+    "time_zone": "Time zone",
+    "city_hint": "Required. Hong Kong tutors can keep Hong Kong.",
+    "city": "City / locality",
     "academics": {
       "headline": "Academic headline",
       "headline_hint": "Auto-filled from your curricula and scores above, type to edit it yourself; clear it and click away to bring the suggestion back."
@@ -2981,6 +3011,10 @@
       "status_inactive_hint": "Your card stays visible but shows “Inactive” and hides the request button until you reactivate it."
     },
     "my_tutor": {
+      "bio_starters": "Starter sentences",
+      "bio_starter_1": "I explain each topic step by step and check understanding before we move on.",
+      "bio_starter_2": "I set short practice tasks and review the mistakes at the start of the next lesson.",
+      "bio_starter_3": "I send a short progress note to parents after every lesson.",
       "probono_title": "Impact & Pro-Bono Preferences",
       "probono_hint": "These appear on your public channel. Only counts show — never student identities.",
       "probono_free": "Accept Pro-Bono ($0 free tuition) for financial-need students",

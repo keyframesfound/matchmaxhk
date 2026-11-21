@@ -1676,6 +1676,36 @@
     "item5_desc": "我哋会按你嘅需要，配对喺各大公开考试及学科中取得优异成绩嘅导师，透过一对一补习，陪你一步一步进步"
   },
   "join": {
+    "form": {
+      "form_progress": "表格进度",
+      "profile_photo": "个人照片",
+      "full_name": "全名",
+      "email": "电子邮件",
+      "country_region": "国家／地区",
+      "phone_whatsapp": "电话／WhatsApp 号码",
+      "medium_of_instruction": "教学语言",
+      "graduation_year": "毕业年份",
+      "earliest_availability": "最早可开始",
+      "current_status": "现时身份",
+      "required": "必填",
+      "optional": "可选",
+      "portfolio_type_error": "照片必须系 JPG、PNG 或 WebP 格式。",
+      "portfolio_size_error": "每张相唔可以大过 {{size}}。",
+      "portfolio_drop": "将照片拖到呢度，或者拣档案",
+      "portfolio_add_more": "再加（{{count}}/{{max}}）",
+      "portfolio_max_reached": "最多 {{max}} 张，已经满咗。移除一张先可以再加。",
+      "remove_named": "移除 {{name}}",
+      "photo_type_error": "请拣 JPG 或 PNG 图片。",
+      "photo_size_error": "照片太大，最大 {{size}}。",
+      "photo_preview_alt": "个人照片预览",
+      "add_photo": "加照片"
+    },
+    "time_zone_invalid": "请选择有效嘅时区。",
+    "time_zone_hint_browser": "呢个系根据你嘅浏览器建议，请确认。",
+    "time_zone_hint": "我哋会用嚟对课堂时间，同配对时区相近嘅学生。",
+    "time_zone": "时区",
+    "city_hint": "必填。香港导师可以保留「Hong Kong」。",
+    "city": "城市／地区",
     "academics": {
       "headline": "学术标题",
       "headline_hint": "系统根据上方课程及成绩自动填写——你可自行输入修改；清空后点选其他栏位即会重新带出建议。"
@@ -2288,13 +2318,13 @@
       "starters": "开头提示：",
       "undo": "还原",
       "title_notes": "{{base}} 笔记",
-      "title_revision": "{{base}} 复习重点",
+      "title_revision": "{{base}} 温习重点",
       "title_exam": "{{base}} 试题练习连答案",
-      "desc_inside": "里面有什么：\n- ",
-      "desc_best_for": "最适合谁用：\n- ",
-      "desc_how_to_use": "如何使用这份笔记：\n- ",
-      "link_profile_label": "在这份教材显示「预约此导师 1 对 1 补习」",
-      "link_profile_hint": "买家可以经 MatchMax 申请与你配对。如果他在这科已有进行中的个案，会自动隐藏。"
+      "desc_inside": "入面有咩：\n- ",
+      "desc_best_for": "最啱边个用：\n- ",
+      "desc_how_to_use": "点样用呢份笔记：\n- ",
+      "link_profile_label": "喺呢份教材显示「预约此导师 1 对 1 补习」",
+      "link_profile_hint": "买家可以经 MatchMax 申请同你配对。如果佢喺呢科已经有进行中嘅个案，会自动隐藏。"
     }
   },
   "orders": {
@@ -2981,6 +3011,10 @@
       "status_inactive_hint": "你张卡仍然可见，但会显示「暂停」并隐藏申请按钮，直至你重新启用。"
     },
     "my_tutor": {
+      "bio_starters": "开头句子",
+      "bio_starter_1": "我会逐步讲解每个课题，确认你明白先继续。",
+      "bio_starter_2": "我会安排短练习，下一堂先同你检讨错处。",
+      "bio_starter_3": "每堂之后我会同家长简单交代进度。",
       "probono_title": "义教与支持设定",
       "probono_hint": "这些设定会显示于您的公开频道，只显示名额数目，绝不显示学生身份。",
       "probono_free": "接受义教（$0）供有经济需要的学生",
@@ -4167,7 +4201,7 @@
     "fee_platform": "MatchMax 平台服务费（2%）",
     "fee_gateway": "付款手续费（估算）",
     "fee_net": "预计您可收取",
-    "fee_note": "买家只需支付你的标价。上面的卡费为估算，实际会扣除 Stripe 收取的费用。72 小时买家保障期结束后，你会收到净额，于每周一 FPS 批次出粮（截数为星期日 23:59 香港时间；最低 HK$50）。",
+    "fee_note": "买家只需支付你的标价。上面的卡费为估算，实际会扣除 Stripe 收取的费用。72 小时买家保障期完结后，你会收到净额，于每周一 FPS 批次出粮（截数为星期日 23:59 香港时间；最低 HK$50）。",
     "price_rule": "免费（HK$0）或 HK$20 至 HK$5,000。",
     "price_below_minimum": "付费商品最低售价为 HK$20。免费商品请设定为 HK$0。",
     "price_above_maximum": "最高售价为 HK$5,000。",
