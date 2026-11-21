@@ -1676,6 +1676,12 @@
     "item5_desc": "我哋會按你嘅需要，配對喺各大公開考試及學科中取得優異成績嘅導師，透過一對一補習，陪你一步一步進步"
   },
   "join": {
+    "time_zone_invalid": "請選擇有效嘅時區。",
+    "time_zone_hint_browser": "呢個係根據你嘅瀏覽器建議，請確認。",
+    "time_zone_hint": "我哋會用嚟對課堂時間，同配對時區相近嘅學生。",
+    "time_zone": "時區",
+    "city_hint": "必填。香港導師可以保留「Hong Kong」。",
+    "city": "城市／地區",
     "academics": {
       "headline": "學術標題",
       "headline_hint": "系統根據上方課程及成績自動填寫——你可自行輸入修改；清空後點選其他欄位即會重新帶出建議。"

@@ -1676,6 +1676,12 @@
     "item5_desc": "我哋会按你嘅需要，配对喺各大公开考试及学科中取得优异成绩嘅导师，透过一对一补习，陪你一步一步进步"
   },
   "join": {
+    "time_zone_invalid": "请选择有效嘅时区。",
+    "time_zone_hint_browser": "呢个系根据你嘅浏览器建议，请确认。",
+    "time_zone_hint": "我哋会用嚟对课堂时间，同配对时区相近嘅学生。",
+    "time_zone": "时区",
+    "city_hint": "必填。香港导师可以保留「Hong Kong」。",
+    "city": "城市／地区",
     "academics": {
       "headline": "学术标题",
       "headline_hint": "系统根据上方课程及成绩自动填写——你可自行输入修改；清空后点选其他栏位即会重新带出建议。"

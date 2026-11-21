@@ -87,6 +87,11 @@ import type { PreferredTimeWindow } from "@/features/tutors/queries";
 import { PREFERRED_TIME_WINDOWS } from "@/features/tutors/queries";
 import { ACTIVATION_GENDERS } from "@/features/tutor-application/activation";
 import {
+  COUNTRY_DEFAULT_TIME_ZONE,
+  isValidIanaTimeZone,
+  suggestTimeZone,
+} from "@/features/tutor-application/time-zone";
+import {
   COURSE_GRADE_OPTIONS,
   KINDERGARTEN_TOPICS,
   MAX_UNIVERSITY_COURSES,
@@ -230,6 +235,21 @@ const COUNTRY_OPTIONS = [
   "Canada",
   "Australia",
   "Other",
+];
+// Issue #798: datalist suggestions for the confirmed time zone input; the
+// country default is prepended at render time. Never a closed list — the tutor
+// can type any valid IANA zone.
+const TIME_ZONE_OPTIONS = [
+  "Asia/Hong_Kong",
+  "Asia/Shanghai",
+  "Asia/Singapore",
+  "Asia/Tokyo",
+  "Europe/London",
+  "Europe/Paris",
+  "America/New_York",
+  "America/Los_Angeles",
+  "America/Toronto",
+  "Australia/Sydney",
 ];
 const COUNTRY_DIAL_CODES: Record<string, string> = {
   "Hong Kong": "+852",
@@ -941,6 +961,10 @@ type ApplicationBaseState = {
   photo: File | null;
   country: string;
   countryOther: string;
+  // Issue #798: city / locality + the tutor-confirmed IANA time zone, both
+  // required at intake and persisted on the tutors row after publish.
+  city: string;
+  timeZone: string;
   graduationYear: string;
   startImmediately: boolean;
   startDate: string;
@@ -1080,6 +1104,18 @@ export function ApplicationForm({ completePending = false }: { completePending?:
   const [locating, setLocating] = useState(false);
   const [locationMessage, setLocationMessage] = useState("");
   const [suggestionStatus, setSuggestionStatus] = useState<"idle" | "adding" | "done">("idle");
+  // Issue #798: the browser zone is a HINT only. It seeds the suggestion when
+  // the country has no unambiguous default, and timeZoneTouched freezes the
+  // value the moment the tutor edits it, so no later re-derivation can
+  // overwrite a confirmed zone.
+  const [browserZone] = useState(() => {
+    try {
+      return Intl.DateTimeFormat().resolvedOptions().timeZone;
+    } catch {
+      return "";
+    }
+  });
+  const [timeZoneTouched, setTimeZoneTouched] = useState(false);
   const [base, setBase] = useState<ApplicationBaseState>({
     name: "",
     preferredName: "",
@@ -1088,6 +1124,10 @@ export function ApplicationForm({ completePending = false }: { completePending?:
     photo: null,
     country: "Hong Kong",
     countryOther: "",
+    // Issue #798: defaults follow the default country (Hong Kong); the zone is
+    // re-derived from the country on change until the tutor confirms one.
+    city: "Hong Kong",
+    timeZone: "Asia/Hong_Kong",
     graduationYear: "",
     startImmediately: true,
     startDate: "",
@@ -1281,6 +1321,17 @@ export function ApplicationForm({ completePending = false }: { completePending?:
     .filter((rate) => Number.isFinite(rate) && rate > 0);
   const rateFloor = filledBaseRates.length ? String(Math.min(...filledBaseRates)) : "";
 
+  // Issue #798: the datalist suggests the country default plus common zones;
+  // the input stays free-text so any valid IANA name is accepted. The browser
+  // hint only shows while the value is still an unconfirmed suggestion.
+  const countryDefaultZone: string | undefined = COUNTRY_DEFAULT_TIME_ZONE[base.country];
+  const timeZoneOptions = countryDefaultZone
+    ? Array.from(new Set([countryDefaultZone, ...TIME_ZONE_OPTIONS]))
+    : TIME_ZONE_OPTIONS;
+  const showBrowserZoneHint =
+    !timeZoneTouched &&
+    suggestTimeZone({ country: base.country, browserZone }).source === "browser";
+
   function updateRateRow(index: number, patch: Partial<{ label: string; rate: string }>) {
     setBaseField(
       "rateRows",
@@ -1381,6 +1432,19 @@ export function ApplicationForm({ completePending = false }: { completePending?:
       ...restoredDraft.base,
       photo: null,
     }));
+    // Issue #798: a restored zone that differs from the automatic suggestion
+    // was chosen by the tutor, so freeze it; a zone that still equals the
+    // suggestion keeps tracking country changes. Drafts saved before this
+    // change carry no zone and simply resolve on the next country change.
+    const restoredZone =
+      typeof restoredDraft.base?.timeZone === "string" ? restoredDraft.base.timeZone.trim() : "";
+    if (restoredZone) {
+      const automaticZone = suggestTimeZone({
+        country: restoredDraft.base.country,
+        browserZone,
+      }).zone;
+      if (restoredZone !== automaticZone) setTimeZoneTouched(true);
+    }
     if (Array.isArray(restoredDraft.roles)) setRoles(restoredDraft.roles);
     if (Array.isArray(restoredDraft.boards)) setBoards(restoredDraft.boards);
     if (Array.isArray(restoredDraft.credentials)) setCredentials(restoredDraft.credentials);
@@ -1764,12 +1828,20 @@ export function ApplicationForm({ completePending = false }: { completePending?:
   function setCountry(country: string) {
     const dialCode = COUNTRY_DIAL_CODES[country];
     const phoneWithoutDialCode = base.phone.replace(/^\+(?:852|853|86|65|44|61|1)\s*/, "");
+    // Issue #798: re-derive the time zone from the new country (or the browser
+    // hint) ONLY while the tutor has not confirmed a value. An edit sets
+    // timeZoneTouched, so this branch can never clobber it.
+    const suggestion = timeZoneTouched ? null : suggestTimeZone({ country, browserZone });
     setBase((previous) => ({
       ...previous,
       country,
       phone: dialCode ? `${dialCode} ${phoneWithoutDialCode}`.trimEnd() : phoneWithoutDialCode,
+      // A country with no unambiguous default and no usable browser hint
+      // leaves the field empty rather than keeping another country's zone.
+      ...(suggestion ? { timeZone: suggestion.zone ?? "" } : {}),
     }));
     clearFieldError("country");
+    clearFieldError("timeZone");
   }
 
   function validateCurrentStep() {
@@ -1797,6 +1869,13 @@ export function ApplicationForm({ completePending = false }: { completePending?:
       if (user) required("email", base.email.trim());
       required("country", base.country.trim());
       if (base.country === "Other") required("countryOther", base.countryOther.trim());
+      // Issue #798: city / locality is required, and the time zone must be a
+      // valid IANA name the tutor can confirm or correct.
+      required("city", base.city.trim());
+      required("timeZone", base.timeZone.trim());
+      if (!next.timeZone && !isValidIanaTimeZone(base.timeZone.trim())) {
+        next.timeZone = t("join.time_zone_invalid");
+      }
       required("status", base.status);
       required("medium", base.medium);
       // Issue #718: gender is required (one tap, matching data).
@@ -2210,7 +2289,16 @@ export function ApplicationForm({ completePending = false }: { completePending?:
       // Issue #214: the client gate above (validateCurrentStep) only reaches
       // this line with the terms gate checked, so legalAgreed: true is the
       // contract the server fn re-validates before storing anything.
-      const submitResult = await submit({ data: { ...parsed.data, legalAgreed: true } });
+      const submitResult = await submit({
+        data: {
+          ...parsed.data,
+          // Issue #798: locality + the confirmed IANA zone ride along with the
+          // validated application (they are not part of the card mapper).
+          city: base.city.trim(),
+          timeZone: base.timeZone.trim(),
+          legalAgreed: true,
+        },
+      });
       setApplicationRef(submitResult?.applicationId ?? "");
       // Issue #310: the card is published at submit, keep its public path
       // so the success screen can link straight to the live card.
@@ -2819,6 +2907,54 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       </div>
                     ) : null}
                   </Field>
+                  {/* Issue #798: City / locality sits directly under Country. */}
+                  <Field
+                    label={t("join.city")}
+                    required
+                    error={fieldErrors.city}
+                    hint={t("join.city_hint")}
+                  >
+                    <Input
+                      value={base.city}
+                      onChange={(event) => setBaseField("city", event.target.value)}
+                      autoComplete="address-level2"
+                      maxLength={80}
+                    />
+                  </Field>
+                  {/* Issue #798: the confirmed IANA zone. The datalist is a
+                      suggestion list only; the field accepts any valid zone. */}
+                  <Field
+                    label={t("join.time_zone")}
+                    required
+                    error={fieldErrors.timeZone}
+                    hint={
+                      <>
+                        <span className="block">{t("join.time_zone_hint")}</span>
+                        {showBrowserZoneHint ? (
+                          <span className="block">{t("join.time_zone_hint_browser")}</span>
+                        ) : null}
+                      </>
+                    }
+                  >
+                    <Input
+                      list="tutor-time-zone-options"
+                      value={base.timeZone}
+                      onChange={(event) => {
+                        // A manual edit confirms the value; suggestions never
+                        // overwrite it again (see setCountry).
+                        setTimeZoneTouched(true);
+                        setBaseField("timeZone", event.target.value);
+                      }}
+                      autoComplete="off"
+                      spellCheck={false}
+                      maxLength={64}
+                    />
+                  </Field>
+                  <datalist id="tutor-time-zone-options">
+                    {timeZoneOptions.map((zone) => (
+                      <option key={zone} value={zone} />
+                    ))}
+                  </datalist>
                 </div>
                 <div className="grid content-start gap-4">
                   <Field label="Phone / WhatsApp Number" required error={fieldErrors.phone}>

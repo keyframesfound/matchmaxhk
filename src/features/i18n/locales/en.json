@@ -1676,6 +1676,12 @@
     "item5_desc": "We match you with experienced top scorers in these programs and fields, where you can learn to excel just like them, through tailored 1-on-1 tutoring."
   },
   "join": {
+    "time_zone_invalid": "Choose a valid time zone.",
+    "time_zone_hint_browser": "Suggested from this browser. Please confirm.",
+    "time_zone_hint": "We use this for lesson times and to match you with students in a compatible zone.",
+    "time_zone": "Time zone",
+    "city_hint": "Required. Hong Kong tutors can keep Hong Kong.",
+    "city": "City / locality",
     "academics": {
       "headline": "Academic headline",
       "headline_hint": "Auto-filled from your curricula and scores above, type to edit it yourself; clear it and click away to bring the suggestion back."
