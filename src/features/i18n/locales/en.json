@@ -1942,6 +1942,9 @@
     "page_count": "{{count}} pages",
     "views": "{{count}} views",
     "sold": "{{count}} sold",
+    "card_sold": "{{count}} sold",
+    "card_saved": "{{count}} saved",
+    "card_new": "New release",
     "price": "HK${{amount}}",
     "unlock_cta": "Unlock full notes",
     "locked_title": "This is where the free preview ends",
@@ -2945,15 +2948,15 @@
     },
     "capacity": {
       "title": "Capacity & Availability",
-      "description": "Control how many students you can take and when you prefer to teach. Changes go live immediately, no admin review needed.",
-      "accepting_label": "Accepting new students",
-      "state_active": "Active, parents can inquire",
-      "state_paused": "Paused, your profile shows as fully booked",
-      "slots_label": "Open slots remaining",
-      "slots_increase": "Add a slot",
-      "slots_decrease": "Remove a slot",
-      "slots_hint": "Students you can still take on",
-      "slots_full": "You will show as Fully Booked",
+      "description": "Control whether your card takes new requests and when you prefer to teach. Changes go live immediately, no admin review needed.",
+      
+      
+      
+      
+      
+      
+      
+      
       "windows_label": "Preferred time windows",
       "windows_hint": "Exact schedules are coordinated with parents upon inquiry.",
       "saving": "Saving…",
@@ -2967,8 +2970,8 @@
       "status_taking": "Taking students",
       "status_full": "Full",
       "status_inactive": "Inactive",
-      "status_taking_hint": "Your card accepts new requests. Slots below is how many students you can still take.",
-      "status_full_hint": "At your cap, your card shows “Full” and hides the request button. Raise the slots to take more students.",
+      "status_taking_hint": "Your card accepts new requests.",
+      "status_full_hint": "Your card shows “Full” and hides the request button. Switch back to Taking students to accept new requests.",
       "status_inactive_hint": "Your card stays visible but shows “Inactive” and hides the request button until you reactivate it."
     },
     "my_tutor": {
@@ -3133,7 +3136,7 @@
       "saved": "Availability grid updated",
       "save": "Save changes",
       "hourly_description": "Click and drag to set your weekly Open hours, or click a cell to toggle it. This grid shows on your public profile.",
-      "review_prompt": "Review your hourly calendar",
+      "review_prompt": "Are these Open hours still free?",
       "review_dismiss": "Got it",
       "drag_hint": "Drag across cells to paint Open hours, or click a cell to toggle it"
     },

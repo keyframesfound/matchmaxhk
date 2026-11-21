@@ -1942,6 +1942,9 @@
     "page_count": "{{count}} 頁",
     "views": "{{count}} 次瀏覽",
     "sold": "已售出 {{count}} 份",
+    "card_sold": "已售 {{count}} 份",
+    "card_saved": "{{count}} 人收藏",
+    "card_new": "最新上架",
     "price": "HK${{amount}}",
     "unlock_cta": "解鎖全套筆記",
     "locked_title": "免費預覽到此為止",
@@ -2945,15 +2948,15 @@
     },
     "capacity": {
       "title": "容量與時間",
-      "description": "控制你可以接幾多位學生同你偏好嘅教學時間。更改會即時生效——無需管理員審核。",
-      "accepting_label": "接受新學生",
-      "state_active": "開放中——家長可以查詢",
-      "state_paused": "已暫停——你嘅檔案會顯示為已滿額",
-      "slots_label": "剩餘學生名額",
-      "slots_increase": "增加名額",
-      "slots_decrease": "減少名額",
-      "slots_hint": "你仲可以接嘅學生數目",
-      "slots_full": "你將會顯示為「已滿額」",
+      "description": "控制你嘅卡會唔會接受新申請，以及你偏好嘅教學時間。更改會即時生效——無需管理員審核。",
+      
+      
+      
+      
+      
+      
+      
+      
       "windows_label": "偏好時段",
       "windows_hint": "確實時間會喺查詢後同家長協調。",
       "saving": "儲存中……",
@@ -2967,8 +2970,8 @@
       "status_taking": "接收學生",
       "status_full": "已滿",
       "status_inactive": "暫停",
-      "status_taking_hint": "你張卡會接收新申請。下方「剩餘名額」係你仲可以接收幾多位學生。",
-      "status_full_hint": "已達上限 — 你張卡會顯示「已滿」並隱藏申請按鈕。調高名額即可再接收學生。",
+      "status_taking_hint": "你嘅卡會接收新申請。",
+      "status_full_hint": "你嘅卡會顯示「已滿」並隱藏申請按鈕。切回「接受學生」即可再接收新申請。",
       "status_inactive_hint": "你張卡仍然可見，但會顯示「暫停」並隱藏申請按鈕，直至你重新啟用。"
     },
     "my_tutor": {
@@ -3133,7 +3136,7 @@
       "saved": "時間表已更新",
       "save": "儲存變更",
       "hourly_description": "拖曳格仔設定每週可約時段，或點擊一格切換。時間表會顯示喺你嘅公開檔案。",
-      "review_prompt": "請檢查新的每小時時間表",
+      "review_prompt": "這些可約時段是否仍然有空？",
       "review_dismiss": "知道了",
       "drag_hint": "拖曳格仔塗繪可約時段，或點擊一格切換"
     },

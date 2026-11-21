@@ -14,6 +14,7 @@ import {
   type HourlyOpenHours,
 } from "@/features/tutors/availability-grid-model";
 import { HourlyAvailabilityEditor } from "@/features/tutors/availability-hourly-editor";
+import { needsFreshnessReview } from "@/features/tutors/availability-freshness";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -70,11 +71,16 @@ export function AvailabilityGridEditor({ className }: { className?: string }) {
           : null;
         const effective = fromLegacy ?? hourly;
         setOpenHours(effective);
-        // One-time prompt: something was auto-mapped to review and the tutor
-        // has not saved/dismissed the hourly grid yet.
+        // #768 CEO lock (14-day freshness): retarget the review nudge to a
+        // gentle recurring check instead of a single migration flag. The
+        // first prompt covers an auto-mapped or never-reviewed grid; after
+        // that it returns once the last save/dismissal is 14 days old.
+        // Dismissing writes availability_grid_hourly_reviewed_at, so the
+        // clock restarts without ever auto-closing an Open hour.
         setReviewPrompt(
           fromLegacy !== null ||
-            (!isHourlyGridEmpty(hourly) && !row.availability_grid_hourly_reviewed_at),
+            (!isHourlyGridEmpty(hourly) &&
+              needsFreshnessReview(row.availability_grid_hourly_reviewed_at)),
         );
       }
       setLoaded(true);
