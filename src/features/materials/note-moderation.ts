@@ -119,10 +119,42 @@ const CATEGORY_REASON: Record<ModerationCategory, string> = {
  * Combine the regex scanner and the AI review into one decision.
  * `ai` is null when the AI check could not run (fail closed: staff queue).
  */
+/**
+ * #784 §2.4 (AC-738-1): a listing that sells video (a video file, a video
+ * host link, or a bundle that includes one) never auto-publishes; staff
+ * review it. PDF-only listings keep the automated path.
+ */
+const VIDEO_HOST = /(youtube\.com|youtu\.be|vimeo\.com|wistia\.|loom\.com|bilibili\.com)/i;
+export function isVideoAttachment(file: {
+  format?: string | null;
+  mime_type?: string | null;
+  url?: string | null;
+}): boolean {
+  return (
+    file.format === "video" ||
+    (file.mime_type ?? "").toLowerCase().startsWith("video/") ||
+    VIDEO_HOST.test(file.url ?? "")
+  );
+}
+
 export function decideModeration(input: {
   regexFlags: string[];
   ai: ModerationResult | null;
   /** The file had no text and no page images could be checked. */
+  uncheckable: boolean;
+  /** #784 AC-738-1: the listing includes video → manual admin review. */
+  containsVideo?: boolean;
+}): ModerationDecision {
+  const decision = decideModerationCore(input);
+  if (input.containsVideo && decision.status === "published") {
+    return { status: "pending_review", reason: "video_requires_admin_review" };
+  }
+  return decision;
+}
+
+function decideModerationCore(input: {
+  regexFlags: string[];
+  ai: ModerationResult | null;
   uncheckable: boolean;
 }): ModerationDecision {
   const hard = input.regexFlags.filter((f) => HARD_REGEX_FLAGS.has(f));

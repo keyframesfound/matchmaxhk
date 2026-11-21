@@ -867,6 +867,19 @@ async function materialHasFiles(db: AdminDb, materialId: string): Promise<boolea
   return (data ?? []).length > 0;
 }
 
+/** #784 AC-738-1: the listing's attachments, just enough to spot video. */
+async function selectAttachmentKinds(
+  db: AdminDb,
+  materialId: string,
+): Promise<{ format: string | null; mime_type: string | null; url: string | null }[]> {
+  const { data, error } = await db
+    .from<{ format: string | null; mime_type: string | null; url: string | null }>("material_files")
+    .select("format, mime_type, url")
+    .eq("material_id", materialId);
+  if (error) return [];
+  return data ?? [];
+}
+
 /** Public URLs of the seller's gallery pictures (checked by the AI review). */
 async function publicGalleryUrls(db: AdminDb, materialId: string): Promise<string[]> {
   const { data, error } = await db
@@ -1141,10 +1154,16 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       regexHints,
       userId: context.userId,
     });
+    // #784 AC-738-1: anything that sells video waits for admin review.
+    const { isVideoAttachment } = await import("@/features/materials/note-moderation");
+    const attachments = await selectAttachmentKinds(db, materialId);
+    const containsVideo =
+      (data.sourceFormats ?? []).includes("video") || attachments.some(isVideoAttachment);
     const decision = decideModeration({
       regexFlags: scanFlags,
       ai,
       uncheckable: merged.hasPdf && fileTextLength < 200 && pageImages.length === 0,
+      containsVideo,
     });
     const status = await applyUploadScan(db, materialId, scanFlags, decision);
 
