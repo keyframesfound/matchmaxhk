@@ -1047,6 +1047,34 @@ async function materialHasExtraFiles(db: AdminDb, materialId: string): Promise<b
 }
 
 /**
+ * #784 §2.1: a Stripe-paid order lands in paid_held (hold_expires_at was set
+ * at payment, paid_at + 72h); the FPS cashier keeps its #429 held/delivered.
+ */
+function releaseStatusFields(
+  escrow: { status: string; holdUntilIso: string | null },
+  stripePaid: boolean,
+): Record<string, unknown> {
+  if (stripePaid) return { status: "paid_held" };
+  return {
+    status: escrow.status,
+    ...(escrow.status === "held" ? { hold_until: escrow.holdUntilIso } : {}),
+  };
+}
+
+/** #784 §2.1: deliver an order the Stripe webhook just marked paid. */
+export async function deliverStripePaidOrder(db: AdminDb, orderId: string): Promise<void> {
+  const { data: order } = await db
+    .from<OrderWithMaterial>("material_orders")
+    .select(
+      "id, reference, material_id, buyer_account_id, tutor_id, gross_hkd, platform_fee_hkd, tutor_net_hkd, status, fps_reference, payment_screenshot_path, delivered_file_path, paid_at, delivered_at, created_at, digital_materials(id, title, slug, price_hkd, status, original_file_path, material_type, page_count, tutor_id)",
+    )
+    .eq("id", orderId)
+    .maybeSingle();
+  if (!order) throw new Error("ORDER_NOT_FOUND");
+  await performOrderRelease(db, order, null, true);
+}
+
+/**
  * The release pipeline (stamp + deliver / unlock), shared by the staff
  * release action and (#556) the instant HK$0 free download. `releasedBy` is
  * the staff user, or null for an automatic free delivery.
@@ -1055,6 +1083,8 @@ async function performOrderRelease(
   db: AdminDb,
   order: OrderWithMaterial,
   releasedBy: string | null,
+  /** #784 §2.1: paid through Stripe; the 72h hold was set at payment. */
+  stripePaid = false,
 ): Promise<{ ok: true; status: "delivered" }> {
   const material = order.digital_materials;
   if (!material) throw new Error("The note file is missing.");
@@ -1081,10 +1111,9 @@ async function performOrderRelease(
       const { error: deliveredError } = await db
         .from<never>("material_orders")
         .update({
-          status: escrow.status,
+          ...releaseStatusFields(escrow, stripePaid),
           delivered_at: deliveredAt,
           delivered_by: releasedBy,
-          ...(escrow.status === "held" ? { hold_until: escrow.holdUntilIso } : {}),
         })
         .eq("id", order.id);
       if (deliveredError) throw new Error(deliveredError.message);
@@ -1138,10 +1167,9 @@ async function performOrderRelease(
     const { error: deliveredError } = await db
       .from<never>("material_orders")
       .update({
-        status: escrow.status,
+        ...releaseStatusFields(escrow, stripePaid),
         delivered_at: deliveredAt,
         delivered_by: releasedBy,
-        ...(escrow.status === "held" ? { hold_until: escrow.holdUntilIso } : {}),
       })
       .eq("id", order.id);
     if (deliveredError) throw new Error(deliveredError.message);
@@ -1195,11 +1223,10 @@ async function performOrderRelease(
     const { error: deliveredError } = await db
       .from<never>("material_orders")
       .update({
-        status: escrow.status,
+        ...releaseStatusFields(escrow, stripePaid),
         delivered_file_path: path,
         delivered_at: deliveredAt,
         delivered_by: releasedBy,
-        ...(escrow.status === "held" ? { hold_until: escrow.holdUntilIso } : {}),
       })
       .eq("id", order.id);
     if (deliveredError) throw new Error(deliveredError.message);

@@ -245,7 +245,16 @@ export function classifyOwnerEdit(delta: {
  * is what MatchMax holds — so held and released orders keep downloading.
  */
 export function orderGrantsAccess(status: string): boolean {
-  return status === "delivered" || status === "held" || status === "released";
+  return (
+    status === "delivered" ||
+    status === "held" ||
+    status === "released" ||
+    // #784 §2.1: Stripe Option A states. Access is immediate after payment
+    // and after release; none while the buyer's own dispute is open (#543).
+    status === "paid_held" ||
+    status === "delivered_held" ||
+    status === "completed_released"
+  );
 }
 
 /**

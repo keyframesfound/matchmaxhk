@@ -721,7 +721,7 @@ export const getMyNotesSummary = createServerFn({ method: "POST" })
       // #429: released orders are the completed sales (hold ended); legacy
       // delivered rows count as before. Held rows stay out — their funds are
       // still in escrow, neither counted as payable net nor hidden forever.
-      .in("status", ["delivered", "released"]);
+      .in("status", ["delivered", "released", "completed_released"]);
     if (error) throw new Error(error.message);
 
     return summarizeMyNotesOrders(orders ?? [], new Date());

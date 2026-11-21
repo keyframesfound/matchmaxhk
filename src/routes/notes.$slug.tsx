@@ -47,6 +47,8 @@ import {
   SimilarNotesSection,
 } from "@/features/materials/note-engagement";
 import { NoteTutorUpsellCard } from "@/features/materials/note-tutor-upsell-card";
+import { startStripeCheckout } from "@/features/materials/stripe-checkout.functions";
+import { toast } from "sonner";
 
 /**
  * #203 + P8/P14: the public note page, the marketplace's Clastify-style
@@ -167,13 +169,39 @@ function NotePage() {
       }),
   });
 
+  // #784 §2.1: back from a cancelled / failed Stripe Checkout.
+  useEffect(() => {
+    if (typeof window !== "undefined" && window.location.search.includes("checkout=cancelled")) {
+      toast.info(t("notes_option_a.checkout_cancelled"));
+    }
+  }, [t]);
+
   const checkoutMutation = useMutation({
-    mutationFn: () =>
-      startCheckout({ data: { materialId: note.id, legalAgreed: true, shopTermsAgreed: true } }),
-    onSuccess: ({ orderId }) => {
-      void navigate({ to: `/orders/${orderId}` });
+    mutationFn: async () => {
+      const order = await startCheckout({
+        data: { materialId: note.id, legalAgreed: true, shopTermsAgreed: true },
+      });
+      // #784 §2.1: once Option A is live, paid listings go to Stripe Checkout
+      // (never back to the 20% FPS cashier). Free listings stay instant.
+      if (NOTES_OPTION_A_LIVE && note.priceHkd > 0) {
+        const stripe = await startStripeCheckout({ data: { orderId: order.orderId } });
+        if ("url" in stripe) {
+          window.location.assign(stripe.url);
+          return { ...order, redirected: true };
+        }
+      }
+      return { ...order, redirected: false };
     },
-    onError: () => setGateOpen(true),
+    onSuccess: ({ orderId, redirected }) => {
+      if (!redirected) void navigate({ to: `/orders/${orderId}` });
+    },
+    onError: (e) => {
+      if (e instanceof Error && e.message.includes("/ 結帳")) {
+        toast.error(e.message);
+        return;
+      }
+      setGateOpen(true);
+    },
   });
 
   const othersQuery = useQuery({
@@ -524,6 +552,12 @@ function NotePage() {
               )}
               {NOTES_OPTION_A_LIVE ? (
                 <p className="rounded-lg border border-success/40 bg-success/5 p-3 text-xs leading-relaxed">
+                  {/* #784 §2.1 locked #543 trust callout. */}
+                  <span className="block font-semibold">
+                    {note.priceHkd > 0
+                      ? t("notes_option_a.trust_callout")
+                      : t("notes_option_a.free_access")}
+                  </span>
                   {t("notes_option_a.escrow_badge")}
                 </p>
               ) : null}

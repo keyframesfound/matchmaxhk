@@ -4224,7 +4224,16 @@
     "studio_payout_note": "每周一以转数快出粮 · 截数为星期日 23:59（香港时间）· 最低 HK$50。推出期间 MatchMax 收取 2%，另加 Stripe 卡费。",
     "studio_in_hold_hint": "仍在 72 小时买家保障期内的订单",
     "studio_available_hint": "可于下次每周转数快批次发放的款项",
-    "fee_free": "呢份系免费教材，唔收取 MatchMax 或 Stripe 费用。"
+    "fee_free": "这份是免费教材，不收取 MatchMax 或 Stripe 费用。",
+    "trust_callout": "付款后即时下载 · MatchMax 72小时款项托管保障 · 购买72小时后交易即告完成，恕不设退款。",
+    "free_access": "免费 — 即时取得，无需付款。",
+    "checkout_success": "已确认购买 — 可即时下载。",
+    "checkout_confirming": "正在确认付款……下载链接稍后会在此显示。",
+    "checkout_cancelled": "尚未完成付款，你没有被收费。",
+    "checkout_unavailable": "结账暂时未能使用，请稍后再试。",
+    "continue_payment": "继续付款",
+    "seller_sold": "教材已售出 — 款项进入 72 小时保障托管",
+    "window_closed": "72 小时保障期已结束。"
   },
   "marketplace": {
     "tab_notes": "笔记",

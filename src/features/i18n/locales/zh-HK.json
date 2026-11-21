@@ -2993,14 +2993,6 @@
     "capacity": {
       "title": "容量與時間",
       "description": "控制你嘅卡會唔會接受新申請，以及你偏好嘅教學時間。更改會即時生效——無需管理員審核。",
-      
-      
-      
-      
-      
-      
-      
-      
       "windows_label": "偏好時段",
       "windows_hint": "確實時間會喺查詢後同家長協調。",
       "saving": "儲存中……",
@@ -4232,7 +4224,16 @@
     "studio_payout_note": "每週一以轉數快出糧 · 截數為星期日 23:59（香港時間）· 最低 HK$50。推出期間 MatchMax 收取 2%，另加 Stripe 卡費。",
     "studio_in_hold_hint": "仍在 72 小時買家保障期內的訂單",
     "studio_available_hint": "可於下次每週轉數快批次發放的款項",
-    "fee_free": "呢份係免費教材，唔收取 MatchMax 或 Stripe 費用。"
+    "fee_free": "呢份係免費教材，唔收取 MatchMax 或 Stripe 費用。",
+    "trust_callout": "付款後即時下載 · MatchMax 72小時款項託管保障 · 購買72小時後交易即告完成，恕不設退款。",
+    "free_access": "免費 — 即時取得，無需付款。",
+    "checkout_success": "已確認購買 — 可即時下載。",
+    "checkout_confirming": "正在確認付款……下載連結稍後會在此顯示。",
+    "checkout_cancelled": "尚未完成付款，你沒有被收費。",
+    "checkout_unavailable": "結帳暫時未能使用，請稍後再試。",
+    "continue_payment": "繼續付款",
+    "seller_sold": "教材已售出 — 款項進入 72 小時保障託管",
+    "window_closed": "72 小時保障期已結束。"
   },
   "marketplace": {
     "tab_notes": "筆記",

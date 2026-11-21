@@ -2993,14 +2993,6 @@
     "capacity": {
       "title": "Capacity & Availability",
       "description": "Control whether your card takes new requests and when you prefer to teach. Changes go live immediately, no admin review needed.",
-      
-      
-      
-      
-      
-      
-      
-      
       "windows_label": "Preferred time windows",
       "windows_hint": "Exact schedules are coordinated with parents upon inquiry.",
       "saving": "Saving…",
@@ -4232,7 +4224,16 @@
     "studio_payout_note": "Weekly Monday FPS payout · Sunday 23:59 HKT cut-off · minimum HK$50. MatchMax fee 2% during the launch window, plus the Stripe card fee.",
     "studio_in_hold_hint": "Orders inside the 72h buyer-protection window",
     "studio_available_hint": "Cleared balance for the next weekly FPS batch",
-    "fee_free": "This listing is free. No MatchMax fee or Stripe fee is charged."
+    "fee_free": "This listing is free. No MatchMax fee or Stripe fee is charged.",
+    "trust_callout": "Instant Download · 72-Hour MatchMax Protection Hold · All sales final 72 hours after purchase.",
+    "free_access": "Free — instant access, no payment needed.",
+    "checkout_success": "Purchase confirmed — download ready.",
+    "checkout_confirming": "Confirming your payment… your download appears here in a moment.",
+    "checkout_cancelled": "Payment was not completed. You have not been charged.",
+    "checkout_unavailable": "Checkout is temporarily unavailable. Please try again shortly.",
+    "continue_payment": "Continue to payment",
+    "seller_sold": "Material sold — funds in 72-hour protection hold",
+    "window_closed": "The 72-hour protection window has ended."
   },
   "marketplace": {
     "tab_notes": "Notes",

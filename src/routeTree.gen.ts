@@ -84,6 +84,7 @@ import { Route as AuthenticatedBusinessTeamRouteImport } from './routes/_authent
 import { Route as AuthenticatedTutorRequestsIndexRouteImport } from './routes/_authenticated.tutor-requests.index'
 import { Route as AuthenticatedTutorRequestsCaseCodeRouteImport } from './routes/_authenticated.tutor-requests.$caseCode'
 import { Route as ApiEmailUnsubscribeRouteImport } from './routes/api/email/unsubscribe'
+import { Route as ApiStripeWebhookRouteImport } from './routes/api/stripe/webhook'
 import { Route as ApiTrustWaIngestRouteImport } from './routes/api/trust/wa-ingest'
 import { Route as HelpCategoryIndexRouteImport } from './routes/help.$category.index'
 import { Route as HelpCategorySlugRouteImport } from './routes/help.$category.$slug'
@@ -501,6 +502,11 @@ const ApiEmailUnsubscribeRoute = ApiEmailUnsubscribeRouteImport.update({
   path: '/api/email/unsubscribe',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiStripeWebhookRoute = ApiStripeWebhookRouteImport.update({
+  id: '/api/stripe/webhook',
+  path: '/api/stripe/webhook',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ApiTrustWaIngestRoute = ApiTrustWaIngestRouteImport.update({
   id: '/api/trust/wa-ingest',
   path: '/api/trust/wa-ingest',
@@ -670,6 +676,7 @@ export interface FileRoutesByFullPath {
   '/business/team': typeof AuthenticatedBusinessTeamRoute
   '/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
   '/api/email/unsubscribe': typeof ApiEmailUnsubscribeRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/invite/case/$token': typeof InviteCaseTokenRoute
@@ -762,6 +769,7 @@ export interface FileRoutesByTo {
   '/business/team': typeof AuthenticatedBusinessTeamRoute
   '/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
   '/api/email/unsubscribe': typeof ApiEmailUnsubscribeRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/invite/case/$token': typeof InviteCaseTokenRoute
@@ -857,6 +865,7 @@ export interface FileRoutesById {
   '/_authenticated/business/team': typeof AuthenticatedBusinessTeamRoute
   '/_authenticated/tutor-requests/$caseCode': typeof AuthenticatedTutorRequestsCaseCodeRoute
   '/api/email/unsubscribe': typeof ApiEmailUnsubscribeRoute
+  '/api/stripe/webhook': typeof ApiStripeWebhookRoute
   '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/invite/case/$token': typeof InviteCaseTokenRoute
@@ -952,6 +961,7 @@ export interface FileRouteTypes {
     | '/business/team'
     | '/tutor-requests/$caseCode'
     | '/api/email/unsubscribe'
+    | '/api/stripe/webhook'
     | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
     | '/invite/case/$token'
@@ -1044,6 +1054,7 @@ export interface FileRouteTypes {
     | '/business/team'
     | '/tutor-requests/$caseCode'
     | '/api/email/unsubscribe'
+    | '/api/stripe/webhook'
     | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
     | '/invite/case/$token'
@@ -1138,6 +1149,7 @@ export interface FileRouteTypes {
     | '/_authenticated/business/team'
     | '/_authenticated/tutor-requests/$caseCode'
     | '/api/email/unsubscribe'
+    | '/api/stripe/webhook'
     | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
     | '/invite/case/$token'
@@ -1201,6 +1213,7 @@ export interface RootRouteChildren {
   HelpIndexRoute: typeof HelpIndexRoute
   TutorsIndexRoute: typeof TutorsIndexRoute
   ApiEmailUnsubscribeRoute: typeof ApiEmailUnsubscribeRoute
+  ApiStripeWebhookRoute: typeof ApiStripeWebhookRoute
   ApiTrustWaIngestRoute: typeof ApiTrustWaIngestRoute
   HelpCategorySlugRoute: typeof HelpCategorySlugRoute
   InviteCaseTokenRoute: typeof InviteCaseTokenRoute
@@ -1737,6 +1750,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEmailUnsubscribeRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/stripe/webhook': {
+      id: '/api/stripe/webhook'
+      path: '/api/stripe/webhook'
+      fullPath: '/api/stripe/webhook'
+      preLoaderRoute: typeof ApiStripeWebhookRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/api/trust/wa-ingest': {
       id: '/api/trust/wa-ingest'
       path: '/api/trust/wa-ingest'
@@ -2035,6 +2055,7 @@ const rootRouteChildren: RootRouteChildren = {
   HelpIndexRoute: HelpIndexRoute,
   TutorsIndexRoute: TutorsIndexRoute,
   ApiEmailUnsubscribeRoute: ApiEmailUnsubscribeRoute,
+  ApiStripeWebhookRoute: ApiStripeWebhookRoute,
   ApiTrustWaIngestRoute: ApiTrustWaIngestRoute,
   HelpCategorySlugRoute: HelpCategorySlugRoute,
   InviteCaseTokenRoute: InviteCaseTokenRoute,
