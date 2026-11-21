@@ -8,8 +8,10 @@
  */
 
 import { lessonConflicts, type ExistingLesson } from "@/features/cases/slot";
+import { cohortSessionConflicts } from "@/features/cases/cohort-conflicts";
 import { SCHEDULE_MAX_AHEAD_DAYS } from "@/features/cases/schedule-lesson";
 import { hktDateKey, hktFromParts, hktWeekdayIndex } from "@/features/cases/sor";
+import type { HourlyOpenHours } from "@/features/tutors/availability-grid-model";
 
 export const SERIES_WEEK_CHOICES = [4, 8, 12] as const;
 export const SERIES_MAX_WEEKS = 12;
@@ -109,19 +111,29 @@ export function buildWeeklySeries(input: {
   return starts.slice(0, SERIES_MAX_LESSONS);
 }
 
-/** Splits a series into free and clashing starts; clashes are reported, not fatal. */
+/**
+ * Splits a series into free and clashing starts; clashes are reported, not fatal.
+ * Issue #768: a start inside a FULL cohort's hour is a clash too, so a weekly
+ * series never lands on top of a class the tutor is teaching.
+ */
 export function partitionSeriesClashes(
   starts: readonly string[],
   durationMin: number,
   online: boolean,
   existing: readonly ExistingLesson[],
+  cohortSessions?: HourlyOpenHours,
 ): { free: string[]; clashes: string[] } {
   const mode = online ? "online" : "in_person";
   const taken: ExistingLesson[] = [...existing];
   const free: string[] = [];
   const clashes: string[] = [];
   for (const start of starts) {
-    if (lessonConflicts(new Date(start), durationMin, taken, online ? "online" : "f2f")) {
+    const startsAt = new Date(start);
+    const clash =
+      lessonConflicts(startsAt, durationMin, taken, online ? "online" : "f2f") ||
+      (cohortSessions !== undefined &&
+        cohortSessionConflicts(startsAt, durationMin, cohortSessions));
+    if (clash) {
       clashes.push(start);
     } else {
       free.push(start);

@@ -7,6 +7,8 @@
  */
 
 import { lessonConflicts, type ExistingLesson } from "@/features/cases/slot";
+import { cohortSessionConflicts } from "@/features/cases/cohort-conflicts";
+import type { HourlyOpenHours } from "@/features/tutors/availability-grid-model";
 
 export const SCHEDULABLE_SOR_STATUSES: ReadonlySet<string> = new Set(["fee_paid", "active"]);
 export const SCHEDULE_DURATION_MIN = 15;
@@ -37,6 +39,8 @@ export function scheduleLessonError(input: {
   now: Date;
   /** The tutor's live lessons across all cases (planned / confirmed / done). */
   existing: readonly ExistingLesson[];
+  /** Issue #768: hours a FULL group cohort owns; a lesson there is a clash. */
+  cohortSessions?: HourlyOpenHours;
 }): ScheduleLessonError | null {
   if (!input.sorStatus || !SCHEDULABLE_SOR_STATUSES.has(input.sorStatus)) {
     return "CASE_NOT_ACTIVE";
@@ -54,13 +58,15 @@ export function scheduleLessonError(input: {
   ) {
     return "BAD_DURATION";
   }
-  const conflict = lessonConflicts(
-    new Date(start),
-    d,
-    [...input.existing],
-    input.online ? "online" : "f2f",
-  );
-  return conflict ? "SLOT_CONFLICT" : null;
+  const startsAt = new Date(start);
+  if (lessonConflicts(startsAt, d, [...input.existing], input.online ? "online" : "f2f")) {
+    return "SLOT_CONFLICT";
+  }
+  // Issue #768: a full cohort owns its hour, online or in person.
+  if (input.cohortSessions && cohortSessionConflicts(startsAt, d, input.cohortSessions)) {
+    return "SLOT_CONFLICT";
+  }
+  return null;
 }
 
 /** Next sequence for a case: max + 1, never reusing a cancelled/voided slot. */

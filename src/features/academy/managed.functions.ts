@@ -18,6 +18,7 @@ import {
   type Row,
 } from "@/features/cases/desk-db";
 import { generateSlots } from "@/features/cases/slot";
+import { loadFullCohortSessions } from "@/features/cases/cohort-busy.server";
 import { creditBurn, occupancyPct, type BurnEntry } from "@/features/academy/attendance";
 
 async function adminDb(userId: string): Promise<Db> {
@@ -232,7 +233,7 @@ async function occupancyFor(
   days: number,
 ): Promise<Map<string, number>> {
   if (tutorIds.length === 0) return new Map();
-  const [windows, blackouts] = await Promise.all([
+  const [windows, blackouts, fullCohortSessions] = await Promise.all([
     selectRows<{ tutor_id: string; weekday: number; start_minute: number; end_minute: number }>(
       db,
       "tutor_weekly_windows",
@@ -245,6 +246,7 @@ async function occupancyFor(
       "tutor_id, blackout_date",
       [{ col: "tutor_id", op: "in", value: tutorIds }],
     ),
+    loadFullCohortSessions(db, tutorIds),
   ]);
   const result = new Map<string, number>();
   for (const tutorId of tutorIds) {
@@ -252,6 +254,8 @@ async function occupancyFor(
       (l) => l.tutor_id === tutorId && LIVE.has(l.status) && new Date(l.starts_at) >= now,
     );
     const bookedMinutes = booked.reduce((s, l) => s + l.duration_min, 0);
+    // #768: a full cohort's hours are not free either, so occupancy stays honest.
+    const cohortSessions = fullCohortSessions.get(tutorId);
     const free = generateSlots(
       windows
         .filter((w) => w.tutor_id === tutorId)
@@ -260,7 +264,7 @@ async function occupancyFor(
       booked.map((l) => ({ starts_at: l.starts_at, duration_min: l.duration_min })),
       now,
       now,
-      { horizonDays: days },
+      { horizonDays: days, cohortSessions },
     );
     const freeMinutes = free.reduce((s, slot) => s + slot.durationMin, 0);
     result.set(tutorId, occupancyPct(freeMinutes + bookedMinutes, bookedMinutes));

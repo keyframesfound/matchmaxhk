@@ -40,6 +40,7 @@ import {
 } from "@/features/cases/schedule-lesson";
 import { hktDateKey } from "@/features/cases/sor";
 import type { ExistingLesson } from "@/features/cases/slot";
+import { loadFullCohortSessions } from "@/features/cases/cohort-busy.server";
 import { AVAIL_BANDS } from "@/features/tutors/availability-filter";
 import {
   GRID_DAYS,
@@ -535,6 +536,8 @@ export const scheduleLessonSeries = createServerFn({ method: "POST" })
     const starts = buildWeeklySeries({ ...data, now });
     if (starts.length === 0) throw new Error("NO_SLOTS");
     const online = c.mode === "online";
+    // #768: one read of the tutor's full-cohort hours, reused by both guards below.
+    const cohortSessions = (await loadFullCohortSessions(db, [tutorId])).get(tutorId);
     const shapeError = scheduleLessonError({
       sorStatus: c.sor_status,
       startsAtIso: starts[0],
@@ -542,6 +545,7 @@ export const scheduleLessonSeries = createServerFn({ method: "POST" })
       online,
       now,
       existing: [],
+      cohortSessions,
     });
     if (shapeError) throw new Error(shapeError);
 
@@ -550,6 +554,7 @@ export const scheduleLessonSeries = createServerFn({ method: "POST" })
       data.durationMin,
       online,
       await occupiedFor(db, c, tutorId),
+      cohortSessions,
     );
     if (free.length === 0) throw new Error("SLOT_CONFLICT");
 
@@ -640,6 +645,8 @@ export const editCaseLessons = createServerFn({ method: "POST" })
     const targetIds = new Set(targets.map((t) => t.id));
     const others = (await occupiedFor(db, c, tutorId)).filter((o) => !targetIds.has(o.id));
     const online = c.mode === "online";
+    // #768: a move may not land on a full cohort's hour either.
+    const cohortSessions = (await loadFullCohortSessions(db, [tutorId])).get(tutorId);
     const moves = targets.map((lesson) => ({
       id: lesson.id,
       startsAt: lesson.startsAt,
@@ -654,6 +661,7 @@ export const editCaseLessons = createServerFn({ method: "POST" })
         online,
         now,
         existing: others,
+        cohortSessions,
       });
       if (error) throw new Error(error);
     }

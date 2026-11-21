@@ -16,6 +16,7 @@ import { asAdminDb } from "@/features/materials/storage-helpers";
 import { insertAudit, selectRows, type Db } from "@/features/cases/desk-db";
 import { format } from "date-fns";
 import { nextLessonSequence, scheduleLessonError } from "@/features/cases/schedule-lesson";
+import { loadFullCohortSessions } from "@/features/cases/cohort-busy.server";
 import { shortCaseOverrunError } from "@/features/cases/short-case";
 import { insertLessonLifecycleEvent } from "@/features/cases/bus.functions";
 
@@ -78,13 +79,17 @@ export const scheduleNextLesson = createServerFn({ method: "POST" })
       return { lessonId: prior.id, duplicate: true };
     }
 
-    const live = await selectRows<{
-      starts_at: string;
-      duration_min: number;
-      tutoring_cases: { mode: string | null } | null;
-    }>(db, "case_lessons", "starts_at, duration_min, tutoring_cases(mode)", [
-      { col: "tutor_id", op: "eq", value: tutorId },
-      { col: "status", op: "in", value: LIVE_STATUSES },
+    const [live, fullCohortSessions] = await Promise.all([
+      selectRows<{
+        starts_at: string;
+        duration_min: number;
+        tutoring_cases: { mode: string | null } | null;
+      }>(db, "case_lessons", "starts_at, duration_min, tutoring_cases(mode)", [
+        { col: "tutor_id", op: "eq", value: tutorId },
+        { col: "status", op: "in", value: LIVE_STATUSES },
+      ]),
+      // #768: a full cohort owns its hour, so no 1-on-1 lands on the class.
+      loadFullCohortSessions(db, [tutorId]),
     ]);
     const error = scheduleLessonError({
       sorStatus: c.sor_status,
@@ -97,6 +102,7 @@ export const scheduleNextLesson = createServerFn({ method: "POST" })
         duration_min: l.duration_min,
         mode: l.tutoring_cases?.mode ?? "in_person",
       })),
+      cohortSessions: fullCohortSessions.get(tutorId),
     });
     if (error) throw new Error(error);
 

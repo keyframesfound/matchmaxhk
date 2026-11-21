@@ -5,6 +5,8 @@
  */
 
 import { hktMonthKey } from "@/features/cases/calendar-hub";
+import { cohortSessionConflicts } from "@/features/cases/cohort-conflicts";
+import type { HourlyOpenHours } from "@/features/tutors/availability-grid-model";
 
 export const RESCHEDULE_NOTE_MAX = 200;
 export const STATEMENT_NOTE_MAX = 200;
@@ -110,18 +112,28 @@ export function shareCoolingDown(sharedAts: readonly (string | null)[], now: Dat
   return sharedAts.some((at) => at !== null && now.getTime() - Date.parse(at) < SHARE_COOLDOWN_MS);
 }
 
-export type RescheduleError = "LESSON_NOT_LIVE" | "LESSON_PAST" | "IN_PAST" | "SAME_TIME";
+export type RescheduleError =
+  "LESSON_NOT_LIVE" | "LESSON_PAST" | "IN_PAST" | "SAME_TIME" | "SLOT_CONFLICT";
 
 export function rescheduleLessonError(input: {
-  lesson: { startsAt: string; status: string };
+  lesson: { startsAt: string; status: string; durationMin?: number };
   proposedIso: string;
   now: Date;
+  /** Issue #768: hours a FULL group cohort owns; a proposal there clashes. */
+  cohortSessions?: HourlyOpenHours;
 }): RescheduleError | null {
   const { lesson, proposedIso, now } = input;
   if (!LIVE_STATUSES.has(lesson.status)) return "LESSON_NOT_LIVE";
   if (Date.parse(lesson.startsAt) <= now.getTime()) return "LESSON_PAST";
   if (Date.parse(proposedIso) <= now.getTime()) return "IN_PAST";
   if (Date.parse(proposedIso) === Date.parse(lesson.startsAt)) return "SAME_TIME";
+  const durationMin = lesson.durationMin ?? 60;
+  if (
+    input.cohortSessions &&
+    cohortSessionConflicts(new Date(proposedIso), durationMin, input.cohortSessions)
+  ) {
+    return "SLOT_CONFLICT";
+  }
   return null;
 }
 

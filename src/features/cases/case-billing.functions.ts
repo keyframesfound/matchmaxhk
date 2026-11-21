@@ -28,6 +28,7 @@ import {
 import { hktClock } from "@/features/cases/case-schedule";
 import { occupiedFor, partyCase, type PartyCase } from "@/features/cases/case-schedule.functions";
 import { isTimeClashError, scheduleLessonError } from "@/features/cases/schedule-lesson";
+import { loadFullCohortSessions } from "@/features/cases/cohort-busy.server";
 import { hktDateKey } from "@/features/cases/sor";
 import { contactFilterError } from "@/lib/contact-filter";
 
@@ -103,10 +104,18 @@ async function assertMovable(
   proposedIso: string,
 ): Promise<void> {
   const now = new Date();
+  // #768: a full cohort's hours are teaching time, so a reschedule cannot land
+  // on top of one. Loaded once and shared by both guards below.
+  const cohortSessions = (await loadFullCohortSessions(db, [tutorId])).get(tutorId);
   const moveError = rescheduleLessonError({
-    lesson: { startsAt: lesson.starts_at, status: lesson.status },
+    lesson: {
+      startsAt: lesson.starts_at,
+      status: lesson.status,
+      durationMin: lesson.duration_min,
+    },
     proposedIso,
     now,
+    cohortSessions,
   });
   if (moveError) throw new Error(moveError);
   if (c.schedule_paused_at) throw new Error("CASE_PAUSED");
@@ -118,6 +127,7 @@ async function assertMovable(
     online: c.mode === "online",
     now,
     existing: others,
+    cohortSessions,
   });
   if (error) throw new Error(error);
 }

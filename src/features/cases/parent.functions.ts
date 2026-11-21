@@ -23,6 +23,8 @@ import type { FeeStatus, SorStatus } from "@/features/cases/sor-db";
 import { cancelActionFor, canMarkDone } from "@/features/cases/sor";
 import { shortCaseOverrunError } from "@/features/cases/short-case";
 import { generateSlots, lessonConflicts } from "@/features/cases/slot";
+import { cohortSessionConflicts } from "@/features/cases/cohort-conflicts";
+import { loadFullCohortSessions } from "@/features/cases/cohort-busy.server";
 import { checkSlotRequest } from "@/features/cases/parent/review-flow";
 import { saveCaseRatingCore } from "@/features/cases/rating-core.server";
 import {
@@ -328,7 +330,7 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
     if (canRequestSlot && head?.matched_tutor_id) {
       const tutorId = head.matched_tutor_id;
       const now = new Date();
-      const [windows, blackouts, tutorLessons] = await Promise.all([
+      const [windows, blackouts, tutorLessons, fullCohortSessions] = await Promise.all([
         selectRows<{
           weekday: number;
           start_minute: number;
@@ -347,6 +349,8 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         }>(db, "case_lessons", "starts_at, duration_min, tutoring_cases(mode)", [
           { col: "tutor_id", op: "eq", value: tutorId },
         ]),
+        // #768: a full cohort's hours are not offered to the parent either.
+        loadFullCohortSessions(db, [tutorId]),
       ]);
       const generated = generateSlots(
         windows.map((w) => ({
@@ -363,6 +367,7 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         })),
         now,
         now,
+        { cohortSessions: fullCohortSessions.get(tutorId) },
       );
       slots = generated.map((s) => ({
         startsAt: s.startsAt.toISOString(),
@@ -657,7 +662,7 @@ export const requestSlot = createServerFn({ method: "POST" })
 
     // Re-derive the offered slots server-side (never trust the client list).
     const now = new Date();
-    const [windows, blackouts, tutorLessons] = await Promise.all([
+    const [windows, blackouts, tutorLessons, fullCohortSessions] = await Promise.all([
       selectRows<{
         weekday: number;
         start_minute: number;
@@ -676,7 +681,12 @@ export const requestSlot = createServerFn({ method: "POST" })
       }>(db, "case_lessons", "starts_at, duration_min, tutoring_cases(mode)", [
         { col: "tutor_id", op: "eq", value: c.matched_tutor_id },
       ]),
+      // #768: a full cohort owns its session hours, so a parent cannot request
+      // a 1-on-1 slot on top of the class.
+      loadFullCohortSessions(db, [c.matched_tutor_id]),
     ]);
+    // #768: one value for both the slot list and the belt-and-braces check below.
+    const cohortSessions = fullCohortSessions.get(c.matched_tutor_id);
     const generated = generateSlots(
       windows.map((w) => ({
         weekday: w.weekday,
@@ -692,6 +702,7 @@ export const requestSlot = createServerFn({ method: "POST" })
       })),
       now,
       now,
+      { cohortSessions },
     );
 
     const check = checkSlotRequest(
@@ -701,7 +712,7 @@ export const requestSlot = createServerFn({ method: "POST" })
     );
     if (!check.ok) throw new Error(check.reason);
 
-    // Belt-and-braces conflict check against live lessons.
+    // Belt-and-braces conflict check against live lessons and full cohorts.
     if (
       lessonConflicts(
         new Date(data.startsAt),
@@ -711,7 +722,8 @@ export const requestSlot = createServerFn({ method: "POST" })
           duration_min: l.duration_min,
           mode: l.tutoring_cases?.mode ?? "in_person",
         })),
-      )
+      ) ||
+      (cohortSessions && cohortSessionConflicts(new Date(data.startsAt), 60, cohortSessions))
     ) {
       throw new Error("SLOT_CONFLICT");
     }

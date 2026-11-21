@@ -22,6 +22,7 @@ import {
   TUTOR_PLUS_THRESHOLD,
 } from "@/features/cases/sor";
 import { generateSlots, type GeneratedSlot } from "@/features/cases/slot";
+import { loadFullCohortSessions } from "@/features/cases/cohort-busy.server";
 import { shortCaseOverrunError } from "@/features/cases/short-case";
 import {} from "@/features/cases/case-reviews";
 import { sweepDueSessionLogs, type SessionLogRowT } from "@/features/cases/experience.functions";
@@ -690,7 +691,7 @@ export const getMyWeekView = createServerFn({ method: "POST" })
     const now = new Date();
     const horizon = 14;
 
-    const [windows, blackouts, lessons] = await Promise.all([
+    const [windows, blackouts, lessons, fullCohortSessions] = await Promise.all([
       selectRows<{
         weekday: number;
         start_minute: number;
@@ -718,6 +719,8 @@ export const getMyWeekView = createServerFn({ method: "POST" })
         [{ col: "tutor_id", op: "eq", value: tutorId }],
         { col: "starts_at", asc: true },
       ),
+      // #768: hours a full cohort owns are Occupied on the tutor's own week view.
+      loadFullCohortSessions(db, [tutorId]),
     ]);
 
     const liveLessons = lessons.filter(
@@ -738,7 +741,7 @@ export const getMyWeekView = createServerFn({ method: "POST" })
       })),
       now,
       now,
-      { horizonDays: horizon },
+      { horizonDays: horizon, cohortSessions: fullCohortSessions.get(tutorId) },
     );
 
     const mappedLessons: (WeekLesson & { status: string })[] = liveLessons.map((l) => ({

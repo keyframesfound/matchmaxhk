@@ -6,6 +6,8 @@
  * edit can never delete or mutate a confirmed lesson.
  */
 
+import { cohortSessionConflicts } from "@/features/cases/cohort-conflicts";
+import type { HourlyOpenHours } from "@/features/tutors/availability-grid-model";
 import { F2F_BUFFER_MIN, hktDateKey, hktFromParts, hktWeekdayIndex } from "./sor";
 
 export type WeeklyWindow = {
@@ -42,10 +44,20 @@ export function generateSlots(
   existingLessons: ExistingLesson[],
   from: Date,
   now: Date,
-  opts?: { durationMin?: number; horizonDays?: number },
+  opts?: {
+    durationMin?: number;
+    horizonDays?: number;
+    /**
+     * Issue #768: the hours a FULL group cohort already owns. A slot inside one
+     * is not free, exactly as the public grid shows it as Occupied. Omitted or
+     * empty, the generator behaves as before.
+     */
+    cohortSessions?: HourlyOpenHours;
+  },
 ): GeneratedSlot[] {
   const durationMin = opts?.durationMin ?? DEFAULT_SLOT_MIN;
   const horizonDays = opts?.horizonDays ?? SLOT_HORIZON_DAYS;
+  const cohortSessions = opts?.cohortSessions;
   if (windows.length === 0) return [];
 
   const blackoutSet = new Set(blackouts.map((b) => b.blackout_date));
@@ -69,6 +81,8 @@ export function generateSlots(
         const startsAt = new Date(t);
         if (startsAt.getTime() <= now.getTime()) continue;
         if (lessonConflicts(startsAt, durationMin, existingLessons)) continue;
+        if (cohortSessions && cohortSessionConflicts(startsAt, durationMin, cohortSessions))
+          continue;
         slots.push({ startsAt, durationMin, station: w.station ?? null });
       }
     }
