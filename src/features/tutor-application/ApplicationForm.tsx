@@ -753,6 +753,7 @@ function CourseGradeEditor({
   rows: { course: string; grade: string }[];
   onChange: (next: { course: string; grade: string }[]) => void;
 }) {
+  const { t } = useTranslation();
   const update = (index: number, patch: Partial<{ course: string; grade: string }>) =>
     onChange(rows.map((row, i) => (i === index ? { ...row, ...patch } : row)));
   return (
@@ -766,7 +767,7 @@ function CourseGradeEditor({
           />
           <Select value={row.grade} onValueChange={(grade) => update(index, { grade })}>
             <SelectTrigger className="h-11 w-28">
-              <SelectValue placeholder="Grade" />
+              <SelectValue placeholder={t("join.form.course_grade")} />
             </SelectTrigger>
             <SelectContent>
               {COURSE_GRADE_OPTIONS.map((grade) => (
@@ -928,6 +929,7 @@ function SubjectPicker({
   onToggle: (subject: string) => void;
   invalid?: boolean;
 }) {
+  const { t } = useTranslation();
   const selectedSubjects = new Set([...studiedSubjects, ...addedSubjects]);
   return (
     <div className="space-y-3">
@@ -949,16 +951,18 @@ function SubjectPicker({
           </span>
         ))}
         {selectedSubjects.size === 0 ? (
-          <span className="text-sm text-muted-foreground">No subjects selected yet.</span>
+          <span className="text-sm text-muted-foreground">
+            {t("join.form.no_subjects_selected")}
+          </span>
         ) : null}
         <div className="w-56">
           <SearchableSelect
             value=""
             onChange={onToggle}
             options={options.filter((subject) => !selectedSubjects.has(subject))}
-            placeholder="Add subject"
-            searchPlaceholder="Search subjects..."
-            emptyText="No additional subjects available."
+            placeholder={t("join.form.add_subject")}
+            searchPlaceholder={t("join.form.search_subjects")}
+            emptyText={t("join.form.no_more_subjects")}
             className={controlClassName}
             invalid={invalid}
           />
@@ -2510,7 +2514,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                         subject: event.target.value,
                       })
                     }
-                    placeholder="Subject name"
+                    placeholder={t("join.form.subject_name")}
                   />
                 ) : (
                   <SearchableSelect
@@ -2519,9 +2523,9 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       updateScore(qualificationIndex, scoreIndex, { subject, grade: "" })
                     }
                     options={availableSubjects ?? []}
-                    placeholder="Choose subject"
-                    searchPlaceholder="Search subjects..."
-                    emptyText="No matching subjects."
+                    placeholder={t("join.form.choose_subject")}
+                    searchPlaceholder={t("join.form.search_subjects")}
+                    emptyText={t("join.form.no_matching_subjects")}
                     className={controlClassName}
                     invalid={Boolean(fieldErrors[`subject-${qualificationIndex}-${scoreIndex}`])}
                   />
@@ -2562,7 +2566,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     onChange={(event) =>
                       updateScore(qualificationIndex, scoreIndex, { grade: event.target.value })
                     }
-                    placeholder="Grade / result"
+                    placeholder={t("join.form.grade_result")}
                   />
                 ) : (
                   <Select
@@ -2586,7 +2590,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                           "border-destructive hover:border-destructive focus:border-destructive focus:ring-destructive/30",
                       )}
                     >
-                      <SelectValue placeholder="Choose grade" />
+                      <SelectValue placeholder={t("join.form.choose_grade")} />
                     </SelectTrigger>
                     <SelectContent>
                       {gradeOptions.map((grade) => (
@@ -2627,7 +2631,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                             aria-label={t("join.form.assessment_component")}
                             className={controlClassName}
                           >
-                            <SelectValue placeholder="Choose paper or assessment" />
+                            <SelectValue placeholder={t("join.form.choose_paper")} />
                           </SelectTrigger>
                           <SelectContent>
                             {paperOptions(qualification.curriculum).map((option) => (
@@ -2902,9 +2906,9 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       value={base.country}
                       onChange={setCountry}
                       options={COUNTRY_OPTIONS}
-                      placeholder="Choose country or region"
-                      searchPlaceholder="Search countries"
-                      emptyText="No matching country. Choose Other."
+                      placeholder={t("join.form.choose_country")}
+                      searchPlaceholder={t("join.form.search_countries")}
+                      emptyText={t("join.form.no_country_match")}
                       className={controlClassName}
                       invalid={Boolean(fieldErrors.country)}
                     />
@@ -2918,7 +2922,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                           aria-invalid={fieldErrors.countryOther ? true : undefined}
                           value={base.countryOther}
                           onChange={(event) => setBaseField("countryOther", event.target.value)}
-                          placeholder="Enter country or region"
+                          placeholder={t("join.form.enter_country")}
                         />
                         {fieldErrors.countryOther ? (
                           <p className="mt-1 text-xs font-semibold text-destructive">
@@ -3087,7 +3091,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                         aria-invalid={fieldErrors.statusOther ? true : undefined}
                         value={base.statusOther}
                         onChange={(event) => setBaseField("statusOther", event.target.value)}
-                        placeholder="Please specify"
+                        placeholder={t("join.form.please_specify")}
                       />
                       {fieldErrors.statusOther ? (
                         <p className="mt-1 text-xs font-semibold text-destructive">
@@ -3192,7 +3196,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       }}
                     >
                       <SelectTrigger className={controlClassName}>
-                        <SelectValue placeholder="Select your year" />
+                        <SelectValue placeholder={t("join.form.select_year")} />
                       </SelectTrigger>
                       <SelectContent>
                         {YEARS_OF_STUDY.map((year) => (
@@ -3601,8 +3605,8 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       label: curriculum.label,
                     })),
                   ]}
-                  placeholder="All curricula"
-                  searchPlaceholder="Search curriculum..."
+                  placeholder={t("join.form.all_curricula")}
+                  searchPlaceholder={t("join.form.search_curriculum")}
                   className={controlClassName}
                 />
               </Field>
@@ -3679,8 +3683,8 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                             value={originStation}
                             onChange={setOrigin}
                             options={MTR_STATION_OPTIONS}
-                            placeholder="Choose your closest station"
-                            searchPlaceholder="Search MTR stations"
+                            placeholder={t("join.form.choose_station")}
+                            searchPlaceholder={t("join.form.search_stations")}
                             className={controlClassName}
                           />
                         </div>
@@ -4216,7 +4220,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                           value={row.label}
                           maxLength={RATE_ROW_LABEL_MAX}
                           onChange={(event) => updateRateRow(index, { label: event.target.value })}
-                          placeholder="Small group (2-3 students)"
+                          placeholder={t("join.form.small_group")}
                         />
                       </div>
                       <div className="grid gap-1.5">
