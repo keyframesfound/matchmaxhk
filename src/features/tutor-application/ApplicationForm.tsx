@@ -3156,7 +3156,11 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                 </div>
               </div>
               {/* Issue #190: target teaching levels route the verticals. */}
-              <Field label="Target Teaching Level" required error={fieldErrors.targetLevels}>
+              <Field
+                label={t("join.form.target_teaching_level")}
+                required
+                error={fieldErrors.targetLevels}
+              >
                 <Choices
                   options={TARGET_TEACHING_LEVELS}
                   values={targetLevels}
@@ -3173,7 +3177,10 @@ export function ApplicationForm({ completePending = false }: { completePending?:
               </Field>
               {targetLevels.includes("University") ? (
                 <div className="grid gap-4 rounded-sm border border-border p-4 sm:grid-cols-2">
-                  <Field label="Current Year of Study" error={fieldErrors.universityYear}>
+                  <Field
+                    label={t("join.form.current_year_of_study")}
+                    error={fieldErrors.universityYear}
+                  >
                     <Select
                       value={universityYear}
                       onValueChange={(value) => {
@@ -3193,7 +3200,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       </SelectContent>
                     </Select>
                   </Field>
-                  <Field label="Cumulative GPA" error={fieldErrors.universityGpa}>
+                  <Field label={t("join.form.cumulative_gpa")} error={fieldErrors.universityGpa}>
                     <Input
                       value={universityGpa}
                       onChange={(event) => {
@@ -3207,7 +3214,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                   </Field>
                   <div className="sm:col-span-2">
                     <Field
-                      label="University Courses You Can Tutor"
+                      label={t("join.form.university_courses")}
                       required={verticalOnlyUni}
                       error={fieldErrors.universityCourses}
                     >
@@ -3225,7 +3232,10 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     </Field>
                   </div>
                   <div className="sm:col-span-2">
-                    <Field label="Course-Specific Grades" error={fieldErrors.courseGrades}>
+                    <Field
+                      label={t("join.form.course_specific_grades")}
+                      error={fieldErrors.courseGrades}
+                    >
                       <CourseGradeEditor
                         rows={courseGrades}
                         onChange={(next) => {
@@ -3241,7 +3251,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
               {targetLevels.includes("Kindergarten") ? (
                 <div className="rounded-sm border border-border p-4">
                   <Field
-                    label="Kindergarten Topics You Teach"
+                    label={t("join.form.kindergarten_topics")}
                     required={verticalOnlyKind}
                     error={fieldErrors.kindergartenTopics}
                   >
@@ -3263,7 +3273,11 @@ export function ApplicationForm({ completePending = false }: { completePending?:
               ) : null}
               <div className="grid gap-4 sm:grid-cols-2">
                 {professional ? (
-                  <Field label="Teaching Qualifications" required error={fieldErrors.credentials}>
+                  <Field
+                    label={t("join.form.teaching_qualifications")}
+                    required
+                    error={fieldErrors.credentials}
+                  >
                     <Choices
                       options={TEACHING_QUALIFICATION_OPTIONS}
                       values={credentials}
@@ -3277,7 +3291,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                 ) : (
                   <>
                     <Field
-                      label="Secondary School Attended"
+                      label={t("join.form.secondary_school")}
                       required
                       error={fieldErrors.highSchool}
                     >
@@ -3287,7 +3301,11 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                         placeholder="Diocesan Boys' School, 2023"
                       />
                     </Field>
-                    <Field label="Current Year of Study" required error={fieldErrors.year}>
+                    <Field
+                      label={t("join.form.current_year_of_study")}
+                      required
+                      error={fieldErrors.year}
+                    >
                       <Input
                         value={base.year}
                         onChange={(event) => setBaseField("year", event.target.value)}
@@ -3296,7 +3314,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     </Field>
                   </>
                 )}
-                <Field label="University / Institution" required error={fieldErrors.university}>
+                <Field label={t("join.form.university")} required error={fieldErrors.university}>
                   <Input
                     value={base.university}
                     onChange={(event) => setBaseField("university", event.target.value)}
@@ -3310,7 +3328,11 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     ))}
                   </datalist>
                 </Field>
-                <Field label="Degree / Programme Major" required error={fieldErrors.programme}>
+                <Field
+                  label={t("join.form.degree_programme")}
+                  required
+                  error={fieldErrors.programme}
+                >
                   <Input
                     value={base.programme}
                     onChange={(event) => setBaseField("programme", event.target.value)}
@@ -3339,7 +3361,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                 {base.hasPostgrad ? (
                   <>
                     <Field
-                      label="Postgraduate University / Institution"
+                      label={t("join.form.postgrad_university")}
                       required
                       error={fieldErrors.postgradUniversity}
                     >
@@ -3350,7 +3372,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       />
                     </Field>
                     <Field
-                      label="Postgraduate Degree / Qualification"
+                      label={t("join.form.postgrad_degree")}
                       required
                       error={fieldErrors.postgradDegree}
                     >
@@ -3461,7 +3483,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                           </Field>
                           {["A-Level", "IGCSE / GCSE"].includes(qualification.curriculum) ? (
                             <Field
-                              label="Exam Board(s)"
+                              label={t("join.form.exam_boards")}
                               required
                               error={fieldErrors[`boards-${index}`]}
                               className="sm:col-span-2"
@@ -3485,7 +3507,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                             </Field>
                           ) : null}
                           {qualification.curriculum === "HKDSE" ? (
-                            <Field label="Best 6 Score">
+                            <Field label={t("join.form.best_6_score")}>
                               <Input
                                 type="number"
                                 value={qualification.best6}
@@ -3533,7 +3555,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                   qualifications while pristine; manual edits freeze it. */}
               <div className="mt-4">
                 <Field
-                  label="Academic Headline"
+                  label={t("join.form.academic_headline")}
                   required
                   error={fieldErrors.academicHeadline}
                   hint={`Auto-filled from your qualifications, edit freely. Shown on your public card (${MAX_ACADEMIC_HEADLINE} characters max).`}
