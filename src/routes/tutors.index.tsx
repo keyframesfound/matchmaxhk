@@ -44,6 +44,7 @@ import {
   getTutorCardHighlights,
   matchesLessonModeFilter,
   matchesStationFilter,
+  resolvePublicOpenHours,
   type Tutor,
 } from "@/features/tutors/queries";
 import { matchesSenFilter } from "@/features/tutors/sen";
@@ -53,6 +54,8 @@ import {
   fetchTutorPublicStats,
   type TutorPublicStats,
 } from "@/features/tutors/most-requested-stats";
+import { fetchTutorsOccupiedHours } from "@/features/tutors/availability-occupancy.functions";
+import { countOpenHourSlots } from "@/features/tutors/availability-grid-model";
 import { matchesCategoryFilter, matchesSubjectQuery } from "@/features/tutors/subjects";
 import {
   collectEducationValueSets,
@@ -196,15 +199,29 @@ async function fetchWhatsappNumber(): Promise<string> {
 // Issue #768: the card's social-proof footer takes camelCase counts while the
 // stats row is snake_case. A missing row yields null so the card renders no
 // footer rather than a zero claim.
-type TutorCardSocialProof = { activeCasesCount: number; engagementCount: number };
+type TutorCardSocialProof = {
+  activeCasesCount: number;
+  engagementCount: number;
+  slotsLeft?: number;
+};
+
+/** #768 AC3: at most one batched occupancy read per page of cards. */
+const OCCUPANCY_BATCH_LIMIT = 60;
 
 function socialProofForTutor(
   byId: ReadonlyMap<string, TutorPublicStats>,
+  slotsLeftById: ReadonlyMap<string, number>,
   tutorId: string,
 ): TutorCardSocialProof | null {
   const stats = byId.get(tutorId);
   if (!stats) return null;
-  return { activeCasesCount: stats.active_cases, engagementCount: stats.engagement_count };
+  return {
+    activeCasesCount: stats.active_cases,
+    engagementCount: stats.engagement_count,
+    // Absent occupancy (server gap or failed read) means no "Last slot" line —
+    // scarcity is only ever stated from a real open-cell count.
+    slotsLeft: slotsLeftById.get(tutorId),
+  };
 }
 
 // Hover-intent prefetch target: the directory list (shared cache key with
@@ -300,6 +317,45 @@ function TutorsDirectory() {
     for (const row of tutorPublicStats) map.set(row.tutor_id, row);
     return map;
   }, [tutorPublicStats]);
+
+  // #768 Part 2 AC3: "Last slot" needs a real count of Open hourly cells that
+  // no confirmed booking occupies, so the whole page shares ONE batched
+  // occupancy read (at most 4 queries) instead of one per card. Only tutors
+  // with a demand-stats row can render a footer; the server caps the batch.
+  const occupancyTargets = useMemo(() => {
+    const tutorById = new Map(tutors.map((tut) => [tut.id, tut]));
+    const targets: { tutorId: string; tutorUserId: string | null }[] = [];
+    for (const tutorId of socialProofTutorIds) {
+      if (targets.length >= OCCUPANCY_BATCH_LIMIT) break;
+      if (!socialProofById.has(tutorId)) continue;
+      const tutor = tutorById.get(tutorId);
+      if (!tutor) continue;
+      targets.push({ tutorId: tutor.id, tutorUserId: tutor.user_id });
+    }
+    return targets;
+  }, [socialProofTutorIds, socialProofById, tutors]);
+
+  // Tolerant like the stats read: a schema gap or failed read yields no entry
+  // for that tutor, so cards render without a "Last slot" line.
+  const { data: occupiedHoursById = {} } = useQuery({
+    queryKey: ["tutors", "occupancy", occupancyTargets],
+    queryFn: () =>
+      fetchTutorsOccupiedHours({ data: { tutors: occupancyTargets } }).then(
+        (result) => result.occupiedById,
+      ),
+    enabled: occupancyTargets.length > 0,
+  });
+
+  const slotsLeftById = useMemo(() => {
+    const map = new Map<string, number>();
+    for (const tutor of tutors) {
+      const occupied = occupiedHoursById[tutor.id];
+      // No occupancy row = unknown, not zero: the card then shows no scarcity.
+      if (!occupied) continue;
+      map.set(tutor.id, countOpenHourSlots(resolvePublicOpenHours(tutor), occupied));
+    }
+    return map;
+  }, [tutors, occupiedHoursById]);
 
   const { data: whatsappNumber = "" } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
@@ -957,7 +1013,11 @@ function TutorsDirectory() {
                                 key={tut.id}
                                 tutor={tut}
                                 engagement={engagementSummaries?.get(tut.id) ?? null}
-                                socialProof={socialProofForTutor(socialProofById, tut.id)}
+                                socialProof={socialProofForTutor(
+                                  socialProofById,
+                                  slotsLeftById,
+                                  tut.id,
+                                )}
                                 priceSuffix={t("featured.per_hour")}
                                 onOpen={openTutorDetail}
                                 footerAction={
@@ -1053,7 +1113,11 @@ function TutorsDirectory() {
                             key={tut.id}
                             tutor={tut}
                             engagement={engagementSummaries?.get(tut.id) ?? null}
-                            socialProof={socialProofForTutor(socialProofById, tut.id)}
+                            socialProof={socialProofForTutor(
+                              socialProofById,
+                              slotsLeftById,
+                              tut.id,
+                            )}
                             priceSuffix={t("featured.per_hour")}
                             onOpen={openTutorDetail}
                             onCompareToggle={() => toggleCompare(tut)}

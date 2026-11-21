@@ -180,6 +180,24 @@ export function clipOccupiedToOpen(
   return clipped;
 }
 
+/**
+ * Issue #768 (Part 2 AC3): how many Open cells are still bookable once
+ * Occupied bookings are removed. Occupied is clipped to Open first, so a
+ * confirmed booking on a cell the tutor has since closed never counts twice.
+ * The card's muted "Last slot" line renders only when this is exactly 1.
+ */
+export function countOpenHourSlots(open: HourlyOpenHours, occupied: HourlyOpenHours): number {
+  const clipped = clipOccupiedToOpen(open, occupied);
+  let total = 0;
+  for (const day of GRID_DAYS) {
+    const taken = new Set(clipped[day]);
+    for (const hour of open[day]) {
+      if (!taken.has(hour)) total++;
+    }
+  }
+  return total;
+}
+
 /** "17:00" row label for an hourly start hour. */
 export function hourlyHourLabel(hour: number): string {
   return `${String(hour).padStart(2, "0")}:00`;
