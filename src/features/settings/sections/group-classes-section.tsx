@@ -16,6 +16,7 @@ import {
   COHORT_DESCRIPTION_MAX,
   COHORT_MAX_SEATS,
   COHORT_MIN_SEATS,
+  describeCohortSessions,
 } from "@/features/cases/group-cohorts";
 import {
   closeMyGroupCohort,
@@ -436,68 +437,83 @@ export function GroupClassesSection() {
           <p className="text-sm text-muted-foreground">{t("group_classes.empty")}</p>
         ) : (
           <ul className="space-y-3">
-            {cohorts.map((cohort) => (
-              <li key={cohort.id} className="rounded-sm border border-border p-4">
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <div className="flex min-w-0 flex-wrap items-center gap-2">
-                    <Users
-                      className="h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
-                      aria-hidden="true"
-                    />
-                    <span className="truncate text-sm font-bold text-[color:var(--ink)]">
-                      {cohort.title}
+            {cohorts.map((cohort) => {
+              // Issue #768: the hourly sessions are the schedule; weekly_schedule
+              // is a human note kept only when it adds something.
+              const derivedSchedule = describeCohortSessions(cohort.sessions, t);
+              const scheduleLine = derivedSchedule || cohort.weeklySchedule;
+              const weeklyNote =
+                derivedSchedule &&
+                cohort.weeklySchedule.trim() &&
+                cohort.weeklySchedule.trim() !== derivedSchedule
+                  ? cohort.weeklySchedule.trim()
+                  : null;
+              return (
+                <li key={cohort.id} className="rounded-sm border border-border p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex min-w-0 flex-wrap items-center gap-2">
+                      <Users
+                        className="h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                        aria-hidden="true"
+                      />
+                      <span className="truncate text-sm font-bold text-[color:var(--ink)]">
+                        {cohort.title}
+                      </span>
+                      <StatePill state={cohort.state} />
+                    </div>
+                    <span className="text-sm font-semibold text-[color:var(--ink)]">
+                      HK${cohort.perStudentRateHkd}
+                      {t("group_classes.per_student")}
                     </span>
-                    <StatePill state={cohort.state} />
                   </div>
-                  <span className="text-sm font-semibold text-[color:var(--ink)]">
-                    HK${cohort.perStudentRateHkd}
-                    {t("group_classes.per_student")}
-                  </span>
-                </div>
-                <p className="mt-1.5 text-xs text-muted-foreground">
-                  {cohort.curriculum} · {cohort.subject} · {cohort.studentLevel} ·{" "}
-                  {cohort.weeklySchedule} ·{" "}
-                  {cohort.mode === "online"
-                    ? t("group_classes.mode_online")
-                    : `${t("group_classes.mode_in_person")} · ${cohort.district ?? ""}`}
-                </p>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {t("group_classes.seats_summary", {
-                    taken: cohort.seatsTaken,
-                    max: cohort.maxSeats,
-                    min: cohort.minSeats,
-                  })}
-                </p>
-                {cohort.description ? (
-                  <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
-                    {cohort.description}
+                  <p className="mt-1.5 text-xs text-muted-foreground">
+                    {cohort.curriculum} · {cohort.subject} · {cohort.studentLevel}
+                    {scheduleLine ? ` · ${scheduleLine}` : ""} ·{" "}
+                    {cohort.mode === "online"
+                      ? t("group_classes.mode_online")
+                      : `${t("group_classes.mode_in_person")} · ${cohort.district ?? ""}`}
                   </p>
-                ) : null}
-                <div className="mt-3 flex gap-2">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={cohort.status === "closed"}
-                    onClick={() => {
-                      setEditing(formFromCohort(cohort));
-                      setDialogOpen(true);
-                    }}
-                  >
-                    {t("group_classes.edit")}
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    disabled={cohort.status === "closed" || closingId === cohort.id}
-                    onClick={() => closeCohort(cohort.id)}
-                  >
-                    {t("group_classes.close_cohort")}
-                  </Button>
-                </div>
-              </li>
-            ))}
+                  {weeklyNote ? (
+                    <p className="mt-1 text-xs text-muted-foreground">{weeklyNote}</p>
+                  ) : null}
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {t("group_classes.seats_summary", {
+                      taken: cohort.seatsTaken,
+                      max: cohort.maxSeats,
+                      min: cohort.minSeats,
+                    })}
+                  </p>
+                  {cohort.description ? (
+                    <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+                      {cohort.description}
+                    </p>
+                  ) : null}
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={cohort.status === "closed"}
+                      onClick={() => {
+                        setEditing(formFromCohort(cohort));
+                        setDialogOpen(true);
+                      }}
+                    >
+                      {t("group_classes.edit")}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      disabled={cohort.status === "closed" || closingId === cohort.id}
+                      onClick={() => closeCohort(cohort.id)}
+                    >
+                      {t("group_classes.close_cohort")}
+                    </Button>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>

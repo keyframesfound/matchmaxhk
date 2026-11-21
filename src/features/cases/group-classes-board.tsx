@@ -19,7 +19,7 @@ import {
   getPublicGroupCohorts,
   type GroupCohortView,
 } from "@/lib/group-cohort.functions";
-import { cohortAdminFeeHkd } from "@/features/cases/group-cohorts";
+import { cohortAdminFeeHkd, describeCohortSessions } from "@/features/cases/group-cohorts";
 import { lesson1Amount, lesson2BalanceAmount } from "@/features/cases/fee-breakdown";
 import { cn } from "@/lib/utils";
 
@@ -51,6 +51,17 @@ function StatePill({ state }: { state: string }) {
 
 function CohortCard({ cohort, onBook }: { cohort: GroupCohortView; onBook: () => void }) {
   const { t } = useTranslation();
+  // Issue #768: the structured hourly sessions are the schedule that blocks
+  // the tutor's calendar, so they outrank the free-text weekly_schedule; the
+  // free text survives as a muted note only when it says something extra.
+  const derivedSchedule = describeCohortSessions(cohort.sessions, t);
+  const scheduleLine = derivedSchedule || cohort.weeklySchedule;
+  const weeklyNote =
+    derivedSchedule &&
+    cohort.weeklySchedule.trim() &&
+    cohort.weeklySchedule.trim() !== derivedSchedule
+      ? cohort.weeklySchedule.trim()
+      : null;
   return (
     <li className="flex flex-col rounded-sm border border-border bg-card p-5 transition-[transform,border-color] duration-200 ease-out hover:-translate-y-1 hover:border-[color:var(--ink)]/25 motion-reduce:transition-none motion-reduce:hover:translate-y-0">
       <div className="flex flex-wrap items-center gap-2">
@@ -75,10 +86,15 @@ function CohortCard({ cohort, onBook }: { cohort: GroupCohortView; onBook: () =>
         <span>· {cohort.studentLevel}</span>
       </p>
       <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-        <span className="inline-flex items-center gap-1">
-          <CalendarDays className="h-3.5 w-3.5 text-[color:var(--brand-link)]" aria-hidden="true" />
-          {cohort.weeklySchedule}
-        </span>
+        {scheduleLine ? (
+          <span className="inline-flex items-center gap-1">
+            <CalendarDays
+              className="h-3.5 w-3.5 text-[color:var(--brand-link)]"
+              aria-hidden="true"
+            />
+            {scheduleLine}
+          </span>
+        ) : null}
         <span className="inline-flex items-center gap-1">
           {cohort.mode === "online" ? (
             t("group_classes.mode_online")
@@ -90,6 +106,9 @@ function CohortCard({ cohort, onBook }: { cohort: GroupCohortView; onBook: () =>
           )}
         </span>
       </p>
+      {weeklyNote ? (
+        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{weeklyNote}</p>
+      ) : null}
       {cohort.description ? (
         <p className="mt-2 line-clamp-3 text-xs leading-relaxed text-muted-foreground">
           {cohort.description}

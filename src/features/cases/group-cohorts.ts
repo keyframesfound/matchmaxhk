@@ -11,6 +11,8 @@
 
 import { fullAdminFeeAmount } from "@/features/cases/fee-breakdown";
 import {
+  GRID_DAYS,
+  hourlyHourLabel,
   parseHourlyOpenHours,
   type HourlyOpenHours,
 } from "@/features/tutors/availability-grid-model";
@@ -127,4 +129,38 @@ export function cohortOccupiesSessions(
  */
 export function cohortAdminFeeHkd(perStudentRateHkd: number, seats: number): number {
   return fullAdminFeeAmount(perStudentRateHkd, seats);
+}
+
+/**
+ * Issue #768: the schedule a cohort actually advertises. The structured
+ * `sessions` grid is what blocks the tutor's calendar, so it is the source of
+ * truth for display; `weekly_schedule` is only a human note. Renders one
+ * `Mon 17:00 – 19:00` run per day (mon..sun), merging contiguous hours into a
+ * single range, and "" when the grid is empty. Pure: the translator is passed
+ * in so this stays client-safe and testable without i18n setup.
+ */
+export function describeCohortSessions(
+  sessions: HourlyOpenHours,
+  translate: (key: string) => string,
+): string {
+  const parts: string[] = [];
+  for (const day of GRID_DAYS) {
+    const hours = [...new Set(sessions[day] ?? [])].sort((a, b) => a - b);
+    if (hours.length === 0) continue;
+    const dayLabel = translate(`profile.grid_day_${day}`);
+    let start = hours[0];
+    let end = hours[0];
+    for (let i = 1; i <= hours.length; i += 1) {
+      if (i < hours.length && hours[i] === end + 1) {
+        end = hours[i];
+        continue;
+      }
+      parts.push(`${dayLabel} ${hourlyHourLabel(start)} – ${hourlyHourLabel(end + 1)}`);
+      if (i < hours.length) {
+        start = hours[i];
+        end = hours[i];
+      }
+    }
+  }
+  return parts.join(" · ");
 }

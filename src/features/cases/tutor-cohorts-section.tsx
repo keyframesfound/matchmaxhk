@@ -5,7 +5,12 @@ import { CalendarDays, MapPin, Users } from "lucide-react";
 
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
-import { cohortAvailability, type CohortAvailabilityState } from "@/features/cases/group-cohorts";
+import {
+  cohortAvailability,
+  describeCohortSessions,
+  type CohortAvailabilityState,
+} from "@/features/cases/group-cohorts";
+import { parseHourlyOpenHours } from "@/features/tutors/availability-grid-model";
 import { cn } from "@/lib/utils";
 
 /**
@@ -21,6 +26,8 @@ type CohortRow = {
   subject: string;
   student_level: string;
   weekly_schedule: string;
+  /** Issue #768: hourly Open hours; the schedule that actually blocks seats. */
+  sessions: unknown;
   mode: string;
   district: string | null;
   per_student_rate_hkd: number;
@@ -46,14 +53,17 @@ export function TutorGroupClassesSection({ tutorId }: { tutorId: string }) {
       const { data, error } = await supabase
         .from("group_cohorts")
         .select(
-          "id, title, subject, student_level, weekly_schedule, mode, district, per_student_rate_hkd, min_seats, max_seats, status, description",
+          "id, title, subject, student_level, weekly_schedule, sessions, mode, district, per_student_rate_hkd, min_seats, max_seats, status, description",
         )
         .eq("tutor_id", tutorId)
         .neq("status", "closed")
         .order("created_at", { ascending: false });
       // Pre-migration tab / hiccup → no section, never an error state.
       if (error) return [];
-      return (data ?? []) as CohortRow[];
+      // `sessions` is newer than the generated Supabase types, so the inferred
+      // row type is a SelectQueryError; the select is checked at runtime and
+      // this surface is display-only.
+      return (data ?? []) as unknown as CohortRow[];
     },
     enabled: Boolean(tutorId),
   });
@@ -74,6 +84,16 @@ export function TutorGroupClassesSection({ tutorId }: { tutorId: string }) {
           // Seat sums live server-side on the board; the profile shows the
           // structural state (forming/running) from min_seats only.
           const availability = cohortAvailability(cohort, []);
+          // Issue #768: hourly sessions are the advertised schedule; the free
+          // text stays as a note only when it adds something.
+          const derivedSchedule = describeCohortSessions(parseHourlyOpenHours(cohort.sessions), t);
+          const scheduleLine = derivedSchedule || cohort.weekly_schedule;
+          const weeklyNote =
+            derivedSchedule &&
+            cohort.weekly_schedule.trim() &&
+            cohort.weekly_schedule.trim() !== derivedSchedule
+              ? cohort.weekly_schedule.trim()
+              : null;
           return (
             <li key={cohort.id} className="rounded-sm border border-border p-4">
               <div className="flex flex-wrap items-center gap-2">
@@ -96,13 +116,15 @@ export function TutorGroupClassesSection({ tutorId }: { tutorId: string }) {
               <p className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
                 <span>{cohort.subject}</span>
                 <span>· {cohort.student_level}</span>
-                <span className="inline-flex items-center gap-1">
-                  <CalendarDays
-                    className="h-3.5 w-3.5 text-[color:var(--brand-link)]"
-                    aria-hidden="true"
-                  />
-                  {cohort.weekly_schedule}
-                </span>
+                {scheduleLine ? (
+                  <span className="inline-flex items-center gap-1">
+                    <CalendarDays
+                      className="h-3.5 w-3.5 text-[color:var(--brand-link)]"
+                      aria-hidden="true"
+                    />
+                    {scheduleLine}
+                  </span>
+                ) : null}
                 {cohort.mode === "in_person" ? (
                   <span className="inline-flex items-center gap-1">
                     <MapPin
@@ -115,6 +137,9 @@ export function TutorGroupClassesSection({ tutorId }: { tutorId: string }) {
                   <span>{t("group_classes.mode_online")}</span>
                 )}
               </p>
+              {weeklyNote ? (
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{weeklyNote}</p>
+              ) : null}
               {cohort.description ? (
                 <p className="mt-1.5 line-clamp-2 text-xs leading-relaxed text-muted-foreground">
                   {cohort.description}
