@@ -1,3 +1,4 @@
+import { useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -14,6 +15,9 @@ import {
 import { hktClock, hktDayLabel, nextLessonFor } from "@/features/cases/case-schedule";
 import type { CaseTab } from "@/features/cases/case-schedule";
 import type { HubScheduleLesson, ScheduleCase } from "@/features/cases/case-schedule.functions";
+import { fetchCaseChildAvailability } from "@/features/cases/child-availability.functions";
+import { emptyHourlyOpenHours, isHourlyGridEmpty } from "@/features/tutors/availability-grid-model";
+import { AvailabilityHourlyGrid } from "@/features/tutors/availability-hourly-grid";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
@@ -31,6 +35,46 @@ function Fact({ label, value }: { label: string; value: string | null }) {
       <dt className="text-muted-foreground">{label}</dt>
       <dd className="text-right font-medium">{value}</dd>
     </div>
+  );
+}
+
+/**
+ * #768: the student's weekly Open hours, visible inside the case only while the
+ * matched tutor is on an active lead. The server decides who may read it; a
+ * refusal (null) renders nothing at all, so the block never hints at a child
+ * outside the caller's case.
+ */
+function ChildAvailability({ caseId }: { caseId: string }) {
+  const { t } = useTranslation();
+  const { data } = useQuery({
+    queryKey: ["case-child-availability", caseId],
+    queryFn: () => fetchCaseChildAvailability({ data: { caseId } }),
+  });
+  if (!data) return null;
+
+  return (
+    <section className="mt-5 rounded-xl border border-border p-3">
+      <p className="text-sm font-medium text-muted-foreground">
+        {t("case_manager.child_availability.title")}
+        {data.displayName ? ` · ${data.displayName}` : ""}
+      </p>
+      <p className="mt-1 text-xs text-muted-foreground">
+        {t("case_manager.child_availability.hint")}
+      </p>
+      {isHourlyGridEmpty(data.openHours) ? (
+        <p className="mt-2 text-sm text-muted-foreground">
+          {t("case_manager.child_availability.none")}
+        </p>
+      ) : (
+        <div className="mt-3">
+          <AvailabilityHourlyGrid
+            openHours={data.openHours}
+            occupiedHours={emptyHourlyOpenHours()}
+            allowPrefill={false}
+          />
+        </div>
+      )}
+    </section>
   );
 }
 
@@ -124,6 +168,10 @@ export function CaseDrawer({
               <Fact label={t("case_manager.fact_mode")} value={scheduleCase.mode} />
               <Fact label={t("case_manager.fact_district")} value={scheduleCase.district} />
             </dl>
+
+            {/* #768: the child's weekly Open hours, shared by the parent for
+                this active case only. */}
+            <ChildAvailability caseId={scheduleCase.id} />
 
             <section className="mt-5 space-y-2">
               <p className="text-sm font-semibold">
