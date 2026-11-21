@@ -1031,6 +1031,8 @@
     "completion_note_title": "Tutor's note"
   },
   "group_classes": {
+    "form_sessions_hint": "Blocks these hours on your public calendar once the cohort is full.",
+    "form_sessions": "Weekly time slots",
     "board_title": "Small group classes (2–6 students)",
     "board_intro": "Tutor-led cohorts at a lower per-student rate. The same 1.5-lesson admin fee applies per student, and every family keeps a private 1-on-1 case, unrelated parents never swap contact details.",
     "board_empty": "No cohorts are recruiting right now. Check back soon, or look for the Group badge on tutor profiles.",

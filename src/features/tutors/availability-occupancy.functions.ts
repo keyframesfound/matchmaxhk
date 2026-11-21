@@ -11,13 +11,16 @@
  *    time the private calendar already blocks.
  *  - roster_sessions via rosters.owner_user_id (#613 rosters — private classes
  *    and the WhatsApp-desk confirms recorded there).
+ *  - group_cohorts weekly sessions, but ONLY once every seat is taken (issue
+ *    #391 cohorts, #768 additional AC): a forming/running cohort with seats
+ *    left never blocks the tutor's public 1-on-1 hours.
  *
  * Returns ONLY day/hour integers in HKT (Asia/Hong_Kong): no student names,
  * lesson titles, times of other days, or earnings ever leave this function.
  *
  * Part 2 (#768 AC3): the discovery directory needs the same numbers for a page
- * of cards, so the derivation lives in one batch core — at most four reads for
- * every tutor on the page instead of four per tutor.
+ * of cards, so the derivation lives in one batch core — at most six reads for
+ * every tutor on the page instead of six per tutor.
  */
 
 import { createServerFn } from "@tanstack/react-start";
@@ -25,6 +28,7 @@ import { z } from "zod";
 
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import { selectRows, type Db } from "@/features/cases/desk-db";
+import { cohortAvailability } from "@/features/cases/group-cohorts";
 import { hktMinuteOfDay } from "@/features/cases/case-schedule";
 import { hktDateKey, hktWeekdayIndex } from "@/features/cases/sor";
 import {
@@ -32,6 +36,7 @@ import {
   HOURLY_GRID_END_HOUR,
   HOURLY_GRID_START_HOUR,
   emptyHourlyOpenHours,
+  parseHourlyOpenHours,
   type GridDay,
   type HourlyOpenHours,
 } from "@/features/tutors/availability-grid-model";
@@ -76,8 +81,23 @@ function hoursForRange(startMinute: number, durationMin: number): number[] {
 }
 
 /**
+ * Occupied (day, hour) cells a cohort's weekly sessions claim on its tutor's
+ * public grid — empty unless every seat is taken (#768 additional AC). Seats
+ * derive from the cohort's live cases (#391), so a cancellation frees the hours
+ * again and a closed cohort never occupies anything. `sessions` is untrusted
+ * JSONB (`{mon:[6,7],...}`) parsed defensively; null/empty claims nothing.
+ */
+export function cohortHoursWhenFull(
+  cohort: { status: string; min_seats: number; max_seats: number; sessions: unknown },
+  liveCases: { status: string; student_count: number }[],
+): HourlyOpenHours {
+  if (cohortAvailability(cohort, liveCases).state !== "full") return emptyHourlyOpenHours();
+  return parseHourlyOpenHours(cohort.sessions);
+}
+
+/**
  * Batch core: derive Occupied (day, hour) cells for every tutor in ONE pass of
- * at most four queries. Every read failure degrades to base Open hours for the
+ * at most six queries. Every read failure degrades to base Open hours for the
  * affected source — this function never throws.
  */
 export async function computeOccupiedHoursByTutor(
@@ -181,6 +201,50 @@ export async function computeOccupiedHoursByTutor(
         error instanceof Error ? error.message : error,
       );
     }
+  }
+
+  // 3) Group cohorts at full capacity (#768 additional AC: a 1-on-1 confirm is
+  // immediately Busy; a group/bootcamp only once every max_seats seat is taken).
+  try {
+    const cohortRows = await selectRows<{
+      id: string;
+      tutor_id: string;
+      status: string;
+      min_seats: number;
+      max_seats: number;
+      sessions: unknown;
+    }>(db, "group_cohorts", "id, tutor_id, status, min_seats, max_seats, sessions", [
+      { col: "tutor_id", op: "in", value: [...grids.keys()] },
+    ]);
+
+    if (cohortRows.length > 0) {
+      const caseRows = await selectRows<{
+        group_cohort_id: string;
+        status: string;
+        student_count: number;
+      }>(db, "tutoring_cases", "group_cohort_id, status, student_count", [
+        { col: "group_cohort_id", op: "in", value: cohortRows.map((row) => row.id) },
+      ]);
+      const casesByCohort = new Map<string, { status: string; student_count: number }[]>();
+      for (const row of caseRows) {
+        if (!row.group_cohort_id) continue;
+        const cases = casesByCohort.get(row.group_cohort_id) ?? [];
+        cases.push({ status: row.status, student_count: row.student_count });
+        casesByCohort.set(row.group_cohort_id, cases);
+      }
+
+      for (const cohort of cohortRows) {
+        const grid = grids.get(cohort.tutor_id);
+        if (!grid) continue;
+        const occupied = cohortHoursWhenFull(cohort, casesByCohort.get(cohort.id) ?? []);
+        for (const day of GRID_DAYS) addHours(grid, day, occupied[day]);
+      }
+    }
+  } catch (error) {
+    console.warn(
+      "[availability-occupancy] group_cohorts read failed, public grid shows base hours only:",
+      error instanceof Error ? error.message : error,
+    );
   }
 
   return grids;

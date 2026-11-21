@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useId, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -24,6 +24,12 @@ import {
   type GroupCohortView,
 } from "@/lib/group-cohort.functions";
 import { RATE_MAX, RATE_MIN } from "@/features/tutors/rates";
+import {
+  emptyHourlyOpenHours,
+  parseHourlyOpenHours,
+  type HourlyOpenHours,
+} from "@/features/tutors/availability-grid-model";
+import { HourlyAvailabilityEditor } from "@/features/tutors/availability-hourly-editor";
 import { cn } from "@/lib/utils";
 
 /**
@@ -41,6 +47,8 @@ type CohortFormState = {
   subject: string;
   studentLevel: string;
   weeklySchedule: string;
+  /** Issue #768: hourly Open hours that go Busy once every seat is taken. */
+  sessions: HourlyOpenHours;
   mode: "online" | "in_person";
   district: string;
   perStudentRateHkd: string;
@@ -56,6 +64,7 @@ const EMPTY_FORM: CohortFormState = {
   subject: "",
   studentLevel: "",
   weeklySchedule: "",
+  sessions: emptyHourlyOpenHours(),
   mode: "online",
   district: "",
   perStudentRateHkd: "",
@@ -78,6 +87,7 @@ function formFromCohort(cohort: GroupCohortView): CohortFormState {
     subject: cohort.subject,
     studentLevel: cohort.studentLevel,
     weeklySchedule: cohort.weeklySchedule,
+    sessions: parseHourlyOpenHours(cohort.sessions),
     mode: cohort.mode === "in_person" ? "in_person" : "online",
     district: cohort.district ?? "",
     perStudentRateHkd: String(cohort.perStudentRateHkd),
@@ -121,6 +131,7 @@ function CohortFormDialog({
   const queryClient = useQueryClient();
   const [form, setForm] = useState<CohortFormState>(initial);
   const [saving, setSaving] = useState(false);
+  const sessionsLabelId = useId();
   const update = (patch: Partial<CohortFormState>) => setForm((f) => ({ ...f, ...patch }));
 
   const save = async () => {
@@ -134,6 +145,7 @@ function CohortFormDialog({
           subject: form.subject,
           studentLevel: form.studentLevel,
           weeklySchedule: form.weeklySchedule,
+          sessions: form.sessions,
           mode: form.mode,
           district: form.district || null,
           perStudentRateHkd: Number(form.perStudentRateHkd),
@@ -223,6 +235,23 @@ function CohortFormDialog({
                   className={inputClass}
                 />
               </div>
+            </div>
+            <div
+              role="group"
+              aria-labelledby={sessionsLabelId}
+              className="space-y-2 rounded-md border border-border p-3"
+            >
+              <p id={sessionsLabelId} className="text-sm font-medium leading-none">
+                {t("group_classes.form_sessions")}
+              </p>
+              <p className="text-xs text-muted-foreground">
+                {t("group_classes.form_sessions_hint")}
+              </p>
+              <HourlyAvailabilityEditor
+                value={form.sessions}
+                onChange={(sessions) => update({ sessions })}
+                disabled={saving}
+              />
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div className="space-y-2">

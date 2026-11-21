@@ -26,7 +26,9 @@ import {
   COHORT_SCHEDULE_MAX,
   COHORT_TITLE_MAX,
   cohortAvailability,
+  sanitizeCohortSessions,
   type CohortStudentInput,
+  type HourlyOpenHours,
 } from "@/features/cases/group-cohorts";
 import { RATE_MAX, RATE_MIN } from "@/features/tutors/rates";
 
@@ -49,6 +51,12 @@ type CohortRow = {
   description: string | null;
   status: string;
   created_at: string;
+  /**
+   * Issue #768: weekly Open START hours JSONB (`{mon:[6,7],...}`). Untrusted on
+   * read; `toView` sanitizes it. The cohort selects below use `*`, which carries
+   * this column.
+   */
+  sessions: unknown;
 };
 
 type CohortTutorJoin = {
@@ -82,6 +90,8 @@ export type GroupCohortView = {
   seatsLeft: number;
   state: string;
   bookable: boolean;
+  /** Issue #768: sanitized weekly Open START hours (always all seven days). */
+  sessions: HourlyOpenHours;
 };
 
 async function selectRows<T extends Row>(
@@ -147,6 +157,7 @@ function toView(row: CohortRow, tutor: CohortTutorJoin, seatsTaken: number): Gro
     seatsLeft: availability.seatsLeft,
     state: availability.state,
     bookable: availability.bookable,
+    sessions: sanitizeCohortSessions(row.sessions),
   };
 }
 
@@ -170,6 +181,12 @@ const cohortInputSchema = z
     description: z.string().trim().max(COHORT_DESCRIPTION_MAX).optional().nullable(),
     // Tutors confirm an early start by flipping status to running.
     status: z.enum(["forming", "running"]).default("forming"),
+    /**
+     * Issue #768: weekly Open START hours. Accepted loosely here and sanitized
+     * on write — structured numbers, so the free-text contact filter never runs
+     * over it.
+     */
+    sessions: z.unknown().optional(),
   })
   .refine((data) => data.minSeats <= data.maxSeats, {
     message: "Min seats cannot exceed max seats.",
@@ -228,6 +245,8 @@ export const upsertMyGroupCohort = createServerFn({ method: "POST" })
       max_seats: data.maxSeats,
       description: sanitizeCaseFreeText(data.description ?? "", COHORT_DESCRIPTION_MAX),
       status: data.status,
+      // Issue #768: sanitize to the seven-day Open-hours matrix (null clears).
+      sessions: data.sessions == null ? null : sanitizeCohortSessions(data.sessions),
     };
 
     if (data.id) {
