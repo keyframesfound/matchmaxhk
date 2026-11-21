@@ -35,6 +35,7 @@ import { ReportButton } from "@/features/reports/report-button";
 import { disputeSession } from "@/features/cases/experience.functions";
 import { disputeHoursLeft } from "@/features/tutors/experience";
 import { ParentHoursSection } from "@/features/hours/parent-hours-section";
+import { MistakeBookSection } from "@/features/cases/case-manager/mistake-book-tab";
 import { isTimeClashError } from "@/features/cases/schedule-lesson";
 import i18n from "@/features/i18n/config";
 
@@ -197,6 +198,11 @@ function ParentCaseDetailPage() {
 
             {/* #637: household briefing and student self-input. */}
             <DemandSidePanel caseId={caseId} />
+
+            {/* #796 §2.2: Digital Mistake Book — the student/parent side of the
+                Case Workspace. Self-upload works before class without the tutor;
+                the section stays a soft "opens after Lesson 1" note until then. */}
+            <MistakeBookSection caseId={caseId} />
 
             {/* Lesson timeline */}
             <section className="space-y-2">

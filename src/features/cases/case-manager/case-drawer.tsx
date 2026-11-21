@@ -20,6 +20,7 @@ import { cn } from "@/lib/utils";
 import { BillingTab } from "./billing-tab";
 import { EditLessonsDialog } from "./edit-lessons-dialog";
 import { HomeworkTab } from "./homework-tab";
+import { MistakeBookSection } from "./mistake-book-tab";
 import { ProgressTab } from "./progress-tab";
 import { SeriesDialog } from "./series-dialog";
 
@@ -92,6 +93,8 @@ export function CaseDrawer({
             <TabsTrigger value="overview">{t("homework.tab_overview")}</TabsTrigger>
             <TabsTrigger value="homework">{t("homework.tab")}</TabsTrigger>
             <TabsTrigger value="progress">{t("progress.tab")}</TabsTrigger>
+            {/* #796 §2.2: the Mistake Book sits beside the progress/heatmap surface. */}
+            <TabsTrigger value="mistakes">{t("mistakes.tab")}</TabsTrigger>
             <TabsTrigger value="schedule">{t("billing.tab")}</TabsTrigger>
           </TabsList>
           <TabsContent value="homework">
@@ -99,6 +102,9 @@ export function CaseDrawer({
           </TabsContent>
           <TabsContent value="progress">
             <ProgressTab caseId={scheduleCase.id} />
+          </TabsContent>
+          <TabsContent value="mistakes">
+            <MistakeBookSection caseId={scheduleCase.id} />
           </TabsContent>
           <TabsContent value="schedule">
             <BillingTab caseId={scheduleCase.id} onScheduleChanged={onChanged} />
