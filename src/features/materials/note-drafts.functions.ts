@@ -80,6 +80,8 @@ const DraftMetaInput = z.object({
   description: z.string().trim().max(4000).optional(),
   // #314: HK$0 is a valid price (free pack), only negatives are rejected.
   priceHkd: z.number().min(0).max(100_000).optional(),
+  // #784 §2.6: show the #731 1-on-1 CTA on this listing (tutor sellers).
+  linkTutorProfile: z.boolean().optional(),
   // #313 note kinds: curriculum is the site's canonical list, type is the
   // notes/mock/exemplar/flashcards split, topic is a free 40-char filter.
   // nullish topic/grade/subject = explicit clear (null) vs keep (absent).
@@ -168,6 +170,8 @@ export type MyMaterialsRow = {
   title: string;
   status: MaterialStatus;
   priceHkd: number;
+  /** #784 §2.6: #731 1-on-1 CTA switch for this listing (default on). */
+  linkTutorProfile?: boolean;
   rejectionReason: string | null;
   editStatus: string | null;
   editRejectionReason: string | null;
@@ -674,6 +678,7 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
           ...(data.title != null ? { title: data.title } : {}),
           ...(data.description != null ? { description: data.description } : {}),
           ...(data.priceHkd != null ? { price_hkd: data.priceHkd } : {}),
+          ...(data.linkTutorProfile != null ? { link_tutor_profile: data.linkTutorProfile } : {}),
           curriculum_tag: kinds.curriculum,
           subject_tag: kinds.subject || null,
           material_type: kinds.materialType,
@@ -695,6 +700,7 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
         title: data.title?.trim() || "Untitled note",
         description: data.description ?? null,
         price_hkd: data.priceHkd ?? 0,
+        ...(data.linkTutorProfile != null ? { link_tutor_profile: data.linkTutorProfile } : {}),
         curriculum_tag: kinds.curriculum,
         subject_tag: kinds.subject || null,
         material_type: kinds.materialType,
@@ -1008,6 +1014,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
         title: merged.title,
         description: data.description ?? null,
         price_hkd: merged.priceHkd,
+        ...(data.linkTutorProfile != null ? { link_tutor_profile: data.linkTutorProfile } : {}),
         curriculum_tag: kinds.curriculum,
         subject_tag: kinds.subject || null,
         material_type: kinds.materialType,
@@ -1049,6 +1056,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
           ...(data.title != null ? { title: data.title } : {}),
           ...(data.description != null ? { description: data.description } : {}),
           ...(data.priceHkd != null ? { price_hkd: data.priceHkd } : {}),
+          ...(data.linkTutorProfile != null ? { link_tutor_profile: data.linkTutorProfile } : {}),
           curriculum_tag: kinds.curriculum,
           subject_tag: kinds.subject || null,
           material_type: kinds.materialType,
@@ -1185,6 +1193,7 @@ export const editLiveNote = createServerFn({ method: "POST" })
         ...(data.title != null ? { title: data.title } : {}),
         ...(data.description != null ? { description: data.description } : {}),
         ...(data.priceHkd != null ? { price_hkd: data.priceHkd } : {}),
+        ...(data.linkTutorProfile != null ? { link_tutor_profile: data.linkTutorProfile } : {}),
         ...(data.yearTag != null ? { year_tag: data.yearTag } : {}),
         ...v2ListingPatch(data),
       })
@@ -1246,7 +1255,8 @@ export const getMyMaterials = createServerFn({ method: "POST" })
         .order("updated_at", { ascending: false });
     // Notes upload v2: fall back to the pre-v2 column list when the v2
     // migration is not applied yet (42703 = undefined column).
-    const richColumns = "preview_image_paths, trailer_video_url, whats_included, syllabus_outline";
+    const richColumns =
+      "preview_image_paths, trailer_video_url, whats_included, syllabus_outline, link_tutor_profile";
     let result = await run(`${baseColumns}, ${v2Columns}, ${richColumns}`);
     if (result.error?.code === "42703") result = await run(`${baseColumns}, ${v2Columns}`);
     if (result.error?.code === "42703") result = await run(baseColumns);
@@ -1258,6 +1268,7 @@ export const getMyMaterials = createServerFn({ method: "POST" })
       title: str(row.title) || "Untitled note",
       status: (str(row.status) as MaterialStatus | null) ?? "draft",
       priceHkd: Number(row.price_hkd ?? 0),
+      linkTutorProfile: (row as { link_tutor_profile?: unknown }).link_tutor_profile !== false,
       rejectionReason: str(row.rejection_reason),
       editStatus: str(row.edit_status),
       editRejectionReason: str(row.edit_rejection_reason),

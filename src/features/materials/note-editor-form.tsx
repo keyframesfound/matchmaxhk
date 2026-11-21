@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
 import {
   FileText,
@@ -105,27 +106,81 @@ import {
   earningsEstimate,
   marketplaceTakeRate,
   NOTES_OPTION_A_LIVE,
+  PLATFORM_FEE_RATE,
   validateListingPrice,
 } from "@/features/materials/marketplace-policy";
 import { isCourseMaterialType } from "@/features/materials/lifecycle";
+import {
+  appendToDescription,
+  appendToTitle,
+  titleBase,
+} from "@/features/materials/listing-helpers";
 
-/** #573 Option A live calculator; the payment fee is always an estimate. #672: tiered take rate. */
-function EarningsCalculator({
-  priceHkd,
-  materialType,
+/** #784 §2.6: optional helper chips. They only ever append; Undo restores. */
+function StarterChips({
+  chips,
+  value,
+  onChange,
+  apply,
 }: {
-  priceHkd: number;
-  materialType: string;
+  chips: string[];
+  value: string;
+  onChange: (next: string) => void;
+  apply: (current: string, chip: string) => string;
 }) {
   const { t } = useTranslation();
-  const takeRate = marketplaceTakeRate({
-    // The seller sees the rate they will be charged; verification tier is
-    // confirmed at checkout — the form shows the standard tier for
-    // unverified sellers and the course tier for course kinds.
-    verified: false,
-    isCourse: isCourseMaterialType(materialType),
-  });
-  const e = earningsEstimate(priceHkd, takeRate);
+  const [previous, setPrevious] = useState<string | null>(null);
+  if (chips.length === 0 && previous === null) return null;
+  return (
+    <div className="flex flex-wrap items-center gap-1.5 pt-1">
+      <span className="text-[11px] text-muted-foreground">{t("notes.helpers.starters")}</span>
+      {chips.map((chip) => (
+        <button
+          key={chip}
+          type="button"
+          className="rounded-full border border-border px-2.5 py-1 text-[11px] hover:bg-muted"
+          onClick={() => {
+            setPrevious(value);
+            onChange(apply(value, chip));
+          }}
+        >
+          + {chip.split("\n")[0]}
+        </button>
+      ))}
+      {previous !== null ? (
+        <button
+          type="button"
+          className="text-[11px] font-semibold underline"
+          onClick={() => {
+            onChange(previous);
+            setPrevious(null);
+          }}
+        >
+          {t("notes.helpers.undo")}
+        </button>
+      ) : null}
+    </div>
+  );
+}
+
+/**
+ * #573 Option A live calculator (#784 §2.6): listed price → MatchMax 2% →
+ * Stripe card fee (an estimate here; the real fee comes from Stripe) → seller
+ * net, released after the 72h hold in the weekly Monday FPS batch. Uses the
+ * locked 2% launch rate, never the unconfirmed #672 tiers. Seller-only: the
+ * buyer still pays exactly the listed price.
+ */
+function EarningsCalculator({ priceHkd }: { priceHkd: number; materialType?: string }) {
+  const { t } = useTranslation();
+  if (!(priceHkd > 0)) {
+    return (
+      <div className="rounded-xl border border-border p-4 text-sm">
+        <p className="font-semibold">{t("notes_option_a.fee_title")}</p>
+        <p className="mt-1 text-muted-foreground">{t("notes_option_a.fee_free")}</p>
+      </div>
+    );
+  }
+  const e = earningsEstimate(priceHkd, PLATFORM_FEE_RATE);
   const money = (v: number) => `HK$${v.toFixed(2)}`;
   return (
     <div className="space-y-2 rounded-xl border border-border p-4 text-sm">
@@ -224,6 +279,30 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   const [summary, setSummary] = useState(existing?.summary ?? "");
   const [description, setDescription] = useState(existing?.description ?? "");
   const [price, setPrice] = useState<string>(existing ? String(existing.priceHkd ?? 0) : "");
+  // #784 §2.6: link this listing to the seller's tutor profile (#731 CTA).
+  const [linkTutorProfile, setLinkTutorProfile] = useState<boolean>(
+    existing?.linkTutorProfile ?? true,
+  );
+  const sellerProfile = useQuery({
+    queryKey: ["notes", "seller-has-tutor-profile"],
+    queryFn: async () => {
+      const { data: auth } = await supabase.auth.getUser();
+      const uid = auth.user?.id;
+      if (!uid) return false;
+      const { data } = await supabase
+        .from("tutors")
+        .select("is_community_seller, tutor_code")
+        .eq("user_id", uid)
+        .maybeSingle();
+      const row = data as {
+        is_community_seller?: boolean | null;
+        tutor_code?: string | null;
+      } | null;
+      return Boolean(row?.tutor_code) && row?.is_community_seller !== true;
+    },
+    staleTime: 5 * 60_000,
+  });
+  const hasTutorProfile = sellerProfile.data === true;
   const [curriculum, setCurriculum] = useState<string>(existing?.curriculumTag ?? "");
   const [subcategory, setSubcategory] = useState<string>(existing?.subcategory ?? "");
   const [subject, setSubject] = useState(existing?.subjectTag ?? "");
@@ -613,6 +692,8 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     title: title.trim(),
     description: description.trim() || undefined,
     priceHkd: price ? Number(price) : undefined,
+    // Notes-only sellers never link (the toggle is hidden and off for them).
+    linkTutorProfile: hasTutorProfile ? linkTutorProfile : false,
     curriculumTag: isNoteCurriculum(curriculum) ? curriculum : undefined,
     subjectTag: subject.trim() || null,
     materialType,
@@ -849,6 +930,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           title: meta.title,
           description: meta.description,
           priceHkd: meta.priceHkd,
+          linkTutorProfile: meta.linkTutorProfile,
           yearTag: meta.yearTag,
           summary: meta.summary,
           subcategory: meta.subcategory,
@@ -1447,6 +1529,22 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             className="h-11"
           />
           {violationNote(copyViolations.titleV)}
+          {/* #784 §2.6: optional, append-only title chips (one-step undo). */}
+          <StarterChips
+            chips={(() => {
+              const base = titleBase({ curriculum, subject, topic });
+              return base
+                ? [
+                    t("notes.helpers.title_notes", { base }),
+                    t("notes.helpers.title_revision", { base }),
+                    t("notes.helpers.title_exam", { base }),
+                  ]
+                : [];
+            })()}
+            value={title}
+            onChange={setTitle}
+            apply={(current, chip) => appendToTitle(current, chip)}
+          />
         </div>
 
         <div className="space-y-1.5">
@@ -1474,6 +1572,17 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-[0.95rem] focus-visible:border-[color:var(--ring)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
           />
           {violationNote(copyViolations.descV)}
+          {/* #784 §2.6: optional, append-only description starters. */}
+          <StarterChips
+            chips={[
+              t("notes.helpers.desc_inside"),
+              t("notes.helpers.desc_best_for"),
+              t("notes.helpers.desc_how_to_use"),
+            ]}
+            value={description}
+            onChange={setDescription}
+            apply={(current, chip) => appendToDescription(current, chip)}
+          />
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -1596,11 +1705,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             value={collectionId}
             onChange={setCollectionId}
           />
-          <VariantPicker
-            materialId={materialId ?? null}
-            value={variant}
-            onChange={setVariant}
-          />
+          <VariantPicker materialId={materialId ?? null} value={variant} onChange={setVariant} />
           <div className="space-y-1.5">
             <Label htmlFor="note-language">{t("notes.upload.field_language")}</Label>
             <Select value={language} onValueChange={setLanguage}>
@@ -1853,6 +1958,22 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           priceHkd={Number.isNaN(priceNum) ? null : priceNum}
           onUsePrice={(value) => setPrice(String(value))}
         />
+        {/* #784 §2.6: the shipped #731 CTA, per listing; tutor sellers only. */}
+        {hasTutorProfile ? (
+          <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 text-sm">
+            <Checkbox
+              checked={linkTutorProfile}
+              onCheckedChange={(c) => setLinkTutorProfile(c === true)}
+              className="mt-0.5"
+            />
+            <span>
+              <span className="block font-medium">{t("notes.helpers.link_profile_label")}</span>
+              <span className="mt-0.5 block text-xs text-muted-foreground">
+                {t("notes.helpers.link_profile_hint")}
+              </span>
+            </span>
+          </label>
+        ) : null}
         {NOTES_OPTION_A_LIVE ? (
           <EarningsCalculator
             priceHkd={Number.isNaN(priceNum) ? 0 : priceNum}

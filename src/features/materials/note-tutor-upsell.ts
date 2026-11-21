@@ -40,6 +40,8 @@ function sameSubject(a: string, b: string): boolean {
 export function decideNoteUpsell(input: {
   isOwner: boolean;
   isCommunitySeller: boolean;
+  /** #784 §2.6: the seller turned the 1-on-1 link off for this listing. */
+  linkedToProfile?: boolean;
   tutorCode: string | null;
   /** From the tutor's inquiry action: false when full / inactive / paused. */
   tutorTakingStudents: boolean;
@@ -47,6 +49,7 @@ export function decideNoteUpsell(input: {
   viewerCases: readonly UpsellCase[];
 }): UpsellDecision {
   if (input.isOwner || input.isCommunitySeller || !input.tutorCode) return "hidden";
+  if (input.linkedToProfile === false) return "hidden";
   const code = input.tutorCode.toUpperCase();
   const subject = input.noteSubject ?? "";
   const sameSubjectActive = subject

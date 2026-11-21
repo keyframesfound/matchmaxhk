@@ -498,6 +498,7 @@ function NotePage() {
                 tutorName={note.tutorName}
                 isOwner={isOwner}
                 isCommunitySeller={Boolean(note.isCommunitySeller)}
+                linkedToProfile={note.linkTutorProfile !== false}
                 curriculum={note.curriculumTag || null}
                 subject={note.subjectTag || null}
               />
