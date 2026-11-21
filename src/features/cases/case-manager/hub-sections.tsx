@@ -1,17 +1,12 @@
 import { useTranslation } from "react-i18next";
 
-import {
-  hktClock,
-  hktDayLabel,
-  nextLessonFor,
-} from "@/features/cases/case-schedule";
+import { hktClock, hktDayLabel, nextLessonFor } from "@/features/cases/case-schedule";
 import type {
   HubScheduleLesson,
   ProposedItem,
   ScheduleCase,
 } from "@/features/cases/case-schedule.functions";
-
-const ENDED = new Set(["closed", "replaced"]);
+import { isLiveCase } from "@/features/cases/sor";
 
 /** #636: live cases on the hub; each row opens the drawer. */
 export function ActiveCaseList({
@@ -24,7 +19,7 @@ export function ActiveCaseList({
   onOpenCase: (caseCode: string) => void;
 }) {
   const { t, i18n } = useTranslation();
-  const live = cases.filter((c) => !c.sorStatus || !ENDED.has(c.sorStatus));
+  const live = cases.filter((c) => isLiveCase(c.sorStatus));
   if (live.length === 0) return null;
   const dualRole = new Set(live.map((c) => c.role)).size > 1;
   const now = new Date();
