@@ -2576,7 +2576,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     disabled={!score.subject}
                   >
                     <SelectTrigger
-                      aria-label="Overall grade"
+                      aria-label={t("join.form.overall_grade")}
                       aria-invalid={
                         fieldErrors[`grade-${qualificationIndex}-${scoreIndex}`] ? true : undefined
                       }
@@ -2624,7 +2624,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                           }
                         >
                           <SelectTrigger
-                            aria-label="Assessment component"
+                            aria-label={t("join.form.assessment_component")}
                             className={controlClassName}
                           >
                             <SelectValue placeholder="Choose paper or assessment" />
@@ -2649,7 +2649,10 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                             })
                           }
                         >
-                          <SelectTrigger aria-label="Component score" className={controlClassName}>
+                          <SelectTrigger
+                            aria-label={t("join.form.component_score")}
+                            className={controlClassName}
+                          >
                             <SelectValue
                               placeholder={
                                 qualification.curriculum === IELTS_CURRICULUM ? "Band" : "Score"
@@ -2688,7 +2691,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                         type="button"
                         size="icon"
                         variant="ghost"
-                        aria-label="Remove assessment component"
+                        aria-label={t("join.form.remove_assessment_component")}
                         onClick={() =>
                           updateScore(qualificationIndex, scoreIndex, {
                             papers: score.papers.filter((_, itemIndex) => itemIndex !== paperIndex),
@@ -3583,7 +3586,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
             <>
               <Heading step={professional ? 3 : 3} title="Subjects Taught" />
               <Field
-                label="Curriculum"
+                label={t("join.form.curriculum")}
                 optional
                 hint="Narrow the subject list to one curriculum, Primary School, Junior Secondary, or University Admissions & Test Prep (SAT, ACT, IELTS, TOEFL, UCAT, ISAT, personal statement, interview and portfolio support)."
                 className="mb-5"
@@ -3604,7 +3607,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                 />
               </Field>
               <Field
-                label="Subjects Willing to Teach"
+                label={t("join.form.subjects_willing")}
                 required
                 hint="Select subjects from your academic profile that you are confident and capable of teaching. You can choose more than one."
                 error={fieldErrors.subjectsTaught}
@@ -3644,7 +3647,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
               <Heading step={professional ? 4 : 4} title="Lesson Preferences & Locations" />
               <div className="grid gap-4">
                 <Field
-                  label="Mode of Lesson"
+                  label={t("join.form.mode_of_lesson")}
                   required
                   hint="Being open to in-person lessons significantly increases your match rate."
                   error={fieldErrors.format}
@@ -3658,7 +3661,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                 </Field>
                 {base.format !== "Online" ? (
                   <Field
-                    label="Possible Teaching Locations (MTR Network)"
+                    label={t("join.form.teaching_locations")}
                     required
                     hint="Suggestions use estimated MTR rail and transfer time, not straight-line station distance. Walking time and delays are not included. You can choose more than one station."
                     error={fieldErrors.stations}
@@ -3854,7 +3857,11 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     key={index}
                     className="grid gap-3 rounded-sm border border-border p-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)_auto]"
                   >
-                    <Field label="Title" required error={fieldErrors[`achievement-title-${index}`]}>
+                    <Field
+                      label={t("join.form.achievement_title")}
+                      required
+                      error={fieldErrors[`achievement-title-${index}`]}
+                    >
                       <Input
                         value={achievement.title}
                         onChange={(event) =>
@@ -3864,7 +3871,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       />
                     </Field>
                     <Field
-                      label="Description"
+                      label={t("join.form.achievement_description")}
                       required
                       error={fieldErrors[`achievement-description-${index}`]}
                     >
@@ -3888,7 +3895,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       type="button"
                       size="icon"
                       variant="ghost"
-                      aria-label="Remove achievement"
+                      aria-label={t("join.form.remove_achievement")}
                       onClick={() =>
                         setBaseField(
                           "achievements",
@@ -3920,7 +3927,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                 {/* Issue #97: optional Trophy Cabinet. Consent appears only
                     after a photo is added; blank section = fully anonymous. */}
                 <Field
-                  label="Public Portfolio / Award Photos"
+                  label={t("join.form.portfolio_photos")}
                   optional
                   error={fieldErrors.portfolioConsent}
                   className="sm:col-span-2"
@@ -3964,7 +3971,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
               </div>
               <div className="mt-6 border-t border-border pt-5">
                 <Field
-                  label="Self-Introduction / 簡介"
+                  label={t("join.form.self_introduction")}
                   optional
                   error={fieldErrors.selfIntroduction}
                   hint="Write what the form does not ask: how you teach, who you work well with, results not on the transcript, and any specific service (e.g. IA review). No phone number, email, or social handle, parents reach you through MatchMax. You may write in English, Chinese, or both. Paragraph breaks are kept."
@@ -4137,7 +4144,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                   />
                 </Field>
                 <Field
-                  label="Teaching materials"
+                  label={t("join.form.teaching_materials")}
                   required
                   error={fieldErrors.materials}
                   className="self-start"
@@ -4241,7 +4248,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                         type="button"
                         size="icon"
                         variant="ghost"
-                        aria-label="Remove rate row"
+                        aria-label={t("join.form.remove_rate_row")}
                         onClick={() => removeRateRow(index)}
                       >
                         <Trash2 />
@@ -4273,7 +4280,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
               {/* Issue #191: intake asks capacity up front so admin can compare
                   supply against demand without a follow-up email. Optional. */}
               <Field
-                label="How many students can you take on at once?"
+                label={t("join.form.students_at_once")}
                 hint="Leave blank if you're not sure yet."
               >
                 <Input
@@ -4304,7 +4311,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       onCheckedChange={(checked) =>
                         setBaseField("pricingStandardized", checked === true)
                       }
-                      aria-label="Standardize my hourly rate across all levels"
+                      aria-label={t("join.form.standardize_rate")}
                     />
                     <span>Standardize my hourly rate across all levels</span>
                   </label>
