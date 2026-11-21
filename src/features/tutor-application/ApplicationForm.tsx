@@ -287,12 +287,20 @@ const invalidInputClassName =
   "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30";
 
 function RequiredFlag() {
-  return <span className="ml-2 align-middle text-xs font-medium text-destructive">Required</span>;
+  const { t } = useTranslation();
+  return (
+    <span className="ml-2 align-middle text-xs font-medium text-destructive">
+      {t("join.form.required")}
+    </span>
+  );
 }
 
 function OptionalFlag() {
+  const { t } = useTranslation();
   return (
-    <span className="ml-2 align-middle text-xs font-medium text-muted-foreground">Optional</span>
+    <span className="ml-2 align-middle text-xs font-medium text-muted-foreground">
+      {t("join.form.optional")}
+    </span>
   );
 }
 
@@ -433,6 +441,7 @@ function TrophyCabinetUpload({
   const [error, setError] = useState<string | null>(null);
   const [dragging, setDragging] = useState(false);
   const full = files.length >= MAX_PORTFOLIO_FILES;
+  const { t } = useTranslation();
 
   const addFiles = (candidates: FileList | null | undefined) => {
     if (!candidates || candidates.length === 0) return;
@@ -452,9 +461,9 @@ function TrophyCabinetUpload({
       accepted.push(candidate);
     }
     if (rejectedType) {
-      setError("Photos must be JPG, PNG, or WebP images.");
+      setError(t("join.form.portfolio_type_error"));
     } else if (rejectedSize) {
-      setError(`Each photo must be no larger than ${readableFileSize(MAX_FILE_BYTES)}.`);
+      setError(t("join.form.portfolio_size_error", { size: readableFileSize(MAX_FILE_BYTES) }));
     } else if (files.length + accepted.length >= MAX_PORTFOLIO_FILES) {
       setError(null);
     } else {
@@ -491,8 +500,11 @@ function TrophyCabinetUpload({
           <Upload className="h-4 w-4 text-[color:var(--muted-foreground)]" />
           <span>
             {files.length === 0
-              ? "Drop photos here or choose files"
-              : `Add more (${files.length}/${MAX_PORTFOLIO_FILES})`}
+              ? t("join.form.portfolio_drop")
+              : t("join.form.portfolio_add_more", {
+                  count: files.length,
+                  max: MAX_PORTFOLIO_FILES,
+                })}
           </span>
           <input
             type="file"
@@ -507,7 +519,7 @@ function TrophyCabinetUpload({
         </label>
       ) : (
         <p className="text-xs font-semibold text-muted-foreground">
-          Maximum of {MAX_PORTFOLIO_FILES} photos reached. Remove one to add another.
+          {t("join.form.portfolio_max_reached", { max: MAX_PORTFOLIO_FILES })}
         </p>
       )}
       {files.length > 0 ? (
@@ -531,7 +543,7 @@ function TrophyCabinetUpload({
                 type="button"
                 size="icon"
                 variant="ghost"
-                aria-label={`Remove ${file.name}`}
+                aria-label={t("join.form.remove_named", { name: file.name })}
                 className="absolute right-1 top-1 h-7 w-7 bg-[color:var(--surface)]/85 text-[color:var(--ink)] hover:bg-[color:var(--surface)]"
                 onClick={() => removeFile(index)}
               >
@@ -559,6 +571,7 @@ function ProfilePhotoUpload({
   const [dragging, setDragging] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (!file) {
@@ -573,11 +586,11 @@ function ProfilePhotoUpload({
   const selectFile = (candidate: File | undefined) => {
     if (!candidate) return;
     if (!isProfilePhoto(candidate)) {
-      setError("Please choose a JPG or PNG image.");
+      setError(t("join.form.photo_type_error"));
       return;
     }
     if (candidate.size > MAX_FILE_BYTES) {
-      setError(`Photo is too large. Maximum ${readableFileSize(MAX_FILE_BYTES)}.`);
+      setError(t("join.form.photo_size_error", { size: readableFileSize(MAX_FILE_BYTES) }));
       return;
     }
     setError(null);
@@ -608,13 +621,15 @@ function ProfilePhotoUpload({
           {previewUrl ? (
             <img
               src={previewUrl}
-              alt="Profile photo preview"
+              alt={t("join.form.photo_preview_alt")}
               className="h-full w-full object-cover"
             />
           ) : (
             <span className="grid justify-items-center gap-1">
               <User className="h-6 w-6" aria-hidden="true" />
-              <span className="text-[11px] font-semibold leading-none">Add photo</span>
+              <span className="text-[11px] font-semibold leading-none">
+                {t("join.form.add_photo")}
+              </span>
             </span>
           )}
           <input

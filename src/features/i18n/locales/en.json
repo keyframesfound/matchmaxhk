@@ -1676,6 +1676,20 @@
     "item5_desc": "We match you with experienced top scorers in these programs and fields, where you can learn to excel just like them, through tailored 1-on-1 tutoring."
   },
   "join": {
+    "form": {
+      "required": "Required",
+      "optional": "Optional",
+      "portfolio_type_error": "Photos must be JPG, PNG, or WebP images.",
+      "portfolio_size_error": "Each photo must be no larger than {{size}}.",
+      "portfolio_drop": "Drop photos here or choose files",
+      "portfolio_add_more": "Add more ({{count}}/{{max}})",
+      "portfolio_max_reached": "Maximum of {{max}} photos reached. Remove one to add another.",
+      "remove_named": "Remove {{name}}",
+      "photo_type_error": "Please choose a JPG or PNG image.",
+      "photo_size_error": "Photo is too large. Maximum {{size}}.",
+      "photo_preview_alt": "Profile photo preview",
+      "add_photo": "Add photo"
+    },
     "time_zone_invalid": "Choose a valid time zone.",
     "time_zone_hint_browser": "Suggested from this browser. Please confirm.",
     "time_zone_hint": "We use this for lesson times and to match you with students in a compatible zone.",
