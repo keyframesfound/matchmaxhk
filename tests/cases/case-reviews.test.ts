@@ -13,7 +13,9 @@ import {
 } from "../../src/features/cases/case-reviews";
 
 describe("case review rules (#205 + #287)", () => {
-  it("comment bounds: parent 20–600, tutor 20–400", () => {
+  // #794 §2.1 (CEO lock 2026-11-18): the text is OPTIONAL — the sheet is
+  // stars → optional text → optional desk note. Only the upper bound stays.
+  it("comment bounds: optional, capped at 600 / 400", () => {
     expect(reviewCommentMax("parent_to_tutor")).toBe(600);
     expect(reviewCommentMax("tutor_to_parent")).toBe(400);
     const long600 = "x".repeat(600);
@@ -21,9 +23,8 @@ describe("case review rules (#205 + #287)", () => {
     expect(validateReviewInput("parent_to_tutor", 5, long600).ok).toBe(true);
     expect(validateReviewInput("parent_to_tutor", 5, long601).ok).toBe(false);
     expect(validateReviewInput("tutor_to_parent", 5, long600).ok).toBe(false);
-    const short = "too short";
-    expect(validateReviewInput("parent_to_tutor", 5, short).ok).toBe(false);
-    expect(validateReviewInput("tutor_to_parent", 5, short).ok).toBe(false);
+    expect(validateReviewInput("parent_to_tutor", 5, "too short").ok).toBe(true);
+    expect(validateReviewInput("tutor_to_parent", 5, "").ok).toBe(true);
   });
 
   it("rating must be 1–5 integer", () => {
@@ -79,10 +80,12 @@ describe("case review rules (#205 + #287)", () => {
     expect(buildParentDisplayLine({})).toBe("Parent of a parent");
   });
 
-  it("#503: ratings open only after a BILATERALLY confirmed lesson", () => {
+  // #794 §2.1 supersedes #503's bilateral rule: ONE completed lesson unlocks
+  // ("Mark done" alone is enough). Planned / cancelled / no-show never count.
+  it("#794 §2.1: ratings open after ONE completed lesson", () => {
     const noConfirms = { confirmed_by_parent_at: null, confirmed_by_tutor_at: null };
-    // A tutor-only logged done lesson (parent never confirmed) does NOT unlock.
-    expect(parentCanReviewCase([{ status: "done", ...noConfirms }])).toBe(false);
+    // Marked done by the tutor alone still unlocks for the parent.
+    expect(parentCanReviewCase([{ status: "done", ...noConfirms }])).toBe(true);
     // Planned lessons unlock nothing, even when both sides confirmed.
     expect(
       parentCanReviewCase([
@@ -95,7 +98,7 @@ describe("case review rules (#205 + #287)", () => {
         { status: "cancelled", confirmed_by_parent_at: "t", confirmed_by_tutor_at: "t" },
       ]),
     ).toBe(false);
-    // A live bilaterally confirmed lesson unlocks (#503 "dual-confirm").
+    // A live bilaterally confirmed lesson still counts (legacy path).
     expect(
       parentCanReviewCase([
         { status: "confirmed", confirmed_by_parent_at: "t", confirmed_by_tutor_at: "t" },
@@ -108,10 +111,16 @@ describe("case review rules (#205 + #287)", () => {
         { status: "planned", ...noConfirms },
       ]),
     ).toBe(true);
-    // Tutor confirmed alone still waits for the parent (#503 explicit).
+    // A one-sided 'confirmed' lesson still waits: only 'done' is completion.
     expect(
       parentCanReviewCase([
-        { status: "done", confirmed_by_parent_at: null, confirmed_by_tutor_at: "t" },
+        { status: "confirmed", confirmed_by_parent_at: null, confirmed_by_tutor_at: "t" },
+      ]),
+    ).toBe(false);
+    // No-show is never completion.
+    expect(
+      parentCanReviewCase([
+        { status: "no_show", confirmed_by_parent_at: "t", confirmed_by_tutor_at: "t" },
       ]),
     ).toBe(false);
   });
