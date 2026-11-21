@@ -5,6 +5,10 @@ import { optionACopyKey } from "@/features/materials/marketplace-policy";
 
 import { fetchMaterialsForTutor, type StudyMaterial } from "@/features/materials/queries";
 import { StudyMaterialCard } from "@/features/materials/material-card";
+import {
+  fetchMaterialPublicCounts,
+  type MaterialPublicCounts,
+} from "@/features/materials/material-social-proof-stats";
 import { buildBookLessonsWhatsAppUrl, buildBuyWhatsAppUrl } from "@/features/materials/whatsapp";
 import { InlineReportLink } from "@/features/reports/report-button";
 
@@ -31,6 +35,15 @@ export function TutorMaterialsSection({
     queryKey: ["tutor", "materials", tutorId],
     queryFn: () => fetchMaterialsForTutor(tutorId),
   });
+  // #768 AC #4: one aggregate call covers this tutor's listing cards.
+  const materialIds = materials.slice(0, 60).map((material) => material.id);
+  const countsQuery = useQuery({
+    queryKey: ["materials", "public-counts", materialIds.join(",")],
+    queryFn: () => fetchMaterialPublicCounts(materialIds),
+    enabled: materialIds.length > 0,
+    staleTime: 5 * 60_000,
+  });
+  const publicCounts = countsQuery.data ?? new Map<string, MaterialPublicCounts>();
 
   if (materials.length === 0) return null;
 
@@ -45,6 +58,7 @@ export function TutorMaterialsSection({
             material={material}
             tutorName={tutorName}
             tutorCode={tutorCode}
+            socialProof={publicCounts.get(material.id) ?? null}
             actions={{
               buyHref: buildBuyWhatsAppUrl(whatsappNumber, material, tutorName),
               bookHref,

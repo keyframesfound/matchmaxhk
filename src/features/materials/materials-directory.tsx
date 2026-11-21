@@ -55,6 +55,10 @@ import {
   type MarketplaceMaterial,
 } from "@/features/materials/queries";
 import { NoteBrowseCard } from "@/features/materials/note-browse-card";
+import {
+  fetchMaterialPublicCounts,
+  type MaterialPublicCounts,
+} from "@/features/materials/material-social-proof-stats";
 import { cn } from "@/lib/utils";
 import { AuthGateDialog } from "@/features/auth/AuthGateDialog";
 import { useAuth } from "@/features/auth/useAuth";
@@ -324,6 +328,15 @@ export function MaterialsDirectory({
   const tailoring =
     shopTab === "notes" && !tailorOff && !curriculum ? (learnerTailoring ?? recentSignals) : null;
   const tailoredSplit = useMemo(() => splitTailored(filtered, tailoring), [filtered, tailoring]);
+  // #768 AC #4: one aggregate call for the visible grid (saves are RLS-locked).
+  const visibleIds = useMemo(() => filtered.slice(0, 60).map((m) => m.id), [filtered]);
+  const countsQuery = useQuery({
+    queryKey: ["materials", "public-counts", visibleIds.join(",")],
+    queryFn: () => fetchMaterialPublicCounts(visibleIds),
+    enabled: visibleIds.length > 0,
+    staleTime: 5 * 60_000,
+  });
+  const publicCounts = countsQuery.data ?? new Map<string, MaterialPublicCounts>();
   const tailoringLabel = tailoring?.curriculum
     ? learnerCurriculumLabel(tailoring.curriculum)
     : (tailoring?.subjects ?? []).join(", ");
@@ -412,6 +425,7 @@ export function MaterialsDirectory({
           material={material}
           rating={ratings.get(material.id) ?? null}
           saved={savedIds.has(material.id)}
+          socialProof={publicCounts.get(material.id) ?? null}
           onToggleSave={() => void toggleSave(material.id)}
         />
       ))}

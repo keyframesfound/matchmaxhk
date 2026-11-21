@@ -5,6 +5,8 @@ import { FileText, Heart, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/money";
 import { materialCoverUrl, shopKindLabel } from "@/features/materials/material-card";
+import { MaterialSocialProofLine } from "@/features/materials/material-social-proof-line";
+import type { MaterialSocialProofInput } from "@/features/materials/material-social-proof";
 import type { MarketplaceMaterial } from "@/features/materials/queries";
 
 /**
@@ -19,6 +21,7 @@ export function NoteBrowseCard({
   rating,
   saved,
   onToggleSave,
+  socialProof,
   className,
 }: {
   material: MarketplaceMaterial;
@@ -26,6 +29,8 @@ export function NoteBrowseCard({
   saved?: boolean;
   /** Omit to hide the heart (e.g. signed-out home row). */
   onToggleSave?: () => void;
+  /** #768: aggregate counts; missing values fall back to "New release". */
+  socialProof?: MaterialSocialProofInput | null;
   className?: string;
 }) {
   const { t } = useTranslation();
@@ -35,7 +40,6 @@ export function NoteBrowseCard({
   const price = isFree ? t("notes.card.free") : formatMoney(Number(material.price_hkd));
   const seller = material.tutor_display_name?.trim() || material.tutor_code;
   const slug = material.slug ?? material.id;
-
   return (
     <article className={cn("group relative min-w-0", className)}>
       <Link
@@ -88,6 +92,13 @@ export function NoteBrowseCard({
           </span>
           <span className="truncate">{seller}</span>
         </p>
+        <MaterialSocialProofLine
+          input={{
+            salesCount: socialProof?.salesCount ?? material.sold_count,
+            savesCount: socialProof?.savesCount,
+          }}
+          className="mt-1"
+        />
       </Link>
       {onToggleSave ? (
         <button

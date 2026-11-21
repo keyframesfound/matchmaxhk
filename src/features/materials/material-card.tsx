@@ -22,6 +22,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/money";
 import type { StudyMaterial } from "@/features/materials/queries";
+import { MaterialSocialProofLine } from "@/features/materials/material-social-proof-line";
+import type { MaterialSocialProofInput } from "@/features/materials/material-social-proof";
 import { getPublicListing } from "@/features/materials/listings.functions";
 
 /**
@@ -185,6 +187,7 @@ export function StudyMaterialCard({
   detailHref,
   includes,
   rating,
+  socialProof,
   footer,
 }: {
   material: StudyMaterial;
@@ -204,6 +207,8 @@ export function StudyMaterialCard({
   includes?: ShopListingIncludes | null;
   /** #556: verified-buyer rating summary (shown as ★ 4.9 (18)). */
   rating?: { average: number | null; count: number } | null;
+  /** #768: aggregate counts; missing values fall back to "New release". */
+  socialProof?: MaterialSocialProofInput | null;
   /** #556: card action bar (Compare · Share · Save). */
   footer?: ReactNode;
 }) {
@@ -302,10 +307,14 @@ export function StudyMaterialCard({
                   {t("notes.card.verified_tutor")}
                 </span>
               ) : null}
-              {Number(material.sold_count) > 0 ? (
-                <span>{t("shop.card.sold_count", { count: Number(material.sold_count) })}</span>
-              ) : null}
             </p>
+            <MaterialSocialProofLine
+              input={{
+                salesCount: socialProof?.salesCount ?? Number(material.sold_count),
+                savesCount: socialProof?.savesCount,
+              }}
+              className="mt-1"
+            />
           </div>
           <div className="shrink-0 text-right">
             <p className="text-lg font-bold text-[color:var(--ink)]">{price}</p>

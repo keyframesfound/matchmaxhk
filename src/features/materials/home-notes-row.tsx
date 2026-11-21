@@ -6,6 +6,12 @@ import { ArrowRight, FileText } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { fetchTutorPublicNotes, type HomeNote } from "@/features/materials/home-notes.queries";
+import { MaterialSocialProofLine } from "@/features/materials/material-social-proof-line";
+import type { MaterialSocialProofInput } from "@/features/materials/material-social-proof";
+import {
+  fetchMaterialPublicCounts,
+  type MaterialPublicCounts,
+} from "@/features/materials/material-social-proof-stats";
 import { fetchMarketplaceMaterials, formatMaterialTypeLabel } from "@/features/materials/queries";
 import { NoteBrowseCard } from "@/features/materials/note-browse-card";
 
@@ -22,11 +28,19 @@ import { NoteBrowseCard } from "@/features/materials/note-browse-card";
 
 const HOME_NOTES_LIMIT = 8;
 
-export function HomeNoteCard({ note, className }: { note: HomeNote; className?: string }) {
+export function HomeNoteCard({
+  note,
+  socialProof,
+  className,
+}: {
+  note: HomeNote;
+  /** #768: aggregate saves (sold falls back to the note's delivered orders). */
+  socialProof?: MaterialSocialProofInput | null;
+  className?: string;
+}) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const noteTarget = note.slug || note.id;
-
   const openNote = () => {
     void navigate({ to: "/notes/$slug", params: { slug: noteTarget } });
   };
@@ -64,9 +78,12 @@ export function HomeNoteCard({ note, className }: { note: HomeNote; className?: 
         </p>
       </div>
 
-      <p className="text-xs font-semibold text-muted-foreground">
-        {t("notes.home.bought_count", { count: note.boughtCount })}
-      </p>
+      <MaterialSocialProofLine
+        input={{
+          salesCount: socialProof?.salesCount ?? note.boughtCount,
+          savesCount: socialProof?.savesCount,
+        }}
+      />
 
       <div className="mt-auto pt-1">
         {/* Clicking the tutor opens the profile, not the note (stopPropagation
@@ -106,6 +123,15 @@ export function HomeNotesRow() {
     queryFn: fetchMarketplaceMaterials,
   });
   const notes = materials.filter((m) => NOTE_KINDS.has(m.material_type)).slice(0, HOME_NOTES_LIMIT);
+  // #768: saves are per-account in RLS, so the aggregate arrives via one RPC.
+  const noteIds = notes.map((material) => material.id);
+  const countsQuery = useQuery({
+    queryKey: ["materials", "public-counts", noteIds.join(",")],
+    queryFn: () => fetchMaterialPublicCounts(noteIds),
+    enabled: noteIds.length > 0,
+    staleTime: 5 * 60_000,
+  });
+  const counts = countsQuery.data ?? new Map<string, MaterialPublicCounts>();
 
   if (isLoading || notes.length === 0) return null;
 
@@ -133,6 +159,7 @@ export function HomeNotesRow() {
           <NoteBrowseCard
             key={material.id}
             material={material}
+            socialProof={counts.get(material.id) ?? null}
             className="w-[42vw] max-w-[200px] shrink-0 snap-start md:w-[200px]"
           />
         ))}
