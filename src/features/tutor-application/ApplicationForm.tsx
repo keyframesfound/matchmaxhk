@@ -262,13 +262,13 @@ const COUNTRY_DIAL_CODES: Record<string, string> = {
   Australia: "+61",
 };
 const ACADEMIC_STEPS = [
-  "Basic Info",
-  "Academics",
-  "Subjects Taught",
-  "Preferences",
-  "Experience",
-  "Rate",
-  "Acknowledgments",
+  "join.form.heading_basic_info",
+  "join.form.heading_academics",
+  "join.form.heading_subjects",
+  "join.form.heading_preferences",
+  "join.form.heading_experience",
+  "join.form.heading_logistics",
+  "join.form.heading_acknowledgments",
 ];
 const PROFESSIONAL_STEPS = [
   "Basic Details",
@@ -2790,7 +2790,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     !isComplete && !isCurrent && "border-border text-muted-foreground",
                   )}
                   aria-current={isCurrent ? "step" : undefined}
-                  aria-label={label}
+                  aria-label={t(label)}
                 >
                   {isComplete ? <Check className="h-4 w-4" aria-hidden="true" /> : stepNumber}
                 </button>
@@ -2813,9 +2813,9 @@ export function ApplicationForm({ completePending = false }: { completePending?:
             <div className="mb-6 flex items-start gap-2.5 rounded-sm border border-border bg-[color:var(--surface)] px-4 py-3 text-sm leading-relaxed text-muted-foreground">
               <Gift className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <span>
-                Applied with referral code{" "}
-                <span className="font-medium text-[color:var(--ink)]">{referralCode}</span>, they
-                earn a 15% reward once you complete your first case.
+                {t("join.form.referral_prefix")}{" "}
+                <span className="font-medium text-[color:var(--ink)]">{referralCode}</span>
+                {t("join.form.referral_suffix")}
               </span>
             </div>
           ) : null}
@@ -2841,7 +2841,11 @@ export function ApplicationForm({ completePending = false }: { completePending?:
             <>
               <Heading
                 step={1}
-                title={professional ? "Basic Details & Professional Status" : "Basic Details"}
+                titleKey={
+                  professional
+                    ? "join.form.heading_basic_professional"
+                    : "join.form.heading_basic_info"
+                }
               />
               <Field label={t("join.form.profile_photo")} optional className="sm:col-span-2">
                 <ProfilePhotoUpload
@@ -3129,8 +3133,10 @@ export function ApplicationForm({ completePending = false }: { completePending?:
             <>
               <Heading
                 step={2}
-                title={
-                  professional ? "Higher Education & Teaching Credentials" : "Academic Background"
+                titleKey={
+                  professional
+                    ? "join.form.heading_academics_professional"
+                    : "join.form.heading_academics"
                 }
               />
               {/* #545: one-click prefill from the user's Education CV. */}
@@ -3588,7 +3594,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
 
           {step === 3 ? (
             <>
-              <Heading step={professional ? 3 : 3} title="Subjects Taught" />
+              <Heading step={3} titleKey="join.form.heading_subjects" />
               <Field
                 label={t("join.form.curriculum")}
                 optional
@@ -3648,7 +3654,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
 
           {step === 4 ? (
             <>
-              <Heading step={professional ? 4 : 4} title="Lesson Preferences & Locations" />
+              <Heading step={4} titleKey="join.form.heading_preferences" />
               <div className="grid gap-4">
                 <Field
                   label={t("join.form.mode_of_lesson")}
@@ -3849,7 +3855,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
 
           {step === 5 ? (
             <>
-              <Heading step={professional ? 5 : 5} title="Achievements and Experiences" />
+              <Heading step={5} titleKey="join.form.heading_experience" />
               <Hint>
                 Achievements and experience are optional. Add only items you would like MatchMax to
                 consider. You do not upload any evidence here, grade slips are added later from your
@@ -3871,7 +3877,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                         onChange={(event) =>
                           updateAchievement(index, { title: event.target.value })
                         }
-                        placeholder="Award or role"
+                        placeholder={t("join.form.award_role")}
                       />
                     </Field>
                     <Field
@@ -3884,7 +3890,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                         onChange={(event) =>
                           updateAchievement(index, { description: event.target.value })
                         }
-                        placeholder="Brief details"
+                        placeholder={t("join.form.brief_details")}
                         aria-invalid={
                           fieldErrors[`achievement-description-${index}`] ? true : undefined
                         }
@@ -4081,7 +4087,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
 
           {step === 6 ? (
             <>
-              <Heading step={professional ? 6 : 6} title="Logistics & Rate" />
+              <Heading step={6} titleKey="join.form.heading_logistics" />
               {primary.curriculum === "IBDP" ? (
                 <Hint>
                   Suggested recent graduate rates: 45/45 HK$500/hr, 43-44 HK$400/hr, 40-42
@@ -4379,7 +4385,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
 
           {step === stepTitles.length ? (
             <>
-              <Heading step={stepTitles.length} title="Acknowledgments" />
+              <Heading step={stepTitles.length} titleKey="join.form.heading_acknowledgments" />
               <div className="grid gap-5">
                 <div className="grid gap-1.5">
                   <label className="flex gap-3 text-sm text-muted-foreground">
@@ -4529,11 +4535,11 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                 "Submitting…"
               ) : step < stepTitles.length ? (
                 <>
-                  Next <ArrowRight className="ml-2 h-5 w-5" />
+                  {t("join.form.next")} <ArrowRight className="ml-2 h-5 w-5" />
                 </>
               ) : user ? (
                 <>
-                  <Send className="mr-2 h-5 w-5" /> Submit application
+                  <Send className="mr-2 h-5 w-5" /> {t("join.form.submit_application")}
                 </>
               ) : (
                 <>
@@ -4549,11 +4555,14 @@ export function ApplicationForm({ completePending = false }: { completePending?:
   );
 }
 
-function Heading({ step, title }: { step: number; title: string }) {
+function Heading({ step, titleKey }: { step: number; titleKey: string }) {
+  const { t } = useTranslation();
   return (
     <div className="mb-6">
-      <p className="text-xs font-medium text-[color:var(--muted-foreground)]">Step {step}</p>
-      <h2 className="mt-2 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">{title}</h2>
+      <p className="text-xs font-medium text-[color:var(--muted-foreground)]">
+        {t("join.form.step_label", { step })}
+      </p>
+      <h2 className="mt-2 text-2xl font-bold text-[color:var(--ink)] sm:text-3xl">{t(titleKey)}</h2>
     </div>
   );
 }
