@@ -111,7 +111,6 @@ import {
   ACCEPT_ATTRIBUTE,
   ACCEPTED_FILE_TYPES,
   ACCEPTED_PORTFOLIO_IMAGE_TYPES,
-  COMMISSION_TEXT,
   CURRICULUM_OPTIONS,
   EMAIL_REGEX,
   EXAMINING_BOARD_OPTIONS,
@@ -125,7 +124,6 @@ import {
   PROFILE_PHOTO_ACCEPT_ATTRIBUTE,
   PROFESSIONAL_ROLE_OPTIONS,
   PROFESSIONAL_FORM_STATUSES,
-  PRIVACY_TEXT,
   STATUS_FORM_OPTIONS,
   TEACHING_QUALIFICATION_OPTIONS,
   tutorApplicationSchema,
@@ -4417,7 +4415,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       and confirm the information I have provided is true and complete.
                       {fieldErrors.terms ? (
                         <span className="ml-2 align-middle text-xs font-medium text-destructive">
-                          Required
+                          {t("join.form.required")}
                         </span>
                       ) : null}
                       {/* Issue #309: verification scope lines, part of the
@@ -4460,11 +4458,11 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     />
                     <span>
                       {professional
-                        ? "I consent to MatchMax using my credentials and CV to verify my professional status, promote my teaches profile, and protect my anonymity."
-                        : PRIVACY_TEXT}
+                        ? t("join.form.privacy_ack_professional")
+                        : t("join.form.privacy_ack")}
                       {fieldErrors.privacy ? (
                         <span className="ml-2 align-middle text-xs font-medium text-destructive">
-                          Required
+                          {t("join.form.required")}
                         </span>
                       ) : null}
                     </span>
@@ -4479,10 +4477,10 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       className={fieldErrors.commission ? "border-destructive" : undefined}
                     />
                     <span>
-                      {COMMISSION_TEXT}
+                      {t("join.form.commission_ack")}
                       {fieldErrors.commission ? (
                         <span className="ml-2 align-middle text-xs font-medium text-destructive">
-                          Required
+                          {t("join.form.required")}
                         </span>
                       ) : null}
                     </span>

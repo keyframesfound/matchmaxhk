@@ -1677,6 +1677,9 @@
   },
   "join": {
     "form": {
+      "privacy_ack": "本人同意 MatchMax 根據《個人資料（私隱）條例》（第 486 章）收集及使用本表格內嘅個人資料，用於導師登記及配對用途。",
+      "privacy_ack_professional": "本人同意 MatchMax 使用本人嘅資歷同履歷去核實專業身份、推廣本人嘅導師檔案，並保障本人嘅匿名性。",
+      "commission_ack": "本人明白 MatchMax 會就每位新學生收取第 1 堂課 100% 及第 2 堂課 50% 嘅學費，作為配對服務費。",
       "remove_course_grade": "移除課程成績",
       "gpa_hint": "以 0 – 4.3 計，可選。",
       "course_grades_hint": "可選：填你打算補習嘅課程成績。",
