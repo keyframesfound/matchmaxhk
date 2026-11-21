@@ -355,62 +355,68 @@ function readableFileSize(bytes: number) {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+// #798: values are i18n keys, resolved by describeFieldError at render time
+// so the "missing field" list speaks the reader's language.
 const FIELD_LABELS: Record<string, string> = {
-  name: "Full Name",
-  phone: "Phone / WhatsApp Number",
-  email: "Email",
-  profilePhoto: "Profile photo",
-  country: "Country / Region",
-  countryOther: "Country / Region, specify",
-  status: "Current Status",
-  statusOther: "Current Status, specify",
-  portfolioConsent: "Trophy cabinet photo consent",
-  portfolioImages: "Trophy cabinet photos",
-  university: "University / Institution",
-  programme: "Degree / Programme Major",
-  postgradUniversity: "Postgraduate University / Institution",
-  postgradDegree: "Postgraduate Degree / Qualification",
-  medium: "Medium of Instruction",
-  roles: "Professional Role",
-  boards: "Examining Board(s)",
-  credentials: "Teaching Qualifications",
-  highSchool: "Secondary School Attended",
-  subjectsTaught: "Subjects Willing to Teach",
-  format: "Mode of Lesson",
-  stations: "Possible Teaching Locations (MTR Network)",
-  onlineRate: "Online hourly rate (HKD)",
-  inpersonRate: "In-person hourly rate (HKD)",
-  rateRows: "Extra rate rows",
-  travelNote: "Travel note",
-  rateNote: "Rate note",
-  materials: "Teaching materials",
-  gender: "Gender",
-  availabilityGrid: "Weekly availability",
-  commission: "Commission acknowledgment (final step)",
-  privacy: "Privacy consent (final step)",
-  terms: "Terms and Conditions consent (final step)",
-  termsGate: "Terms of Service acceptance (final step)",
-  captcha: "Security check (final step)",
+  name: "join.form.full_name",
+  phone: "join.form.phone_whatsapp",
+  email: "join.form.email",
+  profilePhoto: "join.form.profile_photo",
+  country: "join.form.country_region",
+  countryOther: "join.form.country_region_specify",
+  status: "join.form.current_status",
+  statusOther: "join.form.current_status_specify",
+  portfolioConsent: "join.form.portfolio_consent",
+  portfolioImages: "join.form.portfolio_images",
+  university: "join.form.university",
+  programme: "join.form.degree_programme",
+  postgradUniversity: "join.form.postgrad_university",
+  postgradDegree: "join.form.postgrad_degree",
+  medium: "join.form.medium_of_instruction",
+  roles: "join.form.professional_role",
+  boards: "join.form.examining_board",
+  credentials: "join.form.teaching_qualifications",
+  highSchool: "join.form.secondary_school",
+  subjectsTaught: "join.form.subjects_willing",
+  format: "join.form.mode_of_lesson",
+  stations: "join.form.teaching_locations",
+  onlineRate: "join.form.online_rate",
+  inpersonRate: "join.form.inperson_rate",
+  rateRows: "join.form.rate_rows",
+  travelNote: "join.form.travel_note",
+  rateNote: "join.form.rate_note",
+  materials: "join.form.teaching_materials",
+  gender: "join.form.gender",
+  availabilityGrid: "join.form.weekly_availability",
+  commission: "join.form.ack_commission",
+  privacy: "join.form.ack_privacy",
+  terms: "join.form.ack_terms",
+  termsGate: "join.form.ack_terms_gate",
+  captcha: "join.form.ack_captcha",
 };
 
-function describeFieldError(key: string): string {
-  if (FIELD_LABELS[key]) return FIELD_LABELS[key];
+function describeFieldError(
+  key: string,
+  t: (k: string, o?: Record<string, unknown>) => string,
+): string {
+  const labelKey = FIELD_LABELS[key];
+  if (labelKey) return t(labelKey);
   let match = key.match(/^curriculum-(\d+)$/);
-  if (match) return `Qualification ${Number(match[1]) + 1}, Curriculum`;
+  if (match) return t("join.form.error_curriculum", { n: Number(match[1]) + 1 });
   match = key.match(/^overall-(\d+)$/);
-  if (match) return `Qualification ${Number(match[1]) + 1}, Overall achieved score/grades`;
+  if (match) return t("join.form.error_overall", { n: Number(match[1]) + 1 });
   match = key.match(/^boards-(\d+)$/);
-  if (match) return `Qualification ${Number(match[1]) + 1}, Exam Board(s)`;
+  if (match) return t("join.form.error_boards", { n: Number(match[1]) + 1 });
   match = key.match(/^subject-(\d+)-(\d+)$/);
   if (match)
-    return `Qualification ${Number(match[1]) + 1}, subject scores row ${Number(match[2]) + 1}: subject`;
+    return t("join.form.error_subject_row", { q: Number(match[1]) + 1, r: Number(match[2]) + 1 });
   match = key.match(/^grade-(\d+)-(\d+)$/);
   if (match)
-    return `Qualification ${Number(match[1]) + 1}, subject scores row ${Number(match[2]) + 1}: grade`;
+    return t("join.form.error_grade_row", { q: Number(match[1]) + 1, r: Number(match[2]) + 1 });
   match = key.match(/^achievement-title-(\d+)$/);
-  if (match) return `Achievement ${Number(match[1]) + 1}, Title`;
+  if (match) return t("join.form.error_achievement_title", { n: Number(match[1]) + 1 });
   match = key.match(/^achievement-description-(\d+)$/);
-  if (match) return `Achievement ${Number(match[1]) + 1}, Description`;
+  if (match) return t("join.form.error_achievement_description", { n: Number(match[1]) + 1 });
   return key;
 }
 
@@ -2830,7 +2836,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                 {Object.keys(fieldErrors).length > 0 ? (
                   <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs font-semibold">
                     {Object.keys(fieldErrors).map((key) => (
-                      <li key={key}>{describeFieldError(key)}</li>
+                      <li key={key}>{describeFieldError(key, t)}</li>
                     ))}
                   </ul>
                 ) : null}
