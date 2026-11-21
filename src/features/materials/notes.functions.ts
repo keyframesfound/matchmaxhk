@@ -28,7 +28,7 @@ export const PUBLIC_NOTE_V2_COLUMNS =
 
 /** #556 rich listing columns (gallery, trailer, what's included, syllabus). */
 export const PUBLIC_NOTE_RICH_COLUMNS =
-  "preview_image_paths, trailer_video_url, whats_included, syllabus_outline";
+  "preview_image_paths, trailer_video_url, whats_included, syllabus_outline, link_tutor_profile";
 
 export const PUBLIC_NOTE_TUTOR_JOIN =
   "tutors!inner(display_name, tutor_code, user_id, is_published, verification_tier)";
@@ -74,6 +74,8 @@ export type PublicNote = {
   tutorVerificationTier: string | null;
   /** #573: notes-only seller without a tutor card (no profile link). */
   isCommunitySeller: boolean;
+  /** #784 §2.6: the seller keeps the #731 1-on-1 CTA on this listing. */
+  linkTutorProfile: boolean;
   // --- #556 rich listing (empty before the migration).
   previewImagePaths: string[];
   trailerVideoUrl: string | null;
@@ -144,6 +146,7 @@ export function mapPublicNote(row: NoteRow): PublicNote | null {
       typeof tutor?.verification_tier === "string" ? tutor.verification_tier : null,
     isCommunitySeller:
       (tutor as { is_community_seller?: unknown } | null)?.is_community_seller === true,
+    linkTutorProfile: (row as { link_tutor_profile?: unknown }).link_tutor_profile !== false,
     previewImagePaths: Array.isArray(row.preview_image_paths)
       ? row.preview_image_paths.filter((p): p is string => typeof p === "string")
       : [],

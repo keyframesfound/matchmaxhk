@@ -21,6 +21,7 @@ export function NoteTutorUpsellCard({
   tutorName,
   isOwner,
   isCommunitySeller,
+  linkedToProfile = true,
   curriculum,
   subject,
 }: {
@@ -28,12 +29,14 @@ export function NoteTutorUpsellCard({
   tutorName: string;
   isOwner: boolean;
   isCommunitySeller: boolean;
+  /** #784 §2.6: per-listing 1-on-1 link (default on). */
+  linkedToProfile?: boolean;
   curriculum: string | null;
   subject: string | null;
 }) {
   const { t, i18n } = useTranslation();
   const { user } = useAuth();
-  const enabled = Boolean(tutorCode) && !isOwner && !isCommunitySeller;
+  const enabled = Boolean(tutorCode) && !isOwner && !isCommunitySeller && linkedToProfile;
   const tutorQuery = useQuery({
     queryKey: ["tutors", "by-code", tutorCode],
     queryFn: () => fetchTutorByCode(tutorCode as string),

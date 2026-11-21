@@ -2283,7 +2283,19 @@
     },
     "hold_title": "48–72h payout hold (buyer & seller protection)",
     "hold_disclosure": "Seller payout is held for 48 hours after delivery (72 hours for new sellers in their first 14 days or first sales), or until the buyer taps 'Received, no issue', whichever is sooner. Refunds for defective or misdescribed files are paid solely from still-held seller funds during the hold window.",
-    "trial_cta": "Request 1-on-1 Trial with This Tutor ($0 Matching Fee)"
+    "trial_cta": "Request 1-on-1 Trial with This Tutor ($0 Matching Fee)",
+    "helpers": {
+      "starters": "Starters:",
+      "undo": "Undo",
+      "title_notes": "{{base}} notes",
+      "title_revision": "{{base}} revision summary",
+      "title_exam": "{{base}} exam practice with answers",
+      "desc_inside": "What's inside:\n- ",
+      "desc_best_for": "Best for:\n- ",
+      "desc_how_to_use": "How to use these notes:\n- ",
+      "link_profile_label": "Show \"Request this tutor for 1-on-1\" on this listing",
+      "link_profile_hint": "Buyers can ask MatchMax to match them with you. Hidden automatically when they already have an active case in this subject."
+    }
   },
   "orders": {
     "checkout_title": "Finish your order",
@@ -4163,7 +4175,7 @@
     "fee_platform": "MatchMax platform fee (2%)",
     "fee_gateway": "Payment fee (estimate)",
     "fee_net": "Estimated payout to you",
-    "fee_note": "Buyers pay exactly your listed price. The payment fee is an estimate for cards (about 3.4% + HK$2.35); it is lower when the buyer pays with AlipayHK or FPS. Payouts are monthly once your balance reaches HK$50.",
+    "fee_note": "Buyers pay exactly your listed price. The card fee shown is an estimate; the actual Stripe fee is deducted. You receive the net after the 72-hour buyer-protection hold, paid in the weekly Monday FPS batch (cut-off Sunday 23:59 HKT; minimum HK$50).",
     "price_rule": "Free (HK$0) or HK$20 to HK$5,000.",
     "price_below_minimum": "Paid listings start at HK$20. Set HK$0 for a free item.",
     "price_above_maximum": "The maximum price is HK$5,000.",
@@ -4185,7 +4197,8 @@
     "tour_shop": "Upload study notes, video courses or services here. You keep the price minus a 2% platform fee and the payment fee.",
     "studio_payout_note": "Weekly Monday FPS payout · Sunday 23:59 HKT cut-off · minimum HK$50. MatchMax fee 2% during the launch window, plus the Stripe card fee.",
     "studio_in_hold_hint": "Orders inside the 72h buyer-protection window",
-    "studio_available_hint": "Cleared balance for the next weekly FPS batch"
+    "studio_available_hint": "Cleared balance for the next weekly FPS batch",
+    "fee_free": "This listing is free. No MatchMax fee or Stripe fee is charged."
   },
   "marketplace": {
     "tab_notes": "Notes",

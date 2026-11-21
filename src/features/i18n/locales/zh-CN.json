@@ -2283,7 +2283,19 @@
     },
     "hold_title": "48–72 小时放款暂存（买卖双方保障）",
     "hold_disclosure": "卖家款项将于档案交付后暂存 48 小时（新卖家首 14 日或首宗交易为 72 小时），或直至买家点击『已收妥，没有问题』为止（以较早者为准）。如档案损坏或与描述不符，退款仅限于暂存期内由尚未发放之卖家款项中扣除。",
-    "trial_cta": "申请此导师 1 对 1 试堂（$0 配对费）"
+    "trial_cta": "申请此导师 1 对 1 试堂（$0 配对费）",
+    "helpers": {
+      "starters": "开头提示：",
+      "undo": "还原",
+      "title_notes": "{{base}} 笔记",
+      "title_revision": "{{base}} 复习重点",
+      "title_exam": "{{base}} 试题练习连答案",
+      "desc_inside": "里面有什么：\n- ",
+      "desc_best_for": "最适合谁用：\n- ",
+      "desc_how_to_use": "如何使用这份笔记：\n- ",
+      "link_profile_label": "在这份教材显示「预约此导师 1 对 1 补习」",
+      "link_profile_hint": "买家可以经 MatchMax 申请与你配对。如果他在这科已有进行中的个案，会自动隐藏。"
+    }
   },
   "orders": {
     "checkout_title": "完成订单",
@@ -4155,7 +4167,7 @@
     "fee_platform": "MatchMax 平台服务费（2%）",
     "fee_gateway": "付款手续费（估算）",
     "fee_net": "预计您可收取",
-    "fee_note": "买家只需支付您的标示售价。付款手续费按信用卡估算（约 3.4% + HK$2.35），买家以 AlipayHK 或 FPS 付款时会较低。余额满 HK$50 后每月发放。",
+    "fee_note": "买家只需支付你的标价。上面的卡费为估算，实际会扣除 Stripe 收取的费用。72 小时买家保障期结束后，你会收到净额，于每周一 FPS 批次出粮（截数为星期日 23:59 香港时间；最低 HK$50）。",
     "price_rule": "免费（HK$0）或 HK$20 至 HK$5,000。",
     "price_below_minimum": "付费商品最低售价为 HK$20。免费商品请设定为 HK$0。",
     "price_above_maximum": "最高售价为 HK$5,000。",
@@ -4177,7 +4189,8 @@
     "tour_shop": "在此上传学习笔记、视频课程或服务。您可收取售价扣除 2% 平台服务费及付款手续费后之金额。",
     "studio_payout_note": "每周一以转数快出粮 · 截数为星期日 23:59（香港时间）· 最低 HK$50。推出期间 MatchMax 收取 2%，另加 Stripe 卡费。",
     "studio_in_hold_hint": "仍在 72 小时买家保障期内的订单",
-    "studio_available_hint": "可于下次每周转数快批次发放的款项"
+    "studio_available_hint": "可于下次每周转数快批次发放的款项",
+    "fee_free": "这份是免费教材，不收取 MatchMax 或 Stripe 费用。"
   },
   "marketplace": {
     "tab_notes": "笔记",
