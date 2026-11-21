@@ -559,6 +559,12 @@ function TutorDetail() {
   // public profile with the hourly grid.
   const openHours = resolvePublicOpenHours(t);
   const hasOpenHours = !isHourlyGridEmpty(openHours);
+  // Issue #768 CEO lock: the grid's Open cells pre-fill the request only when
+  // the profile's Request action is actually live — same predicate order as the
+  // header CTA below (own listing, then a status chip for full/inactive/
+  // suspended, then the no-Open-hours disable).
+  const isOwnListing = Boolean(user && user.id === t.user_id);
+  const requestActionable = !isOwnListing && inquiry.kind !== "status" && hasOpenHours;
   const genderLabel = getTutorGenderLabel(t.gender);
   // Issue #502: the display name (preferred name) is the primary identity in
   // the header — named: "DisplayName • Gender (TutorCode)"; unnamed keeps
@@ -946,7 +952,7 @@ function TutorDetail() {
                   targetName={t.display_name || t.tutor_code}
                   targetVerified={t.verification_tier === "tier_2_verified"}
                 />
-                {user && user.id === t.user_id ? (
+                {isOwnListing ? (
                   <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">
                     <Lock className="h-3.5 w-3.5" aria-hidden="true" />
                     {translate("profile.own_listing_disabled")}
@@ -1321,7 +1327,12 @@ function TutorDetail() {
                   3-hour grid and its hide-when-empty behaviour — the section
                   stays visible with the empty state when no Open hours exist. */}
               <ProfileSection icon={Clock} title={translate("profile.section_availability")}>
-                <AvailabilityHourlyGrid openHours={openHours} occupiedHours={occupied} />
+                <AvailabilityHourlyGrid
+                  openHours={openHours}
+                  occupiedHours={occupied}
+                  tutorCode={t.tutor_code}
+                  allowPrefill={requestActionable}
+                />
               </ProfileSection>
 
               {/* Issues #83 + #105 (+ reviews half of #116): verified

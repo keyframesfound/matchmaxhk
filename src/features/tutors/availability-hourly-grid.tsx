@@ -28,18 +28,31 @@ import { cn } from "@/lib/utils";
 
 const OPEN_CELL_CLASS =
   "border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/85 hover:bg-[color:var(--brand-link)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]";
+// Same green cell, no hover/focus affordance: used when the profile's Request
+// action is closed (fully booked / inactive), so Open stays visible but is not
+// tappable.
+const OPEN_CELL_STATIC_CLASS =
+  "border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/85";
 const OCCUPIED_CELL_CLASS = "border-[color:var(--ink)]/40 bg-[color:var(--ink)]/80";
 const CLOSED_CELL_CLASS = "border-border bg-muted/50";
 
 export function AvailabilityHourlyGrid({
   openHours,
   occupiedHours,
+  tutorCode,
+  allowPrefill = true,
   className,
 }: {
   /** Base weekly Open hours (hourly column, or the legacy fallback read). */
   openHours: HourlyOpenHours;
   /** Confirmed-lesson overrides derived on read; clipped to Open hours. */
   occupiedHours: HourlyOpenHours;
+  /** Public tutor code carried into the request form so the case keeps the
+   * tutor the parent was viewing (issue #768). */
+  tutorCode?: string | null;
+  /** False when the profile's Request action is disabled: Open cells stay
+   * visible but render as non-interactive divs (no link, no focus stop). */
+  allowPrefill?: boolean;
   className?: string;
 }) {
   const { t } = useTranslation();
@@ -105,12 +118,30 @@ export function AvailabilityHourlyGrid({
                           </td>
                         );
                       }
+                      const openCellLabel = `${t(`profile.grid_day_${day}`)} ${hourlyRangeLabel(hour)}: ${t("profile.grid_cell_open")}`;
+                      if (!allowPrefill) {
+                        return (
+                          <td key={day} className="h-6">
+                            <div
+                              role="img"
+                              aria-label={openCellLabel}
+                              className={cn(
+                                "flex h-6 w-full rounded-[4px] border",
+                                OPEN_CELL_STATIC_CLASS,
+                              )}
+                            />
+                          </td>
+                        );
+                      }
                       return (
                         <td key={day} className="h-6">
                           <Link
                             to="/case-request"
-                            search={{ req_time: `${day}-${hour}` }}
-                            aria-label={`${t(`profile.grid_day_${day}`)} ${hourlyRangeLabel(hour)}: ${t("profile.grid_cell_open")}`}
+                            search={{
+                              req_time: `${day}-${hour}`,
+                              ...(tutorCode ? { tutor: tutorCode } : {}),
+                            }}
+                            aria-label={openCellLabel}
                             className={cn(
                               "flex h-6 w-full rounded-[4px] border transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]",
                               OPEN_CELL_CLASS,

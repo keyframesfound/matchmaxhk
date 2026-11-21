@@ -303,6 +303,11 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
   // public preview with the hourly grid.
   const openHours = resolvePublicOpenHours(tutor);
   const hasOpenHours = !isHourlyGridEmpty(openHours);
+  // Issue #768 CEO lock: the preview mirrors the public profile, so Open cells
+  // pre-fill only when this view's Request action is live — same predicate as
+  // the header CTA below (status chip for full/inactive/suspended, then the
+  // no-Open-hours disable).
+  const requestActionable = inquiry.kind !== "status" && hasOpenHours;
   // Occupied overrides derive at read time from confirmed bookings; the
   // preview is the owner's own view of the public surface, same integers only.
   const { data: occupied } = useQuery({
@@ -716,6 +721,8 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
               <AvailabilityHourlyGrid
                 openHours={openHours}
                 occupiedHours={occupied ?? emptyHourlyOpenHours()}
+                tutorCode={tutor.tutor_code}
+                allowPrefill={requestActionable}
               />
             </ProfileSection>
 
