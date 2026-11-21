@@ -48,6 +48,9 @@ import {
 import { gigTimelineSteps } from "@/features/gigs/gig";
 import { GigOrderPanels } from "@/features/gigs/gig-order-view";
 import { ReportMenuButton } from "@/features/reports/report-button";
+import { startStripeCheckout } from "@/features/materials/stripe-checkout.functions";
+import { NOTES_OPTION_A_LIVE } from "@/features/materials/marketplace-policy";
+import { orderGrantsAccess } from "@/features/materials/lifecycle";
 
 /**
  * #203 checkout + order status page. Manual cashier: the parent sees the
@@ -76,10 +79,28 @@ function OrderPage() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploading, setUploading] = useState(false);
 
+  // #784 §2.1: back from Stripe Checkout. The webhook can land a few
+  // seconds after the redirect, so poll briefly until delivery shows.
+  const [fromCheckout] = useState(
+    () => typeof window !== "undefined" && window.location.search.includes("checkout=success"),
+  );
   const orderQuery = useQuery({
     queryKey: ["order", orderId, user?.id],
     queryFn: () => getMyOrder({ data: { orderId } }),
     enabled: Boolean(user),
+    refetchInterval: (query) =>
+      fromCheckout && (query.state.data as { action?: string } | undefined)?.action !== "download"
+        ? 3000
+        : false,
+  });
+  const continuePayment = useMutation({
+    mutationFn: () => startStripeCheckout({ data: { orderId } }),
+    onSuccess: (res) => {
+      if ("url" in res) window.location.assign(res.url);
+      else void queryClient.invalidateQueries({ queryKey: ["order", orderId] });
+    },
+    onError: (e) =>
+      toast.error(e instanceof Error ? e.message : t("notes_option_a.checkout_unavailable")),
   });
 
   const orderData = orderQuery.data;
@@ -268,7 +289,7 @@ function OrderPage() {
       <SiteHeader />
       <main className="mx-auto w-full max-w-4xl flex-1 px-4 py-10 sm:px-6">
         <h1 className="text-2xl font-medium tracking-normal">
-          {order.status === "delivered" || order.status === "held" || order.status === "released"
+          {orderGrantsAccess(order.status)
             ? isGig
               ? t("gigs.delivered_title")
               : t("orders.delivered_title")
@@ -307,8 +328,32 @@ function OrderPage() {
                 past_due refund, delivered completion note). */}
             {isGig && <GigOrderPanels order={order} />}
 
+            {/* #784 §2.1: Stripe confirmation after Checkout. */}
+            {fromCheckout ? (
+              <p className="rounded-xl border border-success/40 bg-success/5 p-4 text-sm font-semibold">
+                {order.action === "download"
+                  ? t("notes_option_a.checkout_success")
+                  : t("notes_option_a.checkout_confirming")}
+              </p>
+            ) : null}
+
+            {/* #784 §2.1: once Option A is live, an unpaid order continues to
+                Stripe; the public 20% FPS cashier is never shown. */}
+            {NOTES_OPTION_A_LIVE && !isGig && order.action === "pay" && !fromCheckout ? (
+              <div className="space-y-3 rounded-2xl border border-border bg-card p-6">
+                <p className="text-sm text-muted-foreground">{t("notes_option_a.trust_callout")}</p>
+                <Button
+                  className="w-full font-bold"
+                  disabled={continuePayment.isPending}
+                  onClick={() => continuePayment.mutate()}
+                >
+                  {t("notes_option_a.continue_payment")}
+                </Button>
+              </div>
+            ) : null}
+
             {/* FPS instructions */}
-            {order.action === "pay" && (
+            {!(NOTES_OPTION_A_LIVE && !isGig) && order.action === "pay" && (
               <div className="space-y-4 rounded-2xl border border-border bg-card p-6">
                 <h2 className="flex items-center gap-2 text-lg font-bold">
                   <Receipt className="h-4 w-4" aria-hidden />

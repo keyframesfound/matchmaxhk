@@ -32,6 +32,45 @@ import { selectRows } from "@/features/cases/desk-db";
 export const CHECKOUT_HOLD_HOURS = 72;
 
 /**
+ * #784 §2.1/§2.2: a released Stripe order's seller net enters the seller
+ * ledger (seller_balance_entries, kind sale_net) for the Monday FPS batch.
+ * One row per order (partial unique index); a repeat sweep is a no-op.
+ */
+async function postSaleNetEntries(db: AdminDb, orderIds: string[]): Promise<void> {
+  if (orderIds.length === 0) return;
+  const orders = await selectRows<{
+    id: string;
+    tutor_id: string;
+    tutor_net_hkd: number | string | null;
+    seller_net_payout_hkd: number | string | null;
+  }>(db, "material_orders", "id, tutor_id, tutor_net_hkd, seller_net_payout_hkd", [
+    { col: "id", op: "in", value: orderIds },
+  ]);
+  const tutorIds = [...new Set(orders.map((o) => o.tutor_id))];
+  const tutors = tutorIds.length
+    ? await selectRows<{ id: string; user_id: string | null }>(db, "tutors", "id, user_id", [
+        { col: "id", op: "in", value: tutorIds },
+      ])
+    : [];
+  const owner = new Map(tutors.map((t) => [t.id, t.user_id]));
+  for (const o of orders) {
+    const userId = owner.get(o.tutor_id);
+    const net = Number(o.seller_net_payout_hkd ?? o.tutor_net_hkd ?? 0);
+    if (!userId || !(net > 0)) continue;
+    const { error } = await db.from<never>("seller_balance_entries").insert({
+      user_id: userId,
+      order_id: o.id,
+      kind: "sale_net",
+      amount_hkd: net,
+      note: "Released after the 72h hold",
+    });
+    if (error && !/duplicate|unique/i.test(error.message)) {
+      console.warn("[checkout-v2] ledger entry failed:", error.message);
+    }
+  }
+}
+
+/**
  * Flip past-due paid_held orders to completed_released. Orders with an OPEN
  * dispute (opened / seller_responded) are skipped: the dispute freezes the
  * release until staff resolve. Advisory — never throws.
@@ -61,6 +100,7 @@ export async function sweepCheckoutHolds(db: AdminDb): Promise<void> {
         released_reason: "checkout_hold_expired",
       })
       .in("id", ids);
+    await postSaleNetEntries(db, ids);
   } catch {
     // Advisory: pre-migration env or a hiccup must not break the read.
   }
