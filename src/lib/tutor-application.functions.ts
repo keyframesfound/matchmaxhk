@@ -29,9 +29,14 @@ const TermsGateInput = z.object({ legalAgreed: z.literal(true) });
  * `tutorApplicationSchema` strips them; this parse keeps them explicit before
  * they are written onto the published tutors row.
  */
+/**
+ * #798 AC-8 / AC-9: city and a confirmed IANA time zone are part of a complete
+ * join, so the publish gate enforces them, not just the form. The message is
+ * bilingual because a stale tab is the realistic way to hit it.
+ */
 const LocalityInput = z.object({
-  city: z.string().trim().max(80).optional(),
-  timeZone: z.string().trim().max(64).optional(),
+  city: z.string().trim().min(1, "Add your city / 請填寫城市").max(80),
+  timeZone: z.string().trim().min(1, "Confirm your time zone / 請確認時區").max(64),
 });
 
 const publishResultSchema = z.object({
@@ -241,7 +246,7 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
     TermsGateInput.parse(input);
     const parsed = tutorApplicationSchema.parse(input);
     const locality = LocalityInput.parse(input);
-    return { ...parsed, city: locality.city ?? "", timeZone: locality.timeZone ?? "" };
+    return { ...parsed, city: locality.city, timeZone: locality.timeZone };
   })
   .handler(async ({ data, context }) => {
     const { turnstileToken, ...application } = data;
