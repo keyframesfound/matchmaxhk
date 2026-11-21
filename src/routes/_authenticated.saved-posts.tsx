@@ -34,7 +34,7 @@ export const Route = createFileRoute("/_authenticated/saved-posts")({
   ssr: false,
   head: () => ({
     meta: [
-      { title: "Saved Posts | MatchMax" },
+      { title: "Saved | MatchMax" },
       { name: "description", content: "Your saved MatchMax tutors." },
       { name: "robots", content: "noindex" },
     ],
