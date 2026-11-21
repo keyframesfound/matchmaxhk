@@ -82,6 +82,7 @@
     "resend": "^4.0.0",
     "sonner": "^2.0.7",
     "standardwebhooks": "^1.0.0",
+    "stripe": "23.1.0",
     "tailwind-merge": "^3.5.0",
     "tailwindcss": "^4.2.1",
     "tiptap-markdown": "^0.9.0",
