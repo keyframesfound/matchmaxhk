@@ -1677,6 +1677,16 @@
   },
   "join": {
     "form": {
+      "form_progress": "表格進度",
+      "profile_photo": "個人相片",
+      "full_name": "全名",
+      "email": "電郵",
+      "country_region": "國家／地區",
+      "phone_whatsapp": "電話／WhatsApp 號碼",
+      "medium_of_instruction": "教學語言",
+      "graduation_year": "畢業年份",
+      "earliest_availability": "最早可開始",
+      "current_status": "現時身份",
       "required": "必填",
       "optional": "可選",
       "portfolio_type_error": "相片必須係 JPG、PNG 或 WebP 格式。",

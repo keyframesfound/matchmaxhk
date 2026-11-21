@@ -1677,6 +1677,16 @@
   },
   "join": {
     "form": {
+      "form_progress": "表格进度",
+      "profile_photo": "个人照片",
+      "full_name": "全名",
+      "email": "电子邮件",
+      "country_region": "国家／地区",
+      "phone_whatsapp": "电话／WhatsApp 号码",
+      "medium_of_instruction": "教学语言",
+      "graduation_year": "毕业年份",
+      "earliest_availability": "最早可开始",
+      "current_status": "现时身份",
       "required": "必填",
       "optional": "可选",
       "portfolio_type_error": "照片必须系 JPG、PNG 或 WebP 格式。",

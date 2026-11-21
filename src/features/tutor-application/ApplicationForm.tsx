@@ -2760,7 +2760,10 @@ export function ApplicationForm({ completePending = false }: { completePending?:
         </aside>
       ) : null}
       <div className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-5 sm:p-8">
-        <ol className="mb-8 flex items-center gap-2 sm:gap-3" aria-label="Form progress">
+        <ol
+          className="mb-8 flex items-center gap-2 sm:gap-3"
+          aria-label={t("join.form.form_progress")}
+        >
           {stepTitles.map((label, index) => {
             const stepNumber = index + 1;
             const isComplete = stepNumber < step;
@@ -2833,7 +2836,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                 step={1}
                 title={professional ? "Basic Details & Professional Status" : "Basic Details"}
               />
-              <Field label="Profile Photo" optional className="sm:col-span-2">
+              <Field label={t("join.form.profile_photo")} optional className="sm:col-span-2">
                 <ProfilePhotoUpload
                   file={base.photo}
                   onSelect={(photo) => setBaseField("photo", photo)}
@@ -2848,7 +2851,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
               </Field>
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="grid content-start gap-4">
-                  <Field label="Full Name" required error={fieldErrors.name}>
+                  <Field label={t("join.form.full_name")} required error={fieldErrors.name}>
                     <Input
                       value={base.name}
                       onChange={(event) => setBaseField("name", event.target.value)}
@@ -2869,7 +2872,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     />
                   </Field>
                   <Field
-                    label="Email"
+                    label={t("join.form.email")}
                     required={Boolean(user)}
                     error={fieldErrors.email}
                     hint={
@@ -2891,7 +2894,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       }
                     />
                   </Field>
-                  <Field label="Country / Region" required error={fieldErrors.country}>
+                  <Field label={t("join.form.country_region")} required error={fieldErrors.country}>
                     <SearchableSelect
                       value={base.country}
                       onChange={setCountry}
@@ -2972,7 +2975,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                   </datalist>
                 </div>
                 <div className="grid content-start gap-4">
-                  <Field label="Phone / WhatsApp Number" required error={fieldErrors.phone}>
+                  <Field label={t("join.form.phone_whatsapp")} required error={fieldErrors.phone}>
                     <Input
                       inputMode="tel"
                       value={base.phone}
@@ -2980,7 +2983,11 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       placeholder="+852 9123 4567"
                     />
                   </Field>
-                  <Field label="Medium of Instruction" required error={fieldErrors.medium}>
+                  <Field
+                    label={t("join.form.medium_of_instruction")}
+                    required
+                    error={fieldErrors.medium}
+                  >
                     <Choices
                       options={LANGUAGES}
                       values={base.medium}
@@ -3004,7 +3011,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                       labelFor={(gender) => t(`join_flow.gender_${gender}`)}
                     />
                   </Field>
-                  <Field label="Graduation Year" error={fieldErrors.graduationYear}>
+                  <Field label={t("join.form.graduation_year")} error={fieldErrors.graduationYear}>
                     <Input
                       value={base.graduationYear}
                       onChange={(event) => setBaseField("graduationYear", event.target.value)}
@@ -3012,7 +3019,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     />
                   </Field>
                   <Field
-                    label="Earliest Availability"
+                    label={t("join.form.earliest_availability")}
                     required
                     error={fieldErrors.startDate}
                     hint="Parents see this on your profile, pick when you can truly start."
@@ -3030,7 +3037,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     {!base.startImmediately ? (
                       <div className="mt-2">
                         <DatePicker
-                          label="Earliest Availability"
+                          label={t("join.form.earliest_availability")}
                           className={controlClassName}
                           invalid={Boolean(fieldErrors.startDate)}
                           value={isoToDate(base.startDate)}
@@ -3047,7 +3054,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                   </Field>
                 </div>
                 <Field
-                  label="Current Status"
+                  label={t("join.form.current_status")}
                   required
                   error={fieldErrors.status}
                   className="sm:col-span-2"

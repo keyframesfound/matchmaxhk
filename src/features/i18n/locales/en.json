@@ -1677,6 +1677,16 @@
   },
   "join": {
     "form": {
+      "form_progress": "Form progress",
+      "profile_photo": "Profile Photo",
+      "full_name": "Full Name",
+      "email": "Email",
+      "country_region": "Country / Region",
+      "phone_whatsapp": "Phone / WhatsApp Number",
+      "medium_of_instruction": "Medium of Instruction",
+      "graduation_year": "Graduation Year",
+      "earliest_availability": "Earliest Availability",
+      "current_status": "Current Status",
       "required": "Required",
       "optional": "Optional",
       "portfolio_type_error": "Photos must be JPG, PNG, or WebP images.",
