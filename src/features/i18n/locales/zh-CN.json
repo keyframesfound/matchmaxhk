@@ -2288,13 +2288,13 @@
       "starters": "开头提示：",
       "undo": "还原",
       "title_notes": "{{base}} 笔记",
-      "title_revision": "{{base}} 复习重点",
+      "title_revision": "{{base}} 温习重点",
       "title_exam": "{{base}} 试题练习连答案",
-      "desc_inside": "里面有什么：\n- ",
-      "desc_best_for": "最适合谁用：\n- ",
-      "desc_how_to_use": "如何使用这份笔记：\n- ",
-      "link_profile_label": "在这份教材显示「预约此导师 1 对 1 补习」",
-      "link_profile_hint": "买家可以经 MatchMax 申请与你配对。如果他在这科已有进行中的个案，会自动隐藏。"
+      "desc_inside": "入面有咩：\n- ",
+      "desc_best_for": "最啱边个用：\n- ",
+      "desc_how_to_use": "点样用呢份笔记：\n- ",
+      "link_profile_label": "喺呢份教材显示「预约此导师 1 对 1 补习」",
+      "link_profile_hint": "买家可以经 MatchMax 申请同你配对。如果佢喺呢科已经有进行中嘅个案，会自动隐藏。"
     }
   },
   "orders": {
@@ -2981,6 +2981,10 @@
       "status_inactive_hint": "你张卡仍然可见，但会显示「暂停」并隐藏申请按钮，直至你重新启用。"
     },
     "my_tutor": {
+      "bio_starters": "开头句子",
+      "bio_starter_1": "我会逐步讲解每个课题，确认你明白先继续。",
+      "bio_starter_2": "我会安排短练习，下一堂先同你检讨错处。",
+      "bio_starter_3": "每堂之后我会同家长简单交代进度。",
       "probono_title": "义教与支持设定",
       "probono_hint": "这些设定会显示于您的公开频道，只显示名额数目，绝不显示学生身份。",
       "probono_free": "接受义教（$0）供有经济需要的学生",
@@ -4167,7 +4171,7 @@
     "fee_platform": "MatchMax 平台服务费（2%）",
     "fee_gateway": "付款手续费（估算）",
     "fee_net": "预计您可收取",
-    "fee_note": "买家只需支付你的标价。上面的卡费为估算，实际会扣除 Stripe 收取的费用。72 小时买家保障期结束后，你会收到净额，于每周一 FPS 批次出粮（截数为星期日 23:59 香港时间；最低 HK$50）。",
+    "fee_note": "买家只需支付你的标价。上面的卡费为估算，实际会扣除 Stripe 收取的费用。72 小时买家保障期完结后，你会收到净额，于每周一 FPS 批次出粮（截数为星期日 23:59 香港时间；最低 HK$50）。",
     "price_rule": "免费（HK$0）或 HK$20 至 HK$5,000。",
     "price_below_minimum": "付费商品最低售价为 HK$20。免费商品请设定为 HK$0。",
     "price_above_maximum": "最高售价为 HK$5,000。",
@@ -4190,7 +4194,7 @@
     "studio_payout_note": "每周一以转数快出粮 · 截数为星期日 23:59（香港时间）· 最低 HK$50。推出期间 MatchMax 收取 2%，另加 Stripe 卡费。",
     "studio_in_hold_hint": "仍在 72 小时买家保障期内的订单",
     "studio_available_hint": "可于下次每周转数快批次发放的款项",
-    "fee_free": "这份是免费教材，不收取 MatchMax 或 Stripe 费用。"
+    "fee_free": "呢份系免费教材，唔收取 MatchMax 或 Stripe 费用。"
   },
   "marketplace": {
     "tab_notes": "笔记",

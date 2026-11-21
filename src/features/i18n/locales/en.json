@@ -2989,6 +2989,10 @@
       "status_inactive_hint": "Your card stays visible but shows “Inactive” and hides the request button until you reactivate it."
     },
     "my_tutor": {
+      "bio_starters": "Starter sentences",
+      "bio_starter_1": "I explain each topic step by step and check understanding before we move on.",
+      "bio_starter_2": "I set short practice tasks and review the mistakes at the start of the next lesson.",
+      "bio_starter_3": "I send a short progress note to parents after every lesson.",
       "probono_title": "Impact & Pro-Bono Preferences",
       "probono_hint": "These appear on your public channel. Only counts show — never student identities.",
       "probono_free": "Accept Pro-Bono ($0 free tuition) for financial-need students",
