@@ -4665,6 +4665,15 @@
     "err_FILE_EMPTY": "That file is empty.",
     "remove": "Remove {{name}}"
   },
+  "case_details": {
+    "title": "Case details",
+    "student": "Student",
+    "address": "Address",
+    "duration": "Lesson length",
+    "matching_fee": "MatchMax matching fee: HK$0",
+    "settlement": "From lesson 3 you pay the tutor directly.",
+    "brief_hint": "Goals and preferences are in the household briefing below."
+  },
   "case_manager": {
     "meet_title": "Online lesson",
     "meet_join": "Open lesson link",

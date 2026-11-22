@@ -4665,6 +4665,15 @@
     "err_FILE_EMPTY": "檔案係空白嘅。",
     "remove": "移除 {{name}}"
   },
+  "case_details": {
+    "title": "個案資料",
+    "student": "學生",
+    "address": "地址",
+    "duration": "每堂長度",
+    "matching_fee": "MatchMax 配對費：HK$0",
+    "settlement": "第 3 堂起學費直接交給導師。",
+    "brief_hint": "學習目標及偏好喺下面嘅家庭簡介。"
+  },
   "case_manager": {
     "meet_title": "線上課堂",
     "meet_join": "開啟課堂連結",

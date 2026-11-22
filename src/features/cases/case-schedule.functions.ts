@@ -87,10 +87,15 @@ type CaseRow = {
   student_id: string | null;
   /** #785 AC-CONV-1: the join link for an online lesson, null when unset. */
   meeting_url: string | null;
+  /** #785 AC-CONV-2: Case Details facts. */
+  learner_nickname: string | null;
+  session_length_minutes: number | null;
+  location_estate: string | null;
+  student_count: number | null;
 };
 
 const CASE_COLS =
-  "id, case_code, subjects, student_level, hourly_rate_hkd, mode, district, sor_status, schedule_mode, schedule_paused_at, student_id, meeting_url";
+  "id, case_code, subjects, student_level, hourly_rate_hkd, mode, district, sor_status, schedule_mode, schedule_paused_at, student_id, meeting_url, learner_nickname, session_length_minutes, location_estate, student_count";
 
 type LessonRow = {
   id: string;
@@ -122,6 +127,11 @@ export type ScheduleCase = {
   scheduleMode: string | null;
   /** #785 AC-CONV-1: the saved online-lesson link, for the drawer bar. */
   meetingUrl: string | null;
+  /** #785 AC-CONV-2: the Case Details card's read-only facts. */
+  studentName: string | null;
+  durationMin: number | null;
+  address: string | null;
+  studentCount: number | null;
   prefill: ReturnType<typeof seriesPrefill>;
 };
 
@@ -359,6 +369,10 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
       district: row.district,
       scheduleMode: row.schedule_mode,
       meetingUrl: row.meeting_url,
+      studentName: row.learner_nickname,
+      durationMin: row.session_length_minutes,
+      address: row.location_estate ?? row.district,
+      studentCount: row.student_count,
       prefill: seriesPrefill(
         lessons.filter((l) => l.caseId === row.id),
         now,

@@ -27,6 +27,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 import { BillingTab } from "./billing-tab";
+import { CaseDetailsCard } from "./case-details-card";
 import { CoachingNotes } from "./coaching-notes";
 import { EditLessonsDialog } from "./edit-lessons-dialog";
 import { HeatmapSection } from "./heatmap-section";
@@ -37,16 +38,6 @@ import { MistakeBookSection } from "./mistake-book-tab";
 import { NotesRail } from "./notes-rail";
 import { ProgressTab } from "./progress-tab";
 import { SeriesDialog } from "./series-dialog";
-
-function Fact({ label, value }: { label: string; value: string | null }) {
-  if (!value) return null;
-  return (
-    <div className="flex justify-between gap-4 text-sm">
-      <dt className="text-muted-foreground">{label}</dt>
-      <dd className="text-right font-medium">{value}</dd>
-    </div>
-  );
-}
 
 /**
  * #768: the student's weekly Open hours, visible inside the case only while the
@@ -295,20 +286,14 @@ export function CaseDrawer({
               <UsefulnessPulseCard caseId={scheduleCase.id} />
             ) : null}
 
-            <dl className="mt-4 space-y-2">
-              <Fact label={t("case_manager.fact_subject")} value={scheduleCase.subject} />
-              <Fact label={t("case_manager.fact_level")} value={scheduleCase.level} />
-              <Fact
-                label={t("case_manager.fact_rate")}
-                value={
-                  scheduleCase.rateHkd === null
-                    ? null
-                    : t("case_manager.rate_value", { rate: scheduleCase.rateHkd })
-                }
-              />
-              <Fact label={t("case_manager.fact_mode")} value={scheduleCase.mode} />
-              <Fact label={t("case_manager.fact_district")} value={scheduleCase.district} />
-            </dl>
+            {/* #785 AC-CONV-2: the read-only case details card replaces the five
+                loose Fact rows. It is a strict superset (subject, level, mode and
+                rate plus student, duration, group size and address, which already
+                falls back to the district), so the facts appear once, collapsed,
+                rather than twice in a narrow drawer. */}
+            <div className="mt-4">
+              <CaseDetailsCard scheduleCase={scheduleCase} />
+            </div>
 
             {/* #768: the child's weekly Open hours, shared by the parent for
                 this active case only. */}
