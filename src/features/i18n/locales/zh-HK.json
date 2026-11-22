@@ -4640,6 +4640,21 @@
     "share_no_contact_link": "到安全設定新增",
     "share_state_error": "無法更新——請再試一次。"
   },
+  "case_files": {
+    "title": "檔案",
+    "upload": "加入檔案",
+    "copyright": "請上傳個人批改作業或自製筆記，切勿上傳完整受版權保護之公開試卷。",
+    "size": "每個檔案最多 {{mb}} MB。",
+    "types": "PDF、JPG、PNG、DOCX 或 PPTX。",
+    "empty": "仲未有檔案。",
+    "uploading": "上傳中…",
+    "download": "開啟",
+    "err_FILE_TOO_LARGE": "檔案超過 {{mb}} MB，請壓縮或改為分享連結。",
+    "err_FILE_TYPE": "請使用 PDF、JPG、PNG、DOCX 或 PPTX。",
+    "err_FILE_ZIP": "ZIP 檔案無法掃描，請改為分享連結。",
+    "err_FILE_EMPTY": "檔案係空白嘅。",
+    "remove": "移除 {{name}}"
+  },
   "case_manager": {
     "meet_title": "線上課堂",
     "meet_join": "開啟課堂連結",

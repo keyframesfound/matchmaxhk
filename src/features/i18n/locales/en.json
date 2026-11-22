@@ -4640,6 +4640,21 @@
     "share_no_contact_link": "Add one in Safety settings",
     "share_state_error": "Couldn't update — please try again."
   },
+  "case_files": {
+    "title": "Files",
+    "upload": "Add file",
+    "copyright": "Upload your own marked work or your own notes. Do not upload full commercial or official exam booklets.",
+    "size": "Up to {{mb}} MB per file.",
+    "types": "PDF, JPG, PNG, DOCX or PPTX.",
+    "empty": "No files yet.",
+    "uploading": "Uploading…",
+    "download": "Open",
+    "err_FILE_TOO_LARGE": "That file is over {{mb}} MB. Compress it or share a link instead.",
+    "err_FILE_TYPE": "Use PDF, JPG, PNG, DOCX or PPTX.",
+    "err_FILE_ZIP": "ZIP files cannot be scanned. Share a link instead.",
+    "err_FILE_EMPTY": "That file is empty.",
+    "remove": "Remove {{name}}"
+  },
   "case_manager": {
     "meet_title": "Online lesson",
     "meet_join": "Open lesson link",

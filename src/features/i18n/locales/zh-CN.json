@@ -4640,6 +4640,21 @@
     "share_no_contact_link": "到安全设定新增",
     "share_state_error": "无法更新——请再试一次。"
   },
+  "case_files": {
+    "title": "档案",
+    "upload": "加入档案",
+    "copyright": "请上传个人批改作业或自制笔记，切勿上传完整受版权保护之公开试卷。",
+    "size": "每个档案最多 {{mb}} MB。",
+    "types": "PDF、JPG、PNG、DOCX 或 PPTX。",
+    "empty": "仲未有档案。",
+    "uploading": "上传中…",
+    "download": "开启",
+    "err_FILE_TOO_LARGE": "档案超过 {{mb}} MB，请压缩或改为分享链接。",
+    "err_FILE_TYPE": "请使用 PDF、JPG、PNG、DOCX 或 PPTX。",
+    "err_FILE_ZIP": "ZIP 档案无法扫描，请改为分享链接。",
+    "err_FILE_EMPTY": "档案系空白嘅。",
+    "remove": "移除 {{name}}"
+  },
   "case_manager": {
     "meet_title": "线上课堂",
     "meet_join": "开启课堂链接",

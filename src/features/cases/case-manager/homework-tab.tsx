@@ -38,6 +38,7 @@ import {
 import { hktDateKey, hktFromParts } from "@/features/cases/sor";
 import { cn } from "@/lib/utils";
 
+import { CaseFilesPanel } from "./case-files-panel";
 import { clockToMinute } from "./schedule-form";
 
 const DAY_MS = 24 * 60 * 60 * 1000;
@@ -419,6 +420,7 @@ export function HomeworkTab({ caseId }: { caseId: string }) {
           <ul className="space-y-2">{completed.map(renderCard)}</ul>
         </section>
       ) : null}
+      <CaseFilesPanel caseId={caseId} />
       {assignOpen ? (
         <AssignDialog caseId={caseId} onOpenChange={setAssignOpen} onDone={refresh} />
       ) : null}
