@@ -2,7 +2,11 @@ import { describe, expect, it } from "vitest";
 
 import { matchesCaseFilters, type CaseBoardFilters } from "../../src/features/cases/case-filters";
 import { caseChipsWithOverflow } from "../../src/features/cases/case-chips";
-import { caseFeeNoteKey, parseCaseTypeParam, resolveCaseType } from "../../src/features/cases/case-type";
+import {
+  caseFeeNoteKey,
+  parseCaseTypeParam,
+  resolveCaseType,
+} from "../../src/features/cases/case-type";
 import type { PublicCaseBoardItem } from "../../src/lib/cases.functions";
 
 const centre = { name: "Top Leader", slug: "top", verified: true, orgType: null };
@@ -58,7 +62,8 @@ describe("parseCaseTypeParam (#552)", () => {
 describe("caseFeeNoteKey (#552)", () => {
   it("uses the standard note for private and activity, the centre note for centre", () => {
     expect(caseFeeNoteKey("private")).toBe("case_board.fee_note_standard");
-    expect(caseFeeNoteKey("activity")).toBe("case_board.fee_note_standard");
+    // #815 §2.10: Activity keeps the standard fee but names its own payer line.
+    expect(caseFeeNoteKey("activity")).toBe("case_board.fee_note_activity");
     expect(caseFeeNoteKey("centre")).toBe("case_board.fee_note_centre");
   });
 });

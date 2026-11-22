@@ -352,12 +352,12 @@
     "students_count": "{{count}} students",
     "type_private": "Private",
     "type_centre": "Centre",
-    "type_activity": "Activity",
+    "type_activity": "Activity / Gig",
     "type_filter_all": "All",
     "type_filter_activity": "Activity / Gig",
     "type_filter_aria": "Case type",
-    "fee_note_standard": "Standard 1.5-lesson fee applies",
-    "fee_note_centre": "Centre step-down / 20% Short fee structure",
+    "fee_note_standard": "The parent pays you directly. You pay MatchMax the standard 1.5-lesson admin fee (20% of the package for short cases).",
+    "fee_note_centre": "The centre pays you directly. You pay MatchMax on the same-centre ladder (1.5 → 1.0 → 0.5 → $0 within 6 months).",
     "fee_pill_ongoing": "1.5-Lesson",
     "fee_pill_short": "20% Short",
     "fee_pill_pro_bono": "Pro-Bono $0",
@@ -455,7 +455,9 @@
     "identity_activity": "Activity Host / Tutor",
     "centre_masked_name": "Verified Centre Partner",
     "centre_reveal_note": "Full centre name is revealed after you accept this lead. Contact details unlock once the introduction is confirmed.",
-    "screening_cap57_note": "You receive tuition directly from the centre. MatchMax invoices you the platform administrative fee on the retained ladder (1.5 → 1.0 → 0.5 → $0 within 6 months)."
+    "screening_cap57_note": "You receive tuition directly from the centre. MatchMax invoices you the platform administrative fee on the retained ladder (1.5 → 1.0 → 0.5 → $0 within 6 months).",
+    "type_filter_reset": "Reset filter",
+    "fee_note_activity": "The client pays you directly. You pay MatchMax the standard admin fee for this activity."
   },
   "case_contact": {
     "parent_label": "Parent:",
