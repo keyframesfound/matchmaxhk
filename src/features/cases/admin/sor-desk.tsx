@@ -216,7 +216,11 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
                 disabled={pauseSchedule.isPending}
                 onClick={() => pauseSchedule.mutate(!data.schedule_paused_at)}
               >
-                {t(data.schedule_paused_at ? "sor.admin_resume_schedule" : "sor.admin_pause_schedule")}
+                {t(
+                  data.schedule_paused_at
+                    ? "sor.admin_resume_schedule"
+                    : "sor.admin_pause_schedule",
+                )}
               </Button>
             </div>
           )}
@@ -386,6 +390,7 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
             {data.audit.map((a) => (
               <li key={a.id} className="text-xs text-muted-foreground">
                 {format(new Date(a.created_at), "d MMM HH:mm")}, {a.to_status}
+                {a.actor_name ? ` · ${a.actor_name}` : " · system"}
                 {a.reason ? ` · ${a.reason}` : ""}
               </li>
             ))}

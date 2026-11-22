@@ -226,6 +226,24 @@ export const getDeskCase = createServerFn({ method: "POST" })
       ),
     ]);
 
+    // #816 §2.5: the audit row already carried actor_id and the UI discarded
+    // it, so "who closed this / who waived the fee" was unanswerable. Resolve
+    // the distinct actors in one lookup; a null actor is the system.
+    const actorIds = [...new Set(audit.map((a) => a.actor_id).filter(Boolean))] as string[];
+    const actors = actorIds.length
+      ? await selectRows<{ id: string; display_name: string | null; email: string | null }>(
+          db,
+          "profiles",
+          "id, display_name, email",
+          [{ col: "id", op: "in", value: actorIds }],
+        )
+      : [];
+    const nameById = new Map(
+      actors.map(
+        (a) => [a.id, a.display_name?.trim() || a.email?.split("@")[0] || "Staff"] as const,
+      ),
+    );
+
     return {
       id: c.id,
       case_code: c.case_code,
@@ -246,7 +264,10 @@ export const getDeskCase = createServerFn({ method: "POST" })
       tutor_code: c.tutors?.tutor_code ?? null,
       lessons,
       fees,
-      audit,
+      audit: audit.map((a) => ({
+        ...a,
+        actor_name: a.actor_id ? (nameById.get(a.actor_id) ?? "Staff") : null,
+      })),
       matched_tutor_id: c.matched_tutor_id,
       schedule_paused_at: c.schedule_paused_at ?? null,
       allowedTransitions: c.sor_status ? (ALLOWED_TRANSITIONS[c.sor_status] ?? []) : [],
