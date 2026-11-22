@@ -32,6 +32,7 @@ import {
   type AdminReportRow,
 } from "@/features/reports/reports.functions";
 import { emergencySuspendAccount } from "@/features/trust/quarantine.functions";
+import { FreezeAccountDialog } from "@/features/trust/freeze-account-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/reports")({
   head: () => ({
@@ -314,18 +315,7 @@ function EmergencySuspendButton({ tutorId, reportId }: { tutorId: string; report
     onError: (e) => toast.error(e instanceof Error ? e.message : "Suspend failed."),
   });
   return (
-    <Button
-      type="button"
-      variant="outline"
-      className="h-8 border-destructive/50 px-3 text-xs font-bold text-destructive"
-      disabled={suspend.isPending}
-      onClick={() => {
-        const note = window.prompt("Freeze & Suspend this account? Add a staff note (required):");
-        if (note && note.trim().length >= 3) suspend.mutate(note.trim());
-      }}
-    >
-      {suspend.isPending ? "Freezing…" : "Freeze & Suspend"}
-    </Button>
+    <FreezeAccountDialog pending={suspend.isPending} onConfirm={(note) => suspend.mutate(note)} />
   );
 }
 

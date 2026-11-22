@@ -14,6 +14,13 @@ const badgeVariants = cva(
         destructive:
           "border-transparent bg-destructive text-destructive-foreground hover:bg-destructive/80",
         outline: "text-foreground",
+        // Design system (DESIGN.md "Badges"): soft status pills, ink-safe text.
+        info: "border-transparent bg-[color:var(--accent)] text-[color:var(--ink)]",
+        success:
+          "border-transparent bg-[color:var(--success)]/[0.12] text-[color:var(--success)] dark:text-[color:var(--success)]",
+        warning:
+          "border-transparent bg-[color:var(--warning)]/[0.22] text-[color:var(--foreground)]",
+        danger: "border-transparent bg-destructive/[0.1] text-destructive",
       },
     },
     defaultVariants: {

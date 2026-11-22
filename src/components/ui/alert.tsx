@@ -11,6 +11,16 @@ const alertVariants = cva(
         default: "bg-background text-foreground",
         destructive:
           "border-destructive/50 text-destructive dark:border-destructive [&>svg]:text-destructive",
+        // Design system (DESIGN.md "Banners"): the one notice box for the site.
+        // Always ink text on a tinted fill; the status colour lives in the
+        // border and the icon only, so text stays AA in both themes.
+        info: "border-[color:var(--brand-link)]/40 bg-[color:var(--accent)] text-[color:var(--ink)] [&>svg]:text-[color:var(--brand-link)]",
+        success:
+          "border-[color:var(--success)]/40 bg-[color:var(--success)]/[0.08] text-[color:var(--foreground)] [&>svg]:text-[color:var(--success)]",
+        warning:
+          "border-[color:var(--warning)]/60 bg-[color:var(--warning)]/[0.14] text-[color:var(--foreground)] [&>svg]:text-[color:var(--foreground)]",
+        danger:
+          "border-destructive/40 bg-destructive/[0.07] text-[color:var(--foreground)] [&>svg]:text-destructive",
       },
     },
     defaultVariants: {
