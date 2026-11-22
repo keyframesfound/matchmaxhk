@@ -8,11 +8,13 @@
 export type EmailClass = "transactional" | "automated_marketing";
 
 /**
- * Every template registered today is transactional (receipts, fee reminders,
- * account status, action required, lesson / attendance / trial updates).
- * New promo or digest templates MUST be listed here as automated_marketing.
+ * Transactional templates (receipts, fee reminders, account status, action
+ * required, lesson / attendance / trial updates) stay off this list. The
+ * weekly learning digest is automated marketing: it carries the 7-day cap and
+ * the one-click unsubscribe. New promo or digest templates MUST be listed here
+ * as automated_marketing.
  */
-const AUTOMATED_MARKETING_TEMPLATES = new Set<string>([]);
+const AUTOMATED_MARKETING_TEMPLATES = new Set<string>(["weekly-digest"]);
 
 export function emailClassFor(templateName: string): EmailClass {
   return AUTOMATED_MARKETING_TEMPLATES.has(templateName) ? "automated_marketing" : "transactional";

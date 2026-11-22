@@ -341,12 +341,19 @@ function formatHours(hours: number): string {
   return String(value);
 }
 
-function digestLines(input: {
+/** One locale's lines for a digest. Exported for the email half (#796 §2.6). */
+export function digestLines(input: {
   digest: WeeklyDigest;
   zone: "en" | "zh";
   labels: DigestLabels;
   caseCode: string;
   formatWhen: (iso: string, zone: "en" | "zh") => string;
+  /**
+   * The email renders its own "Case <code>" heading per section, so it opts out
+   * of the WhatsApp block's header + case preamble. Default true keeps the
+   * copy-to-clipboard block unchanged.
+   */
+  includePreamble?: boolean;
 }): string[] {
   const { digest, zone, labels } = input;
   const lines: string[] = [];
@@ -355,8 +362,10 @@ function digestLines(input: {
     if (trimmed) lines.push(trimmed);
   };
 
-  push(labels.header);
-  push(fill(labels.case, { code: sanitizeDigestText(input.caseCode) }));
+  if (input.includePreamble !== false) {
+    push(labels.header);
+    push(fill(labels.case, { code: sanitizeDigestText(input.caseCode) }));
+  }
   push(fill(labels.lessons, { n: String(digest.lessonsThisWeek) }));
   push(fill(labels.hoursWeek, { h: formatHours(digest.hoursThisWeek) }));
   push(fill(labels.hoursTotal, { h: formatHours(digest.hoursTotal) }));

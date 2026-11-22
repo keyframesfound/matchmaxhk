@@ -8,6 +8,7 @@ import { FeeReminderEmail } from "./fee-reminder";
 import { LessonUpdateEmail } from "./lesson-update";
 import { OrderDeliveredEmail } from "./order-delivered";
 import { TutorCardLiveEmail } from "./tutor-card-live";
+import { WeeklyDigestEmail } from "./weekly-digest";
 
 export interface TemplateEntry {
   component: ComponentType<Record<string, unknown>>;
@@ -81,5 +82,28 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   "action-required": {
     component: ActionRequiredEmail as unknown as ComponentType<Record<string, unknown>>,
     subject: (data: Record<string, unknown>) => String(data?.heading ?? "MatchMax action needed"),
+  },
+  // #796 §2.6 (AC-742-4): weekly learning digest. The Sunday task builds the
+  // per-case line arrays in both locales; automated_marketing in email-policy
+  // so the 7-day cap and the unsubscribe link apply.
+  "weekly-digest": {
+    component: WeeklyDigestEmail as unknown as ComponentType<Record<string, unknown>>,
+    subject: "Weekly Learning Digest / 每週學習進度週報",
+    previewData: {
+      sections: [
+        {
+          caseCode: "MX-1042",
+          url: "https://matchmax.hk/cases/00000000-0000-4000-8000-000000000000",
+          en: [
+            "Lesson with the tutor on quadratic factorisation: 2 of 3 practice sets completed independently.",
+            "Tutor assessment: steadier progress choosing the method before substituting.",
+          ],
+          zh: [
+            "與導師的二次式因式分解課堂：3 組練習中獨立完成 2 組。",
+            "導師評語：在代入前先選對方法方面穩定進步。",
+          ],
+        },
+      ],
+    },
   },
 };
