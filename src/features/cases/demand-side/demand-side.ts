@@ -4,15 +4,39 @@
 
 import { sanitizeCaseUniText } from "@/features/cases/case-verticals";
 
-export const PRIMARY_GOALS = ["exam_boost", "foundation", "homework"] as const;
+export const PRIMARY_GOALS = [
+  "exam_boost",
+  "foundation",
+  "homework",
+  "top_grade",
+  "coursework",
+] as const;
 export const LANGUAGE_MEDIUMS = ["cantonese_en_terms", "english", "putonghua"] as const;
 export const FEEDBACK_STYLES = ["weekly", "monthly"] as const;
 export const LEARNING_STYLES = ["past_papers", "concepts", "worked_examples"] as const;
+/** #796: the one-blocker chip group (skip = null). */
+export const BOTTLENECKS = [
+  "weak_concepts",
+  "careless_mistakes",
+  "slow_exam_speed",
+  "exam_technique",
+] as const;
+/** #796: how the family wants lessons run (skip = null). */
+export const PREFERRED_STYLES = [
+  "patient_step_by_step",
+  "fast_paced",
+  "past_paper_focused",
+] as const;
+
+export type Bottleneck = (typeof BOTTLENECKS)[number];
+export type PreferredStyle = (typeof PREFERRED_STYLES)[number];
 
 const NOTES_MAX = 1000;
 const SHORT_TEXT_MAX = 40;
 const TOPIC_MAX = 80;
 const TOPICS_MAX = 12;
+const TARGET_EXAM_MAX = 80;
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const LIVE_LESSON_STATUSES = new Set(["planned", "confirmed"]);
 const ENDED_SOR_STATUSES = new Set(["closed", "replaced"]);
 
@@ -25,6 +49,11 @@ export type DemandSide = {
   targetGrade: string;
   weakTopics: string[];
   learningStyles: string[];
+  /** #796 study plan: additive, every field skippable (null). */
+  bottleneck: string | null;
+  preferredStyle: string | null;
+  targetExam: string;
+  targetExamDate: string | null;
 };
 
 export type HouseholdDefaults = {
@@ -45,6 +74,10 @@ export function emptyDemandSide(): DemandSide {
     targetGrade: "",
     weakTopics: [],
     learningStyles: [],
+    bottleneck: null,
+    preferredStyle: null,
+    targetExam: "",
+    targetExamDate: null,
   };
 }
 
@@ -90,6 +123,37 @@ export function seedDemandSide(
   });
 }
 
+function asListed<T extends string>(raw: unknown, allowed: readonly T[]): T | null {
+  if (typeof raw !== "string") return null;
+  const value = raw.trim();
+  return (allowed as readonly string[]).includes(value) ? (value as T) : null;
+}
+
+/** #796: an unlisted chip value degrades to "skip", never an invalid write. */
+export function sanitizeBottleneck(raw: unknown): Bottleneck | null {
+  return asListed(raw, BOTTLENECKS);
+}
+
+/** #796: an unlisted chip value degrades to "skip", never an invalid write. */
+export function sanitizePreferredStyle(raw: unknown): PreferredStyle | null {
+  return asListed(raw, PREFERRED_STYLES);
+}
+
+/** #796: free text, trimmed and capped at 80. */
+export function sanitizeTargetExam(raw: unknown): string {
+  return (sanitizeCaseUniText(raw, TARGET_EXAM_MAX) ?? "").trim();
+}
+
+/** #796: a real calendar day only (rejects junk and 2026-02-31 rollovers). */
+export function sanitizeTargetExamDate(raw: unknown): string | null {
+  if (typeof raw !== "string") return null;
+  const value = raw.trim();
+  if (!ISO_DATE_RE.test(value)) return null;
+  const parsed = Date.parse(`${value}T00:00:00Z`);
+  if (Number.isNaN(parsed)) return null;
+  return new Date(parsed).toISOString().slice(0, 10) === value ? value : null;
+}
+
 export function sanitizeDemandSide(input: DemandSide): DemandSide {
   const topics = input.weakTopics
     .map((topic) => sanitizeCaseUniText(topic, TOPIC_MAX) ?? "")
@@ -101,6 +165,10 @@ export function sanitizeDemandSide(input: DemandSide): DemandSide {
     currentLevel: (sanitizeCaseUniText(input.currentLevel, SHORT_TEXT_MAX) ?? "").trim(),
     targetGrade: (sanitizeCaseUniText(input.targetGrade, SHORT_TEXT_MAX) ?? "").trim(),
     weakTopics: [...new Set(topics)].slice(0, TOPICS_MAX),
+    bottleneck: sanitizeBottleneck(input.bottleneck),
+    preferredStyle: sanitizePreferredStyle(input.preferredStyle),
+    targetExam: sanitizeTargetExam(input.targetExam),
+    targetExamDate: sanitizeTargetExamDate(input.targetExamDate),
   };
 }
 

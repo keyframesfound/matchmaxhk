@@ -13,17 +13,24 @@ import { emitActionEvent } from "@/features/cases/action-required.functions";
 import {
   buildHouseholdRows,
   demandSideAccess,
+  emptyDemandSide,
   FEEDBACK_STYLES,
   LANGUAGE_MEDIUMS,
   LEARNING_STYLES,
   PRIMARY_GOALS,
+  sanitizeBottleneck,
   sanitizeDemandSide,
+  sanitizePreferredStyle,
+  sanitizeTargetExam,
+  sanitizeTargetExamDate,
   seedDemandSide,
   type DemandSide,
   type DemandSideAccess,
   type HouseholdDefaults,
   type HouseholdRow,
 } from "@/features/cases/demand-side/demand-side";
+import { completedLessonCount } from "@/features/cases/rating-window";
+import type { LessonConfirmRow } from "@/features/cases/case-reviews";
 
 type CaseParties = {
   id: string;
@@ -48,10 +55,18 @@ type DemandRow = {
   learning_styles: string[] | null;
   updated_by: string | null;
   updated_at: string;
+  /** #796 study plan; absent until the migration lands (tolerant read below). */
+  bottleneck?: string | null;
+  preferred_style?: string | null;
+  target_exam?: string | null;
+  target_exam_date?: string | null;
 };
 
-const DEMAND_COLUMNS =
+const DEMAND_BASE_COLUMNS =
   "primary_goal, language_medium, household_notes, feedback_style, current_level, target_grade, weak_topics, learning_styles, updated_by, updated_at";
+const DEMAND_STUDY_PLAN_COLUMNS = "bottleneck, preferred_style, target_exam, target_exam_date";
+const DEMAND_COLUMNS = `${DEMAND_BASE_COLUMNS}, ${DEMAND_STUDY_PLAN_COLUMNS}`;
+const DEMAND_STUDY_PLAN_KEYS = ["bottleneck", "preferred_style", "target_exam", "target_exam_date"];
 
 async function isAdminUser(db: Db, userId: string): Promise<boolean> {
   for (const role of ["admin", "super_admin"] as const) {
@@ -101,7 +116,22 @@ export type DemandSideState = {
   values: DemandSide;
   updatedAt: string | null;
   updatedByName: string | null;
+  /** #796: verified (completed) lessons — the tutor brief collapses after one. */
+  lessonsCompleted: number;
 };
+
+/**
+ * Read the demand row, stepping back to the legacy column set on 42703
+ * (undefined column) so a not-yet-migrated study plan cannot break the panel.
+ */
+async function readDemandRow(db: Db, caseId: string): Promise<DemandRow | null> {
+  const run = (columns: string) =>
+    db.from<DemandRow>("case_demand_side").select(columns).eq("case_id", caseId).limit(1);
+  let result = await run(DEMAND_COLUMNS);
+  if (result.error?.code === "42703") result = await run(DEMAND_BASE_COLUMNS);
+  if (result.error) throw new Error(result.error.message);
+  return result.data?.[0] ?? null;
+}
 
 const fromRow = (row: DemandRow): DemandSide => ({
   primaryGoal: row.primary_goal,
@@ -112,6 +142,10 @@ const fromRow = (row: DemandRow): DemandSide => ({
   targetGrade: row.target_grade,
   weakTopics: row.weak_topics ?? [],
   learningStyles: row.learning_styles ?? [],
+  bottleneck: sanitizeBottleneck(row.bottleneck),
+  preferredStyle: sanitizePreferredStyle(row.preferred_style),
+  targetExam: sanitizeTargetExam(row.target_exam),
+  targetExamDate: sanitizeTargetExamDate(row.target_exam_date),
 });
 
 async function parentDefaults(db: Db, parentId: string | null): Promise<HouseholdDefaults | null> {
@@ -164,10 +198,16 @@ export const getCaseDemandSide = createServerFn({ method: "GET" })
     const db = asAdminDb(supabaseAdmin);
     const loaded = await loadAccess(db, data.caseId, context.userId);
     if (!loaded?.access) return null;
-    const rows = await selectRows<DemandRow>(db, "case_demand_side", DEMAND_COLUMNS, [
-      { col: "case_id", op: "eq", value: data.caseId },
+    const [row, lessons] = await Promise.all([
+      readDemandRow(db, data.caseId),
+      selectRows<LessonConfirmRow>(
+        db,
+        "case_lessons",
+        "status, confirmed_by_parent_at, confirmed_by_tutor_at",
+        [{ col: "case_id", op: "eq", value: data.caseId }],
+      ),
     ]);
-    const row = rows[0];
+    const lessonsCompleted = completedLessonCount(lessons);
     if (!row) {
       const { c } = loaded;
       return {
@@ -183,6 +223,7 @@ export const getCaseDemandSide = createServerFn({ method: "GET" })
         ),
         updatedAt: null,
         updatedByName: null,
+        lessonsCompleted,
       };
     }
     const editors = row.updated_by
@@ -195,6 +236,7 @@ export const getCaseDemandSide = createServerFn({ method: "GET" })
       values: fromRow(row),
       updatedAt: row.updated_at,
       updatedByName: editors[0]?.display_name ?? null,
+      lessonsCompleted,
     };
   });
 
@@ -210,6 +252,11 @@ const SaveSchema = z.object({
     targetGrade: z.string().max(100),
     weakTopics: z.array(z.string().max(200)).max(40),
     learningStyles: z.array(z.enum(LEARNING_STYLES)).max(LEARNING_STYLES.length),
+    // #796 study plan: every field is skippable; the normalisers decide validity.
+    bottleneck: z.string().nullish(),
+    preferredStyle: z.string().nullish(),
+    targetExam: z.string().max(200).nullish(),
+    targetExamDate: z.string().max(40).nullish(),
   }),
 });
 
@@ -221,24 +268,50 @@ export const saveCaseDemandSide = createServerFn({ method: "POST" })
     const db = asAdminDb(supabaseAdmin);
     const loaded = await loadAccess(db, data.caseId, context.userId);
     if (loaded?.access !== "edit") throw new Error("You can't edit this case's notes.");
-    const values = sanitizeDemandSide(data.values);
+    const values = sanitizeDemandSide({
+      ...emptyDemandSide(),
+      primaryGoal: data.values.primaryGoal,
+      languageMedium: data.values.languageMedium,
+      householdNotes: data.values.householdNotes,
+      feedbackStyle: data.values.feedbackStyle,
+      currentLevel: data.values.currentLevel,
+      targetGrade: data.values.targetGrade,
+      weakTopics: data.values.weakTopics,
+      learningStyles: data.values.learningStyles,
+      bottleneck: data.values.bottleneck ?? null,
+      preferredStyle: data.values.preferredStyle ?? null,
+      targetExam: data.values.targetExam ?? "",
+      targetExamDate: data.values.targetExamDate ?? null,
+    });
     const now = new Date().toISOString();
-    const { error } = await supabaseAdmin.from("case_demand_side" as never).upsert(
-      {
-        case_id: data.caseId,
-        primary_goal: values.primaryGoal,
-        language_medium: values.languageMedium,
-        household_notes: values.householdNotes,
-        feedback_style: values.feedbackStyle,
-        current_level: values.currentLevel,
-        target_grade: values.targetGrade,
-        weak_topics: values.weakTopics,
-        learning_styles: values.learningStyles,
-        updated_by: context.userId,
-        updated_at: now,
-      } as never,
-      { onConflict: "case_id" },
-    );
+    const row: Record<string, unknown> = {
+      case_id: data.caseId,
+      primary_goal: values.primaryGoal,
+      language_medium: values.languageMedium,
+      household_notes: values.householdNotes,
+      feedback_style: values.feedbackStyle,
+      current_level: values.currentLevel,
+      target_grade: values.targetGrade,
+      weak_topics: values.weakTopics,
+      learning_styles: values.learningStyles,
+      bottleneck: values.bottleneck,
+      preferred_style: values.preferredStyle,
+      target_exam: values.targetExam,
+      target_exam_date: values.targetExamDate,
+      updated_by: context.userId,
+      updated_at: now,
+    };
+    let { error } = await supabaseAdmin
+      .from("case_demand_side" as never)
+      .upsert(row as never, { onConflict: "case_id" });
+    // 42703 = the study-plan migration is not applied yet; keep the legacy row.
+    if (error?.code === "42703") {
+      const legacy = { ...row };
+      for (const key of DEMAND_STUDY_PLAN_KEYS) delete legacy[key];
+      ({ error } = await supabaseAdmin
+        .from("case_demand_side" as never)
+        .upsert(legacy as never, { onConflict: "case_id" }));
+    }
     if (error) throw new Error(error.message);
 
     // Only the parent's own saved notes seed their later cases. Never public.
