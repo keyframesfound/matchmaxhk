@@ -56,6 +56,7 @@ import { Route as TermsNotesMarketplaceRouteImport } from './routes/terms.notes-
 import { Route as TutorsIndexRouteImport } from './routes/tutors.index'
 import { Route as TutorsTutorCodeRouteImport } from './routes/tutors.$tutorCode'
 import { Route as UHandleRouteImport } from './routes/u.$handle'
+import { Route as AuthenticatedAccountIndexRouteImport } from './routes/_authenticated.account.index'
 import { Route as AuthenticatedAccountCasesRouteImport } from './routes/_authenticated.account.cases'
 import { Route as AuthenticatedAccountClaimRouteImport } from './routes/_authenticated.account.claim'
 import { Route as AuthenticatedAccountClaimChildRouteImport } from './routes/_authenticated.account.claim-child'
@@ -90,6 +91,7 @@ import { Route as ApiTrustWaIngestRouteImport } from './routes/api/trust/wa-inge
 import { Route as HelpCategoryIndexRouteImport } from './routes/help.$category.index'
 import { Route as HelpCategorySlugRouteImport } from './routes/help.$category.$slug'
 import { Route as InviteCaseTokenRouteImport } from './routes/invite.case.$token'
+import { Route as AuthenticatedAccountCasesIndexRouteImport } from './routes/_authenticated.account.cases.index'
 import { Route as AuthenticatedAccountCasesCaseIdRouteImport } from './routes/_authenticated.account.cases.$caseId'
 import { Route as AuthenticatedAccountCoursesNewRouteImport } from './routes/_authenticated.account.courses.new'
 import { Route as AuthenticatedAccountFoldersNewRouteImport } from './routes/_authenticated.account.folders.new'
@@ -340,6 +342,12 @@ const UHandleRoute = UHandleRouteImport.update({
   path: '/u/$handle',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAccountIndexRoute =
+  AuthenticatedAccountIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAccountRoute,
+  } as any)
 const AuthenticatedAccountCasesRoute =
   AuthenticatedAccountCasesRouteImport.update({
     id: '/cases',
@@ -534,6 +542,12 @@ const InviteCaseTokenRoute = InviteCaseTokenRouteImport.update({
   path: '/invite/case/$token',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AuthenticatedAccountCasesIndexRoute =
+  AuthenticatedAccountCasesIndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => AuthenticatedAccountCasesRoute,
+  } as any)
 const AuthenticatedAccountCasesCaseIdRoute =
   AuthenticatedAccountCasesCaseIdRouteImport.update({
     id: '/$caseId',
@@ -694,6 +708,7 @@ export interface FileRoutesByFullPath {
   '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/invite/case/$token': typeof InviteCaseTokenRoute
+  '/account/': typeof AuthenticatedAccountIndexRoute
   '/admin/': typeof AuthenticatedAdminIndexRoute
   '/business/': typeof AuthenticatedBusinessIndexRoute
   '/tutor-requests/': typeof AuthenticatedTutorRequestsIndexRoute
@@ -707,6 +722,7 @@ export interface FileRoutesByFullPath {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/account/cases/': typeof AuthenticatedAccountCasesIndexRoute
   '/account/courses/$materialId/edit': typeof AuthenticatedAccountCoursesMaterialIdEditRoute
   '/account/folders/$materialId/edit': typeof AuthenticatedAccountFoldersMaterialIdEditRoute
   '/account/services/$materialId/edit': typeof AuthenticatedAccountServicesMaterialIdEditRoute
@@ -732,7 +748,6 @@ export interface FileRoutesByTo {
   '/sitemap.xml': typeof SitemapDotxmlRoute
   '/tos': typeof TosRoute
   '/tutor-playbook': typeof TutorPlaybookRoute
-  '/account': typeof AuthenticatedAccountRouteWithChildren
   '/activity': typeof AuthenticatedActivityRoute
   '/calendar': typeof AuthenticatedCalendarRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
@@ -759,7 +774,6 @@ export interface FileRoutesByTo {
   '/guide': typeof GuideIndexRoute
   '/help': typeof HelpIndexRoute
   '/tutors': typeof TutorsIndexRoute
-  '/account/cases': typeof AuthenticatedAccountCasesRouteWithChildren
   '/account/claim': typeof AuthenticatedAccountClaimRoute
   '/account/claim-child': typeof AuthenticatedAccountClaimChildRoute
   '/account/connections': typeof AuthenticatedAccountConnectionsRoute
@@ -789,6 +803,7 @@ export interface FileRoutesByTo {
   '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/invite/case/$token': typeof InviteCaseTokenRoute
+  '/account': typeof AuthenticatedAccountIndexRoute
   '/admin': typeof AuthenticatedAdminIndexRoute
   '/business': typeof AuthenticatedBusinessIndexRoute
   '/tutor-requests': typeof AuthenticatedTutorRequestsIndexRoute
@@ -802,6 +817,7 @@ export interface FileRoutesByTo {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/account/cases': typeof AuthenticatedAccountCasesIndexRoute
   '/account/courses/$materialId/edit': typeof AuthenticatedAccountCoursesMaterialIdEditRoute
   '/account/folders/$materialId/edit': typeof AuthenticatedAccountFoldersMaterialIdEditRoute
   '/account/services/$materialId/edit': typeof AuthenticatedAccountServicesMaterialIdEditRoute
@@ -887,6 +903,7 @@ export interface FileRoutesById {
   '/api/trust/wa-ingest': typeof ApiTrustWaIngestRoute
   '/help/$category/$slug': typeof HelpCategorySlugRoute
   '/invite/case/$token': typeof InviteCaseTokenRoute
+  '/_authenticated/account/': typeof AuthenticatedAccountIndexRoute
   '/_authenticated/admin/': typeof AuthenticatedAdminIndexRoute
   '/_authenticated/business/': typeof AuthenticatedBusinessIndexRoute
   '/_authenticated/tutor-requests/': typeof AuthenticatedTutorRequestsIndexRoute
@@ -900,6 +917,7 @@ export interface FileRoutesById {
   '/lovable/email/auth/preview': typeof LovableEmailAuthPreviewRoute
   '/lovable/email/auth/webhook': typeof LovableEmailAuthWebhookRoute
   '/lovable/email/transactional/preview': typeof LovableEmailTransactionalPreviewRoute
+  '/_authenticated/account/cases/': typeof AuthenticatedAccountCasesIndexRoute
   '/_authenticated/account/courses/$materialId/edit': typeof AuthenticatedAccountCoursesMaterialIdEditRoute
   '/_authenticated/account/folders/$materialId/edit': typeof AuthenticatedAccountFoldersMaterialIdEditRoute
   '/_authenticated/account/services/$materialId/edit': typeof AuthenticatedAccountServicesMaterialIdEditRoute
@@ -985,6 +1003,7 @@ export interface FileRouteTypes {
     | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
     | '/invite/case/$token'
+    | '/account/'
     | '/admin/'
     | '/business/'
     | '/tutor-requests/'
@@ -998,6 +1017,7 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/account/cases/'
     | '/account/courses/$materialId/edit'
     | '/account/folders/$materialId/edit'
     | '/account/services/$materialId/edit'
@@ -1023,7 +1043,6 @@ export interface FileRouteTypes {
     | '/sitemap.xml'
     | '/tos'
     | '/tutor-playbook'
-    | '/account'
     | '/activity'
     | '/calendar'
     | '/dashboard'
@@ -1050,7 +1069,6 @@ export interface FileRouteTypes {
     | '/guide'
     | '/help'
     | '/tutors'
-    | '/account/cases'
     | '/account/claim'
     | '/account/claim-child'
     | '/account/connections'
@@ -1080,6 +1098,7 @@ export interface FileRouteTypes {
     | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
     | '/invite/case/$token'
+    | '/account'
     | '/admin'
     | '/business'
     | '/tutor-requests'
@@ -1093,6 +1112,7 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/account/cases'
     | '/account/courses/$materialId/edit'
     | '/account/folders/$materialId/edit'
     | '/account/services/$materialId/edit'
@@ -1177,6 +1197,7 @@ export interface FileRouteTypes {
     | '/api/trust/wa-ingest'
     | '/help/$category/$slug'
     | '/invite/case/$token'
+    | '/_authenticated/account/'
     | '/_authenticated/admin/'
     | '/_authenticated/business/'
     | '/_authenticated/tutor-requests/'
@@ -1190,6 +1211,7 @@ export interface FileRouteTypes {
     | '/lovable/email/auth/preview'
     | '/lovable/email/auth/webhook'
     | '/lovable/email/transactional/preview'
+    | '/_authenticated/account/cases/'
     | '/_authenticated/account/courses/$materialId/edit'
     | '/_authenticated/account/folders/$materialId/edit'
     | '/_authenticated/account/services/$materialId/edit'
@@ -1580,6 +1602,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof UHandleRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/account/': {
+      id: '/_authenticated/account/'
+      path: '/'
+      fullPath: '/account/'
+      preLoaderRoute: typeof AuthenticatedAccountIndexRouteImport
+      parentRoute: typeof AuthenticatedAccountRoute
+    }
     '/_authenticated/account/cases': {
       id: '/_authenticated/account/cases'
       path: '/cases'
@@ -1818,6 +1847,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof InviteCaseTokenRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_authenticated/account/cases/': {
+      id: '/_authenticated/account/cases/'
+      path: '/'
+      fullPath: '/account/cases/'
+      preLoaderRoute: typeof AuthenticatedAccountCasesIndexRouteImport
+      parentRoute: typeof AuthenticatedAccountCasesRoute
+    }
     '/_authenticated/account/cases/$caseId': {
       id: '/_authenticated/account/cases/$caseId'
       path: '/$caseId'
@@ -1921,11 +1957,13 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedAccountCasesRouteChildren {
   AuthenticatedAccountCasesCaseIdRoute: typeof AuthenticatedAccountCasesCaseIdRoute
+  AuthenticatedAccountCasesIndexRoute: typeof AuthenticatedAccountCasesIndexRoute
 }
 
 const AuthenticatedAccountCasesRouteChildren: AuthenticatedAccountCasesRouteChildren =
   {
     AuthenticatedAccountCasesCaseIdRoute: AuthenticatedAccountCasesCaseIdRoute,
+    AuthenticatedAccountCasesIndexRoute: AuthenticatedAccountCasesIndexRoute,
   }
 
 const AuthenticatedAccountCasesRouteWithChildren =
@@ -1941,6 +1979,7 @@ interface AuthenticatedAccountRouteChildren {
   AuthenticatedAccountPreviewRoute: typeof AuthenticatedAccountPreviewRoute
   AuthenticatedAccountRostersRoute: typeof AuthenticatedAccountRostersRoute
   AuthenticatedAccountStudioRoute: typeof AuthenticatedAccountStudioRoute
+  AuthenticatedAccountIndexRoute: typeof AuthenticatedAccountIndexRoute
   AuthenticatedAccountCoursesNewRoute: typeof AuthenticatedAccountCoursesNewRoute
   AuthenticatedAccountFoldersNewRoute: typeof AuthenticatedAccountFoldersNewRoute
   AuthenticatedAccountServicesNewRoute: typeof AuthenticatedAccountServicesNewRoute
@@ -1957,6 +1996,7 @@ const AuthenticatedAccountRouteChildren: AuthenticatedAccountRouteChildren = {
   AuthenticatedAccountPreviewRoute: AuthenticatedAccountPreviewRoute,
   AuthenticatedAccountRostersRoute: AuthenticatedAccountRostersRoute,
   AuthenticatedAccountStudioRoute: AuthenticatedAccountStudioRoute,
+  AuthenticatedAccountIndexRoute: AuthenticatedAccountIndexRoute,
   AuthenticatedAccountCoursesNewRoute: AuthenticatedAccountCoursesNewRoute,
   AuthenticatedAccountFoldersNewRoute: AuthenticatedAccountFoldersNewRoute,
   AuthenticatedAccountServicesNewRoute: AuthenticatedAccountServicesNewRoute,
