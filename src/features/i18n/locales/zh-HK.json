@@ -1677,6 +1677,24 @@
     "item5_title": "點解揀 MatchMax",
     "item5_desc": "我哋會按你嘅需要，配對喺各大公開考試及學科中取得優異成績嘅導師，透過一對一補習，陪你一步一步進步"
   },
+  "weekly_digest": {
+    "title": "每週學習進度週報",
+    "period": "{{start}} 至 {{end}}",
+    "lessons": "已核實課堂：{{n}} 堂",
+    "hours_week": "本週時數：{{h}} 小時",
+    "hours_total": "累計核實時數：{{h}} 小時",
+    "recap_title": "導師摘要",
+    "homework": "已完成功課：{{n}}",
+    "mistakes": "已掌握錯題：{{n}}",
+    "next_lesson": "下一堂：{{when}}",
+    "mastery": "已掌握 {{mastered}} · 操練中 {{practicing}} · 弱項 {{weak}}",
+    "focus": "重點課題",
+    "copy": "複製 WhatsApp 週報訊息",
+    "copied": "已複製到剪貼簿。",
+    "empty": "本週未有已核實課堂或活動。",
+    "copy_header": "MatchMax 每週學習進度",
+    "copy_case": "個案 {{code}}"
+  },
   "notes_rail": {
     "title": "呢個個案嘅推薦練習",
     "hint": "根據最近課堂嘅課題推薦。",

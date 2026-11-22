@@ -1677,6 +1677,24 @@
     "item5_title": "Why MatchMax",
     "item5_desc": "We match you with experienced top scorers in these programs and fields, where you can learn to excel just like them, through tailored 1-on-1 tutoring."
   },
+  "weekly_digest": {
+    "title": "Weekly Learning Digest",
+    "period": "{{start}} to {{end}}",
+    "lessons": "Verified lessons: {{n}}",
+    "hours_week": "Hours this week: {{h}}",
+    "hours_total": "Total verified hours: {{h}}",
+    "recap_title": "From your tutor",
+    "homework": "Homework completed: {{n}}",
+    "mistakes": "Mistakes mastered: {{n}}",
+    "next_lesson": "Next lesson: {{when}}",
+    "mastery": "Mastered {{mastered}} · Practising {{practicing}} · Weak {{weak}}",
+    "focus": "Focus areas",
+    "copy": "Copy summary for WhatsApp",
+    "copied": "Copied to clipboard.",
+    "empty": "No verified lesson or activity this week.",
+    "copy_header": "MatchMax weekly update",
+    "copy_case": "Case {{code}}"
+  },
   "notes_rail": {
     "title": "Recommended for this case",
     "hint": "Based on the topics from recent lessons.",

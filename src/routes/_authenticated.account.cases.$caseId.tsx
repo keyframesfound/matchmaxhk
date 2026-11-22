@@ -37,6 +37,7 @@ import { disputeHoursLeft } from "@/features/tutors/experience";
 import { ParentHoursSection } from "@/features/hours/parent-hours-section";
 import { MistakeBookSection } from "@/features/cases/case-manager/mistake-book-tab";
 import { UsefulnessPulseCard } from "@/features/cases/usefulness-pulse-card";
+import { WeeklyDigestCard } from "@/features/cases/weekly-digest-card";
 import { isTimeClashError } from "@/features/cases/schedule-lesson";
 import i18n from "@/features/i18n/config";
 
@@ -299,6 +300,11 @@ function ParentCaseDetailPage() {
                 )}
               </section>
             )}
+
+            {/* #796 §2.6: weekly learning digest, facts only, with a
+                paste-ready WhatsApp copy. The server returns null for a
+                learner-only or quiet week, so the card hides itself. */}
+            <WeeklyDigestCard caseId={caseId} />
 
             {/* Issue #412 F: engagement summary, dual-party confirmation
                 before contact details / lesson start are finalised. */}
