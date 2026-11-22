@@ -188,7 +188,6 @@ export const getChannelProfile = createServerFn({ method: "POST" })
       min_hourly_rate_hkd: number | null;
       is_published: boolean | null;
       is_accepting_students: boolean | null;
-      blue_tick_verified: boolean | null;
       accepts_pro_bono: boolean | null;
       accepts_reduced_rate: boolean | null;
       reduced_hourly_rate_hkd: number | null;
@@ -196,10 +195,26 @@ export const getChannelProfile = createServerFn({ method: "POST" })
     }>(
       db,
       "tutors",
-      "id, tutor_code, headline, badge, subjects, hourly_rate, min_hourly_rate_hkd, is_published, is_accepting_students, blue_tick_verified, accepts_pro_bono, accepts_reduced_rate, reduced_hourly_rate_hkd, pro_bono_max_slots",
+      "id, tutor_code, headline, badge, subjects, hourly_rate, min_hourly_rate_hkd, is_published, is_accepting_students, accepts_pro_bono, accepts_reduced_rate, reduced_hourly_rate_hkd, pro_bono_max_slots",
       [{ col: "user_id", op: "eq", value: profile.id }],
     );
     const tutor = tutors[0] ?? null;
+
+    /**
+     * #548 regression, found on production 2026-11-22: this read selected
+     * `tutors.blue_tick_verified`, a column that has never existed, so the
+     * whole server function threw "column tutors.blue_tick_verified does not
+     * exist". The page swallowed the error as "Channel not found." — for every
+     * visitor, including the tutor opening their own link. The Blue Tick is
+     * derived data (one staff-approved `tutor_grades` row), the same rule
+     * Profile Strength uses, so it is computed here instead of selected.
+     */
+    const grades = tutor
+      ? await selectRowsOrEmpty<{ status: string }>(db, "tutor_grades", "status", [
+          { col: "tutor_id", op: "eq", value: tutor.id },
+        ])
+      : [];
+    const blueTick = grades.some((g) => g.status === "approved");
 
     const stats = tutor ? await tutorStats(db, tutor.id) : null;
 
@@ -256,7 +271,7 @@ export const getChannelProfile = createServerFn({ method: "POST" })
       tutorCode: tutor?.tutor_code ?? null,
       headline: tutor?.headline ?? null,
       badge: tutor?.badge ?? null,
-      blueTick: tutor?.blue_tick_verified === true,
+      blueTick,
       isPublished: tutor?.is_published === true,
       subjects: tutor?.subjects ?? [],
       hourlyRate: tutor?.hourly_rate ?? null,
