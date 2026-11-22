@@ -91,6 +91,8 @@ export const applyToCase = createServerFn({ method: "POST" })
       .object({
         caseCode: z.string().trim().min(1).max(40),
         note: z.string().max(APPLICATION_NOTE_MAX).optional().nullable(),
+        // #815 §2.9 Stage 2: the Cap. 57 independent-operator confirm.
+        cap57Confirmed: z.boolean().optional(),
       })
       .parse(input),
   )
@@ -120,15 +122,20 @@ export const applyToCase = createServerFn({ method: "POST" })
       board_published_at: string | null;
       status: string;
       preferred_gender: string | null;
+      organisation_id: string | null;
     }>(
       db,
       "tutoring_cases",
-      "id, case_code, board_published_at, status, preferred_gender",
+      "id, case_code, board_published_at, status, preferred_gender, organisation_id",
       [{ col: "case_code", op: "eq", value: data.caseCode }],
       { col: "created_at", asc: false, limit: 1 },
     );
     const caseRow = cases[0];
     if (!caseRow) throw new Error("CASE_NOT_FOUND");
+    // #815 §2.9 AC-RV-2: applying to a Centre case reveals the full centre
+    // name, so the Cap. 57 independent-operator confirm is a hard server gate.
+    const { assertCentreCap57 } = await import("@/features/cases/centre-reveal");
+    assertCentreCap57(caseRow.organisation_id, data.cap57Confirmed);
 
     // #760 Part 3 soft account gate: an admin fee left unresolved past the
     // 72h window (no accepted proof) blocks NEW case applications until the
