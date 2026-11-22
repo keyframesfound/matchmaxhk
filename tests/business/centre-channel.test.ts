@@ -5,7 +5,7 @@ import {
   hasHireLanguage,
   isVerifiedPartner,
   type AffiliateTutorRow,
-} from "@/features/business/centre-channel";
+} from "../../src/features/business/centre-channel";
 
 const row = (over: Partial<AffiliateTutorRow> = {}): AffiliateTutorRow => ({
   user_id: "u1",
