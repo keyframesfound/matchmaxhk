@@ -1,4 +1,5 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { useState, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -31,6 +32,11 @@ import { LanguageToggle } from "@/components/brand/LanguageToggle";
 import { CurrencyToggle } from "@/components/brand/CurrencyToggle";
 import { Button } from "@/components/ui/button";
 import { InitialAvatar } from "@/components/ui/initial-avatar";
+import {
+  PREVIEW_OWNER_COLUMNS,
+  resolvePreviewCardState,
+  type PreviewOwnerRow,
+} from "@/features/account/preview/preview-state";
 import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { useTheme } from "@/features/theme/ThemeProvider";
@@ -66,6 +72,71 @@ function RowContent({ icon, label }: { icon: ReactNode; label: string }) {
       <span className="min-w-0 flex-1 text-left">{label}</span>
       <ChevronRight className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden />
     </>
+  );
+}
+
+/**
+ * #793 AC-594-HUB-2: "View profile" opens the user's PUBLIC profile, not the
+ * account editor — a signed-in user pressing it wants to see what everyone else
+ * sees. Order of preference, using only routes that already exist:
+ *
+ *   1. a live tutor card        → /tutors/{tutor_code}  (the URL the profile's
+ *                                 own Share control sends)
+ *   2. a channel handle         → /u/{handle}
+ *   3. neither                  → /account (the editor), the documented
+ *                                 fallback, which Settings still reaches
+ *
+ * The live/not-live decision is `resolvePreviewCardState`, the same rule the
+ * "Preview as parent" sandbox uses, so "live" cannot mean two different things.
+ */
+function ProfileLink({ className, children }: { className?: string; children: ReactNode }) {
+  const { user } = useAuth();
+  const owner = useQuery({
+    queryKey: ["account", "hub-owner-row", user?.id],
+    enabled: Boolean(user?.id),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("tutors")
+        .select(PREVIEW_OWNER_COLUMNS)
+        .eq("user_id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as PreviewOwnerRow) ?? null;
+    },
+  });
+  const handle = useQuery({
+    queryKey: ["account", "hub-handle", user?.id],
+    enabled: Boolean(user?.id),
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("handle")
+        .eq("id", user!.id)
+        .maybeSingle();
+      if (error) throw error;
+      return (data as { handle: string | null } | null)?.handle?.trim() || null;
+    },
+  });
+
+  const state = resolvePreviewCardState(owner.data ?? null);
+  if (state.status === "live") {
+    return (
+      <Link to="/tutors/$tutorCode" params={{ tutorCode: state.tutorCode }} className={className}>
+        {children}
+      </Link>
+    );
+  }
+  if (handle.data) {
+    return (
+      <Link to="/u/$handle" params={{ handle: handle.data }} className={className}>
+        {children}
+      </Link>
+    );
+  }
+  return (
+    <Link to="/account" className={className}>
+      {children}
+    </Link>
   );
 }
 
@@ -120,10 +191,7 @@ function AccountHubPage() {
         </h1>
 
         {user ? (
-          <Link
-            to="/account"
-            className="mt-5 flex items-center gap-4 rounded-[var(--radius-panel)] border border-border bg-card p-4"
-          >
+          <ProfileLink className="mt-5 flex items-center gap-4 rounded-[var(--radius-panel)] border border-border bg-card p-4">
             <InitialAvatar
               stableId={user.id}
               name={accountName}
@@ -138,7 +206,7 @@ function AccountHubPage() {
               </span>
             </span>
             <ChevronRight className="h-5 w-5 text-muted-foreground" aria-hidden />
-          </Link>
+          </ProfileLink>
         ) : (
           <div className="mt-5 rounded-[var(--radius-panel)] border border-border bg-card p-5">
             <p className="text-base font-semibold text-[color:var(--ink)]">
@@ -199,11 +267,18 @@ function AccountHubPage() {
             <Link to="/dashboard" className={rowClass}>
               <RowContent icon={icon(Settings)} label={t("nav.settings")} />
             </Link>
-            <Link to="/account" className={rowClass}>
+            <ProfileLink className={rowClass}>
               <RowContent icon={icon(UserRound)} label={t("account_hub.view_profile")} />
-            </Link>
+            </ProfileLink>
             <Link to="/dashboard" hash="privacy" className={rowClass}>
               <RowContent icon={icon(Lock)} label={t("account_hub.privacy")} />
+            </Link>
+            {/* #793 §2.6.4: Safety is an entry only, and only because the
+                settings shell now has one (#650 trusted contact). The
+                trusted-contact UI itself stays in #650 / #782 — this is a
+                deep link into that tab, never a second Safety page. */}
+            <Link to="/dashboard" hash="safety" className={rowClass}>
+              <RowContent icon={icon(ShieldCheck)} label={t("settings.nav.safety")} />
             </Link>
             <Link to="/notifications" className={rowClass}>
               <RowContent icon={icon(BellRing)} label={t("account_hub.notifications")} />
