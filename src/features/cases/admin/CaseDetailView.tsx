@@ -52,6 +52,7 @@ import { TagInput } from "@/components/ui/tag-input";
 import { CaseEditDialog } from "@/features/cases/admin/CaseEditDialog";
 import { CaseApplicationsCard } from "@/features/cases/admin/CaseApplicationsCard";
 import { MatchFeePanel } from "@/features/cases/admin/MatchFeePanel";
+import { MeetingLinkDeskPanel } from "@/features/cases/admin/MeetingLinkDeskPanel";
 import { TrialLockDeskPanel } from "@/features/cases/trial-lock-card";
 import { DeskCockpitPanel } from "@/features/cases/admin/DeskCockpitPanel";
 import { ShortCasePanel } from "@/features/cases/admin/ShortCasePanel";
@@ -827,6 +828,12 @@ export function CaseDetailView({
           <TrialLockDeskPanel caseId={caseRow.id} />
 
           <MatchFeePanel caseRow={caseRow} onPatched={invalidateCase} />
+          {/* #785 AC-CONV-1: the desk saves the same online-lesson link as the
+              tutor. Read through the server fn — the column has no SELECT grant
+              for `authenticated`, so it is not on the admin case row. */}
+          <ConsolePanel padding="sm" className="pt-0">
+            <MeetingLinkDeskPanel caseId={caseRow.id} mode={caseRow.mode} />
+          </ConsolePanel>
           {/* #454: matching cockpit (fee/FPS, macros, pins, Parallel Ping). */}
           <DeskCockpitPanel caseId={caseRow.id} />
 

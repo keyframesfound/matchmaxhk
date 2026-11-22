@@ -874,6 +874,39 @@ export const setLessonPrep = createServerFn({ method: "POST" })
   });
 
 /**
+ * #785 AC-CONV-1: read the case's online-lesson link for the desk.
+ *
+ * `meeting_url` carries no SELECT grant for `authenticated` (only INSERT/UPDATE),
+ * so the admin console cannot read it through the browser client even with a
+ * staff RLS policy. This server fn is that read: a party or Ops only, and `null`
+ * for anyone else so case existence does not leak.
+ */
+export const getCaseMeetingUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ caseId: z.string().uuid() }).parse(input))
+  .handler(async ({ data, context }): Promise<{ url: string | null } | null> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+
+    if (!(await isOps(db, context.userId))) {
+      try {
+        await partyCase(db, data.caseId, context.userId);
+      } catch (error) {
+        if (String((error as Error).message) !== "CASE_NOT_FOUND") throw error;
+        return null;
+      }
+    }
+
+    const rows = await selectRows<{ meeting_url: string | null }>(
+      db,
+      "tutoring_cases",
+      "meeting_url",
+      [{ col: "id", op: "eq", value: data.caseId }],
+    );
+    return rows[0] ? { url: rows[0].meeting_url } : null;
+  });
+
+/**
  * #785 AC-CONV-1: the tutor (or Ops) saves the case's online-lesson link, so
  * every party can open or copy it from the drawer in one tap. The same field
  * doubles as the backup link for an in-person case. An empty save clears it,
@@ -892,22 +925,43 @@ export const setCaseMeetingUrl = createServerFn({ method: "POST" })
   .handler(async ({ data, context }): Promise<{ url: string | null }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    const { c, role } = await partyCase(db, data.caseId, context.userId);
+
+    // The AC says "a tutor **or the desk**", and the desk is not a party of the
+    // case: `partyCase` refuses anyone who is not the tutor, parent or learner,
+    // so Ops is resolved first and may write without being one.
+    const ops = await isOps(db, context.userId);
+    let role: PartyRole | null = null;
+    try {
+      role = (await partyCase(db, data.caseId, context.userId)).role;
+    } catch (error) {
+      // Only CASE_NOT_FOUND is expected; anything else must still surface.
+      if (String((error as Error).message) !== "CASE_NOT_FOUND") throw error;
+      if (!ops) throw new Error("CASE_NOT_FOUND");
+    }
+
     // The matched tutor owns the link; Ops may set or clear it on their behalf.
     // The parent and the learner are parties, but they only read it.
-    const ops = await isOps(db, context.userId);
-    if (!canEditMeetingUrl(role, ops)) throw new Error("FORBIDDEN");
+    if (!canEditMeetingUrl(role ?? "parent", ops)) throw new Error("FORBIDDEN");
+
+    if (role === null) {
+      // An Ops user who is not a party can only write a case that exists: an
+      // update matching no row would otherwise report success.
+      const rows = await selectRows<{ id: string }>(db, "tutoring_cases", "id", [
+        { col: "id", op: "eq", value: data.caseId },
+      ]);
+      if (!rows[0]) throw new Error("CASE_NOT_FOUND");
+    }
 
     const normalised = normaliseMeetingUrl(data.url);
     if (!normalised.ok) throw new Error(normalised.code);
-    if (normalised.url === null && !canClearMeetingUrl(role, ops)) {
+    if (normalised.url === null && !canClearMeetingUrl(role ?? "parent", ops)) {
       throw new Error("FORBIDDEN");
     }
 
     const { error } = await db
       .from<Row>("tutoring_cases")
       .update({ meeting_url: normalised.url })
-      .eq("id", c.id);
+      .eq("id", data.caseId);
     if (error) throw new Error(error.message);
     return { url: normalised.url };
   });
