@@ -4641,6 +4641,19 @@
     "share_state_error": "无法更新——请再试一次。"
   },
   "case_manager": {
+    "meet_title": "线上课堂",
+    "meet_join": "开启课堂链接",
+    "meet_copy": "复制链接",
+    "meet_copied": "已复制链接。",
+    "meet_copy_failed": "未能复制，请开启链接后手动复制。",
+    "meet_save": "保存链接",
+    "meet_edit": "更改链接",
+    "meet_cancel": "取消",
+    "meet_placeholder": "https://…",
+    "meet_invalid": "请输入 https:// 开头的链接。",
+    "meet_none": "仲未有课堂链接。",
+    "meet_backup": "面授课堂的备用链接",
+    "meet_readonly": "由导师设定。",
     "child_availability": {
       "title": "学生可约时间",
       "hint": "家长为呢个进行中个案分享。",

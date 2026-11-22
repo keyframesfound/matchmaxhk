@@ -4641,6 +4641,19 @@
     "share_state_error": "無法更新——請再試一次。"
   },
   "case_manager": {
+    "meet_title": "線上課堂",
+    "meet_join": "開啟課堂連結",
+    "meet_copy": "複製連結",
+    "meet_copied": "已複製連結。",
+    "meet_copy_failed": "未能複製，請開啟連結後手動複製。",
+    "meet_save": "儲存連結",
+    "meet_edit": "更改連結",
+    "meet_cancel": "取消",
+    "meet_placeholder": "https://…",
+    "meet_invalid": "請輸入 https:// 開頭的連結。",
+    "meet_none": "仲未有課堂連結。",
+    "meet_backup": "面授課堂的備用連結",
+    "meet_readonly": "由導師設定。",
     "child_availability": {
       "title": "學生可約時間",
       "hint": "家長為呢個進行中個案分享。",

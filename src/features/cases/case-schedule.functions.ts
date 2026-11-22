@@ -20,6 +20,11 @@ import {
   lessonStillUpcoming,
   normaliseLessonPrep,
 } from "@/features/cases/case-manager/lesson-prep";
+import {
+  canClearMeetingUrl,
+  canEditMeetingUrl,
+  normaliseMeetingUrl,
+} from "@/features/cases/case-manager/meeting-link";
 import { insertLessonLifecycleEvent } from "@/features/cases/bus.functions";
 import {
   RELEASED_SLOT_DAYS,
@@ -80,10 +85,12 @@ type CaseRow = {
   schedule_mode: string | null;
   schedule_paused_at: string | null;
   student_id: string | null;
+  /** #785 AC-CONV-1: the join link for an online lesson, null when unset. */
+  meeting_url: string | null;
 };
 
 const CASE_COLS =
-  "id, case_code, subjects, student_level, hourly_rate_hkd, mode, district, sor_status, schedule_mode, schedule_paused_at, student_id";
+  "id, case_code, subjects, student_level, hourly_rate_hkd, mode, district, sor_status, schedule_mode, schedule_paused_at, student_id, meeting_url";
 
 type LessonRow = {
   id: string;
@@ -113,6 +120,8 @@ export type ScheduleCase = {
   mode: string | null;
   district: string | null;
   scheduleMode: string | null;
+  /** #785 AC-CONV-1: the saved online-lesson link, for the drawer bar. */
+  meetingUrl: string | null;
   prefill: ReturnType<typeof seriesPrefill>;
 };
 
@@ -349,6 +358,7 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
       mode: row.mode,
       district: row.district,
       scheduleMode: row.schedule_mode,
+      meetingUrl: row.meeting_url,
       prefill: seriesPrefill(
         lessons.filter((l) => l.caseId === row.id),
         now,
@@ -847,4 +857,43 @@ export const setLessonPrep = createServerFn({ method: "POST" })
       .eq("case_id", c.id);
     if (error) throw new Error(error.message);
     return next;
+  });
+
+/**
+ * #785 AC-CONV-1: the tutor (or Ops) saves the case's online-lesson link, so
+ * every party can open or copy it from the drawer in one tap. The same field
+ * doubles as the backup link for an in-person case. An empty save clears it,
+ * and only the tutor may clear.
+ */
+export const setCaseMeetingUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth, requireAccountActive])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        caseId: z.string().uuid(),
+        url: z.string().max(2000).nullable(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ url: string | null }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    const { c, role } = await partyCase(db, data.caseId, context.userId);
+    // The matched tutor owns the link; Ops may set or clear it on their behalf.
+    // The parent and the learner are parties, but they only read it.
+    const ops = await isOps(db, context.userId);
+    if (!canEditMeetingUrl(role, ops)) throw new Error("FORBIDDEN");
+
+    const normalised = normaliseMeetingUrl(data.url);
+    if (!normalised.ok) throw new Error(normalised.code);
+    if (normalised.url === null && !canClearMeetingUrl(role, ops)) {
+      throw new Error("FORBIDDEN");
+    }
+
+    const { error } = await db
+      .from<Row>("tutoring_cases")
+      .update({ meeting_url: normalised.url })
+      .eq("id", c.id);
+    if (error) throw new Error(error.message);
+    return { url: normalised.url };
   });

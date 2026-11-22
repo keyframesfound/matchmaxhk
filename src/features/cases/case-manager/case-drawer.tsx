@@ -31,6 +31,7 @@ import { EditLessonsDialog } from "./edit-lessons-dialog";
 import { HeatmapSection } from "./heatmap-section";
 import { HomeworkTab } from "./homework-tab";
 import { LessonLogSection } from "./lesson-log-section";
+import { MeetingLink } from "./meeting-link-bar";
 import { MistakeBookSection } from "./mistake-book-tab";
 import { NotesRail } from "./notes-rail";
 import { ProgressTab } from "./progress-tab";
@@ -240,6 +241,17 @@ export function CaseDrawer({
             {scheduleCase.sorStatus ? ` · ${t(`sor.status_${scheduleCase.sorStatus}`)}` : ""}
           </SheetDescription>
         </SheetHeader>
+
+        {/* #785 AC-CONV-1: the lesson link sits above the tabs, so joining or
+            copying never needs a second tap through Overview. */}
+        <MeetingLink
+          caseId={scheduleCase.id}
+          url={scheduleCase.meetingUrl}
+          mode={scheduleCase.mode}
+          canEdit={isTutor || isOps}
+          canClear={isTutor || isOps}
+          onSaved={onChanged}
+        />
 
         <Tabs value={tab} onValueChange={(value) => onTabChange(value as CaseTab)} className="mt-4">
           <TabsList className="max-w-full justify-start overflow-x-auto">

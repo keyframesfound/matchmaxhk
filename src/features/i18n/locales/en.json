@@ -4641,6 +4641,19 @@
     "share_state_error": "Couldn't update — please try again."
   },
   "case_manager": {
+    "meet_title": "Online lesson",
+    "meet_join": "Open lesson link",
+    "meet_copy": "Copy link",
+    "meet_copied": "Link copied.",
+    "meet_copy_failed": "Could not copy. Open the link and copy it from there.",
+    "meet_save": "Save link",
+    "meet_edit": "Change link",
+    "meet_cancel": "Cancel",
+    "meet_placeholder": "https://…",
+    "meet_invalid": "Enter an https:// link.",
+    "meet_none": "No lesson link yet.",
+    "meet_backup": "Backup link for in-person lessons",
+    "meet_readonly": "Set by your tutor.",
     "child_availability": {
       "title": "Student availability",
       "hint": "Shared by the parent for this active case.",
