@@ -16,6 +16,7 @@ import { hktClock, hktDayLabel, nextLessonFor } from "@/features/cases/case-sche
 import type { CaseTab } from "@/features/cases/case-schedule";
 import type { HubScheduleLesson, ScheduleCase } from "@/features/cases/case-schedule.functions";
 import { fetchCaseChildAvailability } from "@/features/cases/child-availability.functions";
+import { UsefulnessPulseCard } from "@/features/cases/usefulness-pulse-card";
 import { emptyHourlyOpenHours, isHourlyGridEmpty } from "@/features/tutors/availability-grid-model";
 import { AvailabilityHourlyGrid } from "@/features/tutors/availability-hourly-grid";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -162,6 +163,12 @@ export function CaseDrawer({
             <BillingTab caseId={scheduleCase.id} onScheduleChanged={onChanged} />
           </TabsContent>
           <TabsContent value="overview">
+            {/* #796 §2.4: a due pulse leads the overview for the learner side;
+                the tutor sees nothing, and the card hides itself when not due. */}
+            {scheduleCase.role === "parent" ? (
+              <UsefulnessPulseCard caseId={scheduleCase.id} />
+            ) : null}
+
             <dl className="mt-4 space-y-2">
               <Fact label={t("case_manager.fact_subject")} value={scheduleCase.subject} />
               <Fact label={t("case_manager.fact_level")} value={scheduleCase.level} />

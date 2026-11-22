@@ -36,6 +36,7 @@ import { disputeSession } from "@/features/cases/experience.functions";
 import { disputeHoursLeft } from "@/features/tutors/experience";
 import { ParentHoursSection } from "@/features/hours/parent-hours-section";
 import { MistakeBookSection } from "@/features/cases/case-manager/mistake-book-tab";
+import { UsefulnessPulseCard } from "@/features/cases/usefulness-pulse-card";
 import { isTimeClashError } from "@/features/cases/schedule-lesson";
 import i18n from "@/features/i18n/config";
 
@@ -319,6 +320,11 @@ function ParentCaseDetailPage() {
               onRate={() => setRatingOpen(true)}
               onDeskReport={() => setDeskReportOpen(true)}
             />
+
+            {/* #796 §2.4: the private lesson pulse, due only at verified
+                lessons 5, 10, 15, … The server returns nothing for Ops, the
+                tutor or a non-party, and the card hides itself once answered. */}
+            <UsefulnessPulseCard caseId={caseId} tutorId={data.matched_tutor_id ?? undefined} />
 
             {/* #794 §2.1: one row per case per direction, edited in place. */}
             <RatingSheet

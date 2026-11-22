@@ -83,6 +83,7 @@ import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { cn } from "@/lib/utils";
 import { BehaviourReportPanel } from "@/features/trust/behaviour-report-panel";
 import { DeskReportsPanel } from "@/features/cases/admin/DeskReportsPanel";
+import { UsefulnessPulsePanel } from "@/features/cases/admin/UsefulnessPulsePanel";
 import {
   CASE_STATUSES,
   DESK_LANGUAGE_LABEL,
@@ -677,6 +678,8 @@ export function CaseDetailView({
         <div className="space-y-6">
           {/* #794 §2.1: private participant reports (pre-lesson stops). */}
           <DeskReportsPanel caseId={caseRow.id} />
+          {/* #796 §2.4: private lesson usefulness pulses (desk-only, read-only). */}
+          <UsefulnessPulsePanel caseId={caseRow.id} />
           {/* Issue #412: compliance hold banner, the case is locked out of
               matching/circulation until staff re-screen the triage answers. */}
           {caseRow.status === "compliance_hold" ? (
