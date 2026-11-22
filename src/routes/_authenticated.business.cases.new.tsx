@@ -31,6 +31,7 @@ import { useAuth } from "@/features/auth/useAuth";
 import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { FEE_TERMS_VERSION } from "@/features/legal/terms";
 import { SUPPORTED_CURRENCIES } from "@/lib/money";
+import { TUTOR_POOL_MESSAGE, isTutorPoolRequest } from "@/features/cases/centre-request-rules";
 
 export const Route = createFileRoute("/_authenticated/business/cases/new")({
   head: () => ({
@@ -67,6 +68,7 @@ function CentreCaseRequestPage() {
     budgetCurrency: "HKD",
     packageType: "ongoing_1_5",
     studentCount: "1",
+    studentFirstName: "",
     rateUnit: "hr",
     notes: "",
     // Part 1: engagement category (hard gate)
@@ -106,7 +108,11 @@ function CentreCaseRequestPage() {
     setField({ engagementCategory: value });
   };
 
+  // #815 §2.8 (AC-C1-1): catch a tutor-pool request before submit.
+  const poolRequest = isTutorPoolRequest(form.notes, form.scopeDescription);
   const incomplete =
+    poolRequest ||
+    !form.studentFirstName.trim() ||
     !form.academicLevel ||
     !form.curriculum ||
     !form.subject1 ||
@@ -138,7 +144,8 @@ function CentreCaseRequestPage() {
           budgetMax: form.budgetMax ? Number(form.budgetMax) : null,
           budgetCurrency: form.budgetCurrency,
           packageType: form.packageType as "ongoing_1_5" | "short_20" | "pro_bono",
-          studentCount: Number(form.studentCount) || 1,
+          studentCount: 1,
+          studentFirstName: form.studentFirstName.trim(),
           rateUnit: form.rateUnit as "hr" | "lesson" | "month",
           notes: form.notes.trim() || null,
           triage: {
@@ -387,17 +394,26 @@ function CentreCaseRequestPage() {
                     />
                   </div>
                 </div>
+                {/* #815 §2.8: one named student per request. */}
                 <div className="space-y-1.5">
-                  <Label>Students per cohort</Label>
+                  <Label htmlFor="centre-student-first-name">Student's first name</Label>
                   <Input
-                    inputMode="numeric"
-                    value={form.studentCount}
-                    onChange={(e) =>
-                      setField({ studentCount: e.target.value.replace(/[^\d]/g, "") || "1" })
-                    }
+                    id="centre-student-first-name"
+                    maxLength={40}
+                    autoComplete="off"
+                    value={form.studentFirstName}
+                    onChange={(e) => setField({ studentFirstName: e.target.value })}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    One named student per request. First name only.
+                  </p>
                 </div>
               </div>
+              {poolRequest ? (
+                <p className="rounded-[var(--radius-control)] border border-destructive/40 bg-destructive/[0.07] p-3 text-sm">
+                  {TUTOR_POOL_MESSAGE}
+                </p>
+              ) : null}
               <div className="space-y-1.5">
                 <Label>Extra notes for the matching desk (optional)</Label>
                 <Textarea
