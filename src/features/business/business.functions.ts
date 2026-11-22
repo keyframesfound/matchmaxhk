@@ -847,3 +847,42 @@ export const getBusinessAnalytics = createServerFn({ method: "POST" })
 
     return { totals, daily: Array.from(dailyMap.values()), courseViews };
   });
+
+/**
+ * #815 §2.2 / §2.3: what the public channel needs beyond the org row:
+ * the Verified Partner state and the approved affiliated tutors (no
+ * contact fields). Public read; service role, filtered server-side.
+ */
+export const getCentreChannel = createServerFn({ method: "GET" })
+  .inputValidator((data: unknown) =>
+    z.object({ slug: z.string().trim().min(1).max(80) }).parse(data),
+  )
+  .handler(async ({ data }) => {
+    const { affiliateCards, isVerifiedPartner } = await import("./centre-channel");
+    const db = supabaseAdmin as unknown as SupabaseClient;
+    const { data: org } = await db
+      .from("organizations")
+      .select("id, status, br_reviewed_at")
+      .eq("slug", data.slug)
+      .maybeSingle();
+    if (!org) return { verifiedPartner: false, tutors: [] };
+    const row = org as { id: string; status: string | null; br_reviewed_at: string | null };
+    const { data: affs } = await db
+      .from("centre_affiliations")
+      .select("user_id")
+      .eq("centre_id", row.id)
+      .eq("role_type", "affiliated_tutor")
+      .eq("status", "approved");
+    const userIds = ((affs ?? []) as { user_id: string }[]).map((a) => a.user_id);
+    let tutors: ReturnType<typeof affiliateCards> = [];
+    if (userIds.length > 0) {
+      const { data: rows } = await db
+        .from("tutors")
+        .select(
+          "user_id, tutor_code, display_name, photo_url, headline, subjects, hourly_rate, min_hourly_rate_hkd, verification_tier, is_published, card_hidden_by_ban, owner_account_status",
+        )
+        .in("user_id", userIds);
+      tutors = affiliateCards(userIds, (rows ?? []) as Parameters<typeof affiliateCards>[1]);
+    }
+    return { verifiedPartner: isVerifiedPartner(row), tutors };
+  });
