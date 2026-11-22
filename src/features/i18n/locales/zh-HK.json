@@ -1677,6 +1677,18 @@
     "item5_title": "點解揀 MatchMax",
     "item5_desc": "我哋會按你嘅需要，配對喺各大公開考試及學科中取得優異成績嘅導師，透過一對一補習，陪你一步一步進步"
   },
+  "heatmap": {
+    "title": "學習計劃及課題熱力圖",
+    "summary": "已掌握 {{pct}}% · {{weak}} 項需加強",
+    "weak": "弱項需加強",
+    "practicing": "操練中",
+    "mastered": "已掌握",
+    "not_covered": "未教授",
+    "flag": "標記需要協助",
+    "flagged": "已要求重點溫習",
+    "empty": "喺課堂紀錄標記課題，熱力圖就會開始建立。",
+    "suggested_weak": "弱項：錯題重複出現"
+  },
   "join": {
     "form": {
       "resume_title": "請喺瀏覽器繼續",

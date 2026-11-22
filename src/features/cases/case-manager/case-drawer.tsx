@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 
 import { BillingTab } from "./billing-tab";
 import { EditLessonsDialog } from "./edit-lessons-dialog";
+import { HeatmapSection } from "./heatmap-section";
 import { HomeworkTab } from "./homework-tab";
 import { MistakeBookSection } from "./mistake-book-tab";
 import { ProgressTab } from "./progress-tab";
@@ -145,6 +146,9 @@ export function CaseDrawer({
             <HomeworkTab caseId={scheduleCase.id} />
           </TabsContent>
           <TabsContent value="progress">
+            {/* #796 §2.1: syllabus mastery sits above the grade chart; the
+                server returns null (and this renders nothing) for non-parties. */}
+            <HeatmapSection caseId={scheduleCase.id} />
             <ProgressTab caseId={scheduleCase.id} />
           </TabsContent>
           <TabsContent value="mistakes">

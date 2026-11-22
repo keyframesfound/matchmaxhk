@@ -1677,6 +1677,18 @@
     "item5_title": "Why MatchMax",
     "item5_desc": "We match you with experienced top scorers in these programs and fields, where you can learn to excel just like them, through tailored 1-on-1 tutoring."
   },
+  "heatmap": {
+    "title": "Study Plan & Syllabus",
+    "summary": "{{pct}}% mastered · {{weak}} weak",
+    "weak": "Weak",
+    "practicing": "Practicing",
+    "mastered": "Mastered",
+    "not_covered": "Not Covered",
+    "flag": "Flag for help",
+    "flagged": "Help requested",
+    "empty": "Tag a topic in the lesson drawer and the heatmap starts filling in.",
+    "suggested_weak": "Weak: repeated mistakes"
+  },
   "join": {
     "form": {
       "resume_title": "Continue in your browser",

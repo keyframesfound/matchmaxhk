@@ -1677,6 +1677,18 @@
     "item5_title": "点解拣 MatchMax",
     "item5_desc": "我哋会按你嘅需要，配对喺各大公开考试及学科中取得优异成绩嘅导师，透过一对一补习，陪你一步一步进步"
   },
+  "heatmap": {
+    "title": "学习计划及课题热力图",
+    "summary": "已掌握 {{pct}}% · {{weak}} 项需加强",
+    "weak": "弱项需加强",
+    "practicing": "操练中",
+    "mastered": "已掌握",
+    "not_covered": "未教授",
+    "flag": "标记需要协助",
+    "flagged": "已要求重点温习",
+    "empty": "喺课堂纪录标记课题，热力图就会开始建立。",
+    "suggested_weak": "弱项：错题重复出现"
+  },
   "join": {
     "form": {
       "resume_title": "请喺浏览器继续",
