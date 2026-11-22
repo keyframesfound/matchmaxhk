@@ -307,6 +307,8 @@ function MonthCard({
 }
 
 /** #654: the Schedule & Billing tab. Bookkeeping only; MatchMax moves no money here. */
+import { SettlementPanel } from "./settlement-panel";
+
 export function BillingTab({
   caseId,
   onScheduleChanged,
@@ -390,6 +392,10 @@ export function BillingTab({
           </ul>
         )}
       </section>
+
+      {/* #785 AC-735-1: the #760 settlement state, above the statement so a
+          party sees what is owed before the monthly detail. */}
+      <SettlementPanel caseId={caseId} role={data.role} />
 
       <section className="space-y-2">
         <h3 className="text-sm font-semibold">{t("billing.statement_title")}</h3>

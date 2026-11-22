@@ -30,6 +30,13 @@ import { occupiedFor, partyCase, type PartyCase } from "@/features/cases/case-sc
 import { isTimeClashError, scheduleLessonError } from "@/features/cases/schedule-lesson";
 import { loadFullCohortSessions } from "@/features/cases/cohort-busy.server";
 import { hktDateKey } from "@/features/cases/sor";
+import { settlementCardState } from "@/features/cases/fee-desk";
+import {
+  MILESTONE_KINDS,
+  type MilestoneKind,
+  type MilestoneSource,
+  type MilestoneStatus,
+} from "@/features/cases/fee-milestones";
 import { contactFilterError } from "@/lib/contact-filter";
 
 type LessonRow = {
@@ -63,6 +70,23 @@ export type PendingReschedule = {
   proposerRole: BillingRole;
 };
 
+/**
+ * #785 AC-735-1: one stored #760 admin-fee milestone row, read-only in the
+ * Case Workspace. The amount is the snapshot `case_fee_milestones` already
+ * holds (written by the attendance sync from the fee engines) — it is never
+ * recalculated here.
+ */
+export type CaseMilestoneView = {
+  kind: MilestoneKind;
+  status: MilestoneStatus;
+  amountHkd: number | null;
+  deliveredAt: string | null;
+  deliveredSource: MilestoneSource | null;
+};
+
+/** The #760 Part 3 proof state of the case's current admin-fee row. */
+export type CaseSettlementState = "payment_due" | "pending_verification" | "rejected" | "settled";
+
 export type CaseBilling = {
   role: BillingRole;
   rateHkd: number | null;
@@ -72,7 +96,31 @@ export type CaseBilling = {
   lessons: StatementLesson[];
   pending: PendingReschedule[];
   marks: MonthMark[];
+  milestones: CaseMilestoneView[];
+  settlement: CaseSettlementState | null;
 };
+
+type MilestoneRow = {
+  kind: string;
+  status: string;
+  amount_hkd: number | string | null;
+  delivered_at: string | null;
+  delivered_source: string | null;
+};
+
+type FeeRow = {
+  status: string;
+  proof_status: string | null;
+  created_at: string | null;
+};
+
+function isMilestoneKind(kind: string): kind is MilestoneKind {
+  return (MILESTONE_KINDS as readonly string[]).includes(kind);
+}
+
+function isMilestoneSource(source: string | null): source is MilestoneSource {
+  return source === "roster_attendance" || source === "case_lesson";
+}
 
 function assertCleanNote(note: string | undefined): void {
   if (note && contactFilterError(note)) throw new Error("CONTACT_DETAILS");
@@ -163,7 +211,7 @@ export const getCaseBilling = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const { c, role } = await partyCase(db, data.caseId, context.userId);
-    const [terms, lessons, requests, marks] = await Promise.all([
+    const [terms, lessons, requests, marks, milestoneRows, feeRows] = await Promise.all([
       selectRows<{
         hourly_rate_hkd: number | null;
         student_count: number | null;
@@ -188,6 +236,21 @@ export const getCaseBilling = createServerFn({ method: "POST" })
       }>(db, "case_statement_months", "month, status, note, marked_by, marked_by_role, marked_at", [
         { col: "case_id", op: "eq", value: c.id },
       ]),
+      // #785 AC-735-1: the #760 admin-fee ledger, as stored. The sync owns
+      // every write; this read only reports it to both parties.
+      selectRows<MilestoneRow>(
+        db,
+        "case_fee_milestones",
+        "kind, status, amount_hkd, delivered_at, delivered_source",
+        [{ col: "case_id", op: "eq", value: c.id }],
+      ),
+      selectRows<FeeRow>(
+        db,
+        "case_fees",
+        "status, proof_status, created_at",
+        [{ col: "case_id", op: "eq", value: c.id }],
+        { col: "created_at", asc: false },
+      ),
     ]);
     const markerIds = [...new Set(marks.flatMap((m) => (m.marked_by ? [m.marked_by] : [])))];
     const markers =
@@ -200,6 +263,24 @@ export const getCaseBilling = createServerFn({ method: "POST" })
             [{ col: "id", op: "in", value: markerIds }],
           );
     const nameById = new Map(markers.map((m) => [m.id, m.display_name]));
+    const milestones: CaseMilestoneView[] = milestoneRows
+      .filter((m) => isMilestoneKind(m.kind))
+      .map((m): CaseMilestoneView => ({
+        kind: m.kind as MilestoneKind,
+        status: m.status === "delivered" ? "delivered" : "pending",
+        amountHkd: m.amount_hkd == null ? null : Number(m.amount_hkd),
+        deliveredAt: m.delivered_at,
+        deliveredSource: isMilestoneSource(m.delivered_source) ? m.delivered_source : null,
+      }))
+      .sort((a, b) => MILESTONE_KINDS.indexOf(a.kind) - MILESTONE_KINDS.indexOf(b.kind));
+    // The newest settled-able row is the current fee (the one-open-fee unique
+    // index means at most one 'invoiced' row; a paid row is its successor).
+    const currentFee = feeRows.find(
+      (f) => f.status === "not_due" || f.status === "invoiced" || f.status === "paid",
+    );
+    const settlement = currentFee
+      ? settlementCardState({ status: currentFee.status, proof_status: currentFee.proof_status })
+      : null;
     // A proposal on a lesson that has since been cancelled or passed is dead.
     const liveStart = new Map(
       lessons
@@ -236,6 +317,8 @@ export const getCaseBilling = createServerFn({ method: "POST" })
         markedByName: (m.marked_by && nameById.get(m.marked_by)) || null,
         markedAt: m.marked_at,
       })),
+      milestones,
+      settlement,
     };
   });
 
