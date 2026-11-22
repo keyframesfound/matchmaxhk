@@ -826,6 +826,78 @@ export const deskUndoFeeCollected = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
+/**
+ * #816 §2.5: batch status from the admin list.
+ *
+ * This used to be a direct browser update over an id list, which meant two
+ * things: no `case_audit` row per case, and the compliance-hold rule lived only
+ * in the client, so a crafted request could move a held case. Both move here.
+ */
+export const deskBatchSetCaseStatus = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        ids: z.array(z.string().uuid()).min(1).max(200),
+        status: z.enum([
+          "new",
+          "contacted",
+          "compliance_hold",
+          "matched",
+          "failed_trial_pivot",
+          "released",
+          "closed",
+          "rejected",
+        ]),
+      })
+      .parse(input),
+  )
+  .handler(async ({ context, data }): Promise<{ updated: number; skipped: number }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    await requireAdmin(db, context.userId);
+
+    const rows = await selectRows<{ id: string; status: string | null; case_code: string }>(
+      db,
+      "tutoring_cases",
+      "id, status, case_code",
+      [{ col: "id", op: "in", value: data.ids }],
+    );
+
+    // Issue #412: a held case is locked. Batch escalation skips it — but the
+    // rule now belongs here, not to the caller.
+    const escalating = data.status === "contacted" || data.status === "matched";
+    const targets = rows.filter((r) => !(escalating && r.status === "compliance_hold"));
+    const skipped = rows.length - targets.length;
+    if (targets.length === 0) {
+      throw new Error("Compliance hold: re-screen held cases individually before escalating.");
+    }
+
+    const patch: Record<string, unknown> = { status: data.status };
+    if (data.status === "contacted") patch.last_contacted_at = new Date().toISOString();
+    const { error } = await db
+      .from<Row>("tutoring_cases")
+      .update(patch)
+      .in(
+        "id",
+        targets.map((t) => t.id),
+      );
+    if (error) throw new Error(error.message);
+
+    for (const target of targets) {
+      await insertAudit(
+        db,
+        target.id,
+        context.userId,
+        null,
+        `batch_status:${data.status}`,
+        `${target.case_code}: ${target.status ?? "none"} → ${data.status}`,
+      );
+    }
+
+    return { updated: targets.length, skipped };
+  });
+
 // ---------------------------------------------------------------------------
 // Lessons 1–2 (admin logs; both sides confirm; done/no_show/cancelled)
 // ---------------------------------------------------------------------------

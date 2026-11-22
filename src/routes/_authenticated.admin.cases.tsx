@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { deskBatchSetCaseStatus } from "@/features/cases/admin-desk.functions";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -265,30 +266,18 @@ function AdminCases() {
 
   const openCase = openId ? (cases.find((row) => row.id === openId) ?? null) : null;
 
+  // #816 §2.5: the hold rule and the audit row now live server-side, so the
+  // batch cannot move a locked case and every case it does move is recorded.
   const batchStatusMutation = useMutation({
-    mutationFn: async ({ ids, status }: { ids: string[]; status: CaseStatus }) => {
-      // Issue #412: held cases are locked, batch escalations skip them and
-      // report the count instead of silently moving a locked request.
-      const held = new Set(
-        cases.filter((row) => row.status === "compliance_hold").map((row) => row.id),
-      );
-      const targetIds = ids.filter(
-        (id) => !(held.has(id) && (status === "contacted" || status === "matched")),
-      );
-      if (targetIds.length === 0) {
-        throw new Error("Compliance hold: re-screen held cases individually before escalating.");
-      }
-      const patch: Record<string, unknown> = { status };
-      if (status === "contacted") patch.last_contacted_at = new Date().toISOString();
-      const { error } = await supabase
-        .from("tutoring_cases")
-        .update(patch as never)
-        .in("id", targetIds);
-      if (error) throw error;
-    },
-    onSuccess: (_data, variables) => {
+    mutationFn: ({ ids, status }: { ids: string[]; status: CaseStatus }) =>
+      deskBatchSetCaseStatus({ data: { ids, status } }),
+    onSuccess: (result, variables) => {
       toast.success(
-        `${STATUS_LABEL[variables.status]} applied to ${variables.ids.length} case${variables.ids.length === 1 ? "" : "s"}`,
+        `${STATUS_LABEL[variables.status]} applied to ${result.updated} case${result.updated === 1 ? "" : "s"}${
+          result.skipped > 0
+            ? ` · ${result.skipped} held case${result.skipped === 1 ? "" : "s"} skipped`
+            : ""
+        }`,
       );
       queryClient.invalidateQueries({ queryKey: ["admin", "cases"] });
       setSelectedIds(new Set());
