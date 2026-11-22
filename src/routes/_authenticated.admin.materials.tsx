@@ -68,6 +68,7 @@ import {
 } from "@/features/gigs/gig";
 
 import { MaterialsOrdersDesk } from "@/features/materials/materials-orders-desk";
+import { ImpactShopGrantPanel } from "@/features/materials/admin/ImpactShopGrantPanel";
 import { formatMaterialTypeLabel } from "@/features/materials/queries";
 import { shopKindLabel } from "@/features/materials/material-card";
 import { validateCourseVideoUrl } from "@/lib/vimeo";
@@ -359,6 +360,13 @@ function AdminMaterials() {
           the human eye is the reject path for WA/phone/IG/QR in videos.
       ------------------------------------------------------------------ */}
       <ListingReviewQueue />
+
+      {/* -----------------------------------------------------------------
+          #794 AC-400-4: the $0 shop grant to an Impact account. The account
+          must be flagged Impact before the button unlocks; a grant lands as a
+          delivered HK$0 order per pack and never enters a tutor payout.
+      ------------------------------------------------------------------ */}
+      <ImpactShopGrantPanel />
 
       <ConsoleTable>
         <ConsoleTableHead>
