@@ -17,6 +17,7 @@ import type { CaseTab } from "@/features/cases/case-schedule";
 import type { HubScheduleLesson, ScheduleCase } from "@/features/cases/case-schedule.functions";
 import { fetchCaseChildAvailability } from "@/features/cases/child-availability.functions";
 import { UsefulnessPulseCard } from "@/features/cases/usefulness-pulse-card";
+import { DemandSidePanel } from "@/features/cases/demand-side/demand-side-panel";
 import { emptyHourlyOpenHours, isHourlyGridEmpty } from "@/features/tutors/availability-grid-model";
 import { AvailabilityHourlyGrid } from "@/features/tutors/availability-hourly-grid";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -191,6 +192,13 @@ export function CaseDrawer({
             {/* #768: the child's weekly Open hours, shared by the parent for
                 this active case only. */}
             <ChildAvailability caseId={scheduleCase.id} />
+
+            {/* #785 AC-637-1: Household Briefing / Learning Goals belongs in the
+                case drawer, not one click away. The panel hides itself for a
+                caller who is not a party, so no extra gate is needed here. */}
+            <div className="mt-5">
+              <DemandSidePanel caseId={scheduleCase.id} />
+            </div>
 
             <section className="mt-5 space-y-2">
               <p className="text-sm font-semibold">
