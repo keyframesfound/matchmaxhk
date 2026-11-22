@@ -1,9 +1,10 @@
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Sheet,
@@ -15,6 +16,8 @@ import {
 import { hktClock, hktDayLabel, nextLessonFor } from "@/features/cases/case-schedule";
 import type { CaseTab } from "@/features/cases/case-schedule";
 import type { HubScheduleLesson, ScheduleCase } from "@/features/cases/case-schedule.functions";
+import { setLessonPrep } from "@/features/cases/case-schedule.functions";
+import { useAuth } from "@/features/auth/useAuth";
 import { fetchCaseChildAvailability } from "@/features/cases/child-availability.functions";
 import { UsefulnessPulseCard } from "@/features/cases/usefulness-pulse-card";
 import { DemandSidePanel } from "@/features/cases/demand-side/demand-side-panel";
@@ -84,6 +87,103 @@ function ChildAvailability({ caseId }: { caseId: string }) {
 }
 
 /**
+ * #785 AC-735-2a: the next lesson's topic and prep note. The tutor (or Ops)
+ * writes it while the lesson is still upcoming; the parent and the learner
+ * read it. Flat inline block, no card, no modal.
+ */
+function NextLessonPrep({
+  caseId,
+  lesson,
+  canEdit,
+  onSaved,
+}: {
+  caseId: string;
+  lesson: HubScheduleLesson;
+  canEdit: boolean;
+  onSaved: () => void;
+}) {
+  const { t } = useTranslation();
+  const [topic, setTopic] = useState(lesson.lessonTopic ?? "");
+  const [note, setNote] = useState(lesson.prepNote ?? "");
+  const [saved, setSaved] = useState(false);
+  const save = useMutation({
+    mutationFn: () =>
+      setLessonPrep({
+        data: {
+          caseId,
+          lessonId: lesson.id,
+          topic: topic.trim() ? topic : null,
+          note: note.trim() ? note : null,
+        },
+      }),
+    onSuccess: () => {
+      setSaved(true);
+      onSaved();
+    },
+  });
+
+  if (!canEdit) {
+    if (!lesson.lessonTopic && !lesson.prepNote) {
+      return <p className="text-xs text-muted-foreground">{t("case_manager.prep_empty")}</p>;
+    }
+    return (
+      <div className="space-y-1">
+        {lesson.lessonTopic ? (
+          <p className="line-clamp-2 text-sm font-medium">{lesson.lessonTopic}</p>
+        ) : null}
+        {lesson.prepNote ? (
+          <p className="line-clamp-3 text-xs text-muted-foreground">{lesson.prepNote}</p>
+        ) : null}
+        <p className="text-xs text-muted-foreground">{t("case_manager.prep_readonly_hint")}</p>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-2">
+      <p className="text-xs font-medium text-muted-foreground">{t("case_manager.prep_title")}</p>
+      <label className="block space-y-1 text-xs text-muted-foreground">
+        <span>{t("case_manager.prep_topic_label")}</span>
+        <Input
+          className="h-9"
+          value={topic}
+          maxLength={80}
+          placeholder={t("case_manager.prep_placeholder_topic")}
+          onChange={(event) => {
+            setTopic(event.target.value);
+            setSaved(false);
+          }}
+        />
+      </label>
+      <label className="block space-y-1 text-xs text-muted-foreground">
+        <span>{t("case_manager.prep_note_label")}</span>
+        <Input
+          className="h-9"
+          value={note}
+          maxLength={500}
+          placeholder={t("case_manager.prep_placeholder_note")}
+          onChange={(event) => {
+            setNote(event.target.value);
+            setSaved(false);
+          }}
+        />
+      </label>
+      <div className="flex items-center gap-2">
+        <Button type="button" size="sm" disabled={save.isPending} onClick={() => save.mutate()}>
+          {t("case_manager.prep_save")}
+        </Button>
+        {saved ? (
+          <span className="text-xs text-muted-foreground">{t("case_manager.prep_saved")}</span>
+        ) : null}
+      </div>
+      {save.isError ? (
+        <p className="text-xs text-destructive">{t("case_manager.prep_error")}</p>
+      ) : null}
+    </div>
+  );
+}
+
+/**
  * #636 Case Detail drawer (`?case=`): masked counterparty, Next Lesson and the
  * lesson list. No phones and no fee amounts; attendance is a preview (#612).
  */
@@ -103,6 +203,7 @@ export function CaseDrawer({
   onChanged: () => void;
 }) {
   const { t, i18n } = useTranslation();
+  const { hasAnyRole } = useAuth();
   const isMobile = useIsMobile();
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [seriesOpen, setSeriesOpen] = useState(false);
@@ -117,9 +218,12 @@ export function CaseDrawer({
         Date.parse(l.startsAt) > now.getTime(),
     )
     .sort((a, b) => a.startsAt.localeCompare(b.startsAt));
-  const next = nextLessonFor(lessons, scheduleCase.id, now);
+  const nextBase = nextLessonFor(lessons, scheduleCase.id, now);
+  // Re-read the row so the banner also carries the #785 topic / prep note.
+  const next = nextBase ? (lessons.find((l) => l.id === nextBase.id) ?? null) : null;
   const selected = upcoming.filter((l) => selectedIds.includes(l.id));
   const isTutor = scheduleCase.role === "tutor";
+  const isOps = hasAnyRole(["staff", "admin", "super_admin"]);
   const toggle = (id: string) =>
     setSelectedIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id]));
 
@@ -209,6 +313,15 @@ export function CaseDrawer({
                     })
                   : t("case_manager.next_lesson_flexible")}
               </p>
+              {next ? (
+                <NextLessonPrep
+                  key={next.id}
+                  caseId={scheduleCase.id}
+                  lesson={next}
+                  canEdit={isTutor || isOps}
+                  onSaved={onChanged}
+                />
+              ) : null}
               {scheduleCase.paused ? (
                 <p className="text-sm text-muted-foreground">{t("case_manager.paused_note")}</p>
               ) : null}

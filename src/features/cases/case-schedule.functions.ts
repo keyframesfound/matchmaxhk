@@ -12,8 +12,14 @@ import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
+import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import { insertAudit, selectRows, type Db, type Row } from "@/features/cases/desk-db";
+import {
+  canWriteLessonPrep,
+  lessonStillUpcoming,
+  normaliseLessonPrep,
+} from "@/features/cases/case-manager/lesson-prep";
 import { insertLessonLifecycleEvent } from "@/features/cases/bus.functions";
 import {
   RELEASED_SLOT_DAYS,
@@ -86,9 +92,13 @@ type LessonRow = {
   duration_min: number;
   status: string;
   series_id: string | null;
+  /** #785 AC-735-2a: the tutor's topic / prep note for the next lesson. */
+  lesson_topic: string | null;
+  prep_note: string | null;
 };
 
-const LESSON_COLS = "id, case_id, starts_at, duration_min, status, series_id";
+const LESSON_COLS =
+  "id, case_id, starts_at, duration_min, status, series_id, lesson_topic, prep_note";
 
 export type ScheduleCase = {
   id: string;
@@ -112,6 +122,9 @@ export type HubScheduleLesson = ScheduleLesson & {
   role: PartyRole;
   /** #654: an open contested reschedule is waiting on this lesson. */
   reschedulePending: boolean;
+  /** #785 AC-735-2a: what the lesson covers, and what to bring. */
+  lessonTopic: string | null;
+  prepNote: string | null;
 };
 
 export type ProposedItem = {
@@ -158,6 +171,15 @@ async function myTutorId(db: Db, userId: string): Promise<string | null> {
     { col: "user_id", op: "eq", value: userId },
   ]);
   return rows[0]?.id ?? null;
+}
+
+/** Staff / admin / super_admin, the same has_role gate the desk fns use. */
+async function isOps(db: Db, userId: string): Promise<boolean> {
+  for (const role of ["staff", "admin", "super_admin"] as const) {
+    const { data } = await db.rpc("has_role", { _user_id: userId, _role: role });
+    if (data === true) return true;
+  }
+  return false;
 }
 
 /** #459 §4.4: a claimed child whose schedule is hidden from the parent. */
@@ -333,7 +355,8 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
       ),
     }));
     const byId = new Map(cases.map((c) => [c.id, c]));
-    const hubLessons = lessons.flatMap((l) => {
+    const hubLessons = lessonRows.flatMap((row) => {
+      const l = toLesson(row);
       const c = byId.get(l.caseId);
       if (!c) return [];
       return [
@@ -343,6 +366,8 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
           subject: c.subject,
           role: c.role,
           reschedulePending: pendingLessonIds.has(l.id),
+          lessonTopic: row.lesson_topic,
+          prepNote: row.prep_note,
         },
       ];
     });
@@ -766,4 +791,60 @@ export const editCaseLessons = createServerFn({ method: "POST" })
       crypto.randomUUID(),
     );
     return { updated, failed };
+  });
+
+/**
+ * #785 AC-735-2a: the tutor (or Ops) sets the upcoming lesson's topic and prep
+ * note. Only a lesson on this case, and only while it is still in the future;
+ * the parent and the learner read it, they never write it.
+ */
+export const setLessonPrep = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth, requireAccountActive])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        caseId: z.string().uuid(),
+        lessonId: z.string().uuid(),
+        topic: z.string().max(400).nullish(),
+        note: z.string().max(2000).nullish(),
+      })
+      .parse(input),
+  )
+  .handler(async ({ data, context }): Promise<{ topic: string | null; note: string | null }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    const { c, role } = await partyCase(db, data.caseId, context.userId);
+    if (!canWriteLessonPrep(role, await isOps(db, context.userId))) {
+      throw new Error("FORBIDDEN");
+    }
+    if (data.topic === undefined && data.note === undefined) {
+      throw new Error("NOTHING_TO_SAVE");
+    }
+
+    const rows = await selectRows<{
+      id: string;
+      starts_at: string;
+      lesson_topic: string | null;
+      prep_note: string | null;
+    }>(db, "case_lessons", "id, starts_at, lesson_topic, prep_note", [
+      { col: "id", op: "eq", value: data.lessonId },
+      { col: "case_id", op: "eq", value: c.id },
+    ]);
+    const lesson = rows[0];
+    if (!lesson) throw new Error("LESSON_NOT_FOUND");
+    if (!lessonStillUpcoming(lesson.starts_at, new Date())) throw new Error("LESSON_PAST");
+
+    const prep = normaliseLessonPrep({ topic: data.topic, note: data.note });
+    // A field left out of the call keeps its stored value.
+    const next = {
+      topic: data.topic === undefined ? lesson.lesson_topic : prep.topic,
+      note: data.note === undefined ? lesson.prep_note : prep.note,
+    };
+    const { error } = await db
+      .from<Row>("case_lessons")
+      .update({ lesson_topic: next.topic, prep_note: next.note })
+      .eq("id", lesson.id)
+      .eq("case_id", c.id);
+    if (error) throw new Error(error.message);
+    return next;
   });
