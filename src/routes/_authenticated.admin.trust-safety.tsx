@@ -27,6 +27,7 @@ import {
   releaseSafetyQuarantine,
 } from "@/features/trust/quarantine.functions";
 import { listStrikeLadderReviews } from "@/features/trust/behaviour-reports.functions";
+import { FreezeAccountDialog } from "@/features/trust/freeze-account-dialog";
 
 export const Route = createFileRoute("/_authenticated/admin/trust-safety")({
   head: () => ({
@@ -413,22 +414,10 @@ function StrikeLadderSection() {
                   {row.suspended ? (
                     <span className="text-xs text-muted-foreground">Suspended</span>
                   ) : (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="h-8 border-destructive/50 px-3 text-xs font-bold text-destructive"
-                      disabled={freeze.isPending}
-                      onClick={() => {
-                        const note = window.prompt(
-                          "Freeze & Suspend this account? Add a staff note (required):",
-                        );
-                        if (note && note.trim().length >= 3) {
-                          freeze.mutate({ accountId: row.accountId, note: note.trim() });
-                        }
-                      }}
-                    >
-                      Freeze &amp; Suspend
-                    </Button>
+                    <FreezeAccountDialog
+                      pending={freeze.isPending}
+                      onConfirm={(note) => freeze.mutate({ accountId: row.accountId, note })}
+                    />
                   )}
                 </ConsoleTd>
               </tr>

@@ -16,6 +16,7 @@ import { Route as BecomeATutorRouteImport } from './routes/become-a-tutor'
 import { Route as CaseRequestRouteImport } from './routes/case-request'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as CopyrightRouteImport } from './routes/copyright'
+import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as GroupClassesRouteImport } from './routes/group-classes'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
@@ -135,6 +136,11 @@ const CookiesRoute = CookiesRouteImport.update({
 const CopyrightRoute = CopyrightRouteImport.update({
   id: '/copyright',
   path: '/copyright',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DesignSystemRoute = DesignSystemRouteImport.update({
+  id: '/design-system',
+  path: '/design-system',
   getParentRoute: () => rootRouteImport,
 } as any)
 const FeedbackRoute = FeedbackRouteImport.update({
@@ -611,6 +617,7 @@ export interface FileRoutesByFullPath {
   '/case-request': typeof CaseRequestRoute
   '/cookies': typeof CookiesRoute
   '/copyright': typeof CopyrightRoute
+  '/design-system': typeof DesignSystemRoute
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -705,6 +712,7 @@ export interface FileRoutesByTo {
   '/case-request': typeof CaseRequestRoute
   '/cookies': typeof CookiesRoute
   '/copyright': typeof CopyrightRoute
+  '/design-system': typeof DesignSystemRoute
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -800,6 +808,7 @@ export interface FileRoutesById {
   '/case-request': typeof CaseRequestRoute
   '/cookies': typeof CookiesRoute
   '/copyright': typeof CopyrightRoute
+  '/design-system': typeof DesignSystemRoute
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
@@ -896,6 +905,7 @@ export interface FileRouteTypes {
     | '/case-request'
     | '/cookies'
     | '/copyright'
+    | '/design-system'
     | '/feedback'
     | '/group-classes'
     | '/how-it-works'
@@ -990,6 +1000,7 @@ export interface FileRouteTypes {
     | '/case-request'
     | '/cookies'
     | '/copyright'
+    | '/design-system'
     | '/feedback'
     | '/group-classes'
     | '/how-it-works'
@@ -1084,6 +1095,7 @@ export interface FileRouteTypes {
     | '/case-request'
     | '/cookies'
     | '/copyright'
+    | '/design-system'
     | '/feedback'
     | '/group-classes'
     | '/how-it-works'
@@ -1180,6 +1192,7 @@ export interface RootRouteChildren {
   CaseRequestRoute: typeof CaseRequestRoute
   CookiesRoute: typeof CookiesRoute
   CopyrightRoute: typeof CopyrightRoute
+  DesignSystemRoute: typeof DesignSystemRoute
   FeedbackRoute: typeof FeedbackRoute
   GroupClassesRoute: typeof GroupClassesRoute
   HowItWorksRoute: typeof HowItWorksRoute
@@ -1272,6 +1285,13 @@ declare module '@tanstack/react-router' {
       path: '/copyright'
       fullPath: '/copyright'
       preLoaderRoute: typeof CopyrightRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/design-system': {
+      id: '/design-system'
+      path: '/design-system'
+      fullPath: '/design-system'
+      preLoaderRoute: typeof DesignSystemRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/feedback': {
@@ -2022,6 +2042,7 @@ const rootRouteChildren: RootRouteChildren = {
   CaseRequestRoute: CaseRequestRoute,
   CookiesRoute: CookiesRoute,
   CopyrightRoute: CopyrightRoute,
+  DesignSystemRoute: DesignSystemRoute,
   FeedbackRoute: FeedbackRoute,
   GroupClassesRoute: GroupClassesRoute,
   HowItWorksRoute: HowItWorksRoute,

@@ -134,15 +134,33 @@ components:
 
 # Design System: MatchMax (Azure, Arc-aligned)
 
+## At a glance
+
+The short version for anyone designing or reviewing a screen. Everything below expands on it.
+
+|                         |                                                                                                                                                                                               |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **See it live**         | `/design-system` on the site (every shared component, light and dark). Reuse those components instead of styling new ones.                                                                    |
+| **Fonts**               | **Inter** for all text. **Geist** for large headings (h1, h2, hero). Two wordmark fonts for the logo only. No other fonts.                                                                    |
+| **Weights**             | 700 headings · 600 buttons and card titles · 500 labels · 400 body. Never above 700.                                                                                                          |
+| **Sizes**               | 11, 12, 14, 16, 18, 22, 28, 36, 52, 72px. Body text is 16px. Nothing below 11px.                                                                                                              |
+| **Colours**             | Ink `#0F1419` text on white. **Azure `#1D9BF0`** is the one accent: links, focus rings, the main call to action. Green, amber, red only mean status. WhatsApp green only on WhatsApp buttons. |
+| **Corners**             | Buttons and fields 18px · panels 26px · cards 34px · chips and pills fully round.                                                                                                             |
+| **Spacing**             | Multiples of 4px: 4, 8, 16, 24, 32, 48. Cards use 24px padding.                                                                                                                               |
+| **Borders and shadows** | 1px hairline borders. No shadows on things that sit on the page; only floating layers (dialogs, menus, popovers) cast a shadow.                                                               |
+| **Copy**                | Sentence case, verb plus object on buttons ("Post a request"), errors say how to fix it, English and 繁中 both checked.                                                                       |
+| **Dark mode**           | Every screen is checked in dark too. Use the colour tokens, never hard-coded colours, and it works automatically.                                                                             |
+
 ## Overview
 
 **Creative North Star: "The Signal, engineered calmly"**
 
-MatchMax pairs the **Twitter Azure palette** (21st.dev community theme by serafimcloud: Ink `#0F1419` on Paper White, hairline borders, Azure `#1D9BF0` as the one colour that means *act now*) with the **Arc design bar** (uiarc.dev): a calm, neutral interface where type, spacing, and one considered interaction carry the character. No decoration performs for attention. The interface is confident because it is quiet: neutral surfaces, generous space, exact corners, and a single azure signal per view. The system is proof-backed: real numbers in tabular figures, hairlines instead of heavy chrome.
+MatchMax pairs the **Twitter Azure palette** (21st.dev community theme by serafimcloud: Ink `#0F1419` on Paper White, hairline borders, Azure `#1D9BF0` as the one colour that means _act now_) with the **Arc design bar** (uiarc.dev): a calm, neutral interface where type, spacing, and one considered interaction carry the character. No decoration performs for attention. The interface is confident because it is quiet: neutral surfaces, generous space, exact corners, and a single azure signal per view. The system is proof-backed: real numbers in tabular figures, hairlines instead of heavy chrome.
 
 **Relationship to Arc.** Arc (uiarc.dev) is the style authority for type, geometry, copy, surfaces, and motion. When this document says "Arc", it cites the rule, not a package: nothing here requires installing Arc components. Existing shadcn-based components are styled toward these values; Arc components, patterns, and skills remain the first reference when building or reviewing UI (PR #455's in-place adaptations are the model).
 
 **Key characteristics:**
+
 - Calm type: Geist for large headings, Inter everywhere else. Weight ladder (owner decision, 2026-10-25): 400 body, 500 labels, 600 controls and card titles, 700 headings
 - Scarcity of accent: azure fills appear only on money CTAs (~10% of buttons); everything else is white, grey, or ink monochrome
 - Azure owns interaction: accent fills, links, focus rings, selected and active states, progress meters, data-viz series
@@ -160,18 +178,22 @@ MatchMax pairs the **Twitter Azure palette** (21st.dev community theme by serafi
 The palette is a quiet news feed: ink text, paper and card-tint surfaces, hairline borders, and one azure signal. Statuses (green, amber, red) exist only for real states, never decoration. This section is Arc's "accent with intent" and "status means status" already in place, and it does not change.
 
 ### Primary
+
 - **Azure** (`#1D9BF0` family; theme primary `#1E9DF1`, ring `#1DA1F2`): **the one accent.** Money-CTA fills (`--btn-accent`/`--primary`: `#1D9BF0` light, `#1C9CF0` dark; hover `#1A8CD8` both themes), text links and signature blue (`--brand-link`: `#1D9BF0` both themes), focus rings (`--ring`: `#1DA1F2` both themes), selected and active states, stepper and progress fills, and data-viz series. Raw `#1D9BF0` (`--brand-royal`/`--brand-teal`) is also the gradient and decorative blue. **Contrast note (owner decision, issue #531, 2026-10-30):** the 2026-10-25 AA-darkened fills (`#0F7DB8`/`#1273B4` light, `#0B72B5` links) were reverted to the prior brand azure. White-on-azure labels and azure links on white measure ~3.0:1 — AA passes only as large text / non-text UI, not body-size text; dark-theme links on the `#121212` canvas stay AA at 6.2:1. The `--color-brand` utility token (`hover:text-brand` in the footer) rides `--brand-link`.
 - **Ink** (`#0F1419`, `--ink`/`--foreground`/`--brand-navy`): The text and neutral-button colour of the system. Body and heading text on light surfaces, ghost and neutral button fills (`color="neutral"`, `--secondary`), the dark start of the brand gradient, and dark-theme inverted surfaces.
 
 ### Secondary
+
 - **Sky** (`#8ECDF8`, `--brand-cyan`/`--brand-aqua`): The gradient's light end (wordmark and hero backdrops only). Never in interactive states.
 - **Azure Wash** (`#E3ECF6`, `--accent`): Hover washes and soft azure-tinted panels, always with ink text (`--accent-foreground` is ink; azure text on the wash is 2.5:1). The one azure-tinted surface; all other washes stay true neutral.
 
 ### Tertiary
+
 - **Green** (`#157F47`, light), **Amber** (`#F7B928`, fill only, ink text on it), **Red** (`#D61F2E`, light): Statuses, AA in both the text-on-light and white-on-fill roles. Red is the theme destructive. The button colour axis keeps its own AA-safe derivations (`#00875A`, `#A16207`). In dark mode the status tokens lighten to `#4ADE80`/`#FCD34D`/`#F87171` with dark-ink text on fills (dark-mode guide §7).
 - **WhatsApp Green** (`#25D366`, `--brand-whatsapp`): The single sanctioned non-palette colour, for WhatsApp contact affordances only. Hover `#1EBE57`.
 
 ### Neutral
+
 - **Paper White** (`#FFFFFF`, `--surface`/`--background`): Canvas and default button fill on light.
 - **Card Tint** (`#F7F8F8`, `--card`/`--sidebar`): Cards sit a half-step off the canvas.
 - **Input Tint** (`#F7F9FA`, `--input`) and **Hover Wash** (`#EFF3F4`, `--surface-hover`): Wells and hover states.
@@ -180,7 +202,8 @@ The palette is a quiet news feed: ink text, paper and card-tint surfaces, hairli
 - **Night Canvas** (`#121212`) / **Night Band** (`#17181B`) / **Night Card** (`#1E1E1E`) / **Night Border** (`#41454B`): Dark-theme surfaces on a luminosity elevation ladder, canvas `#121212`, the header and sticky search band `#17181B` (chrome lifts one step off the canvas, mirroring the grey band on light), subtle and sidebar `#1A1C1E`, cards and muted `#1E1E1E`, popovers and raised `#232327`, hovers `#26282C`; primary ink everywhere `#E7E9EA` (~15:1), secondary text `#A3AAB1` (~7.5:1), disabled text `#8A8E93`, input strokes `#3E4B58`, sidebar border `#41454B`. Dark statuses lighten for comfort, each with dark-ink text on fills, and the dark chart series ride the same lightened status hues (amber `#FCD34D`).
 
 ### Named Rules
-**The Scarcity Rule.** Azure (`--btn-accent`/`--ring`/`--brand-link`) owns exactly three things: (1) money-CTA fills, the ~10% of buttons that start a conversion flow, (2) text links, (3) focus rings and selected or active states. Everything else is ink or neutral. Test: *does this button start a conversion flow?* If not, it is neutral (white or ink). Do not colour headings, card backgrounds, or every icon with it.
+
+**The Scarcity Rule.** Azure (`--btn-accent`/`--ring`/`--brand-link`) owns exactly three things: (1) money-CTA fills, the ~10% of buttons that start a conversion flow, (2) text links, (3) focus rings and selected or active states. Everything else is ink or neutral. Test: _does this button start a conversion flow?_ If not, it is neutral (white or ink). Do not colour headings, card backgrounds, or every icon with it.
 
 **The Constant Signal Rule.** Dark mode dims the world, not the signal: Azure keeps carrying accent fills, links, and focus in both themes. Dark neutral and secondary buttons use X's translucent slate fill (`rgba(91,112,131,0.4)`, `--btn-neutral`) with white text, deepening to `0.6` alpha on hover; the white pill is never a resting neutral in dark mode. The inverted CTA pill (`--surface-invert`) is white with ink text in dark, white text on ink in light; never hardcode `text-white` on an invert fill.
 
@@ -195,12 +218,13 @@ Load them as `--font-display` and `--font-body`. Both are Latin-only; zh-HK text
 **Character:** hierarchy comes from size, colour (`--foreground` over secondary ink), spacing, and the weight ladder (400 body, 500 labels, 600 controls/card titles, 700 headings; 800 is wordmark-only). Display tracking is `-0.03em`, body and label tracking `-0.01em`. Never `text-transform: uppercase`, never wide tracking on small labels, never an eyebrow line above a heading (see Copy).
 
 ### The size scale
+
 Sizes come from this ladder only: 11, 12, 14, 16, 18, 22, 28, 36, 52, 72px. 11px is the floor, for captions and dense meta only; nothing smaller ships.
 
-- **Display** (500, 36 to 72px, 1.1 line-height, `-0.03em`): Marketing heroes, landing `h1`, how-it-works display headings.
-- **Wordmarks** (the one sanctioned exception to 400/500, by owner decision): the header "MatchMax" label is legacy Open Sans 700 (`--font-wordmark-nav`), and the footer sign-off is Poppins 800 (`--font-wordmark`). Never restyle these back to 500.
-- **Headline** (500, 22 to 28px): Page `h1`s and section `h2`s at product scale, dialog titles.
-- **Title** (500, 18 to 22px): Card titles, prices, stat numbers, panel headings.
+- **Display** (700, 36 to 72px, 1.1 line-height, `-0.03em`): Marketing heroes, landing `h1`, how-it-works display headings.
+- **Wordmarks** (the one sanctioned exception to the 400 to 700 ladder, by owner decision): the header "MatchMax" label is legacy Open Sans 700 (`--font-wordmark-nav`), and the footer sign-off is Poppins 800 (`--font-wordmark`). Never restyle these back to 500.
+- **Headline** (700, 22 to 28px): Page `h1`s and section `h2`s at product scale, dialog titles.
+- **Title** (600 for card and panel titles, 700 when it is an `h3`; 18 to 22px): Card titles, prices, stat numbers, panel headings.
 - **Subtitle** (400, 16 to 18px): The one supporting line under a heading, when it adds information.
 - **Body** (400, 16px, 1.6): All running text. Small text at 14px, micro at 11 to 12px.
 - **Label** (500, 12 to 14px, sentence case): Buttons, chips, form labels, table headers, step indicators.
@@ -209,6 +233,7 @@ Sizes come from this ladder only: 11, 12, 14, 16, 18, 22, 28, 36, 52, 72px. 11px
 - Numbers that change or align in columns use `font-variant-numeric: tabular-nums`.
 
 ### Named Rules
+
 **The Two Faces Rule.** Geist lives only in large headings; Inter lives everywhere else. Keep Geist out of controls and small labels; keep Inter out of hero headlines. No third family.
 
 **The No-Bold Rule.** Never set 600 or heavier, and never fake emphasis with bold. If two levels of text need to differ, change the size, the colour (foreground vs secondary ink), or the spacing around it.
@@ -229,6 +254,7 @@ Arc copy rules, adopted in full. Copy is short, specific, and honest.
 8. **Consistent terms.** One word per concept across the product: "tutor", "case", "request" mean the same thing everywhere.
 
 Patterns:
+
 - **Errors** say what happened and how to fix it, next to the field: "Enter an email like name@company.com".
 - **Empty states** say why they are empty and offer one next step: "No saved tutors yet. Tutors you save appear here."
 - **Destructive confirmations** name the object and the consequence.
@@ -242,6 +268,7 @@ Content rides on a max-width rail system. The site header and full-bleed marketi
 Spacing rhythm follows Arc's context rule: 16px inside groups, 24px between regions, 32 to 48px between long-form sections, 24 to 32px page padding; marketing sections breathe at 64 to 120px vertical (`py-20 sm:py-28` today). Card interiors `p-6`; grid gaps 16 to 24px. Base grid is Tailwind's 4px scale. Internal control spacing stays fixed as the viewport grows; only outer gutters grow. Breakpoints are Tailwind defaults. Mobile patterns: horizontal snap rails for tutor rows, full-width stacked CTAs, and the StaggeredMobileMenu.
 
 ### Named Rules
+
 **The 1600 Rail Rule.** Header and hero rails stop at 1600px; inner content stops at `max-w-[1536px]`. Nothing stretches edge-to-edge except full-bleed tinted sections. Long-form prose keeps a readable measure inside the wide rails (guide/legal text blocks stay capped at `max-w-3xl/4xl`).
 
 ## Surfaces and elevation
@@ -255,9 +282,11 @@ Group with proximity first, a one-pixel `--border` second, a card only for a rea
 - **Theme switch** (`html.theme-switching` for ~300ms): 250ms ease on background, colour, border, fill, and stroke when the theme actually flips (dark-mode guide §10); media and reduced-motion users are excluded.
 
 ### Named Rules
+
 **The Floating Shadow Rule.** If it does not float over the page, it does not get a shadow. Reach for a 1px border or a surface step before any elevation.
 
 **The Night Ladder Rule.** In dark mode, fill steps between surfaces are near-invisible (1.1 to 1.2:1 at night luminances), so boundaries are carried by hairlines and the ladder is carried by named tokens:
+
 - Night hairlines must be plainly visible: `--border` `#41454B` sits ~1.9:1 over the canvas. (Light hairlines survive at ~1.2:1; dark surrounds compress perceived contrast, so the night step is wider.) Input strokes get their own blue-tinged `--input` `#3E4B58`. Never ship a dark surface that separates by fill alone.
 - Sticky chrome (site header, directory search band, mobile top and bottom bars) rides `--surface-header` `#17181B`, exactly one step above the canvas, the way the grey band reads on light. Never let band and canvas share a colour.
 - Floating layers ride `--popover` `#232327` plus the night lift shadow; they are the only layers above the ladder.
@@ -268,16 +297,18 @@ Group with proximity first, a one-pixel `--border` second, a card only for a rea
 Motion shows cause and effect: what opened, what changed, where it came from. If an animation explains nothing, remove it. Entrance choreography is retired: no section reveals, no hero text effects, no stagger. What remains is state-change motion only.
 
 ### The motion vocabulary
+
 Springs via `motion/react`; CSS transitions use the matching duration and easing variables.
 
-| Token | Value | Use for |
-| --- | --- | --- |
-| `spring.smooth` | 0.4s, bounce 0 | Panels, height, drawers, progress, layout shifts. Never overshoots: anything that reports a state lands without bounce |
-| `spring.snappy` | 0.26s, bounce 0.12 | Press feedback, small indicators, icon swaps |
-| `spring.morph` | 0.42s, bounce 0.16 | Shared highlights (`layoutId`), width that follows new content, shape morphs |
-| durations | 0.12 / 0.16 / 0.18 / 0.24 / 0.48s | Colour, opacity, small fades. Exits are faster than entrances |
+| Token           | Value                             | Use for                                                                                                                |
+| --------------- | --------------------------------- | ---------------------------------------------------------------------------------------------------------------------- |
+| `spring.smooth` | 0.4s, bounce 0                    | Panels, height, drawers, progress, layout shifts. Never overshoots: anything that reports a state lands without bounce |
+| `spring.snappy` | 0.26s, bounce 0.12                | Press feedback, small indicators, icon swaps                                                                           |
+| `spring.morph`  | 0.42s, bounce 0.16                | Shared highlights (`layoutId`), width that follows new content, shape morphs                                           |
+| durations       | 0.12 / 0.16 / 0.18 / 0.24 / 0.48s | Colour, opacity, small fades. Exits are faster than entrances                                                          |
 
 ### What motion does here
+
 - **Sliding indicators**: segmented controls, tab rows, and toggles slide their active pill or underline between positions (DirectoryToggle thumb, MobileBottomNav indicator, desktop-nav underline sweep) via `motion layoutId` with `spring.morph`. Never an instant swap.
 - **Panels and disclosure**: height plus opacity together on `spring.smooth`, no overshoot; exits at the faster exit duration.
 - **Presses**: `active:scale-[0.97]` on `spring.snappy`, except elements that anchor a popover or menu (the press positions against them); those answer with colour instead. The opt-in `refined` and `hoverArrow` Button props follow this vocabulary; they stay out of tutor cards (card visuals are frozen by product decision).
@@ -285,6 +316,7 @@ Springs via `motion/react`; CSS transitions use the matching duration and easing
 - **Rails**: horizontal scrollers use `.rail-scroll` (native scrollbar hidden; discovery comes from the next card peeking past the edge). Desktop rails get circular arrow buttons whose ends disable from live scroll state.
 
 ### Retired (the "AI-built" tells)
+
 Per-card staggered fade-ups, bouncy scale-ins, gradient blobs, shimmer sweeps, glow borders, particles, decorative marquees, and now also: whole-section scroll reveals (the `Reveal` rise-and-fade wrapper), the blur-highlight hero text (blurred words snapping sharp with a sky sweep), and the announcement banner's entrance choreography. The banner's slide crossfade may remain while it carries multiple live announcements. Loops are allowed only for live status.
 
 Every animation keeps its `motion-reduce` / `prefers-reduced-motion` branch, preserving final state, focus, and feedback.
@@ -301,8 +333,13 @@ Three radii and a pill, from Arc's concentric system:
 **The Concentric Rule.** A nested corner is the outer radius minus the padding between it and the parent, so the curves stay parallel:
 
 ```css
-.card  { border-radius: var(--radius-surface); padding: 24px; }
-.card > .media { border-radius: calc(var(--radius-surface) - 24px); } /* 10px */
+.card {
+  border-radius: var(--radius-surface);
+  padding: 24px;
+}
+.card > .media {
+  border-radius: calc(var(--radius-surface) - 24px);
+} /* 10px */
 ```
 
 Clamp the result at a small positive value (`max(6px, calc(...))`) when padding is large. Never nest the same radius inside itself; the same value inside and out makes a thick, uneven corner.
@@ -314,6 +351,7 @@ Corners are always symmetric. Borders are 1px hairlines; dividers use `border-bo
 For each component: one clear primary action, calm signage, tactile feedback.
 
 ### Buttons
+
 - **Shape:** `--radius-control` (18px). Heights: 36px default, 44px for mobile-primary and full-width CTAs, 50px for hero large. Weight 600, verb-plus-object labels.
 - **Neutral default** (`variant="default"`): white fill, ink text, hairline `foreground/15` border, no shadow; hover washes to the hover wash and deepens the border. The resting state of ~90% of buttons.
 - **Accent** (`variant="solid" color="blue"`, `color="accent"` is an alias): the money CTA. `--btn-accent` fill (`#1D9BF0` light, `#1C9CF0` dark) with white text, hover `#1A8CD8`. Reserved for the conversion list: hero Find a Tutor, directory Search, Post your request (and submit), Join as Tutor (and final submit), Contact and Request Tutor, header Sign up, auth continue, pricing highlighted CTA, dashboard and case CTAs, Publish course, business signup.
@@ -323,36 +361,101 @@ For each component: one clear primary action, calm signage, tactile feedback.
 - **States:** press `active:scale-[0.97]` on `spring.snappy`, keyboard-only `focus-visible` azure ring (solid `--ring`) with offset, never a ring on pointer focus, disabled at 50% opacity, optional loading spinner. `motion-reduce` disables the press.
 
 ### Badges and chips
-- **Style:** pill radius for status marks and tags, `px-2.5 py-0.5`, 11 to 14px at 500, sentence case. Default is ink fill with white text; Secondary is the `--secondary` ink axis; Outline is a hairline border with foreground text. Selected filter chips use the azure accent wash with ink text.
+
+- **Style:** pill radius for status marks and tags, `px-2.5 py-0.5`, 11 to 14px at 500, sentence case. Default is the azure primary fill with white text; Secondary is the `--secondary` ink axis; Outline is a hairline border with foreground text. Selected filter chips use the azure accent wash with ink text. **Status badges** (`variant="info" | "success" | "warning" | "danger"`) are soft tinted pills with ink-safe text: New, Paid, Pending review, Overdue.
 
 ### Cards and containers
+
 - **Corner:** `--radius-surface` (34px), concentric with any nested shapes.
 - **Background:** `bg-card` (`#F7F8F8` light, `#1E1E1E` dark).
 - **Separation:** 1px `border-border` hairline, no resting shadow; siblings share edges (real 16 to 24px gaps or joined groups with dividers).
 - **Internal padding:** `p-6` standard; the marketing search panel keeps `p-2.5 sm:p-5`.
 
 ### Inputs and fields
+
 - **Style:** 44px tall (`--control-height-md`), transparent fill, 1px `--input` stroke (`--border-strong` semantics on emphasis), `--radius-control` corners, 16px text (14px at sm breakpoints), 400 weight; a selected/entered value renders at 600.
 - **Focus:** border shifts to the ring colour plus a solid `ring-2` for keyboard focus only; no glow, no alpha washes, no ring on pointer focus.
 - **Error and disabled:** destructive styling per shadcn form wiring, error text beside the field saying what to fix; disabled at 50% opacity with `cursor-not-allowed`.
 
 ### Icons
+
 - `lucide-react` at 16, 20, or 24px, `strokeWidth={1.75}`. Decorative icons carry `aria-hidden="true"`.
 - A plain icon beside its label. No icon inside a rounded tile or circle unless the shape is the control itself or carries status (the numbered stepper circles qualify). Decorative icon medallions are retired from the system; use a text label when it is clearer than an icon, especially for destructive or unfamiliar actions.
 - Tutor-card icons in `--brand-link` azure are data markers, not decoration; they stay.
 
 ### Navigation
+
 - Sticky 64px header: `bg-[color:var(--surface)]/95` with `backdrop-blur-sm`, hairline bottom border at ink/10. Logo (32px) plus "MatchMax" wordmark in `text-brand-gradient` at 700 in the legacy Open Sans wordmark face. Desktop links: 15px at 500, ink at 85%, hover and focus shift to azure with a 2px ink underline sweeping in from the left (`spring.morph`). The account affordance is a bordered `surface-subtle` pill with an ink-initial avatar; header Sign up is an azure money CTA. Mobile uses the staggered full-screen menu (ink, azure, sky layer colours). The footer mirrors the header at `max-w-7xl`: sentence-case 14px column headings at 500, `--muted-foreground` links hovering to azure (`--color-brand` rides `--brand-link`), and a 4xl/5xl "MatchMax" sign-off at 800 in the Poppins wordmark face.
 
 ### Signature components
+
 - **Brand-gradient wordmark** (`text-brand-gradient`): ink, azure, sky at 135°, clipped to text (dark mode: sky to azure). The wordmark, the footer sign-off, and hero backdrops are the only gradient homes; banned on all other text, buttons, and component surfaces.
 - **Join stepper**: 36px numbered circles (status shapes) with azure fill for active (`#1D9BF0` both themes), green for complete (`#157F47` light, `#4ADE80` dark), animated connector bars on `spring.smooth`, card shell at panel radius, slide-forward and back content transitions.
 - **Hero backdrops**: patterned and photographic scrims (education pattern, tutor-network photo at `saturate(0.78) contrast(1.1)` with ink gradient overlays and an azure radial hotspot). Gradients here are subtle backdrops, never component fills. Dark mode dims imagery to 18% opacity and recolours the logo via `.logo-dark-recolor`.
 - **WhatsApp float**: the persistent circular WhatsApp-green contact affordance on public pages; it floats, so it may use the floating shadow.
 
+### Component library: which one do I use?
+
+The living catalogue is the `/design-system` page (`src/routes/design-system.tsx`). It renders the real components, so it never drifts. Build from these; when none fits, extend the shared component rather than hand-rolling a one-off.
+
+| Need                                          | Use                                                                     | Not                                                     |
+| --------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------- |
+| Button or link-styled action                  | `Button` (`variant`, `color`, `size`, `shape`)                          | a styled `<button>` / `<a>`                             |
+| One-line or multi-line text                   | `Input`, `Textarea` with a `Label`; set `aria-invalid` for errors       | placeholder-only labels                                 |
+| Pick from up to ~10 fixed options             | `Select` (`components/ui/select`)                                       | native `<select>`                                       |
+| Pick from a long or searchable list           | `SearchableSelect` (subjects, schools, stations)                        | native `<select>`                                       |
+| Actions behind a button (Edit, Share, Delete) | `DropdownMenu`                                                          | a `Select`                                              |
+| Agree / pick several                          | `Checkbox`                                                              | native `<input type="checkbox">`                        |
+| One of a few visible options                  | `RadioGroup`; `RadioCards` when each option needs a description         | a row of buttons                                        |
+| A setting that applies at once                | `Switch`                                                                | a switch next to a Save button                          |
+| Short status mark                             | `Badge` (`info`, `success`, `warning`, `danger`, plus neutral variants) | coloured `<span>`s                                      |
+| A notice about the page or form               | `Alert` as a banner (`info`, `success`, `warning`, `danger`)            | hand-rolled amber or green boxes                        |
+| A group of related content                    | `Card`                                                                  | a card inside a card                                    |
+| Rows of records                               | `ConsoleTable` (+ `ConsoleTableEmpty`, `ConsoleTableSkeletonRows`)      | a hand-built `<table>`                                  |
+| Switch views of the same thing                | `Tabs`                                                                  | tabs as page navigation                                 |
+| Focused task or confirmation                  | `Dialog` / `AlertDialog`; `Sheet` on phones for long forms              | `window.alert` / `prompt` / `confirm`                   |
+| Hint on an icon                               | `Tooltip`                                                               | long text in a tooltip                                  |
+| Background work finished                      | `toast` (sonner)                                                        | a toast as the only confirmation of an important action |
+| Loading / nothing yet / progress              | `Skeleton`, `EmptyState` (with one next step), `Progress`               | blank areas or lone spinners                            |
+| Long lists over pages                         | `Pagination`                                                            | custom page links                                       |
+| Person without a photo                        | `InitialAvatar` (colour is stable per account)                          | random colours                                          |
+
+### Dropdowns
+
+- **Select** for short fixed lists, **SearchableSelect** for long or typed lists, **DropdownMenu** for actions. All share the 44px control height, `--radius-control` corners and the hairline stroke of text fields.
+- A destructive menu item sits last, after a separator, in destructive text.
+
+### Checkboxes, radios and switches
+
+- `Checkbox`, `RadioGroup` and `Switch` take the azure accent when on. `RadioCards` select with a stronger ink ring that glides between cards (Arc pattern). The label is clickable and sits to the right.
+
+### Banners (Alert)
+
+- Four variants: `info` (azure wash), `success`, `warning`, `danger`. Text is always ink on a light tint; the status colour lives only in the border and the icon, so contrast holds in both themes.
+- Structure: icon, a short `AlertTitle` (a few words), one `AlertDescription` sentence saying what to do. One banner per area; inline field errors stay next to the field.
+
+### Tables
+
+- `ConsoleTable` on staff and account pages: header row in label style, hairline row dividers, numbers and actions right-aligned with tabular numerals, `ConsoleTableEmpty` for no rows and skeleton rows while loading. Wide tables scroll inside the table on phones, never the page.
+
+### Tabs
+
+- For views of one thing (Upcoming | Past, Tutors | Marketplace), at most about five. The active indicator slides; it is not page navigation.
+
+### Dialogs, menus, tooltips, toasts
+
+- Floating layers are the only things that cast a shadow. A confirmation dialog names the object and the consequence ("Cancel this lesson? The tutor is notified."), with the safe action first and the destructive one in `destructive`.
+- Never use the browser's `alert`, `prompt` or `confirm`; staff tools included.
+- Toasts confirm background work (saved, copied). Anything that changes money, access or safety also shows its result in place.
+
+### Loading, empty states, progress
+
+- Skeletons copy the shape of the content they replace. Empty states say why the area is empty and offer one next step. `Progress` for uploads and multi-step forms.
+
 ## Migration debt
 
 The codebase still carries pre-Arc artifacts that this system retires. Fold them in as files are touched, or in a dedicated pass:
+
 - Font swap: Open Sans to Geist (display) and Inter (body), loaded as `--font-display` and `--font-body`; the 2026-10-25 weight restore re-added 600/700 so titles carry real weight again.
 - Radius tokens: `--radius-control` 8px to 18px, cards ~25px to 34px, plus concentric nesting in composed cards.
 - Eyebrow and kicker lines folded into headings or descriptions.
@@ -360,12 +463,14 @@ The codebase still carries pre-Arc artifacts that this system retires. Fold them
 - Decorative icon tiles and medallions flattened to plain icons beside labels.
 - The ESLint no-shadow rule amended with a floating-layer carve-out (dialogs, menus, popovers, sheets, the WhatsApp float, `.pill-elevate` pills).
 - Weight utilities follow the ladder: `font-semibold` on controls and card titles, `font-bold` on headings; nothing above 700 outside wordmarks.
+- Component consolidation (audit 2026-11-22): 19 files still use a native `<select>`, about 54 hand-roll amber or green notice boxes instead of `Alert`, 12 hand-build `<table>`s instead of `ConsoleTable`, and 13 use a native checkbox (the 2 staff `window.prompt`s were replaced by a dialog in this pass). Move each to the component-library choice above as the file is touched.
 
 ## Do's and Don'ts
 
 ### Do:
+
 - **Do** ration azure: before adding `variant="solid" color="blue"`, apply the conversion test. If the button does not start a conversion flow (Find a Tutor, Post a request, Join, Contact, Sign up, Publish), ship it neutral.
-- **Do** keep type calm: Geist and Inter at 400 and 500 only, sizes from the 11-to-72 ladder, tabular numerals for changing numbers.
+- **Do** keep type calm: Geist and Inter on the weight ladder only (400 body, 500 labels, 600 controls and card titles, 700 headings), sizes from the 11-to-72 ladder, tabular numerals for changing numbers.
 - **Do** contrast-check every new colour: 4.5:1 for text, 3:1 for indicators, against `background`, `card`, `muted`, and `accent`, in both themes.
 - **Do** write copy like a person: sentence case, verbs with objects on buttons, errors that say what to fix, empty states with one next step, real numbers only.
 - **Do** keep corners concentric: inner radius equals outer radius minus the padding between them.
@@ -376,6 +481,7 @@ The codebase still carries pre-Arc artifacts that this system retires. Fold them
 - **Do** check every new screen in dark before shipping it: borders visible on the night canvas, sticky chrome on `--surface-header`, chart and status colours on the lightened dark hues, no paper-white leftovers.
 
 ### Don't:
+
 - **Don't** set font weights above 700 (800 is wordmark-only), fake bold, uppercase transforms, or wide tracking on small labels.
 - **Don't** dim text with opacity classes, invent ad-hoc greys or hardcoded status hexes, or alpha-fade focus rings; secondary text is `--muted-foreground`, statuses are tokens, rings are solid `--ring`.
 - **Don't** add eyebrow lines, em dashes in English copy, or periods at the end of headings.
