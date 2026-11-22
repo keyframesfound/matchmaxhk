@@ -1769,6 +1769,7 @@
   },
   "join": {
     "form": {
+      "error_summary": "請填妥已標示嘅欄位。",
       "resume_title": "請喺瀏覽器繼續",
       "resume_body": "呢個 App 嘅內置瀏覽器唔支援 Google 登入。複製下面嘅連結，用 Safari 或 Chrome 開啟——你嘅答案已經儲存。如果你加過個人相片，喺新瀏覽器要再上載一次：檔案唔可以經連結帶過去。",
       "resume_copy": "複製續填連結",

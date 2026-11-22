@@ -90,7 +90,11 @@ function JoinPage() {
     enabled: Boolean(user) && tutorPath,
     queryFn: async () => {
       const [card, profile] = await Promise.all([
-        supabase.from("tutors").select("id").eq("user_id", user!.id).maybeSingle(),
+        supabase
+          .from("tutors")
+          .select("id, is_published")
+          .eq("user_id", user!.id)
+          .maybeSingle(),
         supabase.from("profiles").select("handle").eq("id", user!.id).maybeSingle(),
       ]);
       const handle = profile.data?.handle ?? null;
@@ -107,12 +111,20 @@ function JoinPage() {
           .maybeSingle();
         channelHandle = channel?.handle ?? null;
       }
-      return { hasCard: Boolean(card.data), channelHandle };
+      return {
+        hasCard: Boolean(card.data),
+        // A published card is the only state where the channel page is the
+        // right destination. An unpublished one is a tutor mid-onboarding, and
+        // bouncing them to a page that may not resolve is exactly the dead end
+        // that stopped tutors entering their data.
+        isPublished: card.data?.is_published === true,
+        channelHandle,
+      };
     },
   });
   useEffect(() => {
     const channelHandle = owned.data?.channelHandle;
-    if (!owned.data?.hasCard || !channelHandle) return;
+    if (!owned.data?.hasCard || !owned.data?.isPublished || !channelHandle) return;
     void navigate({
       to: "/u/$handle",
       params: { handle: channelHandle },

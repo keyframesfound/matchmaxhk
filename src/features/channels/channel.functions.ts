@@ -105,12 +105,37 @@ async function tutorStats(db: Db, tutorId: string): Promise<ChannelStats> {
   };
 }
 
+/**
+ * The channel is a **public** page. It used to sit behind `requireSupabaseAuth`,
+ * so a signed-out visitor — or a tutor opening their own link from WhatsApp —
+ * got a thrown error that the page rendered as "Channel not found". A public
+ * profile that 404s for the public is worse than useless: tutors conclude the
+ * product is broken and cannot be onboarded.
+ *
+ * So the read is auth-optional: the bearer token is resolved when it is there
+ * (to decide `isOwner`), and its absence is a normal state rather than an error.
+ */
+async function optionalChannelUserId(): Promise<string | null> {
+  try {
+    const { getRequest } = await import("@tanstack/react-start/server");
+    const header = getRequest()?.headers?.get("authorization");
+    if (!header?.startsWith("Bearer ")) return null;
+    const token = header.slice("Bearer ".length).trim();
+    if (!token) return null;
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data } = await supabaseAdmin.auth.getUser(token);
+    return data?.user?.id ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export const getChannelProfile = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .validator((input: unknown) =>
     z.object({ handle: z.string().trim().min(1).max(60) }).parse(input),
   )
-  .handler(async ({ context, data }): Promise<ChannelProfileData> => {
+  .handler(async ({ data }): Promise<ChannelProfileData> => {
+    const viewerId = await optionalChannelUserId();
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const notFound: ChannelProfileData = {
@@ -223,7 +248,7 @@ export const getChannelProfile = createServerFn({ method: "POST" })
 
     return {
       found: true,
-      isOwner: context.userId === profile.id,
+      isOwner: viewerId !== null && viewerId === profile.id,
       handle: profile.handle ?? data.handle,
       displayName: profile.display_name ?? data.handle,
       avatarUrl: profile.avatar_url,
@@ -357,7 +382,8 @@ export const requestAffiliation = createServerFn({ method: "POST" })
             entity_id: `affil:${centre.id}`,
             admin_title: "Centre affiliation request",
             admin_title_zh: "補習中心關聯申請",
-            admin_body: "A tutor requested affiliation with your centre. Review it in the workspace.",
+            admin_body:
+              "A tutor requested affiliation with your centre. Review it in the workspace.",
             urgency: "medium",
             link: "/business",
             cta_label: "Review request",
@@ -466,7 +492,6 @@ export async function assertCentreAdmin(db: Db, userId: string, centreId: string
 
 /** Study Materials tab: the tutor's published listings (no private data). */
 export const getChannelMaterials = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .validator((input: unknown) =>
     z.object({ handle: z.string().trim().min(1).max(60) }).parse(input),
   )
@@ -504,7 +529,6 @@ export const getChannelMaterials = createServerFn({ method: "POST" })
 
 /** #556: the seller's collection names, for the Materials tab filter pills. */
 export const getChannelCollections = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .validator((input: unknown) =>
     z.object({ handle: z.string().trim().min(1).max(60) }).parse(input),
   )
@@ -526,7 +550,6 @@ export const getChannelCollections = createServerFn({ method: "POST" })
 
 /** Reviews tab: published case reviews for the tutor. */
 export const getChannelReviews = createServerFn({ method: "POST" })
-  .middleware([requireSupabaseAuth])
   .validator((input: unknown) =>
     z.object({ handle: z.string().trim().min(1).max(60) }).parse(input),
   )

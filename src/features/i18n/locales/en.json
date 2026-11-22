@@ -1769,6 +1769,7 @@
   },
   "join": {
     "form": {
+      "error_summary": "Please complete the highlighted fields.",
       "resume_title": "Continue in your browser",
       "resume_body": "Google sign-in is blocked inside this app's browser. Copy the link below and open it in Safari or Chrome — your answers are saved. If you added a profile photo, upload it again there: files cannot travel through the link.",
       "resume_copy": "Copy resume link",

@@ -115,6 +115,7 @@ function BusinessJoinPage() {
   const [autoSubmitStage, setAutoSubmitStage] = useState<"idle" | "fire" | "done">("idle");
   const [draftApplied, setDraftApplied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [missing, setMissing] = useState<string[]>([]);
   const [form, setForm] = useState<BusinessJoinForm>(INITIAL_BUSINESS_JOIN_FORM);
   const { restored, flushDraft, clearDraft } = useFormDraft<BusinessJoinForm>("business-join");
 
@@ -186,9 +187,47 @@ function BusinessJoinPage() {
     marketingAck: form.marketingAck,
   });
 
+  /**
+   * #797 feedback, same ask as the tutor intake: a tutor or centre that misses
+   * a field must be told which one, in red, and be taken to it. The old early
+   * return on an empty name did nothing at all, and everything else surfaced as
+   * a toast from the server with no field marked.
+   */
+  const missingFields = (): string[] => {
+    const missing: string[] = [];
+    if (!form.name.trim()) missing.push("Public / listing name");
+    if (!form.legal_entity_name.trim()) missing.push("Legal entity name");
+    if (!form.br_number.trim()) missing.push("Business Registration number");
+    if (!form.rep_name.trim()) missing.push("Authorised representative");
+    if (!form.rep_role.trim()) missing.push("Representative role");
+    if (!form.contact_email.trim()) missing.push("Contact email");
+    if (!form.contact_phone.trim()) missing.push("Contact phone");
+    if (!form.authorityAck) missing.push("Authority confirmation");
+    if (!form.termsAck) missing.push("Terms acceptance");
+    if (!form.feeAck) missing.push("Fee terms acceptance");
+    return missing;
+  };
+
   const handleSubmit = async (event?: React.FormEvent) => {
     event?.preventDefault();
-    if (!form.name.trim()) return;
+    const missing = missingFields();
+    if (missing.length > 0) {
+      setMissing(missing);
+      window.requestAnimationFrame(() => {
+        const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 0;
+        const first = document.querySelector<HTMLElement>('[aria-invalid="true"]');
+        const target = first ?? document.getElementById("org-join-form");
+        if (target) {
+          window.scrollTo({
+            top: window.scrollY + target.getBoundingClientRect().top - headerHeight - 24,
+            behavior: "smooth",
+          });
+          first?.focus({ preventScroll: true });
+        }
+      });
+      return;
+    }
+    setMissing([]);
     setSubmitting(true);
     try {
       // #759 Part 1: a guest gets the Google OAuth handoff — flush the
@@ -239,16 +278,34 @@ function BusinessJoinPage() {
           </div>
 
           <form
+            id="org-join-form"
             onSubmit={(event) => {
               void handleSubmit(event);
             }}
             className="mt-8 space-y-5 rounded-lg border border-border bg-card p-6 sm:p-8"
           >
+            {missing.length > 0 ? (
+              <div
+                role="alert"
+                className="flex items-start gap-2.5 rounded-md border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium leading-relaxed text-destructive"
+              >
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <div className="min-w-0">
+                  <span>Please complete these before submitting:</span>
+                  <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs font-semibold">
+                    {missing.map((label) => (
+                      <li key={label}>{label}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+            ) : null}
             <div className="space-y-1.5">
               <Label htmlFor="org-name">Public / listing name *</Label>
               <Input
                 required
                 maxLength={120}
+                aria-invalid={missing.some((m) => m === "Public / listing name") || undefined}
                 placeholder="e.g. Ace Learning Centre"
                 value={form.name}
                 onChange={(e) => setField({ name: e.target.value })}
@@ -269,6 +326,7 @@ function BusinessJoinPage() {
                 <Input
                   required
                   maxLength={200}
+                  aria-invalid={missing.some((m) => m === "Legal entity name") || undefined}
                   placeholder="e.g. XYZ Education Limited"
                   value={form.legal_entity_name}
                   onChange={(e) => setField({ legal_entity_name: e.target.value })}
@@ -289,6 +347,9 @@ function BusinessJoinPage() {
                   <Input
                     required
                     maxLength={40}
+                    aria-invalid={
+                      missing.some((m) => m === "Business Registration number") || undefined
+                    }
                     placeholder="e.g. 41690777"
                     value={form.br_number}
                     onChange={(e) => setField({ br_number: e.target.value })}

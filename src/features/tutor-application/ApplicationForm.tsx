@@ -1666,6 +1666,31 @@ export function ApplicationForm({ completePending = false }: { completePending?:
     void submitForm();
   }
 
+  /**
+   * #797 feedback: "if the tutor fills something wrong it does not clearly tell
+   * them what is missing". Scrolling to the top of the step leaves them hunting,
+   * so after a failed validation we go to the first control the form has marked
+   * invalid and focus it; only when nothing is marked do we fall back to the
+   * step header (where the summary list lives).
+   */
+  function scrollToFirstInvalid() {
+    window.requestAnimationFrame(() => {
+      const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 0;
+      const invalid = document.querySelector<HTMLElement>(
+        '[aria-invalid="true"], [data-invalid="true"]',
+      );
+      if (invalid) {
+        window.scrollTo({
+          top: window.scrollY + invalid.getBoundingClientRect().top - headerHeight - 24,
+          behavior: "smooth",
+        });
+        invalid.focus({ preventScroll: true });
+        return;
+      }
+      scrollToStepperTop();
+    });
+  }
+
   function scrollToStepperTop() {
     window.requestAnimationFrame(() => {
       const stepperTop = stepperRef.current?.getBoundingClientRect().top;
@@ -2138,7 +2163,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
     setFieldErrors(next);
     const failed = Object.keys(next).length > 0;
     if (!failed) setError(null);
-    if (failed) scrollToStepperTop();
+    if (failed) scrollToFirstInvalid();
     return !failed;
   }
 
@@ -2879,24 +2904,29 @@ export function ApplicationForm({ completePending = false }: { completePending?:
               </span>
             </div>
           ) : null}
-          {error ? (
+          {(error || Object.keys(fieldErrors).length > 0) && (
             <div
               role="alert"
               className="mb-6 flex items-start gap-2.5 rounded-sm border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium leading-relaxed text-destructive"
             >
               <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
               <div className="min-w-0">
-                <span>{error}</span>
+                {error ? <span>{error}</span> : null}
                 {Object.keys(fieldErrors).length > 0 ? (
-                  <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs font-semibold">
-                    {Object.keys(fieldErrors).map((key) => (
-                      <li key={key}>{describeFieldError(key, t)}</li>
-                    ))}
-                  </ul>
+                  <>
+                    <span className={error ? "mt-1.5 block" : undefined}>
+                      {t("join.form.error_summary")}
+                    </span>
+                    <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs font-semibold">
+                      {Object.keys(fieldErrors).map((key) => (
+                        <li key={key}>{describeFieldError(key, t)}</li>
+                      ))}
+                    </ul>
+                  </>
                 ) : null}
               </div>
             </div>
-          ) : null}
+          )}
           {step === 1 ? (
             <>
               <Heading
