@@ -5,9 +5,16 @@
  * deliberately separate from the #767 Super-Drawer log (which stays one recap
  * string) and from `case_lessons.private_note` (tutor-private). Everything here
  * is DB-free so the limits, the write rule and the numbering are testable.
+ *
+ * #785 AC-CONV-4 adds the one optional `https://` link that rides with it.
  */
 
+import { isAllowedHomeworkLink } from "@/features/cases/homework";
+
 export const COACHING_COMMENT_MAX = 1500;
+
+/** #785 AC-CONV-4: one optional `https://` link travels with the comment. */
+export const COACHING_URL_MAX = 500;
 
 /** Only lessons that have started can carry a comment. */
 export const COACHING_FEED_LIMIT = 10;
@@ -34,6 +41,24 @@ export function normaliseCoachingComment(input: unknown): CoachingCommentResult 
 /** The matched tutor writes the coaching note; Ops may on their behalf. */
 export function canWriteCoachingComment(role: "tutor" | "parent", isOps: boolean): boolean {
   return role === "tutor" || isOps;
+}
+
+export type CoachingUrlResult = { ok: true; url: string | null } | { ok: false; code: "BAD_LINK" };
+
+/**
+ * #785 AC-CONV-4: the link that rides with the comment.
+ *
+ * `https` only and never a direct-contact host, so the coaching note cannot be
+ * used to hand out a WhatsApp or Instagram address the desk never sees. Clearing
+ * (null, empty or whitespace) is always allowed.
+ */
+export function normaliseCoachingUrl(input: unknown): CoachingUrlResult {
+  if (input === null || input === undefined) return { ok: true, url: null };
+  if (typeof input !== "string") return { ok: false, code: "BAD_LINK" };
+  const url = input.trim();
+  if (url.length === 0) return { ok: true, url: null };
+  if (url.length > COACHING_URL_MAX) return { ok: false, code: "BAD_LINK" };
+  return isAllowedHomeworkLink(url) ? { ok: true, url } : { ok: false, code: "BAD_LINK" };
 }
 
 /** Fail closed: a missing or unparseable start time never counts as started. */

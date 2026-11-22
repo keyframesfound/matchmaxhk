@@ -31,6 +31,7 @@ import {
   type CaseFileCategory,
 } from "@/features/cases/case-files";
 import { canCreateMaterial } from "@/features/cases/homework";
+import { lessonStarted } from "@/features/cases/coaching-comment";
 
 const BUCKET = "case-files";
 /** 10 minutes — long enough to open a PDF, short enough to not leak. */
@@ -56,12 +57,14 @@ type CaseFileRow = {
   content_type: string;
   size_bytes: number;
   category: CaseFileCategory;
+  /** #785 AC-CONV-4: set when the file was attached to a lesson's coaching note. */
+  lesson_id: string | null;
   uploaded_by: string;
   created_at: string;
 };
 
 const FILE_COLUMNS =
-  "id, case_id, file_path, file_name, content_type, size_bytes, category, uploaded_by, created_at";
+  "id, case_id, file_path, file_name, content_type, size_bytes, category, lesson_id, uploaded_by, created_at";
 
 /**
  * The service-role client's storage surface for this flow. createSignedUploadUrl
@@ -174,6 +177,27 @@ function requireCategory(
   return effective;
 }
 
+/**
+ * #785 AC-CONV-4: a lesson attachment must belong to this case and the lesson
+ * must have started, exactly like the coaching comment it hangs off. It is
+ * always Post-Class Notes — the database enforces the same with a CHECK, so the
+ * category cannot be filed elsewhere and lost from the bucket the AC names.
+ */
+async function requireLesson(db: Db, caseId: string, lessonId: string): Promise<void> {
+  const rows = await selectRows<{ id: string; starts_at: string | null }>(
+    db,
+    "case_lessons",
+    "id, starts_at",
+    [
+      { col: "id", op: "eq", value: lessonId },
+      { col: "case_id", op: "eq", value: caseId },
+    ],
+  );
+  const lesson = rows[0];
+  if (!lesson) throw new Error("LESSON_NOT_FOUND");
+  if (!lessonStarted(lesson.starts_at, new Date())) throw new Error("LESSON_NOT_STARTED");
+}
+
 /** The case folder is the ownership scope: a path may never leave it. */
 function ownedPath(caseId: string, path: string): boolean {
   return path.startsWith(`${caseId}/`) && !path.includes("..") && !path.includes("\\");
@@ -245,6 +269,8 @@ const UploadTargetSchema = z.object({
   caseId: z.string().uuid(),
   ...FileMeta,
   category: z.enum(CASE_FILE_CATEGORIES).optional(),
+  /** #785 AC-CONV-4: attach the file to one lesson's coaching note. */
+  lessonId: z.string().uuid().optional(),
 });
 
 export type CaseFileUploadTarget = {
@@ -266,7 +292,10 @@ export const createCaseFileUpload = createServerFn({ method: "POST" })
     if (failure) throw new Error(failure);
 
     const db = await adminDb();
-    requireCategory(requireParty(await loadAccess(db, data.caseId, context.userId)), data.category);
+    const access = requireParty(await loadAccess(db, data.caseId, context.userId));
+    // A lesson attachment is always Post-Class Notes, whoever uploads it.
+    requireCategory(access, data.lessonId ? "post_class" : data.category);
+    if (data.lessonId) await requireLesson(db, data.caseId, data.lessonId);
 
     const path = caseFileStoragePath(
       data.caseId,
@@ -287,6 +316,7 @@ const RecordSchema = z.object({
   path: z.string().trim().min(3).max(400),
   ...FileMeta,
   category: z.enum(CASE_FILE_CATEGORIES).optional(),
+  lessonId: z.string().uuid().optional(),
 });
 
 /**
@@ -304,7 +334,8 @@ export const recordCaseFile = createServerFn({ method: "POST" })
 
     const db = await adminDb();
     const access = requireParty(await loadAccess(db, data.caseId, context.userId));
-    const category = requireCategory(access, data.category);
+    const category = requireCategory(access, data.lessonId ? "post_class" : data.category);
+    if (data.lessonId) await requireLesson(db, data.caseId, data.lessonId);
 
     // #782 §2.3: banned terms / dangerous file types are rejected, never dropped.
     const { assertNoContraband } = await import("@/features/trust/contraband.server");
@@ -334,6 +365,7 @@ export const recordCaseFile = createServerFn({ method: "POST" })
         content_type: normalizedType(data.contentType),
         size_bytes: data.size,
         category,
+        lesson_id: data.lessonId ?? null,
         uploaded_by: context.userId,
       })
       .select("id")
@@ -353,6 +385,10 @@ export type CaseFileItem = {
   contentType: string;
   sizeBytes: number;
   category: CaseFileCategory;
+  /** #785 AC-CONV-4: the lesson this file was attached to, if any. */
+  lessonId: string | null;
+  /** That lesson's start time, so the Post-Class list can date the attachment. */
+  lessonStartsAt: string | null;
   createdAt: string;
   /** Signed read URL (10 min) or null when the object is gone. */
   url: string | null;
@@ -378,6 +414,19 @@ export const listCaseFiles = createServerFn({ method: "POST" })
       { col: "created_at", asc: false, limit: MAX_FILES },
     );
 
+    // #785 AC-CONV-4: one lookup for the lessons any file is attached to, so the
+    // Post-Class list can date each attachment without a query per row.
+    const lessonIds = [...new Set(rows.map((row) => row.lesson_id).filter(Boolean))] as string[];
+    const lessons = lessonIds.length
+      ? await selectRows<{ id: string; starts_at: string | null }>(
+          db,
+          "case_lessons",
+          "id, starts_at",
+          [{ col: "id", op: "in", value: lessonIds }],
+        )
+      : [];
+    const startsById = new Map(lessons.map((lesson) => [lesson.id, lesson.starts_at]));
+
     const storage = await storageClient();
     return Promise.all(
       rows.map(async (row) => ({
@@ -386,6 +435,8 @@ export const listCaseFiles = createServerFn({ method: "POST" })
         contentType: row.content_type,
         sizeBytes: row.size_bytes,
         category: row.category,
+        lessonId: row.lesson_id,
+        lessonStartsAt: row.lesson_id ? (startsById.get(row.lesson_id) ?? null) : null,
         createdAt: row.created_at,
         url: await signedUrl(storage, row.file_path),
       })),

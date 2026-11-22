@@ -1,12 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useId, useState } from "react";
+import { useId, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { CASE_FILE_MAX_MB } from "@/features/cases/case-files";
+import { CASE_FILE_ACCEPT, uploadCaseFile } from "@/features/cases/case-file-upload";
+import { listCaseFiles, type CaseFileItem } from "@/features/cases/case-files.functions";
 import { hktDayLabel } from "@/features/cases/case-schedule";
-import { COACHING_COMMENT_MAX } from "@/features/cases/coaching-comment";
+import { COACHING_COMMENT_MAX, COACHING_URL_MAX } from "@/features/cases/coaching-comment";
 import {
   listCoachingComments,
   setCoachingComment,
@@ -20,20 +24,30 @@ type CoachingRow = NonNullable<Awaited<ReturnType<typeof listCoachingComments>>>
  * read by every party. A reader gets the comment and nothing to press; a writer
  * gets the editor in the same row, under the copy it replaces, so the drawer
  * never jumps and no modal interrupts the reading column.
+ *
+ * #785 AC-CONV-4: the optional lesson link and any files attached to this
+ * lesson read as two quiet lines under the note, for every party. The attach
+ * control lives only inside the writer's editor, so a learner reads the tutor's
+ * material without gaining a way to write.
  */
 function CoachingNoteRow({
   caseId,
   row,
   canEdit,
+  attachments,
 }: {
   caseId: string;
   row: CoachingRow;
   canEdit: boolean;
+  attachments: CaseFileItem[];
 }) {
   const { t, i18n } = useTranslation();
   const queryClient = useQueryClient();
+  const fileRef = useRef<HTMLInputElement>(null);
   const [draft, setDraft] = useState(row.comment ?? "");
+  const [link, setLink] = useState(row.url ?? "");
   const initial = row.comment ?? "";
+  const initialLink = row.url ?? "";
 
   const save = useMutation({
     mutationFn: () =>
@@ -42,6 +56,7 @@ function CoachingNoteRow({
           caseId,
           lessonId: row.lessonId,
           text: draft.trim() ? draft : null,
+          url: link.trim() || null,
         },
       }),
     onSuccess: () => {
@@ -50,14 +65,33 @@ function CoachingNoteRow({
     },
   });
 
+  const attach = useMutation({
+    mutationFn: (file: File) =>
+      uploadCaseFile({ caseId, file, category: "post_class", lessonId: row.lessonId }),
+    onSuccess: () => {
+      toast.success(t("coaching.saved"));
+      void queryClient.invalidateQueries({ queryKey: ["case-files", caseId] });
+    },
+    onError: (error: Error) => {
+      toast.error(
+        t(`case_files.err_${error.message}`, {
+          mb: CASE_FILE_MAX_MB,
+          defaultValue: t("common.error"),
+        }),
+      );
+    },
+  });
+
   // A cleared comment is a real change: it deletes the note, so an empty draft
-  // against an existing comment still saves.
-  const unchanged = draft === initial;
+  // against an existing comment still saves. A changed link is a change too.
+  const unchanged = draft === initial && link === initialLink;
   const atCap = draft.length >= COACHING_COMMENT_MAX;
   const errorText = save.isError
     ? save.error.message.includes("TOO_LONG")
       ? t("coaching.err_TOO_LONG", { max: COACHING_COMMENT_MAX })
-      : t("common.error")
+      : save.error.message.includes("BAD_LINK")
+        ? t("coaching.err_BAD_LINK")
+        : t("common.error")
     : null;
 
   return (
@@ -86,6 +120,33 @@ function CoachingNoteRow({
             }}
           />
 
+          <Input
+            type="url"
+            inputMode="url"
+            placeholder="https://"
+            maxLength={COACHING_URL_MAX}
+            aria-label={t("coaching.link_label")}
+            value={link}
+            onChange={(event) => {
+              setLink(event.target.value);
+              save.reset();
+            }}
+          />
+
+          <input
+            ref={fileRef}
+            type="file"
+            accept={CASE_FILE_ACCEPT}
+            className="hidden"
+            aria-label={t("coaching.attach")}
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              // Reset so picking the same file again still fires `change`.
+              event.target.value = "";
+              if (file) attach.mutate(file);
+            }}
+          />
+
           <div className="flex flex-wrap items-center justify-between gap-3">
             <span
               aria-live="polite"
@@ -96,15 +157,27 @@ function CoachingNoteRow({
             >
               {draft.length} / {COACHING_COMMENT_MAX}
             </span>
-            <Button
-              type="button"
-              size="sm"
-              className="h-9"
-              disabled={save.isPending || unchanged}
-              onClick={() => save.mutate()}
-            >
-              {t("coaching.save")}
-            </Button>
+            <div className="flex items-center gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-9"
+                disabled={attach.isPending}
+                onClick={() => fileRef.current?.click()}
+              >
+                {t("coaching.attach")}
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                className="h-9"
+                disabled={save.isPending || unchanged}
+                onClick={() => save.mutate()}
+              >
+                {t("coaching.save")}
+              </Button>
+            </div>
           </div>
 
           {errorText ? <p className="text-xs text-destructive">{errorText}</p> : null}
@@ -115,6 +188,41 @@ function CoachingNoteRow({
             {row.comment}
           </p>
           <p className="text-xs text-muted-foreground">{t("coaching.readonly")}</p>
+        </div>
+      ) : null}
+
+      {row.url ? (
+        <a
+          href={row.url}
+          target="_blank"
+          rel="noopener noreferrer nofollow"
+          className="w-fit text-xs font-semibold text-[color:var(--brand-link)] hover:underline"
+        >
+          {t("coaching.open_link")}
+        </a>
+      ) : null}
+
+      {attachments.length > 0 ? (
+        <div className="space-y-1">
+          <p className="text-[11px] font-medium text-muted-foreground">{t("coaching.attached")}</p>
+          <ul className="space-y-0.5">
+            {attachments.map((file) => (
+              <li key={file.id} className="truncate text-xs">
+                {file.url ? (
+                  <a
+                    href={file.url}
+                    target="_blank"
+                    rel="noreferrer noopener"
+                    className="text-[color:var(--brand-link)] hover:underline"
+                  >
+                    {file.name}
+                  </a>
+                ) : (
+                  <span className="text-muted-foreground">{file.name}</span>
+                )}
+              </li>
+            ))}
+          </ul>
         </div>
       ) : null}
     </li>
@@ -140,6 +248,13 @@ export function CoachingNotes({ caseId, canEdit }: { caseId: string; canEdit: bo
     queryKey: ["case-coaching-notes", caseId],
     queryFn: () => listCoachingComments({ data: { caseId } }),
   });
+  // Same key as the Files tray, so opening both costs one request. Attachments
+  // already visible there are listed here against their lesson, not duplicated
+  // as a second upload surface.
+  const { data: files } = useQuery({
+    queryKey: ["case-files", caseId],
+    queryFn: () => listCaseFiles({ data: { caseId } }),
+  });
 
   if (!data || data.length === 0) return null;
 
@@ -151,7 +266,13 @@ export function CoachingNotes({ caseId, canEdit }: { caseId: string; canEdit: bo
 
       <ul className="divide-y divide-border overflow-hidden rounded-[var(--radius-panel)] border border-border">
         {data.map((row) => (
-          <CoachingNoteRow key={row.lessonId} caseId={caseId} row={row} canEdit={canEdit} />
+          <CoachingNoteRow
+            key={row.lessonId}
+            caseId={caseId}
+            row={row}
+            canEdit={canEdit}
+            attachments={(files ?? []).filter((file) => file.lessonId === row.lessonId)}
+          />
         ))}
       </ul>
     </section>

@@ -2,10 +2,12 @@ import { describe, expect, it } from "vitest";
 
 import {
   COACHING_COMMENT_MAX,
+  COACHING_URL_MAX,
   canWriteCoachingComment,
   coachingLessonNumber,
   lessonStarted,
   normaliseCoachingComment,
+  normaliseCoachingUrl,
 } from "../../src/features/cases/coaching-comment";
 
 describe("normaliseCoachingComment", () => {
@@ -93,5 +95,41 @@ describe("coachingLessonNumber", () => {
     expect(numbers.get("zero")).toBe(1);
     expect(numbers.get("later")).toBe(2);
     expect(numbers.get("undated")).toBe(3);
+  });
+});
+
+describe("normaliseCoachingUrl (#785 AC-CONV-4)", () => {
+  it("keeps an https link and clears on empty, whitespace or null", () => {
+    expect(normaliseCoachingUrl(" https://drive.google.com/file/d/abc ")).toEqual({
+      ok: true,
+      url: "https://drive.google.com/file/d/abc",
+    });
+    for (const blank of [null, undefined, "", "   "]) {
+      expect(normaliseCoachingUrl(blank)).toEqual({ ok: true, url: null });
+    }
+  });
+
+  it("refuses http, non-URLs and direct-contact hosts", () => {
+    for (const bad of [
+      "http://example.com/notes.pdf",
+      "not a url",
+      "https://",
+      "https://wa.me/85291234567",
+      "https://t.me/someone",
+      "javascript:alert(1)",
+    ]) {
+      expect(normaliseCoachingUrl(bad)).toEqual({ ok: false, code: "BAD_LINK" });
+    }
+  });
+
+  it("caps the link at the column's 500 characters", () => {
+    const base = "https://example.com/";
+    const exact = base + "a".repeat(COACHING_URL_MAX - base.length);
+    expect(normaliseCoachingUrl(exact)).toEqual({ ok: true, url: exact });
+    expect(normaliseCoachingUrl(exact + "a")).toEqual({ ok: false, code: "BAD_LINK" });
+  });
+
+  it("rejects a non-string payload", () => {
+    expect(normaliseCoachingUrl(42)).toEqual({ ok: false, code: "BAD_LINK" });
   });
 });

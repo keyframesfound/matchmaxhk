@@ -22,6 +22,7 @@ import {
   coachingLessonNumber,
   lessonStarted,
   normaliseCoachingComment,
+  normaliseCoachingUrl,
 } from "@/features/cases/coaching-comment";
 
 type CaseRow = {
@@ -38,6 +39,8 @@ export type CoachingCommentRow = {
   lessonNumber: number;
   startsAt: string;
   comment: string | null;
+  /** #785 AC-CONV-4: the link attached to the comment, if any. */
+  url: string | null;
   updatedAt: string | null;
 };
 
@@ -92,6 +95,7 @@ type LessonRow = {
   sequence: number | null;
   starts_at: string | null;
   coaching_comment: string | null;
+  coaching_comment_url: string | null;
   coaching_comment_at: string | null;
 };
 
@@ -125,6 +129,7 @@ export const listCoachingComments = createServerFn({ method: "POST" })
         lessonNumber: numbers.get(lesson.id) ?? 0,
         startsAt: lesson.starts_at as string,
         comment: lesson.coaching_comment,
+        url: lesson.coaching_comment_url,
         updatedAt: lesson.coaching_comment_at,
       }));
   });
@@ -137,6 +142,8 @@ export const setCoachingComment = createServerFn({ method: "POST" })
         caseId: z.string().uuid(),
         lessonId: z.string().uuid(),
         text: z.string().nullable(),
+        /** #785 AC-CONV-4: optional https link that rides with the comment. */
+        url: z.string().nullable().optional(),
       })
       .parse(input),
   )
@@ -165,13 +172,18 @@ export const setCoachingComment = createServerFn({ method: "POST" })
 
     const normalised = normaliseCoachingComment(data.text);
     if (!normalised.ok) throw new Error(normalised.code);
+    const link = normaliseCoachingUrl(data.url);
+    if (!link.ok) throw new Error(link.code);
 
-    const savedAt = normalised.text ? new Date().toISOString() : null;
+    // A link with no prose is still a coaching note, so either one stamps the row.
+    const touched = normalised.text !== null || link.url !== null;
+    const savedAt = touched ? new Date().toISOString() : null;
     const { error } = await db
       .from<Row>("case_lessons")
       .update({
         coaching_comment: normalised.text,
-        coaching_comment_by: normalised.text ? context.userId : null,
+        coaching_comment_url: link.url,
+        coaching_comment_by: touched ? context.userId : null,
         coaching_comment_at: savedAt,
       })
       .eq("id", data.lessonId)

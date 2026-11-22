@@ -12,14 +12,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { CASE_FILE_MAX_MB, caseFileError } from "@/features/cases/case-files";
+import { CASE_FILE_ACCEPT, uploadCaseFile } from "@/features/cases/case-file-upload";
+import { CASE_FILE_MAX_MB } from "@/features/cases/case-files";
 import {
-  createCaseFileUpload,
   deleteCaseFile,
   listCaseFiles,
-  recordCaseFile,
   type CaseFileItem,
 } from "@/features/cases/case-files.functions";
+import { hktDayLabel } from "@/features/cases/case-schedule";
 import {
   canCreateMaterial,
   matchesMaterialFilter,
@@ -28,7 +28,6 @@ import {
 } from "@/features/cases/homework";
 import { formatHktDateTime } from "@/features/rosters/roster-logic";
 
-const ACCEPT = "application/pdf,image/jpeg,image/png,.docx,.pptx";
 const MB = 1024 * 1024;
 const CATEGORY_ORDER: readonly MaterialCategory[] = [
   "general",
@@ -36,22 +35,6 @@ const CATEGORY_ORDER: readonly MaterialCategory[] = [
   "homework",
   "post_class",
 ];
-
-/** Browsers hand back an empty `type` for some Office files, so fall back to the extension. */
-const EXT_TYPE: Record<string, string> = {
-  pdf: "application/pdf",
-  jpg: "image/jpeg",
-  jpeg: "image/jpeg",
-  png: "image/png",
-  docx: "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  pptx: "application/vnd.openxmlformats-officedocument.presentationml.presentation",
-};
-
-function contentTypeFor(file: File): string {
-  if (file.type) return file.type;
-  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
-  return EXT_TYPE[ext] ?? "";
-}
 
 function formatSize(bytes: number): string {
   if (bytes < MB) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
@@ -91,6 +74,13 @@ function FileRow({
         <p className="flex flex-wrap items-center gap-1.5 text-[11px] text-muted-foreground">
           <span>{formatSize(file.sizeBytes)}</span>
           <span>{formatHktDateTime(file.createdAt, i18n.language)}</span>
+          {file.lessonStartsAt ? (
+            <span>
+              {t("case_files.lesson_date", {
+                day: hktDayLabel(file.lessonStartsAt, i18n.language),
+              })}
+            </span>
+          ) : null}
           {showCategory ? (
             <span className="rounded-full border border-border px-2 py-px">
               {t(`case_files.category_${file.category}`)}
@@ -162,28 +152,7 @@ export function CaseFilesPanel({
   });
 
   const upload = useMutation({
-    mutationFn: async (file: File) => {
-      const meta = {
-        caseId,
-        name: file.name,
-        contentType: contentTypeFor(file),
-        size: file.size,
-        category: destination,
-      };
-      // Same rules the server enforces, so the message lands before any bytes move.
-      const invalid = caseFileError(meta);
-      if (invalid) throw new Error(invalid);
-
-      const { path, token } = await createCaseFileUpload({ data: meta });
-      const { supabase } = await import("@/integrations/supabase/client");
-      const { error } = await supabase.storage
-        .from("case-files")
-        .uploadToSignedUrl(path, token, file);
-      if (error) throw error;
-
-      // `path` comes from the upload target; the rest is the metadata the user saw.
-      await recordCaseFile({ data: { ...meta, path } });
-    },
+    mutationFn: (file: File) => uploadCaseFile({ caseId, file, category: destination }),
     onSuccess: () => {
       void queryClient.invalidateQueries({ queryKey: ["case-files", caseId] });
     },
@@ -209,7 +178,7 @@ export function CaseFilesPanel({
         <input
           ref={inputRef}
           type="file"
-          accept={ACCEPT}
+          accept={CASE_FILE_ACCEPT}
           className="hidden"
           aria-label={t("case_files.upload")}
           onChange={(event) => {
