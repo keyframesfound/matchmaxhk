@@ -330,11 +330,15 @@ function ParentCaseDetailPage() {
               onDone={invalidate}
             />
 
-            <ReviewSection
-              detail={data}
-              onRate={() => setRatingOpen(true)}
-              onDeskReport={() => setDeskReportOpen(true)}
-            />
+            {/* #794 public reviews stay a parent-to-tutor instrument: a student
+                owner reaches this case as a learner, but must not publish one. */}
+            {data.viewerIsParent ? (
+              <ReviewSection
+                detail={data}
+                onRate={() => setRatingOpen(true)}
+                onDeskReport={() => setDeskReportOpen(true)}
+              />
+            ) : null}
 
             {/* #796 §2.4: the private lesson pulse, due only at verified
                 lessons 5, 10, 15, … The server returns nothing for Ops, the
@@ -342,14 +346,16 @@ function ParentCaseDetailPage() {
             <UsefulnessPulseCard caseId={caseId} tutorId={data.matched_tutor_id ?? undefined} />
 
             {/* #794 §2.1: one row per case per direction, edited in place. */}
-            <RatingSheet
-              open={ratingOpen}
-              onOpenChange={setRatingOpen}
-              caseId={caseId}
-              direction="parent_to_tutor"
-              counterpartyName={data.matched_tutor?.displayName ?? null}
-              onSaved={invalidate}
-            />
+            {data.viewerIsParent ? (
+              <RatingSheet
+                open={ratingOpen}
+                onOpenChange={setRatingOpen}
+                caseId={caseId}
+                direction="parent_to_tutor"
+                counterpartyName={data.matched_tutor?.displayName ?? null}
+                onSaved={invalidate}
+              />
+            ) : null}
             <DeskReportSheet
               open={deskReportOpen}
               onOpenChange={setDeskReportOpen}

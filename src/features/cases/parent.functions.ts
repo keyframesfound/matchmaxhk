@@ -21,6 +21,7 @@ import {
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import type { FeeStatus, SorStatus } from "@/features/cases/sor-db";
 import { cancelActionFor, canMarkDone } from "@/features/cases/sor";
+import { isLearnerParty } from "@/features/cases/case-schedule";
 import { shortCaseOverrunError } from "@/features/cases/short-case";
 import { generateSlots, lessonConflicts } from "@/features/cases/slot";
 import { cohortSessionConflicts } from "@/features/cases/cohort-conflicts";
@@ -71,11 +72,27 @@ async function myCase(db: Db, caseId: string, userId: string) {
     sor_status: SorStatus | null;
     status: string;
     case_code: string | null;
-  }>(db, "tutoring_cases", "id, parent_id, matched_tutor_id, sor_status, status, case_code", [
-    { col: "id", op: "eq", value: caseId },
-  ]);
+    student_id: string | null;
+  }>(
+    db,
+    "tutoring_cases",
+    "id, parent_id, matched_tutor_id, sor_status, status, case_code, student_id",
+    [{ col: "id", op: "eq", value: caseId }],
+  );
   const c = rows[0];
-  if (!c || c.parent_id !== userId) throw new Error("CASE_NOT_FOUND");
+  if (!c) throw new Error("CASE_NOT_FOUND");
+  // #796 AC-733-4: the student account that owns the student profile is the
+  // learner too; the role string stays "parent" on every parent-facing surface.
+  const studentOwnerId = c.student_id
+    ? ((
+        await selectRows<{ owner_user_id: string | null }>(db, "students", "owner_user_id", [
+          { col: "id", op: "eq", value: c.student_id },
+        ])
+      )[0]?.owner_user_id ?? null)
+    : null;
+  if (!isLearnerParty({ userId, parentId: c.parent_id, studentOwnerId })) {
+    throw new Error("CASE_NOT_FOUND");
+  }
   return c;
 }
 
@@ -181,6 +198,12 @@ export const getMyParentCases = createServerFn({ method: "POST" })
 export type ParentCaseDetail = {
   id: string;
   case_code: string;
+  /**
+   * #796 AC-733-4: true only for the account on `tutoring_cases.parent_id`.
+   * A student owner reads the same payload as a learner, but must never be
+   * offered the public review control (rating authorisation stays parent-only).
+   */
+  viewerIsParent: boolean;
   title: string;
   subjects: string[] | null;
   exam_system: string | null;
@@ -459,6 +482,7 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
     return {
       id: c.id,
       case_code: head?.case_code ?? "",
+      viewerIsParent: c.parent_id === context.userId,
       title: head?.title ?? "",
       subjects: head?.subjects ?? null,
       exam_system: head?.exam_system ?? null,

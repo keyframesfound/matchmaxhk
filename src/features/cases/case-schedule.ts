@@ -46,6 +46,23 @@ export type ScheduleLesson = {
 
 export type PrefSlot = { day: string; period: string };
 
+/**
+ * #796 AC-733-4: the learner side of a case is the account on
+ * `tutoring_cases.parent_id` OR the account that owns the linked student profile
+ * (`students.owner_user_id`). Both reach the parent-facing surfaces; the role
+ * string for either is still "parent". Empty ids never match.
+ */
+export function isLearnerParty(input: {
+  userId: string;
+  parentId: string | null;
+  studentOwnerId: string | null;
+}): boolean {
+  const { userId, parentId, studentOwnerId } = input;
+  if (!userId) return false;
+  const match = (id: string | null): boolean => Boolean(id) && id === userId;
+  return match(parentId) || match(studentOwnerId);
+}
+
 export type PendingCase = { caseId: string; scheduleMode: string | null; slots: unknown };
 
 /** The drawer tabs; `?tab=` falls back to overview. */

@@ -21,6 +21,7 @@ import {
   SERIES_MAX_WEEKS,
   buildWeeklySeries,
   hktClock,
+  isLearnerParty,
   orderForShift,
   partitionSeriesClashes,
   readSlots,
@@ -239,7 +240,7 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
     const now = new Date();
     const tutorId = await myTutorId(db, context.userId);
 
-    const [taught, owned, hidden, blockedSlotRows] = await Promise.all([
+    const [taught, owned, hidden, ownedStudentRows, blockedSlotRows] = await Promise.all([
       tutorId
         ? selectRows<CaseRow>(db, "tutoring_cases", CASE_COLS, [
             { col: "matched_tutor_id", op: "eq", value: tutorId },
@@ -255,16 +256,41 @@ export const getCaseManagerSchedule = createServerFn({ method: "POST" })
         { col: "parent_id", op: "eq", value: context.userId },
       ]),
       hiddenStudentIds(db, context.userId),
+      // #796 AC-733-4: student profiles the caller owns as the learner account.
+      selectRows<{ id: string }>(
+        db,
+        "students",
+        "id",
+        [{ col: "owner_user_id", op: "eq", value: context.userId }],
+        { col: "id", asc: true, limit: CASE_LIMIT },
+      ),
       selectRows<PrefSlot>(db, "user_blocked_slots", "day, period", [
         { col: "user_id", op: "eq", value: context.userId },
       ]),
     ]);
+    const ownedStudentIds = ownedStudentRows.map((s) => s.id);
+    const learnerOwned = ownedStudentIds.length
+      ? (
+          await selectRows<CaseRow & { matched_tutor_id: string | null }>(
+            db,
+            "tutoring_cases",
+            `${CASE_COLS}, matched_tutor_id`,
+            [{ col: "student_id", op: "in", value: ownedStudentIds }],
+          )
+        ).filter((c) => c.matched_tutor_id !== null)
+      : [];
     const ownedVisible = owned.filter((c) => !c.student_id || !hidden.has(c.student_id));
     const parentMatched = ownedVisible.filter((c) => c.matched_tutor_id !== null);
 
     const roleByCase = new Map<string, { row: CaseRow; role: PartyRole }>();
     for (const row of taught) roleByCase.set(row.id, { row, role: "tutor" });
     for (const row of parentMatched) {
+      if (!roleByCase.has(row.id)) roleByCase.set(row.id, { row, role: "parent" });
+    }
+    // A student-owned case the caller reaches as the learner; a parent-owned case
+    // (or a tutor match) above already holds the key, so nothing is counted twice.
+    for (const row of learnerOwned) {
+      if (!row.student_id || hidden.has(row.student_id)) continue;
       if (!roleByCase.has(row.id)) roleByCase.set(row.id, { row, role: "parent" });
     }
     const entries = [...roleByCase.values()].slice(0, CASE_LIMIT);
@@ -443,7 +469,18 @@ export async function partyCase(
   if (tutorId && tutorId === c.matched_tutor_id) {
     return { c, role: "tutor", tutorId: c.matched_tutor_id };
   }
-  if (c.parent_id !== userId) throw new Error("CASE_NOT_FOUND");
+  // #796 AC-733-4: the student account that owns the case's student profile is
+  // the learner too, not just the parent of record.
+  const studentOwnerId = c.student_id
+    ? ((
+        await selectRows<{ owner_user_id: string | null }>(db, "students", "owner_user_id", [
+          { col: "id", op: "eq", value: c.student_id },
+        ])
+      )[0]?.owner_user_id ?? null)
+    : null;
+  if (!isLearnerParty({ userId, parentId: c.parent_id, studentOwnerId })) {
+    throw new Error("CASE_NOT_FOUND");
+  }
   if (c.student_id && (await hiddenStudentIds(db, userId)).has(c.student_id)) {
     throw new Error("CASE_NOT_FOUND");
   }
