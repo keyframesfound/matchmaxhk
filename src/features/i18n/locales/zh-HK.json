@@ -4119,6 +4119,10 @@
     }
   },
   "tutor_card": {
+    "champion_title": "公益之星",
+    "champion_tip": "公益之星：經 MatchMax 安排並完成義務補習。",
+    "champion_explain": "導師經 MatchMax 安排並完成義務補習個案後獲頒，唔可以自行申請。",
+    "champion_close": "關閉",
     "last_slot": "最後 1 個名額",
     "active_students": "{{count}} 名在學學生",
     "saved_by_parents": "{{count}} 位家長已收藏",
@@ -4655,6 +4659,18 @@
     "attach": "附加文件",
     "attached": "已附加到呢一堂",
     "err_BAD_LINK": "請用完整嘅 https:// 連結。唔可以放直接聯絡方式。"
+  },
+  "impact": {
+    "title": "MatchMax 公益",
+    "intro": "MatchMax 將無法負擔補習嘅學生，連繫到願意付出時間嘅導師。呢度唔涉及任何現金交易：導師義務授課，MatchMax 唔收費，家庭亦唔需要付款。",
+    "seats_title": "空位資助",
+    "seats_body": "小組班如果有未售出嘅座位，可以免費留給經轉介嘅學生。座位仍然計入班別人數上限，所以其他學生唔會少咗原本買咗嘅課堂。",
+    "scholarship_title": "教材資助",
+    "scholarship_body": "轉介伙伴可以免費獲得市集上嘅教材，令學生喺第一堂之前已經有筆記同練習。",
+    "partners_title": "伙伴機構",
+    "partners_body": "我哋同轉介家庭嘅 NGO 及學校合作。機構確認參與後，標誌會顯示喺呢度。",
+    "contact": "聯絡 MatchMax",
+    "held_note": "呢一頁仲未公開。"
   },
   "case_files": {
     "title": "檔案",

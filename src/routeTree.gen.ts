@@ -20,6 +20,7 @@ import { Route as DesignSystemRouteImport } from './routes/design-system'
 import { Route as FeedbackRouteImport } from './routes/feedback'
 import { Route as GroupClassesRouteImport } from './routes/group-classes'
 import { Route as HowItWorksRouteImport } from './routes/how-it-works'
+import { Route as ImpactRouteImport } from './routes/impact'
 import { Route as JoinRouteImport } from './routes/join'
 import { Route as MeRouteImport } from './routes/me'
 import { Route as PricingRouteImport } from './routes/pricing'
@@ -159,6 +160,11 @@ const GroupClassesRoute = GroupClassesRouteImport.update({
 const HowItWorksRoute = HowItWorksRouteImport.update({
   id: '/how-it-works',
   path: '/how-it-works',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ImpactRoute = ImpactRouteImport.update({
+  id: '/impact',
+  path: '/impact',
   getParentRoute: () => rootRouteImport,
 } as any)
 const JoinRoute = JoinRouteImport.update({
@@ -642,6 +648,7 @@ export interface FileRoutesByFullPath {
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/impact': typeof ImpactRoute
   '/join': typeof JoinRoute
   '/me': typeof MeRoute
   '/pricing': typeof PricingRoute
@@ -740,6 +747,7 @@ export interface FileRoutesByTo {
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/impact': typeof ImpactRoute
   '/join': typeof JoinRoute
   '/me': typeof MeRoute
   '/pricing': typeof PricingRoute
@@ -837,6 +845,7 @@ export interface FileRoutesById {
   '/feedback': typeof FeedbackRoute
   '/group-classes': typeof GroupClassesRoute
   '/how-it-works': typeof HowItWorksRoute
+  '/impact': typeof ImpactRoute
   '/join': typeof JoinRoute
   '/me': typeof MeRoute
   '/pricing': typeof PricingRoute
@@ -937,6 +946,7 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/group-classes'
     | '/how-it-works'
+    | '/impact'
     | '/join'
     | '/me'
     | '/pricing'
@@ -1035,6 +1045,7 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/group-classes'
     | '/how-it-works'
+    | '/impact'
     | '/join'
     | '/me'
     | '/pricing'
@@ -1131,6 +1142,7 @@ export interface FileRouteTypes {
     | '/feedback'
     | '/group-classes'
     | '/how-it-works'
+    | '/impact'
     | '/join'
     | '/me'
     | '/pricing'
@@ -1231,6 +1243,7 @@ export interface RootRouteChildren {
   FeedbackRoute: typeof FeedbackRoute
   GroupClassesRoute: typeof GroupClassesRoute
   HowItWorksRoute: typeof HowItWorksRoute
+  ImpactRoute: typeof ImpactRoute
   JoinRoute: typeof JoinRoute
   MeRoute: typeof MeRoute
   PricingRoute: typeof PricingRoute
@@ -1348,6 +1361,13 @@ declare module '@tanstack/react-router' {
       path: '/how-it-works'
       fullPath: '/how-it-works'
       preLoaderRoute: typeof HowItWorksRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/impact': {
+      id: '/impact'
+      path: '/impact'
+      fullPath: '/impact'
+      preLoaderRoute: typeof ImpactRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/join': {
@@ -2109,6 +2129,7 @@ const rootRouteChildren: RootRouteChildren = {
   FeedbackRoute: FeedbackRoute,
   GroupClassesRoute: GroupClassesRoute,
   HowItWorksRoute: HowItWorksRoute,
+  ImpactRoute: ImpactRoute,
   JoinRoute: JoinRoute,
   MeRoute: MeRoute,
   PricingRoute: PricingRoute,

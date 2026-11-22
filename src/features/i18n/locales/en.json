@@ -4119,6 +4119,10 @@
     }
   },
   "tutor_card": {
+    "champion_title": "Community Champion",
+    "champion_tip": "Community Champion: verified pro-bono tutoring through MatchMax.",
+    "champion_explain": "Awarded when a tutor completes a pro-bono case arranged through MatchMax. It cannot be self-claimed.",
+    "champion_close": "Close",
     "last_slot": "Last slot",
     "active_students": "{{count}} active students",
     "saved_by_parents": "Saved by {{count}} parents",
@@ -4655,6 +4659,18 @@
     "attach": "Attach file",
     "attached": "Attached to this lesson",
     "err_BAD_LINK": "Use a full https:// link. Direct contact links are not allowed."
+  },
+  "impact": {
+    "title": "MatchMax Impact",
+    "intro": "MatchMax connects students who could not otherwise afford tutoring with tutors who give their time. Nothing here involves cash changing hands: a tutor donates the lesson, MatchMax does not take a fee, and the family pays nothing.",
+    "seats_title": "Empty-seat grant",
+    "seats_body": "A small group class with an unsold seat can be offered to a referred student at no cost. The seat stays inside the class cap, so nobody loses the lesson they paid for.",
+    "scholarship_title": "Digital scholarship",
+    "scholarship_body": "Referral partners can be granted study materials from the marketplace at no cost, so a student has the notes and practice they need before the first lesson.",
+    "partners_title": "Partner organisations",
+    "partners_body": "We work with NGOs and schools that refer families. Partner logos appear here once an organisation has confirmed its involvement.",
+    "contact": "Talk to MatchMax",
+    "held_note": "This page is not published yet."
   },
   "case_files": {
     "title": "Files",

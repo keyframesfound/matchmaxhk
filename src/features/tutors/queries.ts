@@ -240,6 +240,12 @@ export type Tutor = {
    */
   approved_grade_labels?: string[];
   /**
+   * #794 AC-400-1: Community Champion. Set by a DB trigger when a pro-bono case
+   * of this tutor reaches `closed` with a completed lesson; a tutor can never
+   * set it. Optional so pre-migration data still type-checks.
+   */
+  community_champion_at?: string | null;
+  /**
    * Issue #411: dual-language custom headline (<= 60 chars each, DB CHECK).
    * Pre-seeded from academic_headline on creation; owner-editable. Render
    * precedence lives in getActiveCustomHeadline (custom-headline.ts).
@@ -260,7 +266,7 @@ const TUTOR_PROFILE_DEFAULT_KEYS = [
 ] as const;
 
 const SELECT_COLS =
-  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, university_year_of_study, university_gpa, university_courses, course_specific_grades, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, availability_grid_hourly, availability_grid_hourly_reviewed_at, portfolio_images, profile_tags, user_id, owner_account_status, sen_enabled, sen_categories, sen_experience, is_fast_responder, approved_grade_labels, custom_headline_en, custom_headline_zh, offers_free_trial, offers_first_lesson_discount, first_lesson_discount_pct, scrc_ready";
+  "id, display_name, headline, card_highlights, academic_headline, undergrad_university, undergrad_degree, undergrad_graduation_year, has_postgrad, postgrad_university, postgrad_degree, secondary_school, target_students, university_year_of_study, university_gpa, university_courses, course_specific_grades, qualifications_summary, self_introduction, subjects, district, stations, lesson_mode, hourly_rate, pricing_tiers, online_rate, inperson_rate, rate_rows, travel_note, rate_note, currency, min_hourly_rate_hkd, max_hourly_rate_hkd, photo_url, tutor_code, is_published, start_immediately, earliest_start_date, created_at, experience_years, languages, exam_results, achievements, ia_ee_tok_support, ia_ee_tok_notes, gender, tutor_status, verification_tier, remaining_student_slots, is_accepting_students, preferred_time_windows, availability_grid, availability_grid_hourly, availability_grid_hourly_reviewed_at, portfolio_images, profile_tags, user_id, owner_account_status, sen_enabled, sen_categories, sen_experience, is_fast_responder, approved_grade_labels, custom_headline_en, custom_headline_zh, offers_free_trial, offers_first_lesson_discount, first_lesson_discount_pct, community_champion_at, scrc_ready";
 
 const MISSING_COLUMN_RE = /column\s+(?:[a-z_]+\.)?"?([a-z_]+)"?\s+does\s+not\s+exist/i;
 
@@ -551,6 +557,9 @@ function normalize(
     // pre-migration column so every public feed keeps rendering.
     custom_headline_en: typeof row.custom_headline_en === "string" ? row.custom_headline_en : null,
     custom_headline_zh: typeof row.custom_headline_zh === "string" ? row.custom_headline_zh : null,
+    // #794 AC-400-1: tolerate the missing pre-migration column.
+    community_champion_at:
+      typeof row.community_champion_at === "string" ? row.community_champion_at : null,
   };
 }
 

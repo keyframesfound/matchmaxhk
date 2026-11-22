@@ -40,6 +40,7 @@ import {
   ParentFavoriteBadge,
 } from "@/features/tutors/engagement-badges";
 import { ExperiencePill } from "@/features/tutors/experience-badge";
+import { ChampionBadge } from "@/features/tutors/champion-badge";
 import { VerifiedBadge } from "@/features/tutors/verified-badge";
 import { ScrcReadyPill } from "@/features/trust/scrc-ready";
 import { ScheduleFitBadge } from "@/features/cases/schedule-fit-ui";
@@ -186,6 +187,7 @@ export function PublicTutorCard({
   // One Verified badge, derived from ">=1 approved grade" (#309), now the
   // minimalist BLUE TICK in MatchMax azure (issue #411 branding).
   const verified = approvedGradeLabels.length > 0;
+  const communityChampion = Boolean(tutor.community_champion_at);
   // Issue #411: Row 1 is the active dual-language custom headline
   // (custom_headline_en/zh with strict fallback to the derived headline).
   const activeHeadline = useMemo(
@@ -457,6 +459,8 @@ export function PublicTutorCard({
             {/* #575 §4b: the badge shows the Verified-tutor tip on hover /
             first tap and opens the Verify explainer on click. */}
             {verified ? <VerifiedBadge /> : null}
+            {/* #794 AC-400-1: staff-earned pro-bono mark, not self-claimable. */}
+            {communityChampion ? <ChampionBadge /> : null}
             {/* Issues #102/#151: dynamic demand + Parent Favorite badges in
                 the card's badge column (same wrap-friendly pill anatomy as
                 the status/SEN/Verified badges above). */}
