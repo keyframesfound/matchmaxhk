@@ -1677,6 +1677,12 @@
     "item5_title": "Why MatchMax",
     "item5_desc": "We match you with experienced top scorers in these programs and fields, where you can learn to excel just like them, through tailored 1-on-1 tutoring."
   },
+  "notes_rail": {
+    "title": "Recommended for this case",
+    "hint": "Based on the topics from recent lessons.",
+    "by_your_tutor": "By Your Tutor",
+    "free": "Free"
+  },
   "usefulness_pulse": {
     "title": "Private lesson pulse",
     "milestone": "Lesson {{n}} feedback",

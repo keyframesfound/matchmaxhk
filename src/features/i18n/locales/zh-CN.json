@@ -1677,6 +1677,12 @@
     "item5_title": "点解拣 MatchMax",
     "item5_desc": "我哋会按你嘅需要，配对喺各大公开考试及学科中取得优异成绩嘅导师，透过一对一补习，陪你一步一步进步"
   },
+  "notes_rail": {
+    "title": "呢个个案嘅推荐练习",
+    "hint": "根据最近课堂嘅课题推荐。",
+    "by_your_tutor": "由你的导师编写",
+    "free": "免费"
+  },
   "usefulness_pulse": {
     "title": "课堂实用度私人反馈",
     "milestone": "第 {{n}} 堂嘅意见",

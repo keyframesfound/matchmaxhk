@@ -1677,6 +1677,12 @@
     "item5_title": "點解揀 MatchMax",
     "item5_desc": "我哋會按你嘅需要，配對喺各大公開考試及學科中取得優異成績嘅導師，透過一對一補習，陪你一步一步進步"
   },
+  "notes_rail": {
+    "title": "呢個個案嘅推薦練習",
+    "hint": "根據最近課堂嘅課題推薦。",
+    "by_your_tutor": "由你的導師編寫",
+    "free": "免費"
+  },
   "usefulness_pulse": {
     "title": "課堂實用度私人反饋",
     "milestone": "第 {{n}} 堂嘅意見",

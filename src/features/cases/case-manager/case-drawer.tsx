@@ -28,6 +28,7 @@ import { HeatmapSection } from "./heatmap-section";
 import { HomeworkTab } from "./homework-tab";
 import { LessonLogSection } from "./lesson-log-section";
 import { MistakeBookSection } from "./mistake-book-tab";
+import { NotesRail } from "./notes-rail";
 import { ProgressTab } from "./progress-tab";
 import { SeriesDialog } from "./series-dialog";
 
@@ -151,6 +152,9 @@ export function CaseDrawer({
             {/* #796 §2.1: syllabus mastery sits above the grade chart; the
                 server returns null (and this renders nothing) for non-parties. */}
             <HeatmapSection caseId={scheduleCase.id} />
+            {/* #796 §2.3: practice material seeded from the case's lesson topics.
+                Renders nothing for the tutor side or when there is nothing to show. */}
+            <NotesRail caseId={scheduleCase.id} />
             {/* #796 §2.5: the lesson log feed sits under the mastery heatmap and
                 above the grade chart; it renders nothing for non-parties. */}
             <LessonLogSection caseId={scheduleCase.id} />
