@@ -25,6 +25,7 @@ import { BillingTab } from "./billing-tab";
 import { EditLessonsDialog } from "./edit-lessons-dialog";
 import { HeatmapSection } from "./heatmap-section";
 import { HomeworkTab } from "./homework-tab";
+import { LessonLogSection } from "./lesson-log-section";
 import { MistakeBookSection } from "./mistake-book-tab";
 import { ProgressTab } from "./progress-tab";
 import { SeriesDialog } from "./series-dialog";
@@ -149,6 +150,9 @@ export function CaseDrawer({
             {/* #796 §2.1: syllabus mastery sits above the grade chart; the
                 server returns null (and this renders nothing) for non-parties. */}
             <HeatmapSection caseId={scheduleCase.id} />
+            {/* #796 §2.5: the lesson log feed sits under the mastery heatmap and
+                above the grade chart; it renders nothing for non-parties. */}
+            <LessonLogSection caseId={scheduleCase.id} />
             <ProgressTab caseId={scheduleCase.id} />
           </TabsContent>
           <TabsContent value="mistakes">

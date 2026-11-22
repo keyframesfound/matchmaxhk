@@ -1677,6 +1677,12 @@
     "item5_title": "點解揀 MatchMax",
     "item5_desc": "我哋會按你嘅需要，配對喺各大公開考試及學科中取得優異成績嘅導師，透過一對一補習，陪你一步一步進步"
   },
+  "lesson_log": {
+    "title": "課堂紀錄",
+    "empty": "仲未有課堂紀錄。",
+    "hours_logged": "已記錄課堂時數",
+    "lesson_n": "第 {{n}} 堂"
+  },
   "heatmap": {
     "title": "學習計劃及課題熱力圖",
     "summary": "已掌握 {{pct}}% · {{weak}} 項需加強",
