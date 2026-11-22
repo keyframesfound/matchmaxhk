@@ -81,8 +81,6 @@ export default defineConfig({
         "15 * * * *": "materials-release",
         // #561: daily Action Required reminder sweep, 09:00 HKT.
         "0 1 * * *": "action-reminders",
-        // #796 §2.6: Weekly Learning Digest email, Sunday 20:00 HKT (12:00 UTC Sunday).
-        "0 12 * * 0": "weekly-digest",
       },
     }),
   ],
