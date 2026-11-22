@@ -1,6 +1,12 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
+import {
+  CENTRE_CASE_STUDENTS,
+  TUTOR_POOL_MESSAGE,
+  isTutorPoolRequest,
+} from "@/features/cases/centre-request-rules";
+
 import { enforceCaseTierConsistency } from "@/features/cases/case-options";
 import { buildCaseTitle as buildStructuredTitle } from "@/features/cases/case-title";
 import {
@@ -74,7 +80,9 @@ const CentreCaseInput = z.object({
   budgetMax: z.number().int().min(0).max(100000).optional().nullable(),
   budgetCurrency: z.enum(SUPPORTED_CURRENCIES).optional(),
   packageType: z.enum(["ongoing_1_5", "short_20", "pro_bono"]).default("ongoing_1_5"),
-  studentCount: z.number().int().min(1).max(99).default(1),
+  // #815 §2.8: one named student per request (the student's first name only).
+  studentCount: z.literal(CENTRE_CASE_STUDENTS).default(CENTRE_CASE_STUDENTS),
+  studentFirstName: z.string().trim().min(1).max(40),
   rateUnit: z.enum(["hr", "lesson", "month"]).default("hr"),
   notes: z.string().trim().max(500).optional().nullable(),
   triage: CentreTriageInput,
@@ -169,11 +177,19 @@ export const submitCentreCaseRequest = createServerFn({ method: "POST" })
       "en",
     );
 
+    // #815 §2.8 (AC-C1-1): a request for a pool / team of tutors is a
+    // staffing request, not an introduction.
+    if (isTutorPoolRequest(data.notes, data.triage.scopeDescription)) {
+      throw new Error(TUTOR_POOL_MESSAGE);
+    }
+
     const status = centreTriageStatus(data.triage);
 
     const insertRow = {
       title: storedTitle || tierConsistent.subjects[0] || "Centre request",
       description: sanitizeCaseFreeText(data.notes, 2000),
+      // #815 §2.8: the named student (first name only, no surname / contact).
+      learner_nickname: data.studentFirstName,
       subjects: tierConsistent.subjects,
       exam_system: tierConsistent.curriculum,
       student_level:
