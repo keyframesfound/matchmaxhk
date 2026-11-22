@@ -1100,11 +1100,18 @@ export function ApplicationForm({ completePending = false }: { completePending?:
   // Referral attribution: an explicit ?ref= wins (last click); otherwise fall
   // back to a code captured earlier on the site (30-day window). The code
   // survives the multi-step wizard and is validated again in the submit payload.
-  const [referralCode] = useState(() => {
+  const [referralCode, setReferralCode] = useState("");
+  // The initialiser used to read `window.location` during render, which throws
+  // in SSR and knocked the whole intake off the server-rendered path (React
+  // "#419: server could not finish this Suspense boundary" — the page tutors
+  // land on from WhatsApp). Reading after mount keeps server and hydration
+  // markup identical; the banner and the submit payload get the code a tick
+  // later, long before anyone submits.
+  useEffect(() => {
     const raw = new URLSearchParams(window.location.search).get("ref") ?? "";
     const match = REFERRAL_CODE_PATTERN.exec(raw.trim());
-    return match ? match[0] : readStoredReferralCode();
-  });
+    setReferralCode(match ? match[0] : readStoredReferralCode());
+  }, []);
   const [step, setStep] = useState(1);
   const [done, setDone] = useState(false);
   // Remembered at submit time so the WhatsApp activation deep link can greet
