@@ -326,6 +326,11 @@ function BusinessJoinPage() {
 
           <form
             id="org-join-form"
+            // `required` stays on the controls for semantics, but the browser's
+            // own validation bubble would fire first and focus a single field
+            // in English, so our red list of every missing field never ran.
+            // One validator owns the page: handleSubmit.
+            noValidate
             onSubmit={(event) => {
               void handleSubmit(event);
             }}
