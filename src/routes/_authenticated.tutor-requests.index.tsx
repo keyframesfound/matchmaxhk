@@ -1111,7 +1111,17 @@ function TutorRequestsPage() {
                     <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
                       {t("directory.empty_desc")}
                     </p>
-                    <div className="mt-6 flex justify-center">
+                    <div className="mt-6 flex flex-wrap justify-center gap-2">
+                      {/* #815 §2.10: reset just the case-type filter. */}
+                      {search.type ? (
+                        <Button
+                          onClick={() =>
+                            navigate({ search: (prev) => ({ ...prev, type: undefined }) })
+                          }
+                        >
+                          {t("case_board.type_filter_reset")}
+                        </Button>
+                      ) : null}
                       <Button onClick={clearSearch} variant="outline">
                         {t("search_ui.clear_all")}
                       </Button>

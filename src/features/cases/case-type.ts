@@ -26,7 +26,17 @@ export function caseTypeLabelKey(type: CaseType): string {
   return CASE_TYPE_LABEL_KEY[type];
 }
 
-/** Activity shares the private 1.5-lesson fee (CEO lock, #552 open question 1). */
+/**
+ * #815 §2.10 (AC-TYP-3): who pays whom, per type, shown before the claim
+ * action. Never implies the parent or centre pays MatchMax. Activity shares
+ * the private 1.5-lesson fee (CEO lock, #552 open question 1).
+ */
+const CASE_FEE_NOTE_KEY: Record<CaseType, string> = {
+  private: "case_board.fee_note_standard",
+  centre: "case_board.fee_note_centre",
+  activity: "case_board.fee_note_activity",
+};
+
 export function caseFeeNoteKey(type: CaseType): string {
-  return type === "centre" ? "case_board.fee_note_centre" : "case_board.fee_note_standard";
+  return CASE_FEE_NOTE_KEY[type];
 }
