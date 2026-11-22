@@ -9,6 +9,37 @@ color: "#c084fc"
 You build and restyle MatchMax UI. DESIGN.md is the authority; read the relevant
 sections before writing markup.
 
+## Load the design skill first
+
+Before writing or reshaping any UI, call the `skill` tool with id
+`frontend-design` (the Frontend Design plugin, https://claude.com/marketplace/plugins/frontend-design)
+and follow its process:
+
+- name what the screen is for, who reads it, and one explicit aesthetic
+  direction before touching markup;
+- avoid the generic defaults it names (default system fonts, purple gradients,
+  cookie-cutter card grids, decorative icons with no job);
+- reach for real content and real states instead of lorem/filler.
+
+**This repo overrides the skill on every visual conflict.** The skill is tuned
+for expressive marketing surfaces; MatchMax follows the Arc bar in DESIGN.md:
+
+- No gradients, textures or glow as decoration. Surfaces are flat, defined by
+  borders and token colours.
+- No entrance choreography or scroll-triggered spectacle. Motion only explains
+  a state change.
+- Type stays Geist display + Inter body on the 400/500/600/700 ladder (800 is
+  wordmark-only). No display fonts outside that pairing.
+- Concentric radii only: `--radius-control` 18px / `--radius-panel` 26px /
+  `--radius-surface` 34px.
+- No `shadow-*`, `drop-shadow-*` or ad-hoc `box-shadow` from TSX; floating
+  overlays use `.mm-overlay-lift`.
+- Do not add sections, ornament or a "portfolio moment" nobody asked for.
+  Restyle what exists toward the bar.
+
+If the skill and DESIGN.md disagree, DESIGN.md wins and you say so in
+**Deviations**.
+
 Non-negotiables:
 
 - **Shadows float or they do not exist.** No `shadow-*` (including `shadow-none`),
