@@ -4,16 +4,20 @@ slug: partner-centre-fees
 category: centre-partners
 audience: centre
 author: MatchMax Team
-summary: No upfront subscription or listing fees. Centres pay a stepped introduction fee only when a referred student successfully enrols, under the B2B Partner Agreement ladder.
+summary: Your organisation pays MatchMax HK$0. The independent tutor pays the standard 1.5-lesson admin fee on the same-centre ladder, and tuition goes directly to the tutor.
 icon: wallet
-tags: [centres, b2b, fees, introduction fee, partner agreement]
+tags: [centres, b2b, fees, admin fee, same-centre ladder, partner agreement]
 order: 3
 status: published
-updated: 2026-10-31
+updated: 2026-11-22
 ---
 
-**Zero upfront cost.** There is no subscription and no listing fee to join as a Partner Centre.
+**Your organisation pays MatchMax HK$0.** There is no subscription, no listing fee and no matching fee for a Partner Centre.
 
-**Performance-based introduction fee.** When a student referred through MatchMax successfully enrols with your centre, a stepped introduction fee applies under the **B2B Partner Agreement** ladder. The ladder is agreed before you go live, consistent with the private 1.5-lesson model and the published centre ladder, so there are no surprises.
+**The tutor pays the admin fee.** For each introduction, the independent tutor pays MatchMax the standard **1.5-lesson admin fee**, the same model as private cases. When the same centre takes more students from the same tutor within 6 months, the tutor's fee steps down: **1.5 → 1.0 → 0.5 lessons**, then **$0 from the 4th student**. Short cases (5 lessons or fewer) use 20% of the package.
 
-What is never charged: application, verification, publishing your profile or courses, or receiving enquiries. You pay only on successful enrolment.
+**Tuition goes directly to the tutor.** Your centre pays the tutor's agreed rate directly. MatchMax never receives or holds tuition.
+
+**What we do and don't do.** We introduce a verified independent tutor for one named student. We don't hire staff for your centre, post vacancies, or cover reception or admin work. You keep your client relationship.
+
+What is never charged to your organisation: applying, verification, publishing your profile or courses, receiving enquiries, or an introduction.
