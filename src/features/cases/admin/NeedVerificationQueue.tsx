@@ -52,7 +52,6 @@ function decideErrorMessage(error: unknown): string {
 export function NeedVerificationQueue() {
   const queryClient = useQueryClient();
   const [notes, setNotes] = useState<Record<string, string>>({});
-  const [cascades, setCascades] = useState<Record<string, boolean>>({});
 
   const queueQuery = useQuery({
     queryKey: QUEUE_KEY,
@@ -61,19 +60,12 @@ export function NeedVerificationQueue() {
   });
 
   const decide = useMutation({
-    mutationFn: (input: {
-      id: string;
-      decision: "approve" | "reject";
-      cascade: boolean;
-      note?: string;
-    }) =>
+    // No cascade flag: an account-level pass already covers the household, so
+    // the server keeps `cascade_to_household` false and the column stays
+    // reserved for a child-scoped model rather than pretending to act.
+    mutationFn: (input: { id: string; decision: "approve" | "reject"; note?: string }) =>
       decideNeedVerification({
-        data: {
-          id: input.id,
-          decision: input.decision,
-          cascade: input.decision === "approve" ? input.cascade : false,
-          note: input.note,
-        },
+        data: { id: input.id, decision: input.decision, note: input.note },
       }),
     onSuccess: async (_result, variables) => {
       toast.success(
@@ -86,11 +78,6 @@ export function NeedVerificationQueue() {
         (current ?? []).filter((row) => row.id !== variables.id),
       );
       setNotes((previous) => {
-        const next = { ...previous };
-        delete next[variables.id];
-        return next;
-      });
-      setCascades((previous) => {
         const next = { ...previous };
         delete next[variables.id];
         return next;
@@ -139,7 +126,6 @@ export function NeedVerificationQueue() {
                 const label = PROOF_LABELS[row.proofKind];
                 const ref = row.id.slice(0, 8);
                 const note = notes[row.id] ?? "";
-                const cascade = cascades[row.id] ?? false;
                 return (
                   <tr key={row.id} className="border-t border-border align-top">
                     <td className="max-w-xs px-3 py-3">
@@ -183,20 +169,14 @@ export function NeedVerificationQueue() {
                             }))
                           }
                         />
-                        <label className="flex items-center gap-2 text-xs text-muted-foreground">
-                          <input
-                            type="checkbox"
-                            checked={cascade}
-                            onChange={(event) =>
-                              setCascades((previous) => ({
-                                ...previous,
-                                [row.id]: event.target.checked,
-                              }))
-                            }
-                            className="h-3.5 w-3.5 accent-[color:var(--brand-link)]"
-                          />
-                          Also cover the other children on this account
-                        </label>
+                        {/* #794 §2.3: the pass is account-level by design, so it
+                            already covers every child of the household. The
+                            optional per-child cascade this AC described would
+                            need child-scoped rows; showing a checkbox that
+                            changes nothing would be worse than saying so. */}
+                        <p className="text-xs text-muted-foreground">
+                          A verified pass covers every child on this account.
+                        </p>
                         <div className="flex flex-wrap gap-2">
                           <Button
                             type="button"
@@ -207,7 +187,6 @@ export function NeedVerificationQueue() {
                               decide.mutate({
                                 id: row.id,
                                 decision: "approve",
-                                cascade,
                                 note: note.trim() || undefined,
                               })
                             }
@@ -224,7 +203,6 @@ export function NeedVerificationQueue() {
                               decide.mutate({
                                 id: row.id,
                                 decision: "reject",
-                                cascade: false,
                                 note: note.trim() || undefined,
                               })
                             }

@@ -475,3 +475,84 @@ export const decideNeedVerification = createServerFn({ method: "POST" })
 
     return { ok: true };
   });
+
+/**
+ * AC-560-3: what the **tutor** sees on a private case card.
+ *
+ * The verification row is account-level, which is the AC's own model ("an
+ * account-level pass ... valid 12 months across pro-bono requests"), so one
+ * verified pass covers every child of that account. The read is batched over
+ * the tutor's active cases: one query for the cases, one for their children's
+ * accounts, one for the verification rows - never one per case.
+ *
+ * Returns only a badge state. The verdict, the proof kind, the note and the
+ * document never leave the desk.
+ */
+export const getTutorCaseNeedBadges = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }): Promise<Record<string, NeedState>> => {
+    const db = await adminDb();
+
+    const tutorRows = await selectRows<{ id: string }>(db, "tutors", "id", [
+      { col: "user_id", op: "eq", value: context.userId },
+    ]);
+    const tutorId = tutorRows[0]?.id;
+    if (!tutorId) return {};
+
+    const cases = await selectRows<{
+      id: string;
+      student_id: string | null;
+      parent_id: string | null;
+      pro_bono_request: boolean | null;
+    }>(db, "tutoring_cases", "id, student_id, parent_id, pro_bono_request", [
+      { col: "matched_tutor_id", op: "eq", value: tutorId },
+    ]);
+    if (cases.length === 0) return {};
+
+    const studentIds = [...new Set(cases.map((c) => c.student_id).filter(Boolean))] as string[];
+    const students = studentIds.length
+      ? await selectRows<{ id: string; owner_user_id: string | null }>(
+          db,
+          "students",
+          "id, owner_user_id",
+          [{ col: "id", op: "in", value: studentIds }],
+        )
+      : [];
+    const ownerByStudent = new Map(students.map((s) => [s.id, s.owner_user_id ?? null] as const));
+
+    const accountByCase = new Map<string, string | null>();
+    for (const c of cases) {
+      const owner = c.student_id ? (ownerByStudent.get(c.student_id) ?? null) : null;
+      accountByCase.set(c.id, owner ?? c.parent_id ?? null);
+    }
+    const accounts = [...new Set([...accountByCase.values()].filter(Boolean))] as string[];
+
+    const rows = accounts.length
+      ? await selectRows<{
+          user_id: string;
+          status: VerificationStatus;
+          verified_until: string | null;
+        }>(db, "access_verifications", "user_id, status, verified_until", [
+          { col: "user_id", op: "in", value: accounts },
+        ])
+      : [];
+    // Newest decision wins when an account has history (rejected after a lapsed
+    // pass, for instance); the row set is small because only pending/verified
+    // are unique per account.
+    const byAccount = new Map<string, VerificationRow>();
+    for (const row of rows) {
+      const current = byAccount.get(row.user_id);
+      if (!current || (row.status === "verified" && current.status !== "verified")) {
+        byAccount.set(row.user_id, { status: row.status, verified_until: row.verified_until });
+      }
+    }
+
+    const now = new Date();
+    const badges: Record<string, NeedState> = {};
+    for (const c of cases) {
+      if (!c.pro_bono_request) continue;
+      const account = accountByCase.get(c.id) ?? null;
+      badges[c.id] = needState(account ? (byAccount.get(account) ?? null) : null, now);
+    }
+    return badges;
+  });

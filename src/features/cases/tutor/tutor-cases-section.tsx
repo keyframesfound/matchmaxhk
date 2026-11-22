@@ -38,6 +38,8 @@ import { ReviewStepHeader } from "@/features/cases/review-step-header";
 import { ratingPromptDue } from "@/features/cases/case-reviews";
 import { getCaseRatingState } from "@/features/cases/rating.functions";
 import { RatingSheet, DeskReportSheet } from "@/features/cases/rating-sheet";
+import { getTutorCaseNeedBadges } from "@/features/impact/need-verification.functions";
+import { badgeKeyFor } from "@/features/impact/need-verification";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { ShortCaseChip } from "@/features/cases/tutor/short-case-chip";
 import { SCHEDULABLE_SOR_STATUSES } from "@/features/cases/schedule-lesson";
@@ -501,6 +503,11 @@ export function TutorCasesSection() {
     queryKey: ["sor", "tutor-cases"],
     queryFn: getMyTutorCases,
   });
+  // #794 §2.3: one batched read of the private need badge per pro-bono case.
+  const { data: needBadges = {} } = useQuery({
+    queryKey: ["sor", "tutor-need-badges"],
+    queryFn: () => getTutorCaseNeedBadges(),
+  });
 
   return (
     <div className="space-y-4">
@@ -521,10 +528,13 @@ export function TutorCasesSection() {
                       {c.exam_system ? ` (${c.exam_system})` : ""}
                     </p>
                     <p className="mt-1 flex flex-wrap items-center gap-1.5 text-xs text-muted-foreground">
-                      {/* #548: private pro-bono / access request badge. */}
+                      {/* #548 + #794 §2.3: private pro-bono request badge, now
+                          carrying the verification verdict. That verdict is the
+                          only thing a tutor ever learns; the proof document
+                          never leaves the desk. */}
                       {c.pro_bono_request && (
                         <span className="rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-700">
-                          🌱 {t("sor.lead_probono_badge")}
+                          🌱 {t(badgeKeyFor(needBadges[c.id] ?? "self_declared"))}
                         </span>
                       )}
                       <ShortCaseChip
