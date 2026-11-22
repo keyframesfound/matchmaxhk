@@ -1677,6 +1677,21 @@
     "item5_title": "点解拣 MatchMax",
     "item5_desc": "我哋会按你嘅需要，配对喺各大公开考试及学科中取得优异成绩嘅导师，透过一对一补习，陪你一步一步进步"
   },
+  "progress_report": {
+    "title": "学习进度报告",
+    "issued": "发出日期 {{date}}",
+    "student": "学生",
+    "subject": "科目",
+    "tutor": "独立导师",
+    "period": "日期范围",
+    "hours": "已核实时数",
+    "mastery": "课题掌握程度",
+    "disclaimer": "本报告由 MatchMax (matchmax.hk) 根据已核实课堂时数及独立导师评估纪录自动生成。",
+    "export": "学习进度报告（PDF）",
+    "print_hint": "用浏览器「列印」，再选择「保存为 PDF」。",
+    "print": "列印",
+    "not_available": "此报告只供个案家长查看。"
+  },
   "weekly_digest": {
     "title": "每周学习进度周报",
     "period": "{{start}} 至 {{end}}",

@@ -2,7 +2,7 @@ import { DemandSidePanel } from "@/features/cases/demand-side/demand-side-panel"
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { CalendarPlus, Check, Loader2, Star, X } from "lucide-react";
+import { CalendarPlus, Check, FileText, Loader2, Star, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -305,6 +305,15 @@ function ParentCaseDetailPage() {
                 paste-ready WhatsApp copy. The server returns null for a
                 learner-only or quiet week, so the card hides itself. */}
             <WeeklyDigestCard caseId={caseId} />
+
+            {/* #796 §2.6 / AC-742-3: the printable A4 progress report, all-time
+                verified hours plus mastery. Learner-only server-side. */}
+            <Button asChild variant="outline" size="sm">
+              <Link to="/account/cases/$caseId/report" params={{ caseId }}>
+                <FileText className="h-4 w-4" aria-hidden />
+                {t("progress_report.export")}
+              </Link>
+            </Button>
 
             {/* Issue #412 F: engagement summary, dual-party confirmation
                 before contact details / lesson start are finalised. */}

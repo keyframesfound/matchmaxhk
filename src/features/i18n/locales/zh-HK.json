@@ -1677,6 +1677,21 @@
     "item5_title": "點解揀 MatchMax",
     "item5_desc": "我哋會按你嘅需要，配對喺各大公開考試及學科中取得優異成績嘅導師，透過一對一補習，陪你一步一步進步"
   },
+  "progress_report": {
+    "title": "學習進度報告",
+    "issued": "發出日期 {{date}}",
+    "student": "學生",
+    "subject": "科目",
+    "tutor": "獨立導師",
+    "period": "日期範圍",
+    "hours": "已核實時數",
+    "mastery": "課題掌握程度",
+    "disclaimer": "本報告由 MatchMax (matchmax.hk) 根據已核實課堂時數及獨立導師評估紀錄自動生成。",
+    "export": "學習進度報告（PDF）",
+    "print_hint": "用瀏覽器「列印」，再選擇「儲存為 PDF」。",
+    "print": "列印",
+    "not_available": "此報告只供個案家長查看。"
+  },
   "weekly_digest": {
     "title": "每週學習進度週報",
     "period": "{{start}} 至 {{end}}",

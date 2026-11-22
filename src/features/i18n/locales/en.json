@@ -1677,6 +1677,21 @@
     "item5_title": "Why MatchMax",
     "item5_desc": "We match you with experienced top scorers in these programs and fields, where you can learn to excel just like them, through tailored 1-on-1 tutoring."
   },
+  "progress_report": {
+    "title": "Progress report",
+    "issued": "Issued {{date}}",
+    "student": "Student",
+    "subject": "Subject",
+    "tutor": "Independent tutor",
+    "period": "Date range",
+    "hours": "Verified hours",
+    "mastery": "Syllabus mastery",
+    "disclaimer": "Issued via MatchMax (matchmax.hk) based on verified lesson records and independent tutor assessments.",
+    "export": "Progress report (PDF)",
+    "print_hint": "Use your browser's Print and choose Save as PDF.",
+    "print": "Print",
+    "not_available": "This report is available to the case parent."
+  },
   "weekly_digest": {
     "title": "Weekly Learning Digest",
     "period": "{{start}} to {{end}}",

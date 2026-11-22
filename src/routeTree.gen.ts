@@ -102,6 +102,7 @@ import { Route as LovableEmailTransactionalPreviewRouteImport } from './routes/l
 import { Route as AuthenticatedAccountCoursesMaterialIdEditRouteImport } from './routes/_authenticated.account.courses.$materialId.edit'
 import { Route as AuthenticatedAccountFoldersMaterialIdEditRouteImport } from './routes/_authenticated.account.folders.$materialId.edit'
 import { Route as AuthenticatedAccountServicesMaterialIdEditRouteImport } from './routes/_authenticated.account.services.$materialId.edit'
+import { Route as AuthenticatedAccountCasesCaseIdReportRouteImport } from './routes/_authenticated.account_.cases_.$caseId.report'
 import { Route as AuthenticatedAccountNotesMaterialIdEditRouteImport } from './routes/_authenticated.account_.notes.$materialId.edit'
 
 const IndexRoute = IndexRouteImport.update({
@@ -603,6 +604,12 @@ const AuthenticatedAccountServicesMaterialIdEditRoute =
     path: '/services/$materialId/edit',
     getParentRoute: () => AuthenticatedAccountRoute,
   } as any)
+const AuthenticatedAccountCasesCaseIdReportRoute =
+  AuthenticatedAccountCasesCaseIdReportRouteImport.update({
+    id: '/account_/cases_/$caseId/report',
+    path: '/account/cases/$caseId/report',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
 const AuthenticatedAccountNotesMaterialIdEditRoute =
   AuthenticatedAccountNotesMaterialIdEditRouteImport.update({
     id: '/account_/notes/$materialId/edit',
@@ -703,6 +710,7 @@ export interface FileRoutesByFullPath {
   '/account/courses/$materialId/edit': typeof AuthenticatedAccountCoursesMaterialIdEditRoute
   '/account/folders/$materialId/edit': typeof AuthenticatedAccountFoldersMaterialIdEditRoute
   '/account/services/$materialId/edit': typeof AuthenticatedAccountServicesMaterialIdEditRoute
+  '/account/cases/$caseId/report': typeof AuthenticatedAccountCasesCaseIdReportRoute
   '/account/notes/$materialId/edit': typeof AuthenticatedAccountNotesMaterialIdEditRoute
 }
 export interface FileRoutesByTo {
@@ -797,6 +805,7 @@ export interface FileRoutesByTo {
   '/account/courses/$materialId/edit': typeof AuthenticatedAccountCoursesMaterialIdEditRoute
   '/account/folders/$materialId/edit': typeof AuthenticatedAccountFoldersMaterialIdEditRoute
   '/account/services/$materialId/edit': typeof AuthenticatedAccountServicesMaterialIdEditRoute
+  '/account/cases/$caseId/report': typeof AuthenticatedAccountCasesCaseIdReportRoute
   '/account/notes/$materialId/edit': typeof AuthenticatedAccountNotesMaterialIdEditRoute
 }
 export interface FileRoutesById {
@@ -894,6 +903,7 @@ export interface FileRoutesById {
   '/_authenticated/account/courses/$materialId/edit': typeof AuthenticatedAccountCoursesMaterialIdEditRoute
   '/_authenticated/account/folders/$materialId/edit': typeof AuthenticatedAccountFoldersMaterialIdEditRoute
   '/_authenticated/account/services/$materialId/edit': typeof AuthenticatedAccountServicesMaterialIdEditRoute
+  '/_authenticated/account_/cases_/$caseId/report': typeof AuthenticatedAccountCasesCaseIdReportRoute
   '/_authenticated/account_/notes/$materialId/edit': typeof AuthenticatedAccountNotesMaterialIdEditRoute
 }
 export interface FileRouteTypes {
@@ -991,6 +1001,7 @@ export interface FileRouteTypes {
     | '/account/courses/$materialId/edit'
     | '/account/folders/$materialId/edit'
     | '/account/services/$materialId/edit'
+    | '/account/cases/$caseId/report'
     | '/account/notes/$materialId/edit'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -1085,6 +1096,7 @@ export interface FileRouteTypes {
     | '/account/courses/$materialId/edit'
     | '/account/folders/$materialId/edit'
     | '/account/services/$materialId/edit'
+    | '/account/cases/$caseId/report'
     | '/account/notes/$materialId/edit'
   id:
     | '__root__'
@@ -1181,6 +1193,7 @@ export interface FileRouteTypes {
     | '/_authenticated/account/courses/$materialId/edit'
     | '/_authenticated/account/folders/$materialId/edit'
     | '/_authenticated/account/services/$materialId/edit'
+    | '/_authenticated/account_/cases_/$caseId/report'
     | '/_authenticated/account_/notes/$materialId/edit'
   fileRoutesById: FileRoutesById
 }
@@ -1889,6 +1902,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedAccountServicesMaterialIdEditRouteImport
       parentRoute: typeof AuthenticatedAccountRoute
     }
+    '/_authenticated/account_/cases_/$caseId/report': {
+      id: '/_authenticated/account_/cases_/$caseId/report'
+      path: '/account/cases/$caseId/report'
+      fullPath: '/account/cases/$caseId/report'
+      preLoaderRoute: typeof AuthenticatedAccountCasesCaseIdReportRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
     '/_authenticated/account_/notes/$materialId/edit': {
       id: '/_authenticated/account_/notes/$materialId/edit'
       path: '/account/notes/$materialId/edit'
@@ -2006,6 +2026,7 @@ interface AuthenticatedRouteChildren {
   AuthenticatedTutorRequestsIndexRoute: typeof AuthenticatedTutorRequestsIndexRoute
   AuthenticatedAccountNotesNewRoute: typeof AuthenticatedAccountNotesNewRoute
   AuthenticatedBusinessCasesNewRoute: typeof AuthenticatedBusinessCasesNewRoute
+  AuthenticatedAccountCasesCaseIdReportRoute: typeof AuthenticatedAccountCasesCaseIdReportRoute
   AuthenticatedAccountNotesMaterialIdEditRoute: typeof AuthenticatedAccountNotesMaterialIdEditRoute
 }
 
@@ -2026,6 +2047,8 @@ const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
   AuthenticatedTutorRequestsIndexRoute: AuthenticatedTutorRequestsIndexRoute,
   AuthenticatedAccountNotesNewRoute: AuthenticatedAccountNotesNewRoute,
   AuthenticatedBusinessCasesNewRoute: AuthenticatedBusinessCasesNewRoute,
+  AuthenticatedAccountCasesCaseIdReportRoute:
+    AuthenticatedAccountCasesCaseIdReportRoute,
   AuthenticatedAccountNotesMaterialIdEditRoute:
     AuthenticatedAccountNotesMaterialIdEditRoute,
 }
