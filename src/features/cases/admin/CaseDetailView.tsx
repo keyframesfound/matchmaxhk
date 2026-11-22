@@ -84,6 +84,7 @@ import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { cn } from "@/lib/utils";
 import { BehaviourReportPanel } from "@/features/trust/behaviour-report-panel";
 import { CaseReviewsDeskPanel } from "@/features/cases/admin/CaseReviewsDeskPanel";
+import { OutcomeLedgerPanel } from "@/features/cases/admin/OutcomeLedgerPanel";
 import { DeskReportsPanel } from "@/features/cases/admin/DeskReportsPanel";
 import { ImpactDeskPanel } from "@/features/cases/admin/ImpactDeskPanel";
 import { UsefulnessPulsePanel } from "@/features/cases/admin/UsefulnessPulsePanel";
@@ -685,6 +686,9 @@ export function CaseDetailView({
           <CaseReviewsDeskPanel caseId={caseRow.id} />
           {/* #794 AC-400-4: give an unsold seat to a referred child; mark the account Impact. */}
           <ImpactDeskPanel caseId={caseRow.id} />
+          {/* #816 §2.7: the outcome ledger has been write-only since #428;
+              this is its first reader. */}
+          <OutcomeLedgerPanel caseId={caseRow.id} />
           {/* #796 §2.4: private lesson usefulness pulses (desk-only, read-only). */}
           <UsefulnessPulsePanel caseId={caseRow.id} />
           {/* Issue #412: compliance hold banner, the case is locked out of
