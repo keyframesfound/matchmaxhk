@@ -5468,6 +5468,7 @@
     "verified": "已認證"
   },
   "super_drawer": {
+    "err_LOG_LOCKED": "呢堂嘅課堂紀錄已經鎖定，需要更正請聯絡 MatchMax 客服。",
     "title": "記錄課堂",
     "case_line": "個案：{{code}} · {{student}} · {{detail}}",
     "duration_title": "1. 課時（必填）",

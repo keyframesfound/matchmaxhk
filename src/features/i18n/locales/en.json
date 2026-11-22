@@ -5468,6 +5468,7 @@
     "verified": "Verified"
   },
   "super_drawer": {
+    "err_LOG_LOCKED": "This lesson log is locked. Ask the MatchMax desk to correct it.",
     "title": "Log Lesson & Sync",
     "case_line": "Case: {{code}} · {{student}} · {{detail}}",
     "duration_title": "1. Duration (Required)",

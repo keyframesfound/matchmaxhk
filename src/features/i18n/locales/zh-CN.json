@@ -5468,6 +5468,7 @@
     "verified": "已认证"
   },
   "super_drawer": {
+    "err_LOG_LOCKED": "呢堂嘅课堂纪录已经锁定，需要更正请联络 MatchMax 客服。",
     "title": "记录课堂",
     "case_line": "个案：{{code}} · {{student}} · {{detail}}",
     "duration_title": "1. 课时（必填）",

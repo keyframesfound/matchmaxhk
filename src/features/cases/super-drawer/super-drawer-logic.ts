@@ -204,3 +204,39 @@ export function normalizeTopicTag(raw: string): string | null {
   if (!clean || clean.length > 60) return null;
   return clean;
 }
+
+// ---------------------------------------------------------------------------
+// Tutor edit window (#796 §2.5 / AC-734-3)
+// ---------------------------------------------------------------------------
+
+/** A tutor may complete/edit a log for 24h after submitting it. */
+export const LOG_EDIT_WINDOW_HOURS = 24;
+const LOG_EDIT_WINDOW_MS = LOG_EDIT_WINDOW_HOURS * 60 * 60 * 1000;
+
+function instantOf(value: string | Date): number {
+  return value instanceof Date ? value.getTime() : Date.parse(value);
+}
+
+/**
+ * The tutor edit window: 24h from submit, closed immediately once a later
+ * lesson is logged on the same case — whichever comes first. Ops are exempt
+ * (that check lives server-side, next to the write).
+ *
+ * Fails safe: an unparseable `loggedAt` (or `now`) means closed. An
+ * unparseable `nextLessonLoggedAt` cannot prove the next lesson exists, so it
+ * is ignored and only the 24h limit applies.
+ */
+export function logEditWindowOpen(input: {
+  loggedAt: string;
+  now: Date | string;
+  nextLessonLoggedAt?: string | null;
+}): boolean {
+  const loggedAt = instantOf(input.loggedAt);
+  const now = instantOf(input.now);
+  if (!Number.isFinite(loggedAt) || !Number.isFinite(now)) return false;
+  if (input.nextLessonLoggedAt) {
+    const nextAt = Date.parse(input.nextLessonLoggedAt);
+    if (Number.isFinite(nextAt) && now >= nextAt) return false;
+  }
+  return now - loggedAt < LOG_EDIT_WINDOW_MS;
+}

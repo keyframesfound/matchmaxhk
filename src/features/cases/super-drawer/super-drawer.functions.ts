@@ -38,6 +38,7 @@ import {
   clampDurationMin,
   defaultDurationMin,
   fanoutJobsFor,
+  logEditWindowOpen,
   nextLessonDefaultIso,
   normalizeTopicTag,
   recapStatusFor,
@@ -85,6 +86,15 @@ type CaseRow = {
 
 async function isAdminUser(db: Db, userId: string): Promise<boolean> {
   for (const role of ["admin", "super_admin"] as const) {
+    const { data } = await db.rpc("has_role", { _user_id: userId, _role: role });
+    if (data === true) return true;
+  }
+  return false;
+}
+
+/** Ops (staff / admin / super_admin) may correct a log after the tutor window. */
+async function isOpsUser(db: Db, userId: string): Promise<boolean> {
+  for (const role of ["staff", "admin", "super_admin"] as const) {
     const { data } = await db.rpc("has_role", { _user_id: userId, _role: role });
     if (data === true) return true;
   }
@@ -155,6 +165,65 @@ async function pendingLogFor(db: Db, caseId: string): Promise<{ lessonId: string
     { col: "created_at", asc: false, limit: 1 },
   );
   return rows[0] ? { lessonId: rows[0].lesson_id } : null;
+}
+
+// ---------------------------------------------------------------------------
+// #796 §2.5 / AC-734-3 — tutor edit window (24h, or until the next lesson log)
+// ---------------------------------------------------------------------------
+
+type LessonStartRow = { id: string; case_id: string; starts_at: string | null };
+type LogSubmitRow = { case_id: string; lesson_id: string; created_at: string };
+
+/**
+ * Earliest submit time among logs whose lesson starts LATER than `lessonId`
+ * (same case). Logging the next lesson closes the previous window at once.
+ */
+function nextLessonLoggedAtFrom(
+  lessonId: string,
+  lessons: readonly Pick<LessonStartRow, "id" | "starts_at">[],
+  logs: readonly Pick<LogSubmitRow, "lesson_id" | "created_at">[],
+): string | null {
+  const current = lessons.find((lesson) => lesson.id === lessonId);
+  const currentAt = current?.starts_at ? Date.parse(current.starts_at) : NaN;
+  if (!Number.isFinite(currentAt)) return null;
+  const laterLessons = new Set<string>();
+  for (const lesson of lessons) {
+    if (lesson.id === lessonId) continue;
+    const at = lesson.starts_at ? Date.parse(lesson.starts_at) : NaN;
+    if (Number.isFinite(at) && at > currentAt) laterLessons.add(lesson.id);
+  }
+  if (laterLessons.size === 0) return null;
+  let earliest: string | null = null;
+  let earliestAt = Number.POSITIVE_INFINITY;
+  for (const log of logs) {
+    if (!laterLessons.has(log.lesson_id)) continue;
+    const at = Date.parse(log.created_at);
+    if (!Number.isFinite(at) || at >= earliestAt) continue;
+    earliestAt = at;
+    earliest = log.created_at;
+  }
+  return earliest;
+}
+
+/** DB-backed form of nextLessonLoggedAtFrom for one course log. */
+async function nextLessonLoggedAtFor(
+  db: Db,
+  caseId: string,
+  lessonId: string,
+): Promise<string | null> {
+  const lessons = await selectRows<Pick<LessonStartRow, "id" | "starts_at">>(
+    db,
+    "case_lessons",
+    "id, starts_at",
+    [{ col: "case_id", op: "eq", value: caseId }],
+  );
+  const logs = await selectRows<Pick<LogSubmitRow, "lesson_id" | "created_at">>(
+    db,
+    "case_lesson_logs",
+    "lesson_id, created_at",
+    [{ col: "case_id", op: "eq", value: caseId }],
+  );
+  return nextLessonLoggedAtFrom(lessonId, lessons, logs);
 }
 
 // ---------------------------------------------------------------------------
@@ -479,16 +548,26 @@ export const completeSuperDrawerLog = createServerFn({ method: "POST" })
     const { assertNoContraband } = await import("@/features/trust/contraband.server");
     await assertNoContraband(context.userId, "completeSuperDrawerLog", data);
     const db = await adminDb();
-    const logs = await selectRows<Pick<DrawerLogRow, "id" | "case_id" | "recap_status">>(
-      db,
-      "case_lesson_logs",
-      "id, case_id, recap_status",
-      [{ col: "lesson_id", op: "eq", value: data.lessonId }],
-    );
+    const logs = await selectRows<
+      Pick<DrawerLogRow, "id" | "case_id" | "recap_status" | "created_at" | "lesson_id">
+    >(db, "case_lesson_logs", "id, case_id, recap_status, created_at, lesson_id", [
+      { col: "lesson_id", op: "eq", value: data.lessonId },
+    ]);
     const log = logs[0];
     if (!log) throw new Error("LOG_NOT_FOUND");
     await requireDrawerAccess(db, log.case_id, context.userId);
     if (log.recap_status === "complete") return { ok: true };
+
+    // #796 §2.5 / AC-734-3: the tutor window is 24h from submit, or until the
+    // next lesson is logged — whichever comes first. Ops can still correct.
+    if (!(await isOpsUser(db, context.userId))) {
+      const open = logEditWindowOpen({
+        loggedAt: log.created_at,
+        now: new Date(),
+        nextLessonLoggedAt: await nextLessonLoggedAtFor(db, log.case_id, log.lesson_id),
+      });
+      if (!open) throw new Error("LOG_LOCKED");
+    }
 
     const topics = data.topics.flatMap((t) => {
       const tag = normalizeTopicTag(t.tag);
@@ -560,10 +639,58 @@ export const getPendingRecapCases = createServerFn({ method: "POST" })
       [{ col: "recap_status", op: "eq", value: "incomplete" }],
       { col: "created_at", asc: false, limit: 100 },
     );
+
+    // #796 §2.5: only fetch lesson/log timing for cases this caller can see.
+    const caseIds = new Set<string>();
+    for (const log of logs) {
+      if (!log.tutoring_cases) continue;
+      if (!isStaff && log.tutoring_cases.matched_tutor_id !== tutorId) continue;
+      caseIds.add(log.case_id);
+    }
+    const lessonsByCase = new Map<string, LessonStartRow[]>();
+    const logsByCase = new Map<string, Pick<LogSubmitRow, "lesson_id" | "created_at">[]>();
+    if (caseIds.size > 0) {
+      const ids = [...caseIds];
+      const lessons = await selectRows<LessonStartRow>(
+        db,
+        "case_lessons",
+        "id, case_id, starts_at",
+        [{ col: "case_id", op: "in", value: ids }],
+      );
+      for (const lesson of lessons) {
+        const group = lessonsByCase.get(lesson.case_id) ?? [];
+        group.push(lesson);
+        lessonsByCase.set(lesson.case_id, group);
+      }
+      const caseLogs = await selectRows<LogSubmitRow>(
+        db,
+        "case_lesson_logs",
+        "case_id, lesson_id, created_at",
+        [{ col: "case_id", op: "in", value: ids }],
+      );
+      for (const row of caseLogs) {
+        const group = logsByCase.get(row.case_id) ?? [];
+        group.push(row);
+        logsByCase.set(row.case_id, group);
+      }
+    }
+
+    // The badge disappears at the same moment the server starts refusing.
+    const now = new Date();
     const items: PendingRecapItem[] = [];
     for (const log of logs) {
       if (!log.tutoring_cases) continue;
       if (!isStaff && log.tutoring_cases.matched_tutor_id !== tutorId) continue;
+      const open = logEditWindowOpen({
+        loggedAt: log.created_at,
+        now,
+        nextLessonLoggedAt: nextLessonLoggedAtFrom(
+          log.lesson_id,
+          lessonsByCase.get(log.case_id) ?? [],
+          logsByCase.get(log.case_id) ?? [],
+        ),
+      });
+      if (!open) continue;
       items.push({
         caseId: log.case_id,
         lessonId: log.lesson_id,
