@@ -120,6 +120,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { MarkdownText } from "@/components/ui/markdown-text";
 import { shareOrCopy } from "@/lib/share";
 import { canonicalUrl, hreflangLinks } from "@/features/i18n/seo";
+import { ConciergeReferButton } from "@/features/connections/concierge-refer-button";
 
 function buildTutorSeoMeta(tutor: Tutor, url: string) {
   const subjects = (tutor.subjects ?? []).filter(Boolean);
@@ -951,6 +952,12 @@ function TutorDetail() {
                   targetUserId={t.user_id}
                   targetName={t.display_name || t.tutor_code}
                   targetVerified={t.verification_tier === "tier_2_verified"}
+                />
+                {/* #797 §2.4: Refer / Partner via Concierge (Ops WhatsApp, no thread). */}
+                <ConciergeReferButton
+                  targetCode={t.tutor_code}
+                  targetUserId={t.user_id}
+                  className="ml-2 mt-3"
                 />
                 {isOwnListing ? (
                   <p className="mt-3 inline-flex items-center gap-1.5 rounded-md bg-[color:var(--ink)]/[0.06] px-2.5 py-1 text-xs font-semibold text-[color:var(--ink)]">

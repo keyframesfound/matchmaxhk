@@ -7,7 +7,6 @@ import {
   BadgeCheck,
   CalendarDays,
   Loader2,
-  MessageSquare,
   SearchX,
   ShieldAlert,
   UserRoundPlus,
@@ -37,6 +36,7 @@ import {
   type ConnectIntentTag,
 } from "@/features/connections/connections-pure";
 import { ConnectRequestModal } from "@/features/connections/connect-request-modal";
+import { ConciergeReferButton } from "@/features/connections/concierge-refer-button";
 
 /**
  * #617 Connections Hub (Child A): Connected 已連結 | Pending 待確認 |
@@ -318,17 +318,13 @@ function ConnectedTab({ items }: { items: ConnectionItem[] }) {
           <TutorLine tutor={item.counterpart} />
           <IntentChip tag={item.intentTag} />
           <div className="flex items-center gap-2">
-            {/* Child B owns the messaging thread — disabled placeholder for V1. */}
-            <Button
-              variant="outline"
-              size="sm"
-              disabled
-              title={t("connections.message_soon")}
+            {/* #797 §2.4 (Wave 1): no in-app thread. Refer / Partner goes
+                through the Ops desk on WhatsApp; rich #616 / #619 stay paused. */}
+            <ConciergeReferButton
+              targetCode={item.counterpart.tutor_code}
+              targetUserId={null}
               className="font-semibold"
-            >
-              <MessageSquare className="mr-2 h-4 w-4" aria-hidden />
-              {t("connections.message")}
-            </Button>
+            />
             {confirmingId === item.id ? (
               <div className="flex items-center gap-1.5">
                 <Button

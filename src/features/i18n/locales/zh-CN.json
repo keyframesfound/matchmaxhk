@@ -5242,7 +5242,7 @@
     "disconnect_confirm": "确认解除链接？",
     "cancel": "取消",
     "message": "消息",
-    "message_soon": "消息功能即将推出。",
+    "message_soon": "可通过 MatchMax 顾问在 WhatsApp 合作转介。站内消息功能暂停。",
     "requested": "已邀请",
     "connected_label": "已链接",
     "verified": "已认证",
@@ -5272,7 +5272,8 @@
     "curriculum_DSE": "HKDSE",
     "curriculum_IB": "IB",
     "curriculum_IGCSE": "IGCSE",
-    "curriculum_A_Level": "A-Level"
+    "curriculum_A_Level": "A-Level",
+    "concierge_refer": "通过顾问合作转介"
   },
   "business": {
     "cap57_ack": "本人确认此转介申请仅为寻找独立导师（自雇性质），并不构成《雇佣条例》（第 57 章）下之雇佣关系、固定驻场职员职务或雇主控制。"
