@@ -160,9 +160,9 @@ The `ui-dev` subagent loads the **Frontend Design** skill
 before touching UI: its process (purpose, audience, one aesthetic direction,
 anti-generic defaults) is adopted, its visual liberties are not. DESIGN.md wins
 every conflict — no decorative gradients or glow, no entrance choreography, the
-fixed Geist/Inter ladder and the three radii, no shadows from TSX.
+fixed Plus Jakarta Sans weight ladder and the three radii, no shadows from TSX.
 
-DESIGN.md follows the Arc (uiarc.dev) design bar: Geist display + Inter body on the weight
+DESIGN.md follows the Arc (uiarc.dev) design bar: Plus Jakarta Sans (one family) on the weight
 ladder 400 body / 500 labels / 600 controls and card titles / 700 headings (800 is wordmark-only,
 see DESIGN.md "Weight ladder"), concentric radii (`--radius-control` 18px / `--radius-panel` 26px / `--radius-surface` 34px),
 sentence-case copy with no eyebrows or em dashes in English, plain icons beside labels (no

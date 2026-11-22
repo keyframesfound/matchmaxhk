@@ -34,37 +34,37 @@ colors:
   dark-destructive: "#F87171"
 typography:
   display:
-    fontFamily: "Geist, ui-sans-serif, system-ui, -apple-system, 'PingFang HK', 'Microsoft JhengHei', sans-serif"
+    fontFamily: "'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'PingFang HK', 'Microsoft JhengHei', sans-serif"
     fontSize: "clamp(2.25rem, 5vw, 4.5rem)"
     fontWeight: 700
     lineHeight: 1.1
-    letterSpacing: "-0.03em"
+    letterSpacing: "-0.02em"
   headline:
-    fontFamily: "Geist, ui-sans-serif, system-ui, -apple-system, 'PingFang HK', 'Microsoft JhengHei', sans-serif"
+    fontFamily: "'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'PingFang HK', 'Microsoft JhengHei', sans-serif"
     fontSize: "clamp(1.75rem, 2vw + 1.1rem, 2.45rem)"
     fontWeight: 700
     lineHeight: 1.1
-    letterSpacing: "-0.03em"
+    letterSpacing: "-0.02em"
   title:
-    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, 'PingFang HK', 'Microsoft JhengHei', sans-serif"
+    fontFamily: "'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'PingFang HK', 'Microsoft JhengHei', sans-serif"
     fontSize: "clamp(1.35rem, 1.1vw + 1rem, 1.75rem)"
     fontWeight: 700
     lineHeight: 1.2
-    letterSpacing: "-0.01em"
+    letterSpacing: "normal"
   subtitle:
-    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, 'PingFang HK', 'Microsoft JhengHei', sans-serif"
+    fontFamily: "'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'PingFang HK', 'Microsoft JhengHei', sans-serif"
     fontSize: "clamp(1.1rem, 0.85vw + 0.9rem, 1.3rem)"
     fontWeight: 400
     lineHeight: 1.4
-    letterSpacing: "-0.01em"
+    letterSpacing: "normal"
   body:
-    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, 'PingFang HK', 'Microsoft JhengHei', sans-serif"
+    fontFamily: "'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'PingFang HK', 'Microsoft JhengHei', sans-serif"
     fontSize: "1rem"
     fontWeight: 400
     lineHeight: 1.6
-    letterSpacing: "-0.01em"
+    letterSpacing: "normal"
   label:
-    fontFamily: "Inter, ui-sans-serif, system-ui, -apple-system, 'PingFang HK', 'Microsoft JhengHei', sans-serif"
+    fontFamily: "'Plus Jakarta Sans', ui-sans-serif, system-ui, -apple-system, 'PingFang HK', 'Microsoft JhengHei', sans-serif"
     fontSize: "0.75rem to 0.875rem"
     fontWeight: 500
     lineHeight: 1.4
@@ -141,7 +141,7 @@ The short version for anyone designing or reviewing a screen. Everything below e
 |                         |                                                                                                                                                                                               |
 | ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **See it live**         | `/design-system` on the site (every shared component, light and dark). Reuse those components instead of styling new ones.                                                                    |
-| **Fonts**               | **Inter** for all text. **Geist** for large headings (h1, h2, hero). Two wordmark fonts for the logo only. No other fonts.                                                                    |
+| **Fonts**               | **Plus Jakarta Sans** for all text, headings included. Two wordmark fonts for the logo only. No other fonts.                                                                                  |
 | **Weights**             | 700 headings · 600 buttons and card titles · 500 labels · 400 body. Never above 700.                                                                                                          |
 | **Sizes**               | 11, 12, 14, 16, 18, 22, 28, 36, 52, 72px. Body text is 16px. Nothing below 11px.                                                                                                              |
 | **Colours**             | Ink `#0F1419` text on white. **Azure `#1D9BF0`** is the one accent: links, focus rings, the main call to action. Green, amber, red only mean status. WhatsApp green only on WhatsApp buttons. |
@@ -161,7 +161,7 @@ MatchMax pairs the **Twitter Azure palette** (21st.dev community theme by serafi
 
 **Key characteristics:**
 
-- Calm type: Geist for large headings, Inter everywhere else. Weight ladder (owner decision, 2026-10-25): 400 body, 500 labels, 600 controls and card titles, 700 headings
+- Calm type: one family, Plus Jakarta Sans, everywhere. Weight ladder (owner decision, 2026-10-25): 400 body, 500 labels, 600 controls and card titles, 700 headings
 - Scarcity of accent: azure fills appear only on money CTAs (~10% of buttons); everything else is white, grey, or ink monochrome
 - Azure owns interaction: accent fills, links, focus rings, selected and active states, progress meters, data-viz series
 - AA floor: every text and indicator pair passes WCAG AA in both themes (4.5:1 text, 3:1 non-text); the azure signal deepens on light surfaces to hold it, and never rides an alpha wash
@@ -211,11 +211,10 @@ The palette is a quiet news feed: ink text, paper and card-tint surfaces, hairli
 
 ## Typography
 
-**Display font: Geist** (400/500) for headings 30px and up: heroes, page and section `h1`/`h2` at display sizes.
-**Body font: Inter** (400/500) for body text, labels, controls, and small headings below 30px.
-Load them as `--font-display` and `--font-body`. Both are Latin-only; zh-HK text falls back to the system CJK stack in both fonts, unchanged from today.
+**One font: Plus Jakarta Sans** (owner decision, 2026-11-22, replacing Geist + Inter), modelled on the single-family type of the Airbnb and Uber apps. Headings, body, labels and controls all use it; hierarchy comes from size and weight, not a second family.
+`--font-display`, `--font-heading` and `--font-body` all alias `--font-sans`. It is Latin-only; zh-HK text falls back to the system CJK stack (PingFang HK, Microsoft JhengHei).
 
-**Character:** hierarchy comes from size, colour (`--foreground` over secondary ink), spacing, and the weight ladder (400 body, 500 labels, 600 controls/card titles, 700 headings; 800 is wordmark-only). Display tracking is `-0.03em`, body and label tracking `-0.01em`. Never `text-transform: uppercase`, never wide tracking on small labels, never an eyebrow line above a heading (see Copy).
+**Character:** hierarchy comes from size, colour (`--foreground` over secondary ink), spacing, and the weight ladder (400 body, 500 labels, 600 controls/card titles, 700 headings; 800 is wordmark-only). Display tracking is `-0.02em`; body and label tracking is normal (Plus Jakarta Sans is already tight). Never `text-transform: uppercase`, never wide tracking on small labels, never an eyebrow line above a heading (see Copy).
 
 ### The size scale
 
@@ -234,7 +233,7 @@ Sizes come from this ladder only: 11, 12, 14, 16, 18, 22, 28, 36, 52, 72px. 11px
 
 ### Named Rules
 
-**The Two Faces Rule.** Geist lives only in large headings; Inter lives everywhere else. Keep Geist out of controls and small labels; keep Inter out of hero headlines. No third family.
+**The One Face Rule.** Plus Jakarta Sans everywhere; only the two logo wordmarks differ. No second family.
 
 **The No-Bold Rule.** Never set 600 or heavier, and never fake emphasis with bold. If two levels of text need to differ, change the size, the colour (foreground vs secondary ink), or the spacing around it.
 
@@ -457,6 +456,7 @@ The living catalogue is the `/design-system` page (`src/routes/design-system.tsx
 The codebase still carries pre-Arc artifacts that this system retires. Fold them in as files are touched, or in a dedicated pass:
 
 - Font swap: Open Sans to Geist (display) and Inter (body), loaded as `--font-display` and `--font-body`; the 2026-10-25 weight restore re-added 600/700 so titles carry real weight again.
+- Font swap (2026-11-22): Geist + Inter to Plus Jakarta Sans for all text.
 - Radius tokens: `--radius-control` 8px to 18px, cards ~25px to 34px, plus concentric nesting in composed cards.
 - Eyebrow and kicker lines folded into headings or descriptions.
 - `Reveal` wrappers, the blur-highlight hero text, and the banner entrance choreography removed; motion reduced to the state-change vocabulary above.
@@ -470,7 +470,7 @@ The codebase still carries pre-Arc artifacts that this system retires. Fold them
 ### Do:
 
 - **Do** ration azure: before adding `variant="solid" color="blue"`, apply the conversion test. If the button does not start a conversion flow (Find a Tutor, Post a request, Join, Contact, Sign up, Publish), ship it neutral.
-- **Do** keep type calm: Geist and Inter on the weight ladder only (400 body, 500 labels, 600 controls and card titles, 700 headings), sizes from the 11-to-72 ladder, tabular numerals for changing numbers.
+- **Do** keep type calm: Plus Jakarta Sans on the weight ladder only (400 body, 500 labels, 600 controls and card titles, 700 headings), sizes from the 11-to-72 ladder, tabular numerals for changing numbers.
 - **Do** contrast-check every new colour: 4.5:1 for text, 3:1 for indicators, against `background`, `card`, `muted`, and `accent`, in both themes.
 - **Do** write copy like a person: sentence case, verbs with objects on buttons, errors that say what to fix, empty states with one next step, real numbers only.
 - **Do** keep corners concentric: inner radius equals outer radius minus the padding between them.

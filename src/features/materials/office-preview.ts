@@ -12,7 +12,8 @@ import { mergeImagesToPdf } from "@/features/materials/note-file-tools";
  * reproduced; the preview says so in its footer.
  */
 
-const FONT_STACK = 'Inter, "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif';
+const FONT_STACK =
+  '"Plus Jakarta Sans", "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", Arial, sans-serif';
 const MAX_PAGES = 60;
 
 function wrap(ctx: CanvasRenderingContext2D, text: string, maxWidth: number): string[] {

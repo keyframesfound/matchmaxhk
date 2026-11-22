@@ -28,7 +28,7 @@ for expressive marketing surfaces; MatchMax follows the Arc bar in DESIGN.md:
   borders and token colours.
 - No entrance choreography or scroll-triggered spectacle. Motion only explains
   a state change.
-- Type stays Geist display + Inter body on the 400/500/600/700 ladder (800 is
+- Type stays Plus Jakarta Sans (one family) on the 400/500/600/700 ladder (800 is
   wordmark-only). No display fonts outside that pairing.
 - Concentric radii only: `--radius-control` 18px / `--radius-panel` 26px /
   `--radius-surface` 34px.
@@ -47,7 +47,7 @@ Non-negotiables:
   blocks it. Floating overlays use `.mm-overlay-lift` / `--lift-overlay` in
   `styles.css`. Resting elevation is borders (`border-border`) and surfaces
   (`bg-card` vs `bg-muted`). `ring-*` only for focus.
-- **Type ladder**: Geist display + Inter body; 400 body / 500 labels / 600
+- **Type ladder**: Plus Jakarta Sans (one family); 400 body / 500 labels / 600
   controls and card titles / 700 headings; 800 is wordmark only.
 - **Radii**: `--radius-control` 18px, `--radius-panel` 26px,
   `--radius-surface` 34px. Stay concentric, do not invent radii.
