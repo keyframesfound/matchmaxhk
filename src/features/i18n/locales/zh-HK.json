@@ -1679,6 +1679,7 @@
   },
   "join": {
     "form": {
+      "availability_hkt_note": "家長會以香港時間（HKT）睇呢啲時段。你確認嘅時區係 {{zone}}，所以請用香港時間填你有空嘅時段。",
       "privacy_ack": "本人同意 MatchMax 根據《個人資料（私隱）條例》（第 486 章）收集及使用本表格內嘅個人資料，用於導師登記及配對用途。",
       "privacy_ack_professional": "本人同意 MatchMax 使用本人嘅資歷同履歷去核實專業身份、推廣本人嘅導師檔案，並保障本人嘅匿名性。",
       "commission_ack": "本人明白 MatchMax 會就每位新學生收取第 1 堂課 100% 及第 2 堂課 50% 嘅學費，作為配對服務費。",
@@ -1874,7 +1875,7 @@
     "view_live_card": "查看你的上架導師卡",
     "account_email_hint": "你嘅 MatchMax 帳戶電郵——導師卡同申請都綁定喺佢上面。",
     "availability_title": "每週補習時間",
-    "availability_hint": "點一下格仔循環切換：可補 → 部分時段可 → 不可補。配對同家長都會用呢個表，之後你可以喺工作台隨時調整。",
+    "availability_hint": "拖曳格仔設定每週可約時段，或點擊一格切換。家長會喺你嘅檔案見到呢啲時段，你亦可以隨時喺後台調整。",
     "capacity_title": "學額同偏好時段",
     "error_availability": "請至少揀一個可以補習嘅時段",
     "availability_save_failed": "你的導師卡已上架，但時間表未能儲存——請喺工作台 → 可用時間設定。",

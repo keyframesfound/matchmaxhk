@@ -69,20 +69,20 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { ApplicationStatusPanel } from "@/features/tutor-application/application-status-card";
 import { submitTutorApplication } from "@/lib/tutor-application.functions";
-// Issue #718: the availability block reuses the SAME weekly grid + capacity
-// editors as Dashboard → Availability, so intake and self-serve stay in
-// lockstep; values save to availability_grid / preferred_time_windows.
+// #718 + #768: the availability block reuses the SAME hourly editor as
+// Dashboard → Availability, so intake and self-serve stay in lockstep. Values
+// save to availability_grid_hourly / preferred_time_windows.
+import { CapacityEditorFields } from "@/features/tutors/availability-editor-fields";
+import { HourlyAvailabilityEditor } from "@/features/tutors/availability-hourly-editor";
 import {
-  CapacityEditorFields,
-  EditableAvailabilityGrid,
-} from "@/features/tutors/availability-editor-fields";
-import type { GridCellState, GridDay } from "@/features/tutors/availability-grid-model";
-import {
-  GRID_DAYS,
-  countAvailableCells,
-  emptyAvailabilityGrid,
-  parseAvailabilityGrid,
+  emptyHourlyOpenHours,
+  isHourlyGridEmpty,
+  mapLegacyGridToHourly,
+  parseHourlyOpenHours,
+  type HourlyOpenHours,
 } from "@/features/tutors/availability-grid-model";
+// Legacy parser kept only to migrate drafts created before the hourly switch.
+import { parseAvailabilityGrid } from "@/features/tutors/availability-grid-model";
 import type { PreferredTimeWindow } from "@/features/tutors/queries";
 import { PREFERRED_TIME_WINDOWS } from "@/features/tutors/queries";
 import { ACTIVATION_GENDERS } from "@/features/tutor-application/activation";
@@ -1062,7 +1062,7 @@ type ApplicationDraft = {
   kindergartenTopics: string[];
   // Issue #718: availability answers survive a refresh (draft restore
   // sanitizes them like the other restored blocks).
-  availabilityGrid: Record<GridDay, GridCellState[]> | null;
+  availabilityGrid: HourlyOpenHours | null;
   acceptingStudents: boolean;
   openSlots: number;
   timeWindows: PreferredTimeWindow[];
@@ -1194,7 +1194,9 @@ export function ApplicationForm({ completePending = false }: { completePending?:
   // Issue #718: availability collected at intake — the same weekly grid and
   // capacity fields as Dashboard → Availability. Defaults match the
   // self-serve editor (accepting students, 2 open slots, no windows set).
-  const [availabilityGrid, setAvailabilityGrid] = useState(() => emptyAvailabilityGrid());
+  const [availabilityGrid, setAvailabilityGrid] = useState<HourlyOpenHours>(() =>
+    emptyHourlyOpenHours(),
+  );
   const [acceptingStudents, setAcceptingStudents] = useState(true);
   const [openSlots, setOpenSlots] = useState(2);
   const [timeWindows, setTimeWindows] = useState<PreferredTimeWindow[]>([]);
@@ -1500,10 +1502,17 @@ export function ApplicationForm({ completePending = false }: { completePending?:
     if (restoredGrades.length > 0) setCourseGrades(restoredGrades);
     const restoredTopics = normalizeKindergartenTopics(restoredDraft.kindergartenTopics);
     if (restoredTopics.length > 0) setKindergartenTopics(restoredTopics);
-    // Issue #718: availability answers survive a refresh; the grid restores
-    // through the same tolerant parser the self-serve editor uses.
+    // #718 + #768: availability answers survive a refresh. Drafts written
+    // before the hourly switch still carry the legacy a/p/u grid, so map those
+    // through the same auto-map the migration used ('a' → Open, 'p'/'u' →
+    // closed) instead of dropping the tutor's work.
     if (restoredDraft.availabilityGrid) {
-      setAvailabilityGrid(parseAvailabilityGrid(restoredDraft.availabilityGrid));
+      const hourly = parseHourlyOpenHours(restoredDraft.availabilityGrid);
+      setAvailabilityGrid(
+        isHourlyGridEmpty(hourly)
+          ? mapLegacyGridToHourly(parseAvailabilityGrid(restoredDraft.availabilityGrid))
+          : hourly,
+      );
     }
     if (typeof restoredDraft.acceptingStudents === "boolean") {
       setAcceptingStudents(restoredDraft.acceptingStudents);
@@ -2024,7 +2033,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
       if (stationsError && !next.stations) next.stations = stationsError;
       // Issue #718: mark at least one weekly slot so the card is matchable
       // from day one; the answer saves to availability_grid on publish.
-      if (countAvailableCells(availabilityGrid) === 0) {
+      if (isHourlyGridEmpty(availabilityGrid)) {
         next.availabilityGrid = t("join.error_availability");
       }
     }
@@ -2117,9 +2126,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
    */
   async function saveIntakeAvailability(): Promise<boolean> {
     const [gridResult, capacityResult] = await Promise.all([
-      supabase.rpc("update_my_availability_grid", {
-        _grid: Object.fromEntries(GRID_DAYS.map((day) => [day, availabilityGrid[day]])),
-      }),
+      supabase.rpc("update_my_availability_grid_hourly", { _grid: availabilityGrid }),
       supabase.rpc("update_my_capacity", {
         _remaining_student_slots: openSlots,
         _is_accepting_students: acceptingStudents,
@@ -3833,14 +3840,22 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                     error={fieldErrors.availabilityGrid}
                     hint={t("join.availability_hint")}
                   >
-                    <EditableAvailabilityGrid
-                      grid={availabilityGrid}
+                    <HourlyAvailabilityEditor
+                      value={availabilityGrid}
                       onChange={(next) => {
                         setAvailabilityGrid(next);
                         clearFieldError("availabilityGrid");
                       }}
                     />
                   </Field>
+                  {/* #798 AC-9: the grid is stored and shown in HKT, so a tutor
+                      outside Hong Kong is told that plainly instead of having
+                      their local hours silently read as HKT. */}
+                  {base.timeZone && base.timeZone !== "Asia/Hong_Kong" ? (
+                    <p className="mt-2 text-xs text-muted-foreground">
+                      {t("join.form.availability_hkt_note", { zone: base.timeZone })}
+                    </p>
+                  ) : null}
                   <div className="mt-5 border-t border-border pt-5">
                     <p className={labelClassName}>{t("join.capacity_title")}</p>
                     <div className="mt-1.5">
