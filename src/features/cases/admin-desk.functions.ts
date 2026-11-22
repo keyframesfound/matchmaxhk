@@ -572,9 +572,12 @@ export const feeMarkPaid = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     await requireAdmin(db, context.userId);
-    const feeCase = await selectRows<{ case_id: string }>(db, "case_fees", "case_id", [
-      { col: "id", op: "eq", value: data.feeId },
-    ]);
+    const feeCase = await selectRows<{ case_id: string; amount_hkd: number | null }>(
+      db,
+      "case_fees",
+      "case_id, amount_hkd",
+      [{ col: "id", op: "eq", value: data.feeId }],
+    );
     const { assertReferenceFree, sendFeeReceipt } =
       await import("@/features/cases/fee-desk.functions");
     // #259: a bank reference that already closed another case is rejected
@@ -604,6 +607,33 @@ export const feeMarkPaid = createServerFn({ method: "POST" })
         "fee_paid",
         data.fpsReference ?? null,
       );
+      // #816 §2.2 residual: two fee truths. `case_fees` is the SoR, but the
+      // referral bounty trigger keys off the legacy `tutoring_cases` columns,
+      // so paying through this panel credited no referrer. Mirror the payment
+      // into those columns once, and only when the legacy panel has not
+      // already recorded a fee — the desk must not see its own number moved.
+      const legacy = (
+        await selectRows<{ fee_collected_at: string | null; fee_amount_cents: number | null }>(
+          db,
+          "tutoring_cases",
+          "fee_collected_at, fee_amount_cents",
+          [{ col: "id", op: "eq", value: feeCase[0].case_id }],
+        )
+      )[0];
+      const amountHkd = Number(feeCase[0].amount_hkd ?? 0);
+      if (legacy && legacy.fee_collected_at === null && amountHkd > 0) {
+        const { error: mirrorError } = await db
+          .from<Row>("tutoring_cases")
+          .update({
+            fee_collected_at: new Date().toISOString(),
+            fee_amount_cents: Math.round(amountHkd * 100),
+          })
+          .eq("id", feeCase[0].case_id);
+        // The payment already landed; a failed mirror must not fail the
+        // receipt. The desk can still record it from the legacy panel.
+        if (mirrorError) console.warn("[fee] legacy fee mirror failed:", mirrorError.message);
+      }
+
       // QA (#375): the fee action must also advance the SoR machine, a case
       // stuck on fee_invoiced keeps parent slot requests locked.
       await advanceSorCaseStatus(db, context.userId, feeCase[0].case_id, "fee_paid");
