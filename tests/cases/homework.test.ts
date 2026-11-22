@@ -1,9 +1,13 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  MATERIAL_FILTERS,
+  canCreateMaterial,
+  countsTowardCompletion,
   homeworkStatus,
   homeworkTextError,
   isAllowedHomeworkLink,
+  matchesMaterialFilter,
   splitHomework,
   summarizeHomework,
   type HomeworkItem,
@@ -143,5 +147,62 @@ describe("homeworkTextError", () => {
   it("ignores empty optional text", () => {
     expect(homeworkTextError(undefined)).toBeNull();
     expect(homeworkTextError("")).toBeNull();
+  });
+});
+
+describe("material areas (#785 AC-CONV-3)", () => {
+  it("orders the pills All, Pre-Class, Homework, Post-Class Notes", () => {
+    expect(MATERIAL_FILTERS).toEqual(["all", "pre_class", "homework", "post_class"]);
+  });
+
+  it("shows every area under All and only its own area under a pill", () => {
+    for (const category of ["general", "pre_class", "homework", "post_class"] as const) {
+      expect(matchesMaterialFilter(category, "all")).toBe(true);
+    }
+    expect(matchesMaterialFilter("pre_class", "pre_class")).toBe(true);
+    expect(matchesMaterialFilter("post_class", "pre_class")).toBe(false);
+    expect(matchesMaterialFilter("homework", "pre_class")).toBe(false);
+    // An unfiled upload has no area of its own, so only All shows it.
+    expect(matchesMaterialFilter("general", "homework")).toBe(false);
+    expect(matchesMaterialFilter("general", "post_class")).toBe(false);
+  });
+
+  it("counts only homework toward the completion rate", () => {
+    expect(countsTowardCompletion()).toBe(true);
+    expect(countsTowardCompletion("homework")).toBe(true);
+    expect(countsTowardCompletion("pre_class")).toBe(false);
+    expect(countsTowardCompletion("post_class")).toBe(false);
+    expect(countsTowardCompletion("general")).toBe(false);
+  });
+
+  it("drops pre/post items from the summary, even when they are past due", () => {
+    const summary = summarizeHomework(
+      [
+        item({ submittedAt: DUE_LATER }),
+        // Past due pre/post materials must not become overdue homework.
+        item({ dueAt: DUE_PAST, category: "pre_class" }),
+        item({ dueAt: DUE_PAST, category: "post_class" }),
+        item({ category: "general" }),
+      ],
+      NOW,
+    );
+    expect(summary).toEqual({
+      total: 1,
+      submitted: 1,
+      onTime: 1,
+      late: 0,
+      overdue: 0,
+      completionRate: 100,
+    });
+  });
+
+  it("lets the tutor and Ops file anywhere and a learner only pre/post", () => {
+    expect(canCreateMaterial("tutor", "homework")).toBe(true);
+    expect(canCreateMaterial("tutor", "general")).toBe(true);
+    expect(canCreateMaterial("ops", "post_class")).toBe(true);
+    expect(canCreateMaterial("learner", "pre_class")).toBe(true);
+    expect(canCreateMaterial("learner", "post_class")).toBe(true);
+    expect(canCreateMaterial("learner", "homework")).toBe(false);
+    expect(canCreateMaterial("learner", "general")).toBe(false);
   });
 });

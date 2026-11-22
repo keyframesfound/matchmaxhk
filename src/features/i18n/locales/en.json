@@ -4648,7 +4648,12 @@
     "saved": "Saved.",
     "readonly": "Written by your tutor.",
     "locked": "This lesson has not happened yet.",
-    "err_TOO_LONG": "Keep it under {{max}} characters."
+    "err_TOO_LONG": "Keep it under {{max}} characters.",
+    "link_label": "Lesson link (optional, https)",
+    "open_link": "Open lesson link",
+    "attach": "Attach file",
+    "attached": "Attached to this lesson",
+    "err_BAD_LINK": "Use a full https:// link. Direct contact links are not allowed."
   },
   "case_files": {
     "title": "Files",
@@ -4663,7 +4668,19 @@
     "err_FILE_TYPE": "Use PDF, JPG, PNG, DOCX or PPTX.",
     "err_FILE_ZIP": "ZIP files cannot be scanned. Share a link instead.",
     "err_FILE_EMPTY": "That file is empty.",
-    "remove": "Remove {{name}}"
+    "remove": "Remove {{name}}",
+    "filter_all": "All",
+    "filter_pre_class": "Pre-Class",
+    "filter_homework": "Homework",
+    "filter_post_class": "Post-Class Notes",
+    "category_label": "Add to",
+    "category_general": "General",
+    "category_pre_class": "Pre-Class",
+    "category_homework": "Homework",
+    "category_post_class": "Post-Class Notes",
+    "empty_filtered": "Nothing here yet.",
+    "err_CATEGORY_FORBIDDEN": "Only your tutor can add to this area.",
+    "lesson_date": "Lesson {{day}}"
   },
   "case_details": {
     "title": "Case details",
@@ -4918,7 +4935,7 @@
     "prompt_parent": "Update your requested time."
   },
   "homework": {
-    "tab": "Homework",
+    "tab": "Homework & Files",
     "tab_overview": "Overview",
     "metric_completion": "Completion Rate",
     "metric_on_time": "On-Time Submissions",

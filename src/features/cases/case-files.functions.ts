@@ -30,6 +30,7 @@ import {
   caseFileStoragePath,
   type CaseFileCategory,
 } from "@/features/cases/case-files";
+import { canCreateMaterial } from "@/features/cases/homework";
 
 const BUCKET = "case-files";
 /** 10 minutes — long enough to open a PDF, short enough to not leak. */
@@ -159,6 +160,20 @@ function requireParty(access: CaseFileAccess | null): CaseFileAccess {
   return access;
 }
 
+/**
+ * #785 AC-CONV-3: the tutor and Ops file anywhere; a learner only pre-class and
+ * post-class material. Checked at target minting as well as at record time, so a
+ * learner cannot spend a 50 MB upload before being refused.
+ */
+function requireCategory(
+  access: CaseFileAccess,
+  category: CaseFileCategory | undefined,
+): CaseFileCategory {
+  const effective = category ?? "general";
+  if (!canCreateMaterial(access.role, effective)) throw new Error("CATEGORY_FORBIDDEN");
+  return effective;
+}
+
 /** The case folder is the ownership scope: a path may never leave it. */
 function ownedPath(caseId: string, path: string): boolean {
   return path.startsWith(`${caseId}/`) && !path.includes("..") && !path.includes("\\");
@@ -226,7 +241,11 @@ const FileMeta = {
   size: z.number(),
 } as const;
 
-const UploadTargetSchema = z.object({ caseId: z.string().uuid(), ...FileMeta });
+const UploadTargetSchema = z.object({
+  caseId: z.string().uuid(),
+  ...FileMeta,
+  category: z.enum(CASE_FILE_CATEGORIES).optional(),
+});
 
 export type CaseFileUploadTarget = {
   /** Path inside the private `case-files` bucket, always `<caseId>/…`. */
@@ -247,7 +266,7 @@ export const createCaseFileUpload = createServerFn({ method: "POST" })
     if (failure) throw new Error(failure);
 
     const db = await adminDb();
-    requireParty(await loadAccess(db, data.caseId, context.userId));
+    requireCategory(requireParty(await loadAccess(db, data.caseId, context.userId)), data.category);
 
     const path = caseFileStoragePath(
       data.caseId,
@@ -284,14 +303,15 @@ export const recordCaseFile = createServerFn({ method: "POST" })
     if (!ownedPath(data.caseId, data.path)) throw new Error("FILE_TYPE");
 
     const db = await adminDb();
-    requireParty(await loadAccess(db, data.caseId, context.userId));
+    const access = requireParty(await loadAccess(db, data.caseId, context.userId));
+    const category = requireCategory(access, data.category);
 
     // #782 §2.3: banned terms / dangerous file types are rejected, never dropped.
     const { assertNoContraband } = await import("@/features/trust/contraband.server");
     await assertNoContraband(context.userId, "recordCaseFile", {
       name: data.name,
       contentType: data.contentType,
-      category: data.category ?? "general",
+      category,
     });
 
     const storage = await storageClient();
@@ -313,7 +333,7 @@ export const recordCaseFile = createServerFn({ method: "POST" })
         file_name: data.name,
         content_type: normalizedType(data.contentType),
         size_bytes: data.size,
-        category: data.category ?? "general",
+        category,
         uploaded_by: context.userId,
       })
       .select("id")

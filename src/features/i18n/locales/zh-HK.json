@@ -4648,7 +4648,12 @@
     "saved": "已儲存。",
     "readonly": "由導師撰寫。",
     "locked": "呢一堂仲未上。",
-    "err_TOO_LONG": "請控制在 {{max}} 字以內。"
+    "err_TOO_LONG": "請控制在 {{max}} 字以內。",
+    "link_label": "課堂連結（可選，https）",
+    "open_link": "開啟課堂連結",
+    "attach": "附加文件",
+    "attached": "已附加到呢一堂",
+    "err_BAD_LINK": "請用完整嘅 https:// 連結。唔可以放直接聯絡方式。"
   },
   "case_files": {
     "title": "檔案",
@@ -4663,7 +4668,19 @@
     "err_FILE_TYPE": "請使用 PDF、JPG、PNG、DOCX 或 PPTX。",
     "err_FILE_ZIP": "ZIP 檔案無法掃描，請改為分享連結。",
     "err_FILE_EMPTY": "檔案係空白嘅。",
-    "remove": "移除 {{name}}"
+    "remove": "移除 {{name}}",
+    "filter_all": "全部",
+    "filter_pre_class": "課前",
+    "filter_homework": "功課",
+    "filter_post_class": "課後筆記",
+    "category_label": "加入",
+    "category_general": "其他",
+    "category_pre_class": "課前",
+    "category_homework": "功課",
+    "category_post_class": "課後筆記",
+    "empty_filtered": "仲未有呢一類文件。",
+    "err_CATEGORY_FORBIDDEN": "只有導師可以加入呢個分類。",
+    "lesson_date": "{{day}} 嘅課堂"
   },
   "case_details": {
     "title": "個案資料",
@@ -4918,7 +4935,7 @@
     "prompt_parent": "更新你申請的時段。"
   },
   "homework": {
-    "tab": "功課及任務",
+    "tab": "功課及課堂文件",
     "tab_overview": "概覽",
     "metric_completion": "完成率",
     "metric_on_time": "準時遞交",

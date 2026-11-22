@@ -15,18 +15,21 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { hktClock, hktDayLabel } from "@/features/cases/case-schedule";
 import {
   HOMEWORK_NOTE_MAX,
   HOMEWORK_REVIEW_MAX,
   HOMEWORK_TEXT_MAX,
   HOMEWORK_TITLE_MAX,
+  MATERIAL_FILTERS,
   homeworkStatus,
   isAllowedHomeworkLink,
   splitHomework,
   summarizeHomework,
   type HomeworkStatus,
   type HomeworkSummary,
+  type MaterialFilter,
 } from "@/features/cases/homework";
 import {
   assignHomework,
@@ -375,6 +378,7 @@ export function HomeworkTab({ caseId }: { caseId: string }) {
     queryFn: () => getCaseHomework({ data: { caseId } }),
   });
   const [assignOpen, setAssignOpen] = useState(false);
+  const [filter, setFilter] = useState<MaterialFilter>("all");
   const refresh = () => void queryClient.invalidateQueries({ queryKey });
 
   if (isLoading) return <Loader2 className="mt-4 h-5 w-5 animate-spin" aria-hidden />;
@@ -385,6 +389,8 @@ export function HomeworkTab({ caseId }: { caseId: string }) {
   const now = new Date();
   const { active, completed } = splitHomework(data.items, now);
   const isTutor = data.role === "tutor";
+  // The Pre-Class and Post-Class pills are files-only: no summary, no assignment list.
+  const showHomework = filter === "all" || filter === "homework";
   const renderCard = (item: HomeworkEntry) => (
     <HomeworkCard
       key={item.id}
@@ -398,29 +404,53 @@ export function HomeworkTab({ caseId }: { caseId: string }) {
 
   return (
     <div className="mt-4 space-y-4">
-      <SummaryRow summary={summarizeHomework(data.items, now)} />
-      <p className="text-xs text-muted-foreground">{t("homework.optional_note")}</p>
-      {isTutor && !data.readOnly ? (
-        <Button type="button" size="sm" onClick={() => setAssignOpen(true)}>
-          {t("homework.assign_open")}
-        </Button>
+      <ToggleGroup
+        type="single"
+        variant="outline"
+        className="flex flex-wrap justify-start gap-2"
+        value={filter}
+        onValueChange={(value) => {
+          if (value) setFilter(value as MaterialFilter);
+        }}
+        aria-label={t("homework.tab")}
+      >
+        {MATERIAL_FILTERS.map((material) => (
+          <ToggleGroupItem
+            key={material}
+            value={material}
+            className="h-8 rounded-full px-3 text-xs"
+          >
+            {t(`case_files.filter_${material}`)}
+          </ToggleGroupItem>
+        ))}
+      </ToggleGroup>
+      {showHomework ? (
+        <>
+          <SummaryRow summary={summarizeHomework(data.items, now)} />
+          <p className="text-xs text-muted-foreground">{t("homework.optional_note")}</p>
+          {isTutor && !data.readOnly ? (
+            <Button type="button" size="sm" onClick={() => setAssignOpen(true)}>
+              {t("homework.assign_open")}
+            </Button>
+          ) : null}
+          {data.items.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("homework.empty")}</p>
+          ) : null}
+          {active.length > 0 ? (
+            <section className="space-y-2">
+              <h3 className="text-sm font-semibold">{t("homework.active_title")}</h3>
+              <ul className="space-y-2">{active.map(renderCard)}</ul>
+            </section>
+          ) : null}
+          {completed.length > 0 ? (
+            <section className="space-y-2">
+              <h3 className="text-sm font-semibold">{t("homework.completed_title")}</h3>
+              <ul className="space-y-2">{completed.map(renderCard)}</ul>
+            </section>
+          ) : null}
+        </>
       ) : null}
-      {data.items.length === 0 ? (
-        <p className="text-sm text-muted-foreground">{t("homework.empty")}</p>
-      ) : null}
-      {active.length > 0 ? (
-        <section className="space-y-2">
-          <h3 className="text-sm font-semibold">{t("homework.active_title")}</h3>
-          <ul className="space-y-2">{active.map(renderCard)}</ul>
-        </section>
-      ) : null}
-      {completed.length > 0 ? (
-        <section className="space-y-2">
-          <h3 className="text-sm font-semibold">{t("homework.completed_title")}</h3>
-          <ul className="space-y-2">{completed.map(renderCard)}</ul>
-        </section>
-      ) : null}
-      <CaseFilesPanel caseId={caseId} />
+      <CaseFilesPanel caseId={caseId} filter={filter} role={isTutor ? "tutor" : "learner"} />
       {assignOpen ? (
         <AssignDialog caseId={caseId} onOpenChange={setAssignOpen} onDone={refresh} />
       ) : null}

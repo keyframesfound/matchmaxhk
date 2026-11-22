@@ -4648,7 +4648,12 @@
     "saved": "已保存。",
     "readonly": "由导师撰写。",
     "locked": "呢一堂仲未上。",
-    "err_TOO_LONG": "请控制在 {{max}} 字以内。"
+    "err_TOO_LONG": "请控制在 {{max}} 字以内。",
+    "link_label": "课堂链接（可选，https）",
+    "open_link": "开启课堂链接",
+    "attach": "附加文件",
+    "attached": "已附加到呢一堂",
+    "err_BAD_LINK": "请用完整嘅 https:// 链接。唔可以放直接联络方式。"
   },
   "case_files": {
     "title": "档案",
@@ -4663,7 +4668,19 @@
     "err_FILE_TYPE": "请使用 PDF、JPG、PNG、DOCX 或 PPTX。",
     "err_FILE_ZIP": "ZIP 档案无法扫描，请改为分享链接。",
     "err_FILE_EMPTY": "档案系空白嘅。",
-    "remove": "移除 {{name}}"
+    "remove": "移除 {{name}}",
+    "filter_all": "全部",
+    "filter_pre_class": "课前",
+    "filter_homework": "功课",
+    "filter_post_class": "课后笔记",
+    "category_label": "加入",
+    "category_general": "其他",
+    "category_pre_class": "课前",
+    "category_homework": "功课",
+    "category_post_class": "课后笔记",
+    "empty_filtered": "仲未有呢一类文件。",
+    "err_CATEGORY_FORBIDDEN": "只有导师可以加入呢个分类。",
+    "lesson_date": "{{day}} 嘅课堂"
   },
   "case_details": {
     "title": "个案资料",
@@ -4918,7 +4935,7 @@
     "prompt_parent": "更新你申请的时段。"
   },
   "homework": {
-    "tab": "功课及任务",
+    "tab": "功课及课堂文件",
     "tab_overview": "概览",
     "metric_completion": "完成率",
     "metric_on_time": "准时递交",
