@@ -3989,6 +3989,8 @@
   "channel": {
     "birthday_badge": "🎂 {{date}}",
     "not_found": "Channel not found.",
+    "load_failed": "This channel didn't load. It may just be a slow connection.",
+    "retry": "Try again",
     "owner_viewing": "Viewing your public channel",
     "edit_mode": "Edit Mode",
     "view_public": "View as Visitor",

@@ -612,6 +612,8 @@ export const feeMarkPaid = createServerFn({ method: "POST" })
       // so paying through this panel credited no referrer. Mirror the payment
       // into those columns once, and only when the legacy panel has not
       // already recorded a fee — the desk must not see its own number moved.
+      // `deskUndoFeeCollected` now refuses while a paid `case_fees` row exists,
+      // so pay → undo → pay cannot double-credit a referrer or strand a bounty.
       const legacy = (
         await selectRows<{ fee_collected_at: string | null; fee_amount_cents: number | null }>(
           db,
@@ -815,6 +817,17 @@ export const deskUndoFeeCollected = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     await requireAdmin(db, context.userId);
+
+    // The desk is the source of truth: once a `case_fees` row is `paid`, the
+    // legacy columns below are only a mirror that `feeMarkPaid` writes to fire
+    // the bounty trigger. Nulling that mirror from here would delete a bounty
+    // for money that was genuinely collected, so a desk-recorded fee must be
+    // reversed in the desk, never by undoing the legacy panel underneath it.
+    const paidFees = await selectRows<{ id: string }>(db, "case_fees", "id", [
+      { col: "case_id", op: "eq", value: data.caseId },
+      { col: "status", op: "eq", value: "paid" },
+    ]);
+    if (paidFees.length > 0) throw new Error("FEE_RECORDED_IN_DESK");
 
     // The referral trigger created a bounty from this fee event
     // (`referral_bounties.source_case_id`), and nulling the columns does not

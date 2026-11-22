@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import {
+  AlertCircle,
   BadgeCheck,
   BookOpen,
   Clock,
@@ -104,6 +105,30 @@ function ChannelProfilePage() {
           <div className="space-y-4 py-6">
             <Skeleton className="h-28 w-full rounded-2xl" />
             <Skeleton className="h-12 w-full rounded-xl" />
+          </div>
+        ) : profileQuery.isError ? (
+          // A thrown server function leaves `data` undefined, so this has to be
+          // checked before the not-found branch or every load failure reads as
+          // "Channel not found."
+          <div
+            role="alert"
+            className="mx-auto flex w-full max-w-4xl flex-col items-start gap-3 rounded-2xl border border-border bg-card p-6 sm:flex-row sm:items-center sm:justify-between"
+          >
+            <p className="flex items-start gap-2 text-sm text-[color:var(--ink)]">
+              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-destructive" aria-hidden />
+              <span>{t("channel.load_failed")}</span>
+            </p>
+            <Button
+              variant="outline"
+              size="sm"
+              disabled={profileQuery.isFetching}
+              onClick={() => void profileQuery.refetch()}
+            >
+              {profileQuery.isFetching && (
+                <Loader2 className="mr-1.5 h-4 w-4 animate-spin" aria-hidden />
+              )}
+              {t("channel.retry")}
+            </Button>
           </div>
         ) : !data?.found ? (
           <p className="py-10 text-center text-sm text-muted-foreground">
@@ -332,28 +357,28 @@ function ChannelProfilePage() {
                 {(materialsQuery.data ?? [])
                   .filter((m) => !activeCollection || m.collection_id === activeCollection)
                   .map((m) => (
-                  <li
-                    key={m.id}
-                    className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
-                        {m.title}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {m.material_type ?? "pdf"}
-                        {m.subject ? ` · ${m.subject}` : ""}
-                      </p>
-                    </div>
-                    <Link
-                      to="/notes/$slug"
-                      params={{ slug: m.id }}
-                      className="shrink-0 text-sm font-semibold text-[color:var(--brand-link)] hover:underline"
+                    <li
+                      key={m.id}
+                      className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-4"
                     >
-                      HK${Number(m.price_hkd ?? 0).toFixed(0)}
-                    </Link>
-                  </li>
-                ))}
+                      <div className="min-w-0">
+                        <p className="truncate text-sm font-semibold text-[color:var(--ink)]">
+                          {m.title}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {m.material_type ?? "pdf"}
+                          {m.subject ? ` · ${m.subject}` : ""}
+                        </p>
+                      </div>
+                      <Link
+                        to="/notes/$slug"
+                        params={{ slug: m.id }}
+                        className="shrink-0 text-sm font-semibold text-[color:var(--brand-link)] hover:underline"
+                      >
+                        HK${Number(m.price_hkd ?? 0).toFixed(0)}
+                      </Link>
+                    </li>
+                  ))}
                 {!materialsQuery.isLoading && (materialsQuery.data ?? []).length === 0 && (
                   <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
                     {t("channel.materials_empty")}

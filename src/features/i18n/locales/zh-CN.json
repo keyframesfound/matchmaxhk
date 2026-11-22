@@ -3989,6 +3989,8 @@
   "channel": {
     "birthday_badge": "🎂 {{date}}",
     "not_found": "找不到此频道。",
+    "load_failed": "未能载入此频道，可能只系网络慢。",
+    "retry": "再试一次",
     "owner_viewing": "您正在检视自己的公开频道",
     "edit_mode": "编辑模式",
     "view_public": "访客视角",

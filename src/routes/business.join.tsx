@@ -101,6 +101,34 @@ const INITIAL_BUSINESS_JOIN_FORM = {
 
 type BusinessJoinForm = typeof INITIAL_BUSINESS_JOIN_FORM;
 
+/**
+ * #797 follow-up: `label` is the user-facing English line in the red summary,
+ * `target` is the id of the control that owns the field, so submit can jump
+ * straight to it instead of falling back to the top of the form.
+ */
+type MissingField = { label: string; target: string };
+
+const FOCUSABLE_SELECTOR =
+  'input:not([type="hidden"]), select, textarea, button, [href], [tabindex]:not([tabindex="-1"])';
+
+/**
+ * Best-effort focus. The three mandatory consents are Radix checkbox buttons
+ * rather than text inputs, so the landed element can be any focusable widget.
+ * Never assume it is focusable itself, and never let it break the submit path.
+ */
+function focusField(root: HTMLElement | null) {
+  if (!root) return;
+  const target = root.matches(FOCUSABLE_SELECTOR)
+    ? root
+    : root.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
+  if (!target || typeof target.focus !== "function") return;
+  try {
+    target.focus({ preventScroll: true });
+  } catch {
+    // Detached or mid-re-render node; scrolling already happened, so ignore.
+  }
+}
+
 function BusinessJoinPage() {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -115,7 +143,7 @@ function BusinessJoinPage() {
   const [autoSubmitStage, setAutoSubmitStage] = useState<"idle" | "fire" | "done">("idle");
   const [draftApplied, setDraftApplied] = useState(false);
   const [submitting, setSubmitting] = useState(false);
-  const [missing, setMissing] = useState<string[]>([]);
+  const [missing, setMissing] = useState<MissingField[]>([]);
   const [form, setForm] = useState<BusinessJoinForm>(INITIAL_BUSINESS_JOIN_FORM);
   const { restored, flushDraft, clearDraft } = useFormDraft<BusinessJoinForm>("business-join");
 
@@ -193,37 +221,55 @@ function BusinessJoinPage() {
    * return on an empty name did nothing at all, and everything else surfaced as
    * a toast from the server with no field marked.
    */
-  const missingFields = (): string[] => {
-    const missing: string[] = [];
-    if (!form.name.trim()) missing.push("Public / listing name");
-    if (!form.legal_entity_name.trim()) missing.push("Legal entity name");
-    if (!form.br_number.trim()) missing.push("Business Registration number");
-    if (!form.rep_name.trim()) missing.push("Authorised representative");
-    if (!form.rep_role.trim()) missing.push("Representative role");
-    if (!form.contact_email.trim()) missing.push("Contact email");
-    if (!form.contact_phone.trim()) missing.push("Contact phone");
-    if (!form.authorityAck) missing.push("Authority confirmation");
-    if (!form.termsAck) missing.push("Terms acceptance");
-    if (!form.feeAck) missing.push("Fee terms acceptance");
+  const missingFields = (): MissingField[] => {
+    const missing: MissingField[] = [];
+    if (!form.name.trim()) missing.push({ label: "Public / listing name", target: "org-name" });
+    if (!form.legal_entity_name.trim())
+      missing.push({ label: "Legal entity name", target: "org-legal-name" });
+    if (!form.br_number.trim())
+      missing.push({ label: "Business Registration number", target: "org-br-number" });
+    // `org_type` is required by the server (`createOrganization` narrows it to
+    // tutorial_centre | day_school | ngo) but defaults to "". It was missing
+    // from this list, so a partner who never picked a type passed the client
+    // check and got a server toast instead of a marked field.
+    if (!form.org_type) missing.push({ label: "Organisation type", target: "org-type" });
+    if (!form.rep_name.trim())
+      missing.push({ label: "Authorised representative", target: "org-rep-name" });
+    if (!form.rep_role.trim())
+      missing.push({ label: "Representative role", target: "org-rep-role" });
+    if (!form.contact_email.trim())
+      missing.push({ label: "Contact email", target: "org-contact-email" });
+    if (!form.contact_phone.trim())
+      missing.push({ label: "Contact phone", target: "org-contact-phone" });
+    if (!form.authorityAck)
+      missing.push({ label: "Authority confirmation", target: "org-authority-ack" });
+    if (!form.termsAck) missing.push({ label: "Terms acceptance", target: "org-terms-ack" });
+    if (!form.feeAck) missing.push({ label: "Fee terms acceptance", target: "org-fee-ack" });
     return missing;
   };
 
   const handleSubmit = async (event?: React.FormEvent) => {
     event?.preventDefault();
-    const missing = missingFields();
-    if (missing.length > 0) {
-      setMissing(missing);
+    const nextMissing = missingFields();
+    if (nextMissing.length > 0) {
+      setMissing(nextMissing);
+      // Two frames: the first lets React commit `aria-invalid` and the alert
+      // panel, the second measures layout after that commit so the offset is
+      // correct. One frame can run before the new DOM state exists.
       window.requestAnimationFrame(() => {
-        const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 0;
-        const first = document.querySelector<HTMLElement>('[aria-invalid="true"]');
-        const target = first ?? document.getElementById("org-join-form");
-        if (target) {
-          window.scrollTo({
-            top: window.scrollY + target.getBoundingClientRect().top - headerHeight - 24,
-            behavior: "smooth",
-          });
-          first?.focus({ preventScroll: true });
-        }
+        window.requestAnimationFrame(() => {
+          const element = document.getElementById(nextMissing[0].target);
+          const scrollTarget = element ?? document.getElementById("org-join-form");
+          if (scrollTarget) {
+            const headerHeight =
+              document.querySelector("header")?.getBoundingClientRect().height ?? 0;
+            window.scrollTo({
+              top: window.scrollY + scrollTarget.getBoundingClientRect().top - headerHeight - 24,
+              behavior: "smooth",
+            });
+          }
+          focusField(element);
+        });
       });
       return;
     }
@@ -254,6 +300,7 @@ function BusinessJoinPage() {
   const handleSubmitRef = useRef(handleSubmit);
   handleSubmitRef.current = handleSubmit;
 
+  const isMissing = (target: string) => missing.some((m) => m.target === target);
   const consentInvalid = !form.authorityAck || !form.termsAck || !form.feeAck || !form.org_type;
 
   return (
@@ -293,8 +340,8 @@ function BusinessJoinPage() {
                 <div className="min-w-0">
                   <span>Please complete these before submitting:</span>
                   <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs font-semibold">
-                    {missing.map((label) => (
-                      <li key={label}>{label}</li>
+                    {missing.map((field) => (
+                      <li key={field.target}>{field.label}</li>
                     ))}
                   </ul>
                 </div>
@@ -303,9 +350,10 @@ function BusinessJoinPage() {
             <div className="space-y-1.5">
               <Label htmlFor="org-name">Public / listing name *</Label>
               <Input
+                id="org-name"
                 required
                 maxLength={120}
-                aria-invalid={missing.some((m) => m === "Public / listing name") || undefined}
+                aria-invalid={isMissing("org-name") || undefined}
                 placeholder="e.g. Ace Learning Centre"
                 value={form.name}
                 onChange={(e) => setField({ name: e.target.value })}
@@ -324,9 +372,10 @@ function BusinessJoinPage() {
               <div className="space-y-1.5">
                 <Label htmlFor="org-legal-name">Legal entity name *</Label>
                 <Input
+                  id="org-legal-name"
                   required
                   maxLength={200}
-                  aria-invalid={missing.some((m) => m === "Legal entity name") || undefined}
+                  aria-invalid={isMissing("org-legal-name") || undefined}
                   placeholder="e.g. XYZ Education Limited"
                   value={form.legal_entity_name}
                   onChange={(e) => setField({ legal_entity_name: e.target.value })}
@@ -345,20 +394,23 @@ function BusinessJoinPage() {
                 <div className="space-y-1.5">
                   <Label htmlFor="org-br-number">Business Registration number *</Label>
                   <Input
+                    id="org-br-number"
                     required
                     maxLength={40}
-                    aria-invalid={
-                      missing.some((m) => m === "Business Registration number") || undefined
-                    }
+                    aria-invalid={isMissing("org-br-number") || undefined}
                     placeholder="e.g. 41690777"
                     value={form.br_number}
                     onChange={(e) => setField({ br_number: e.target.value })}
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label>Organisation type *</Label>
+                <div className="space-y-1.5" id="org-type">
+                  <Label htmlFor="org-type-trigger">Organisation type *</Label>
                   <Select value={form.org_type} onValueChange={(v) => setField({ org_type: v })}>
-                    <SelectTrigger className="w-full">
+                    <SelectTrigger
+                      id="org-type-trigger"
+                      className="w-full"
+                      aria-invalid={isMissing("org-type") || undefined}
+                    >
                       <SelectValue placeholder="Select type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -399,8 +451,10 @@ function BusinessJoinPage() {
                 <div className="space-y-1.5">
                   <Label htmlFor="org-rep-name">Full name *</Label>
                   <Input
+                    id="org-rep-name"
                     required
                     maxLength={120}
+                    aria-invalid={isMissing("org-rep-name") || undefined}
                     value={form.rep_name}
                     onChange={(e) => setField({ rep_name: e.target.value })}
                   />
@@ -408,8 +462,10 @@ function BusinessJoinPage() {
                 <div className="space-y-1.5">
                   <Label htmlFor="org-rep-role">Title / role *</Label>
                   <Input
+                    id="org-rep-role"
                     required
                     maxLength={80}
+                    aria-invalid={isMissing("org-rep-role") || undefined}
                     placeholder="e.g. Director"
                     value={form.rep_role}
                     onChange={(e) => setField({ rep_role: e.target.value })}
@@ -466,18 +522,22 @@ function BusinessJoinPage() {
             {/* Verified contact, #412 B required field 5. */}
             <div className="grid gap-4 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="org-email">Contact email *</Label>
+                <Label htmlFor="org-contact-email">Contact email *</Label>
                 <Input
+                  id="org-contact-email"
                   required
                   type="email"
+                  aria-invalid={isMissing("org-contact-email") || undefined}
                   value={form.contact_email}
                   onChange={(e) => setField({ contact_email: e.target.value })}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="org-phone">Contact phone *</Label>
+                <Label htmlFor="org-contact-phone">Contact phone *</Label>
                 <Input
+                  id="org-contact-phone"
                   required
+                  aria-invalid={isMissing("org-contact-phone") || undefined}
                   value={form.contact_phone}
                   onChange={(e) => setField({ contact_phone: e.target.value })}
                 />
@@ -501,6 +561,9 @@ function BusinessJoinPage() {
             <div className="space-y-3 rounded-lg border border-border p-4">
               <label className="flex gap-3 text-sm text-muted-foreground">
                 <Checkbox
+                  id="org-authority-ack"
+                  aria-invalid={isMissing("org-authority-ack") || undefined}
+                  className="aria-[invalid=true]:border-destructive"
                   checked={form.authorityAck}
                   onCheckedChange={(checked) => setField({ authorityAck: checked === true })}
                 />
@@ -514,6 +577,9 @@ function BusinessJoinPage() {
               </label>
               <label className="flex gap-3 text-sm text-muted-foreground">
                 <Checkbox
+                  id="org-terms-ack"
+                  aria-invalid={isMissing("org-terms-ack") || undefined}
+                  className="aria-[invalid=true]:border-destructive"
                   checked={form.termsAck}
                   onCheckedChange={(checked) => setField({ termsAck: checked === true })}
                 />
@@ -532,6 +598,9 @@ function BusinessJoinPage() {
               </label>
               <label className="flex gap-3 text-sm text-muted-foreground">
                 <Checkbox
+                  id="org-fee-ack"
+                  aria-invalid={isMissing("org-fee-ack") || undefined}
+                  className="aria-[invalid=true]:border-destructive"
                   checked={form.feeAck}
                   onCheckedChange={(checked) => setField({ feeAck: checked === true })}
                 />

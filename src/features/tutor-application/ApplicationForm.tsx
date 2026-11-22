@@ -285,6 +285,7 @@ const labelClassName =
 const controlClassName = "h-11 w-full rounded-sm";
 const invalidInputClassName =
   "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30";
+const focusableSelector = "input, select, textarea, button, [tabindex]";
 
 function RequiredFlag() {
   const { t } = useTranslation();
@@ -331,7 +332,7 @@ function Field({ label, error, optional, hint, className, children }: FieldProps
       : children;
 
   return (
-    <div className={cn("min-w-0", className)}>
+    <div className={cn("min-w-0", className)} data-invalid={error ? "true" : undefined}>
       <label className={labelClassName}>
         {label}
         {error === "Required" ? <RequiredFlag /> : null}
@@ -1674,21 +1675,35 @@ export function ApplicationForm({ completePending = false }: { completePending?:
    * step header (where the summary list lives).
    */
   function scrollToFirstInvalid() {
-    window.requestAnimationFrame(() => {
-      const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 0;
-      const invalid = document.querySelector<HTMLElement>(
-        '[aria-invalid="true"], [data-invalid="true"]',
-      );
-      if (invalid) {
+    // React commits the invalid markers after the click handler returns, so a
+    // single frame can look too early and find nothing. Trying twice keeps the
+    // scroll on the field within the frame budget instead of a timer.
+    const attempt = (framesLeft: number) => {
+      window.requestAnimationFrame(() => {
+        const invalid = document.querySelector<HTMLElement>(
+          '[aria-invalid="true"], [data-invalid="true"]',
+        );
+        if (!invalid) {
+          if (framesLeft > 0) {
+            attempt(framesLeft - 1);
+            return;
+          }
+          scrollToStepperTop();
+          return;
+        }
+        const headerHeight = document.querySelector("header")?.getBoundingClientRect().height ?? 0;
         window.scrollTo({
           top: window.scrollY + invalid.getBoundingClientRect().top - headerHeight - 24,
           behavior: "smooth",
         });
-        invalid.focus({ preventScroll: true });
-        return;
-      }
-      scrollToStepperTop();
-    });
+        if (invalid.matches(focusableSelector)) {
+          invalid.focus({ preventScroll: true });
+          return;
+        }
+        invalid.querySelector<HTMLElement>(focusableSelector)?.focus({ preventScroll: true });
+      });
+    };
+    attempt(1);
   }
 
   function scrollToStepperTop() {

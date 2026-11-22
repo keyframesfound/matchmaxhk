@@ -3989,6 +3989,8 @@
   "channel": {
     "birthday_badge": "🎂 {{date}}",
     "not_found": "找不到此頻道。",
+    "load_failed": "未能載入此頻道，可能只係網絡慢。",
+    "retry": "再試一次",
     "owner_viewing": "您正在檢視自己的公開頻道",
     "edit_mode": "編輯模式",
     "view_public": "訪客視角",

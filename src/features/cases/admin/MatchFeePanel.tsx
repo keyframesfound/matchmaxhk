@@ -163,9 +163,11 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
     },
     onError: (e: Error) =>
       toast.error(
-        e.message.includes("BOUNTY_SETTLED")
-          ? "The referral bounty from this fee is already queued or paid. Settle it before undoing the fee."
-          : e.message,
+        e.message.includes("FEE_RECORDED_IN_DESK")
+          ? "This fee was recorded in the fee desk. Reverse it there, not here."
+          : e.message.includes("BOUNTY_SETTLED")
+            ? "The referral bounty from this fee is already queued or paid. Settle it before undoing the fee."
+            : e.message,
       ),
   });
 
