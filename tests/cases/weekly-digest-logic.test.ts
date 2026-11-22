@@ -8,6 +8,7 @@ import {
   composeWeeklyDigest,
   digestWindow,
   hasDigestActivity,
+  isWeeklyDigestSlot,
   type ComposeWeeklyDigestInput,
   type DigestHomeworkRow,
   type DigestLabels,
@@ -426,5 +427,21 @@ describe("buildDigestCopy — bilingual WhatsApp block", () => {
     expect(copy.indexOf("MatchMax weekly update")).toBeLessThan(
       copy.indexOf("MatchMax 每週學習摘要"),
     );
+  });
+});
+
+describe("isWeeklyDigestSlot", () => {
+  // The digest shares the hourly cron because the Workers plan allows three
+  // cron expressions, so this gate is what keeps it to Sunday 20:00 HKT.
+  it("is open at Sunday 20:00 HKT and nowhere else in the week", () => {
+    expect(isWeeklyDigestSlot(new Date("2026-11-22T12:00:00.000Z"))).toBe(true); // Sun 20:00 HKT
+    expect(isWeeklyDigestSlot(new Date("2026-11-22T11:00:00.000Z"))).toBe(false); // Sun 19:00
+    expect(isWeeklyDigestSlot(new Date("2026-11-22T13:00:00.000Z"))).toBe(false); // Sun 21:00
+    expect(isWeeklyDigestSlot(new Date("2026-11-23T12:00:00.000Z"))).toBe(false); // Mon 20:00
+    expect(isWeeklyDigestSlot(new Date("2026-11-21T12:00:00.000Z"))).toBe(false); // Sat 20:00
+  });
+
+  it("uses HKT, not UTC: Saturday 16:00 UTC is Sunday 00:00 HKT and still closed", () => {
+    expect(isWeeklyDigestSlot(new Date("2026-11-21T16:00:00.000Z"))).toBe(false);
   });
 });

@@ -12,7 +12,7 @@ export default defineTask({
   meta: {
     name: "weekly-digest",
     description:
-      "Send the #796 §2.6 weekly learning digest, one email per parent, Sunday 20:00 HKT (capped by #783).",
+      "Send the #796 §2.6 weekly learning digest, one email per parent, Sunday 20:00 HKT (self-gated on the hourly trigger; capped by #783).",
   },
   async run() {
     try {

@@ -26,6 +26,7 @@ import {
 import {
   composeWeeklyDigest,
   digestWindow,
+  isWeeklyDigestSlot,
   type DigestHomeworkRow,
   type DigestLabels,
   type DigestLessonRow,
@@ -258,6 +259,10 @@ export async function runWeeklyDigestSweep(
   db: Db,
   now: Date,
 ): Promise<{ sent: number; skipped: number; failed: number }> {
+  // The digest shares the hourly cron (three-cron plan limit), so every other
+  // hour must return before it touches the database.
+  if (!isWeeklyDigestSlot(now)) return { sent: 0, skipped: 0, failed: 0 };
+
   const { sendTemplateEmail } = await import("@/lib/email-templates/send-email");
   const window = digestWindow(now);
   const weekKey = window.startIso.slice(0, 10);

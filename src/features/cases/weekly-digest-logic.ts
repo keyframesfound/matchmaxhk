@@ -44,6 +44,21 @@ import type { DrawerLogRow } from "@/features/cases/super-drawer/super-drawer-lo
 /** HKT is a fixed UTC+8 with no DST, so an offset is exact all year. */
 export const DIGEST_TZ_OFFSET_MINUTES = 480;
 
+/**
+ * True only during Sunday 20:00 HKT — the digest's send slot.
+ *
+ * The Workers plan allows three cron expressions, so the digest rides the
+ * hourly materials trigger instead of owning a fourth. It must therefore refuse
+ * to run on the other 167 hours; this is that gate, and it is pure so the slot
+ * rule is testable without waiting for a Sunday.
+ */
+export function isWeeklyDigestSlot(now: Date): boolean {
+  const local = now.getTime() + TZ_OFFSET_MS;
+  if (!Number.isFinite(local)) return false;
+  const hkt = new Date(local);
+  return hkt.getUTCDay() === 0 && hkt.getUTCHours() === 20;
+}
+
 const MINUTE_MS = 60_000;
 const HOUR_MS = 3_600_000;
 const DAY_MS = 86_400_000;
