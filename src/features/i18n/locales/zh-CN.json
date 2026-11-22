@@ -4640,6 +4640,16 @@
     "share_no_contact_link": "到安全设定新增",
     "share_state_error": "无法更新——请再试一次。"
   },
+  "coaching": {
+    "title": "导师评语",
+    "empty": "仲未有导师评语。",
+    "placeholder": "下一堂前需要改善的地方",
+    "save": "保存评语",
+    "saved": "已保存。",
+    "readonly": "由导师撰写。",
+    "locked": "呢一堂仲未上。",
+    "err_TOO_LONG": "请控制在 {{max}} 字以内。"
+  },
   "case_files": {
     "title": "档案",
     "upload": "加入档案",

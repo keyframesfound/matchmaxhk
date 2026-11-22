@@ -27,6 +27,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
 import { BillingTab } from "./billing-tab";
+import { CoachingNotes } from "./coaching-notes";
 import { EditLessonsDialog } from "./edit-lessons-dialog";
 import { HeatmapSection } from "./heatmap-section";
 import { HomeworkTab } from "./homework-tab";
@@ -275,6 +276,10 @@ export function CaseDrawer({
             {/* #796 §2.5: the lesson log feed sits under the mastery heatmap and
                 above the grade chart; it renders nothing for non-parties. */}
             <LessonLogSection caseId={scheduleCase.id} />
+            {/* #785 AC-735-2b: the tutor's long-form coach note per lesson,
+                read by every party. Sits under the lesson log and above the
+                grade chart; renders nothing for a non-party or no started lesson. */}
+            <CoachingNotes caseId={scheduleCase.id} canEdit={isTutor || isOps} />
             <ProgressTab caseId={scheduleCase.id} />
           </TabsContent>
           <TabsContent value="mistakes">

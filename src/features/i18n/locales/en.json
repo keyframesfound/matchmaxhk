@@ -4640,6 +4640,16 @@
     "share_no_contact_link": "Add one in Safety settings",
     "share_state_error": "Couldn't update — please try again."
   },
+  "coaching": {
+    "title": "Coach notes",
+    "empty": "No coach notes yet.",
+    "placeholder": "What to work on before the next lesson",
+    "save": "Save note",
+    "saved": "Saved.",
+    "readonly": "Written by your tutor.",
+    "locked": "This lesson has not happened yet.",
+    "err_TOO_LONG": "Keep it under {{max}} characters."
+  },
   "case_files": {
     "title": "Files",
     "upload": "Add file",
