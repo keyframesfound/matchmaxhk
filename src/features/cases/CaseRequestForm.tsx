@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { Link, useNavigate } from "@tanstack/react-router";
 import {
   AlertCircle,
@@ -21,7 +21,10 @@ import { approxHkdText } from "@/features/currency/convert";
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES, toCurrencyCode } from "@/lib/money";
 
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { GoogleGIcon } from "@/components/brand/GoogleGIcon";
+import { NeedVerificationModal } from "@/features/impact/need-verification-modal";
+import { getMyNeedVerification } from "@/features/impact/need-verification.functions";
 import { Checkbox } from "@/components/ui/checkbox";
 import { scrcPreferenceApplies } from "@/features/trust/safety-attestation";
 import { Input } from "@/components/ui/input";
@@ -378,6 +381,15 @@ export function CaseRequestForm({
   const { user, loading: authLoading } = useAuth();
   const navigate = useNavigate();
   const gatePending = useGateOverlayPending();
+  // #794 §2.3: Verified Need is optional and never gates the request. The
+  // chip only appears for a live pass; no row at all is Self-Declared.
+  const [verifyOpen, setVerifyOpen] = useState(false);
+  const { data: needVerification } = useQuery({
+    queryKey: ["my-need-verification"],
+    queryFn: () => getMyNeedVerification(),
+    enabled: Boolean(user),
+    staleTime: 30_000,
+  });
   const [step, setStep] = useState(1);
   const [form, setForm] = useState<FormState>(INITIAL_FORM);
   const [errors, setErrors] = useState<Partial<Record<keyof FormState, string>>>({});
@@ -2381,6 +2393,24 @@ export function CaseRequestForm({
                   className={`${controlClassName} mt-2`}
                 />
               )}
+              {/* #794 §2.3: optional proof upload, launched from the ask itself.
+                  Uploading nothing keeps the request Self-Declared. */}
+              {user ? (
+                <div className="mt-3 flex flex-wrap items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-9 px-4 text-xs font-semibold"
+                    onClick={() => setVerifyOpen(true)}
+                  >
+                    {t("need_verification.upload_title")}
+                  </Button>
+                  {needVerification?.state === "verified" ? (
+                    <Badge variant="success">{t("need_verification.badge_verified")}</Badge>
+                  ) : null}
+                </div>
+              ) : null}
+              <NeedVerificationModal open={verifyOpen} onOpenChange={setVerifyOpen} />
             </div>
             <div>
               <label className={labelClassName} htmlFor={`${idPrefix}-student-count`}>

@@ -29,6 +29,7 @@ import {
   type GradeQueueRow,
 } from "@/features/tutors/admin/grade-review.functions";
 import { GRADE_REJECTION_REASONS, type GradeRejectionReason } from "@/features/tutors/grades";
+import { NeedVerificationQueue } from "@/features/cases/admin/NeedVerificationQueue";
 
 export const Route = createFileRoute("/_authenticated/admin/grades")({
   head: () => ({
@@ -473,6 +474,9 @@ function AdminGrades() {
           </div>
         )}
       </div>
+
+      {/* Issue #794 §2.3 (AC-560-3): proof-of-need review for the pro-bono rate. */}
+      <NeedVerificationQueue />
 
       <p className="text-[11px] leading-5 text-muted-foreground">
         Queue sorts by submitted time, oldest first. Reject requires a reason from the fixed list;

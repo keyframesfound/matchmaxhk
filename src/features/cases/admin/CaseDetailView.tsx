@@ -85,6 +85,7 @@ import { cn } from "@/lib/utils";
 import { BehaviourReportPanel } from "@/features/trust/behaviour-report-panel";
 import { CaseReviewsDeskPanel } from "@/features/cases/admin/CaseReviewsDeskPanel";
 import { DeskReportsPanel } from "@/features/cases/admin/DeskReportsPanel";
+import { ImpactDeskPanel } from "@/features/cases/admin/ImpactDeskPanel";
 import { UsefulnessPulsePanel } from "@/features/cases/admin/UsefulnessPulsePanel";
 import {
   CASE_STATUSES,
@@ -682,6 +683,8 @@ export function CaseDetailView({
           <DeskReportsPanel caseId={caseRow.id} />
           {/* #794 AC-649-2: ratings the desk can read and act on (private note, held row). */}
           <CaseReviewsDeskPanel caseId={caseRow.id} />
+          {/* #794 AC-400-4: give an unsold seat to a referred child; mark the account Impact. */}
+          <ImpactDeskPanel caseId={caseRow.id} />
           {/* #796 §2.4: private lesson usefulness pulses (desk-only, read-only). */}
           <UsefulnessPulsePanel caseId={caseRow.id} />
           {/* Issue #412: compliance hold banner, the case is locked out of
