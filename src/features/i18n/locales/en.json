@@ -5912,5 +5912,30 @@
     "err_TIP_FORBIDDEN": "Only the tutor or MatchMax can add a tip.",
     "err_MISTAKE_NOT_FOUND": "This mistake is no longer available.",
     "err_CASE_NOT_FOUND": "This case is not available."
+  },
+  "centre_channel": {
+    "verified_partner": "Verified Partner",
+    "enquire": "Enquire with Centre",
+    "stat_tutors": "Affiliated Tutors",
+    "stat_courses": "Active Courses",
+    "stat_notes": "Study Notes",
+    "tab_courses": "Courses & Classes",
+    "tab_tutors": "Our Tutors",
+    "tab_materials": "Study Materials",
+    "tab_posts": "Posts",
+    "tutors_subtitle": "Verified independent educators and faculty affiliated with {{name}}.",
+    "courses_empty": "No courses listed yet",
+    "tutors_empty": "No affiliated tutors yet",
+    "materials_empty": "No study materials yet",
+    "posts_empty": "No posts yet",
+    "filter_reset": "Reset filter",
+    "owner_add_course": "+ Add Course / Class",
+    "owner_tutors_hint": "Tutors ask to affiliate from their own profile. Approve requests in your workspace.",
+    "owner_open_workspace": "Open workspace",
+    "materials_hint": "Study notes published as this centre will appear here.",
+    "view_profile": "View profile",
+    "from_rate": "From HK${{rate}}/hr",
+    "tutors_error": "Could not load tutors. Refresh to try again.",
+    "footnote": "Partner Centre listings are operated independently by the respective institution. Affiliated tutors operate as independent educators."
   }
 }

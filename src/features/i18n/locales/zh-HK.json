@@ -5912,5 +5912,30 @@
     "err_TIP_FORBIDDEN": "只有導師或 MatchMax 可以加提示。",
     "err_MISTAKE_NOT_FOUND": "這題錯題已經不存在。",
     "err_CASE_NOT_FOUND": "找不到這個個案。"
+  },
+  "centre_channel": {
+    "verified_partner": "認證合作夥伴",
+    "enquire": "向中心查詢",
+    "stat_tutors": "合作導師",
+    "stat_courses": "開辦課程",
+    "stat_notes": "精讀筆記",
+    "tab_courses": "課程及常規班",
+    "tab_tutors": "導師團隊",
+    "tab_materials": "精讀筆記",
+    "tab_posts": "中心動態",
+    "tutors_subtitle": "與 {{name}} 合作之認證獨立導師及教學團隊。",
+    "courses_empty": "尚未列出課程",
+    "tutors_empty": "尚未有合作導師",
+    "materials_empty": "尚未有精讀筆記",
+    "posts_empty": "尚未有動態",
+    "filter_reset": "重設篩選",
+    "owner_add_course": "新增課程／班別",
+    "owner_tutors_hint": "導師可在自己的主頁申請合作，請到工作區審批。",
+    "owner_open_workspace": "打開工作區",
+    "materials_hint": "以本中心名義發布的筆記會在此顯示。",
+    "view_profile": "查看主頁",
+    "from_rate": "每小時 HK${{rate}} 起",
+    "tutors_error": "未能載入導師，請重新整理。",
+    "footnote": "合作教育中心之課程由該機構獨立營辦；所列導師均以獨立教育工作者身份合作。"
   }
 }

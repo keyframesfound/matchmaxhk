@@ -18,8 +18,12 @@ import {
   Pencil,
   Phone,
   Share2,
+  Users,
+  FileText,
+  Newspaper,
 } from "lucide-react";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
 
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
@@ -31,6 +35,7 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/business/empty-state";
 import { BackToTop } from "@/components/business/back-to-top";
 import { CourseCalendar } from "@/components/business/course-calendar";
@@ -43,6 +48,7 @@ import {
 } from "@/features/business/organization-edit-dialogs";
 import {
   fetchOrganizationSeoMeta,
+  getCentreChannel,
   getOrganizationRoleForSlug,
   updateOrganization,
   uploadOrganizationImage,
@@ -215,6 +221,16 @@ function BusinessPublicProfile() {
     enabled: !!user && !!slug,
   });
   const isOwner = !!user && !!roleData?.role;
+  const { t } = useTranslation();
+  const channelFn = useServerFn(getCentreChannel);
+  // #815 §2.2 / §2.3: partner state + approved affiliates (no contact fields).
+  const channel = useQuery({
+    queryKey: ["centre-channel", slug],
+    queryFn: () => channelFn({ data: { slug } }),
+    enabled: !!org,
+  });
+  const verifiedPartner = channel.data?.verifiedPartner === true;
+  const affiliates = channel.data?.tutors ?? [];
 
   useEffect(() => {
     if (org) {
@@ -507,11 +523,14 @@ function BusinessPublicProfile() {
                   <div className="min-w-0">
                     <h1 className="flex flex-wrap items-center gap-2 text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
                       {org.name}
-                      <BadgeCheck
-                        className="h-6 w-6 shrink-0 text-[color:var(--muted-foreground)]"
-                        aria-label="Verified business"
-                      />
+                      {verifiedPartner ? (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--muted)] px-2.5 py-0.5 text-xs font-semibold text-[color:var(--ink)]">
+                          <BadgeCheck className="h-3.5 w-3.5" aria-hidden />
+                          {t("centre_channel.verified_partner")}
+                        </span>
+                      ) : null}
                     </h1>
+                    <p className="mt-0.5 text-sm text-muted-foreground">@{org.slug}</p>
                     {org.tagline ? (
                       <p className="mt-1.5 max-w-2xl text-[15px] font-medium text-muted-foreground">
                         {org.tagline}
@@ -542,30 +561,30 @@ function BusinessPublicProfile() {
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-sm">
-                  <span className="flex items-baseline gap-1.5">
-                    <span className="font-semibold tabular-nums text-[color:var(--ink)]">
-                      {coursesLoading ? "…" : courseCount}
-                    </span>
-                    <span className="text-muted-foreground">
-                      {courseCount === 1 ? "Course" : "Courses"}
-                    </span>
-                  </span>
+                  {[
+                    {
+                      label: t("centre_channel.stat_tutors"),
+                      value: channel.isLoading ? "…" : affiliates.length,
+                    },
+                    {
+                      label: t("centre_channel.stat_courses"),
+                      value: coursesLoading ? "…" : courseCount,
+                    },
+                    { label: t("centre_channel.stat_notes"), value: 0 },
+                  ].map((stat) => (
+                    <div key={stat.label} className="flex items-baseline gap-1.5">
+                      <span className="font-semibold tabular-nums text-[color:var(--ink)]">
+                        {stat.value}
+                      </span>
+                      <span className="text-muted-foreground">{stat.label}</span>
+                    </div>
+                  ))}
                   {org.district ? (
-                    <span className="flex items-baseline gap-1.5">
+                    <div className="flex items-baseline gap-1.5">
                       <span className="font-semibold text-[color:var(--ink)]">{org.district}</span>
-                      <span className="text-muted-foreground">District</span>
-                    </span>
+                      <span className="sr-only">District</span>
+                    </div>
                   ) : null}
-                  <span className="flex items-baseline gap-1.5">
-                    <span className="font-semibold text-[color:var(--ink)]">
-                      {org.founded_year ?? "—"}
-                    </span>
-                    <span className="text-muted-foreground">Founded</span>
-                  </span>
-                  <span className="flex items-baseline gap-1.5">
-                    <span className="font-semibold text-[color:var(--ink)]">{memberSince}</span>
-                    <span className="text-muted-foreground">member since</span>
-                  </span>
                 </div>
               </div>
             </section>
@@ -675,118 +694,235 @@ function BusinessPublicProfile() {
               <ActiveCasesSection subject={{ kind: "centre", slug }} isOwner={false} />
             </div>
 
-            {/* Courses */}
-            <section id="courses" className="mt-10 scroll-mt-24">
-              <div className="flex items-center gap-3">
-                <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
-                  Courses
-                </h2>
-                <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-bold tabular-nums text-muted-foreground">
-                  {coursesLoading ? "…" : courseCount}
-                </span>
-              </div>
-              <div className="mt-4">
-                {(levels.length > 0 || subjects.length > 0) && (
-                  <div className="mb-4 flex flex-wrap items-center gap-1.5">
-                    {levels.map((level) => (
-                      <button
-                        key={level}
-                        type="button"
-                        aria-pressed={levelFilter === level}
-                        onClick={() => setLevelFilter((prev) => (prev === level ? null : level))}
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
-                          levelFilter === level
-                            ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)] ring-[color:var(--btn-accent)]"
-                            : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
-                        }`}
-                      >
-                        {level}
-                      </button>
-                    ))}
-                    {subjects.map((subject) => (
-                      <button
-                        key={subject}
-                        type="button"
-                        aria-pressed={subjectFilter === subject}
-                        onClick={() =>
-                          setSubjectFilter((prev) => (prev === subject ? null : subject))
-                        }
-                        className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
-                          subjectFilter === subject
-                            ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)] ring-[color:var(--btn-accent)]"
-                            : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
-                        }`}
-                      >
-                        {subject}
-                      </button>
-                    ))}
-                  </div>
-                )}
-                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                  {coursesLoading && (
-                    <>
-                      <Skeleton className="h-64 rounded-xl" />
-                      <Skeleton className="h-64 rounded-xl" />
-                      <Skeleton className="h-64 rounded-xl" />
-                    </>
-                  )}
-                  {!coursesLoading && filteredCourses.length === 0 && (
-                    <div className="sm:col-span-2 lg:col-span-3">
-                      <EmptyState
-                        icon={BookOpen}
-                        title="No courses found"
-                        description={
-                          (courses ?? []).length === 0
-                            ? "This business hasn't published any courses, check back soon."
-                            : "No courses match the selected filters."
-                        }
-                        secondaryAction={
-                          (levelFilter || subjectFilter) && (courses ?? []).length > 0 ? (
-                            <Button
-                              variant="outline"
-                              onClick={() => {
-                                setLevelFilter(null);
-                                setSubjectFilter(null);
-                              }}
-                            >
-                              Clear filters
-                            </Button>
-                          ) : (
-                            <Button variant="outline" asChild>
-                              <Link to="/courses">Browse other courses</Link>
-                            </Button>
-                          )
-                        }
-                      />
-                    </div>
-                  )}
-                  {filteredCourses.map((course) => (
-                    <ListingCard key={course.id} course={course} />
-                  ))}
-                </div>
-              </div>
-            </section>
+            {/* #815 §2.2: channel tabs. */}
+            <Tabs defaultValue="courses" className="mt-10">
+              <TabsList className="h-auto w-full flex-wrap justify-start gap-1 sm:w-auto">
+                <TabsTrigger value="courses">{t("centre_channel.tab_courses")}</TabsTrigger>
+                <TabsTrigger value="tutors">{t("centre_channel.tab_tutors")}</TabsTrigger>
+                <TabsTrigger value="materials">{t("centre_channel.tab_materials")}</TabsTrigger>
+                <TabsTrigger value="posts">{t("centre_channel.tab_posts")}</TabsTrigger>
+              </TabsList>
 
-            {/* Class schedule */}
-            {courseCount > 0 && (
-              <section id="schedule" className="mt-10 scroll-mt-24">
-                <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
-                  Class schedule
-                </h2>
-                <p className="mt-1 text-sm text-muted-foreground">
-                  Recurring class days from this business's published courses.
-                </p>
-                <div className="mt-4">
-                  <CourseCalendar courses={courses ?? []} />
-                </div>
-              </section>
-            )}
+              <TabsContent value="courses" className="mt-6">
+                {/* Courses */}
+                <section id="courses" className="scroll-mt-24">
+                  <div>
+                    {(levels.length > 0 || subjects.length > 0) && (
+                      <div className="mb-4 flex flex-wrap items-center gap-1.5">
+                        {levels.map((level) => (
+                          <button
+                            key={level}
+                            type="button"
+                            aria-pressed={levelFilter === level}
+                            onClick={() =>
+                              setLevelFilter((prev) => (prev === level ? null : level))
+                            }
+                            className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
+                              levelFilter === level
+                                ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)] ring-[color:var(--btn-accent)]"
+                                : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
+                            }`}
+                          >
+                            {level}
+                          </button>
+                        ))}
+                        {subjects.map((subject) => (
+                          <button
+                            key={subject}
+                            type="button"
+                            aria-pressed={subjectFilter === subject}
+                            onClick={() =>
+                              setSubjectFilter((prev) => (prev === subject ? null : subject))
+                            }
+                            className={`rounded-full px-2.5 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
+                              subjectFilter === subject
+                                ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)] ring-[color:var(--btn-accent)]"
+                                : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
+                            }`}
+                          >
+                            {subject}
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {coursesLoading && (
+                        <>
+                          <Skeleton className="h-64 rounded-xl" />
+                          <Skeleton className="h-64 rounded-xl" />
+                          <Skeleton className="h-64 rounded-xl" />
+                        </>
+                      )}
+                      {!coursesLoading && filteredCourses.length === 0 && (
+                        <div className="sm:col-span-2 lg:col-span-3">
+                          <EmptyState
+                            icon={BookOpen}
+                            title={
+                              (courses ?? []).length === 0
+                                ? t("centre_channel.courses_empty")
+                                : "No courses match the selected filters."
+                            }
+                            secondaryAction={
+                              (levelFilter || subjectFilter) && (courses ?? []).length > 0 ? (
+                                <Button
+                                  variant="outline"
+                                  onClick={() => {
+                                    setLevelFilter(null);
+                                    setSubjectFilter(null);
+                                  }}
+                                >
+                                  {t("centre_channel.filter_reset")}
+                                </Button>
+                              ) : isOwner ? (
+                                <Button asChild>
+                                  <Link to="/business/courses">
+                                    {t("centre_channel.owner_add_course")}
+                                  </Link>
+                                </Button>
+                              ) : null
+                            }
+                          />
+                        </div>
+                      )}
+                      {filteredCourses.map((course) => (
+                        <ListingCard key={course.id} course={course} />
+                      ))}
+                    </div>
+                  </div>
+                </section>
+
+                {/* Class schedule */}
+                {courseCount > 0 && (
+                  <section id="schedule" className="mt-10 scroll-mt-24">
+                    <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
+                      Class schedule
+                    </h2>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Recurring class days from this business's published courses.
+                    </p>
+                    <div className="mt-4">
+                      <CourseCalendar courses={courses ?? []} />
+                    </div>
+                  </section>
+                )}
+              </TabsContent>
+
+              <TabsContent value="tutors" className="mt-6">
+                {channel.isLoading ? (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <Skeleton className="h-40 rounded-xl" />
+                    <Skeleton className="h-40 rounded-xl" />
+                    <Skeleton className="h-40 rounded-xl" />
+                  </div>
+                ) : channel.isError ? (
+                  <p role="alert" className="text-sm text-destructive">
+                    {t("centre_channel.tutors_error")}
+                  </p>
+                ) : affiliates.length === 0 ? (
+                  <EmptyState
+                    icon={Users}
+                    title={t("centre_channel.tutors_empty")}
+                    description={isOwner ? t("centre_channel.owner_tutors_hint") : undefined}
+                    secondaryAction={
+                      isOwner ? (
+                        <Button variant="outline" asChild>
+                          <Link to="/business" search={{ tab: undefined }}>
+                            {t("centre_channel.owner_open_workspace")}
+                          </Link>
+                        </Button>
+                      ) : undefined
+                    }
+                  />
+                ) : (
+                  <>
+                    <p className="mb-4 text-sm text-muted-foreground">
+                      {t("centre_channel.tutors_subtitle", { name: org.name })}
+                    </p>
+                    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                      {affiliates.map((tutor) => (
+                        <Link
+                          key={tutor.tutorCode}
+                          to="/tutors/$tutorCode"
+                          params={{ tutorCode: tutor.tutorCode }}
+                          className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-[color:var(--foreground)]/30"
+                        >
+                          <div className="flex items-center gap-3">
+                            {tutor.photoUrl ? (
+                              <img
+                                src={tutor.photoUrl}
+                                alt=""
+                                className="h-12 w-12 shrink-0 rounded-full object-cover"
+                              />
+                            ) : (
+                              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold text-[color:var(--ink)]">
+                                {tutor.displayName.charAt(0).toUpperCase()}
+                              </span>
+                            )}
+                            <div className="min-w-0">
+                              <p className="flex items-center gap-1 truncate text-sm font-semibold text-[color:var(--ink)]">
+                                {tutor.displayName}
+                                {tutor.verified ? (
+                                  <BadgeCheck
+                                    className="h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                                    aria-label="Verified"
+                                  />
+                                ) : null}
+                              </p>
+                              <p className="text-xs text-muted-foreground">{tutor.tutorCode}</p>
+                            </div>
+                          </div>
+                          {tutor.headline ? (
+                            <p className="line-clamp-2 text-sm text-muted-foreground">
+                              {tutor.headline}
+                            </p>
+                          ) : null}
+                          {tutor.subjects.length > 0 ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {tutor.subjects.map((subject) => (
+                                <span
+                                  key={subject}
+                                  className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
+                                >
+                                  {subject}
+                                </span>
+                              ))}
+                            </div>
+                          ) : null}
+                          <div className="mt-auto flex items-center justify-between pt-1 text-sm">
+                            <span className="font-semibold text-[color:var(--ink)]">
+                              {tutor.fromRateHkd
+                                ? t("centre_channel.from_rate", { rate: tutor.fromRateHkd })
+                                : null}
+                            </span>
+                            <span className="font-semibold text-[color:var(--brand-link)]">
+                              {t("centre_channel.view_profile")}
+                            </span>
+                          </div>
+                        </Link>
+                      ))}
+                    </div>
+                  </>
+                )}
+              </TabsContent>
+
+              <TabsContent value="materials" className="mt-6">
+                <EmptyState
+                  icon={FileText}
+                  title={t("centre_channel.materials_empty")}
+                  description={isOwner ? t("centre_channel.materials_hint") : undefined}
+                />
+              </TabsContent>
+
+              <TabsContent value="posts" className="mt-6">
+                <EmptyState icon={Newspaper} title={t("centre_channel.posts_empty")} />
+              </TabsContent>
+            </Tabs>
 
             {/* Contact */}
             <section id="contact" className="mt-10 scroll-mt-24">
               <div className="flex items-center justify-between gap-3">
                 <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
-                  Get in touch
+                  {t("centre_channel.enquire")}
                 </h2>
                 {isOwner && (
                   <Button
@@ -876,6 +1012,25 @@ function BusinessPublicProfile() {
                 </div>
               </div>
             </section>
+
+            <p className="mt-10 border-t border-border pt-4 text-xs leading-relaxed text-muted-foreground">
+              {t("centre_channel.footnote")}
+            </p>
+
+            <div aria-hidden className="h-16 lg:hidden" />
+            {/* AC-CH-1: the Enquire CTA stays reachable on mobile. */}
+            <div className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] left-4 right-[5.5rem] z-40 lg:hidden">
+              <Button
+                asChild
+                variant="solid"
+                color="blue"
+                className="h-12 w-full rounded-full font-bold"
+              >
+                <a href="#contact" onClick={trackContactClick}>
+                  {t("centre_channel.enquire")}
+                </a>
+              </Button>
+            </div>
           </div>
         )}
       </main>

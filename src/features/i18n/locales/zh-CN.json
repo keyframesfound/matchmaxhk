@@ -5912,5 +5912,30 @@
     "err_TIP_FORBIDDEN": "只有导师或 MatchMax 可以加提示。",
     "err_MISTAKE_NOT_FOUND": "这题错题已经不存在。",
     "err_CASE_NOT_FOUND": "找不到这个个案。"
+  },
+  "centre_channel": {
+    "verified_partner": "认证合作伙伴",
+    "enquire": "向中心查询",
+    "stat_tutors": "合作导师",
+    "stat_courses": "开办课程",
+    "stat_notes": "精读笔记",
+    "tab_courses": "课程及常规班",
+    "tab_tutors": "导师团队",
+    "tab_materials": "精读笔记",
+    "tab_posts": "中心动态",
+    "tutors_subtitle": "与 {{name}} 合作之认证独立导师及教学团队。",
+    "courses_empty": "尚未列出课程",
+    "tutors_empty": "尚未有合作导师",
+    "materials_empty": "尚未有精读笔记",
+    "posts_empty": "尚未有动态",
+    "filter_reset": "重设筛选",
+    "owner_add_course": "新增课程／班别",
+    "owner_tutors_hint": "导师可在自己的主页申请合作，请到工作区审批。",
+    "owner_open_workspace": "打开工作区",
+    "materials_hint": "以本中心名义发布的笔记会在此显示。",
+    "view_profile": "查看主页",
+    "from_rate": "每小时 HK${{rate}} 起",
+    "tutors_error": "未能载入导师，请重新整理。",
+    "footnote": "合作教育中心之课程由该机构独立营办；所列导师均以独立教育工作者身份合作。"
   }
 }
