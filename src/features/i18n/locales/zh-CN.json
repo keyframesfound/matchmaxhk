@@ -1714,6 +1714,15 @@
     "lesson_n": "第 {{n}} 堂"
   },
   "heatmap": {
+    "plan_title": "呢个个案会教嘅课题",
+    "plan_hint": "建议来自同一科目其他个案正喺度处理嘅课题。",
+    "plan_add": "加入课题",
+    "plan_placeholder": "课题名称",
+    "plan_suggestions": "建议",
+    "plan_cap": "{{n}} / {{max}} 个课题",
+    "plan_remove": "移除 {{topic}}",
+    "err_TOPIC_CAP": "呢个个案已经达到课题上限。",
+    "err_TOPIC_REQUIRED": "请先输入课题名称。",
     "title": "学习计划及课题热力图",
     "summary": "已掌握 {{pct}}% · {{weak}} 项需加强",
     "weak": "弱项需加强",

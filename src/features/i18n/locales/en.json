@@ -1714,6 +1714,15 @@
     "lesson_n": "Lesson {{n}}"
   },
   "heatmap": {
+    "plan_title": "Topics this case will cover",
+    "plan_hint": "Suggestions come from what other cases in this subject are working on.",
+    "plan_add": "Add topic",
+    "plan_placeholder": "Topic name",
+    "plan_suggestions": "Suggestions",
+    "plan_cap": "{{n}} of {{max}} topics",
+    "plan_remove": "Remove {{topic}}",
+    "err_TOPIC_CAP": "This case already has the maximum number of topics.",
+    "err_TOPIC_REQUIRED": "Type a topic name first.",
     "title": "Study Plan & Syllabus",
     "summary": "{{pct}}% mastered · {{weak}} weak",
     "weak": "Weak",

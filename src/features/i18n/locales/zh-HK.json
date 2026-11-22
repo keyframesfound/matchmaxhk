@@ -1714,6 +1714,15 @@
     "lesson_n": "第 {{n}} 堂"
   },
   "heatmap": {
+    "plan_title": "呢個個案會教嘅課題",
+    "plan_hint": "建議來自同一科目其他個案正喺度處理嘅課題。",
+    "plan_add": "加入課題",
+    "plan_placeholder": "課題名稱",
+    "plan_suggestions": "建議",
+    "plan_cap": "{{n}} / {{max}} 個課題",
+    "plan_remove": "移除 {{topic}}",
+    "err_TOPIC_CAP": "呢個個案已經達到課題上限。",
+    "err_TOPIC_REQUIRED": "請先輸入課題名稱。",
     "title": "學習計劃及課題熱力圖",
     "summary": "已掌握 {{pct}}% · {{weak}} 項需加強",
     "weak": "弱項需加強",
