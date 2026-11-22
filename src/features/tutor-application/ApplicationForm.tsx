@@ -69,6 +69,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { ApplicationStatusPanel } from "@/features/tutor-application/application-status-card";
 import { submitTutorApplication } from "@/lib/tutor-application.functions";
+import { loadJoinResumeDraft, saveJoinResumeDraft } from "@/lib/join-resume.functions";
+import { isInAppBrowser } from "@/features/tutor-application/in-app-browser";
 // #718 + #768: the availability block reuses the SAME hourly editor as
 // Dashboard → Availability, so intake and self-serve stay in lockstep. Values
 // save to availability_grid_hourly / preferred_time_windows.
@@ -1077,6 +1079,11 @@ export function ApplicationForm({ completePending = false }: { completePending?:
   const { t } = useTranslation();
   const senCategoryLabels = useSenCategoryLabels();
   const submit = useServerFn(submitTutorApplication);
+  const saveResumeDraft = useServerFn(saveJoinResumeDraft);
+  const loadResumeDraft = useServerFn(loadJoinResumeDraft);
+  // #798 AC-4: set when Submit is pressed inside an in-app browser, so the
+  // resume card replaces the Google redirect.
+  const [resumeLink, setResumeLink] = useState<string | null>(null);
   const { user, loading: authLoading } = useAuth();
   const gatePending = useGateOverlayPending();
   // #759 Part 1: OAuth-cancelled notice + auto-commit staging.
@@ -1595,6 +1602,31 @@ export function ApplicationForm({ completePending = false }: { completePending?:
     openSlots,
     timeWindows,
   ]);
+
+  // #798 AC-4: a resume link opened in Safari or Chrome restores the guest's
+  // answers into this browser, then the ordinary flow can finish. We write the
+  // payload into the SAME sessionStorage draft and reload once, so there is a
+  // single restore path rather than a second one that could drift.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("resume");
+    if (!token) return;
+    params.delete("resume");
+    const next = `${window.location.pathname}${params.toString() ? `?${params.toString()}` : ""}`;
+    void (async () => {
+      try {
+        const loaded = await loadResumeDraft({ data: { token } });
+        if (loaded?.payload && typeof loaded.payload === "object") {
+          flushDraft(loaded.payload as unknown as ApplicationDraft);
+        }
+      } catch {
+        // Expired or unknown token: fall through to a fresh form.
+      } finally {
+        window.location.replace(next);
+      }
+    })();
+  }, [flushDraft, loadResumeDraft]);
 
   // Issue #323: regenerate the smart headline whenever the qualifications
   // change, but only while the tutor has not manually edited it (dirty flag).
@@ -2147,6 +2179,23 @@ export function ApplicationForm({ completePending = false }: { completePending?:
       setSubmitting(true);
       try {
         flushDraft(buildDraft());
+        // #798 AC-4: Google refuses OAuth inside WhatsApp / Instagram / FB /
+        // Threads / Line / WeChat webviews, so intercept BEFORE the redirect
+        // and hand the applicant a link they can open in a real browser.
+        if (isInAppBrowser(navigator.userAgent)) {
+          try {
+            const { token } = await saveResumeDraft({
+              data: { payload: buildDraft(), turnstileToken: captcha ?? "" },
+            });
+            const origin = window.location.origin;
+            setResumeLink(`${origin}/join?path=tutor&resume=${encodeURIComponent(token)}`);
+          } catch {
+            toast.error(t("join.form.resume_save_failed"));
+          } finally {
+            setSubmitting(false);
+          }
+          return;
+        }
         if (base.photo) await stashPendingFile(PHOTO_PENDING_KEY, base.photo);
         await startPendingSubmission("tutor_intake", PENDING_SOURCE_ISSUE, "/join?path=tutor");
       } catch (reason) {
@@ -4516,6 +4565,34 @@ export function ApplicationForm({ completePending = false }: { completePending?:
             </>
           ) : null}
         </div>
+
+        {/* #798 AC-4: shown only when Submit was blocked by an in-app browser. */}
+        {resumeLink ? (
+          <div className="mt-6 rounded-sm border border-border bg-muted/40 p-4">
+            <p className="text-sm font-semibold text-[color:var(--ink)]">
+              {t("join.form.resume_title")}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">{t("join.form.resume_body")}</p>
+            <p className="mt-2 break-all rounded-sm border border-border bg-[color:var(--surface)] px-2 py-1.5 text-xs text-muted-foreground">
+              {resumeLink}
+            </p>
+            <div className="mt-3 flex flex-wrap items-center gap-3">
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => {
+                  void navigator.clipboard
+                    .writeText(resumeLink)
+                    .then(() => toast.success(t("join.form.resume_copied")))
+                    .catch(() => toast.error(t("join.form.resume_save_failed")));
+                }}
+              >
+                {t("join.form.resume_copy")}
+              </Button>
+              <span className="text-xs text-muted-foreground">{t("join.form.resume_hint")}</span>
+            </div>
+          </div>
+        ) : null}
 
         {/* Footer */}
         <div className="mt-6 flex flex-col gap-3 border-t border-border pt-6">

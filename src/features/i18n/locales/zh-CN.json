@@ -1679,6 +1679,12 @@
   },
   "join": {
     "form": {
+      "resume_title": "请喺浏览器继续",
+      "resume_body": "呢个 App 嘅内置浏览器唔支持 Google 登录。复制下面嘅链接，用 Safari 或 Chrome 开启——你嘅答案已经保存。如果你加过个人照片，喺新浏览器要再上传一次：档案唔可以经链接带过去。",
+      "resume_copy": "复制续填链接",
+      "resume_copied": "已复制链接",
+      "resume_hint": "如果链接开唔到，揿 ··· 再拣「喺浏览器开启」。",
+      "resume_save_failed": "保存续填链接失败，请再试一次。",
       "availability_hkt_note": "家长会以香港时间（HKT）睇呢啲时段。你确认嘅时区系 {{zone}}，所以请用香港时间填你有空嘅时段。",
       "privacy_ack": "本人同意 MatchMax 根据《个人资料（私隐）条例》（第 486 章）收集及使用本表格内嘅个人资料，用于导师登记及配对用途。",
       "privacy_ack_professional": "本人同意 MatchMax 使用本人嘅资历同履历去核实专业身份、推广本人嘅导师档案，并保障本人嘅匿名性。",
@@ -5245,7 +5251,7 @@
     "disconnect_confirm": "确认解除链接？",
     "cancel": "取消",
     "message": "消息",
-    "message_soon": "可通过 MatchMax 顾问在 WhatsApp 合作转介。站内消息功能暂停。",
+    "message_soon": "可透过 MatchMax 顾问在 WhatsApp 合作转介。站内消息功能暂停。",
     "requested": "已邀请",
     "connected_label": "已链接",
     "verified": "已认证",
@@ -5276,7 +5282,7 @@
     "curriculum_IB": "IB",
     "curriculum_IGCSE": "IGCSE",
     "curriculum_A_Level": "A-Level",
-    "concierge_refer": "通过顾问合作转介"
+    "concierge_refer": "透过顾问合作转介"
   },
   "business": {
     "cap57_ack": "本人确认此转介申请仅为寻找独立导师（自雇性质），并不构成《雇佣条例》（第 57 章）下之雇佣关系、固定驻场职员职务或雇主控制。"

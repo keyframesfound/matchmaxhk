@@ -1679,6 +1679,12 @@
   },
   "join": {
     "form": {
+      "resume_title": "Continue in your browser",
+      "resume_body": "Google sign-in is blocked inside this app's browser. Copy the link below and open it in Safari or Chrome — your answers are saved. If you added a profile photo, upload it again there: files cannot travel through the link.",
+      "resume_copy": "Copy resume link",
+      "resume_copied": "Link copied",
+      "resume_hint": "If the link does not open, tap ··· and choose Open in browser.",
+      "resume_save_failed": "Could not save the resume link. Try again.",
       "availability_hkt_note": "Parents see these hours in Hong Kong time (HKT). Your confirmed time zone is {{zone}}, so enter the times you are free in HKT.",
       "privacy_ack": "I consent to MatchMax collecting and using the personal data in this form for tutor listing and matching purposes, in accordance with the Personal Data (Privacy) Ordinance (Cap. 486).",
       "privacy_ack_professional": "I consent to MatchMax using my credentials and CV to verify my professional status, promote my teaches profile, and protect my anonymity.",

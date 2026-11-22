@@ -192,7 +192,7 @@ async function assertTutorAge(userId: string): Promise<void> {
   if (age < 16) throw new Error("AGE_RESTRICTED");
 }
 
-async function verifyTurnstile(token: string): Promise<void> {
+export async function verifyTurnstile(token: string): Promise<void> {
   const secret = getRuntimeEnv("TURNSTILE_SECRET");
   const expectedHostnames = new Set(
     (getRuntimeEnv("TURNSTILE_HOSTNAMES") ?? "")
