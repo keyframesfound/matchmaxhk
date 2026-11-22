@@ -5242,7 +5242,7 @@
     "disconnect_confirm": "Confirm disconnect?",
     "cancel": "Cancel",
     "message": "Message",
-    "message_soon": "Messaging is coming in a future update.",
+    "message_soon": "Refer or partner through the MatchMax Concierge on WhatsApp. In-app messaging is paused.",
     "requested": "Requested",
     "connected_label": "Connected",
     "verified": "Verified",
@@ -5272,7 +5272,8 @@
     "curriculum_DSE": "HKDSE",
     "curriculum_IB": "IB",
     "curriculum_IGCSE": "IGCSE",
-    "curriculum_A_Level": "A-Level"
+    "curriculum_A_Level": "A-Level",
+    "concierge_refer": "Refer / Partner via Concierge"
   },
   "business": {
     "cap57_ack": "I confirm this request is for an independent contractor tutor (獨立導師) and does not involve employment, fixed staff duties, or employer-employee control under Cap. 57."
