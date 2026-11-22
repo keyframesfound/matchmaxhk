@@ -157,6 +157,7 @@ function CaseApplyControl({
   alreadyApplied,
   applyPending,
   externalBlock,
+  revealCentre = false,
   onExternalBlock,
   onApply,
 }: {
@@ -171,6 +172,8 @@ function CaseApplyControl({
   externalBlock: boolean;
   onExternalBlock: () => void;
   onApply: () => void;
+  /** #815 §2.9: Centre case with the name still masked. */
+  revealCentre?: boolean;
 }) {
   const { t } = useTranslation();
   if (alreadyApplied) {
@@ -237,7 +240,9 @@ function CaseApplyControl({
       }}
     >
       {applyPending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
-      {t("caseApplications.apply", { defaultValue: "Apply" })}
+      {revealCentre
+        ? t("case_board.centre_confirm_reveal")
+        : t("caseApplications.apply", { defaultValue: "Apply" })}
     </Button>
   );
 }
@@ -328,7 +333,13 @@ function CaseDetailPage() {
   });
   const alreadyApplied = appliedQuery.data?.includes(item.caseCode) ?? false;
   const applyMutation = useMutation({
-    mutationFn: () => applyToCase({ data: { caseCode: item.caseCode } }),
+    mutationFn: () =>
+      applyToCase({
+        data: {
+          caseCode: item.caseCode,
+          ...(item.centre ? { cap57Confirmed: screeningChoice === "confirm" } : {}),
+        },
+      }),
     onSuccess: (result) => {
       if (result.applied) {
         toast.success(
@@ -966,6 +977,7 @@ function CaseDetailPage() {
                         toast.error(t("case_board.screening_confirm_required"))
                       }
                       onApply={handleInAppApply}
+                      revealCentre={Boolean(item.centre) && !item.centre?.name}
                     />
                     <ScheduleClashDialog
                       open={clashLines.length > 0}

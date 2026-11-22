@@ -440,7 +440,7 @@
     "screening_substitution": "Substitution / delegation",
     "screening_open_to_counter": "open to counter-proposal",
     "screening_confirm_title": "Before you apply",
-    "screening_confirm_option": "These arrangements reflect my understanding of this independent service engagement.",
+    "screening_confirm_option": "I confirm I am accepting this case as a Cap. 57 independent self-employed operator, not an employee or staff of the centre. The centre pays tuition directly to me; I pay MatchMax the applicable admin fee (1.5 → 1.0 → 0.5 → $0 ladder).",
     "screening_clarify_option": "I need to correct or clarify something about these working arrangements.",
     "screening_clarify_placeholder": "Describe what needs clarifying, the matching desk will re-screen the request.",
     "screening_clarify_submit": "Send to the matching desk",
@@ -457,7 +457,8 @@
     "centre_reveal_note": "Full centre name is revealed after you accept this lead. Contact details unlock once the introduction is confirmed.",
     "screening_cap57_note": "You receive tuition directly from the centre. MatchMax invoices you the platform administrative fee on the retained ladder (1.5 → 1.0 → 0.5 → $0 within 6 months).",
     "type_filter_reset": "Reset filter",
-    "fee_note_activity": "The client pays you directly. You pay MatchMax the standard admin fee for this activity."
+    "fee_note_activity": "The client pays you directly. You pay MatchMax the standard admin fee for this activity.",
+    "centre_confirm_reveal": "Confirm & Reveal Centre"
   },
   "case_contact": {
     "parent_label": "Parent:",

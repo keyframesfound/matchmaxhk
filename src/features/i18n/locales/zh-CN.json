@@ -440,7 +440,7 @@
     "screening_substitution": "替更／委派",
     "screening_open_to_counter": "可议价",
     "screening_confirm_title": "申请前确认",
-    "screening_confirm_option": "以上安排与我对这次独立服务委聘的理解一致。",
+    "screening_confirm_option": "本人确认以《雇佣条例》（第 57 章）下之独立自雇服务提供者身份接受此个案，并非该中心之雇员或职员。学费由中心直接支付予本人；本人向 MatchMax 支付适用之行政费（1.5 → 1.0 → 0.5 → $0 阶梯）。",
     "screening_clarify_option": "我需要更正或澄清这些工作安排。",
     "screening_clarify_placeholder": "请描述需要澄清之处——配对团队会重新审核此个案。",
     "screening_clarify_submit": "传送给配对团队",
@@ -457,7 +457,8 @@
     "centre_reveal_note": "接受个案后将显示教育中心全名；确认配对后将解锁直接联络方式。",
     "screening_cap57_note": "学费由教育中心直接支付予你。MatchMax 会按留任阶梯（6 个月内 1.5 → 1.0 → 0.5 → $0）向你收取平台行政费。",
     "type_filter_reset": "重设筛选",
-    "fee_note_activity": "客户直接向你付款。你就此活动向 MatchMax 支付标准行政费。"
+    "fee_note_activity": "客户直接向你付款。你就此活动向 MatchMax 支付标准行政费。",
+    "centre_confirm_reveal": "确认并显示中心"
   },
   "case_contact": {
     "parent_label": "家长：",
