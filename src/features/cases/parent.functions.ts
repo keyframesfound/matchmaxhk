@@ -843,7 +843,7 @@ export const submitParentReview = createServerFn({ method: "POST" })
     async ({
       context,
       data,
-    }): Promise<{ status: "visible" | "held"; heldReason: string | null }> => {
+    }): Promise<{ status: "visible" | "held" | "hidden"; heldReason: string | null }> => {
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
       const db = asAdminDb(supabaseAdmin);
       const result = await saveCaseRatingCore(db, context.userId, {

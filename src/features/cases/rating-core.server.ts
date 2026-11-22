@@ -48,9 +48,11 @@ export type CaseRatingState = {
   direction: RatingDirection;
   existing: {
     id: string;
-    status: "visible" | "held";
+    status: "visible" | "held" | "hidden";
     rating: number;
     comment: string;
+    /** The author's private note to the desk, so an edit cannot wipe it. */
+    deskNote: string;
     updated_at: string | null;
   } | null;
   window: RatingWindowState;
@@ -58,7 +60,7 @@ export type CaseRatingState = {
 
 export type SaveCaseRatingResult = {
   direction: RatingDirection;
-  status: "visible" | "held";
+  status: "visible" | "held" | "hidden";
   heldReason: string | null;
   window: RatingWindowState;
 };
@@ -110,6 +112,9 @@ type ReviewRow = {
   status: string;
   rating: number;
   comment: string;
+  held_reason: string | null;
+  desk_note: string | null;
+  desk_note_at: string | null;
   updated_at: string | null;
   completed_lessons_at_write: number | null;
   author_account_id: string;
@@ -123,7 +128,7 @@ async function existingReview(
   const { data } = await db
     .from<ReviewRow>("case_reviews")
     .select(
-      "id, status, rating, comment, updated_at, completed_lessons_at_write, author_account_id",
+      "id, status, rating, comment, held_reason, desk_note, desk_note_at, updated_at, completed_lessons_at_write, author_account_id",
     )
     .eq("case_id", caseId)
     .eq("direction", direction)
@@ -198,9 +203,10 @@ export async function getCaseRatingStateCore(
     existing: mine
       ? {
           id: mine.id,
-          status: mine.status === "held" ? "held" : "visible",
+          status: mine.status === "held" ? "held" : mine.status === "hidden" ? "hidden" : "visible",
           rating: mine.rating,
           comment: mine.comment ?? "",
+          deskNote: mine.desk_note ?? "",
           updated_at: mine.updated_at ?? null,
         }
       : null,
@@ -243,9 +249,31 @@ export async function saveCaseRatingCore(
   if (!validity.ok) throw new Error(validity.message);
   const contactHeld = validity.heldReasons.length > 0;
 
-  const deskNote = input.deskNote.trim().slice(0, RATING_DESK_NOTE_MAX);
   const nowIso = now.toISOString();
-  const heldReason = contactHeld ? `comment_held: ${validity.heldReasons.join(", ")}` : null;
+  // The note is private to the desk and may have been written on an earlier
+  // visit: an edit that does not mention it keeps it, and only an explicit
+  // string (including "") replaces or clears it. Writing `null` over the row on
+  // every star change was destroying the author's message to the desk.
+  const nextDeskNote =
+    input.deskNote === undefined
+      ? (mine?.desk_note ?? null)
+      : input.deskNote.trim().slice(0, RATING_DESK_NOTE_MAX) || null;
+  const nextDeskNoteAt =
+    input.deskNote === undefined ? (mine?.desk_note_at ?? null) : nextDeskNote ? nowIso : null;
+  // A desk-hidden review stays hidden when its author edits it. Otherwise any
+  // typo fix would silently republish a moderated row.
+  const hidden = mine?.status === "hidden";
+  const canHeld = contactHeld && !hidden;
+  const nextStatus: "visible" | "held" | "hidden" = hidden
+    ? "hidden"
+    : canHeld
+      ? "held"
+      : "visible";
+  const heldReason = hidden
+    ? (mine?.held_reason ?? null)
+    : canHeld
+      ? `comment_held: ${validity.heldReasons.join(", ")}`
+      : null;
   const row: Row = {
     case_id: c.id,
     lesson_id: null,
@@ -255,13 +283,13 @@ export async function saveCaseRatingCore(
     rating: input.rating,
     // #205 contact filter: the star still publishes (CEO lock: one completed
     // lesson publishes), the flagged text never does. The desk sees the flag.
-    comment: contactHeld ? "" : input.comment.trim(),
+    comment: canHeld || (hidden && mine?.held_reason) ? "" : input.comment.trim(),
     author_display_line:
       input.direction === "parent_to_tutor" ? parentDisplayLineFromCase(c) : "Tutor",
-    status: "visible",
+    status: nextStatus,
     held_reason: heldReason,
-    desk_note: deskNote.length > 0 ? deskNote : null,
-    desk_note_at: deskNote.length > 0 ? nowIso : null,
+    desk_note: nextDeskNote,
+    desk_note_at: nextDeskNoteAt,
     completed_lessons_at_write: eligible,
     updated_at: nowIso,
   };
@@ -288,7 +316,7 @@ export async function saveCaseRatingCore(
 
   return {
     direction: input.direction,
-    status: "visible",
+    status: nextStatus,
     heldReason,
     window: after,
   };

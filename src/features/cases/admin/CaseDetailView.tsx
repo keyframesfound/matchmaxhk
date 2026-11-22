@@ -83,6 +83,7 @@ import { ConsolePanel } from "@/components/ui/console-panel";
 import { InitialAvatar } from "@/components/ui/initial-avatar";
 import { cn } from "@/lib/utils";
 import { BehaviourReportPanel } from "@/features/trust/behaviour-report-panel";
+import { CaseReviewsDeskPanel } from "@/features/cases/admin/CaseReviewsDeskPanel";
 import { DeskReportsPanel } from "@/features/cases/admin/DeskReportsPanel";
 import { UsefulnessPulsePanel } from "@/features/cases/admin/UsefulnessPulsePanel";
 import {
@@ -679,6 +680,8 @@ export function CaseDetailView({
         <div className="space-y-6">
           {/* #794 §2.1: private participant reports (pre-lesson stops). */}
           <DeskReportsPanel caseId={caseRow.id} />
+          {/* #794 AC-649-2: ratings the desk can read and act on (private note, held row). */}
+          <CaseReviewsDeskPanel caseId={caseRow.id} />
           {/* #796 §2.4: private lesson usefulness pulses (desk-only, read-only). */}
           <UsefulnessPulsePanel caseId={caseRow.id} />
           {/* Issue #412: compliance hold banner, the case is locked out of

@@ -26,11 +26,9 @@ import { CONTACT_EMAIL_PATTERN } from "@/lib/contact-filter";
 
 export type ReviewDirection = "parent_to_tutor" | "tutor_to_parent";
 
-export const REVIEW_COMMENT_MIN = 0;
 export const REVIEW_COMMENT_MAX_PARENT = 600;
 export const REVIEW_COMMENT_MAX_TUTOR = 400;
 /** #205: a new review after 30 days replaces the public one; the old row stays in admin. */
-export const REVIEW_REPLACE_AFTER_DAYS = 30;
 
 export function reviewCommentMax(direction: ReviewDirection): number {
   return direction === "parent_to_tutor" ? REVIEW_COMMENT_MAX_PARENT : REVIEW_COMMENT_MAX_TUTOR;
@@ -220,10 +218,6 @@ export const RATING_PROMPT_LESSON_N = 1;
  * show from the first published review) and never gates publication. */
 export const RATING_NEW_CUE_THRESHOLD = 3;
 
-/** Legacy alias kept for call sites that only need "how many before the thin
- * -sample cue clears". NOT a hidden-average threshold any more. */
-export const RATING_PUBLIC_THRESHOLD = RATING_NEW_CUE_THRESHOLD;
-
 /** CEO LOCK: 14 days after each save, and 14 days after the case ends. */
 export const RATING_EDIT_WINDOW_DAYS = 14;
 
@@ -260,11 +254,6 @@ export function tutorRatingBadgeState(
   return "established";
 }
 
-/** #794: the average may render only with at least one published review. */
-export function ratingShowsAverage(publishedCount: number): boolean {
-  return publishedCount >= 1;
-}
-
 /** #794: the thin-sample "New / 新" cue rides along until three. */
 export function ratingShowsNewCue(
   publishedCount: number,
@@ -272,6 +261,3 @@ export function ratingShowsNewCue(
 ): boolean {
   return publishedCount < newCueThreshold;
 }
-
-/** Direction-shared alias for the tutor submit fn (#503: same gate both ways). */
-export const caseHasVerifiedLesson = parentCanReviewCase;

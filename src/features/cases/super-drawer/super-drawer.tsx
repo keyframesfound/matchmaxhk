@@ -103,6 +103,14 @@ function Pill({
 }
 
 /**
+ * What a save actually did to the lesson calendar. Only a NEW 'done' row is a
+ * completion transition, so only that one may open the rating sheet (#794).
+ * A recap-only save on an already-done lesson reports `false` — the tutor has
+ * already been prompted for that lesson.
+ */
+export type SuperDrawerSaveResult = { lessonCompleted: boolean };
+
+/**
  * #767 Super-Drawer — the ONE tutor post-lesson write surface (390px-first
  * bottom sheet; right sheet on desktop). Wave-1 path: defaults + 1 tag +
  * pulse confirm + Sync ≈15s. The sticky footer keeps the permanent
@@ -124,7 +132,7 @@ export function SuperDrawer({
   subject: string | null;
   completeLessonId?: string | null;
   onClose: () => void;
-  onSaved: () => void;
+  onSaved: (result: SuperDrawerSaveResult) => void;
 }) {
   const { t } = useTranslation();
   const isMobile = useIsMobile();
@@ -167,8 +175,8 @@ export function SuperDrawer({
     });
   };
 
-  const invalidate = () => {
-    onSaved();
+  const invalidate = (result: SuperDrawerSaveResult) => {
+    onSaved(result);
     void queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
     void queryClient.invalidateQueries({ queryKey: ["super-drawer", "pending"] });
   };
@@ -193,7 +201,9 @@ export function SuperDrawer({
       toast.success(
         t(mode === "hours_only" ? "super_drawer.hours_saved" : "super_drawer.log_success"),
       );
-      invalidate();
+      // Both Sync and Log Hours Only insert a fresh 'done' lesson row; a
+      // duplicate is the idempotent replay of one that already prompted.
+      invalidate({ lessonCompleted: !res.duplicate });
       onClose();
     },
     onError: (e: Error) =>
@@ -212,7 +222,9 @@ export function SuperDrawer({
       }),
     onSuccess: () => {
       toast.success(t("super_drawer.log_success"));
-      invalidate();
+      // Completion mode only fills in recap/tags on a lesson that was already
+      // marked done, so it is never a new completion: no second prompt.
+      invalidate({ lessonCompleted: false });
       onClose();
     },
     onError: (e: Error) =>

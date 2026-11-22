@@ -7,6 +7,7 @@ import {
   shouldCreateConciergeDigest,
   shouldCreateParentFeeReminder,
   shouldCreateReminder,
+  reviewCoversDoneLesson,
   shouldCreateReviewPrompt,
 } from "../../src/features/cases/bus-pure";
 import { hktFromParts, reminderDueAt } from "../../src/features/cases/sor";
@@ -125,5 +126,21 @@ describe("delivery retry policy (#205 retries 3 then failed)", () => {
     expect(nextDeliveryStatus(1, false)).toBe("pending");
     expect(nextDeliveryStatus(2, false)).toBe("failed");
     expect(MAX_DELIVERY_ATTEMPTS).toBe(3);
+  });
+});
+
+describe("reviewCoversDoneLesson (#794)", () => {
+  const done = "2026-11-20T10:00:00.000Z";
+
+  it("counts a review saved at or after the done event", () => {
+    expect(reviewCoversDoneLesson("2026-11-20T10:00:00.000Z", done)).toBe(true);
+    expect(reviewCoversDoneLesson("2026-11-20T11:30:00.000Z", done)).toBe(true);
+  });
+
+  it("does not count an earlier review, a missing one, or bad input", () => {
+    expect(reviewCoversDoneLesson("2026-11-19T10:00:00.000Z", done)).toBe(false);
+    expect(reviewCoversDoneLesson(null, done)).toBe(false);
+    expect(reviewCoversDoneLesson("not-a-date", done)).toBe(false);
+    expect(reviewCoversDoneLesson(done, "not-a-date")).toBe(false);
   });
 });

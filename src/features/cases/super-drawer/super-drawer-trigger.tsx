@@ -9,6 +9,7 @@ import {
   type PendingRecapItem,
 } from "@/features/cases/super-drawer/super-drawer.functions";
 import { SuperDrawer } from "@/features/cases/super-drawer/super-drawer";
+import { RatingSheet } from "@/features/cases/rating-sheet";
 
 const PAST_SOR_STATUSES = new Set(["closed", "replaced"]);
 
@@ -34,6 +35,9 @@ export function SuperDrawerControl({
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [completeLessonId, setCompleteLessonId] = useState<string | null>(null);
+  // #794: the drawer is the tutor's primary post-lesson surface, so a lesson it
+  // marks done continues straight into the 1-tap rating sheet after it closes.
+  const [rateOpen, setRateOpen] = useState(false);
 
   // Same queryKey across every case card → one network request total.
   const { data } = useQuery({
@@ -75,9 +79,21 @@ export function SuperDrawerControl({
           subject={subject}
           completeLessonId={completeLessonId}
           onClose={() => setOpen(false)}
-          onSaved={() => undefined}
+          onSaved={(result) => {
+            // One done transition, one prompt. A recap-only save on an
+            // already-done lesson reports false and stays silent.
+            if (result.lessonCompleted) setRateOpen(true);
+          }}
         />
       ) : null}
+      {/* #794: mounted outside the drawer's mount gate so the 1-tap sheet
+          outlives the sheet that triggered it. */}
+      <RatingSheet
+        open={rateOpen}
+        onOpenChange={setRateOpen}
+        caseId={caseId}
+        direction="tutor_to_parent"
+      />
     </div>
   );
 }

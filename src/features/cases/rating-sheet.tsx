@@ -137,8 +137,10 @@ export function RatingSheet({
     const existing = state.data?.existing;
     setRating(existing?.rating ?? 0);
     setComment(existing?.comment ?? "");
-    setDeskNote("");
-    setShowDeskNote(false);
+    // Seeded, not blank: the desk note is private and an edit that does not
+    // touch it must round-trip instead of silently clearing it.
+    setDeskNote(existing?.deskNote ?? "");
+    setShowDeskNote(Boolean(existing?.deskNote));
   }, [open, state.data]);
 
   const commentMax =
@@ -149,6 +151,8 @@ export function RatingSheet({
     onSuccess: (res) => {
       if (res.status === "held") {
         toast.success(t("sor.rate_saved_text_held"));
+      } else if (res.status === "hidden") {
+        toast.success(t("sor.rate_hidden"));
       } else {
         toast.success(t("sor.rate_saved"));
       }
@@ -200,6 +204,11 @@ export function RatingSheet({
           </div>
         ) : (
           <div className="space-y-4">
+            {state.data?.existing?.status === "hidden" ? (
+              <p className="rounded-lg border border-border bg-[color:var(--surface-subtle)] p-3 text-xs text-muted-foreground">
+                {t("sor.rate_hidden")}
+              </p>
+            ) : null}
             <div>
               <StarRow value={rating} onChange={setRating} />
               <p className="mt-2 text-xs text-muted-foreground">{t("sor.rate_helper")}</p>

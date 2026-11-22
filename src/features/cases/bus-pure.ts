@@ -78,9 +78,25 @@ export type DoneEvent = {
 };
 
 /**
+ * #794: does the parent's review cover this done lesson?
+ *
+ * A review row is ONE per case+direction, so `case_reviews.lesson_id` is always
+ * null and an equality test on it could never suppress a prompt — every new
+ * done lesson would re-prompt a parent who had already reviewed. The review's
+ * `updated_at` against the `lesson.done` event is the honest test: a save at or
+ * after that event means "this lesson is already rated".
+ */
+export function reviewCoversDoneLesson(reviewUpdatedAt: string | null, doneAt: string): boolean {
+  if (!reviewUpdatedAt) return false;
+  const reviewed = Date.parse(reviewUpdatedAt);
+  const done = Date.parse(doneAt);
+  return Number.isFinite(reviewed) && Number.isFinite(done) && reviewed >= done;
+}
+
+/**
  * #205: "Marking done creates one prompt, not one per refresh." The prompt is
  * a lesson.review_prompt event created 2h after the lesson.done event, only
- * if no review exists for that lesson yet.
+ * if the parent has not saved a review since that event.
  */
 export function shouldCreateReviewPrompt(
   doneEvent: DoneEvent,

@@ -3511,6 +3511,7 @@
     "admin_preset_offplatform": "列表或视频中有平台外宣传"
   },
   "sor": {
+    "rate_hidden": "管理员已隐藏呢个评价。",
     "lead_probono_badge": "义教／减免申请",
     "bell_aria": "通知，{{count}} 则未读",
     "bell_empty": "暂时没有通知",

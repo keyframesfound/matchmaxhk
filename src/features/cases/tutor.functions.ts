@@ -28,7 +28,7 @@ import {} from "@/features/cases/case-reviews";
 import { sweepDueSessionLogs, type SessionLogRowT } from "@/features/cases/experience.functions";
 import { format } from "date-fns";
 import { insertLessonLifecycleEvent } from "@/features/cases/bus.functions";
-import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
+import { REVIEW_COMMENT_MAX_TUTOR } from "@/features/cases/case-reviews";
 import {
   canRevealParentContact,
   parentContactView,
@@ -868,7 +868,7 @@ export const submitTutorReview = createServerFn({ method: "POST" })
       })
       .parse(input),
   )
-  .handler(async ({ context, data }): Promise<{ status: "visible" | "held" }> => {
+  .handler(async ({ context, data }): Promise<{ status: "visible" | "held" | "hidden" }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const result = await saveCaseRatingCore(db, context.userId, {

@@ -3511,6 +3511,7 @@
     "admin_preset_offplatform": "Off-platform advertising in listing or videos"
   },
   "sor": {
+    "rate_hidden": "A moderator has hidden this review.",
     "lead_probono_badge": "Pro-Bono / Access Request",
     "bell_aria": "Notifications, {{count}} unread",
     "bell_empty": "No notifications yet",

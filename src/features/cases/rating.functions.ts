@@ -13,6 +13,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
+import { selectRows } from "@/features/cases/desk-db";
 import {
   getCaseRatingStateCore,
   reportCaseToDeskCore,
@@ -105,6 +106,69 @@ export const listCaseDeskReports = createServerFn({ method: "POST" })
       .order("created_at", { ascending: false });
     if (error) throw new Error(error.message);
     return (rows ?? []) as CaseDeskReportRow[];
+  });
+
+/**
+ * #794 §2.1 — the desk's view of the two artefacts only it can act on: the
+ * author's private note to the desk, and a review the contact filter or a
+ * moderator put on hold. Both were write-only before this: `desk_note` was
+ * stored and never read, and a `held`/`hidden` row had no staff screen.
+ *
+ * Admin-only. Never returns anything to a case party, and never makes a
+ * tutor→parent rating public — hiding here only removes a row from the
+ * public aggregate the same way a moderator would.
+ */
+export type DeskCaseReviewRow = {
+  id: string;
+  direction: "parent_to_tutor" | "tutor_to_parent";
+  status: "visible" | "held" | "hidden";
+  rating: number;
+  comment: string;
+  held_reason: string | null;
+  desk_note: string | null;
+  desk_note_at: string | null;
+  author_display_line: string;
+  updated_at: string | null;
+};
+
+export const listCaseReviewsForDesk = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ caseId: z.string().uuid() }).parse(input))
+  .handler(async ({ context, data }): Promise<DeskCaseReviewRow[]> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    await requireAdmin(db, context.userId);
+    const rows = await selectRows<DeskCaseReviewRow>(
+      db,
+      "case_reviews",
+      "id, direction, status, rating, comment, held_reason, desk_note, desk_note_at, author_display_line, updated_at",
+      [{ col: "case_id", op: "eq", value: data.caseId }],
+      { col: "updated_at", asc: false },
+    );
+    return rows;
+  });
+
+/** Hide (or restore) one review. Hiding keeps the row, the window and the note. */
+export const setCaseReviewHidden = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ reviewId: z.string().uuid(), hidden: z.boolean() }).parse(input),
+  )
+  .handler(async ({ context, data }): Promise<{ ok: true }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    await requireAdmin(db, context.userId);
+    const hiddenAt = data.hidden ? new Date().toISOString() : null;
+    const { error } = await db
+      .from<Record<string, unknown>>("case_reviews")
+      .update({
+        status: data.hidden ? "hidden" : "visible",
+        hidden_by: data.hidden ? context.userId : null,
+        hidden_at: hiddenAt,
+      })
+      .eq("id", data.reviewId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
   });
 
 export const setDeskReportStatus = createServerFn({ method: "POST" })

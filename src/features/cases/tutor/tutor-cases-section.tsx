@@ -37,7 +37,7 @@ import { AttendanceForm } from "@/features/academy/attendance-form";
 import { ReviewStepHeader } from "@/features/cases/review-step-header";
 import { ratingPromptDue } from "@/features/cases/case-reviews";
 import { getCaseRatingState } from "@/features/cases/rating.functions";
-import { RatingSheet } from "@/features/cases/rating-sheet";
+import { RatingSheet, DeskReportSheet } from "@/features/cases/rating-sheet";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { ShortCaseChip } from "@/features/cases/tutor/short-case-chip";
 import { SCHEDULABLE_SOR_STATUSES } from "@/features/cases/schedule-lesson";
@@ -48,7 +48,7 @@ import { SuperDrawerControl } from "@/features/cases/super-drawer/super-drawer-t
 import { DemandSidePanel } from "@/features/cases/demand-side/demand-side-panel";
 import { LearnerSnapshotCard } from "@/features/cases/tutor/learner-snapshot-card";
 import { lessonActionsFor } from "@/features/cases/tutor/week-model";
-import { REVIEW_COMMENT_MAX_TUTOR, REVIEW_COMMENT_MIN } from "@/features/cases/case-reviews";
+import { REVIEW_COMMENT_MAX_TUTOR } from "@/features/cases/case-reviews";
 import { canMarkDone, hktDateKey } from "@/features/cases/sor";
 import {
   formatExperienceHours,
@@ -70,27 +70,48 @@ function feePillHkd(amount: number | null): string {
  * #794 §2.1: the tutor's private review of the family. Same 1-tap sheet as the
  * parent side, but tutor→parent stars/text never publish — the other party and
  * the desk only (family / child privacy).
+ *
+ * AC-649-6: before the first eligible lesson there is no review to give, but
+ * the tutor must still be able to report a no-show / unsafe / never-confirmed
+ * case privately to the desk. Same DeskReportSheet the parent route mounts.
  */
 function TutorReviewParentForm({
   caseId,
+  promptDue,
   t,
 }: {
   caseId: string;
+  /** ratingPromptDue(c.lessons): a public review opens at the first eligible lesson. */
+  promptDue: boolean;
   t: ReturnType<typeof useTranslation>["t"];
 }) {
   const [open, setOpen] = useState(false);
+  const [deskOpen, setDeskOpen] = useState(false);
   const rate = useQuery({
     queryKey: ["case-rating", caseId, "tutor_to_parent"],
     queryFn: () => getCaseRatingState({ data: { caseId, direction: "tutor_to_parent" } }),
+    enabled: promptDue,
   });
   const existing = rate.data?.existing ?? null;
 
   return (
     <>
-      <Button size="sm" variant="ghost" className="mt-2" onClick={() => setOpen(true)}>
-        <Star className="h-4 w-4" />
-        {existing ? t("sor.rate_edit_private") : t("sor.parent_tutor_reviews_title")}
-      </Button>
+      {promptDue ? (
+        <Button size="sm" variant="ghost" className="mt-2" onClick={() => setOpen(true)}>
+          <Star className="h-4 w-4" />
+          {existing ? t("sor.rate_edit_private") : t("sor.parent_tutor_reviews_title")}
+        </Button>
+      ) : (
+        <section className="mt-3 space-y-2">
+          <p className="text-sm font-medium text-[color:var(--ink)]">
+            {t("sor.rate_no_lesson_title")}
+          </p>
+          <p className="text-xs text-muted-foreground">{t("sor.rate_no_lesson_body")}</p>
+          <Button size="sm" variant="outline" onClick={() => setDeskOpen(true)}>
+            {t("sor.desk_report_cta")}
+          </Button>
+        </section>
+      )}
       <RatingSheet
         open={open}
         onOpenChange={setOpen}
@@ -98,6 +119,7 @@ function TutorReviewParentForm({
         direction="tutor_to_parent"
         onSaved={() => void rate.refetch()}
       />
+      <DeskReportSheet open={deskOpen} onOpenChange={setDeskOpen} caseId={caseId} />
     </>
   );
 }
@@ -552,9 +574,16 @@ export function TutorCasesSection() {
                     ))}
                   </ul>
                 )}
-                {ratingPromptDue(c.lessons) &&
-                  c.sor_status !== "closed" &&
-                  c.sor_status !== "replaced" && <TutorReviewParentForm caseId={c.id} t={t} />}
+                {/* #794 AC-649-6: the private report to the desk stays reachable
+                    before the first eligible lesson, so the gate below only
+                    chooses which entry renders, never whether the tutor has one. */}
+                {c.sor_status !== "closed" && c.sor_status !== "replaced" && (
+                  <TutorReviewParentForm
+                    caseId={c.id}
+                    promptDue={ratingPromptDue(c.lessons)}
+                    t={t}
+                  />
+                )}
                 {/* #387: logged sessions + logging form (fee-paid cases). */}
                 <SessionLogForm item={c} />
                 {/* #636: Next Lesson + deep link into Case Manager. */}

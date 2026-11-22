@@ -34,6 +34,7 @@ import {
   shouldCreateContactNudge,
   shouldCreateParentFeeReminder,
   shouldCreateReminder,
+  reviewCoversDoneLesson,
   shouldCreateReviewPrompt,
   type ContactNudgeLesson,
   type DoneEvent,
@@ -205,13 +206,23 @@ async function generateReviewPrompts(db: Db, now: Date): Promise<void> {
   const pending = doneEvents.filter((e) => Date.parse(e.created_at) <= cutoff.getTime());
   if (pending.length === 0) return;
 
-  const lessonIds = [...new Set(pending.map((e) => String(e.payload?.lesson_id)).filter(Boolean))];
-  if (lessonIds.length === 0) return;
-
-  const reviewed = await selectRows<{ lesson_id: string | null }>(db, "case_reviews", "lesson_id", [
-    { col: "lesson_id", op: "in", value: lessonIds },
-  ]);
-  const reviewedSet = new Set(reviewed.map((r) => r.lesson_id));
+  // The parent's review is one row per case, so "already reviewed" is judged on
+  // the case and the review's timestamp, never on case_reviews.lesson_id (which
+  // is always null for exactly that reason).
+  const caseIds = [...new Set(pending.map((e) => String(e.payload?.case_id)).filter(Boolean))];
+  const reviews = caseIds.length
+    ? await selectRows<{ case_id: string; updated_at: string | null }>(
+        db,
+        "case_reviews",
+        "case_id, updated_at",
+        [
+          { col: "case_id", op: "in", value: caseIds },
+          { col: "direction", op: "eq", value: "parent_to_tutor" },
+        ],
+      )
+    : [];
+  const reviewedAtByCase = new Map<string, string | null>();
+  for (const r of reviews) reviewedAtByCase.set(r.case_id, r.updated_at);
 
   const existing = await selectRows<{ source_id: string | null }>(db, "case_events", "source_id", [
     { col: "event_type", op: "eq", value: "lesson.review_prompt" },
@@ -221,7 +232,11 @@ async function generateReviewPrompts(db: Db, now: Date): Promise<void> {
   for (const e of pending) {
     const done: DoneEvent = { id: e.id, payload: e.payload ?? {}, created_at: e.created_at };
     const lessonId = String(done.payload.lesson_id);
-    if (!shouldCreateReviewPrompt(done, now, reviewedSet.has(lessonId), keys)) continue;
+    const covers = reviewCoversDoneLesson(
+      reviewedAtByCase.get(String(done.payload.case_id)) ?? null,
+      done.created_at,
+    );
+    if (!shouldCreateReviewPrompt(done, now, covers, keys)) continue;
     await insertEvent(
       db,
       "lesson.review_prompt",
