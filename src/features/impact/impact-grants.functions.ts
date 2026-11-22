@@ -22,6 +22,8 @@ import { SEAT_CAP } from "@/features/impact/seat-grant";
 const MAX_STUDENT_HITS = 10;
 /** The child-profile table is per-child, not per-case; this bounds the scan. */
 const STUDENT_SCAN_LIMIT = 500;
+const MAX_ACCOUNT_HITS = 10;
+const ACCOUNT_SCAN_LIMIT = 500;
 
 async function adminDb(): Promise<Db> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -44,6 +46,54 @@ export type CaseSeatState = {
 };
 
 /** Mark (or unmark) an account as Impact. Owner writes are frozen by trigger. */
+export type AccountHit = {
+  id: string;
+  email: string | null;
+  displayName: string | null;
+  impactAccount: boolean;
+};
+
+/**
+ * The $0 shop grant needs a buyer account, and the desk knows families by email
+ * or name, not by uuid. Bounded scan with the match done in JS, because
+ * `selectRows` only speaks eq/in; `profiles` is one row per account.
+ */
+export const findAccountForGrant = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ query: z.string().trim().min(2).max(120) }).parse(input),
+  )
+  .handler(async ({ context, data }): Promise<AccountHit[]> => {
+    const db = await adminDb();
+    await requireAdmin(db, context.userId);
+
+    const rows = await selectRows<{
+      id: string;
+      email: string | null;
+      display_name: string | null;
+      impact_account: boolean | null;
+    }>(db, "profiles", "id, email, display_name, impact_account", [], {
+      col: "created_at",
+      asc: false,
+      limit: ACCOUNT_SCAN_LIMIT,
+    });
+
+    const needle = data.query.toLowerCase();
+    return rows
+      .filter(
+        (r) =>
+          (r.email ?? "").toLowerCase().includes(needle) ||
+          (r.display_name ?? "").toLowerCase().includes(needle),
+      )
+      .slice(0, MAX_ACCOUNT_HITS)
+      .map((r) => ({
+        id: r.id,
+        email: r.email,
+        displayName: r.display_name,
+        impactAccount: r.impact_account === true,
+      }));
+  });
+
 export const setImpactAccount = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -231,4 +281,48 @@ export const revokeCaseSeat = createServerFn({ method: "POST" })
       .eq("id", data.grantId);
     if (error) throw new Error(error.message);
     return { ok: true };
+  });
+
+/**
+ * AC-400-4, second clause: a $0 grant **to an Impact account**.
+ *
+ * The mechanics are #250's (one delivered HK$0 `material_orders` row per pack,
+ * `is_grant`, excluded from the payout export). What this adds is the one thing
+ * #250 never had: the server checks the account is actually flagged, so the
+ * Impact rule is not a property of the button we happened to render. Staff
+ * grant buttons are admin-only UI, but a flag check that only exists in React
+ * is not a rule.
+ */
+export const grantMaterialsToImpactAccount = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        buyerAccountId: z.string().uuid(),
+        materialIds: z.array(z.string().uuid()).min(1).max(50),
+        reason: z.string().trim().min(3).max(500),
+      })
+      .parse(input),
+  )
+  .handler(async ({ context, data }): Promise<{ granted: number }> => {
+    const db = await adminDb();
+    await requireAdmin(db, context.userId);
+
+    const rows = await selectRows<{ id: string; impact_account: boolean | null }>(
+      db,
+      "profiles",
+      "id, impact_account",
+      [{ col: "id", op: "eq", value: data.buyerAccountId }],
+    );
+    const account = rows[0];
+    if (!account) throw new Error("ACCOUNT_NOT_FOUND");
+    if (account.impact_account !== true) throw new Error("NOT_IMPACT");
+
+    const { staffGrantMaterialsCore } = await import("@/features/materials/orders.functions");
+    return staffGrantMaterialsCore({
+      buyerAccountId: data.buyerAccountId,
+      materialIds: data.materialIds,
+      reason: data.reason,
+      grantedBy: context.userId,
+    });
   });

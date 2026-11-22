@@ -400,6 +400,84 @@ export const getOwnedMaterialUrl = createServerFn({ method: "POST" })
  * excluded from the payout export. Re-granting an existing holder is
  * blocked by the (material_id, buyer_account_id) unique constraint.
  */
+/**
+ * The grant insert, extracted so both the #250 staff grant and the #794 Impact
+ * grant share one money model. The caller owns authorisation: this function
+ * writes delivered HK$0 `is_grant` rows and nothing else.
+ */
+export async function staffGrantMaterialsCore(input: {
+  buyerAccountId: string;
+  materialIds: string[];
+  reason: string;
+  grantedBy: string;
+}): Promise<{ granted: number }> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const admin = supabaseAdmin as unknown as MaterialsAdminClient;
+
+  const { data: materials, error } = await admin
+    .from("digital_materials")
+    .select("id, tutor_id")
+    .in("id", input.materialIds)
+    .eq("status", "published");
+  if (error) throw new Error(error.message);
+  const found = new Set((materials ?? []).map((m) => m.id));
+  const missing = input.materialIds.filter((id) => !found.has(id));
+  if (missing.length > 0) {
+    // Also fires for an unpublished/unlisted id: the grant covers the
+    // packs the tutor has published at this moment, nothing else.
+    throw new Error("One or more packs are not published for this tutor.");
+  }
+
+  // Current packs only: a pack that stops being published after the grant
+  // keeps its delivered order (#203: unpublishing does not remove access),
+  // but a pack that is not published right now is not granted.
+  const rows = (materials ?? []).map((m) => {
+    const row = {
+      material_id: m.id,
+      buyer_account_id: input.buyerAccountId,
+      tutor_id: m.tutor_id,
+      gross_hkd: 0,
+      platform_fee_hkd: 0,
+      tutor_net_hkd: 0,
+      status: "delivered",
+      is_grant: true,
+      granted_by: input.grantedBy,
+      grant_reason: input.reason,
+      delivered_at: new Date().toISOString(),
+      delivered_by: input.grantedBy,
+    };
+    // Same invariant the migration's CHECK enforces, fail loud if the
+    // two ever drift apart.
+    assertValidGrantRow(row);
+    return row;
+  });
+
+  const { data: inserted, error: insertError } = await (
+    supabaseAdmin as unknown as {
+      from: (t: string) => {
+        insert: (rows: unknown) => {
+          select: (c: string) => Promise<{
+            data: OrderRow[] | null;
+            error?: { message: string; code?: string } | null;
+          }>;
+        };
+      };
+    }
+  )
+    .from("material_orders")
+    .insert(rows)
+    .select("id, material_id");
+  if (insertError) {
+    // Postgres unique_violation (material_orders_material_buyer_unique):
+    // match on the structured code, not message wording.
+    if (isUniqueViolation(insertError)) {
+      throw new Error("One or more packs are already unlocked for this account.");
+    }
+    throw new Error(insertError.message);
+  }
+  return { granted: inserted?.length ?? 0 };
+}
+
 export const staffGrantMaterials = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) =>
@@ -413,72 +491,7 @@ export const staffGrantMaterials = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertAdmin(context.supabase, context.userId);
-
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const admin = supabaseAdmin as unknown as MaterialsAdminClient;
-
-    const { data: materials, error } = await admin
-      .from("digital_materials")
-      .select("id, tutor_id")
-      .in("id", data.materialIds)
-      .eq("status", "published");
-    if (error) throw new Error(error.message);
-    const found = new Set((materials ?? []).map((m) => m.id));
-    const missing = data.materialIds.filter((id) => !found.has(id));
-    if (missing.length > 0) {
-      // Also fires for an unpublished/unlisted id: the grant covers the
-      // packs the tutor has published at this moment, nothing else.
-      throw new Error("One or more packs are not published for this tutor.");
-    }
-
-    // Current packs only: a pack that stops being published after the grant
-    // keeps its delivered order (#203: unpublishing does not remove access),
-    // but a pack that is not published right now is not granted.
-    const rows = (materials ?? []).map((m) => {
-      const row = {
-        material_id: m.id,
-        buyer_account_id: data.buyerAccountId,
-        tutor_id: m.tutor_id,
-        gross_hkd: 0,
-        platform_fee_hkd: 0,
-        tutor_net_hkd: 0,
-        status: "delivered",
-        is_grant: true,
-        granted_by: context.userId,
-        grant_reason: data.reason,
-        delivered_at: new Date().toISOString(),
-        delivered_by: context.userId,
-      };
-      // Same invariant the migration's CHECK enforces, fail loud if the
-      // two ever drift apart.
-      assertValidGrantRow(row);
-      return row;
-    });
-
-    const { data: inserted, error: insertError } = await (
-      supabaseAdmin as unknown as {
-        from: (t: string) => {
-          insert: (rows: unknown) => {
-            select: (c: string) => Promise<{
-              data: OrderRow[] | null;
-              error?: { message: string; code?: string } | null;
-            }>;
-          };
-        };
-      }
-    )
-      .from("material_orders")
-      .insert(rows)
-      .select("id, material_id");
-    if (insertError) {
-      // Postgres unique_violation (material_orders_material_buyer_unique):
-      // match on the structured code, not message wording.
-      if (isUniqueViolation(insertError)) {
-        throw new Error("One or more packs are already unlocked for this account.");
-      }
-      throw new Error(insertError.message);
-    }
-    return { granted: inserted?.length ?? 0 };
+    return staffGrantMaterialsCore({ ...data, grantedBy: context.userId });
   });
 
 export type PayoutExportRow = {

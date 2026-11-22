@@ -38,10 +38,12 @@ describe("digital_materials published reads (#409)", () => {
   });
 
   it("staff grants filter published packs with status = 'published'", () => {
+    // The insert lives in the shared core since #794 (the Impact grant reuses
+    // it), so the invariant is asserted where the query actually is.
     const block = sliceBetween(
       orders,
+      "export async function staffGrantMaterialsCore",
       "export const staffGrantMaterials",
-      "export type PayoutExportRow",
     );
     expect(block).toContain('.from("digital_materials")');
     expect(block).toContain('.eq("status", "published")');
