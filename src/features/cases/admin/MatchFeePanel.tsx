@@ -10,6 +10,12 @@ import {
   type CaseTutorHit,
 } from "@/features/cases/match-dispatch.functions";
 
+import {
+  deskClearMatch,
+  deskRecordFeeCollected,
+  deskUndoFeeCollected,
+} from "@/features/cases/admin-desk.functions";
+
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -127,16 +133,40 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
     },
   });
 
-  const patchMutation = useMutation({
-    mutationFn: async (patch: Partial<CaseRow>) => {
-      const { error } = await supabase
-        .from("tutoring_cases")
-        .update(patch as never)
-        .eq("id", caseRow.id);
-      if (error) throw error;
+  // #816 §2.5: match removal and the legacy fee capture are server fns so each
+  // one writes a case_audit row naming the operator.
+  const clearMatchMutation = useMutation({
+    mutationFn: () => deskClearMatch({ data: { caseId: caseRow.id } }),
+    onSuccess: () => {
+      toast.success(`Matched tutor removed from ${caseRow.case_code}`);
+      onPatched();
     },
-    onSuccess: () => onPatched(),
     onError: (e: Error) => toast.error(e.message),
+  });
+
+  const recordFeeMutation = useMutation({
+    mutationFn: (amountHkd: number) =>
+      deskRecordFeeCollected({ data: { caseId: caseRow.id, amountHkd } }),
+    onSuccess: () => {
+      setFeeInput("");
+      toast.success("Fee recorded, a referred tutor's bounty auto-logs at 15%");
+      onPatched();
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const undoFeeMutation = useMutation({
+    mutationFn: () => deskUndoFeeCollected({ data: { caseId: caseRow.id } }),
+    onSuccess: () => {
+      toast.success("Fee record removed");
+      onPatched();
+    },
+    onError: (e: Error) =>
+      toast.error(
+        e.message.includes("BOUNTY_SETTLED")
+          ? "The referral bounty from this fee is already queued or paid. Settle it before undoing the fee."
+          : e.message,
+      ),
   });
 
   /**
@@ -206,12 +236,7 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
   };
 
   const clearMatch = () => {
-    patchMutation.mutate(
-      { matched_tutor_id: null, matched_at: null },
-      {
-        onSuccess: () => toast.success(`Matched tutor removed from ${caseRow.case_code}`),
-      },
-    );
+    clearMatchMutation.mutate();
   };
 
   const markFeeCollected = () => {
@@ -220,28 +245,18 @@ export function MatchFeePanel({ caseRow, onPatched }: { caseRow: CaseRow; onPatc
       toast.error("Enter the collected fee in HK$");
       return;
     }
-    patchMutation.mutate(
-      {
-        fee_collected_at: new Date().toISOString(),
-        fee_amount_cents: Math.round(value * 100),
-      },
-      {
-        onSuccess: () => {
-          setFeeInput("");
-          toast.success("Fee recorded, a referred tutor's bounty auto-logs at 15%");
-        },
-      },
-    );
+    recordFeeMutation.mutate(value);
   };
 
   const undoFee = () => {
-    patchMutation.mutate(
-      { fee_collected_at: null, fee_amount_cents: null },
-      { onSuccess: () => toast.success("Fee record removed") },
-    );
+    undoFeeMutation.mutate();
   };
 
-  const pending = patchMutation.isPending || matchMutation.isPending;
+  const pending =
+    clearMatchMutation.isPending ||
+    recordFeeMutation.isPending ||
+    undoFeeMutation.isPending ||
+    matchMutation.isPending;
   const referrerName = matchedTutor?.referrerName ?? null;
 
   return (

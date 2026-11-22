@@ -697,6 +697,136 @@ export const feeWaive = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
+// Match + legacy fee capture (#816 §2.5)
+//
+// These three used to be direct browser updates on tutoring_cases, so the desk
+// could not see who un-matched a case or collected/undid the legacy fee. They
+// are server fns now purely so each write also lands a case_audit row; the
+// columns and the referral-bounty trigger on them are unchanged.
+// ---------------------------------------------------------------------------
+
+/**
+ * #816 §2.5: removing the matched tutor. The prior tutor is read first so the
+ * audit row names who was un-matched; an already-unmatched case still audits
+ * (reason null) instead of silently no-op'ing.
+ */
+export const deskClearMatch = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ caseId: z.string().uuid() }).parse(input))
+  .handler(async ({ context, data }): Promise<{ ok: true }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    await requireAdmin(db, context.userId);
+
+    const rows = await selectRows<{
+      matched_tutor_id: string | null;
+      tutors: { display_name: string; tutor_code: string | null } | null;
+    }>(db, "tutoring_cases", "matched_tutor_id, tutors(display_name, tutor_code)", [
+      { col: "id", op: "eq", value: data.caseId },
+    ]);
+    const c = rows[0];
+    if (!c) throw new Error("CASE_NOT_FOUND");
+    const previous = c.tutors;
+    const reason = previous
+      ? [previous.display_name, previous.tutor_code].filter(Boolean).join(" · ")
+      : null;
+
+    const { error } = await db
+      .from<Row>("tutoring_cases")
+      .update({ matched_tutor_id: null, matched_at: null })
+      .eq("id", data.caseId);
+    if (error) throw new Error(error.message);
+    await insertAudit(db, data.caseId, context.userId, null, "tutor_removed", reason);
+    return { ok: true };
+  });
+
+/**
+ * #816 §2.5: the legacy "fee collected" columns. Kept as the fee desk's manual
+ * offline capture (case_fees is the SoR fee ledger); the trigger on these
+ * columns still logs a referred tutor's 15% bounty.
+ */
+export const deskRecordFeeCollected = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z
+      .object({
+        caseId: z.string().uuid(),
+        amountHkd: z.number().finite().positive().max(1_000_000),
+      })
+      .parse(input),
+  )
+  .handler(async ({ context, data }): Promise<{ ok: true }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    await requireAdmin(db, context.userId);
+
+    const amountCents = Math.round(data.amountHkd * 100);
+    const { error } = await db
+      .from<Row>("tutoring_cases")
+      .update({ fee_collected_at: new Date().toISOString(), fee_amount_cents: amountCents })
+      .eq("id", data.caseId);
+    if (error) throw new Error(error.message);
+    await insertAudit(
+      db,
+      data.caseId,
+      context.userId,
+      null,
+      "fee_collected_legacy",
+      `HK$${data.amountHkd} (legacy fee columns)`,
+    );
+    return { ok: true };
+  });
+
+/** #816 §2.5: undo the legacy fee capture. A logged bounty is left in place. */
+export const deskUndoFeeCollected = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ caseId: z.string().uuid() }).parse(input))
+  .handler(async ({ context, data }): Promise<{ ok: true }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    await requireAdmin(db, context.userId);
+
+    // The referral trigger created a bounty from this fee event
+    // (`referral_bounties.source_case_id`), and nulling the columns does not
+    // remove it — the trigger returns early on nulls. Undoing the fee while a
+    // bounty survives would leave the referrer owed 15% of money we just
+    // unwound, so the bounty is settled here: deleted while it is still
+    // pending, refused once it has been queued for or sent by FPS.
+    const bounties = await selectRows<{ id: string; status: string }>(
+      db,
+      "referral_bounties",
+      "id, status",
+      [{ col: "source_case_id", op: "eq", value: data.caseId }],
+    );
+    const settled = bounties.find((b) => b.status !== "pending");
+    if (settled) throw new Error("BOUNTY_SETTLED");
+
+    if (bounties.length > 0) {
+      const { error: bountyError } = await db
+        .from<Row>("referral_bounties")
+        .delete()
+        .eq("source_case_id", data.caseId)
+        .eq("status", "pending");
+      if (bountyError) throw new Error(bountyError.message);
+    }
+
+    const { error } = await db
+      .from<Row>("tutoring_cases")
+      .update({ fee_collected_at: null, fee_amount_cents: null })
+      .eq("id", data.caseId);
+    if (error) throw new Error(error.message);
+    await insertAudit(
+      db,
+      data.caseId,
+      context.userId,
+      null,
+      "fee_undo_legacy",
+      bounties.length > 0 ? "referral bounty removed" : null,
+    );
+    return { ok: true };
+  });
+
+// ---------------------------------------------------------------------------
 // Lessons 1–2 (admin logs; both sides confirm; done/no_show/cancelled)
 // ---------------------------------------------------------------------------
 
