@@ -22,7 +22,7 @@ export async function renderCoverCard(input: {
   ctx.fillRect(0, 0, size, 18);
 
   const font = (weight: number, px: number) =>
-    `${weight} ${px}px Inter, "Noto Sans TC", "PingFang TC", Arial, sans-serif`;
+    `${weight} ${px}px "Plus Jakarta Sans", "Noto Sans TC", "PingFang TC", Arial, sans-serif`;
 
   // Title, wrapped to at most 5 lines (works for CJK without spaces too).
   ctx.fillStyle = "#0f1b2d";

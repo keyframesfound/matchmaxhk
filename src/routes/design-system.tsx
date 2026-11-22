@@ -216,7 +216,7 @@ function DesignSystemPage() {
         <Section
           id="type"
           title="Typography"
-          use="Inter for everything, Geist for large headings (h1, h2, display). Weights: 700 headings, 600 buttons and card titles, 500 labels, 400 body. Sentence case."
+          use="Plus Jakarta Sans for everything, headings included. Weights: 700 headings, 600 buttons and card titles, 500 labels, 400 body. Sentence case."
           avoid="add a third font, go above 700, use ALL CAPS, or letter-space Chinese text."
         >
           <div className="space-y-4">
