@@ -647,7 +647,13 @@ function BusinessJoinPage() {
             ) : null}
             <Button
               type="submit"
-              disabled={submitting || consentInvalid || autoSubmitStage === "fire"}
+              // #797 follow-up: this used to be disabled until the three
+              // consents were ticked, so a partner who had missed any other
+              // required field got a dead button and no explanation — the
+              // validation that names the field never ran. Submitting is safe
+              // without the consents: `handleSubmit` lists every missing field
+              // (consents included) before it starts the OAuth handoff.
+              disabled={submitting || autoSubmitStage === "fire"}
               variant="solid"
               color="blue"
               className="h-11 w-full font-bold"
