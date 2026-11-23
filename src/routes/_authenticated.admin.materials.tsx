@@ -3,6 +3,8 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { optionACopyKey } from "@/features/materials/marketplace-policy";
+import { getWeeklyPayoutPreview } from "@/features/materials/payout-batch.functions";
+import { payoutPreviewCsv } from "@/features/materials/payout-batch";
 import {
   BookOpen,
   Check,
@@ -206,6 +208,25 @@ function AdminMaterials() {
     onError: (error) => toast.error(error instanceof Error ? error.message : "Export failed."),
   });
 
+  // #784 §2.2: who the Monday FPS batch pays, read-only. Money moves outside
+  // this screen; this only stops the desk paying the wrong sellers.
+  const payoutPreview = useQuery({
+    queryKey: ["admin", "payout-preview"],
+    queryFn: () => getWeeklyPayoutPreview(),
+  });
+  const downloadPayoutPreview = () => {
+    if (!payoutPreview.data) return;
+    const blob = new Blob([payoutPreviewCsv(payoutPreview.data)], {
+      type: "text/csv;charset=utf-8",
+    });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `payout-preview-${new Date().toISOString().slice(0, 10)}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
   const setField = (patch: Partial<typeof form>) => setForm((prev) => ({ ...prev, ...patch }));
 
   const resetForm = () => {
@@ -346,6 +367,76 @@ function AdminMaterials() {
           </Button>
         </div>
       </div>
+
+      {/* #784 §2.2: Monday FPS run preview — who clears the HK$50 minimum,
+          what they are owed, and where it goes. Read-only by design. */}
+      <section className="mt-6 rounded-xl border border-border bg-card p-4">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div>
+            <h2 className="text-base font-bold">Weekly FPS payout run (preview)</h2>
+            <p className="text-xs text-muted-foreground">
+              {payoutPreview.isLoading
+                ? "Loading…"
+                : payoutPreview.isError
+                  ? "Could not load the payout preview."
+                  : `${payoutPreview.data?.dueCount ?? 0} seller(s) due · HK$${(
+                      payoutPreview.data?.dueTotalHkd ?? 0
+                    ).toFixed(
+                      2,
+                    )} total · ${payoutPreview.data?.belowMinimumCount ?? 0} under the HK$50 minimum${
+                      (payoutPreview.data?.missingDetailsCount ?? 0) > 0
+                        ? ` · ${payoutPreview.data?.missingDetailsCount} missing payout details`
+                        : ""
+                    }`}
+            </p>
+          </div>
+          <Button
+            variant="outline"
+            onClick={downloadPayoutPreview}
+            disabled={!payoutPreview.data || (payoutPreview.data?.dueCount ?? 0) === 0}
+          >
+            <Download className="mr-2 h-4 w-4" aria-hidden />
+            Export batch CSV
+          </Button>
+        </div>
+        {(payoutPreview.data?.rows.length ?? 0) > 0 ? (
+          <div className="mt-3 overflow-x-auto">
+            <table className="w-full text-left text-sm">
+              <thead className="text-xs text-muted-foreground">
+                <tr>
+                  <th className="py-1 pr-3 font-medium">Seller</th>
+                  <th className="py-1 pr-3 font-medium">Balance</th>
+                  <th className="py-1 pr-3 font-medium">Due</th>
+                  <th className="py-1 pr-3 font-medium">Method</th>
+                  <th className="py-1 font-medium">Note</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(payoutPreview.data?.rows ?? []).map((row) => (
+                  <tr key={row.userId} className="border-t border-border">
+                    <td className="py-1.5 pr-3">
+                      {row.sellerName || "Unknown"}
+                      {row.tutorCode ? (
+                        <span className="ml-1 text-xs text-muted-foreground">{row.tutorCode}</span>
+                      ) : null}
+                    </td>
+                    <td className="py-1.5 pr-3">HK${row.balanceHkd.toFixed(2)}</td>
+                    <td className="py-1.5 pr-3 font-semibold">HK${row.dueHkd.toFixed(2)}</td>
+                    <td className="py-1.5 pr-3">{row.method ?? "—"}</td>
+                    <td className="py-1.5 text-xs text-muted-foreground">
+                      {row.missingDetails
+                        ? "No payout details"
+                        : row.belowMinimum
+                          ? "Rolls over"
+                          : ""}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : null}
+      </section>
 
       {/* -----------------------------------------------------------------
           Gig review queue (#326/#327): pending freestyle listings with the
