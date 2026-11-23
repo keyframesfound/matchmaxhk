@@ -2636,6 +2636,7 @@
     "title": "This page didn't load",
     "body": "Something went wrong on our end, it's not anything you did. Try again, or head back home.",
     "try_again": "Try again",
+    "reload": "Reload page",
     "go_home": "Go home",
     "help": "Still stuck? Message our team on WhatsApp, we're happy to help."
   },

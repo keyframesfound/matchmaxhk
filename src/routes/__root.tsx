@@ -52,11 +52,32 @@ export function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  useEffect(() => {
-    console.error(error);
-  }, [error]);
   const router = useRouter();
   const { t } = useTranslation();
+  // A route chunk that 404s after a deploy ("Failed to fetch dynamically
+  // imported module") can only be fixed by reloading the document; router
+  // invalidate would re-request the same missing chunk. Same for a network
+  // failure on a server function.
+  const needsReload =
+    /dynamically imported module|Importing a module script failed|ChunkLoadError|Failed to fetch|Load failed|NetworkError|MIME type of "text\/html"|Unexpected token '<'/i.test(
+      error?.message ?? "",
+    );
+
+  useEffect(() => {
+    console.error(error);
+    if (!needsReload) return;
+    // Heal a stale-chunk tab automatically, once. The timestamp guard stops a
+    // reload loop when the failure is not a stale asset after all.
+    const key = "matchmax.chunk-reload-at";
+    try {
+      const last = Number(sessionStorage.getItem(key) ?? 0);
+      if (Number.isFinite(last) && Date.now() - last < 30_000) return;
+      sessionStorage.setItem(key, String(Date.now()));
+    } catch {
+      return;
+    }
+    window.location.reload();
+  }, [error, needsReload]);
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
@@ -67,12 +88,16 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
+              if (needsReload) {
+                window.location.reload();
+                return;
+              }
               router.invalidate();
               reset();
             }}
             className="inline-flex items-center justify-center rounded-md border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-4 py-2 text-sm font-medium text-[color:var(--foreground)] transition-colors hover:bg-[color:var(--muted)]"
           >
-            {t("page_error.try_again")}
+            {needsReload ? t("page_error.reload") : t("page_error.try_again")}
           </button>
           <a
             href="/"
@@ -82,6 +107,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
           </a>
         </div>
         <p className="mt-6 text-xs text-muted-foreground">{t("page_error.help")}</p>
+        {/* Support detail: the first line of the failure, so a report is
+            actionable instead of just "Oops". Never a full stack. */}
+        {error?.message ? (
+          <p className="mt-2 break-words text-[11px] leading-relaxed text-muted-foreground/80">
+            {error.message.split("\n")[0].slice(0, 240)}
+          </p>
+        ) : null}
       </div>
     </div>
   );
