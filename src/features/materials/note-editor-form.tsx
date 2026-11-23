@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "@tanstack/react-router";
+import { useServerFn } from "@tanstack/react-start";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "react-i18next";
@@ -60,6 +61,7 @@ import {
   type NoteExtra,
 } from "@/features/materials/note-uploads.functions";
 import { suggestNoteDetails } from "@/features/materials/note-ai.functions";
+import { listSellerOrganisations } from "@/features/business/centre-materials.functions";
 import {
   classifyUploadFile,
   CONTENT_LANGUAGES,
@@ -279,6 +281,9 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
   const [summary, setSummary] = useState(existing?.summary ?? "");
   const [description, setDescription] = useState(existing?.description ?? "");
   const [price, setPrice] = useState<string>(existing ? String(existing.priceHkd ?? 0) : "");
+  // #815 §2.4: publish the listing as a Partner Centre the seller runs.
+  // "" means a personal listing; the value is only sent when it changed.
+  const [organizationId, setOrganizationId] = useState(existing?.organizationId ?? "");
   // #784 §2.6: link this listing to the seller's tutor profile (#731 CTA).
   const [linkTutorProfile, setLinkTutorProfile] = useState<boolean>(
     existing?.linkTutorProfile ?? true,
@@ -386,6 +391,25 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     () => (curriculum ? getSubcategoriesForCurriculum(curriculum) : []),
     [curriculum],
   );
+
+  // #815 §2.4: the Partner Centres this seller owns or administers. Loaded
+  // once; a failure (offline, no session) just hides the "Publish as" select
+  // instead of blocking the editor.
+  const listOrgsFn = useServerFn(listSellerOrganisations);
+  const [sellerOrgs, setSellerOrgs] = useState<Array<{ id: string; name: string; slug: string }>>(
+    [],
+  );
+  useEffect(() => {
+    let cancelled = false;
+    listOrgsFn()
+      .then((rows) => {
+        if (!cancelled) setSellerOrgs(rows);
+      })
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [listOrgsFn]);
 
   // Edit mode: load stored extras + links once.
   const extrasQuery = useQuery({
@@ -694,6 +718,11 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     priceHkd: price ? Number(price) : undefined,
     // Notes-only sellers never link (the toggle is hidden and off for them).
     linkTutorProfile: hasTutorProfile ? linkTutorProfile : false,
+    // #815 §2.4: attribution only. Sent when it changed, so an untouched
+    // centre listing is never silently re-attributed to the personal account.
+    ...(organizationId !== (existing?.organizationId ?? "")
+      ? { organizationId: organizationId || null }
+      : {}),
     curriculumTag: isNoteCurriculum(curriculum) ? curriculum : undefined,
     subjectTag: subject.trim() || null,
     materialType,
@@ -1958,6 +1987,27 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
           priceHkd={Number.isNaN(priceNum) ? null : priceNum}
           onUsePrice={(value) => setPrice(String(value))}
         />
+        {/* #815 §2.4: attribution only. Checkout and payouts do not change. */}
+        {sellerOrgs.length > 0 ? (
+          <div className="space-y-1.5">
+            <Label htmlFor="note-publish-as">{t("notes.form.publish_as")}</Label>
+            <select
+              id="note-publish-as"
+              value={organizationId}
+              disabled={isLive}
+              onChange={(e) => setOrganizationId(e.target.value)}
+              className="flex h-11 w-full rounded-[var(--radius-control)] border border-[color:var(--ink)]/15 bg-transparent px-3 py-1 text-base transition hover:border-[color:var(--ink)]/25 focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 sm:text-sm motion-reduce:transition-none"
+            >
+              <option value="">{t("notes.form.publish_as_personal")}</option>
+              {sellerOrgs.map((org) => (
+                <option key={org.id} value={org.id}>
+                  {org.name}
+                </option>
+              ))}
+            </select>
+            <p className="text-xs text-muted-foreground">{t("notes.form.publish_as_hint")}</p>
+          </div>
+        ) : null}
         {/* #784 §2.6: the shipped #731 CTA, per listing; tutor sellers only. */}
         {hasTutorProfile ? (
           <label className="flex cursor-pointer items-start gap-3 rounded-xl border border-border p-3 text-sm">

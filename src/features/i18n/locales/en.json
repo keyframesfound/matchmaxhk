@@ -2261,7 +2261,10 @@
       "still_processing": "Still preparing your photos, try again in a moment.",
       "fix_errors": "Fix the fields marked in red first.",
       "more_details": "More details",
-      "more_details_hint": "(optional: topic, year, word count, video, highlights, outline, pictures)"
+      "more_details_hint": "(optional: topic, year, word count, video, highlights, outline, pictures)",
+      "publish_as": "Publish as",
+      "publish_as_personal": "My personal account",
+      "publish_as_hint": "Partner Centre listings show the centre's name on its channel. Checkout and payouts stay the same."
     },
     "home": {
       "heading": "Study notes",
@@ -5967,6 +5970,9 @@
     "format_admissions": "Admissions Consultation",
     "request_lesson": "Request lesson",
     "inbox_contact": "Enquirer",
-    "inbox_tutor_tag": "Requested tutor"
+    "inbox_tutor_tag": "Requested tutor",
+    "materials_badge": "Partner Centre",
+    "materials_error": "Could not load study materials. Refresh to try again.",
+    "owner_add_material": "Publish study notes"
   }
 }
