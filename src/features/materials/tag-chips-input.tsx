@@ -10,7 +10,9 @@ import { cn } from "@/lib/utils";
  * empty input removes the last chip. Tags are stored without the `#`.
  */
 
-export const TAG_MAX = 20;
+// #784 AC-FORM-3: a note carries at most five optional #tags. The cap is
+// silent: a sixth tag is simply not added, it never blocks save or publish.
+export const TAG_MAX = 5;
 export const TAG_MAX_LEN = 30;
 
 /** Suggested tags; Mock / Exemplar / Flashcards are tags, not SKU types (#553). */
