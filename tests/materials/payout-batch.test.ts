@@ -84,6 +84,44 @@ describe("#784 §2.2 weekly payout preview", () => {
     expect(preview.dueCount).toBe(2);
   });
 
+  it("needs a manager sign-off once offsets in the run reach HK$500", () => {
+    const under = buildPayoutPreview(
+      [
+        { user_id: "u1", amount_hkd: 600, kind: "sale_net" },
+        { user_id: "u1", amount_hkd: -100, kind: "refund_offset" },
+      ],
+      sellers,
+      details,
+    );
+    expect(under.adjustmentHkd).toBe(100);
+    expect(under.needsManagerApproval).toBe(false);
+
+    const at = buildPayoutPreview(
+      [
+        { user_id: "u1", amount_hkd: 900, kind: "sale_net" },
+        { user_id: "u1", amount_hkd: -500, kind: "chargeback_offset" },
+      ],
+      sellers,
+      details,
+    );
+    expect(at.adjustmentHkd).toBe(500);
+    expect(at.needsManagerApproval).toBe(true);
+  });
+
+  it("ignores offsets belonging to sellers who are not being paid", () => {
+    const preview = buildPayoutPreview(
+      [
+        { user_id: "u1", amount_hkd: 80, kind: "sale_net" },
+        { user_id: "u3", amount_hkd: -900, kind: "adjustment" },
+      ],
+      sellers,
+      details,
+    );
+    expect(preview.rows.find((row) => row.userId === "u3")?.dueHkd).toBe(0);
+    expect(preview.adjustmentHkd).toBe(0);
+    expect(preview.needsManagerApproval).toBe(false);
+  });
+
   it("writes a CSV with only the sellers actually being paid", () => {
     const preview = buildPayoutPreview(
       [

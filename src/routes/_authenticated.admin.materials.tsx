@@ -3,7 +3,10 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { optionACopyKey } from "@/features/materials/marketplace-policy";
-import { getWeeklyPayoutPreview } from "@/features/materials/payout-batch.functions";
+import {
+  getWeeklyPayoutPreview,
+  runPayoutBatch,
+} from "@/features/materials/payout-batch.functions";
 import { payoutPreviewCsv } from "@/features/materials/payout-batch";
 import {
   BookOpen,
@@ -214,6 +217,37 @@ function AdminMaterials() {
     queryKey: ["admin", "payout-preview"],
     queryFn: () => getWeeklyPayoutPreview(),
   });
+  const [batchNote, setBatchNote] = useState("");
+  const [approveBatch, setApproveBatch] = useState(false);
+  const runBatchMutation = useMutation({
+    mutationFn: () =>
+      runPayoutBatch({
+        data: {
+          batchDate: new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Hong_Kong" }),
+          note: batchNote.trim() || undefined,
+          managerApproval: approveBatch,
+        },
+      }),
+    onSuccess: (result) => {
+      toast.success(
+        `Batch paid: ${result.sellerCount} seller(s), HK$${result.totalHkd.toFixed(2)}.`,
+      );
+      setBatchNote("");
+      setApproveBatch(false);
+      void queryClient.invalidateQueries({ queryKey: ["admin", "payout-preview"] });
+    },
+    onError: (error) => {
+      const message = error instanceof Error ? error.message : "Batch failed.";
+      toast.error(
+        message === "MANAGER_APPROVAL_REQUIRED"
+          ? "This batch includes HK$500+ of adjustments. Tick the manager approval box first."
+          : message === "NO_SELLERS_DUE"
+            ? "No seller clears the HK$50 minimum."
+            : message,
+      );
+    },
+  });
+
   const downloadPayoutPreview = () => {
     if (!payoutPreview.data) return;
     const blob = new Blob([payoutPreviewCsv(payoutPreview.data)], {
@@ -398,6 +432,44 @@ function AdminMaterials() {
             <Download className="mr-2 h-4 w-4" aria-hidden />
             Export batch CSV
           </Button>
+          <Button
+            onClick={() => runBatchMutation.mutate()}
+            disabled={
+              runBatchMutation.isPending ||
+              (payoutPreview.data?.dueCount ?? 0) === 0 ||
+              (payoutPreview.data?.needsManagerApproval === true && !approveBatch)
+            }
+          >
+            {runBatchMutation.isPending ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" aria-hidden />
+            ) : (
+              <Check className="mr-2 h-4 w-4" aria-hidden />
+            )}
+            Run Monday batch
+          </Button>
+        </div>
+        {payoutPreview.data?.needsManagerApproval ? (
+          <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-xs">
+            <p className="font-medium text-[color:var(--ink)]">
+              This batch includes HK${(payoutPreview.data?.adjustmentHkd ?? 0).toFixed(2)} of
+              adjustments. Ops Manager sign-off is required before it writes.
+            </p>
+            <label className="mt-2 flex items-center gap-2">
+              <Checkbox
+                checked={approveBatch}
+                onCheckedChange={(v) => setApproveBatch(v === true)}
+              />
+              <span>I approve this batch as Ops Manager</span>
+            </label>
+          </div>
+        ) : null}
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <Input
+            value={batchNote}
+            onChange={(e) => setBatchNote(e.target.value)}
+            placeholder="Batch note (optional), e.g. FPS ref"
+            className="h-9 w-64"
+          />
         </div>
         {(payoutPreview.data?.rows.length ?? 0) > 0 ? (
           <div className="mt-3 overflow-x-auto">
