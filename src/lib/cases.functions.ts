@@ -26,6 +26,7 @@ import {
 import { DEFAULT_CURRENCY, SUPPORTED_CURRENCIES } from "@/lib/money";
 import { sanitizeCaseFreeText } from "@/lib/contact-filter";
 import { screenCaseRequest } from "@/features/trust/safety-screen";
+import { assessPrematchRisk } from "@/features/cases/prematch-risk";
 import { buildCaseTitle as buildStructuredTitle } from "@/features/cases/case-title";
 import { DUPLICATE_SUBJECT_ERROR_PREFIX } from "@/features/cases/trial-lock";
 import type { TablesInsert } from "@/integrations/supabase/types";
@@ -702,6 +703,18 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       preferredGender: data.tutorGenderPreference,
     });
 
+    // #783 §2.6 item 8: rules-based venue / late-night holds (no LLM). A hit
+    // routes the case to compliance_hold before it can reach the board.
+    const prematchRisk = assessPrematchRisk({
+      notes: data.notes,
+      locationEstate: data.locationEstate,
+      schoolType: data.schoolType,
+      scheduleNote: data.scheduleNote,
+      academicLevel: data.academicLevel,
+      whoFor: data.whoFor,
+      preferredGender: data.tutorGenderPreference,
+    });
+
     // Issue #459: link the child sub-profile only if this parent owns it
     // (dropped, never rejected, if stale or tampered).
     let studentId: string | null = null;
@@ -848,8 +861,15 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       // Issue #412 E: triage routes to compliance_hold instead of `new` —
       // held requests are invisible to the public board and locked in the
       // admin desk until staff re-screen.
-      status: safetyScreen.hold ? "compliance_hold" : parentTriageStatus(data.triage),
-      compliance_triage: { scope: "parent", ...data.triage },
+      status:
+        safetyScreen.hold || prematchRisk.hold
+          ? "compliance_hold"
+          : parentTriageStatus(data.triage),
+      compliance_triage: {
+        scope: "parent",
+        ...data.triage,
+        ...(prematchRisk.hold ? { prematchRisk: prematchRisk.reasons } : {}),
+      },
     };
 
     // #815 §2.11 lane B: `referred_by_organization_id` is absent from the
