@@ -53,6 +53,8 @@ import {
   updateOrganization,
   uploadOrganizationImage,
 } from "@/features/business/business.functions";
+import { getCentreMaterials } from "@/features/business/centre-materials.functions";
+import type { CentreMaterialCard } from "@/features/business/centre-materials";
 import { useAuth } from "@/features/auth/useAuth";
 import {
   COURSE_FORMAT_LABEL_KEYS,
@@ -316,6 +318,15 @@ function BusinessPublicProfile() {
   });
   const verifiedPartner = channel.data?.verifiedPartner === true;
   const affiliates = channel.data?.tutors ?? [];
+
+  // #815 §2.4 AC-MAT-1/2: centre-published study notes. Cards link straight to
+  // the existing #784 checkout at /notes/<slug>; nothing is sold here.
+  const materialsFn = useServerFn(getCentreMaterials);
+  const materials = useQuery({
+    queryKey: ["centre-materials", slug],
+    queryFn: () => materialsFn({ data: { orgSlug: slug } }),
+    enabled: !!org,
+  });
 
   useEffect(() => {
     if (org) {
@@ -1020,11 +1031,71 @@ function BusinessPublicProfile() {
               </TabsContent>
 
               <TabsContent value="materials" className="mt-6">
-                <EmptyState
-                  icon={FileText}
-                  title={t("centre_channel.materials_empty")}
-                  description={isOwner ? t("centre_channel.materials_hint") : undefined}
-                />
+                {materials.isLoading ? (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    <Skeleton className="h-32 rounded-xl" />
+                    <Skeleton className="h-32 rounded-xl" />
+                    <Skeleton className="h-32 rounded-xl" />
+                  </div>
+                ) : materials.isError ? (
+                  <p role="alert" className="text-sm text-destructive">
+                    {t("centre_channel.materials_error")}
+                  </p>
+                ) : !materials.data || materials.data.length === 0 ? (
+                  <EmptyState
+                    icon={FileText}
+                    title={t("centre_channel.materials_empty")}
+                    description={isOwner ? t("centre_channel.materials_hint") : undefined}
+                    action={
+                      isOwner ? (
+                        <Button asChild>
+                          <Link to="/account/notes/new">
+                            {t("centre_channel.owner_add_material")}
+                          </Link>
+                        </Button>
+                      ) : undefined
+                    }
+                  />
+                ) : (
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {materials.data.map((card: CentreMaterialCard) => (
+                      <article
+                        key={card.id}
+                        className="rounded-xl border border-border bg-card transition-colors hover:border-[color:var(--foreground)]/30"
+                      >
+                        <Link
+                          to="/notes/$slug"
+                          params={{ slug: card.slug }}
+                          className="flex h-full flex-col gap-2 p-4"
+                        >
+                          <span className="self-start rounded-full border border-border px-2 py-0.5 text-[11px] font-semibold text-[color:var(--brand-link)]">
+                            {t("centre_channel.materials_badge")}
+                          </span>
+                          <p className="line-clamp-2 text-sm font-semibold text-[color:var(--ink)]">
+                            {card.title}
+                          </p>
+                          {card.subject || card.curriculum ? (
+                            <div className="flex flex-wrap gap-1.5">
+                              {card.subject ? (
+                                <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                                  {card.subject}
+                                </span>
+                              ) : null}
+                              {card.curriculum ? (
+                                <span className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                                  {card.curriculum}
+                                </span>
+                              ) : null}
+                            </div>
+                          ) : null}
+                          <p className="mt-auto pt-2 text-sm font-semibold text-[color:var(--ink)]">
+                            {card.priceHkd === 0 ? t("notes.card.free") : `HK$${card.priceHkd}`}
+                          </p>
+                        </Link>
+                      </article>
+                    ))}
+                  </div>
+                )}
               </TabsContent>
 
               <TabsContent value="posts" className="mt-6">

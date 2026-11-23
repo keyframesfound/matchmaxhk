@@ -2261,7 +2261,10 @@
       "still_processing": "相片仍在處理中，請稍後再試。",
       "fix_errors": "請先修正以紅色標示的欄位。",
       "more_details": "更多資料",
-      "more_details_hint": "（選填：主題、年份、字數、介紹影片、重點內容、大綱、預覽圖片）"
+      "more_details_hint": "（選填：主題、年份、字數、介紹影片、重點內容、大綱、預覽圖片）",
+      "publish_as": "以邊個身份發佈",
+      "publish_as_personal": "我嘅個人帳戶",
+      "publish_as_hint": "以合作中心身份發佈嘅筆記，會喺該中心頻道顯示中心名稱。付款同收款安排不變。"
     },
     "home": {
       "heading": "學習筆記",
@@ -5967,6 +5970,9 @@
     "format_admissions": "升學諮詢",
     "request_lesson": "申請課堂",
     "inbox_contact": "查詢人",
-    "inbox_tutor_tag": "指定導師"
+    "inbox_tutor_tag": "指定導師",
+    "materials_badge": "合作中心",
+    "materials_error": "未能載入精讀筆記，請重新整理再試。",
+    "owner_add_material": "發佈精讀筆記"
   }
 }

@@ -2261,7 +2261,10 @@
       "still_processing": "照片仍在处理中，请稍后再试。",
       "fix_errors": "请先修正以红色标示的栏位。",
       "more_details": "更多资料",
-      "more_details_hint": "（选填：主题、年份、字数、介绍视频、重点内容、大纲、预览图片）"
+      "more_details_hint": "（选填：主题、年份、字数、介绍视频、重点内容、大纲、预览图片）",
+      "publish_as": "以边个身份发布",
+      "publish_as_personal": "我嘅个人账户",
+      "publish_as_hint": "以合作中心身份发布嘅笔记，会喺该中心频道显示中心名称。付款同收款安排不变。"
     },
     "home": {
       "heading": "学习笔记",
@@ -5967,6 +5970,9 @@
     "format_admissions": "升学咨询",
     "request_lesson": "申请课堂",
     "inbox_contact": "查询人",
-    "inbox_tutor_tag": "指定导师"
+    "inbox_tutor_tag": "指定导师",
+    "materials_badge": "合作中心",
+    "materials_error": "未能载入精读笔记，请重新整理再试。",
+    "owner_add_material": "发布精读笔记"
   }
 }

@@ -78,6 +78,9 @@ export type MaterialRow = {
 const DraftMetaInput = z.object({
   title: z.string().trim().max(160).optional(),
   description: z.string().trim().max(4000).optional(),
+  // #815 §2.4: optional Partner Centre attribution. The seller must be an
+  // active owner/admin of the organisation; the DB trigger re-checks it.
+  organizationId: z.string().uuid().nullish(),
   // #314: HK$0 is a valid price (free pack), only negatives are rejected.
   priceHkd: z.number().min(0).max(100_000).optional(),
   // #784 §2.6: show the #731 1-on-1 CTA on this listing (tutor sellers).
@@ -201,6 +204,8 @@ export type MyMaterialsRow = {
   trailerVideoUrl: string | null;
   whatsIncluded: string[];
   syllabusOutline: string | null;
+  /** #815 §2.4: Partner Centre attribution, null for a personal listing. */
+  organizationId?: string | null;
 };
 
 export async function myTutorRow(
@@ -338,6 +343,43 @@ export async function loadOwnedMaterial(
   if (!data) throw new Error("Note not found.");
   if (data.tutor_id !== tutorId) throw new Error("This note belongs to another account.");
   return data;
+}
+
+/**
+ * #815 §2.4: resolve the optional "publish as Centre" attribution. Only an
+ * active owner/admin of an active Partner Centre may attach it; the DB
+ * trigger is the backstop for direct REST writes.
+ */
+async function resolveSellerOrganisation(
+  db: AdminDb,
+  userId: string,
+  organizationId: string | null | undefined,
+): Promise<string | null> {
+  if (!organizationId) return null;
+  const { data: org, error: orgError } = await db
+    .from<{ id: string; status: string }>("organizations")
+    .select("id, status")
+    .eq("id", organizationId)
+    .maybeSingle();
+  if (orgError) throw new Error(orgError.message);
+  if (!org || org.status !== "active") {
+    throw new Error("Only an active Partner Centre can publish study materials.");
+  }
+  const { data: member, error: memberError } = await db
+    .from<{ role: string; status: string }>("organization_members")
+    .select("role, status")
+    .eq("organization_id", organizationId)
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (memberError) throw new Error(memberError.message);
+  if (
+    !member ||
+    member.status !== "active" ||
+    (member.role !== "owner" && member.role !== "admin")
+  ) {
+    throw new Error("Only a centre owner or admin can publish as that centre.");
+  }
+  return organizationId;
 }
 
 async function generateUniqueSlug(db: AdminDb, title: string, excludeId?: string): Promise<string> {
@@ -637,6 +679,7 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const tutor = await ensureSellerRow(db, context.userId);
+    const sellerOrgId = await resolveSellerOrganisation(db, context.userId, data.organizationId);
     assertCleanCopy({
       title: data.title,
       description: data.description,
@@ -675,6 +718,7 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
         .from<never>("digital_materials")
         .update({
           ...v2ListingPatch(data),
+          ...(data.organizationId !== undefined ? { organization_id: sellerOrgId } : {}),
           ...(data.title != null ? { title: data.title } : {}),
           ...(data.description != null ? { description: data.description } : {}),
           ...(data.priceHkd != null ? { price_hkd: data.priceHkd } : {}),
@@ -697,6 +741,7 @@ export const saveNoteDraft = createServerFn({ method: "POST" })
       .from<{ id: string }>("digital_materials")
       .insert({
         tutor_id: tutor.id,
+        organization_id: sellerOrgId,
         title: data.title?.trim() || "Untitled note",
         description: data.description ?? null,
         price_hkd: data.priceHkd ?? 0,
@@ -911,6 +956,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const tutor = await ensureSellerRow(db, context.userId);
+    const sellerOrgId = await resolveSellerOrganisation(db, context.userId, data.organizationId);
     assertCleanCopy({
       title: data.title,
       description: data.description,
@@ -1024,6 +1070,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       const { error: insertError } = await db.from<never>("digital_materials").insert({
         id: materialId,
         tutor_id: tutor.id,
+        organization_id: sellerOrgId,
         title: merged.title,
         description: data.description ?? null,
         price_hkd: merged.priceHkd,
@@ -1066,6 +1113,7 @@ export const submitNoteForReview = createServerFn({ method: "POST" })
       const { error } = await db
         .from<never>("digital_materials")
         .update({
+          ...(data.organizationId !== undefined ? { organization_id: sellerOrgId } : {}),
           ...(data.title != null ? { title: data.title } : {}),
           ...(data.description != null ? { description: data.description } : {}),
           ...(data.priceHkd != null ? { price_hkd: data.priceHkd } : {}),
@@ -1275,7 +1323,7 @@ export const getMyMaterials = createServerFn({ method: "POST" })
     // Notes upload v2: fall back to the pre-v2 column list when the v2
     // migration is not applied yet (42703 = undefined column).
     const richColumns =
-      "preview_image_paths, trailer_video_url, whats_included, syllabus_outline, link_tutor_profile";
+      "preview_image_paths, trailer_video_url, whats_included, syllabus_outline, link_tutor_profile, organization_id";
     let result = await run(`${baseColumns}, ${v2Columns}, ${richColumns}`);
     if (result.error?.code === "42703") result = await run(`${baseColumns}, ${v2Columns}`);
     if (result.error?.code === "42703") result = await run(baseColumns);
@@ -1323,5 +1371,6 @@ export const getMyMaterials = createServerFn({ method: "POST" })
         ? row.whats_included.filter((p): p is string => typeof p === "string")
         : [],
       syllabusOutline: str(row.syllabus_outline),
+      organizationId: str(row.organization_id),
     }));
   });
