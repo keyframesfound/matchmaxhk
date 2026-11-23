@@ -733,7 +733,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     yearTag: year.trim() || undefined,
     summary: summary.trim() || null,
     subcategory: subcategory || null,
-    searchTags: parseTags(tagsText),
+    searchTags: parseTags(tagsText).slice(0, 5),
     contentLanguage: isContentLanguage(language) ? language : null,
     sourceFormats: Array.from(
       new Set(
@@ -809,7 +809,8 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     apply(year, suggestion.year, setYear);
     apply(language, suggestion.language, setLanguage);
     if (suggestion.tags.length > 0 && (overwrite || !tagsText.trim())) {
-      setTagsText(suggestion.tags.join(", "));
+      // #784 AC-FORM-3: at most five optional #tags, same cap as the chips input.
+      setTagsText(suggestion.tags.slice(0, 5).join(", "));
       filled += 1;
     }
     setAiNote(t("notes.ai.applied", { count: filled }));
