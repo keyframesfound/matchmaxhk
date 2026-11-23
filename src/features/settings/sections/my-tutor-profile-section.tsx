@@ -26,6 +26,7 @@ import { MAX_CUSTOM_HEADLINE } from "@/features/tutors/custom-headline";
 import { draftChineseHeadline } from "@/features/tutors/headline-translate";
 import { Switch } from "@/components/ui/switch";
 import { ScrcReadyCard } from "@/features/trust/scrc-ready";
+import { TutorTimezoneCard } from "@/features/cases/tutor-timezone-card";
 import { contrabandMessage, screenContraband } from "@/features/trust/safety-screen";
 import { Checkbox } from "@/components/ui/checkbox";
 import { SearchableSelect } from "@/components/ui/searchable-select";
@@ -871,6 +872,9 @@ export function MyTutorProfileSection() {
 
           {/* #782 §2.2: optional SCRC Ready self-declaration (no file stored). */}
           {user ? <ScrcReadyCard userId={user.id} /> : null}
+
+          {/* #798: the zone the weekly availability grid is read in. */}
+          {user ? <TutorTimezoneCard userId={user.id} /> : null}
 
           {/* Issue #101: instant visibility toggle, reuses is_published. */}
           <div className="flex items-center justify-between gap-4 rounded-xl border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] px-4 py-3">
