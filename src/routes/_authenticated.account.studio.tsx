@@ -115,6 +115,46 @@ function StudioPage() {
                 {t(optionACopyKey("studio.payout_note"))}
               </p>
             </section>
+            {/* #784 §2.2 / AC-543-6: the recent-sales ledger, with the held
+                and window-closed copy the issue locks on the matching rows. */}
+            <section className="space-y-3 rounded-[var(--radius-panel)] border border-border bg-card p-5">
+              <h2 className="text-base font-bold">{t("studio.recent_sales_title")}</h2>
+              {(data.recentSales ?? []).length === 0 ? (
+                <p className="text-sm text-muted-foreground">{t("studio.recent_sales_empty")}</p>
+              ) : (
+                <ul className="divide-y divide-border">
+                  {data.recentSales.map((sale) => {
+                    const held = ["held", "paid_held", "delivered_held"].includes(sale.status);
+                    return (
+                      <li
+                        key={sale.id}
+                        className="flex flex-wrap items-start justify-between gap-2 py-3"
+                      >
+                        <div className="min-w-0">
+                          <p className="text-sm font-medium text-[color:var(--ink)]">
+                            {sale.title || t("studio.sale_untitled")}
+                          </p>
+                          <p className="mt-0.5 text-xs text-muted-foreground">
+                            {t(
+                              held ? "notes_option_a.seller_sold" : "notes_option_a.window_closed",
+                            )}
+                          </p>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm font-semibold text-[color:var(--ink)]">
+                            {money(sale.netHkd)}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {t("studio.sale_gross", { amount: money(sale.grossHkd) })}
+                          </p>
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              )}
+            </section>
+
             {/* #784 §2.2: private payout details (needed for paid listings). */}
             <PayoutDetailsCard />
 

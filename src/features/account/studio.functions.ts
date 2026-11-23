@@ -13,10 +13,23 @@ import { selectRows } from "@/features/cases/desk-db";
  *  - Total Paid: every payout entry already sent.
  */
 
+/** #784 §2.2 / AC-543-6: one row of the seller's recent-sales ledger. */
+export type SellerSale = {
+  id: string;
+  title: string;
+  grossHkd: number;
+  netHkd: number;
+  status: string;
+  /** Paid-and-held ends here; null once the order left escrow. */
+  holdEndsAt: string | null;
+  soldAt: string;
+};
+
 export type CreatorStudio = {
   inHoldHkd: number;
   availableHkd: number;
   totalPaidHkd: number;
+  recentSales: SellerSale[];
   referral: {
     referralCode: string | null;
     friends: number;
@@ -53,6 +66,7 @@ export const getMyCreatorStudio = createServerFn({ method: "GET" })
       { col: "user_id", op: "eq", value: context.userId },
     ]);
     let inHoldHkd = 0;
+    let recentSales: SellerSale[] = [];
     if (tutors[0]) {
       const held = await selectRows<{ tutor_net_hkd: number | string | null }>(
         db,
@@ -66,6 +80,40 @@ export const getMyCreatorStudio = createServerFn({ method: "GET" })
       );
       inHoldHkd =
         Math.round(held.reduce((sum, r) => sum + (Number(r.tutor_net_hkd) || 0), 0) * 100) / 100;
+
+      // #784 §2.2: the recent earnings ledger the issue locks (notes sold,
+      // hold remaining). Five rows is enough to orient without paginating.
+      const sales = await selectRows<{
+        id: string;
+        gross_hkd: number | string | null;
+        tutor_net_hkd: number | string | null;
+        status: string;
+        hold_expires_at: string | null;
+        hold_until: string | null;
+        paid_at: string | null;
+        delivered_at: string | null;
+        created_at: string;
+        digital_materials: { title: string | null } | null;
+      }>(
+        db,
+        "material_orders",
+        "id, gross_hkd, tutor_net_hkd, status, hold_expires_at, hold_until, paid_at, delivered_at, created_at, digital_materials(title)",
+        [
+          { col: "tutor_id", op: "eq", value: tutors[0].id },
+          // Grants are not sales; they never appear in the earnings ledger.
+          { col: "is_grant", op: "eq", value: false },
+        ],
+        { col: "created_at", asc: false, limit: 5 },
+      );
+      recentSales = sales.map((s) => ({
+        id: s.id,
+        title: s.digital_materials?.title ?? "",
+        grossHkd: Number(s.gross_hkd) || 0,
+        netHkd: Number(s.tutor_net_hkd) || 0,
+        status: s.status,
+        holdEndsAt: s.hold_expires_at ?? s.hold_until ?? null,
+        soldAt: s.delivered_at ?? s.paid_at ?? s.created_at,
+      }));
     }
 
     // The RPC is SECURITY DEFINER on auth.uid() — call it as the user.
@@ -84,5 +132,5 @@ export const getMyCreatorStudio = createServerFn({ method: "GET" })
       };
     }
 
-    return { inHoldHkd, availableHkd, totalPaidHkd, referral };
+    return { inHoldHkd, availableHkd, totalPaidHkd, recentSales, referral };
   });
