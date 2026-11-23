@@ -54,6 +54,14 @@ import {
   uploadOrganizationImage,
 } from "@/features/business/business.functions";
 import { useAuth } from "@/features/auth/useAuth";
+import {
+  COURSE_FORMAT_LABEL_KEYS,
+  COURSE_INSTRUCTION_LANGUAGE_LABELS,
+  isCourseFormat,
+  normalizeHighlights,
+  normalizeInstructionLanguages,
+} from "@/features/business/course-showcase";
+import { CourseEnquiryModal } from "@/features/business/course-enquiry-modal";
 import { useBusinessTracker } from "@/features/business/use-analytics";
 import {
   courseModeLabel,
@@ -122,62 +130,121 @@ function buildWhatsAppUrl(number: string | null, orgName: string): string {
   return `https://wa.me/${digits}?text=${message}`;
 }
 
+const INSTRUCTION_LANGUAGE_LABELS = COURSE_INSTRUCTION_LANGUAGE_LABELS;
+
 function ListingCard({
   course,
+  onEnquire,
 }: {
   course: Awaited<ReturnType<typeof fetchCoursesByOrganizationId>>[number];
+  onEnquire: (course: { id: string; title: string }) => void;
 }) {
+  const { t } = useTranslation();
   const price = formatCoursePrice(course.price, course.currency);
+  const priceLabel = course.price_display?.trim() || price;
+  const formatLabel = isCourseFormat(course.format)
+    ? t(`centre_channel.${COURSE_FORMAT_LABEL_KEYS[course.format]}`)
+    : null;
+  const highlights = normalizeHighlights(course.highlights);
+  const languages = normalizeInstructionLanguages(course.instruction_languages).map(
+    (code) => INSTRUCTION_LANGUAGE_LABELS[code],
+  );
+  const schedule = course.schedule_summary?.trim() || course.schedule_text;
+
   return (
-    <a
-      href={`/courses/${course.id}`}
-      className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-all duration-200 hover:-translate-y-0.5"
-    >
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
-        {course.image_url ? (
-          <img
-            src={course.image_url}
-            alt={course.title}
-            loading="lazy"
-            className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
-          />
-        ) : (
-          <span className="flex h-full w-full items-center justify-center text-muted-foreground">
-            <BookOpen className="h-10 w-10" />
-          </span>
-        )}
-      </div>
-      <div className="flex flex-1 flex-col gap-1.5 p-4">
-        {price ? (
-          <p className="text-base font-bold text-[color:var(--ink)]">{price}</p>
-        ) : (
-          <p className="text-sm font-semibold text-muted-foreground">Enquire for pricing</p>
-        )}
-        <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-[color:var(--ink)] group-hover:text-[color:var(--brand-link)]">
-          {course.title}
-        </h3>
-        <div className="mt-auto flex flex-wrap items-center gap-1.5 pt-1">
-          {course.level ? (
-            <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-0.5 text-xs font-semibold text-blue-700 ring-1 ring-inset ring-blue-700/10 dark:bg-blue-500/10 dark:text-blue-400 dark:ring-blue-400/20">
-              {course.level}
-            </span>
-          ) : null}
-          <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-            {courseModeLabel(course.mode)}
-          </span>
-        </div>
-        <p className="flex items-center gap-1 text-xs text-muted-foreground">
-          {course.district ? (
-            <>
-              <MapPin className="h-3 w-3" />
-              {course.district}
-            </>
+    <article className="group flex flex-col overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-[color:var(--foreground)]/25">
+      {/* Title and image stay a link to the course page; the Enquire button sits
+          outside it so the card never nests a button inside an anchor. */}
+      <a href={`/courses/${course.id}`} className="flex min-w-0 flex-1 flex-col">
+        <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
+          {course.image_url ? (
+            <img
+              src={course.image_url}
+              alt={course.title}
+              loading="lazy"
+              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-[1.03]"
+            />
           ) : (
-            <>Hong Kong</>
+            <span className="flex h-full w-full items-center justify-center text-muted-foreground">
+              <BookOpen className="h-10 w-10" aria-hidden />
+            </span>
           )}
-        </p>
+        </div>
+        <div className="flex flex-1 flex-col gap-1.5 p-4 pb-3">
+          {priceLabel ? (
+            <p className="text-base font-semibold text-[color:var(--ink)]">{priceLabel}</p>
+          ) : (
+            <p className="text-sm font-semibold text-muted-foreground">Enquire for pricing</p>
+          )}
+          <h3 className="line-clamp-2 text-sm font-semibold leading-snug text-[color:var(--ink)] group-hover:text-[color:var(--brand-link)]">
+            {course.title}
+          </h3>
+          <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
+            {course.level ? (
+              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-semibold text-[color:var(--ink)]">
+                {course.level}
+              </span>
+            ) : null}
+            {formatLabel ? (
+              <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+                {formatLabel}
+              </span>
+            ) : null}
+            <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
+              {courseModeLabel(course.mode)}
+            </span>
+            {course.trial_available ? (
+              <span className="inline-flex items-center rounded-full border border-[color:var(--ink)]/20 px-2 py-0.5 text-xs font-semibold text-[color:var(--ink)]">
+                {t("centre_channel.course_trial_badge")}
+              </span>
+            ) : null}
+          </div>
+          {highlights.length > 0 ? (
+            <ul
+              aria-label={t("centre_channel.course_highlights")}
+              className="flex list-disc flex-col gap-0.5 pl-4 text-xs text-muted-foreground marker:text-[color:var(--ink)]/30"
+            >
+              {highlights.map((highlight) => (
+                <li key={highlight} className="line-clamp-1">
+                  {highlight}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+          {languages.length > 0 ? (
+            <p
+              className="text-xs text-muted-foreground"
+              title={t("centre_channel.course_languages")}
+              aria-label={`${t("centre_channel.course_languages")}: ${languages.join(", ")}`}
+            >
+              {languages.join(" · ")}
+            </p>
+          ) : null}
+          <div className="mt-auto flex flex-col gap-1 pt-1 text-xs text-muted-foreground">
+            {schedule ? (
+              <p className="flex items-start gap-1">
+                <CalendarDays className="mt-0.5 h-3 w-3 shrink-0" aria-hidden />
+                <span className="line-clamp-1">{schedule}</span>
+              </p>
+            ) : null}
+            <p className="flex items-center gap-1">
+              <MapPin className="h-3 w-3 shrink-0" aria-hidden />
+              {course.district ?? "Hong Kong"}
+            </p>
+          </div>
+        </div>
+      </a>
+      <div className="px-4 pb-4">
+        <Button
+          variant="solid"
+          color="blue"
+          className="w-full"
+          onClick={() => onEnquire({ id: course.id, title: course.title })}
+        >
+          {t("centre_channel.course_enquire_cta")}
+        </Button>
       </div>
-    </a>
+    </article>
   );
 }
 
@@ -193,6 +260,24 @@ function BusinessPublicProfile() {
   const [identityOpen, setIdentityOpen] = useState(false);
   const [aboutOpen, setAboutOpen] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
+  // #815 §2.5 / §2.3: one enquiry dialog behind both the course cards and the
+  // affiliate "Request lesson" buttons. Only one of course/tutor is set.
+  const [enquiryOpen, setEnquiryOpen] = useState(false);
+  const [enquiryCourse, setEnquiryCourse] = useState<{ id: string; title: string } | null>(null);
+  const [enquiryTutor, setEnquiryTutor] = useState<{
+    tutorCode: string;
+    displayName: string;
+  } | null>(null);
+  const openCourseEnquiry = (course: { id: string; title: string }) => {
+    setEnquiryCourse(course);
+    setEnquiryTutor(null);
+    setEnquiryOpen(true);
+  };
+  const openTutorEnquiry = (tutor: { tutorCode: string; displayName: string }) => {
+    setEnquiryCourse(null);
+    setEnquiryTutor(tutor);
+    setEnquiryOpen(true);
+  };
   const [levelFilter, setLevelFilter] = useState<string | null>(null);
   const [subjectFilter, setSubjectFilter] = useState<string | null>(null);
   const [uploadingImage, setUploadingImage] = useState<"logo" | "cover" | null>(null);
@@ -785,7 +870,11 @@ function BusinessPublicProfile() {
                         </div>
                       )}
                       {filteredCourses.map((course) => (
-                        <ListingCard key={course.id} course={course} />
+                        <ListingCard
+                          key={course.id}
+                          course={course}
+                          onEnquire={openCourseEnquiry}
+                        />
                       ))}
                     </div>
                   </div>
@@ -840,65 +929,90 @@ function BusinessPublicProfile() {
                     </p>
                     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                       {affiliates.map((tutor) => (
-                        <Link
+                        <div
                           key={tutor.tutorCode}
-                          to="/tutors/$tutorCode"
-                          params={{ tutorCode: tutor.tutorCode }}
                           className="flex flex-col gap-3 rounded-xl border border-border bg-card p-4 transition-colors hover:border-[color:var(--foreground)]/30"
                         >
-                          <div className="flex items-center gap-3">
-                            {tutor.photoUrl ? (
-                              <img
-                                src={tutor.photoUrl}
-                                alt=""
-                                className="h-12 w-12 shrink-0 rounded-full object-cover"
-                              />
-                            ) : (
-                              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold text-[color:var(--ink)]">
-                                {tutor.displayName.charAt(0).toUpperCase()}
-                              </span>
-                            )}
-                            <div className="min-w-0">
-                              <p className="flex items-center gap-1 truncate text-sm font-semibold text-[color:var(--ink)]">
-                                {tutor.displayName}
-                                {tutor.verified ? (
-                                  <BadgeCheck
-                                    className="h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
-                                    aria-label="Verified"
-                                  />
-                                ) : null}
-                              </p>
-                              <p className="text-xs text-muted-foreground">{tutor.tutorCode}</p>
-                            </div>
-                          </div>
-                          {tutor.headline ? (
-                            <p className="line-clamp-2 text-sm text-muted-foreground">
-                              {tutor.headline}
-                            </p>
-                          ) : null}
-                          {tutor.subjects.length > 0 ? (
-                            <div className="flex flex-wrap gap-1.5">
-                              {tutor.subjects.map((subject) => (
-                                <span
-                                  key={subject}
-                                  className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
-                                >
-                                  {subject}
+                          {/* The profile link wraps only the identity, so the
+                              Request lesson button is never nested in it. */}
+                          <Link
+                            to="/tutors/$tutorCode"
+                            params={{ tutorCode: tutor.tutorCode }}
+                            className="flex flex-col gap-3"
+                          >
+                            <div className="flex items-center gap-3">
+                              {tutor.photoUrl ? (
+                                <img
+                                  src={tutor.photoUrl}
+                                  alt=""
+                                  className="h-12 w-12 shrink-0 rounded-full object-cover"
+                                />
+                              ) : (
+                                <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-muted text-sm font-bold text-[color:var(--ink)]">
+                                  {tutor.displayName.charAt(0).toUpperCase()}
                                 </span>
-                              ))}
+                              )}
+                              <div className="min-w-0">
+                                <p className="flex items-center gap-1 truncate text-sm font-semibold text-[color:var(--ink)]">
+                                  {tutor.displayName}
+                                  {tutor.verified ? (
+                                    <BadgeCheck
+                                      className="h-4 w-4 shrink-0 text-[color:var(--brand-link)]"
+                                      aria-label="Verified"
+                                    />
+                                  ) : null}
+                                </p>
+                                <p className="text-xs text-muted-foreground">{tutor.tutorCode}</p>
+                              </div>
                             </div>
-                          ) : null}
-                          <div className="mt-auto flex items-center justify-between pt-1 text-sm">
-                            <span className="font-semibold text-[color:var(--ink)]">
-                              {tutor.fromRateHkd
-                                ? t("centre_channel.from_rate", { rate: tutor.fromRateHkd })
-                                : null}
-                            </span>
-                            <span className="font-semibold text-[color:var(--brand-link)]">
-                              {t("centre_channel.view_profile")}
-                            </span>
+                            {tutor.headline ? (
+                              <p className="line-clamp-2 text-sm text-muted-foreground">
+                                {tutor.headline}
+                              </p>
+                            ) : null}
+                            {tutor.subjects.length > 0 ? (
+                              <div className="flex flex-wrap gap-1.5">
+                                {tutor.subjects.map((subject) => (
+                                  <span
+                                    key={subject}
+                                    className="rounded-full bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground"
+                                  >
+                                    {subject}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : null}
+                          </Link>
+                          <div className="mt-auto flex flex-col gap-2 pt-1">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="font-semibold text-[color:var(--ink)]">
+                                {tutor.fromRateHkd
+                                  ? t("centre_channel.from_rate", { rate: tutor.fromRateHkd })
+                                  : null}
+                              </span>
+                              <Link
+                                to="/tutors/$tutorCode"
+                                params={{ tutorCode: tutor.tutorCode }}
+                                className="font-semibold text-[color:var(--brand-link)]"
+                              >
+                                {t("centre_channel.view_profile")}
+                              </Link>
+                            </div>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              className="w-full"
+                              onClick={() =>
+                                openTutorEnquiry({
+                                  tutorCode: tutor.tutorCode,
+                                  displayName: tutor.displayName,
+                                })
+                              }
+                            >
+                              {t("centre_channel.request_lesson")}
+                            </Button>
                           </div>
-                        </Link>
+                        </div>
                       ))}
                     </div>
                   </>
@@ -1042,6 +1156,14 @@ function BusinessPublicProfile() {
           <OrgIdentityDialog org={org} open={identityOpen} onOpenChange={setIdentityOpen} />
           <OrgAboutDialog org={org} open={aboutOpen} onOpenChange={setAboutOpen} />
           <OrgContactDialog org={org} open={contactOpen} onOpenChange={setContactOpen} />
+          <CourseEnquiryModal
+            open={enquiryOpen}
+            onOpenChange={setEnquiryOpen}
+            orgSlug={slug}
+            orgName={org.name}
+            course={enquiryCourse}
+            tutor={enquiryTutor}
+          />
         </>
       )}
     </div>

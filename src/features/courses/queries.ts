@@ -23,6 +23,16 @@ export type Course = {
   is_published: boolean;
   created_at: string;
   updated_at: string;
+  // #815 §2.5: Enquire-only showcase fields.
+  curriculum: string | null;
+  target_grade: string | null;
+  format: string | null;
+  schedule_summary: string | null;
+  price_display: string | null;
+  trial_available: boolean;
+  highlights: string[];
+  instruction_languages: string[];
+  assigned_tutor_id: string | null;
 };
 
 export type CourseWithOrganization = Course & {
