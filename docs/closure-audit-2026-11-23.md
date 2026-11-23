@@ -17,13 +17,19 @@ Verdicts below are SAFE only when every AC has code evidence or a recorded live 
   (`trg_tutor_publish_attestation`) requires the Safety Attestation on any
   false→true `is_published` update; staff and service-role restores are exempt.
   The submit fns already gated apply/accept/upload.
-- Profile-bio contraband screening is client-side only: `screenContraband` is
-  imported into the settings UI (`my-tutor-profile-section.tsx:29,248`) while the
-  server helper `src/features/trust/contraband.server.ts` is not on the bio save.
-- Minor: the quarantine unmatched counter counts all distinct reporters, not only
-  authentic ones (`src/features/trust/quarantine.ts:18-30`).
+- **Corrected 2026-11-23 (the earlier finding was stale):** profile-bio
+  contraband screening is NOT client-side only. `public.contraband_category()`
+  is a SQL mirror of the TS ruleset and `trg_tutors_contraband_guard`
+  (BEFORE INSERT OR UPDATE on `public.tutors`) walks every string/array/object
+  column and raises `P0001` on a hit. Verified live: "I sell weed, DM me" in
+  `self_introduction` → blocked; a clean bio → allowed; probe row deleted.
+- **Corrected 2026-11-23:** the quarantine counter is not a defect.
+  `reports.functions.ts` rejects self-reports and enforces an hourly open-report
+  cap before insert, so `distinct reporter_id` rows are authentic by
+  construction.
 
-**Needed:** code (server-side bio screening); the publish gate is closed.
+**Needed:** nothing known on 2.1 and 2.3; the remaining ACs (SCRC, quarantine,
+Emergency Suspend, §2.5) are under a per-AC evidence pass.
 
 ## #783 Option A cutover readiness
 
