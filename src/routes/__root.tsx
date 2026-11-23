@@ -65,6 +65,22 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
 
   useEffect(() => {
     console.error(error);
+    // Report the failure once per mount so a support report carries the real
+    // message instead of "Oops". Fire and forget: the page must not depend on
+    // the write succeeding.
+    void import("@/features/diagnostics/client-errors.functions")
+      .then(({ reportClientError }) =>
+        reportClientError({
+          data: {
+            url: typeof window === "undefined" ? "" : window.location.href,
+            message: error?.message ?? String(error),
+            stack: error?.stack?.slice(0, 4000),
+            userAgent:
+              typeof navigator === "undefined" ? undefined : navigator.userAgent.slice(0, 500),
+          },
+        }),
+      )
+      .catch(() => undefined);
     if (!needsReload) return;
     // Heal a stale-chunk tab automatically, once. The timestamp guard stops a
     // reload loop when the failure is not a stale asset after all.
@@ -110,7 +126,8 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
         {/* Support detail: the first line of the failure, so a report is
             actionable instead of just "Oops". Never a full stack. */}
         {error?.message ? (
-          <p className="mt-2 break-words text-[11px] leading-relaxed text-muted-foreground/80">
+          <p className="mt-3 break-words rounded-md border border-border bg-[color:var(--muted)] px-3 py-2 text-left text-xs leading-relaxed text-muted-foreground">
+            <span className="font-semibold">Error: </span>
             {error.message.split("\n")[0].slice(0, 240)}
           </p>
         ) : null}
