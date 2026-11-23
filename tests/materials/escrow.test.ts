@@ -102,6 +102,21 @@ describe("splitRefundMoney — seller-funded refund math (#429 CEO lock)", () =>
     });
   });
 
+  it("uses the order's own rate under Option A (2% of the remainder)", () => {
+    // HK$100 gross, HK$40 refunded: remaining 60, 2% fee 1.2, net 58.8.
+    expect(splitRefundMoney(100, 40, 0.02)).toEqual({
+      refundedHkd: 40,
+      platformFeeHkd: 1.2,
+      tutorNetHkd: 58.8,
+    });
+  });
+
+  it("falls back to 20% when the stored rate is missing or invalid", () => {
+    expect(splitRefundMoney(100, 40, Number.NaN).platformFeeHkd).toBe(12);
+    expect(splitRefundMoney(100, 40, -1).platformFeeHkd).toBe(12);
+    expect(splitRefundMoney(100, 40, 2).platformFeeHkd).toBe(12);
+  });
+
   it("charges $0 platform fee and leaves $0 seller net on a 100% refund", () => {
     expect(splitRefundMoney(100, 100)).toEqual({
       refundedHkd: 100,

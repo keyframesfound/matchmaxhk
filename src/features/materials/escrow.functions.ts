@@ -295,8 +295,9 @@ export const decideOrderDispute = createServerFn({ method: "POST" })
         gross_hkd: number;
         dispute_status: string | null;
         tutor_id: string | null;
+        platform_fee_pct: number | null;
       }>("material_orders")
-      .select("id, status, gross_hkd, dispute_status, tutor_id")
+      .select("id, status, gross_hkd, dispute_status, tutor_id, platform_fee_pct")
       .eq("id", data.orderId)
       .maybeSingle();
     if (!order) throw new Error("Order not found.");
@@ -314,7 +315,7 @@ export const decideOrderDispute = createServerFn({ method: "POST" })
       const amount = Number(data.refundAmountHkd);
       const invalid = validateDisputeRefundAmount(amount, gross);
       if (invalid) throw new Error(invalid);
-      const split = splitRefundMoney(gross, amount);
+      const split = splitRefundMoney(gross, amount, Number(order.platform_fee_pct ?? 0.2));
       const { count, error } = await db
         .from<never>("material_orders")
         .update(
