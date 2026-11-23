@@ -1,5 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { DEFAULT_TUTOR_TIMEZONE, formatInTutorZone } from "@/features/cases/tutor-timezone";
 import { CalendarPlus, FileUp, Flag, Loader2, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -695,7 +696,13 @@ function AdminLessonRow({
     <div className="flex flex-wrap items-center gap-2 text-sm">
       <span className="font-medium text-[color:var(--ink)]">
         {t("sor.tutor_lesson_n", { n: sequence })} ·{" "}
-        {format(new Date(lesson.starts_at), "EEE d MMM HH:mm")}
+        {formatInTutorZone(lesson.starts_at, DEFAULT_TUTOR_TIMEZONE, {
+          weekday: "short",
+          day: "numeric",
+          month: "short",
+          hour: "2-digit",
+          minute: "2-digit",
+        })}
       </span>
       <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-2 py-0.5 text-xs text-muted-foreground">
         {t(`sor.tutor_lesson_status_${lesson.status}`)}
