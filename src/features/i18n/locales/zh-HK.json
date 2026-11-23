@@ -3604,6 +3604,7 @@
     "tutor_blackout_add": "加入日子",
     "parent_cases_title": "我的個案",
     "parent_cases_empty": "暫時沒有個案——配對後會顯示在這裡。",
+    "parent_cases_error": "未能載入你的個案，請檢查網絡後再試。",
     "parent_tutor": "導師",
     "parent_fee_note": "此費用由導師支付給 MatchMax，學費則由你直接支付給導師。",
     "parent_lessons_title": "課堂",

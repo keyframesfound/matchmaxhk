@@ -3604,6 +3604,7 @@
     "tutor_blackout_add": "Add date",
     "parent_cases_title": "My cases",
     "parent_cases_empty": "No cases yet, matched cases appear here.",
+    "parent_cases_error": "We couldn't load your cases. Check your connection and try again.",
     "parent_tutor": "Tutor",
     "parent_fee_note": "This fee is paid by your tutor to MatchMax. You pay tuition to your tutor directly.",
     "parent_lessons_title": "Lessons",

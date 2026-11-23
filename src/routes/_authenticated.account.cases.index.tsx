@@ -14,11 +14,17 @@ import { MatchStageChip } from "@/features/cases/parent/match-status-card";
 
 export const Route = createFileRoute("/_authenticated/account/cases/")({
   ssr: false,
+  // A loader that rejects replaces the whole page with the global "Oops"
+  // screen, so a prefetch failure (expired session at boot, transient RPC
+  // error) must not be fatal here: the component runs the same query with its
+  // own error state and retry.
   loader: ({ context }: { context: { queryClient: QueryClient } }) =>
-    context.queryClient.ensureQueryData({
-      queryKey: ["sor", "parent-cases"],
-      queryFn: getMyParentCases,
-    }),
+    context.queryClient
+      .ensureQueryData({
+        queryKey: ["sor", "parent-cases"],
+        queryFn: getMyParentCases,
+      })
+      .catch(() => undefined),
   head: () => ({
     meta: [{ title: "My cases | MatchMax" }, { name: "robots", content: "noindex" }],
   }),
@@ -38,7 +44,7 @@ function feePill(item: ParentCaseListItem, t: ReturnType<typeof useTranslation>[
 
 function ParentCasesPage() {
   const { t } = useTranslation();
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ["sor", "parent-cases"],
     queryFn: getMyParentCases,
   });
@@ -55,7 +61,26 @@ function ParentCasesPage() {
         <div className="mt-6 space-y-3">
           {isLoading && [0, 1].map((i) => <Skeleton key={i} className="h-20 w-full rounded-xl" />)}
 
-          {!isLoading && (data?.length ?? 0) === 0 && (
+          {!isLoading && isError && (
+            <div
+              role="alert"
+              className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm"
+            >
+              <p className="font-medium text-[color:var(--ink)]">{t("sor.parent_cases_error")}</p>
+              <p className="mt-1 text-xs text-muted-foreground">
+                {error instanceof Error ? error.message : ""}
+              </p>
+              <button
+                type="button"
+                onClick={() => void refetch()}
+                className="mt-3 inline-flex items-center justify-center rounded-md border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-3 py-1.5 text-sm font-medium"
+              >
+                {t("page_error.try_again")}
+              </button>
+            </div>
+          )}
+
+          {!isLoading && !isError && (data?.length ?? 0) === 0 && (
             <p className="rounded-xl border border-[color:var(--ink)]/10 p-6 text-sm text-muted-foreground">
               {t("sor.parent_cases_empty")}
             </p>
