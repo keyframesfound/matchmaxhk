@@ -68,13 +68,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     // Report the failure once per mount so a support report carries the real
     // message instead of "Oops". Fire and forget: the page must not depend on
     // the write succeeding.
-    void import("@/features/diagnostics/client-errors.functions")
+    void import("@/features/diagnostics/error-logs.functions")
       .then(({ reportClientError }) =>
         reportClientError({
           data: {
             url: typeof window === "undefined" ? "" : window.location.href,
             message: error?.message ?? String(error),
-            stack: error?.stack?.slice(0, 4000),
+            stack: error?.stack?.slice(0, 8000),
             userAgent:
               typeof navigator === "undefined" ? undefined : navigator.userAgent.slice(0, 500),
           },
@@ -250,6 +250,14 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+
+  // Window-level error listeners: the router boundary never sees a rejection
+  // inside a background query, timer or event handler.
+  useEffect(() => {
+    void import("@/features/diagnostics/error-listener").then(({ installErrorListeners }) =>
+      installErrorListeners(),
+    );
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>
