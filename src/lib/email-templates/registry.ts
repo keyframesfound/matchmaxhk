@@ -61,7 +61,9 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
   "order-delivered": {
     component: OrderDeliveredEmail as unknown as ComponentType<Record<string, unknown>>,
     subject: (data: Record<string, unknown>) =>
-      data?.variant === "tutor" ? "Your note sold" : "Your MatchMax order is delivered",
+      data?.variant === "tutor"
+        ? "Material sold, funds in the 72-hour protection hold"
+        : "Your MatchMax order is delivered",
   },
   "concierge-unpaid-digest": {
     component: ConciergeUnpaidDigestEmail as unknown as ComponentType<Record<string, unknown>>,

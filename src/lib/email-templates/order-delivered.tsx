@@ -24,18 +24,24 @@ export const OrderDeliveredEmail = ({
 }: OrderDeliveredEmailProps) => (
   <Html lang="en" dir="ltr">
     <Head />
-    <Preview>{variant === "tutor" ? "Your note sold" : "Your order is delivered"}</Preview>
+    <Preview>
+      {variant === "tutor" ? "Material sold, funds in the 72-hour hold" : "Your order is delivered"}
+    </Preview>
     <Body style={main}>
       <Container style={container}>
-        <Heading style={h1}>{variant === "tutor" ? "Note sold" : "Order delivered"}</Heading>
+        <Heading style={h1}>{variant === "tutor" ? "Material sold" : "Order delivered"}</Heading>
         <Text style={text}>
           {variant === "tutor"
-            ? `Your note "${title}" has been delivered.`
+            ? `Your material "${title}" sold. Funds are in the 72-hour MatchMax protection hold.`
             : `Your order "${title}" has been delivered. Enjoy!`}
         </Text>
-        {variant === "tutor" && grossHkd != null && <Text style={text}>Gross: {grossHkd}</Text>}
+        {variant === "tutor" && grossHkd != null && (
+          <Text style={text}>Sale price: {grossHkd}</Text>
+        )}
+        {/* #784: never name a rate here. The seller keeps 2% under Option A and
+            the 20% cashier before it, and the template does not know which. */}
         {variant === "tutor" && netHkd != null && (
-          <Text style={text}>Your net (after the 20% platform fee): {netHkd}</Text>
+          <Text style={text}>Your net after the MatchMax platform fee: {netHkd}</Text>
         )}
         <Hr style={hr} />
         <Text style={footer}>Questions? Contact the MatchMax team, we're happy to help.</Text>
