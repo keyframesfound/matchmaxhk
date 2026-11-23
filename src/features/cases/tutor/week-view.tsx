@@ -8,6 +8,7 @@ import i18n from "@/features/i18n/config";
 import { ConsolePanel } from "@/components/ui/console-panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getMyWeekView } from "@/features/cases/tutor.functions";
+import { DEFAULT_TUTOR_TIMEZONE, formatInTutorZone } from "@/features/cases/tutor-timezone";
 import { cn } from "@/lib/utils";
 
 /**
@@ -50,8 +51,16 @@ export function TutorWeekView() {
                         className="h-4 w-4 shrink-0 text-muted-foreground"
                         aria-hidden="true"
                       />
+                      {/* The day grouping above is computed in HKT, so the
+                          clock must be too: a bare format() renders the
+                          DEVICE zone, which put a 20:00 HKT lesson under
+                          Monday while stamping it 12:00 for a tutor abroad. */}
                       <span className="font-medium text-[color:var(--ink)]">
-                        {format(new Date(l.starts_at), "HH:mm")}
+                        {formatInTutorZone(l.starts_at, DEFAULT_TUTOR_TIMEZONE, {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                        })}
                       </span>
                       <span className="text-muted-foreground">
                         {l.student} · {l.case_code}
