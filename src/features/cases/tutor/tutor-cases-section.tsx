@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { dateFnsLocale } from "@/lib/relative-time";
+import { DEFAULT_TUTOR_TIMEZONE, formatInTutorZone } from "@/features/cases/tutor-timezone";
 import { CaseContactLine } from "@/features/cases/case-contact-line";
 import { Bell, CalendarClock, Check, Loader2, Sparkles, Star, X } from "lucide-react";
 import { useState } from "react";
@@ -178,9 +179,15 @@ function LessonRow({
 
   const actions = lessonActionsFor(lesson, new Date(), canMarkDone);
   const busy = confirm.isPending || decline.isPending || cancel.isPending;
-  const startLabel = format(new Date(lesson.starts_at), "EEE d MMM, HH:mm", {
-    locale: dateFnsLocale(i18n.language),
-  });
+  // A lesson instant is absolute; a bare format() would render the DEVICE
+  // zone, so a tutor abroad saw the wrong clock on their own lessons. Same
+  // choice as the week view: HKT until the schedule surfaces move per zone.
+  const startLabel = formatInTutorZone(
+    lesson.starts_at,
+    DEFAULT_TUTOR_TIMEZONE,
+    { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" },
+    i18n.language,
+  );
 
   return (
     <li className="rounded-lg border border-[color:var(--ink)]/10 p-3">
