@@ -308,7 +308,7 @@ export type PublicCaseBoardItem = {
 };
 
 const PUBLIC_CASE_COLUMNS =
-  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, location_estate, schedule_mode, schedule_slots, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, who_for, start_timing, package_type, student_count, rate_unit, is_short_case, scheduled_lesson_count, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, case_type, overflow_lane, net_rate_hkd, compliance_triage, organizations(name, slug, status, org_type, show_public_name)";
+  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, location_estate, schedule_mode, schedule_slots, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, who_for, start_timing, package_type, student_count, rate_unit, is_short_case, scheduled_lesson_count, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, case_type, overflow_lane, net_rate_hkd, compliance_triage, organizations!organisation_id(name, slug, status, org_type, show_public_name)";
 
 // Never contact_name / contact_phone / student_school / student_grade_current.
 // sen_details is also withheld: the board is public and the free-text needs

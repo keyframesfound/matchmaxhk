@@ -144,10 +144,15 @@ type CaseBoardFiltersState = {
 // Hover-intent prefetch target for the case board: cached data renders the
 // board instantly instead of flashing the loading skeleton.
 const caseBoardLoader = async ({ context }: { context: { queryClient: QueryClient } }) => {
-  await context.queryClient.ensureQueryData({
-    queryKey: ["cases", "board"],
-    queryFn: () => getPublicCaseBoard(),
-  });
+  // Intent prefetch means this loader also runs when the Case tab is merely
+  // hovered from another page; a rejection there must not replace that page
+  // with the global error screen. The board's own useQuery fetches again.
+  await context.queryClient
+    .ensureQueryData({
+      queryKey: ["cases", "board"],
+      queryFn: () => getPublicCaseBoard(),
+    })
+    .catch(() => undefined);
 };
 
 export const Route = createFileRoute("/_authenticated/tutor-requests/")({
