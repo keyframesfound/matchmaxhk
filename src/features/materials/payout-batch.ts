@@ -10,9 +10,18 @@
  * the locked minimum, so a seller under HK$50 rolls over untouched.
  */
 
-import { MIN_PAYOUT_HKD, payoutDueHkd } from "@/features/materials/marketplace-policy";
+import {
+  MANAGER_APPROVAL_HKD,
+  MIN_PAYOUT_HKD,
+  payoutDueHkd,
+} from "@/features/materials/marketplace-policy";
 
-export type PayoutLedgerRow = { user_id: string; amount_hkd: number | string };
+export type PayoutLedgerRow = {
+  user_id: string;
+  amount_hkd: number | string;
+  /** sale_net | refund_offset | chargeback_offset | payout | adjustment */
+  kind?: string | null;
+};
 export type PayoutSeller = {
   user_id: string;
   display_name: string | null;
@@ -44,7 +53,14 @@ export type PayoutPreview = {
   dueCount: number;
   belowMinimumCount: number;
   missingDetailsCount: number;
+  /** Magnitude of offsets/adjustments inside the sellers being paid. */
+  adjustmentHkd: number;
+  /** True when the batch needs an Ops Manager sign-off before it writes. */
+  needsManagerApproval: boolean;
 };
+
+/** Ledger kinds that are corrections rather than earned sales. */
+const ADJUSTMENT_KINDS = new Set(["adjustment", "refund_offset", "chargeback_offset"]);
 
 const round2 = (value: number) => Math.round(value * 100) / 100;
 
@@ -60,9 +76,16 @@ export function buildPayoutPreview(
   details: readonly PayoutDetails[],
 ): PayoutPreview {
   const balances = new Map<string, number>();
+  const adjustments = new Map<string, number>();
   for (const entry of entries) {
     const amount = Number(entry.amount_hkd) || 0;
     balances.set(entry.user_id, round2((balances.get(entry.user_id) ?? 0) + amount));
+    if (entry.kind && ADJUSTMENT_KINDS.has(entry.kind)) {
+      adjustments.set(
+        entry.user_id,
+        round2((adjustments.get(entry.user_id) ?? 0) + Math.abs(amount)),
+      );
+    }
   }
 
   const sellerByUser = new Map(sellers.map((s) => [s.user_id, s]));
@@ -89,12 +112,23 @@ export function buildPayoutPreview(
 
   rows.sort((a, b) => b.dueHkd - a.dueHkd || b.balanceHkd - a.balanceHkd);
 
+  const paidUserIds = new Set(rows.filter((row) => row.dueHkd > 0).map((row) => row.userId));
+  const adjustmentHkd = round2(
+    [...adjustments.entries()]
+      .filter(([userId]) => paidUserIds.has(userId))
+      .reduce((sum, [, amount]) => sum + amount, 0),
+  );
+
   return {
     rows,
     dueTotalHkd: round2(rows.reduce((sum, row) => sum + row.dueHkd, 0)),
     dueCount: rows.filter((row) => row.dueHkd > 0).length,
     belowMinimumCount: rows.filter((row) => row.belowMinimum).length,
     missingDetailsCount: rows.filter((row) => row.missingDetails).length,
+    adjustmentHkd,
+    // Policy: adjustments or refunds at or above HK$500 need Ops Manager
+    // sign-off before the batch writes.
+    needsManagerApproval: adjustmentHkd >= MANAGER_APPROVAL_HKD,
   };
 }
 
