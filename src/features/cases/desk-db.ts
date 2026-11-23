@@ -25,8 +25,23 @@ export async function selectRows<T extends Row>(
   if (order) q = q.order(order.col, { ascending: order.asc ?? true });
   if (order?.limit) q = q.limit(order.limit);
   const { data, error } = await q;
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(describeDbError(table, error));
   return (data ?? []) as T[];
+}
+
+/**
+ * PostgREST's `message` alone often hides the cause; `code`, `details` and
+ * `hint` are what name it (PGRST201 lists the competing relationships).
+ * Every read goes through here, so a 400 becomes a legible log row and a
+ * legible error instead of "something failed".
+ */
+export function describeDbError(table: string, error: unknown): string {
+  const e = error as { message?: string; code?: string; details?: string; hint?: string } | null;
+  const parts = [e?.message ?? "Database request failed"];
+  if (e?.code) parts.push(`[${e.code}]`);
+  if (e?.details) parts.push(e.details);
+  if (e?.hint) parts.push(`hint: ${e.hint}`);
+  return `${table}: ${parts.filter(Boolean).join(" ")}`;
 }
 
 /**
@@ -81,7 +96,7 @@ export async function selectRowsInRange<T extends Row>(
     .order(range.col, { ascending: true })
     .limit(range.limit);
   const { data, error } = await q;
-  if (error) throw new Error(error.message);
+  if (error) throw new Error(describeDbError("range read", error));
   return (data ?? []) as T[];
 }
 

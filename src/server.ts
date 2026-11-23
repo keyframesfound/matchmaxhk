@@ -256,6 +256,14 @@ export default {
       return await serveWithEdgeCache({ request, cache, buildId: BUILD_ID, render, waitUntil });
     } catch (error) {
       console.error(error);
+      // #diagnostics: the worker's last-resort catch. Anything that reaches
+      // here is unexpected, so it is always worth a (deduped) row.
+      try {
+        const { logRequestError } = await import("@/features/diagnostics/error-log.server");
+        await logRequestError(request, error);
+      } catch (logFailure) {
+        console.warn("[error-log] worker report failed:", logFailure);
+      }
       return new Response(renderErrorPage(), {
         status: 500,
         headers: { "content-type": "text/html; charset=utf-8" },
