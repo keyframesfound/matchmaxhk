@@ -499,7 +499,12 @@ function OrderPage() {
             {!isGig && order.status === "released" && (
               <div className="flex items-start gap-3 rounded-2xl border border-[#17BF63]/30 bg-[#17BF63]/5 p-5 text-sm">
                 <Check className="mt-0.5 h-4 w-4 shrink-0 text-success" aria-hidden />
-                <p>{t("orders.escrow_banner_released")}</p>
+                <div className="space-y-1">
+                  <p>{t("orders.escrow_banner_released")}</p>
+                  {/* #784 AC-543-6: the locked "window closed" copy on the
+                      state where the dispute window really has ended. */}
+                  <p className="text-muted-foreground">{t("notes_option_a.window_closed")}</p>
+                </div>
               </div>
             )}
 
