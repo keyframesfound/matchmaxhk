@@ -507,7 +507,9 @@
     "triage_duties_hint": "Tutors on MatchMax teach only, requests involving staff or household duties go to a compliance review.",
     "integrity_precheck": "I understand this request involves coursework or assessment terms (TOK / EE / IA / SBA) or a one-off session. Tutors may support and prepare students, but MatchMax tutors never write, complete, or submit assessments on a student's behalf — tutors who refuse academic-integrity grounds keep their full fee protection.",
     "notes_tutor_prefill": "Referred tutor: {{code}} (1-on-1 trial requested from this tutor's Notes page)",
-    "notes_time_prefill": "Preferred time: {{slot}} (HKT)"
+    "notes_time_prefill": "Preferred time: {{slot}} (HKT)",
+    "referred_by_org": "You were referred by a Partner Centre. We will record the referral.",
+    "referred_by": "Referred by {{name}} · Matched on MatchMax"
   },
   "case_status": {
     "title": "Match status",
@@ -4919,7 +4921,17 @@
     "mode_both": "Online or in person",
     "tag_custom_label": "Add a custom tag",
     "tag_custom_placeholder": "Custom tag, e.g. exam strategy",
-    "tag_custom_add": "Add tag"
+    "tag_custom_add": "Add tag",
+    "overflow_lane_title": "What is this request?",
+    "overflow_lane_a": "Our own student (overflow)",
+    "overflow_lane_b": "Refer a parent",
+    "overflow_lane_a_hint": "MatchMax introduces a self-employed tutor for your own student. You pay the tutor directly; the centre pays MatchMax no matching fee.",
+    "overflow_lane_b_hint": "Send the parent to our normal request form. We match them, and your centre is recorded as the referrer.",
+    "overflow_net_rate": "Net rate to the tutor (HK$/hr)",
+    "overflow_cap": "Up to 3 active overflow cases at a time.",
+    "overflow_referral_link": "Referral link",
+    "overflow_referral_copied": "Referral link copied",
+    "overflow_active": "Overflow case"
   },
   "explore_search": {
     "pill_title": "Search tutors, subjects, or #tags",
@@ -5974,5 +5986,10 @@
     "materials_badge": "Partner Centre",
     "materials_error": "Could not load study materials. Refresh to try again.",
     "owner_add_material": "Publish study notes"
+  },
+  "tutor_requests": {
+    "b2b_chip": "B2B overflow",
+    "net_rate": "Net rate: HK${{rate}}/hr",
+    "cap57_overflow": "This is an introduction to a self-employed educator. The centre pays the tutor directly; you pay MatchMax the applicable admin fee."
   }
 }

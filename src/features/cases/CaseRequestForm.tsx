@@ -364,6 +364,10 @@ type CaseRequestFormProps = {
    * the OAuth callback landed back on this form and a validated draft is
    * waiting to auto-commit. */
   completePending?: boolean;
+  /** #815 §2.11 lane B: the referring Partner Centre's public slug from a
+   * referral link. Recorded on the case server-side; never shown to the
+   * parent and never a payout. */
+  referredByOrgSlug?: string | null;
 };
 
 export function CaseRequestForm({
@@ -374,6 +378,7 @@ export function CaseRequestForm({
   tutorCode,
   sourceIssue = "#049",
   completePending = false,
+  referredByOrgSlug = null,
 }: CaseRequestFormProps) {
   const { t } = useTranslation();
   const senCategoryLabels = useSenCategoryLabels();
@@ -1095,6 +1100,8 @@ export function CaseRequestForm({
           feeTermsAck: form.feeAgreed,
           website: honeypot.current?.value || null,
           elapsedMs: Date.now() - startedAt.current,
+          // #815 §2.11 lane B: org referral tag (slug only, resolved server-side).
+          referredByOrgSlug: referredByOrgSlug || undefined,
         },
       });
     },
@@ -1277,6 +1284,13 @@ export function CaseRequestForm({
       onSubmit={handleSubmit}
       className="rounded-[var(--radius-panel)] border border-border bg-[color:var(--surface)] p-5 sm:p-8"
     >
+      {/* #815 §2.11 lane B: arriving from a Partner Centre referral link.
+          The slug is deliberately never rendered. */}
+      {referredByOrgSlug ? (
+        <p className="mb-5 text-sm leading-relaxed text-muted-foreground">
+          {t("case_request.referred_by_org")}
+        </p>
+      ) : null}
       {/* #698: which learner this request was pre-filled for. */}
       {learner ? (
         <p className="mb-5 inline-flex flex-wrap items-center gap-1.5 rounded-full border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/[0.07] px-3 py-1.5 text-sm font-semibold text-[color:var(--ink)]">

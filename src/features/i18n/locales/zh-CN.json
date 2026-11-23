@@ -507,7 +507,9 @@
     "triage_duties_hint": "MatchMax 嘅导师只负责教学——涉及家务或职务嘅个案会交由合规审核。",
     "integrity_precheck": "我了解此个案涉及课程作业或评核术语（TOK / EE / IA / SBA）或单次课堂。导师可以辅助及备试，但 MatchMax 导师绝不会代学生撰写、完成或提交任何评核作业——导师因学术诚信理由拒绝时，仍保留全部行政费保障。",
     "notes_tutor_prefill": "指定导师：{{code}}（由此导师嘅笔记页面申请 1 对 1 试堂）",
-    "notes_time_prefill": "偏好时间：{{slot}}（香港时间）"
+    "notes_time_prefill": "偏好时间：{{slot}}（香港时间）",
+    "referred_by_org": "你由合作中心转介。我哋会记录呢个转介。",
+    "referred_by": "由 {{name}} 转介 · 由 MatchMax 配对"
   },
   "case_status": {
     "title": "配对进度",
@@ -4919,7 +4921,17 @@
     "mode_both": "在线或面授",
     "tag_custom_label": "新增自订标签",
     "tag_custom_placeholder": "自订标签，例如：考试策略",
-    "tag_custom_add": "新增标签"
+    "tag_custom_add": "新增标签",
+    "overflow_lane_title": "呢个系边类申请？",
+    "overflow_lane_a": "我哋自己嘅学生（溢出）",
+    "overflow_lane_b": "转介家长",
+    "overflow_lane_a_hint": "MatchMax 会为你哋自己嘅学生介绍自雇导师。学费由你哋直接支付导师；中心无须向 MatchMax 支付配对费。",
+    "overflow_lane_b_hint": "请家长使用我哋一般嘅申请表格。我哋负责配对，并记录你哋中心为转介机构。",
+    "overflow_net_rate": "导师净时薪（港币／小时）",
+    "overflow_cap": "同时最多 3 个进行中嘅溢出个案。",
+    "overflow_referral_link": "转介链接",
+    "overflow_referral_copied": "已复制转介链接",
+    "overflow_active": "溢出个案"
   },
   "explore_search": {
     "pill_title": "搜寻导师、科目或 #标签",
@@ -5974,5 +5986,10 @@
     "materials_badge": "合作中心",
     "materials_error": "未能载入精读笔记，请重新整理再试。",
     "owner_add_material": "发布精读笔记"
+  },
+  "tutor_requests": {
+    "b2b_chip": "B2B 溢出",
+    "net_rate": "净时薪：港币 {{rate}}／小时",
+    "cap57_overflow": "此为独立自雇教育工作者的介绍。学费由中心直接支付导师；你须向 MatchMax 支付适用嘅行政费。"
   }
 }
