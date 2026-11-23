@@ -280,7 +280,7 @@ export const getOrganizationCases = createServerFn({ method: "GET" })
     const { data: rows, error } = await supabaseAdmin
       .from("tutoring_cases")
       .select(
-        "id, case_code, title, status, sor_status, package_type, budget_min_hkd, budget_max_hkd, rate_unit, board_published_at, created_at, compliance_note",
+        "id, case_code, title, status, sor_status, package_type, budget_min_hkd, budget_max_hkd, rate_unit, board_published_at, created_at, compliance_note, course_id, contact_name, contact_phone, contact_email, requested_tutor_id, tags, source",
       )
       .eq("organisation_id", data.orgId)
       .order("created_at", { ascending: false })
@@ -299,6 +299,13 @@ export const getOrganizationCases = createServerFn({ method: "GET" })
       board_published_at: string | null;
       created_at: string;
       compliance_note: string | null;
+      course_id: string | null;
+      contact_name: string | null;
+      contact_phone: string | null;
+      contact_email: string | null;
+      requested_tutor_id: string | null;
+      tags: string[];
+      source: string;
     }>;
   });
 

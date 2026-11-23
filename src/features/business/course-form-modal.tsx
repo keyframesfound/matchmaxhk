@@ -21,6 +21,19 @@ import {
   deleteOrganizationImage,
   uploadOrganizationImage,
 } from "@/features/business/business.functions";
+import {
+  COURSE_FORMATS,
+  COURSE_FORMAT_LABELS,
+  COURSE_HIGHLIGHTS_MAX,
+  COURSE_HIGHLIGHT_MAX_CHARS,
+  COURSE_INSTRUCTION_LANGUAGES,
+  COURSE_INSTRUCTION_LANGUAGE_LABELS,
+  COURSE_PRICE_DISPLAY_MAX_CHARS,
+  COURSE_SCHEDULE_SUMMARY_MAX_CHARS,
+  normalizeHighlights,
+  normalizeInstructionLanguages,
+} from "@/features/business/course-showcase";
+import { listAssignableAffiliates } from "@/features/business/course-showcase.functions";
 import type { Organization } from "@/features/business/useMyOrganization";
 import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
@@ -50,7 +63,18 @@ type FormState = {
   end_date: string;
   district: string;
   is_published: boolean;
+  curriculum: string;
+  target_grade: string;
+  format: string;
+  schedule_summary: string;
+  price_display: string;
+  trial_available: boolean;
+  highlights: string[];
+  instruction_languages: string[];
+  assigned_tutor_id: string;
 };
+
+type AffiliateOption = { userId: string; tutorCode: string; displayName: string };
 
 const WEEKDAY_OPTIONS = [
   { code: "sun", label: "Sun" },
@@ -61,6 +85,38 @@ const WEEKDAY_OPTIONS = [
   { code: "fri", label: "Fri" },
   { code: "sat", label: "Sat" },
 ];
+
+/** The form always shows three highlight slots, even when a course has fewer. */
+function toHighlightSlots(values: string[] | null | undefined): string[] {
+  const slots = (values ?? []).slice(0, COURSE_HIGHLIGHTS_MAX);
+  while (slots.length < COURSE_HIGHLIGHTS_MAX) slots.push("");
+  return slots;
+}
+
+function ChipToggle({
+  active,
+  onClick,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-pressed={active}
+      onClick={onClick}
+      className={`rounded-full border px-3 py-1 text-xs font-semibold transition-colors ${
+        active
+          ? "border-[color:var(--btn-accent)] bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)]"
+          : "border-transparent bg-muted text-muted-foreground hover:text-[color:var(--ink)]"
+      }`}
+    >
+      {children}
+    </button>
+  );
+}
 
 function getInitialFormState(course: Course | null, duplicate: boolean): FormState {
   return {
@@ -77,6 +133,15 @@ function getInitialFormState(course: Course | null, duplicate: boolean): FormSta
     end_date: course?.end_date ?? "",
     district: course?.district ?? "",
     is_published: duplicate ? false : (course?.is_published ?? true),
+    curriculum: course?.curriculum ?? "",
+    target_grade: course?.target_grade ?? "",
+    format: course?.format ?? "",
+    schedule_summary: course?.schedule_summary ?? "",
+    price_display: course?.price_display ?? "",
+    trial_available: course?.trial_available ?? false,
+    highlights: toHighlightSlots(course?.highlights),
+    instruction_languages: [...(course?.instruction_languages ?? [])],
+    assigned_tutor_id: course?.assigned_tutor_id ?? "",
   };
 }
 
@@ -90,10 +155,12 @@ export function CourseFormModal({
 }: CourseFormModalProps) {
   const uploadImageFn = useServerFn(uploadOrganizationImage);
   const deleteImageFn = useServerFn(deleteOrganizationImage);
+  const listAffiliatesFn = useServerFn(listAssignableAffiliates);
 
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [removingImage, setRemovingImage] = useState(false);
+  const [affiliates, setAffiliates] = useState<AffiliateOption[]>([]);
   const [imageUrl, setImageUrl] = useState<string | null>(course?.image_url ?? null);
   const [imageKey, setImageKey] = useState<string | null>(null);
   const [form, setForm] = useState<FormState>(() => getInitialFormState(course, duplicate));
@@ -104,6 +171,25 @@ export function CourseFormModal({
     setImageUrl(course?.image_url ?? null);
     setImageKey(null);
   }, [open, course, duplicate]);
+
+  // The tutor list is a convenience, never a blocker: a failed fetch leaves the
+  // "No assigned tutor" option in place.
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    setAffiliates([]);
+    void (async () => {
+      try {
+        const rows = await listAffiliatesFn({ data: { orgId: organization.id } });
+        if (!cancelled) setAffiliates(rows ?? []);
+      } catch {
+        if (!cancelled) setAffiliates([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, organization.id, listAffiliatesFn]);
 
   const setField = (patch: Partial<FormState>) => setForm((prev) => ({ ...prev, ...patch }));
 
@@ -173,6 +259,15 @@ export function CourseFormModal({
       district: form.district || null,
       image_url: imageUrl,
       is_published: form.is_published,
+      curriculum: form.curriculum.trim() || null,
+      target_grade: form.target_grade.trim() || null,
+      format: form.format || null,
+      schedule_summary: form.schedule_summary.trim() || null,
+      price_display: form.price_display.trim() || null,
+      trial_available: form.trial_available,
+      highlights: normalizeHighlights(form.highlights),
+      instruction_languages: normalizeInstructionLanguages(form.instruction_languages),
+      assigned_tutor_id: form.assigned_tutor_id || null,
     };
 
     setSaving(true);
@@ -191,7 +286,16 @@ export function CourseFormModal({
       }
       onSaved();
     } catch (error) {
-      toast.error(error instanceof Error ? error.message : "Failed to save course");
+      const message = error instanceof Error ? error.message : "";
+      if (message.includes("is not an approved affiliated tutor")) {
+        // The DB guard fires when a card still points at a tutor whose
+        // affiliation was withdrawn. Raw Postgres text would confuse the admin.
+        toast.error(
+          "That tutor is no longer affiliated with your centre. Clear the assigned tutor and save again.",
+        );
+      } else {
+        toast.error(message || "Failed to save course");
+      }
     } finally {
       setSaving(false);
     }
@@ -331,10 +435,9 @@ export function CourseFormModal({
                 {WEEKDAY_OPTIONS.map((day) => {
                   const active = form.session_days.includes(day.code);
                   return (
-                    <button
+                    <ChipToggle
                       key={day.code}
-                      type="button"
-                      aria-pressed={active}
+                      active={active}
                       onClick={() =>
                         setField({
                           session_days: active
@@ -342,14 +445,9 @@ export function CourseFormModal({
                             : [...form.session_days, day.code],
                         })
                       }
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ring-1 ring-inset transition-colors ${
-                        active
-                          ? "bg-[color:var(--btn-accent)] text-[color:var(--btn-accent-fg)] ring-[color:var(--btn-accent)]"
-                          : "bg-muted text-muted-foreground ring-transparent hover:text-[color:var(--ink)]"
-                      }`}
                     >
                       {day.label}
-                    </button>
+                    </ChipToggle>
                   );
                 })}
               </div>
@@ -386,6 +484,144 @@ export function CourseFormModal({
                 placeholder="e.g. Every Sat 2–4pm, 12 weeks"
                 value={form.schedule_text}
                 onChange={(e) => setField({ schedule_text: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div className="space-y-4 rounded-lg border border-border p-3">
+            <div>
+              <p className="text-sm font-semibold">Showcase</p>
+              <p className="text-xs text-muted-foreground">
+                Shown on the public course card. All of it is optional.
+              </p>
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-1.5">
+                <Label htmlFor="course-curriculum">Curriculum</Label>
+                <Input
+                  id="course-curriculum"
+                  maxLength={80}
+                  placeholder="e.g. HKDSE / IBDP"
+                  value={form.curriculum}
+                  onChange={(e) => setField({ curriculum: e.target.value })}
+                />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="course-target-grade">Target grade</Label>
+                <Input
+                  id="course-target-grade"
+                  maxLength={60}
+                  placeholder="e.g. S4–S6"
+                  value={form.target_grade}
+                  onChange={(e) => setField({ target_grade: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Format</Label>
+              <SearchableSelect
+                value={form.format}
+                onChange={(v) => setField({ format: v })}
+                options={[
+                  { value: "", label: "No format" },
+                  ...COURSE_FORMATS.map((value) => ({
+                    value,
+                    label: COURSE_FORMAT_LABELS[value],
+                  })),
+                ]}
+                placeholder="No format"
+                searchPlaceholder="Search format..."
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="course-schedule-summary">Schedule summary</Label>
+              <Input
+                id="course-schedule-summary"
+                maxLength={COURSE_SCHEDULE_SUMMARY_MAX_CHARS}
+                placeholder="e.g. Every Sat, 2–4pm, 8 weeks"
+                value={form.schedule_summary}
+                onChange={(e) => setField({ schedule_summary: e.target.value })}
+              />
+              <p className="text-xs text-muted-foreground">
+                {form.schedule_summary.length}/{COURSE_SCHEDULE_SUMMARY_MAX_CHARS}
+              </p>
+            </div>
+
+            <div className="space-y-1.5">
+              <Label htmlFor="course-price-display">Price display</Label>
+              <Input
+                id="course-price-display"
+                maxLength={COURSE_PRICE_DISPLAY_MAX_CHARS}
+                placeholder="e.g. HK$480 per lesson (enquire to reserve)"
+                value={form.price_display}
+                onChange={(e) => setField({ price_display: e.target.value })}
+              />
+            </div>
+
+            <div className="space-y-3">
+              {Array.from({ length: COURSE_HIGHLIGHTS_MAX }, (_, index) => (
+                <div key={index} className="space-y-1.5">
+                  <Label htmlFor={`course-highlight-${index}`}>{`Highlight ${index + 1}`}</Label>
+                  <Input
+                    id={`course-highlight-${index}`}
+                    maxLength={COURSE_HIGHLIGHT_MAX_CHARS}
+                    placeholder="One line on what makes this course worth it."
+                    value={form.highlights[index] ?? ""}
+                    onChange={(e) => {
+                      const next = [...form.highlights];
+                      next[index] = e.target.value;
+                      setField({ highlights: next });
+                    }}
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="space-y-1.5">
+              <Label>Instruction languages</Label>
+              <div className="flex flex-wrap gap-1.5">
+                {COURSE_INSTRUCTION_LANGUAGES.map((code) => {
+                  const active = form.instruction_languages.includes(code);
+                  return (
+                    <ChipToggle
+                      key={code}
+                      active={active}
+                      onClick={() =>
+                        setField({
+                          instruction_languages: active
+                            ? form.instruction_languages.filter((item) => item !== code)
+                            : [...form.instruction_languages, code],
+                        })
+                      }
+                    >
+                      {COURSE_INSTRUCTION_LANGUAGE_LABELS[code] ?? code}
+                    </ChipToggle>
+                  );
+                })}
+              </div>
+            </div>
+
+            <Toggle
+              label="Trial available"
+              hint="Shows a Trial available badge on the public card"
+              checked={form.trial_available}
+              onCheckedChange={(checked) => setField({ trial_available: checked })}
+            />
+
+            <div className="space-y-1.5">
+              <Label>Assigned tutor</Label>
+              <SearchableSelect
+                value={form.assigned_tutor_id}
+                onChange={(v) => setField({ assigned_tutor_id: v })}
+                options={[
+                  { value: "", label: "No assigned tutor" },
+                  ...affiliates.map((row) => ({ value: row.userId, label: row.displayName })),
+                ]}
+                placeholder="No assigned tutor"
+                searchPlaceholder="Search tutor..."
               />
             </div>
           </div>

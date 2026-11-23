@@ -739,6 +739,15 @@ function RequestsPanel({
         <div className="divide-y divide-border rounded-lg border border-border bg-card">
           {cases.map((row) => {
             const held = row.status === "compliance_hold";
+            // #815 §2.5 (AC-CRS-2): a course showcase enquiry is a lead, not a
+            // dispatched case. Surface who enquired and which tutor they asked for.
+            const isCourseEnquiry = row.source === "website_centre_course";
+            const requestedTutorTag = isCourseEnquiry
+              ? ((row.tags ?? []).find((tag) => tag.startsWith("[Requested Tutor:")) ?? null)
+              : null;
+            const requestedTutorLabel = requestedTutorTag
+              ? requestedTutorTag.replace(/^\[/, "").replace(/\]$/, "")
+              : null;
             return (
               <div key={row.id} className="px-4 py-3">
                 <div className="flex flex-wrap items-center justify-between gap-3">
@@ -761,6 +770,26 @@ function RequestsPanel({
                               ? "Declined"
                               : "With the matching desk"}
                     </p>
+                    {isCourseEnquiry ? (
+                      <p className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+                        <span className="font-medium">Enquirer</span>
+                        {row.contact_name ? <span>{row.contact_name}</span> : null}
+                        {row.contact_phone ? (
+                          <a href={`tel:${row.contact_phone}`}>{row.contact_phone}</a>
+                        ) : null}
+                        {row.contact_email ? <span>{row.contact_email}</span> : null}
+                      </p>
+                    ) : null}
+                    {requestedTutorLabel ? (
+                      <span className="mt-1 inline-flex rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium text-muted-foreground">
+                        {requestedTutorLabel}
+                      </span>
+                    ) : null}
+                    {isCourseEnquiry ? (
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Course enquiry, not a paid enrolment.
+                      </p>
+                    ) : null}
                   </div>
                   <span
                     className={cn(

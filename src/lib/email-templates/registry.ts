@@ -2,6 +2,7 @@ import type { ComponentType } from "react";
 
 import { AccountStatusEmail } from "./account-status";
 import { ActionRequiredEmail } from "./action-required";
+import { CentreEnquiryEmail } from "./centre-enquiry";
 import { ConciergeUnpaidDigestEmail } from "./concierge-unpaid-digest";
 import { FeeReceiptEmail } from "./fee-receipt";
 import { FeeReminderEmail } from "./fee-reminder";
@@ -105,5 +106,12 @@ export const TEMPLATES: Record<string, TemplateEntry> = {
         },
       ],
     },
+  },
+  // #815 §2.5: a public course enquiry notifies the centre admins. An
+  // enquiry only, never a paid enrolment, so no payment wording appears.
+  "centre-enquiry": {
+    component: CentreEnquiryEmail as unknown as ComponentType<Record<string, unknown>>,
+    subject: (data: Record<string, unknown>) =>
+      `New enquiry: ${String((data as { courseTitle?: unknown }).courseTitle ?? "Partner Centre course")}`,
   },
 };

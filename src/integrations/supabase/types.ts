@@ -127,71 +127,149 @@ export type Database = {
           },
         ];
       };
+      centre_affiliations: {
+        Row: {
+          centre_id: string;
+          created_at: string;
+          decided_at: string | null;
+          decided_by: string | null;
+          id: string;
+          requested_by: string | null;
+          role_type: string;
+          status: string;
+          user_id: string;
+        };
+        Insert: {
+          centre_id: string;
+          created_at?: string;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          id?: string;
+          requested_by?: string | null;
+          role_type: string;
+          status?: string;
+          user_id: string;
+        };
+        Update: {
+          centre_id?: string;
+          created_at?: string;
+          decided_at?: string | null;
+          decided_by?: string | null;
+          id?: string;
+          requested_by?: string | null;
+          role_type?: string;
+          status?: string;
+          user_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "centre_affiliations_centre_id_fkey";
+            columns: ["centre_id"];
+            isOneToOne: false;
+            referencedRelation: "organizations";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "centre_affiliations_user_id_fkey";
+            columns: ["user_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       courses: {
         Row: {
+          assigned_tutor_id: string | null;
           created_at: string;
           created_by: string | null;
           currency: string;
+          curriculum: string | null;
           description: string | null;
           district: string | null;
           end_date: string | null;
+          format: string | null;
+          highlights: string[];
           id: string;
           image_url: string | null;
+          instruction_languages: string[];
           is_published: boolean;
           level: string | null;
           mode: Database["public"]["Enums"]["case_mode"];
           organization_id: string;
           price: number | null;
+          price_display: string | null;
+          schedule_summary: string | null;
           schedule_text: string | null;
           session_days: string[];
           start_date: string | null;
           subject: string | null;
           summary: string | null;
+          target_grade: string | null;
           title: string;
+          trial_available: boolean;
           updated_at: string;
         };
         Insert: {
+          assigned_tutor_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           currency?: string;
+          curriculum?: string | null;
           description?: string | null;
           district?: string | null;
           end_date?: string | null;
+          format?: string | null;
+          highlights?: string[];
           id?: string;
           image_url?: string | null;
+          instruction_languages?: string[];
           is_published?: boolean;
           level?: string | null;
           mode?: Database["public"]["Enums"]["case_mode"];
           organization_id: string;
           price?: number | null;
+          price_display?: string | null;
+          schedule_summary?: string | null;
           schedule_text?: string | null;
           session_days?: string[];
           start_date?: string | null;
           subject?: string | null;
           summary?: string | null;
+          target_grade?: string | null;
           title: string;
+          trial_available?: boolean;
           updated_at?: string;
         };
         Update: {
+          assigned_tutor_id?: string | null;
           created_at?: string;
           created_by?: string | null;
           currency?: string;
+          curriculum?: string | null;
           description?: string | null;
           district?: string | null;
           end_date?: string | null;
+          format?: string | null;
+          highlights?: string[];
           id?: string;
           image_url?: string | null;
+          instruction_languages?: string[];
           is_published?: boolean;
           level?: string | null;
           mode?: Database["public"]["Enums"]["case_mode"];
           organization_id?: string;
           price?: number | null;
+          price_display?: string | null;
+          schedule_summary?: string | null;
           schedule_text?: string | null;
           session_days?: string[];
           start_date?: string | null;
           subject?: string | null;
           summary?: string | null;
+          target_grade?: string | null;
           title?: string;
+          trial_available?: boolean;
           updated_at?: string;
         };
         Relationships: [
@@ -1088,6 +1166,8 @@ export type Database = {
           case_code: string;
           contact_name: string;
           contact_phone: string;
+          contact_email: string | null;
+          course_id: string | null;
           created_at: string;
           desk_language: string;
           description: string | null;
@@ -1105,6 +1185,7 @@ export type Database = {
           parent_id: string | null;
           preferred_gender: Database["public"]["Enums"]["case_gender_pref"];
           requester_type: string | null;
+          requested_tutor_id: string | null;
           schedule_note: string | null;
           learner_nickname: string | null;
           location_estate: string | null;
@@ -1170,6 +1251,8 @@ export type Database = {
           case_code?: string;
           contact_name: string;
           contact_phone: string;
+          contact_email?: string | null;
+          course_id?: string | null;
           created_at?: string;
           desk_language?: string;
           description?: string | null;
@@ -1187,6 +1270,7 @@ export type Database = {
           parent_id?: string | null;
           preferred_gender?: Database["public"]["Enums"]["case_gender_pref"];
           requester_type?: string | null;
+          requested_tutor_id?: string | null;
           schedule_note?: string | null;
           learner_nickname?: string | null;
           location_estate?: string | null;
@@ -1254,6 +1338,8 @@ export type Database = {
           case_code?: string;
           contact_name?: string;
           contact_phone?: string;
+          contact_email?: string | null;
+          course_id?: string | null;
           created_at?: string;
           desk_language?: string;
           description?: string | null;
@@ -1271,6 +1357,7 @@ export type Database = {
           parent_id?: string | null;
           preferred_gender?: Database["public"]["Enums"]["case_gender_pref"];
           requester_type?: string | null;
+          requested_tutor_id?: string | null;
           schedule_note?: string | null;
           learner_nickname?: string | null;
           location_estate?: string | null;
