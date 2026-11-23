@@ -13,18 +13,17 @@ Verdicts below are SAFE only when every AC has code evidence or a recorded live 
 
 **Verdict: NOT SAFE.**
 
-- Tutor *publish* path is not gated by `assertSafetyAttestation`. The gate
-  exists on `submitNoteForReview` (`src/features/materials/note-drafts.functions.ts:945-955`)
-  and the other submit fns, but not on the join re-submit path or the settings
-  `is_published` toggle, which writes the tutors row directly
-  (`src/features/settings/sections/my-tutor-profile-section.tsx:795-796`).
+- **Closed 2026-11-23:** the tutor publish path is now gated. A DB trigger
+  (`trg_tutor_publish_attestation`) requires the Safety Attestation on any
+  false→true `is_published` update; staff and service-role restores are exempt.
+  The submit fns already gated apply/accept/upload.
 - Profile-bio contraband screening is client-side only: `screenContraband` is
   imported into the settings UI (`my-tutor-profile-section.tsx:29,248`) while the
   server helper `src/features/trust/contraband.server.ts` is not on the bio save.
 - Minor: the quarantine unmatched counter counts all distinct reporters, not only
   authentic ones (`src/features/trust/quarantine.ts:18-30`).
 
-**Needed:** code (server-side attestation on publish, server bio screen).
+**Needed:** code (server-side bio screening); the publish gate is closed.
 
 ## #783 Option A cutover readiness
 
@@ -36,11 +35,11 @@ Verdicts below are SAFE only when every AC has code evidence or a recorded live 
   address autocomplete) not located in code.
 - Post-cutover ACs (AC-559-1 copy purge, AC-544-2) cannot be satisfied while
   `NOTES_OPTION_A_LIVE=false`.
-- `splitRefundMoney` hardcodes the 20% fee (`src/features/materials/lifecycle.ts:452`)
-  and must read the flag before the flip, or partial refunds keep the old split.
+- **Closed 2026-11-23:** `splitRefundMoney` now takes the order's
+  `platform_fee_pct` (2% Option A, 20% cashier, safe fallback), so partial
+  refunds price correctly after the flip.
 
-**Needed:** live QA (owner/staff), code (flag-aware fee split), owner decision on
-the two unlocated §2.6 items.
+**Needed:** live QA (owner/staff), owner decision on the two unlocated §2.6 items.
 
 ## #784 Notes marketplace payout and states
 

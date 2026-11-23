@@ -445,11 +445,18 @@ export function disputeReasonLabelKey(reason: string): string {
 export function splitRefundMoney(
   grossHkd: number,
   refundAmountHkd: number,
+  /** #784 §2.1: the order's own platform rate (2% under Option A, 20% cashier). */
+  platformFeePct: number = 0.2,
 ): { refundedHkd: number; platformFeeHkd: number; tutorNetHkd: number } {
   const gross = Math.round(grossHkd * 100) / 100;
   const refundedHkd = Math.min(Math.max(Math.round(refundAmountHkd * 100) / 100, 0), gross);
   const remaining = Math.round((gross - refundedHkd) * 100) / 100;
-  const platformFeeHkd = Math.round(remaining * 0.2 * 100) / 100;
+  // A bad or missing rate falls back to the cashier 20%, never to zero.
+  const pct =
+    Number.isFinite(platformFeePct) && platformFeePct >= 0 && platformFeePct <= 1
+      ? platformFeePct
+      : 0.2;
+  const platformFeeHkd = Math.round(remaining * pct * 100) / 100;
   return {
     refundedHkd,
     platformFeeHkd,
