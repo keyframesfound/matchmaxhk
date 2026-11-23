@@ -2916,6 +2916,11 @@ export function ApplicationForm({ completePending = false }: { completePending?:
         </ol>
 
         <div ref={stepperRef}>
+          {draftSavedAt ? (
+            <p className="mb-3 text-xs font-medium text-muted-foreground" aria-live="polite">
+              {t("common.draft_saved")}
+            </p>
+          ) : null}
           {referralCode ? (
             <div className="mb-6 flex items-start gap-2.5 rounded-sm border border-border bg-[color:var(--surface)] px-4 py-3 text-sm leading-relaxed text-muted-foreground">
               <Gift className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
