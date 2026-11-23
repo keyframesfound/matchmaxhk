@@ -68,13 +68,19 @@ appeared under Monday but typed 12:00 for a tutor in London. It now formats in
 HKT via `formatInTutorZone`. When the grouping moves to the tutor's zone, this
 call moves with it.
 
-## Open product decision
+## Decision: stored values stay HKT
 
-Blackout dates and roster wall-clock entry are inherently zone-relative:
+Blackout dates and roster wall-clock entry are inherently zone-relative, and
+there are two ways to read them. The call (2026-11-23) is **keep HKT for every
+stored value**:
 
-- **Keep HKT** — simplest, no migration, but a non-HK tutor must think in HKT
-  when blocking a date or entering attendance.
-- **Migrate to the tutor's zone** — correct for the tutor, needs a data
-  migration for existing rows and a per-row zone record.
+- no migration, so no existing tutor's blackouts, weekly windows, availability
+  grids or attendance times can shift;
+- `tutors.timezone` then only affects how a surface *renders* a value that is
+  already absolute (lesson instants) and how the grid is *labelled*;
+- a non-HK tutor blocks a date and enters attendance in HKT — acceptable while
+  the roster is overwhelmingly HK-based, and reversible later because the data
+  was never reinterpreted.
 
-Nothing in the conversion should start on those two until that is answered.
+If a non-HK cohort ever appears, the migration is: add a per-row zone column,
+backfill `Asia/Hong_Kong`, then convert reads — never reinterpret in place.
