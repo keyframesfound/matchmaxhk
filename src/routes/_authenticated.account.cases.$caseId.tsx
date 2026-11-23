@@ -2,6 +2,7 @@ import { DemandSidePanel } from "@/features/cases/demand-side/demand-side-panel"
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
+import { DEFAULT_TUTOR_TIMEZONE, formatInTutorZone } from "@/features/cases/tutor-timezone";
 import { CalendarPlus, Check, FileText, Loader2, Star, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -230,7 +231,15 @@ function ParentCaseDetailPage() {
                 >
                   <span className="text-sm font-medium text-[color:var(--ink)]">
                     {t("sor.tutor_lesson_n", { n: l.sequence })} ·{" "}
-                    {format(new Date(l.starts_at), "EEE d MMM HH:mm")}
+                    {/* Absolute instant: a bare format() would use the DEVICE
+                        zone. HKT until the schedule surfaces move per zone. */}
+                    {formatInTutorZone(l.starts_at, DEFAULT_TUTOR_TIMEZONE, {
+                      weekday: "short",
+                      day: "numeric",
+                      month: "short",
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
                   </span>
                   <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-2 py-0.5 text-xs text-muted-foreground">
                     {t(`sor.tutor_lesson_status_${l.status}`)}
