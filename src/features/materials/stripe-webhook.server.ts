@@ -83,7 +83,34 @@ export async function handleStripeEvent(stripe: Stripe, event: Stripe.Event): Pr
       .eq("id", orderId)
       .eq("status", "awaiting_payment");
     if (error) throw new Error(error.message);
-    if ((count ?? 0) === 0) return "already_processed";
+    if ((count ?? 0) === 0) {
+      // A previous attempt may have flipped the order to paid and then failed
+      // before delivery. performOrderRelease writes "stamp_failed" on exactly
+      // that R2/stamp error, and a crashed run can leave "stamping" behind, so
+      // the recovery claim covers all three undelivered states. The claim is a
+      // single conditional UPDATE, so concurrent duplicate events cannot both
+      // deliver (and double-increment sold_count).
+      const staleBefore = new Date(Date.now() - 10 * 60 * 1000).toISOString();
+      // Reclaim a crashed run first: a stale "stamping" row is treated as failed.
+      await db
+        .from<never>("material_orders")
+        .update({ status: "stamp_failed" })
+        .eq("id", orderId)
+        .eq("status", "stamping")
+        .lte("updated_at", staleBefore)
+        .or("delivered_at.is.null");
+      const { count: claimed, error: claimError } = await db
+        .from<never>("material_orders")
+        .update({ status: "stamping" }, { count: "exact" })
+        .eq("id", orderId)
+        .in("status", ["paid", "paid_held", "stamp_failed"])
+        .or("delivered_at.is.null");
+      if (claimError) throw new Error(claimError.message);
+      if ((claimed ?? 0) === 0) return "already_processed";
+      const { deliverStripePaidOrder } = await import("@/features/materials/checkout.functions");
+      await deliverStripePaidOrder(db, orderId);
+      return "delivery_recovered";
+    }
 
     const { deliverStripePaidOrder } = await import("@/features/materials/checkout.functions");
     await deliverStripePaidOrder(db, orderId);
