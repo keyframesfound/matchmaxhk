@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  AUTOMATED_EMAIL_WINDOW_MS,
   automatedSlotOpen,
   emailClassFor,
   promoSubjectsAllowed,
@@ -9,34 +10,81 @@ import {
   verifyUnsubscribeToken,
 } from "../../src/lib/email-templates/email-policy";
 
-describe("#783 email policy", () => {
-  it("keeps every existing template transactional", () => {
-    for (const name of ["fee-receipt", "fee-reminder", "lesson-update", "action-required"]) {
-      expect(emailClassFor(name)).toBe("transactional");
+const DAY = 24 * 60 * 60 * 1000;
+const NOW = new Date("2026-11-23T12:00:00Z");
+
+describe("#783 §2.3 email policy — the 7-day automated cap", () => {
+  it("treats receipts and lifecycle mail as transactional, the digest as marketing", () => {
+    for (const t of ["fee-receipt", "order-delivered", "account-status", "action-required"]) {
+      expect(emailClassFor(t)).toBe("transactional");
     }
-    registerAutomatedMarketingTemplate("tutors-open-slots-digest");
-    expect(emailClassFor("tutors-open-slots-digest")).toBe("automated_marketing");
+    expect(emailClassFor("weekly-digest")).toBe("automated_marketing");
+    expect(emailClassFor("not-a-template")).toBe("transactional");
   });
 
-  it("allows one automated email per 7 days", () => {
-    const now = new Date("2026-11-17T00:00:00Z");
-    expect(automatedSlotOpen(null, now)).toBe(true);
-    expect(automatedSlotOpen("2026-11-12T00:00:00Z", now)).toBe(false);
-    expect(automatedSlotOpen("2026-11-10T00:00:00Z", now)).toBe(true);
+  it("opens the slot when nothing was ever sent", () => {
+    expect(automatedSlotOpen(null, NOW)).toBe(true);
+    expect(automatedSlotOpen("", NOW)).toBe(true);
   });
 
-  it("suppresses promo subjects with an active trial or case", () => {
-    expect(promoSubjectsAllowed(["IB Biology", "IB Chemistry"], ["IB Biology"])).toEqual([
-      "IB Chemistry",
-    ]);
-    expect(promoSubjectsAllowed(["Biology"], ["IB Biology HL"])).toEqual([]);
+  it("closes the slot at 6d 23h and opens it at exactly 7 days", () => {
+    const sixDays = new Date(NOW.getTime() - 6 * DAY).toISOString();
+    const exactlySeven = new Date(NOW.getTime() - AUTOMATED_EMAIL_WINDOW_MS).toISOString();
+    expect(automatedSlotOpen(sixDays, NOW)).toBe(false);
+    expect(automatedSlotOpen(exactlySeven, NOW)).toBe(true);
   });
 
-  it("signs and verifies a one-click unsubscribe token", async () => {
-    const id = "123e4567-e89b-12d3-a456-426614174000";
-    const token = await signUnsubscribeToken(id, "secret");
-    expect(await verifyUnsubscribeToken(token, "secret")).toBe(id);
-    expect(await verifyUnsubscribeToken(token, "other")).toBeNull();
-    expect(await verifyUnsubscribeToken(`${id}.deadbeef`, "secret")).toBeNull();
+  it("fails open on an unparseable timestamp rather than blocking mail forever", () => {
+    expect(automatedSlotOpen("not-a-date", NOW)).toBe(true);
+  });
+
+  it("drops promos for subjects the parent already has a trial or case in", () => {
+    const allowed = promoSubjectsAllowed(
+      ["Physics", "Chemistry", "Biology"],
+      ["physics", "  CHEMISTRY  "],
+    );
+    expect(allowed).toEqual(["Biology"]);
+  });
+
+  it("returns nothing when every promo subject is already active", () => {
+    expect(promoSubjectsAllowed(["Maths"], ["maths"]).length).toBe(0);
+  });
+
+  it("keeps every promo subject when there is no active case", () => {
+    expect(promoSubjectsAllowed(["Maths", "Physics"], [])).toEqual(["Maths", "Physics"]);
+  });
+
+  it("lets a new template register as marketing", () => {
+    registerAutomatedMarketingTemplate("promo-test");
+    expect(emailClassFor("promo-test")).toBe("automated_marketing");
+  });
+});
+
+const USER_A = "3f2b8c1e-9a4d-4c77-8f10-2b6d5e9c7a11";
+const USER_B = "7c1d4e2f-8b3a-4d65-9e02-1a5c8f7b6d33";
+
+describe("#783 §2.3 unsubscribe token", () => {
+  it("round-trips a signed token to the user id", async () => {
+    const token = await signUnsubscribeToken(USER_A, "secret");
+    expect(await verifyUnsubscribeToken(token, "secret")).toBe(USER_A);
+  });
+
+  it("rejects a tampered user id and a wrong secret", async () => {
+    const token = await signUnsubscribeToken(USER_A, "secret");
+    const [, signature] = token.split(".");
+    // Swapping in another real uuid must fail the signature check, not just
+    // the uuid shape check.
+    expect(await verifyUnsubscribeToken(`${USER_B}.${signature}`, "secret")).toBeNull();
+    expect(await verifyUnsubscribeToken(token, "other-secret")).toBeNull();
+  });
+
+  it("rejects a non-uuid subject", async () => {
+    const token = await signUnsubscribeToken("user-1", "secret");
+    expect(await verifyUnsubscribeToken(token, "secret")).toBeNull();
+  });
+
+  it("rejects a malformed token", async () => {
+    expect(await verifyUnsubscribeToken("garbage", "secret")).toBeNull();
+    expect(await verifyUnsubscribeToken("a.b.c", "secret")).toBeNull();
   });
 });
