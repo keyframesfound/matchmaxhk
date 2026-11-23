@@ -11,7 +11,7 @@ Verdicts below are SAFE only when every AC has code evidence or a recorded live 
 
 ## #782 Safety attestation and contraband screening
 
-**Verdict: NOT SAFE.**
+**Verdict: SAFE — closed 2026-11-23** (per-AC evidence table posted on the issue).
 
 - **Closed 2026-11-23:** the tutor publish path is now gated. A DB trigger
   (`trg_tutor_publish_attestation`) requires the Safety Attestation on any
@@ -28,8 +28,10 @@ Verdicts below are SAFE only when every AC has code evidence or a recorded live 
   cap before insert, so `distinct reporter_id` rows are authentic by
   construction.
 
-**Needed:** nothing known on 2.1 and 2.3; the remaining ACs (SCRC, quarantine,
-Emergency Suspend, §2.5) are under a per-AC evidence pass.
+All parts verified: 2.1 (attestation, incl. the DB publish trigger), 2.2 (SCRC
+toggle/pill/preference), 2.3 (TS + DB contraband), 2.4 (1+3 quarantine, Emergency
+Suspend, reporter anonymity), 2.5 (behaviour reports + strike ladder, staff desk).
+Closed with the evidence table on the issue.
 
 ## #783 Option A cutover readiness
 
