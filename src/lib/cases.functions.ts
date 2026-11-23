@@ -28,6 +28,7 @@ import { sanitizeCaseFreeText } from "@/lib/contact-filter";
 import { screenCaseRequest } from "@/features/trust/safety-screen";
 import { buildCaseTitle as buildStructuredTitle } from "@/features/cases/case-title";
 import { DUPLICATE_SUBJECT_ERROR_PREFIX } from "@/features/cases/trial-lock";
+import type { TablesInsert } from "@/integrations/supabase/types";
 
 /**
  * #412 E: parent B2C triage routing. Exported for the vitest suite. A
@@ -151,6 +152,9 @@ const CaseRequestInput = z
       engager: z.enum(["myself_child", "organisation_third_party"]),
       nonTutoringDuties: z.enum(["no", "yes"]),
     }),
+    // #815 §2.11 lane B: an organisation referral slug on a normal B2C case.
+    // Resolved server-side; an unknown or inactive slug is ignored.
+    referredByOrgSlug: z.string().trim().max(80).optional(),
     termsAck: z.literal(true),
     // Issue #253 (F2): the matching-fee agreement (fee-2026-10) is a
     // separate, mandatory checkbox; the version is recorded server-side.
@@ -266,6 +270,13 @@ export type PublicCaseBoardItem = {
   budgetMaxHkd: number | null;
   boardPublishedAt: string | null;
   createdAt: string;
+  /**
+   * #815 §2.11 lane A: the case is a centre's own overflow student — the org
+   * pays the educator a net rate off-platform and never pays a matching fee.
+   */
+  b2b: boolean;
+  /** #815 §2.11: the off-platform net rate in HKD (lane A only). */
+  netRateHkd: number | null;
   // Issues #412 / #423 B2B slice: verified centre identity on centre cases
   // (null on parent cases). verified = org status "active" post BR review.
   // #582 3-stage reveal: the full name only leaves the server once the
@@ -296,7 +307,7 @@ export type PublicCaseBoardItem = {
 };
 
 const PUBLIC_CASE_COLUMNS =
-  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, location_estate, schedule_mode, schedule_slots, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, who_for, start_timing, package_type, student_count, rate_unit, is_short_case, scheduled_lesson_count, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, case_type, compliance_triage, organizations(name, slug, status, org_type, show_public_name)";
+  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, location_estate, schedule_mode, schedule_slots, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, who_for, start_timing, package_type, student_count, rate_unit, is_short_case, scheduled_lesson_count, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, case_type, overflow_lane, net_rate_hkd, compliance_triage, organizations(name, slug, status, org_type, show_public_name)";
 
 // Never contact_name / contact_phone / student_school / student_grade_current.
 // sen_details is also withheld: the board is public and the free-text needs
@@ -356,6 +367,10 @@ function mapPublicCaseRow(
     // Issue #423: tolerant reads, every legacy row predating the migration
     // carries the same defaults the DB columns were added with.
     caseType: (row.case_type as string | null) ?? null,
+    // #815 §2.11: lane A overflow flag + the centre's net rate. Both are
+    // tolerant reads — every legacy row has no lane and no net rate.
+    b2b: row.overflow_lane === "centre_overflow",
+    netRateHkd: typeof row.net_rate_hkd === "number" ? row.net_rate_hkd : null,
     packageType:
       row.package_type === "short_20" || row.package_type === "pro_bono"
         ? row.package_type
@@ -455,7 +470,9 @@ export const getPublicCaseBoard = createServerFn({ method: "GET" }).handler(asyn
     supabaseAdmin.from("app_settings").select("value").eq("key", "whatsapp_number").maybeSingle(),
   ]);
   if (casesResult.error) throw new Error(casesResult.error.message);
-  const rows = (casesResult.data ?? []) as Array<Record<string, unknown>>;
+  // #815: `overflow_lane` / `net_rate_hkd` are not in the generated types yet,
+  // so the select result is widened before the mapper reads it tolerantly.
+  const rows = (casesResult.data ?? []) as unknown as Array<Record<string, unknown>>;
   const settingsValue = settingsResult.data?.value;
   const items = rows.map((r) => mapPublicCaseRow(r));
   const trust = await parentTrustByCase(
@@ -719,6 +736,20 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       }
     }
 
+    // #815 §2.11 lane B: a referral slug records the referring organisation on
+    // a normal B2C case. Never fails the submit — an unknown, inactive or
+    // malformed slug is simply not recorded.
+    let referredByOrgId: string | null = null;
+    if (data.referredByOrgSlug) {
+      const { data: referredOrg } = await supabaseAdmin
+        .from("organizations")
+        .select("id")
+        .eq("slug", data.referredByOrgSlug)
+        .eq("status", "active")
+        .maybeSingle();
+      referredByOrgId = (referredOrg as { id: string } | null)?.id ?? null;
+    }
+
     const insertRow = {
       // Issue #459: website cases never set parent_id, so "My cases" and the
       // parent-side case actions (ownership-gated on it) never saw them.
@@ -821,9 +852,16 @@ export const submitCaseRequest = createServerFn({ method: "POST" })
       compliance_triage: { scope: "parent", ...data.triage },
     };
 
+    // #815 §2.11 lane B: `referred_by_organization_id` is absent from the
+    // generated types until the migration's types are regenerated, so the
+    // payload is cast to the real insert shape locally.
+    const insertPayload = {
+      ...insertRow,
+      referred_by_organization_id: referredByOrgId,
+    };
     const { data: row, error } = await supabaseAdmin
       .from("tutoring_cases")
-      .insert(insertRow)
+      .insert(insertPayload as unknown as TablesInsert<"tutoring_cases">)
       .select("id,case_code")
       .single();
     if (error) throw new Error(error.message);

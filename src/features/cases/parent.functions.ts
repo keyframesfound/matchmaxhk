@@ -217,6 +217,8 @@ export type ParentCaseDetail = {
   mode: string | null;
   district: string | null;
   parentDisplayName: string | null;
+  /** #815 §2.11 lane B: the Partner Centre that referred this parent, if any. */
+  referredByOrgName: string | null;
   /** #650 per-case first-visit share lifecycle (null = table pre-migration). */
   safetyShare: {
     prompt_seen_at: string | null;
@@ -289,11 +291,12 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         student_count: number | null;
         district: string | null;
         mode: string | null;
+        referred_by_organization_id: string | null;
         tutors: MatchedTutorRow | null;
       }>(
         db,
         "tutoring_cases",
-        "case_code, title, subjects, exam_system, student_level, status, matched_tutor_id, ended_by_parent_at, ended_by_tutor_at, hourly_rate_hkd, student_count, district, mode, tutors(tutor_code, display_name, photo_url, undergrad_university)",
+        "case_code, title, subjects, exam_system, student_level, status, matched_tutor_id, ended_by_parent_at, ended_by_tutor_at, hourly_rate_hkd, student_count, district, mode, referred_by_organization_id, tutors(tutor_code, display_name, photo_url, undergrad_university)",
         [{ col: "id", op: "eq", value: c.id }],
       ),
       selectRows<{
@@ -346,6 +349,14 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
       ]),
     ]);
     const head = full[0];
+    // #815 §2.11 lane B: the referring Partner Centre's public name only.
+    const referredOrgName = head?.referred_by_organization_id
+      ? ((
+          await selectRows<{ name: string }>(db, "organizations", "name", [
+            { col: "id", op: "eq", value: head.referred_by_organization_id },
+          ])
+        )[0]?.name ?? null)
+      : null;
 
     // Derived slots for the picker when the case is fee_paid|active.
     const canRequestSlot = c.sor_status === "fee_paid" || c.sor_status === "active";
@@ -502,6 +513,7 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
       mode: head?.mode ?? null,
       district: head?.district ?? null,
       parentDisplayName: parentNameRows[0]?.display_name ?? null,
+      referredByOrgName: referredOrgName,
       safetyShare: safetyShareRows[0]
         ? {
             prompt_seen_at: safetyShareRows[0].prompt_seen_at,

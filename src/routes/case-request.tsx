@@ -7,6 +7,7 @@ import { hourlyRangeLabel } from "@/features/tutors/availability-grid-model";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { CaseRequestForm } from "@/features/cases/CaseRequestForm";
+import { isReferralSlug } from "@/features/cases/overflow-lane";
 import { hasPendingCompleteParam, stripPendingCompleteParam } from "@/lib/pending-submit";
 
 /**
@@ -31,6 +32,8 @@ export const Route = createFileRoute("/case-request")({
       req_subject?: string;
       req_time?: string;
       complete_pending_submit?: boolean;
+      /** #815 §2.11 lane B: the referring Partner Centre's public slug. */
+      org?: string;
     } = {};
     if (search.post === "1" || search.post === true || search.post === "true") result.post = true;
     // Keep the public tutor code only (MM-T### per lib/tutor-code.ts — no
@@ -51,6 +54,9 @@ export const Route = createFileRoute("/case-request")({
       }
     }
     if (hasPendingCompleteParam(search)) result.complete_pending_submit = true;
+    // #815 §2.11 lane B: an org referral link records the referrer, nothing
+    // else — the slug is validated here and resolved server-side on submit.
+    if (isReferralSlug(search.org)) result.org = search.org;
     return result;
   },
   ssr: false,
@@ -121,6 +127,7 @@ function CaseRequestPage() {
             idPrefix="cr"
             sourceIssue={search.tutor ? "#731" : "#049"}
             tutorCode={search.tutor ?? null}
+            referredByOrgSlug={search.org ?? null}
             completePending={search.complete_pending_submit === true}
             prefillNote={prefillNote}
             prefillStudy={

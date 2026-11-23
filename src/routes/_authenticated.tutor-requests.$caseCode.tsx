@@ -644,6 +644,13 @@ function CaseDetailPage() {
                       {item.caseCode}
                     </span>
                     <CaseTypeBadge item={item} />
+                    {/* #815 §2.11 AC-OV-4: overflow lane marker, same chip
+                    treatment as the case-type badge (flat border, no shadow). */}
+                    {item.b2b ? (
+                      <span className="inline-flex shrink-0 items-center rounded-full border border-border bg-[color:var(--card-tint)] px-2 py-0.5 text-[11px] font-semibold text-[color:var(--ink)]">
+                        {t("tutor_requests.b2b_chip")}
+                      </span>
+                    ) : null}
                     <span className="text-xs text-muted-foreground">
                       {t("case_board.posted_ago", {
                         ago: formatPostedAgo(item.createdAt, i18n.language),
@@ -747,6 +754,15 @@ function CaseDetailPage() {
                     ))}
                   </ul>
                 </div>
+
+                {/* #815 §2.11 AC-OV-4: 57 independent-operator disclosure.
+                Informational only, it precedes the Cap. 57 confirm gate
+                below and changes none of that gate's logic. */}
+                {item.b2b ? (
+                  <p className="rounded-[var(--radius-control)] border border-border bg-muted/30 px-4 py-3 text-sm leading-relaxed text-foreground/80">
+                    {t("tutor_requests.cap57_overflow")}
+                  </p>
+                ) : null}
 
                 {/* Issue #412 E / #423 B2B: centre identity + Cap.57 chip +
                 the read-only screening summary with the confirm/clarify
@@ -937,6 +953,13 @@ function CaseDetailPage() {
                   <div className="flex flex-wrap items-center gap-2">
                     <CaseFeePill packageType={item.packageType} />
                   </div>
+                  {/* #815 §2.11 AC-OV-4: the attributed net rate on an
+                  overflow case. Absent on a legacy row, so nothing renders. */}
+                  {item.b2b && item.netRateHkd != null ? (
+                    <p className="text-sm font-semibold text-[color:var(--ink)]">
+                      {t("tutor_requests.net_rate", { rate: item.netRateHkd })}
+                    </p>
+                  ) : null}
                   <p className="text-sm font-semibold text-[color:var(--ink)]">
                     {t(caseFeeNoteKey(resolveCaseType(item)))}
                   </p>

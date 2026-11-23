@@ -1186,6 +1186,9 @@ export type Database = {
           preferred_gender: Database["public"]["Enums"]["case_gender_pref"];
           requester_type: string | null;
           requested_tutor_id: string | null;
+          overflow_lane: string | null;
+          net_rate_hkd: number | null;
+          referred_by_organization_id: string | null;
           schedule_note: string | null;
           learner_nickname: string | null;
           location_estate: string | null;
@@ -1271,6 +1274,9 @@ export type Database = {
           preferred_gender?: Database["public"]["Enums"]["case_gender_pref"];
           requester_type?: string | null;
           requested_tutor_id?: string | null;
+          overflow_lane?: string | null;
+          net_rate_hkd?: number | null;
+          referred_by_organization_id?: string | null;
           schedule_note?: string | null;
           learner_nickname?: string | null;
           location_estate?: string | null;
@@ -1358,6 +1364,9 @@ export type Database = {
           preferred_gender?: Database["public"]["Enums"]["case_gender_pref"];
           requester_type?: string | null;
           requested_tutor_id?: string | null;
+          overflow_lane?: string | null;
+          net_rate_hkd?: number | null;
+          referred_by_organization_id?: string | null;
           schedule_note?: string | null;
           learner_nickname?: string | null;
           location_estate?: string | null;

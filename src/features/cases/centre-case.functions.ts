@@ -8,6 +8,11 @@ import {
 } from "@/features/cases/centre-request-rules";
 
 import { enforceCaseTierConsistency } from "@/features/cases/case-options";
+import {
+  OVERFLOW_CAP_MESSAGE,
+  OVERFLOW_TAG,
+  canPostOverflow,
+} from "@/features/cases/overflow-lane";
 import { buildCaseTitle as buildStructuredTitle } from "@/features/cases/case-title";
 import {
   buildVerticalInsert,
@@ -84,6 +89,9 @@ const CentreCaseInput = z.object({
   studentCount: z.literal(CENTRE_CASE_STUDENTS).default(CENTRE_CASE_STUDENTS),
   studentFirstName: z.string().trim().min(1).max(40),
   rateUnit: z.enum(["hr", "lesson", "month"]).default("hr"),
+  // #815 §2.11 lane A: the off-platform net rate the centre pays the
+  // educator. Never published; the org never pays MatchMax a matching fee.
+  netRateHkd: z.number().int().min(0).max(100000).optional().nullable(),
   notes: z.string().trim().max(500).optional().nullable(),
   triage: CentreTriageInput,
   feeAck: z.literal(true),
@@ -145,11 +153,39 @@ export async function requireOrgMembership(userId: string, orgId: string) {
   return org;
 }
 
+/**
+ * #815 §2.11: the overflow-cap count. The generated types do not carry
+ * `overflow_lane` yet (the migration lands separately), so this one query is
+ * cast to the builder surface it actually uses.
+ */
+type OverflowCountQuery = {
+  eq: (col: string, value: unknown) => OverflowCountQuery;
+  not: (col: string, operator: string, value: string) => OverflowCountQuery;
+} & PromiseLike<{
+  count: number | null;
+  error: { message: string } | null;
+}>;
+
 export const submitCentreCaseRequest = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => CentreCaseInput.parse(data))
   .handler(async ({ data, context }) => {
     const org = await requireOrgMembership(context.userId, data.orgId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+
+    // #815 §2.11 lane A: at most three active overflow cases per org. The cap
+    // is server-enforced; the form is only a hint.
+    const overflowQuery = supabaseAdmin
+      .from("tutoring_cases")
+      .select("id", { count: "exact", head: true }) as unknown as OverflowCountQuery;
+    const { count: activeOverflow, error: overflowError } = await overflowQuery
+      .eq("organisation_id", org.id)
+      .eq("overflow_lane", "centre_overflow")
+      .not("status", "in", "(matched,closed,rejected,released)");
+    if (overflowError) throw new Error(overflowError.message);
+    if (!canPostOverflow(activeOverflow ?? 0)) {
+      throw new Error(OVERFLOW_CAP_MESSAGE);
+    }
 
     // #412 Part 1 hard gate: staff/employee recruitment is rejected outright
     // with the sanctioned copy, no case row is created for it.
@@ -229,7 +265,10 @@ export const submitCentreCaseRequest = createServerFn({ method: "POST" })
       // record; contact fields carry the authorised representative.
       contact_name: org.rep_name ?? org.name,
       contact_phone: org.contact_phone ?? "",
-      tags: [],
+      tags: [OVERFLOW_TAG],
+      // #815 §2.11: an overflow case belongs to the centre, never to a parent
+      // account; the explicit null keeps ownership checks honest.
+      parent_id: null,
       sen_required: false,
       sen_categories: [],
       source: "website_centre",
@@ -239,10 +278,16 @@ export const submitCentreCaseRequest = createServerFn({ method: "POST" })
       board_published_at: null,
     };
 
-    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // #815 §2.11 lane A columns: absent from the generated types until the
+    // migration's types are regenerated, so they ride in untyped.
+    const overflowColumns = {
+      overflow_lane: "centre_overflow",
+      net_rate_hkd: data.netRateHkd ?? null,
+      referred_by_organization_id: org.id,
+    };
     const { data: row, error } = await supabaseAdmin
       .from("tutoring_cases")
-      .insert(insertRow)
+      .insert({ ...insertRow, ...overflowColumns } as never)
       .select("id,case_code")
       .single();
     if (error) throw new Error(error.message);

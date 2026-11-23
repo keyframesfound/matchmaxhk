@@ -2,7 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useTranslation } from "react-i18next";
-import { Building2, ShieldAlert } from "lucide-react";
+import { Building2, Copy, ShieldAlert } from "lucide-react";
 import { toast } from "sonner";
 
 import { SiteHeader } from "@/components/layout/SiteHeader";
@@ -32,6 +32,7 @@ import { useMyOrganization } from "@/features/business/useMyOrganization";
 import { FEE_TERMS_VERSION } from "@/features/legal/terms";
 import { SUPPORTED_CURRENCIES } from "@/lib/money";
 import { TUTOR_POOL_MESSAGE, isTutorPoolRequest } from "@/features/cases/centre-request-rules";
+import { OVERFLOW_ACTIVE_CAP, referralLink } from "@/features/cases/overflow-lane";
 
 export const Route = createFileRoute("/_authenticated/business/cases/new")({
   head: () => ({
@@ -39,6 +40,40 @@ export const Route = createFileRoute("/_authenticated/business/cases/new")({
   }),
   component: CentreCaseRequestPage,
 });
+
+type Lane = "overflow" | "refer";
+
+/**
+ * #815 §2.11 (AC-OV-1): the two Partner Org lanes. Lane A posts an overflow
+ * case for the org's own student; lane B sends the parent to the normal B2C
+ * request form, so the org submits nothing. Rendered at the top of both
+ * branches so an org can switch without losing the page.
+ */
+function LanePicker({ lane, onChange }: { lane: Lane; onChange: (lane: Lane) => void }) {
+  const { t } = useTranslation();
+  return (
+    <div className="space-y-3">
+      <p className="text-sm font-semibold text-[color:var(--ink)]">
+        {t("case_intake.overflow_lane_title")}
+      </p>
+      <RadioCards
+        layout="list"
+        aria-label={t("case_intake.overflow_lane_title")}
+        value={lane}
+        onValueChange={(next) => onChange(next === "refer" ? "refer" : "overflow")}
+        options={[
+          { value: "overflow", label: t("case_intake.overflow_lane_a") },
+          { value: "refer", label: t("case_intake.overflow_lane_b") },
+        ]}
+      />
+      <p className="text-xs leading-relaxed text-muted-foreground">
+        {lane === "overflow"
+          ? t("case_intake.overflow_lane_a_hint")
+          : t("case_intake.overflow_lane_b_hint")}
+      </p>
+    </div>
+  );
+}
 
 // Issue #412 E, the 4-part Cap.57-safe triage. MatchMax facilitates only
 // Contracts for Services with independent educators; employment/staff
@@ -52,6 +87,10 @@ function CentreCaseRequestPage() {
   const submitFn = useServerFn(submitCentreCaseRequest);
   const [submitting, setSubmitting] = useState(false);
   const [blocked, setBlocked] = useState(false);
+  // #815 §2.11: lane A is the org's own student, lane B a parent referral.
+  const [lane, setLane] = useState<Lane>("overflow");
+  // Lane A net rate to the tutor, paid off-platform, optional.
+  const [netRate, setNetRate] = useState("");
 
   const [form, setForm] = useState({
     // Case basics
@@ -143,6 +182,8 @@ function CentreCaseRequestPage() {
           budgetMin: form.budgetMin ? Number(form.budgetMin) : null,
           budgetMax: form.budgetMax ? Number(form.budgetMax) : null,
           budgetCurrency: form.budgetCurrency,
+          // #815 §2.11: lane A net rate to the tutor, blank means "not set".
+          netRateHkd: netRate.trim() === "" ? null : Number(netRate),
           packageType: form.packageType as "ongoing_1_5" | "short_20" | "pro_bono",
           studentCount: 1,
           studentFirstName: form.studentFirstName.trim(),
@@ -219,6 +260,73 @@ function CentreCaseRequestPage() {
     );
   }
 
+  // #815 §2.11 (AC-OV-2): a parent referral is a normal B2C case, so the org
+  // submits nothing. Hide the centre form and hand over the referral link.
+  if (lane === "refer") {
+    // SSR-safe: the origin is only available in the browser; the refer lane
+    // renders after hydration in practice, and an empty prefix degrades to the
+    // relative path rather than throwing.
+    const referralUrl = `${typeof window === "undefined" ? "" : window.location.origin}${referralLink(organization.slug)}`;
+    const copyReferral = async () => {
+      try {
+        await navigator.clipboard.writeText(referralUrl);
+        toast.success(t("case_intake.overflow_referral_copied"));
+      } catch {
+        toast.error(t("settings.referrals.copy_error"));
+      }
+    };
+
+    return (
+      <div className="flex min-h-screen flex-col bg-background">
+        <SiteHeader />
+        <main className="flex-1 py-12">
+          <div className="mx-auto max-w-2xl px-4 sm:px-6">
+            <div className="text-center">
+              <span className="inline-flex items-center gap-2 rounded-full bg-muted px-3 py-1 text-xs font-semibold text-muted-foreground">
+                <Building2 className="h-3.5 w-3.5" /> Education Partner
+              </span>
+              <h1 className="mt-4 text-3xl font-bold tracking-tight text-[color:var(--ink)]">
+                New case request
+              </h1>
+              <p className="mt-3 text-sm text-muted-foreground sm:text-base">
+                Engage an independent educator for a course module, exam clinic, or class series.
+                MatchMax does not provide staff or employment recruitment, every request is screened
+                before it can reach educators.
+              </p>
+            </div>
+
+            <div className="mt-8 space-y-5 rounded-lg border border-border bg-card p-6 sm:p-8">
+              <LanePicker lane={lane} onChange={setLane} />
+              <div className="space-y-1.5 border-t border-border pt-5">
+                <Label htmlFor="overflow-referral-link">
+                  {t("case_intake.overflow_referral_link")}
+                </Label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    id="overflow-referral-link"
+                    readOnly
+                    value={referralUrl}
+                    onFocus={(event) => event.currentTarget.select()}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="shrink-0 gap-2 font-semibold"
+                    onClick={() => void copyReferral()}
+                  >
+                    <Copy className="h-4 w-4" aria-hidden="true" />
+                    {t("desk.quick.copy")}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+        <SiteFooter />
+      </div>
+    );
+  }
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <SiteHeader />
@@ -244,6 +352,9 @@ function CentreCaseRequestPage() {
             }}
             className="mt-8 space-y-5 rounded-lg border border-border bg-card p-6 sm:p-8"
           >
+            {/* #815 §2.11: lane picker sits before the case basics. */}
+            <LanePicker lane={lane} onChange={setLane} />
+
             {/* Case basics */}
             <div className="space-y-4">
               <p className="text-sm font-semibold text-[color:var(--ink)]">What do you need?</p>
@@ -408,6 +519,23 @@ function CentreCaseRequestPage() {
                     One named student per request. First name only.
                   </p>
                 </div>
+              </div>
+              {/* #815 §2.11 (AC-OV-1): lane A net rate, optional and paid
+                  off-platform, so MatchMax never takes a cut of it. */}
+              <div className="space-y-1.5">
+                <Label htmlFor="centre-net-rate">{t("case_intake.overflow_net_rate")}</Label>
+                <Input
+                  id="centre-net-rate"
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  step={1}
+                  value={netRate}
+                  onChange={(e) => setNetRate(e.target.value)}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {t("case_intake.overflow_cap", { cap: OVERFLOW_ACTIVE_CAP })}
+                </p>
               </div>
               {poolRequest ? (
                 <p className="rounded-[var(--radius-control)] border border-destructive/40 bg-destructive/[0.07] p-3 text-sm">

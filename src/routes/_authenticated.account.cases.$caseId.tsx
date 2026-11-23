@@ -139,6 +139,11 @@ function ParentCaseDetailPage() {
                 {data.tutor_code ? ` · ${t("sor.parent_tutor")} ${data.tutor_code}` : ""}
                 {data.sor_status ? ` · ${t(`sor.status_${data.sor_status}`)}` : ""}
               </p>
+              {data.referredByOrgName ? (
+                <p className="mt-1 text-xs text-muted-foreground">
+                  {t("case_request.referred_by", { name: data.referredByOrgName })}
+                </p>
+              ) : null}
             </div>
 
             {/* #466: parent match-status card (WhatsApp-first stage tracker) */}
