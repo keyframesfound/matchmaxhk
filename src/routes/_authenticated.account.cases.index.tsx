@@ -48,6 +48,9 @@ function ParentCasesPage() {
     queryKey: ["sor", "parent-cases"],
     queryFn: getMyParentCases,
   });
+  // An expired session at boot surfaces as the server fn's Unauthorized error;
+  // send the parent to sign-in instead of showing a raw internal message.
+  const authExpired = error instanceof Error && error.message.startsWith("Unauthorized");
 
   return (
     <div className="min-h-screen bg-[color:var(--background)]">
@@ -66,17 +69,30 @@ function ParentCasesPage() {
               role="alert"
               className="rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-sm"
             >
-              <p className="font-medium text-[color:var(--ink)]">{t("sor.parent_cases_error")}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                {error instanceof Error ? error.message : ""}
+              <p className="font-medium text-[color:var(--ink)]">
+                {authExpired ? t("sor.parent_cases_signin") : t("sor.parent_cases_error")}
               </p>
-              <button
-                type="button"
-                onClick={() => void refetch()}
-                className="mt-3 inline-flex items-center justify-center rounded-md border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-3 py-1.5 text-sm font-medium"
-              >
-                {t("page_error.try_again")}
-              </button>
+              {authExpired ? (
+                <Link
+                  to="/auth"
+                  className="mt-3 inline-flex items-center justify-center rounded-md border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-3 py-1.5 text-sm font-medium"
+                >
+                  {t("nav.sign_in")}
+                </Link>
+              ) : (
+                <>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    {error instanceof Error ? error.message : ""}
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => void refetch()}
+                    className="mt-3 inline-flex items-center justify-center rounded-md border border-[color:var(--foreground)]/15 bg-[color:var(--surface)] px-3 py-1.5 text-sm font-medium"
+                  >
+                    {t("page_error.try_again")}
+                  </button>
+                </>
+              )}
             </div>
           )}
 

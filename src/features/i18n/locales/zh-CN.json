@@ -3605,6 +3605,7 @@
     "parent_cases_title": "我的个案",
     "parent_cases_empty": "暂时没有个案——配对后会显示在这里。",
     "parent_cases_error": "未能载入你的个案，请检查网络后再试。",
+    "parent_cases_signin": "登录状态已结束，请重新登录以查看你的个案。",
     "parent_tutor": "导师",
     "parent_fee_note": "此费用由导师支付给 MatchMax，学费则由你直接支付给导师。",
     "parent_lessons_title": "课堂",
