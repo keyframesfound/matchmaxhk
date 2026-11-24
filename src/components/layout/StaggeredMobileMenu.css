@@ -132,11 +132,18 @@
   opacity: var(--smm-number-opacity, 0);
 }
 
-.smm-menu-item a:hover,
 .smm-menu-item a:active,
-.smm-menu-item button:hover,
 .smm-menu-item button:active {
   color: var(--brand-link);
+}
+
+/* #713 AC-HOV-1: raw hover is gated to pointer devices so a tap on touch does
+   not leave the label stuck in the link colour. */
+@media (hover: hover) {
+  .smm-menu-item a:hover,
+  .smm-menu-item button:hover {
+    color: var(--brand-link);
+  }
 }
 
 .smm-item-label {
