@@ -36,3 +36,14 @@ dist-ssr
 
 # Copied from pdfjs-dist at build time (vite.config.ts)
 public/pdfjs/
+
+# Playwright — local-only browser testing, deliberately not in the repo.
+# The harness (config, specs, login helper, docs) and every run artifact stay
+# on the developer's machine; nothing here is published or shared.
+playwright.config.ts
+tests/e2e/
+scripts/e2e-login.mjs
+docs/e2e-testing.md
+test-results/
+playwright-report/
+blob-report/
