@@ -46,24 +46,51 @@ VOCAB = [
     ("电邮", "电子邮件"),
 ]
 
+# #824 §2.1: Mainland marketing wording (補習 -> 家教). Applied after VOCAB,
+# longest first. Compound nouns are guarded first so a tutoring centre never
+# becomes a "家教社": 補習社 keeps its name and 補習中心 reads 培训机构.
+# Placeholders keep the guarded words out of the generic swap.
+MARKETING_GUARDS = [
+    ("补习中心", "培训机构"),
+    ("补习社", "\0GUARD_SHE\0"),
+]
+MARKETING_VOCAB = [
+    ("补习", "家教"),
+]
+MARKETING_RESTORE = [("\0GUARD_SHE\0", "补习社")]
+
+# Legal / ToS / cookie text is #783's source of truth: no marketing swaps.
+LEGAL_NAMESPACES = {"legal", "terms", "tos", "cookie_consent"}
+
 converter = opencc.OpenCC("hk2s")
 
 
-def to_simplified(text: str) -> str:
+def to_simplified(text: str, marketing: bool = True) -> str:
     out = converter.convert(text)
     for old, new in VOCAB:
         out = out.replace(old, new)
+    if marketing:
+        for table in (MARKETING_GUARDS, MARKETING_VOCAB, MARKETING_RESTORE):
+            for old, new in table:
+                out = out.replace(old, new)
     return out
 
 
-def convert(value):
+def convert(value, marketing: bool = True):
     if isinstance(value, str):
-        return to_simplified(value)
+        return to_simplified(value, marketing)
     if isinstance(value, dict):
-        return {key: convert(child) for key, child in value.items()}
+        return {key: convert(child, marketing) for key, child in value.items()}
     if isinstance(value, list):
-        return [convert(child) for child in value]
+        return [convert(child, marketing) for child in value]
     return value
+
+
+def convert_root(tree):
+    return {
+        key: convert(child, marketing=key not in LEGAL_NAMESPACES)
+        for key, child in tree.items()
+    }
 
 
 def apply_overrides(tree):
@@ -75,7 +102,7 @@ def apply_overrides(tree):
         node[leaf] = text
 
 
-data = convert(json.loads(SRC.read_text(encoding="utf8")))
+data = convert_root(json.loads(SRC.read_text(encoding="utf8")))
 apply_overrides(data)
 OUT.write_text(json.dumps(data, ensure_ascii=False, indent=2) + "\n", encoding="utf8")
 print(f"wrote {OUT.relative_to(ROOT)}")

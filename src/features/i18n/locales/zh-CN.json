@@ -186,7 +186,7 @@
     "dob_month": "月",
     "dob_year": "年",
     "dob_privacy": "出生年份严格保密，仅用于年龄相关功能及选择性生日祝福。",
-    "dob_parent_aware": "我的家长／监护人知道我正在使用 MatchMax，并会批准任何付费补习安排或费用。",
+    "dob_parent_aware": "我的家长／监护人知道我正在使用 MatchMax，并会批准任何付费家教安排或费用。",
     "dob_parent_aware_required": "请先确认家长／监护人知情后再继续。",
     "dob_parent_contact": "家长／监护人 WhatsApp 或电子邮件（用作账户链接）",
     "dob_tutor_age_blocked": "导师账户需年满 16 岁。您仍可浏览及学习——请改用学生档案。",
@@ -195,7 +195,7 @@
     "google_only_subtitle": "用 Google 登录，管理你嘅账户、个案同收藏嘅导师。",
     "sign_in_subtitle": "登录你嘅 MatchMax 账户",
     "sign_up_title": "建立账户",
-    "sign_up_subtitle": "立即加入 MatchMax，开始找导师或接补习",
+    "sign_up_subtitle": "立即加入 MatchMax，开始找导师或接家教",
     "email": "电子邮件",
     "clear_email": "清除电子邮件",
     "password": "密码",
@@ -279,7 +279,7 @@
     "onboarding_name_placeholder": "你想喺 MatchMax 用咩称呼？",
     "onboarding_intent_optional": "可答可不答：你嚟到想做咩？",
     "onboarding_parent_label": "我找紧导师",
-    "onboarding_parent_desc": "我想为自己或子女找补习导师。",
+    "onboarding_parent_desc": "我想为自己或子女找家教导师。",
     "onboarding_tutor_label": "我系导师",
     "onboarding_tutor_desc": "我想教书同找新学生。",
     "onboarding_next": "继续",
@@ -350,7 +350,7 @@
     "form_probono_note": "简短私密说明（可选）：家庭状况、学校／机构转介…",
     "identity_parent": "家长",
     "students_count": "{{count}} 名学生",
-    "type_private": "私人补习",
+    "type_private": "私人家教",
     "type_centre": "教育中心",
     "type_activity": "活动／讲座",
     "type_filter_all": "全部",
@@ -585,22 +585,22 @@
     "your_role": "你嘅身份",
     "parent": {
       "title": "家长／学生专区",
-      "post_case": "新增补习需求",
+      "post_case": "新增家教需求",
       "post_case_desc": "话俾我哋知你需要咩导师，我哋会帮你配对",
       "my_cases": "我嘅需求",
-      "my_cases_desc": "查看补习需求同配对进度"
+      "my_cases_desc": "查看家教需求同配对进度"
     },
     "tutor": {
       "title": "导师专区",
       "leads": "最新配对",
-      "leads_desc": "查看有家长索取你导师编号嘅补习需求",
+      "leads_desc": "查看有家长索取你导师编号嘅家教需求",
       "profile": "我的资料",
       "profile_desc": "更新科目、收费同可授课时间"
     },
     "staff": {
       "title": "团队控制台",
       "review": "待处理需求",
-      "review_desc": "查看需要人工跟进嘅补习需求",
+      "review_desc": "查看需要人工跟进嘅家教需求",
       "tutors": "导师名单",
       "tutors_desc": "管理导师资料"
     },
@@ -626,7 +626,7 @@
       "tutor_verify_desc": "选择性核实你嘅学术成绩，令你喺家长面前更突出、接更多个案。提交你嘅香港身份证同官方成绩表，就可以喺你嘅档案上面攞到「已核实」徽章。",
       "tutor_verify_primary": "准备你嘅文件",
       "tutor_verify_secondary": "了解分级徽章制度",
-      "tutor_cases_headline": "找你下一个补习配对",
+      "tutor_cases_headline": "找你下一个家教配对",
       "tutor_cases_desc": "家长同预科大学生正积极找高分导师。浏览最新个案请求，申请适合你时间表同科目专长嘅个案。",
       "tutor_cases_primary": "浏览现有个案",
       "tutor_cases_secondary": "公布你嘅空闲时间",
@@ -638,7 +638,7 @@
       "tutor_feedback_desc": "帮我哋改善配对服务。话我哋知我哋团队帮你争取最近个案嘅过程有几顺利、有几高效。",
       "parent_feedback_desc": "我哋团队做得点？分享你对配对速度同服务质素嘅意见，等我哋继续为你子女嘅教育提供最好支持。",
       "feedback_primary": "留下平台意见",
-      "parent_case_headline": "提出你嘅补习请求",
+      "parent_case_headline": "提出你嘅家教请求",
       "parent_case_desc": "找高分导师定官方考官？讲明你嘅科目、预算同地区要求，我哋就会为你配对香港最好嘅教育工作者。",
       "parent_case_primary": "提出个案请求",
       "parent_case_secondary": "查看个案发布贴士",
@@ -854,7 +854,7 @@
     "role_parent": "我系家长／学生",
     "role_tutor": "我系导师",
     "form_title": "评价你嘅 MatchMax 体验",
-    "parent_subtext": "我哋一直努力改善配对服务。请话我哋知我哋嘅行政团队点样处理你最近嘅补习请求。",
+    "parent_subtext": "我哋一直努力改善配对服务。请话我哋知我哋嘅行政团队点样处理你最近嘅家教请求。",
     "tutor_subtext": "你嘅意见帮我哋为教育工作者打造更好嘅平台。请话我哋知我哋嘅行政团队点样处理你嘅申请同审核流程。",
     "parent_speed_prompt": "我哋团队找到合适导师并喺 WhatsApp 联络你嘅速度有几快？",
     "parent_smoothness_prompt": "平台同我哋 WhatsApp 客服之间嘅协调有几顺畅？",
@@ -877,7 +877,7 @@
     "star_label_other": "{{count}} 星"
   },
   "footer": {
-    "tagline": "我哋会按你嘅需要，配对喺各大公开考试及学科中取得优异成绩嘅导师，透过一对一补习，陪你一步一步进步",
+    "tagline": "我哋会按你嘅需要，配对喺各大公开考试及学科中取得优异成绩嘅导师，透过一对一家教，陪你一步一步进步",
     "product": "产品",
     "company": "公司",
     "support": "支持",
@@ -1118,7 +1118,7 @@
     "index_explore_title": "浏览各个指南",
     "index_notes_body": "原创学习教材、系统自动内容检查，以及保障所有人的禁售清单。",
     "index_parents_body": "配对流程、行政费的用途，以及介绍后我们不做的事。",
-    "index_partners_body": "补习中心同教育顾问点样以机构伙伴身分加入：核实流程、中心工作台，同导师介绍点样运作（机构配对费 HK$0）。",
+    "index_partners_body": "培训机构同教育顾问点样以机构伙伴身分加入：核实流程、中心工作台，同导师介绍点样运作（机构配对费 HK$0）。",
     "index_refer_body": "分享链接，朋友以独立导师身分申请，你可赚取佢支付予 MatchMax 嘅行政费嘅 15%。家长无须支付任何配对费用。",
     "index_tutors_body": "上架流程、1.5 课行政费的实际意义，以及我们不会碰的东西。",
     "index_verification_body": "每个层级我们核实什么——以及核实不代表的东西。",
@@ -1243,7 +1243,7 @@
       "fact_desk_hours_body": "资料齐全的查询（学制、科目、地区或在线、预算）通常会于办公时间内数小时提供导师名单。"
     },
     "partners": {
-      "title": "同 MatchMax 合作：补习中心及教育顾问指南",
+      "title": "同 MatchMax 合作：培训机构及教育顾问指南",
       "intro": "为溢出学生同指定学生引入经核实嘅独立导师。机构毋须支付上架费，亦毋须支付配对费。",
       "steps_title": "中心工作台点样运作",
       "s1_title": "申请同核实机构",
@@ -1261,7 +1261,7 @@
       "fee_body": "机构向 MatchMax 支付 HK$0：冇上架费，亦冇配对费。每次介绍由独立导师向 MatchMax 支付标准 1.5 堂行政费，并按同一中心阶梯计算（1.5 → 1.0 → 0.5 堂，6 个月内第 4 位学生起 $0）。学费由中心直接支付予导师；MatchMax 从不代收学费。",
       "cta": "以伙伴中心身分申请",
       "who_title": "边个可以以机构伙伴身分加入？",
-      "who_1": "补习及学习中心（IB、DSE、IGCSE、A-Level、IELTS/SAT 等）：小组课程、补底班同中心一对一。",
+      "who_1": "家教及学习中心（IB、DSE、IGCSE、A-Level、IELTS/SAT 等）：小组课程、补底班同中心一对一。",
       "who_2": "教育顾问及升学辅导公司。",
       "who_3": "有注册品牌嘅专科导师团队。",
       "s4_title": "为指定学生申请导师",
@@ -1340,7 +1340,7 @@
       "tier1_title": "申报资格（第一层）",
       "tier1_body": "自行申报成绩；家长可喺首堂前要求导师出示证明。",
       "professionals_title": "已核实在职导师",
-      "professionals_body": "按学位、教育文凭（PGDE）同补习往绩评估，而非单一公开试成绩。",
+      "professionals_body": "按学位、教育文凭（PGDE）同家教往绩评估，而非单一公开试成绩。",
       "process_title": "核实过程",
       "p1_title": "上传学历证明",
       "p1_body": "成绩表、分科成绩同身分证明文件经申请流程提交。身分文件永不公开。",
@@ -1414,7 +1414,7 @@
     "cta_secondary": "浏览导师"
   },
   "hiw": {
-    "hero_title": "更公平、更透明嘅私人补习配对",
+    "hero_title": "更公平、更透明嘅私人家教配对",
     "hero_body": "传统中介抽佣好高。我哋将行政费严格限制喺首 1.5 堂，等家长用合理学费找导师，导师亦攞返应有回报。",
     "hero_cta_browse": "浏览导师档案",
     "hero_cta_apply": "申请成为导师",
@@ -1553,7 +1553,7 @@
         "a": "配对速度视乎科目需求、档案质素同你可上堂时间。好多导师喺 1 至 2 星期内就会收到相关嘅学生配对申请。"
       },
       "rates": {
-        "q": "一般补习收费系几多？",
+        "q": "一般家教收费系几多？",
         "a": "市场一般每小时 HK$300 至 HK$600。实际收费视乎授课模式（在线定上门）、时长、级别、科目深浅同你嘅学术背景。导师可以同家长直接商讨双方同意嘅学费。"
       },
       "experience": {
@@ -1603,7 +1603,7 @@
         "a": "导师可以设定选填嘅显示名称（例如「陈博士」或「李老师」）。有设定嘅话，导师卡会以佢为主；冇设定就会显示 MatchMax 编号（例如「MM-T104」）。配对团队会用该显示名称介绍你哋认识；如果导师偏好以姓氏形式（例如「陈老师」），就会以姓氏介绍。全名同电话会喺介绍之后、行政费安排妥当先交换。"
       },
       "involvement": {
-        "q": "MatchMax 会参与我哋嘅补习安排几耐？",
+        "q": "MatchMax 会参与我哋嘅家教安排几耐？",
         "a": "MatchMax 系一项贴身跟进嘅配对管家服务。我哋会主动跟进你嘅开户流程、确保试堂顺利进行，并喺头 2 课期间为你哋管理沟通，直至配对行政费缴清。呢个初始配对阶段顺利完成之后，MatchMax 就会功成身退，往后嘅时间表由家长同导师直接安排。"
       },
       "verification": {
@@ -1662,11 +1662,11 @@
   },
   "how": {
     "title": "点样使用 MatchMax",
-    "subtitle": "三个简单步骤，轻松开始补习",
+    "subtitle": "三个简单步骤，轻松开始家教",
     "step2_title": "联络我哋",
     "step2_desc": "将导师编号经 WhatsApp 发俾我哋，其余安排交俾我哋跟进",
     "step3_title": "开始上堂",
-    "step3_desc": "确认时间后即可开始补习，简单又方便"
+    "step3_desc": "确认时间后即可开始家教，简单又方便"
   },
   "how_accordion": {
     "item1_title": "想找导师？",
@@ -1674,11 +1674,11 @@
     "item2_title": "联络我哋",
     "item2_desc": "将导师编号经 WhatsApp 发俾我哋，其余安排交俾我哋跟进",
     "item3_title": "开始上堂",
-    "item3_desc": "确认时间后即可开始补习，简单又方便",
+    "item3_desc": "确认时间后即可开始家教，简单又方便",
     "item4_title": "你教书，我配对",
     "item4_desc": "MatchMax 为导师提供高质素平台找学生。你专注教学，我哋帮你持续配对合适学生。",
     "item5_title": "点解拣 MatchMax",
-    "item5_desc": "我哋会按你嘅需要，配对喺各大公开考试及学科中取得优异成绩嘅导师，透过一对一补习，陪你一步一步进步"
+    "item5_desc": "我哋会按你嘅需要，配对喺各大公开考试及学科中取得优异成绩嘅导师，透过一对一家教，陪你一步一步进步"
   },
   "progress_report": {
     "title": "学习进度报告",
@@ -1785,7 +1785,7 @@
       "commission_ack": "本人明白 MatchMax 会就每位新学生收取第 1 堂课 100% 及第 2 堂课 50% 嘅学费，作为配对服务费。",
       "remove_course_grade": "移除课程成绩",
       "gpa_hint": "以 0 – 4.3 计，可选。",
-      "course_grades_hint": "可选：填你打算补习嘅课程成绩。",
+      "course_grades_hint": "可选：填你打算家教嘅课程成绩。",
       "starting_station": "出发港铁站",
       "travel_time": "预计港铁车程",
       "per_curriculum_pricing": "按课程定价",
@@ -1873,7 +1873,7 @@
       "target_teaching_level": "目标教学年级",
       "current_year_of_study": "现时就读年级",
       "cumulative_gpa": "累积 GPA",
-      "university_courses": "你可以补习嘅大学课程",
+      "university_courses": "你可以家教嘅大学课程",
       "course_specific_grades": "个别课程成绩",
       "kindergarten_topics": "你会教嘅幼稚园题材",
       "teaching_qualifications": "教学资历",
@@ -1922,11 +1922,11 @@
     "browse_tutors": "浏览导师",
     "centre_spinoff_guide_link": "收费指南",
     "centre_spinoff_note": "合作中心之后再派学生俾你（简介后 6 个月内）属可申报个案，MatchMax 行政费会递减——1.5、1.0、0.5 堂，第 4 位起免费。",
-    "consent": "提交此表格即表示你同意 MatchMax 可以透过电子邮件或 WhatsApp 就补习机会联络你。",
+    "consent": "提交此表格即表示你同意 MatchMax 可以透过电子邮件或 WhatsApp 就家教机会联络你。",
     "display_name_hint": "会喺你嘅公开导师卡同个人档案上显示，例如 Dr Chan、Hauzton、Mr Lee、Miss Wong。留空就会显示你嘅导师编号。",
     "display_name_label": "显示名称",
     "manage_hint": "请保存 WhatsApp 消息入面嘅申请编号，我哋团队会用佢嚟对应你嘅申请。",
-    "new_to_market": "初次接触私人补习？我们助你轻松起步——由 WhatsApp 专人团队为你处理首两堂的家长配对、时间协调及行政费结算，让你全心专注教学。",
+    "new_to_market": "初次接触私人家教？我们助你轻松起步——由 WhatsApp 专人团队为你处理首两堂的家长配对、时间协调及行政费结算，让你全心专注教学。",
     "rates": {
       "online": "在线授课时薪（{{currency}}）",
       "in_person": "面授时薪（{{currency}}）",
@@ -1944,7 +1944,7 @@
     },
     "sample_awards": "香港大学基金入学奖学金 2023；香港经济奥林匹克金奖",
     "sample_curriculum": "IBDP",
-    "sample_experience": "2 年一对一 IB 补习（6 位学生）；1 年小组 DSE 英文补习",
+    "sample_experience": "2 年一对一 IB 家教（6 位学生）；1 年小组 DSE 英文家教",
     "sample_format": "面授或在线",
     "sample_high_school": "拔萃男书院，2023",
     "sample_locations": "九龙塘、中环",
@@ -1974,10 +1974,10 @@
     "title": "申请成为 MatchMax 导师",
     "view_live_card": "查看你的上架导师卡",
     "account_email_hint": "你嘅 MatchMax 账户电子邮件——导师卡同申请都绑定喺佢上面。",
-    "availability_title": "每周补习时间",
+    "availability_title": "每周家教时间",
     "availability_hint": "拖曳格仔设定每周可约时段，或点击一格切换。家长会喺你嘅档案见到呢啲时段，你亦可以随时喺后台调整。",
     "capacity_title": "学额同偏好时段",
-    "error_availability": "请至少拣一个可以补习嘅时段",
+    "error_availability": "请至少拣一个可以家教嘅时段",
     "availability_save_failed": "你的导师卡已上架，但时间表未能保存——请喺工作台 → 可用时间设定。",
     "next_steps_title": "下一步",
     "next_step_1_title": "上传成绩单俾职员审核",
@@ -2534,7 +2534,7 @@
       "desc_inside": "入面有咩：\n- ",
       "desc_best_for": "最啱边个用：\n- ",
       "desc_how_to_use": "点样用呢份笔记：\n- ",
-      "link_profile_label": "喺呢份教材显示「预约此导师 1 对 1 补习」",
+      "link_profile_label": "喺呢份教材显示「预约此导师 1 对 1 家教」",
       "link_profile_hint": "买家可以经 MatchMax 申请同你配对。如果佢喺呢科已经有进行中嘅个案，会自动隐藏。"
     }
   },
@@ -2727,8 +2727,8 @@
     "time_window_weekday_evening": "平日晚上",
     "time_window_weekend_morning": "周末上午",
     "time_window_weekend_afternoon": "周末下午",
-    "section_availability": "可补习时间",
-    "grid_aria": "每周补习时间表：以星期几对应时段，显示导师一般有空嘅时间。",
+    "section_availability": "可家教时间",
+    "grid_aria": "每周家教时间表：以星期几对应时段，显示导师一般有空嘅时间。",
     "grid_day_mon": "一",
     "grid_day_tue": "二",
     "grid_day_wed": "三",
@@ -3109,7 +3109,7 @@
       "cap_learning": "学习及子女管理",
       "cap_learning_desc": "找导师、跟进课堂同管理子女档案。",
       "cap_teaching": "独立导师档案",
-      "cap_teaching_desc": "提供补习服务，接收个案。",
+      "cap_teaching_desc": "提供家教服务，接收个案。",
       "cap_active": "已启用",
       "cap_activate": "成为导师",
       "cap_manage": "管理导师档案",
@@ -3381,10 +3381,10 @@
       "fit_IN_CLASS_ONLY": "只喺堂上完成"
     },
     "grid": {
-      "title": "每周补习时间表",
+      "title": "每周家教时间表",
       "description": "㩒一下格仔切换：可补 → 部分时段可补 → 不可补。时间表会显示喺你嘅公开档案。",
       "loading": "载入你嘅时间表…",
-      "editor_aria": "每周补习时间表编辑器：㩒格仔切换可补、部分时段可补同不可补。",
+      "editor_aria": "每周家教时间表编辑器：㩒格仔切换可补、部分时段可补同不可补。",
       "tap_hint": "㩒一下格仔嚟更改",
       "empty_hint": "仲未有任何可约时段——标记至少一格，家长先可以喺你嘅公开档案见到你有空嘅时间。",
       "saving": "保存中…",
@@ -3773,7 +3773,7 @@
     "tutor_home_notes_note": "笔记净额由 MatchMax 每月支付。上述行政费属导师自身费用，绝不计入此总额。",
     "tutor_home_notes_link": "查看你的商品",
     "tutor_home_open_lessons": "前往课堂",
-    "bell_session_logged": "导师已记录新的补习课堂",
+    "bell_session_logged": "导师已记录新的家教课堂",
     "admin_students_suffix": "位学生",
     "bell_case_end_by_parent": "家长已标记此个案完结。",
     "bell_case_end_by_tutor": "导师已标记此个案完结。",
@@ -3802,7 +3802,7 @@
     "bell_lesson_cancelled_tutor": "你的导师已取消一节课堂",
     "bell_lesson_scheduled_parent": "家长已要求一个课堂时段",
     "bell_lesson_scheduled_tutor": "你的导师已安排一节课堂",
-    "bell_lead_new": "新补习个案配对",
+    "bell_lead_new": "新家教个案配对",
     "bell_intro_parent": "已为您配对导师",
     "bell_intro_tutor": "个案已成功配对",
     "bell_verify_approved": "成绩认证蓝剔已获批核",
@@ -3962,7 +3962,7 @@
     "strengths": "强项",
     "needs": "需要协助",
     "goal": "目标",
-    "share_toggle": "配对补习时向导师显示此学习履历及弱项分析",
+    "share_toggle": "配对家教时向导师显示此学习履历及弱项分析",
     "export": "列印／汇出 PDF",
     "add": "新增履历纪录",
     "add_record": "新增履历纪录",
@@ -4033,7 +4033,7 @@
     "subjects_empty": "尚未列出科目。",
     "rate_prefix": "每小时 HK$",
     "rate_from": "学费由 HK",
-    "affiliation_title": "补习中心关联",
+    "affiliation_title": "培训机构关联",
     "affiliation_hint": "申请成为已注册中心的特约导师，中心会审批待处理申请。",
     "affiliation_request": "申请关联",
     "public_cv": "学术及成就时间线",
@@ -4063,7 +4063,7 @@
     "chemistry": "化学",
     "biology": "生物",
     "economics": "经济",
-    "dse": "DSE 补习",
+    "dse": "DSE 家教",
     "ib": "IB 国际文凭",
     "view_all": "浏览全部科目"
   },
@@ -4107,7 +4107,7 @@
     },
     "skip": "跳过导览",
     "tutor": {
-      "cases_body": "浏览家长嘅补习需求，认领啱你时间表嘅个案。",
+      "cases_body": "浏览家长嘅家教需求，认领啱你时间表嘅个案。",
       "cases_title": "睇开放个案",
       "final_body": "留意你嘅 WhatsApp，我哋配对团队会介绍新个案畀你。",
       "final_title": "搞掂！",
@@ -4124,7 +4124,7 @@
   "trust": {
     "students": "成功配对学生",
     "tutors": "活跃导师",
-    "subjects": "补习科目",
+    "subjects": "家教科目",
     "districts": "服务地区"
   },
   "tutor": {
@@ -4135,8 +4135,8 @@
   },
   "tutor_card": {
     "champion_title": "公益之星",
-    "champion_tip": "公益之星：经 MatchMax 安排并完成义务补习。",
-    "champion_explain": "导师经 MatchMax 安排并完成义务补习个案后获颁，唔可以自行申请。",
+    "champion_tip": "公益之星：经 MatchMax 安排并完成义务家教。",
+    "champion_explain": "导师经 MatchMax 安排并完成义务家教个案后获颁，唔可以自行申请。",
     "champion_close": "关闭",
     "last_slot": "最后 1 个名额",
     "active_students": "{{count}} 名在学学生",
@@ -4221,8 +4221,8 @@
   },
   "tutor_status": {
     "uni_undergrad": "大学生导师",
-    "part_time": "兼职补习导师",
-    "full_time": "全职补习导师",
+    "part_time": "兼职家教导师",
+    "full_time": "全职家教导师",
     "uni_grad": "大学毕业生导师",
     "school_teacher": "现职／注册教师",
     "examiner": "公开试评卷员／专家",
@@ -4233,8 +4233,8 @@
     "more_collapse": "收起",
     "clear": "清除身份",
     "banner_prompt": "请更新导师身份，方便家长更准确搜寻：",
-    "banner_cta_full_time": "我是全职补习导师",
-    "banner_cta_part_time": "我是兼职补习导师",
+    "banner_cta_full_time": "我是全职家教导师",
+    "banner_cta_part_time": "我是兼职家教导师",
     "banner_saving": "保存中…",
     "banner_error": "保存失败，请再试一次。"
   },
@@ -4404,7 +4404,7 @@
       "accepted_toast": "{{name}} 已拥有自己的学习档案。"
     },
     "add_first": "加子女",
-    "add_first_hint": "帮子女找补习？喺度加佢哋，堂数会分开记录。",
+    "add_first_hint": "帮子女找家教？喺度加佢哋，堂数会分开记录。",
     "pills": {
       "label": "边个学紧？",
       "all": "全部",
@@ -4600,7 +4600,7 @@
     "aria": "MatchMax 更多功能",
     "referral_title": "推荐导师 — 赚取 15% 现金",
     "referral_cta": "了解详情",
-    "impact_title": "为有需要学生补习",
+    "impact_title": "为有需要学生家教",
     "impact_cta": "了解详情",
     "upload_title": "出售你的学习材料",
     "upload_cta": "上传"
@@ -4612,7 +4612,7 @@
   },
   "saved": {
     "title": "已收藏",
-    "subtitle": "你想再看的导师、补习个案及市集笔记。",
+    "subtitle": "你想再看的导师、家教个案及市集笔记。",
     "tab_tutors": "导师",
     "tab_marketplace": "市集",
     "marketplace_empty_title": "未有收藏的笔记",
@@ -4675,7 +4675,7 @@
   },
   "impact": {
     "title": "MatchMax 公益",
-    "intro": "MatchMax 将无法负担补习嘅学生，连系到愿意付出时间嘅导师。呢度唔涉及任何现金交易：导师义务授课，MatchMax 唔收费，家庭亦唔需要付款。",
+    "intro": "MatchMax 将无法负担家教嘅学生，连系到愿意付出时间嘅导师。呢度唔涉及任何现金交易：导师义务授课，MatchMax 唔收费，家庭亦唔需要付款。",
     "seats_title": "空位资助",
     "seats_body": "小组班如果有未售出嘅座位，可以免费留给经转介嘅学生。座位仍然计入班别人数上限，所以其他学生唔会少咗原本买咗嘅课堂。",
     "scholarship_title": "教材资助",
@@ -4783,14 +4783,14 @@
     "active_cases": "进行中的个案",
     "empty_body": "配对开始后，你的课堂、时间表及进行中的个案会显示在这里。",
     "cta_find": "找导师",
-    "cta_post": "发布补习个案",
+    "cta_post": "发布家教个案",
     "cta_browse": "浏览个案（导师）",
     "howto_button": "使用说明",
     "howto_title": "个案管理点样用",
     "howto_1": "每个已配对的个案都会在这里显示为进行中的个案，连同你的导师或学生。",
     "howto_2": "日历会标示即将上的课堂；请确认每一堂，令双方记录一致。",
     "howto_3": "导师可看时间表及收入；家长可看课堂记录。",
-    "howto_4": "未有个案？可以找导师、发布补习个案，或（导师）浏览开放中的个案。",
+    "howto_4": "未有个案？可以找导师、发布家教个案，或（导师）浏览开放中的个案。",
     "coach_title": "第一次使用？",
     "coach_body": "这是你的个案管理页：进行中的个案、即将上的课堂及确认都在这里。随时按「使用说明」查看。",
     "coach_dismiss": "关闭提示",
@@ -4873,7 +4873,7 @@
     "title": "账户",
     "view_profile": "查看个人档案",
     "signed_out_title": "登录 MatchMax",
-    "signed_out_body": "收藏导师及笔记、发布补习个案及管理你的课堂。",
+    "signed_out_body": "收藏导师及笔记、发布家教个案及管理你的课堂。",
     "become_tutor_body": "成为导师、出售笔记，或让你的教育中心加入 MatchMax。",
     "section_account": "账户",
     "section_explore": "MatchMax",
@@ -4971,7 +4971,7 @@
     "avail_chip": "可上课：{{value}}",
     "list_sep": "、",
     "pill_title_cases": "搜寻个案、科目或地区",
-    "placeholder_cases": "输入科目、个案编号、地区或补习要求",
+    "placeholder_cases": "输入科目、个案编号、地区或家教要求",
     "card_level": "学生程度",
     "avail_helper_cases": "按家长在个案填写的偏好时段配对，「弹性」个案一律符合。属软性偏好，并非预约；确实时间以个案管理为准。",
     "avail_mode_title": "时间安排",
@@ -5254,7 +5254,7 @@
     "explain_match": "可上课时间与你的空档重叠（吻合度 {{n}}%）",
     "explain_fit": "个案偏好时段与你的空档重叠（吻合度 {{n}}%）",
     "clash_title": "时间冲突提示",
-    "body_request": "所选时段与现有或待确认的补习个案时间重叠。你确定要继续发送申请吗？",
+    "body_request": "所选时段与现有或待确认的家教个案时间重叠。你确定要继续发送申请吗？",
     "body_apply": "此个案的时段与你在个案管理中已占用或待确认的时间重叠。你确定要照常申请吗？",
     "intro_request": "所选时段与现有时间表重叠：",
     "intro_apply": "此个案的偏好时段与你的时间表重叠：",
@@ -5721,8 +5721,8 @@
     "for_learner": "{{name}}：{{reason}}"
   },
   "note_upsell": {
-    "cta": "预约此导师 1 对 1 补习",
-    "subtext": "独立导师 · 1 对 1 补习 HK${{rate}}/小时起 · 家长配对费用全免",
+    "cta": "预约此导师 1 对 1 家教",
+    "subtext": "独立导师 · 1 对 1 家教 HK${{rate}}/小时起 · 家长配对费用全免",
     "subtext_no_rate": "独立导师 · 家长配对费用全免",
     "current_tutor": "你的现任导师",
     "verified": "已认证"
@@ -5815,7 +5815,7 @@
     "guest_cta_case": "以 Google 登录并提交配对申请",
     "guest_cta_tutor": "以 Google 登录并提交导师申请",
     "helper_notice": "无需设定密码。完成 Google 登录后，系统会自动提交你已填妥的表格。",
-    "duplicate_toast": "你已有进行中的 {{subject}} 试堂或补习个案，现正为你跳转至课堂工作区。",
+    "duplicate_toast": "你已有进行中的 {{subject}} 试堂或家教个案，现正为你跳转至课堂工作区。",
     "cancelled_banner": "登录已取消。你填写的资料已保留，随时可再次点击提交。",
     "hydrating": "正在核实账户并提交你的申请...",
     "restored_invalid": "已恢复你填写的资料——请检查标示的栏位后再次点击提交。",

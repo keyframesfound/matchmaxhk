@@ -159,11 +159,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
           title: {
             en: "MatchMax | Elite Tutors in Hong Kong",
             "zh-HK": "MatchMax | 香港精英導師平台",
+            "zh-CN": "MatchMax | 香港精英家教平台",
           },
           description: {
             en: "MatchMax helps Hong Kong families find elite tutors for IB, DSE, IGCSE, AP, A-Level and other subjects with fast, flexible matching.",
             "zh-HK":
               "MatchMax 幫香港家庭搵到精英 IB、DSE、IGCSE、AP、A-Level 等科目導師，配對快而靈活。",
+            "zh-CN":
+              "MatchMax 帮助香港家庭找到 IB、DSE、IGCSE、AP、A-Level 等科目的精英家教，配对快速又灵活。",
           },
         }),
         { name: "author", content: "MatchMax" },

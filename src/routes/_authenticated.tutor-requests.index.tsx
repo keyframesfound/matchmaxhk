@@ -235,11 +235,14 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
           title: {
             en: "Tutor Request Board, Post a Request or Apply for Cases | MatchMax",
             "zh-HK": "補習個案板, 家長免費出需求，導師申請個案 | MatchMax",
+            "zh-CN": "家教需求板：家长免费发布需求，导师申请个案 | MatchMax",
           },
           description: {
             en: "Browse open tutoring cases posted by parents and students, or submit your requirements free and let qualified tutors apply for your case.",
             "zh-HK":
               "瀏覽家長同學生張貼嘅開放補習個案，或者免費提交你嘅要求，等合資格導師申請你嘅個案。",
+            "zh-CN":
+              "浏览家长和学生发布的家教需求，或免费提交你的要求，让合资格的导师申请你的个案。",
           },
         }),
         { name: "robots", content: "index, follow" },
