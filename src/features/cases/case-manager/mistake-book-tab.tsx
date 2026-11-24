@@ -14,19 +14,32 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import {
   MISTAKE_ERROR_REASONS,
   MISTAKE_SOURCE_MAX,
+  MISTAKE_STATUSES,
   MISTAKE_TAG_MAX,
   MISTAKE_TEXT_MAX,
   MISTAKE_TIP_MAX,
   MISTAKE_TITLE_MAX,
+  NO_MISTAKE_FILTERS,
+  filterMistakes,
+  hasMistakeFilters,
   mistakeImageCapMb,
   mistakeImageError,
+  mistakeTopicOptions,
   nextMistakeStatus,
   solutionVisible,
   type MistakeErrorReason,
+  type MistakeFilters,
   type MistakeStatus,
 } from "@/features/cases/mistake-book";
 import {
@@ -58,6 +71,93 @@ const STATUS_CLASS: Record<MistakeStatus, string> = {
   mastered:
     "border-[color:var(--success)]/40 bg-[color:var(--success)]/10 text-[color:var(--success)]",
 };
+
+/** Radix Select needs a non-empty value for the "no constraint" option. */
+const FILTER_ALL = "__all__";
+
+function MistakeFilterBar({
+  filters,
+  topics,
+  onChange,
+  onClear,
+}: {
+  filters: MistakeFilters;
+  topics: string[];
+  onChange: (next: MistakeFilters) => void;
+  onClear: () => void;
+}) {
+  const { t } = useTranslation();
+  const active = hasMistakeFilters(filters);
+  const triggerClass = "h-10 min-h-10 w-auto min-w-36 px-3 text-sm font-medium";
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      <Select
+        value={filters.topic ?? FILTER_ALL}
+        onValueChange={(value) =>
+          onChange({ ...filters, topic: value === FILTER_ALL ? null : value })
+        }
+      >
+        <SelectTrigger aria-label={t("mistakes.filter_topic")} className={triggerClass}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={FILTER_ALL}>{t("mistakes.filter_all_topics")}</SelectItem>
+          {topics.map((tag) => (
+            <SelectItem key={tag} value={tag}>
+              {tag}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={filters.reason}
+        onValueChange={(value) =>
+          onChange({ ...filters, reason: value as MistakeFilters["reason"] })
+        }
+      >
+        <SelectTrigger aria-label={t("mistakes.filter_reason")} className={triggerClass}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={FILTER_ALL}>{t("mistakes.filter_all_reasons")}</SelectItem>
+          {MISTAKE_ERROR_REASONS.map((value) => (
+            <SelectItem key={value} value={value}>
+              {t(`mistakes.reason_${value}`)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <Select
+        value={filters.status}
+        onValueChange={(value) =>
+          onChange({ ...filters, status: value as MistakeFilters["status"] })
+        }
+      >
+        <SelectTrigger aria-label={t("mistakes.filter_status")} className={triggerClass}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value={FILTER_ALL}>{t("mistakes.filter_all_statuses")}</SelectItem>
+          {MISTAKE_STATUSES.map((value) => (
+            <SelectItem key={value} value={value}>
+              {t(`mistakes.status_${value}`)}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      {active ? (
+        <Button type="button" size="sm" variant="ghost" onClick={onClear}>
+          <X className="h-4 w-4" aria-hidden />
+          {t("mistakes.filter_clear")}
+        </Button>
+      ) : null}
+    </div>
+  );
+}
 
 function readFileAsBase64(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -603,6 +703,7 @@ export function MistakeBookSection({ caseId }: { caseId: string }) {
   const [addOpen, setAddOpen] = useState(false);
   const [revealMode, setRevealMode] = useState(false);
   const [revealed, setRevealed] = useState<Set<string>>(new Set());
+  const [filters, setFilters] = useState<MistakeFilters>(NO_MISTAKE_FILTERS);
 
   const { data, isLoading, isError } = useQuery({
     queryKey: ["cases", "mistake-book", caseId],
@@ -641,6 +742,11 @@ export function MistakeBookSection({ caseId }: { caseId: string }) {
       else next.add(id);
       return next;
     });
+
+  // #741: filtering is client-side over the rows we already fetched.
+  const topics = mistakeTopicOptions(data.items);
+  const visibleItems = filterMistakes(data.items, filters);
+  const filtersActive = hasMistakeFilters(filters);
 
   return (
     <section className="space-y-3">
@@ -687,8 +793,32 @@ export function MistakeBookSection({ caseId }: { caseId: string }) {
           {t("mistakes.empty")}
         </p>
       ) : (
+        <MistakeFilterBar
+          filters={filters}
+          topics={topics}
+          onChange={setFilters}
+          onClear={() => setFilters(NO_MISTAKE_FILTERS)}
+        />
+      )}
+
+      {data.items.length > 0 && visibleItems.length === 0 ? (
+        <div className="flex flex-wrap items-center gap-2 rounded-xl border border-dashed border-border p-3 text-sm text-muted-foreground">
+          <span>{t("mistakes.filter_empty")}</span>
+          {filtersActive ? (
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setFilters(NO_MISTAKE_FILTERS)}
+            >
+              <X className="h-4 w-4" aria-hidden />
+              {t("mistakes.filter_clear")}
+            </Button>
+          ) : null}
+        </div>
+      ) : (
         <ul className="space-y-2">
-          {data.items.map((item) => (
+          {visibleItems.map((item) => (
             <MistakeCard
               key={item.id}
               caseId={caseId}

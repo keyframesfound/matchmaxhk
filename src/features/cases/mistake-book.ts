@@ -206,6 +206,62 @@ export function mistakeBookRevealed(verifiedLessonCount: number): boolean {
   return verifiedLessonCount >= 1;
 }
 
+// ---------------------------------------------------------------------------
+// Filtering (#741: filter entries by Topic, Error Cause, Status)
+// ---------------------------------------------------------------------------
+
+/** "all" / null on any axis means "no constraint on this axis". */
+export type MistakeFilters = {
+  topic: string | null;
+  reason: MistakeErrorReason | "all";
+  status: MistakeStatus | "all";
+};
+
+export const NO_MISTAKE_FILTERS: MistakeFilters = {
+  topic: null,
+  reason: "all",
+  status: "all",
+};
+
+/** True when at least one axis actually narrows the list. */
+export function hasMistakeFilters(filters: MistakeFilters): boolean {
+  return (
+    (filters.topic ?? "").trim().length > 0 || filters.reason !== "all" || filters.status !== "all"
+  );
+}
+
+/**
+ * Client-side filter over the already-fetched rows. The axes AND together;
+ * a blank topic, "all" reason or "all" status constrains nothing. Topic
+ * matching trims and ignores case, so a `QUADRATICS` filter finds a
+ * `Quadratics` row. An empty result is a valid answer, never an error.
+ */
+export function filterMistakes<
+  T extends {
+    topicTag: string | null;
+    errorReason: MistakeErrorReason;
+    status: MistakeStatus;
+  },
+>(rows: readonly T[], filters: MistakeFilters): T[] {
+  const topic = (filters.topic ?? "").trim().toLowerCase();
+  return rows.filter((row) => {
+    if (topic && (row.topicTag ?? "").trim().toLowerCase() !== topic) return false;
+    if (filters.reason !== "all" && row.errorReason !== filters.reason) return false;
+    if (filters.status !== "all" && row.status !== filters.status) return false;
+    return true;
+  });
+}
+
+/** The distinct, sorted #tags present in the rows — the Topic select's options. */
+export function mistakeTopicOptions(rows: readonly { topicTag: string | null }[]): string[] {
+  const seen = new Set<string>();
+  for (const row of rows) {
+    const tag = (row.topicTag ?? "").trim();
+    if (tag) seen.add(tag);
+  }
+  return [...seen].sort((a, b) => a.localeCompare(b));
+}
+
 /**
  * Newest first, unresolved before resolved at the same timestamp so the next
  * thing to revise is at the top of the tab.

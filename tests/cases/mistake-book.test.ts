@@ -4,15 +4,20 @@ import {
   MISTAKE_ERROR_REASONS,
   MISTAKE_IMAGE_MAX_BYTES,
   MISTAKE_STATUSES,
+  NO_MISTAKE_FILTERS,
   canSetMistakeStatus,
+  filterMistakes,
+  hasMistakeFilters,
   mistakeBookRevealed,
   mistakeCounts,
   mistakeDraftError,
   mistakeImageError,
+  mistakeTopicOptions,
   normalizeMistakeTag,
   nextMistakeStatus,
   solutionVisible,
   sortMistakes,
+  type MistakeErrorReason,
   type MistakeStatus,
 } from "../../src/features/cases/mistake-book";
 
@@ -120,6 +125,93 @@ describe("Digital Mistake Book (#796 §2.2) — pure rules", () => {
     expect(mistakeBookRevealed(0)).toBe(false);
     expect(mistakeBookRevealed(1)).toBe(true);
     expect(mistakeBookRevealed(3)).toBe(true);
+  });
+
+  it("filters by topic, error cause and status (#741)", () => {
+    type Row = {
+      id: string;
+      topicTag: string | null;
+      errorReason: MistakeErrorReason;
+      status: MistakeStatus;
+    };
+    const rows: Row[] = [
+      { id: "a", topicTag: "Quadratics", errorReason: "concept_gap", status: "unresolved" },
+      {
+        id: "b",
+        topicTag: "Trigonometry",
+        errorReason: "careless_mistake",
+        status: "practiced_once",
+      },
+      { id: "c", topicTag: "Quadratics", errorReason: "careless_mistake", status: "mastered" },
+      { id: "d", topicTag: null, errorReason: "time_management", status: "unresolved" },
+    ];
+
+    // No constraint on any axis returns everything, in the same order.
+    expect(filterMistakes(rows, NO_MISTAKE_FILTERS).map((r) => r.id)).toEqual(["a", "b", "c", "d"]);
+    expect(
+      filterMistakes(rows, { topic: null, reason: "all", status: "all" }).map((r) => r.id),
+    ).toEqual(["a", "b", "c", "d"]);
+
+    // Each axis narrows on its own.
+    expect(
+      filterMistakes(rows, { topic: "Quadratics", reason: "all", status: "all" }),
+    ).toHaveLength(2);
+    expect(
+      filterMistakes(rows, { topic: null, reason: "careless_mistake", status: "all" }).map(
+        (r) => r.id,
+      ),
+    ).toEqual(["b", "c"]);
+    expect(
+      filterMistakes(rows, { topic: null, reason: "all", status: "unresolved" }).map((r) => r.id),
+    ).toEqual(["a", "d"]);
+
+    // Topic matching trims and ignores case.
+    expect(
+      filterMistakes(rows, { topic: "  quadRATics  ", reason: "all", status: "all" }).map(
+        (r) => r.id,
+      ),
+    ).toEqual(["a", "c"]);
+    // A blank topic constrains nothing, and a null topic never matches untagged rows.
+    expect(filterMistakes(rows, { topic: "   ", reason: "all", status: "all" })).toHaveLength(4);
+    expect(filterMistakes(rows, { topic: "Algebra", reason: "all", status: "all" })).toHaveLength(
+      0,
+    );
+
+    // Axes AND together.
+    expect(
+      filterMistakes(rows, { topic: "Quadratics", reason: "careless_mistake", status: "mastered" }),
+    ).toEqual([rows[2]]);
+    expect(
+      filterMistakes(rows, {
+        topic: "Trigonometry",
+        reason: "careless_mistake",
+        status: "unresolved",
+      }),
+    ).toEqual([]);
+
+    // An empty result is a valid answer, and the input is never mutated.
+    expect(filterMistakes([], NO_MISTAKE_FILTERS)).toEqual([]);
+    expect(rows.map((r) => r.id)).toEqual(["a", "b", "c", "d"]);
+  });
+
+  it("knows when a filter set actually narrows the list", () => {
+    expect(hasMistakeFilters(NO_MISTAKE_FILTERS)).toBe(false);
+    expect(hasMistakeFilters({ topic: "  ", reason: "all", status: "all" })).toBe(false);
+    expect(hasMistakeFilters({ topic: "Quadratics", reason: "all", status: "all" })).toBe(true);
+    expect(hasMistakeFilters({ topic: null, reason: "concept_gap", status: "all" })).toBe(true);
+    expect(hasMistakeFilters({ topic: null, reason: "all", status: "mastered" })).toBe(true);
+  });
+
+  it("lists distinct topic tags for the Topic select", () => {
+    const rows = [
+      { topicTag: "Trigonometry" },
+      { topicTag: "Quadratics" },
+      { topicTag: "  Quadratics  " },
+      { topicTag: null },
+      { topicTag: "   " },
+    ];
+    expect(mistakeTopicOptions(rows)).toEqual(["Quadratics", "Trigonometry"]);
+    expect(mistakeTopicOptions([])).toEqual([]);
   });
 
   it("sorts newest first, unresolved first on a tie", () => {
