@@ -1,5 +1,5 @@
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate } from "@tanstack/react-router";
 import { useTranslation } from "react-i18next";
 import { Heart } from "lucide-react";
 import { toast } from "sonner";
@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/features/auth/useAuth";
 import { NoteBrowseCard } from "@/features/materials/note-browse-card";
+import { useMyNoteLikeIds, useNoteLikeCounts } from "@/features/materials/note-like-queries";
 import { getMySavedNoteIds, setNoteSaved } from "@/features/materials/note-engagement.functions";
 import { SAVED_NOTES_QUERY_KEY } from "@/features/materials/note-engagement";
 import { fetchMarketplaceMaterials, fetchMaterialRatings } from "@/features/materials/queries";
@@ -46,7 +47,11 @@ export function useSavedMarketplaceItems() {
 export function SavedMarketplaceGrid() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const { items, isLoading } = useSavedMarketplaceItems();
+  // #726: one batch like-count read for the whole grid.
+  const likeCounts = useNoteLikeCounts(items.map((material) => material.id));
+  const likedIds = useMyNoteLikeIds(items.map((material) => material.id));
   const ratingsQuery = useQuery({
     queryKey: ["materials", "ratings"],
     queryFn: fetchMaterialRatings,
@@ -98,6 +103,9 @@ export function SavedMarketplaceGrid() {
           rating={ratings?.get(material.id) ?? null}
           saved
           onToggleSave={() => void unsave(material.id)}
+          likeCount={likeCounts[material.id]}
+          liked={likedIds.has(material.id)}
+          onRequireAuth={() => void navigate({ to: "/auth" })}
         />
       ))}
     </div>

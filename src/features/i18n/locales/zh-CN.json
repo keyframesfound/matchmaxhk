@@ -2407,6 +2407,9 @@
     "engage": {
       "save": "收藏",
       "saved_label": "已收藏",
+      "like": "赞好",
+      "liked": "已赞好",
+      "like_failed": "未能更新赞好。",
       "saved": "已加入收藏。",
       "unsaved": "已从收藏中移除。",
       "save_failed": "未能更新收藏。",

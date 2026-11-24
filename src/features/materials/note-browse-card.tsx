@@ -5,6 +5,7 @@ import { FileText, Heart, Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { formatMoney } from "@/lib/money";
 import { materialCoverUrl, shopKindLabel } from "@/features/materials/material-card";
+import { NoteLikeButton } from "@/features/materials/note-like-button";
 import { MaterialSocialProofLine } from "@/features/materials/material-social-proof-line";
 import type { MaterialSocialProofInput } from "@/features/materials/material-social-proof";
 import type { MarketplaceMaterial } from "@/features/materials/queries";
@@ -21,6 +22,10 @@ export function NoteBrowseCard({
   rating,
   saved,
   onToggleSave,
+  likeCount,
+  liked,
+  isOwner,
+  onRequireAuth,
   socialProof,
   className,
 }: {
@@ -29,6 +34,14 @@ export function NoteBrowseCard({
   saved?: boolean;
   /** Omit to hide the heart (e.g. signed-out home row). */
   onToggleSave?: () => void;
+  /** #726: batched like count for this card. Omit to hide the like button. */
+  likeCount?: number;
+  /** #726: the viewer's state when it is already known (never guessed). */
+  liked?: boolean;
+  /** #726: own note, the like button stays hidden. */
+  isOwner?: boolean;
+  /** #726: signed-out tap routes to the page's auth prompt. */
+  onRequireAuth?: () => void;
   /** #768: aggregate counts; missing values fall back to "New release". */
   socialProof?: MaterialSocialProofInput | null;
   className?: string;
@@ -100,16 +113,29 @@ export function NoteBrowseCard({
           className="mt-1"
         />
       </Link>
-      {onToggleSave ? (
-        <button
-          type="button"
-          aria-pressed={saved}
-          aria-label={saved ? t("notes.engage.saved_label") : t("notes.engage.save")}
-          onClick={onToggleSave}
-          className="absolute right-2 top-2 flex h-8 w-8 items-center justify-center rounded-full bg-card/90 text-[color:var(--ink)] transition-colors hover:bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]"
-        >
-          <Heart className={cn("h-4 w-4", saved && "fill-current text-rose-500")} aria-hidden />
-        </button>
+      {likeCount !== undefined || onToggleSave ? (
+        <div className="absolute right-2 top-2 flex items-center gap-1.5">
+          {likeCount !== undefined ? (
+            <NoteLikeButton
+              materialId={material.id}
+              initialCount={likeCount}
+              initialLiked={liked}
+              isOwner={isOwner}
+              onRequireAuth={() => onRequireAuth?.()}
+            />
+          ) : null}
+          {onToggleSave ? (
+            <button
+              type="button"
+              aria-pressed={saved}
+              aria-label={saved ? t("notes.engage.saved_label") : t("notes.engage.save")}
+              onClick={onToggleSave}
+              className="flex h-8 w-8 items-center justify-center rounded-full bg-card/90 text-[color:var(--ink)] transition-colors hover:bg-card focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)]"
+            >
+              <Heart className={cn("h-4 w-4", saved && "fill-current text-rose-500")} aria-hidden />
+            </button>
+          ) : null}
+        </div>
       ) : null}
     </article>
   );

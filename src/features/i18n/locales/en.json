@@ -2407,6 +2407,9 @@
     "engage": {
       "save": "Save",
       "saved_label": "Saved",
+      "like": "Like",
+      "liked": "Liked",
+      "like_failed": "Could not update your like.",
       "saved": "Saved to your list.",
       "unsaved": "Removed from your saved list.",
       "save_failed": "Could not update your saved list.",

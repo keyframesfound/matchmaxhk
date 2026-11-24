@@ -310,6 +310,29 @@ export const getNoteLikeState = createServerFn({ method: "GET" })
     return readNoteLikeState(db, data.materialId, await optionalUserId());
   });
 
+/**
+ * #726: which of these notes the viewer already liked, in ONE batch call.
+ * Auth-optional (a guest simply has none), so a grid can render the correct
+ * filled heart on first paint instead of resolving it on the first tap.
+ */
+export const listMyNoteLikeIds = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) =>
+    z.object({ materialIds: z.array(z.string().uuid()).max(NOTE_LIKE_BATCH_MAX) }).parse(data),
+  )
+  .handler(async ({ data }): Promise<string[]> => {
+    if (data.materialIds.length === 0) return [];
+    const accountId = await optionalUserId();
+    if (!accountId) return [];
+    const db = await admin();
+    const { data: rows, error } = await db
+      .from<{ material_id: string }>("material_likes")
+      .select("material_id")
+      .eq("account_id", accountId)
+      .in("material_id", data.materialIds);
+    if (error) return isMissingTable(error) ? [] : [];
+    return (rows ?? []).map((row) => row.material_id);
+  });
+
 /** Public: batch counts for note cards (max 60 ids, one query). */
 export const listNoteLikeCounts = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>

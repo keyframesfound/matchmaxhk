@@ -52,6 +52,9 @@ import {
   ShareNoteButton,
   SimilarNotesSection,
 } from "@/features/materials/note-engagement";
+import { NoteLikeButton } from "@/features/materials/note-like-button";
+import { NOTE_LIKE_STATE_QUERY_KEY } from "@/features/materials/note-like-queries";
+import { getNoteLikeState } from "@/features/materials/note-likes.functions";
 import { NoteTutorUpsellCard } from "@/features/materials/note-tutor-upsell-card";
 import { startStripeCheckout } from "@/features/materials/stripe-checkout.functions";
 import { toast } from "sonner";
@@ -221,6 +224,13 @@ function NotePage() {
     },
   });
 
+  // #726: the like count + the viewer's own state in one read. Guests get
+  // liked:false with a real count, and a tap routes to the sign-in gate.
+  const likeQuery = useQuery({
+    queryKey: [...NOTE_LIKE_STATE_QUERY_KEY, note.id],
+    queryFn: () => getNoteLikeState({ data: { materialId: note.id } }),
+  });
+
   const othersQuery = useQuery({
     queryKey: ["note-others", note.tutorId, note.id],
     queryFn: () =>
@@ -322,6 +332,16 @@ function NotePage() {
               {/* Notes upload v2: save / share / jump to reviews. */}
               <div className="flex flex-wrap items-center gap-2">
                 <SaveNoteButton materialId={note.id} onRequireAuth={() => setGateOpen(true)} />
+                {likeQuery.data ? (
+                  <NoteLikeButton
+                    materialId={note.id}
+                    initialCount={likeQuery.data.count}
+                    initialLiked={likeQuery.data.liked}
+                    isOwner={isOwner}
+                    onRequireAuth={() => setGateOpen(true)}
+                    variant="detail"
+                  />
+                ) : null}
                 <ShareNoteButton note={note} />
                 <Button asChild variant="ghost" size="sm">
                   <a href="#reviews">{t("notes.reviews.jump")}</a>
