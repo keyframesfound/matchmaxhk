@@ -13,6 +13,7 @@ import {
 } from "@/features/tutors/rates";
 import { MAX_ACADEMIC_HEADLINE } from "@/lib/academic-headline";
 import { SEN_CATEGORY_OPTIONS } from "@/features/tutors/sen";
+import { MAX_FIT, MAX_STYLES, MAX_TAGS } from "@/features/tutor-application/matching-chips";
 import {
   COURSE_GRADE_OPTIONS,
   KINDERGARTEN_TOPICS,
@@ -33,6 +34,24 @@ function withContactFilter<T extends z.ZodTypeAny>(schema: T) {
     const error = contactFilterError(value);
     if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
   });
+}
+
+/**
+ * Issue #798 AC-2: optional matching chips. The join form always sends arrays,
+ * but an autosaved draft or an older resume payload can carry anything, so a
+ * non-array degrades to an empty selection instead of failing the save — an
+ * empty chip selection must always be submittable.
+ */
+function chipArray(max: number) {
+  // Optional on purpose: an application that predates the chips (or an
+  // internal fixture) simply omits the key. A present but non-array value is
+  // coerced to [] so a malformed draft can never fail the whole save.
+  return z
+    .preprocess(
+      (value) => (Array.isArray(value) ? value : []),
+      z.array(z.string().trim().min(1)).max(max),
+    )
+    .optional();
 }
 
 export const MAX_FILES = 5;
@@ -313,6 +332,13 @@ export const tutorApplicationSchema = z
         const error = contactFilterError(text);
         if (error) ctx.addIssue({ code: z.ZodIssueCode.custom, message: error });
       }),
+    // Issue #798 AC-2: optional matching chips (3 / 3 / 5). Values are
+    // re-sanitized against the canonical option lists in
+    // tutor-application.functions.ts before they reach the tutors row; this
+    // layer only guarantees the shape and the caps, never presence.
+    tutoringStyles: chipArray(MAX_STYLES),
+    studentFit: chipArray(MAX_FIT),
+    syllabusTags: chipArray(MAX_TAGS),
     // Issue #319: the single "Proposed Hourly Rate" input is replaced by two
     // base rates (whole HK dollars, 50-3000). Which one is required follows
     // the lesson format, see the superRefine below. The legacy hourlyRate is
