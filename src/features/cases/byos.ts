@@ -67,7 +67,29 @@ export type PriorContact = {
   tutorApplied: boolean;
 };
 
-export type ByosClaimRefusal = "own_invite" | "prior_contact" | "not_active";
+export type ByosClaimRefusal = "own_invite" | "prior_contact" | "not_active" | "expired";
+
+/**
+ * #737 §3 MUST: an invite expires 7 days after it is created.
+ *
+ * The token is a 32-byte secret handed out over WhatsApp, so the window is the
+ * only thing limiting the blast radius of a leaked link. Without it, an old
+ * invite would grant the HK$0 admin fee forever.
+ */
+export const BYOS_INVITE_TTL_DAYS = 7;
+
+export function byosInviteExpired(
+  expiresAt: string | null | undefined,
+  now: Date = new Date(),
+): boolean {
+  if (!expiresAt) return false;
+  const at = Date.parse(expiresAt);
+  // Fail open on an unparseable value: the column is written by the DB, so a
+  // malformed row is a data glitch, not an attack, and it must not refuse a
+  // genuine student their invite.
+  if (!Number.isFinite(at)) return false;
+  return now.getTime() >= at;
+}
 
 /**
  * Null = the waiver may be granted. Anti-circumvention: any prior on-platform
@@ -77,8 +99,11 @@ export function byosClaimRefusal(input: {
   inviteStatus: string;
   claimantIsTutor: boolean;
   prior: PriorContact;
+  /** #737 §3: the invite's 7-day window has closed. */
+  expired?: boolean;
 }): ByosClaimRefusal | null {
   if (input.inviteStatus !== "active") return "not_active";
+  if (input.expired) return "expired";
   if (input.claimantIsTutor) return "own_invite";
   const { matchedCase, trialIntro, tutorApplied } = input.prior;
   if (matchedCase || trialIntro || tutorApplied) return "prior_contact";

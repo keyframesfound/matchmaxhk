@@ -14,6 +14,7 @@ import { normalizePhone } from "@/features/cases/import-plan";
 import {
   BYOS_CASE_SOURCE,
   byosClaimRefusal,
+  byosInviteExpired,
   byosInvitePath,
   hashInviteToken,
   isWellFormedInviteToken,
@@ -147,6 +148,8 @@ type InviteRecord = {
   hourly_rate_hkd: number;
   lesson_mode: string;
   status: string;
+  /** #737 §3: created_at + 7 days, written by the DB default. */
+  expires_at: string | null;
   tutors: { display_name: string; user_id: string | null } | null;
 };
 
@@ -155,7 +158,7 @@ async function loadInvite(db: Db, token: string): Promise<InviteRecord | null> {
   const rows = await selectRows<InviteRecord>(
     db,
     "byos_invites",
-    "id, tutor_id, subject, level, hourly_rate_hkd, lesson_mode, status, tutors(display_name, user_id)",
+    "id, tutor_id, subject, level, hourly_rate_hkd, lesson_mode, status, expires_at, tutors(display_name, user_id)",
     [{ col: "token_hash", op: "eq", value: await hashInviteToken(token) }],
   );
   return rows[0] ?? null;
@@ -166,6 +169,8 @@ export type ByosInvitePreview =
   | {
       found: true;
       active: boolean;
+      /** #737 §3: open but past its 7-day window. */
+      expired: boolean;
       tutorName: string;
       subject: string;
       level: string | null;
@@ -179,9 +184,11 @@ export const getByosInvitePreview = createServerFn({ method: "POST" })
     const db = await adminDb();
     const invite = await loadInvite(db, data.token);
     if (!invite) return { found: false };
+    const expired = byosInviteExpired(invite.expires_at);
     return {
       found: true,
-      active: invite.status === "active",
+      active: invite.status === "active" && !expired,
+      expired,
       tutorName: invite.tutors?.display_name ?? "",
       subject: invite.subject,
       level: invite.level,
@@ -264,6 +271,7 @@ export const claimByosInvite = createServerFn({ method: "POST" })
     const profile = profiles[0];
     const refusal = byosClaimRefusal({
       inviteStatus: invite.status,
+      expired: byosInviteExpired(invite.expires_at),
       claimantIsTutor: invite.tutors?.user_id === context.userId,
       prior: await priorContactWith(db, invite.tutor_id, context.userId, profile?.phone ?? null),
     });

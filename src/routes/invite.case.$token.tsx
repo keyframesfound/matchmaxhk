@@ -31,6 +31,7 @@ const REFUSAL_KEYS = {
   not_active: "byos.refused_not_active",
   own_invite: "byos.refused_own_invite",
   prior_contact: "byos.refused_prior_contact",
+  expired: "byos.refused_expired",
 } as const;
 
 function ByosInvitePage() {
@@ -90,7 +91,9 @@ function ByosInvitePage() {
 
               {!data.active ? (
                 <p className="rounded-lg bg-[color:var(--ink)]/5 p-3 text-sm">
-                  {t("byos.refused_not_active")}
+                  {/* #737 §3: an open invite past its 7 days is not "used or
+                      cancelled" - say what actually happened. */}
+                  {data.expired ? t("byos.refused_expired") : t("byos.refused_not_active")}
                 </p>
               ) : refusal ? (
                 <div className="space-y-3 rounded-lg bg-amber-50 p-3 text-sm text-amber-900">
