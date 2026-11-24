@@ -132,12 +132,18 @@ export const logTutorSession = createServerFn({ method: "POST" })
       matched_tutor_id: string | null;
       sor_status: SorStatus | null;
       parent_id: string | null;
-    }>(db, "tutoring_cases", "id, matched_tutor_id, sor_status, parent_id", [
+      hourly_rate_hkd: number | null;
+    }>(db, "tutoring_cases", "id, matched_tutor_id, sor_status, parent_id, hourly_rate_hkd", [
       { col: "id", op: "eq", value: data.caseId },
     ]);
     const c = caseRows[0];
     if (!c || c.matched_tutor_id !== tutorId) throw new Error("CASE_NOT_FOUND");
     if (c.sor_status === "replaced" || c.sor_status === "closed") throw new Error("CASE_CLOSED");
+    // #828 AC-A2: no rate, no log (earnings would silently drop it).
+    const rate = Number(c.hourly_rate_hkd);
+    if (c.hourly_rate_hkd == null || !Number.isFinite(rate) || rate <= 0) {
+      throw new Error("RATE_MISSING");
+    }
 
     const [fees, logs] = await Promise.all([
       selectRows<{ status: string }>(db, "case_fees", "status", [

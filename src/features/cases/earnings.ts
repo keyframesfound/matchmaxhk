@@ -264,6 +264,35 @@ function caseEarnings(c: EarningsCaseInput, range: EarningsRange, now: Date): Ea
   return { ...caseHeader(c), missingRate: false, lessons, totals: sumTotals(lessons) };
 }
 
+/** Every lesson ever, for single-lesson lookups (fee order needs the full case). */
+const ALL_TIME: EarningsRange = { from: new Date(0), to: new Date(8.64e15) };
+
+/**
+ * #828 AC-A3: the tutor's net on one lesson or #387 log, from the same engine
+ * as the earnings panel. Null when the row is not a realized lesson of `c`
+ * (or the case has no usable rate).
+ */
+export function lessonNetHkd(
+  c: EarningsCaseInput,
+  source: "lesson" | "session_log",
+  id: string,
+  now: Date,
+): number | null {
+  const row = caseEarnings(c, ALL_TIME, now).lessons.find(
+    (l) => l.id === id && l.source === source && l.bucket === "realized",
+  );
+  return row ? row.netHkd : null;
+}
+
+/**
+ * #828 AC-A3 / #760: "unpaid tuition" means the family still owes the tutor,
+ * so it only exists where the tutor nets something. Lesson 1 under the
+ * 1.5-lesson admin fee nets $0 and can never be marked unpaid.
+ */
+export function canMarkTuitionUnpaid(netHkd: number | null): boolean {
+  return netHkd !== null && netHkd > 0;
+}
+
 export function computeEarnings(
   cases: readonly EarningsCaseInput[],
   range: EarningsRange,

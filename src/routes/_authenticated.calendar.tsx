@@ -64,6 +64,25 @@ function SummarySection({ summary, role }: { summary: CalendarSummary; role: "tu
           month: summary.thisMonthScheduled,
         })}
       </p>
+      {/* #828 C3: parent-only estimate of tuition paid directly to the tutor. */}
+      {role === "parent" && summary.monthTuition ? (
+        <div className="rounded-[var(--radius-control)] bg-muted/40 px-4 py-3">
+          <p className="text-xs font-medium text-muted-foreground">
+            {t("calendar_hub.month_tuition")}
+          </p>
+          <p className="text-xl font-bold tabular-nums text-[color:var(--ink)]">
+            HK${summary.monthTuition.hkd.toLocaleString("en-HK")}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {t("calendar_hub.month_tuition_hint")}
+            {summary.monthTuition.casesMissingRate > 0
+              ? ` ${t("calendar_hub.month_tuition_partial", {
+                  count: summary.monthTuition.casesMissingRate,
+                })}`
+              : ""}
+          </p>
+        </div>
+      ) : null}
       {summary.upcoming.length === 0 ? (
         <p className="text-sm text-muted-foreground">{t("calendar_hub.empty")}</p>
       ) : (

@@ -89,16 +89,23 @@ function TuitionList({ result }: { result: EarningsResult }) {
               · {c.studentLabel} · {hkd(l.grossHkd)}
               {l.tuitionUnpaid ? ` · ${t("sor.tutor_earnings_unpaid_tag")}` : ""}
             </span>
-            <Button
-              size="sm"
-              variant="outline"
-              disabled={toggle.isPending}
-              onClick={() => toggle.mutate(l)}
-            >
-              {l.tuitionUnpaid
-                ? t("sor.tutor_earnings_mark_paid")
-                : t("sor.tutor_earnings_mark_unpaid")}
-            </Button>
+            {/* #828 AC-A3: no "unpaid" where the tutor nets $0 (Lesson 1). */}
+            {l.netHkd > 0 || l.tuitionUnpaid ? (
+              <Button
+                size="sm"
+                variant="outline"
+                disabled={toggle.isPending}
+                onClick={() => toggle.mutate(l)}
+              >
+                {l.tuitionUnpaid
+                  ? t("sor.tutor_earnings_mark_paid")
+                  : t("sor.tutor_earnings_mark_unpaid")}
+              </Button>
+            ) : (
+              <span className="text-xs text-muted-foreground">
+                {t("sor.tutor_earnings_no_net")}
+              </span>
+            )}
           </li>
         ))}
       </ul>

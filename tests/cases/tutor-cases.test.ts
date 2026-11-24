@@ -68,13 +68,13 @@ describe("tutor week model (#201/#204)", () => {
     expect(sydney.reduce((n, d) => n + d.lessons.length, 0)).toBe(1);
   });
 
-  it("counts active students: done within 30d or future live lesson", () => {
+  it("counts active students: done within the 45-day Present window (#828) or future live lesson", () => {
     const now = new Date("2026-10-17T00:00:00Z");
     const active = [
       [{ status: "done", starts_at: new Date(now.getTime() - 5 * 86400000).toISOString() }],
     ];
     const inactive = [
-      [{ status: "done", starts_at: new Date(now.getTime() - 40 * 86400000).toISOString() }],
+      [{ status: "done", starts_at: new Date(now.getTime() - 50 * 86400000).toISOString() }],
     ];
     const future = [
       [{ status: "confirmed", starts_at: new Date(now.getTime() + 2 * 86400000).toISOString() }],

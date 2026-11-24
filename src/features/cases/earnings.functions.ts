@@ -16,6 +16,7 @@ import { firstNameOf } from "@/features/cases/tutor/week-model";
 import { requireOrgMembership } from "@/features/cases/centre-case.functions";
 import {
   computeEarnings,
+  lessonNetHkd,
   earningsRange,
   parseSecondaryTier,
   summarizeForOrganisation,
@@ -126,6 +127,21 @@ async function loadEarningsInputs(
         tuitionStatus: s.tuition_status,
       })),
   }));
+}
+
+/** #828 AC-A3: the tutor's net on one realized lesson / log of a case. */
+export async function netTutorHkdFor(
+  db: Db,
+  caseId: string,
+  source: "lesson" | "session_log",
+  id: string,
+): Promise<number | null> {
+  const cases = await selectRows<CaseRow>(db, "tutoring_cases", CASE_COLS, [
+    { col: "id", op: "eq", value: caseId },
+  ]);
+  if (cases.length === 0) return null;
+  const [input] = await loadEarningsInputs(db, cases, null);
+  return lessonNetHkd(input, source, id, new Date());
 }
 
 const isLiveCase = (c: CaseRow) => c.sor_status !== null && c.sor_status !== "replaced";
