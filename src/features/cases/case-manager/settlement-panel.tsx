@@ -2,20 +2,23 @@ import { useQuery } from "@tanstack/react-query";
 import { BadgeCheck, CircleDashed } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
-import type { BillingRole } from "@/features/cases/case-billing";
 import { getCaseBilling } from "@/features/cases/case-billing.functions";
 import { formatHktDateTime } from "@/features/rosters/roster-logic";
 import { formatMoney } from "@/lib/money";
 
 /**
  * #785 AC-735-1: the #760 admin-fee settlement, read-only inside Case
- * Manager so both parties see the same state the tutor dashboard and the
- * desk already show. Every figure is the stored `case_fee_milestones`
- * snapshot (written by the attendance sync from the fee engines) — nothing
- * is recalculated here. The proof chip comes from the case's current
+ * Manager so the tutor sees the same state the tutor dashboard and the desk
+ * already show. Every figure is the stored `case_fee_milestones` snapshot
+ * (written by the attendance sync from the fee engines) — nothing is
+ * recalculated here. The proof chip comes from the case's current
  * `case_fees` row via settlementCardState.
+ *
+ * #756 lock: tutor-side only. The parent/student view never renders this, and
+ * `getCaseBilling` no longer sends the ledger to a parent, so there is no role
+ * branch to get wrong here.
  */
-export function SettlementPanel({ caseId, role }: { caseId: string; role: BillingRole }) {
+export function SettlementPanel({ caseId }: { caseId: string }) {
   const { t, i18n } = useTranslation();
   // Shares the tab's query key, so this section costs no extra request.
   const { data } = useQuery({
@@ -31,9 +34,7 @@ export function SettlementPanel({ caseId, role }: { caseId: string; role: Billin
   const total = known.length === milestones.length ? known.reduce((sum, n) => sum + n, 0) : null;
   const note = data?.isShortCase
     ? "billing.settlement_note_short"
-    : role === "parent"
-      ? "billing.settlement_note_parent"
-      : "billing.settlement_note_tutor";
+    : "billing.settlement_note_tutor";
 
   return (
     <section className="space-y-2 rounded-xl border border-border p-4">
