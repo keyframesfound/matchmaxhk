@@ -6,7 +6,13 @@ import { ArrowRight, ChevronLeft, ChevronRight, Flame } from "lucide-react";
 import { useReducedMotion } from "motion/react";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
-import { canonicalUrl, currentSeoLocale, hreflangLinks, localizedMeta } from "@/features/i18n/seo";
+import {
+  canonicalUrl,
+  currentSeoLocale,
+  hreflangLinks,
+  localizedMeta,
+  resolveMetaCopy,
+} from "@/features/i18n/seo";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -143,6 +149,21 @@ export const Route = createFileRoute("/")({
   // Issue #401: locale-aware SEO copy (exact CEO-approved strings).
   head: () => {
     const locale = currentSeoLocale();
+    // Social-card copy keeps its own (shorter) wording; the en / zh-HK strings
+    // are unchanged, /cn is the Simplified rendition of the same sentence.
+    const twitterCopy = {
+      title: {
+        en: "Tutoring Made Convenient in Hong Kong | MatchMax",
+        "zh-HK": "MatchMax | 香港最透明的補習配對平台",
+        "zh-CN": "MatchMax | 香港最便捷的家教配对平台",
+      },
+      description: {
+        en: "Find elite IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
+        "zh-HK": "極速專人配對、透明紙面成績，家長全免手續費。",
+        "zh-CN": "高效专人配对、透明的纸面成绩，家长完全免收中介费。",
+      },
+    };
+    const twitter = resolveMetaCopy(locale, twitterCopy);
     return {
       meta: [
         ...localizedMeta(locale, {
@@ -168,20 +189,8 @@ export const Route = createFileRoute("/")({
         { property: "og:image:width", content: "1200" },
         { property: "og:image:height", content: "630" },
         { name: "twitter:card", content: "summary_large_image" },
-        {
-          name: "twitter:title",
-          content:
-            locale !== "en"
-              ? "MatchMax | 香港最透明的補習配對平台"
-              : "Tutoring Made Convenient in Hong Kong | MatchMax",
-        },
-        {
-          name: "twitter:description",
-          content:
-            locale !== "en"
-              ? "極速專人配對、透明紙面成績，家長全免手續費。"
-              : "Find elite IB, HKDSE, IGCSE, AP, A-Level and international school tutors in Hong Kong.",
-        },
+        { name: "twitter:title", content: twitter.title },
+        { name: "twitter:description", content: twitter.description },
         { name: "twitter:image", content: OG_IMAGE },
       ],
       links: [

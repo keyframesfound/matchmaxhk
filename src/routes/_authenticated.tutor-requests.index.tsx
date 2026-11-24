@@ -3,7 +3,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { formatPostedAgo } from "@/lib/relative-time";
-import { canonicalUrl, currentSeoLocale, localeLinks, localizedMeta } from "@/features/i18n/seo";
+import {
+  canonicalUrl,
+  currentSeoLocale,
+  localeLinks,
+  localizedMeta,
+  pickCopy,
+} from "@/features/i18n/seo";
 import {
   ArrowRight,
   BadgeCheck,
@@ -252,10 +258,15 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
         { name: "robots", content: "noindex, follow" },
         {
           property: "og:description",
-          content:
-            locale !== "en"
-              ? "真實香港家長補習需求。申請適合你嘅個案，或者自己出需求——家長完全免費。"
-              : "Real tutoring requests from Hong Kong parents. Apply for a case that fits you, or post your own, free for parents.",
+          content: pickCopy(
+            {
+              en: "Real tutoring requests from Hong Kong parents. Apply for a case that fits you, or post your own, free for parents.",
+              "zh-HK": "真實香港家長補習需求。申請適合你嘅個案，或者自己出需求——家長完全免費。",
+              "zh-CN":
+                "真实的香港家长家教需求。申请适合你的家教需求，或自己发布需求——家长完全免费。",
+            },
+            locale,
+          ),
         },
         { property: "og:url", content: canonicalUrl("/tutor-requests") },
       ],
