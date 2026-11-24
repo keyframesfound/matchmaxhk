@@ -237,20 +237,28 @@ export const getCaseBilling = createServerFn({ method: "POST" })
         { col: "case_id", op: "eq", value: c.id },
       ]),
       // #785 AC-735-1: the #760 admin-fee ledger, as stored. The sync owns
-      // every write; this read only reports it to both parties.
-      selectRows<MilestoneRow>(
-        db,
-        "case_fee_milestones",
-        "kind, status, amount_hkd, delivered_at, delivered_source",
-        [{ col: "case_id", op: "eq", value: c.id }],
-      ),
-      selectRows<FeeRow>(
-        db,
-        "case_fees",
-        "status, proof_status, created_at",
-        [{ col: "case_id", op: "eq", value: c.id }],
-        { col: "created_at", asc: false },
-      ),
+      // every write; this read only reports it.
+      // #756 lock: the admin fee is a tutor -> MatchMax arrangement, so a
+      // parent/student must never receive it — in the DOM *or* the payload.
+      // Gating the read (not just the render) is what keeps it out of the API
+      // response; the parent billing tab still gets tuition statements.
+      role === "parent"
+        ? Promise.resolve([] as MilestoneRow[])
+        : selectRows<MilestoneRow>(
+            db,
+            "case_fee_milestones",
+            "kind, status, amount_hkd, delivered_at, delivered_source",
+            [{ col: "case_id", op: "eq", value: c.id }],
+          ),
+      role === "parent"
+        ? Promise.resolve([] as FeeRow[])
+        : selectRows<FeeRow>(
+            db,
+            "case_fees",
+            "status, proof_status, created_at",
+            [{ col: "case_id", op: "eq", value: c.id }],
+            { col: "created_at", asc: false },
+          ),
     ]);
     const markerIds = [...new Set(marks.flatMap((m) => (m.marked_by ? [m.marked_by] : [])))];
     const markers =

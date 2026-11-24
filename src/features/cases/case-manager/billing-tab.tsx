@@ -393,9 +393,10 @@ export function BillingTab({
         )}
       </section>
 
-      {/* #785 AC-735-1: the #760 settlement state, above the statement so a
-          party sees what is owed before the monthly detail. */}
-      <SettlementPanel caseId={caseId} role={data.role} />
+      {/* #785 AC-735-1: the #760 settlement state, above the statement.
+          #756 lock: tutor-side only — the parent/student view never renders
+          the MatchMax admin fee, and the server no longer sends it either. */}
+      {data.role === "parent" ? null : <SettlementPanel caseId={caseId} />}
 
       <section className="space-y-2">
         <h3 className="text-sm font-semibold">{t("billing.statement_title")}</h3>
