@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   byosClaimRefusal,
+  byosInviteExpired,
   byosInvitePath,
   hashInviteToken,
   isWellFormedInviteToken,
@@ -70,6 +71,59 @@ describe("#783 §2.4 BYOS invite", () => {
     ).toBe("not_active");
     expect(
       byosClaimRefusal({ inviteStatus: "active", claimantIsTutor: true, prior: noContact }),
+    ).toBe("own_invite");
+  });
+});
+
+describe("#737 §3 the invite expires after 7 days", () => {
+  const DAY = 24 * 60 * 60 * 1000;
+  const now = new Date("2026-11-24T12:00:00.000Z");
+  const at = (offsetDays: number) => new Date(now.getTime() + offsetDays * DAY).toISOString();
+
+  it("keeps a fresh invite and one that expires in a moment", () => {
+    expect(byosInviteExpired(at(7), now)).toBe(false);
+    expect(byosInviteExpired(at(0.001), now)).toBe(false);
+  });
+
+  it("expires exactly at the boundary, not after it", () => {
+    expect(byosInviteExpired(at(0), now)).toBe(true);
+    expect(byosInviteExpired(at(-1), now)).toBe(true);
+  });
+
+  it("does not expire a row with no or unparseable expiry", () => {
+    expect(byosInviteExpired(null, now)).toBe(false);
+    expect(byosInviteExpired(undefined, now)).toBe(false);
+    expect(byosInviteExpired("not-a-date", now)).toBe(false);
+  });
+
+  it("refuses the waiver once expired, but a spent invite still reads as used", () => {
+    expect(
+      byosClaimRefusal({
+        inviteStatus: "active",
+        expired: true,
+        claimantIsTutor: false,
+        prior: noContact,
+      }),
+    ).toBe("expired");
+    // Order matters: an already-claimed invite is not_active whatever the clock.
+    expect(
+      byosClaimRefusal({
+        inviteStatus: "claimed",
+        expired: true,
+        claimantIsTutor: false,
+        prior: noContact,
+      }),
+    ).toBe("not_active");
+  });
+
+  it("keeps the existing refusals when the invite is live", () => {
+    expect(
+      byosClaimRefusal({
+        inviteStatus: "active",
+        expired: false,
+        claimantIsTutor: true,
+        prior: noContact,
+      }),
     ).toBe("own_invite");
   });
 });

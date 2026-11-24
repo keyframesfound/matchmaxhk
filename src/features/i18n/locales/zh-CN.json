@@ -5873,6 +5873,7 @@
     "refused_not_active": "此邀请已被使用或已取消。请向你的导师索取新链接。",
     "refused_own_invite": "这是你自己建立的邀请。请把链接分享给你的学生。",
     "refused_prior_contact": "此 HK$0 邀请不适用：你之前已经在 MatchMax 查询过或与这位导师配对，因此须按一般程序缴付行政费。你仍可以透过一般申请与这位导师上堂。",
+    "refused_expired": "此邀请链接已过期。邀请链接有效期为 7 日，请向你的导师索取新链接。",
     "request_normally": "提交一般申请",
     "field_mode": "上课形式",
     "mode_online": "在线",
