@@ -144,6 +144,29 @@ html {
   --radius-control: 18px;
   --radius-panel: 26px;
   --radius-surface: 34px;
+  /*
+   * #713 §2.1 — DESIGN.md → Motion vocabulary, the CSS half. The springs
+   * themselves live in src/lib/motion-tokens.ts (motion/react); CSS has no
+   * spring, so each spring gets its duration plus one settle curve, and the
+   * duration ladder is shared by both halves. Consumers: Tailwind
+   * `duration-[var(--motion-duration-*)]` / `ease-[var(--motion-ease-*)]` and
+   * the raw rules in this file. Change the module and this block together —
+   * tests/motion/motion-tokens.test.ts fails when they drift.
+   */
+  --motion-duration-smooth: 400ms; /* spring.smooth 0.40s */
+  --motion-duration-snappy: 260ms; /* spring.snappy 0.26s */
+  --motion-duration-morph: 420ms; /* spring.morph 0.42s */
+  --motion-duration-xs: 120ms;
+  --motion-duration-sm: 160ms;
+  --motion-duration-md: 180ms;
+  --motion-duration-lg: 240ms;
+  --motion-duration-xl: 480ms;
+  /* smooth never overshoots (a control that reports a state lands flat);
+     snappy / morph carry the documented bounce; fade is for colour/opacity. */
+  --motion-ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  --motion-ease-snappy: cubic-bezier(0.34, 1.2, 0.64, 1);
+  --motion-ease-morph: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --motion-ease-fade: cubic-bezier(0.4, 0, 0.2, 1);
   /* One family site-wide (owner decision, 2026-11-22): Plus Jakarta Sans, in
    * the spirit of Airbnb / Uber app type. Weight ladder (2026-10-25): 400 body,
    * 500 labels, 600 controls/card titles, 700 headings. System CJK covers
@@ -722,9 +745,34 @@ html {
   transition: box-shadow 200ms ease;
 }
 
-.mm-promo-card:hover,
-.mm-promo-card:focus-visible {
-  box-shadow: 0 10px 24px rgb(0 0 0 / 0.11);
+/*
+ * #713 §2.2 (AC-HOV-1): hover is a pointer-only state, so every raw `:hover`
+ * rule in this file is gated. Tailwind v4 already compiles its `hover:*`
+ * utilities inside `@media (hover: hover)`; these rules are hand-written and
+ * need the guard so a tap on touch cannot leave the treatment stuck on.
+ * `:focus-visible` deliberately stays outside the gate — keyboard focus must
+ * still apply on touch devices.
+ */
+@media (hover: hover) {
+  .mm-promo-card:hover {
+    box-shadow: 0 10px 24px rgb(0 0 0 / 0.11);
+  }
+
+  .mm-promo-card:hover .mm-promo-cta {
+    background-color: #e5e7eb;
+  }
+
+  .dark .mm-promo-card:hover .mm-promo-cta {
+    background-color: rgb(255 255 255 / 0.16);
+  }
+
+  .mm-case-card:hover {
+    border-color: #cfd9de;
+  }
+
+  .dark .mm-case-card:hover {
+    border-color: rgb(255 255 255 / 0.25);
+  }
 }
 
 .mm-promo-cta {
@@ -733,7 +781,10 @@ html {
   transition: background-color 200ms ease;
 }
 
-.mm-promo-card:hover .mm-promo-cta,
+.mm-promo-card:focus-visible {
+  box-shadow: 0 10px 24px rgb(0 0 0 / 0.11);
+}
+
 .mm-promo-card:focus-visible .mm-promo-cta {
   background-color: #e5e7eb;
 }
@@ -749,7 +800,6 @@ html {
   color: var(--ink);
 }
 
-.dark .mm-promo-card:hover .mm-promo-cta,
 .dark .mm-promo-card:focus-visible .mm-promo-cta {
   background-color: rgb(255 255 255 / 0.16);
 }
@@ -764,18 +814,10 @@ html {
   transition: border-color 200ms ease;
 }
 
-.mm-case-card:hover {
-  border-color: #cfd9de;
-}
-
 .dark .mm-case-card {
   background-color: var(--card);
   border-color: var(--border);
   box-shadow: none;
-}
-
-.dark .mm-case-card:hover {
-  border-color: rgb(255 255 255 / 0.25);
 }
 
 .pill-elevate,
@@ -833,12 +875,15 @@ html {
 
 /* #729: Airbnb-style press on filled buttons. Resting stays flat (Floating
  * Shadow Rule); only the pressed instant sinks with a short inset shadow,
- * paired with the 1px translate in button.tsx. */
+ * paired with the 1px translate in button.tsx.
+ * #713 §2.1: this rule is unlayered, so it is the effective transition for the
+ * `solid` / `secondary` variants — it therefore reads the shared motion tokens
+ * (same press duration as shared Button) instead of its own 150ms. */
 .mm-press {
   transition:
-    transform 150ms ease-out,
-    background-color 150ms ease-out,
-    box-shadow 120ms ease-out;
+    transform var(--motion-duration-snappy) var(--motion-ease-smooth),
+    background-color var(--motion-duration-sm) var(--motion-ease-fade),
+    box-shadow var(--motion-duration-xs) var(--motion-ease-fade);
 }
 
 .mm-press:active {
@@ -854,6 +899,21 @@ html {
   .mm-press:active {
     transition: none;
   }
+}
+
+/*
+ * #713 §2.2 (AC-PRS-2) — DESIGN.md Motion: a control that anchors a popover or
+ * menu answers a press with colour, never scale; the scale fights the overlay's
+ * trigger origin. Shared Button presses with `active:scale-[0.97]`, so this
+ * opts every overlay owner out of it — including a Button used `asChild` as an
+ * <a> / <button>, because Slot forwards the ARIA attributes onto that element,
+ * and anchors must not silently inherit the scale. Unlayered on purpose: it has
+ * to beat the utilities layer. The 1px sink from #729 is kept (the origin
+ * problem is the scale, and the sink also serves as the press answer).
+ */
+[aria-haspopup]:active,
+[aria-expanded]:active {
+  scale: 1;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -901,9 +961,14 @@ html .driver-popover-close-btn {
   color: var(--muted-foreground, #6b7280);
   border-radius: 9999px;
 }
-html .driver-popover-close-btn:hover,
 html .driver-popover-close-btn:focus-visible {
   color: var(--ink);
+}
+/* #713 AC-HOV-1: raw hover, gated to pointer devices. */
+@media (hover: hover) {
+  html .driver-popover-close-btn:hover {
+    color: var(--ink);
+  }
 }
 /* Arrow: recolor the base at (0,1,1), then re-zero the three hidden sides at
    (0,2,1) — otherwise the bumped base rule out-ranks driver.css's own side
@@ -942,9 +1007,14 @@ html .driver-popover-footer-btn {
   font-weight: 500;
   transition: background-color 0.2s;
 }
-html .driver-popover-footer-btn:hover,
 html .driver-popover-footer-btn:focus {
   background-color: var(--surface-subtle, var(--surface));
+}
+/* #713 AC-HOV-1: raw hover, gated to pointer devices. */
+@media (hover: hover) {
+  html .driver-popover-footer-btn:hover {
+    background-color: var(--surface-subtle, var(--surface));
+  }
 }
 html .driver-popover-progress-text {
   color: var(--muted-foreground, #6b7280);

@@ -7,7 +7,14 @@ import { useEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
 
 const buttonVariants = cva(
-  "relative inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] font-semibold outline-none transition-[transform,background-color,border-color,color] duration-150 ease-out focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] focus-visible:ring-offset-2 active:translate-y-px active:scale-[0.98] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:translate-y-0 motion-reduce:active:scale-100 [&_svg]:pointer-events-none [&_svg]:shrink-0",
+  // #713 §2.2 (AC-PRS-1) — DESIGN.md Motion press: `active:scale-[0.97]` on the
+  // spring.snappy duration (--motion-duration-snappy, 260ms) with the
+  // non-overshoot curve, because a press reports a state and must land flat.
+  // CSS-only on purpose: shared Button stays a Slot-forwarding element, never a
+  // motion.button. `motion-reduce` drops the scale and the 1px sink.
+  // Overlay anchors opt out of the scale via `[aria-haspopup]` /
+  // `[aria-expanded]` in src/styles.css (AC-PRS-2).
+  "relative inline-flex cursor-pointer items-center justify-center gap-2 whitespace-nowrap rounded-[var(--radius-control)] font-semibold outline-none transition-[transform,background-color,border-color,color] duration-[var(--motion-duration-snappy)] ease-[var(--motion-ease-smooth)] focus-visible:ring-2 focus-visible:ring-[color:var(--ring)] focus-visible:ring-offset-2 active:translate-y-px active:scale-[0.97] disabled:pointer-events-none disabled:cursor-not-allowed disabled:opacity-50 motion-reduce:transition-none motion-reduce:active:translate-y-0 motion-reduce:active:scale-100 [&_svg]:pointer-events-none [&_svg]:shrink-0",
   {
     variants: {
       color: {
