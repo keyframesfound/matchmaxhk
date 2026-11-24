@@ -39,6 +39,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { DEFAULT_SUBJECT_OPTIONS } from "@/features/tutors/subjects";
 import { HK_DISTRICTS } from "@/features/tutors/queries";
 import { COURSE_LEVEL_OPTIONS, COURSE_MODE_OPTIONS, type Course } from "@/features/courses/queries";
+import { REGION_CONFIG } from "@/features/region/config";
 
 type CourseFormModalProps = {
   open: boolean;
@@ -403,7 +404,7 @@ export function CourseFormModal({
               />
             </div>
             <div className="space-y-1.5">
-              <Label>Price (HKD)</Label>
+              <Label>Price ({REGION_CONFIG.HK.currencyCode})</Label>
               <Input
                 type="number"
                 min="0"

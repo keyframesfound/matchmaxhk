@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { findContactViolations } from "@/lib/contact-filter";
+import { REGION_CONFIG } from "@/features/region/config";
 import {
   GRADE_ACHIEVED_MAX_LEN,
   MATERIAL_TYPES,
@@ -183,7 +184,7 @@ function EarningsCalculator({ priceHkd }: { priceHkd: number; materialType?: str
     );
   }
   const e = earningsEstimate(priceHkd, PLATFORM_FEE_RATE);
-  const money = (v: number) => `HK$${v.toFixed(2)}`;
+  const money = (v: number) => `${REGION_CONFIG.HK.currency}${v.toFixed(2)}`;
   return (
     <div className="space-y-2 rounded-xl border border-border p-4 text-sm">
       <p className="font-semibold">{t("notes_option_a.fee_title")}</p>
