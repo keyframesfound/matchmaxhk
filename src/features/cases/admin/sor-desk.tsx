@@ -1,6 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { DEFAULT_TUTOR_TIMEZONE, formatInTutorZone } from "@/features/cases/tutor-timezone";
+import {
+  formatInTutorZone,
+  isDefaultTutorZone,
+  timezoneLabel,
+} from "@/features/cases/tutor-timezone";
 import { CalendarPlus, FileUp, Flag, Loader2, UserPlus } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -208,6 +212,13 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
                 {t("sor.admin_tutor")}: {data.tutor_name} ({data.tutor_code})
               </span>
             )}
+            {/* #798: lesson times below read in the tutor's zone; name it only
+                when it is not the HKT default. */}
+            {!isDefaultTutorZone(data.tutor_timezone) && (
+              <span className="text-xs text-muted-foreground">
+                {t("sor.desk_tutor_zone", { zone: timezoneLabel(data.tutor_timezone) })}
+              </span>
+            )}
           </div>
           {data.matched_tutor_id && (
             <div className="mt-2">
@@ -266,8 +277,20 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
             {t("sor.admin_lessons_title")}
           </p>
           <div className="mt-2 space-y-3">
-            <AdminLessonRow lesson={lesson1} sequence={1} caseId={caseId} onChanged={invalidate} />
-            <AdminLessonRow lesson={lesson2} sequence={2} caseId={caseId} onChanged={invalidate} />
+            <AdminLessonRow
+              lesson={lesson1}
+              sequence={1}
+              caseId={caseId}
+              timezone={data.tutor_timezone}
+              onChanged={invalidate}
+            />
+            <AdminLessonRow
+              lesson={lesson2}
+              sequence={2}
+              caseId={caseId}
+              timezone={data.tutor_timezone}
+              onChanged={invalidate}
+            />
           </div>
         </div>
 
@@ -600,6 +623,7 @@ function AdminLessonRow({
   lesson,
   sequence,
   caseId,
+  timezone,
   onChanged,
 }: {
   lesson:
@@ -614,6 +638,8 @@ function AdminLessonRow({
     | undefined;
   sequence: number;
   caseId: string;
+  /** #798: the matched tutor's stored zone; lesson instants read in it. */
+  timezone: string;
   onChanged: () => void;
 }) {
   const { t } = useTranslation();
@@ -696,7 +722,7 @@ function AdminLessonRow({
     <div className="flex flex-wrap items-center gap-2 text-sm">
       <span className="font-medium text-[color:var(--ink)]">
         {t("sor.tutor_lesson_n", { n: sequence })} ·{" "}
-        {formatInTutorZone(lesson.starts_at, DEFAULT_TUTOR_TIMEZONE, {
+        {formatInTutorZone(lesson.starts_at, timezone, {
           weekday: "short",
           day: "numeric",
           month: "short",

@@ -515,7 +515,8 @@
     "step_contact": "Contact",
     "step_admissions": "Admissions",
     "step_tutoring": "Tutoring",
-    "step_logistics": "Logistics"
+    "step_logistics": "Logistics",
+    "notes_time_prefill_zone": "Preferred time: {{slot}} ({{city}} time)"
   },
   "case_status": {
     "title": "Match status",
@@ -2767,7 +2768,9 @@
     "grid_cell_open": "Open",
     "grid_cell_occupied": "Occupied",
     "availability_empty": "No availability set. Message to arrange a time.",
-    "grid_timezone_note": "All times in HKT"
+    "grid_timezone_note": "All times in HKT",
+    "grid_zone_tutor": "Times are in the tutor's time zone: {{zone}}.",
+    "grid_zone_both": "Times are in the tutor's time zone: {{tutorZone}} · your time zone: {{viewerZone}}."
   },
   "report": {
     "button_aria": "Report {{item}}",
@@ -3283,7 +3286,7 @@
       "drop_protection_note": "Cases that end after exactly one paid lesson still count toward your completion rate and verified hours, even if Drop-Protection is applied.",
       "promo_saved": "First-lesson offers saved",
       "timezone_label": "Your timezone",
-      "timezone_hint": "Your availability grid is read in this timezone. Lesson times are always absolute.",
+      "timezone_hint": "Your availability is entered in Hong Kong time and shown in this timezone on your profile. Lesson times are always absolute.",
       "timezone_saved": "Timezone saved.",
       "hide_profile_label": "Hide Public Profile",
       "hide_profile_hint": "Turn this on to temporarily hide your profile from the MatchMax directory. (Useful if you are fully booked or taking a break for exams).",
@@ -3403,7 +3406,8 @@
       "hourly_description": "Click and drag to set your weekly Open hours, or click a cell to toggle it. This grid shows on your public profile.",
       "review_prompt": "Are these Open hours still free?",
       "review_dismiss": "Got it",
-      "drag_hint": "Drag across cells to paint Open hours, or click a cell to toggle it"
+      "drag_hint": "Drag across cells to paint Open hours, or click a cell to toggle it",
+      "hourly_zone_note": "Enter these hours in Hong Kong time. They show as {{zone}} on your public profile."
     },
     "proofs": {
       "title": "Achievement photo proofs",
@@ -3938,7 +3942,11 @@
     "desk_report_saved": "Sent to the MatchMax desk.",
     "desk_report_cta": "Report privately to the desk",
     "err_NO_ELIGIBLE_LESSON": "A public review opens after the first completed lesson.",
-    "err_REVIEW_FROZEN": "This review is closed for edits."
+    "err_REVIEW_FROZEN": "This review is closed for edits.",
+    "lesson_zone_tutor": "Lesson times are in the tutor's time zone: {{zone}}.",
+    "lesson_zone_both": "Lesson times are in the tutor's time zone: {{tutorZone}} · your time zone: {{viewerZone}}.",
+    "tutor_week_zone": "Your lessons are shown in {{zone}}.",
+    "desk_tutor_zone": "Tutor time zone: {{zone}}"
   },
   "safety_attestation": {
     "title": "Safety, Clean Record & Legal Conduct Declaration",

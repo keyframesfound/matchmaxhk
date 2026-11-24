@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { canonicalUrl, currentSeoLocale, localeLinks, localizedMeta } from "@/features/i18n/seo";
 import { hourlyRangeLabel } from "@/features/tutors/availability-grid-model";
+import { resolveTutorTimezone, timezoneCity } from "@/features/cases/tutor-timezone";
 import { caseRequestMode } from "@/features/tutors/tutor-display";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PublicPage } from "@/components/layout/PublicPage";
@@ -32,6 +33,12 @@ export const Route = createFileRoute("/case-request")({
       req_curriculum?: string;
       req_subject?: string;
       req_time?: string;
+      /**
+       * #798: the tutor's zone for the tapped Open cell, so the prefill note
+       * names it instead of assuming HKT. Display only — the slot itself is
+       * still the stored HKT pair.
+       */
+      req_tz?: string;
       /** #751: the lesson mode the parent already filtered on. */
       req_mode?: "online" | "in_person" | "both";
       complete_pending_submit?: boolean;
@@ -55,6 +62,13 @@ export const Route = createFileRoute("/case-request")({
       if (match && hour >= 6 && hour <= 23) {
         result.req_time = `${match[1].toLowerCase()}-${hour}`;
       }
+    }
+    // #798: an IANA zone label only (validated for shape, then resolved and
+    // fallback-guarded below so a hand-edited URL can never render garbage).
+    if (typeof search.req_tz === "string" && search.req_tz.trim().length <= 40) {
+      const zone = search.req_tz.trim();
+      if (/^(?:UTC|[A-Za-z][A-Za-z0-9_+-]*(\/[A-Za-z0-9_+-]+){1,2})$/.test(zone))
+        result.req_tz = zone;
     }
     // #751: lesson mode from /tutors or a tutor profile. "either" is the
     // browse filter's spelling of "no preference" and maps to the form's
@@ -113,11 +127,17 @@ function CaseRequestPage() {
     [
       search.tutor ? t("case_request.notes_tutor_prefill", { code: search.tutor }) : undefined,
       search.req_time
-        ? t("case_request.notes_time_prefill", {
-            slot: `${t(`profile.grid_day_${search.req_time.split("-")[0]}`)} ${hourlyRangeLabel(
-              Number(search.req_time.split("-")[1]),
-            )}`,
-          })
+        ? t(
+            search.req_tz
+              ? "case_request.notes_time_prefill_zone"
+              : "case_request.notes_time_prefill",
+            {
+              slot: `${t(`profile.grid_day_${search.req_time.split("-")[0]}`)} ${hourlyRangeLabel(
+                Number(search.req_time.split("-")[1]),
+              )}`,
+              city: timezoneCity(resolveTutorTimezone(search.req_tz ?? null)),
+            },
+          )
         : undefined,
     ]
       .filter(Boolean)

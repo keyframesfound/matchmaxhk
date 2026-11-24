@@ -51,6 +51,23 @@ describe("tutor week model (#201/#204)", () => {
     expect(days.every((d) => d.dateKey <= "2026-11-02")).toBe(true); // horizon respected
   });
 
+  it("buckets the same week by the tutor's zone when one is given (#798)", () => {
+    // Monday 2026-10-19 23:00 HKT is Tuesday 02:00 in Sydney (AEDT, +11).
+    const lateMonday = hktFromParts("2026-10-19", 23 * 60);
+    const lessons = [
+      { id: "late", starts_at: lateMonday.toISOString(), duration_min: 60, status: "confirmed" },
+    ];
+    const from = hktFromParts("2026-10-19", 12 * 60);
+
+    const hkt = groupWeekByDay(lessons, [], from, 3);
+    expect(hkt.find((d) => d.lessons.length > 0)?.dateKey).toBe("2026-10-19");
+
+    const sydney = groupWeekByDay(lessons, [], from, 3, "Australia/Sydney");
+    expect(sydney.find((d) => d.lessons.length > 0)?.dateKey).toBe("2026-10-20");
+    // Same lesson count either way: only the bucket moves, nothing is lost.
+    expect(sydney.reduce((n, d) => n + d.lessons.length, 0)).toBe(1);
+  });
+
   it("counts active students: done within 30d or future live lesson", () => {
     const now = new Date("2026-10-17T00:00:00Z");
     const active = [

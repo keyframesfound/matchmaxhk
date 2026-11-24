@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_TUTOR_TIMEZONE, formatInTutorZone } from "@/features/cases/tutor-timezone";
+import { formatInTutorZone } from "@/features/cases/tutor-timezone";
+import { useMyTutorTimezone } from "@/features/cases/use-my-tutor-timezone";
 import { CalendarClock, Check, Loader2, Wallet, X } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -100,6 +101,8 @@ function PendingConfirmRow({
   t: ReturnType<typeof useTranslation>["t"];
 }) {
   const queryClient = useQueryClient();
+  // #798: the tutor's own lessons read in their stored zone.
+  const timezone = useMyTutorTimezone();
   const invalidate = () => {
     void queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
     void queryClient.invalidateQueries({ queryKey: ["sor", "earnings"] });
@@ -128,13 +131,8 @@ function PendingConfirmRow({
       <div>
         <p className="text-sm font-medium text-[color:var(--ink)]">
           {/* Absolute instant: pin the zone, a bare format() reads the device zone. */}
-          {formatInTutorZone(
-            lesson.startsAt,
-            DEFAULT_TUTOR_TIMEZONE,
-            LESSON_LINE_OPTIONS,
-            intlLocale(),
-          )}{" "}
-          · {lesson.studentFirstName}
+          {formatInTutorZone(lesson.startsAt, timezone, LESSON_LINE_OPTIONS, intlLocale())} ·{" "}
+          {lesson.studentFirstName}
           {lesson.subject ? ` · ${lesson.subject}` : ""}
         </p>
         <p className="text-xs text-muted-foreground">
@@ -187,6 +185,8 @@ function NotesBlock({ t }: { t: ReturnType<typeof useTranslation>["t"] }) {
 }
 
 export function TutorHomeSection() {
+  // #798: the tutor's own lessons read in their stored zone.
+  const timezone = useMyTutorTimezone();
   const { t } = useTranslation();
   // Shared key with the Lessons tab (TutorCasesSection), warm cache, one fetch.
   const { data, isLoading } = useQuery({
@@ -244,12 +244,7 @@ export function TutorHomeSection() {
             <p className="flex items-center gap-2 text-base font-semibold text-[color:var(--ink)]">
               <CalendarClock className="h-4 w-4" aria-hidden="true" />
               {/* Absolute instant: pin the zone, a bare format() reads the device zone. */}
-              {formatInTutorZone(
-                next.startsAt,
-                DEFAULT_TUTOR_TIMEZONE,
-                LESSON_LINE_OPTIONS,
-                intlLocale(),
-              )}
+              {formatInTutorZone(next.startsAt, timezone, LESSON_LINE_OPTIONS, intlLocale())}
             </p>
             <p className="mt-1 text-sm text-[color:var(--ink)]">
               {next.studentFirstName}

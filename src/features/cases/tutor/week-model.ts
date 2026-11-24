@@ -3,12 +3,8 @@
  * validation, student-name privacy rule). No DB access; vitest-covered.
  */
 
-import {
-  hktDateKey,
-  isActiveStudentCase,
-  lessonRequestExpired,
-  type LessonStatus,
-} from "@/features/cases/sor";
+import { isActiveStudentCase, lessonRequestExpired, type LessonStatus } from "@/features/cases/sor";
+import { DEFAULT_TUTOR_TIMEZONE, dateKeyInZone } from "@/features/cases/tutor-timezone";
 
 /** #201 tutor-list privacy: student FIRST NAME only. */
 export function firstNameOf(studentName: string | null | undefined): string {
@@ -71,29 +67,41 @@ export type WeekDayGroup = {
   openSlots: WeekSlot[];
 };
 
+/** The calendar day `days` after a YYYY-MM-DD key, DST-proof by construction. */
+export function addDaysToDateKey(key: string, days: number): string {
+  const [year, month, day] = key.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + days)).toISOString().slice(0, 10);
+}
+
 /**
- * #204 week view: booked lessons + open slots grouped by HKT calendar day.
+ * #204 week view: booked lessons + open slots grouped by calendar day.
  * Slots overlapping (or within the buffer of) booked lessons never reach the
  * model, generateSlots already excludes them.
+ *
+ * #798: the day a lesson belongs to depends on the reader's zone, so the
+ * bucket is derived from `zone` (the tutor's stored zone). Defaults to HKT,
+ * which is byte-identical to the previous behaviour.
  */
 export function groupWeekByDay(
   lessons: WeekLesson[],
   slots: WeekSlot[],
   from: Date,
   horizonDays: number,
+  zone: string = DEFAULT_TUTOR_TIMEZONE,
 ): WeekDayGroup[] {
   const byDay = new Map<string, WeekDayGroup>();
+  const startKey = dateKeyInZone(from, zone);
   for (let d = 0; d <= horizonDays; d++) {
-    const key = hktDateKey(new Date(from.getTime() + d * 86400000));
+    const key = addDaysToDateKey(startKey, d);
     byDay.set(key, { dateKey: key, lessons: [], openSlots: [] });
   }
 
   for (const l of lessons) {
-    const key = hktDateKey(new Date(l.starts_at));
+    const key = dateKeyInZone(l.starts_at, zone);
     byDay.get(key)?.lessons.push(l);
   }
   for (const s of slots) {
-    const key = hktDateKey(s.startsAt);
+    const key = dateKeyInZone(s.startsAt, zone);
     byDay.get(key)?.openSlots.push(s);
   }
 

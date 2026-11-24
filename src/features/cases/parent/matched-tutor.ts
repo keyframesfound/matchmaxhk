@@ -10,6 +10,8 @@ export type MatchedTutorRow = {
   display_name: string | null;
   photo_url: string | null;
   undergrad_university: string | null;
+  /** #798: the tutor's stored IANA zone; null/unknown resolves to HKT. */
+  timezone?: string | null;
 };
 
 export type MatchedTutorCardView = {

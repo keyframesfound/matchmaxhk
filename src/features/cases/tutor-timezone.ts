@@ -52,6 +52,11 @@ export function resolveTutorTimezone(zone: string | null | undefined): string {
   return zone ?? DEFAULT_TUTOR_TIMEZONE;
 }
 
+/** True when a zone needs no conversion at all (the HKT default). */
+export function isDefaultTutorZone(zone: string | null | undefined): boolean {
+  return resolveTutorTimezone(zone) === DEFAULT_TUTOR_TIMEZONE;
+}
+
 /** "Asia/Hong_Kong" -> "Hong Kong" for a compact label. */
 export function timezoneCity(zone: string): string {
   const tail = zone.split("/").pop() ?? zone;
@@ -80,6 +85,29 @@ export function timezoneLabel(zone: string, at: Date = new Date()): string {
   const offset = timezoneOffsetLabel(zone, at);
   const city = timezoneCity(resolveTutorTimezone(zone));
   return offset ? `${city} (${offset})` : city;
+}
+
+/**
+ * "2026-11-23" for an absolute instant as read in a zone. Used where a week of
+ * lessons is bucketed into days: the day a lesson belongs to is a property of
+ * the reader's zone, not of the device.
+ */
+export function dateKeyInZone(iso: string | Date, zone: string): string {
+  const date = typeof iso === "string" ? new Date(iso) : iso;
+  if (Number.isNaN(date.getTime())) return "";
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone: resolveTutorTimezone(zone),
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).formatToParts(date);
+    const part = (type: Intl.DateTimeFormatPartTypes) =>
+      parts.find((entry) => entry.type === type)?.value ?? "";
+    return `${part("year")}-${part("month")}-${part("day")}`;
+  } catch {
+    return "";
+  }
 }
 
 /**

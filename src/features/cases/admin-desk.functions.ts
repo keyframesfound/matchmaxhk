@@ -12,6 +12,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
+import { resolveTutorTimezone } from "@/features/cases/tutor-timezone";
 import type { CaseLessonRow, FeeStatus, SorCaseRow, SorStatus } from "@/features/cases/sor-db";
 import {
   ALLOWED_TRANSITIONS,
@@ -168,8 +169,14 @@ export const getDeskCase = createServerFn({ method: "POST" })
     await requireAdmin(db, context.userId);
 
     const cases = await selectRows<
-      SorCaseRow & { tutors: { display_name: string; tutor_code: string | null } | null }
-    >(db, "tutoring_cases", "*, tutors(display_name, tutor_code)", [
+      SorCaseRow & {
+        tutors: {
+          display_name: string;
+          tutor_code: string | null;
+          timezone?: string | null;
+        } | null;
+      }
+    >(db, "tutoring_cases", "*, tutors(display_name, tutor_code, timezone)", [
       { col: "id", op: "eq", value: data.caseId },
     ]);
     const c = cases[0];
@@ -262,6 +269,8 @@ export const getDeskCase = createServerFn({ method: "POST" })
       contact_phone: c.contact_phone,
       tutor_name: c.tutors?.display_name ?? null,
       tutor_code: c.tutors?.tutor_code ?? null,
+      // #798: the desk reads lesson times in the matched tutor's zone.
+      tutor_timezone: resolveTutorTimezone(c.tutors?.timezone ?? null),
       lessons,
       fees,
       audit: audit.map((a) => ({
