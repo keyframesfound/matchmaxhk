@@ -5222,7 +5222,68 @@
     "next_lesson": "下一堂 {{when}}",
     "next_lesson_none": "下一堂待定"
   },
+  "progress_public": {
+    "heading": "學生進步",
+    "subtitle": "來自真實 MatchMax 個案的核實進步，以原本評分尺度顯示。",
+    "scale": {
+      "dse": "DSE",
+      "ibdp": "IB DP",
+      "igcse": "IGCSE",
+      "alevel": "A-Level",
+      "letter": "等級成績",
+      "percent": "百分比"
+    },
+    "assessment": {
+      "school_quiz": "校內小測",
+      "quiz": "小測",
+      "term_exam": "期終考試",
+      "mock": "模擬考試",
+      "predicted": "預測等級",
+      "public_exam": "公開考試"
+    },
+    "verification": {
+      "parent_attested": "家長已確認",
+      "desk_checked": "後台已核實",
+      "tutor_unconfirmed": "等待家長確認"
+    }
+  },
   "progress": {
+    "checkpoints": {
+      "heading": "進度檢核點",
+      "hint": "每個個案最多四個檢核點。同一張進度卡的所有檢核點必須使用同一評分尺度。",
+      "count": "{{count}} / {{max}} 個",
+      "empty": "尚未有檢核點。請在下方新增第一項評估。",
+      "assessment_type": "評估類型",
+      "month_sat": "應考月份",
+      "scale": "評分尺度",
+      "scale_pick": "選擇尺度",
+      "result": "成績",
+      "label": "標籤（可選）",
+      "label_placeholder": "上學期模擬試，卷二",
+      "add": "新增檢核點",
+      "cap_reached": "此個案已有四個檢核點，已達上限。",
+      "scale_locked": "此進度卡使用 {{scale}} 尺度。",
+      "consent_title": "在我的頻道頁顯示匿名進步卡",
+      "consent_hint": "進步卡不會顯示學生姓名、學校或證明文件。關閉後，下次載入時便不會顯示。",
+      "eligibility_shown": "此個案已在頻道頁顯示匿名進步卡。",
+      "eligibility_ready": "其他條件已符合。開啟開關即可顯示進步卡。",
+      "eligibility_pending": "記錄兩個由家長確認、同一尺度的檢核點，個案達到 4 節課、30 日或 6 個核實小時，並開啟同意後，便會顯示進步卡。",
+      "tutor_consent_note": "家長決定是否在頻道頁顯示匿名進步卡。",
+      "privacy_suffix": "只有此個案的家長和導師可看到這些檢核點。",
+      "confirm": "確認",
+      "aria_consent": "分享匿名進步卡",
+      "err_limit": "此個案已有四個檢核點，四個為上限。",
+      "err_scale_mismatch": "同一張進度卡的所有檢核點必須使用同一評分尺度。",
+      "err_invalid_value": "請輸入有效的 {{scale}} 成績，例如 {{example}}。",
+      "err_invalid_value_generic": "請輸入符合所選尺度的成績。",
+      "err_bad_month": "請選擇評估應考的月份。",
+      "err_tenure": "個案達到 4 節完成課堂、30 日或 6 個核實小時後，才可記錄公開試成績。",
+      "err_window": "該月份超出此個案允許的日期範圍。",
+      "err_generic": "未能儲存檢核點，請再試一次。",
+      "load_failed": "未能載入檢核點。",
+      "confirm_failed": "未能確認該檢核點，請再試一次。",
+      "consent_failed": "未能更改分享設定，請再試一次。"
+    },
     "tab": "成績及進度",
     "stat_baseline": "起點成績",
     "stat_latest": "最新成績",

@@ -34,6 +34,7 @@ import {
 } from "@/features/cases/case-progress.functions";
 import { hktDateKey } from "@/features/cases/sor";
 
+import { ProgressCheckpointsSection } from "./progress-checkpoints-section";
 import { ProgressChart, type ChartScore } from "./progress-chart";
 
 const SAMPLE_TARGET_PCT = 80;
@@ -392,6 +393,7 @@ export function ProgressTab({ caseId }: { caseId: string }) {
         </section>
       ) : null}
       <p className="text-xs text-muted-foreground">{t("progress.private_note")}</p>
+      <ProgressCheckpointsSection caseId={caseId} role={data.role} />
       {logOpen ? (
         <LogScoreDialog caseId={caseId} onOpenChange={setLogOpen} onDone={refresh} />
       ) : null}

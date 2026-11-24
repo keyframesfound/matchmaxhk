@@ -5222,7 +5222,68 @@
     "next_lesson": "Next lesson {{when}}",
     "next_lesson_none": "Next lesson to be scheduled"
   },
+  "progress_public": {
+    "heading": "Student progress",
+    "subtitle": "Verified deltas from real MatchMax cases, shown in the original grading scale.",
+    "scale": {
+      "dse": "DSE",
+      "ibdp": "IB DP",
+      "igcse": "IGCSE",
+      "alevel": "A-Level",
+      "letter": "Letter grade",
+      "percent": "Percent"
+    },
+    "assessment": {
+      "school_quiz": "School quiz",
+      "quiz": "Quiz",
+      "term_exam": "Term exam",
+      "mock": "Mock exam",
+      "predicted": "Predicted grade",
+      "public_exam": "Public exam"
+    },
+    "verification": {
+      "parent_attested": "Parent confirmed",
+      "desk_checked": "Desk-checked",
+      "tutor_unconfirmed": "Waiting for parent confirmation"
+    }
+  },
   "progress": {
+    "checkpoints": {
+      "heading": "Progress checkpoints",
+      "hint": "Up to four checkpoints per case. Every checkpoint on a card must use the same scale.",
+      "count": "{{count}} of {{max}}",
+      "empty": "No checkpoints yet. Add the first assessment below.",
+      "assessment_type": "Assessment type",
+      "month_sat": "Month sat",
+      "scale": "Scale",
+      "scale_pick": "Pick the scale",
+      "result": "Result",
+      "label": "Label (optional)",
+      "label_placeholder": "Term 1 mock, paper 2",
+      "add": "Add checkpoint",
+      "cap_reached": "This case already has four checkpoints, the maximum.",
+      "scale_locked": "This card uses the {{scale}} scale.",
+      "consent_title": "Show an anonymous progress card on my channel profile",
+      "consent_hint": "The card never shows the student's name, school or proof files. Turning this off hides the card on the next load.",
+      "eligibility_shown": "This case shows an anonymous card on the channel profile.",
+      "eligibility_ready": "Everything else is ready. Turn the switch on to show the card.",
+      "eligibility_pending": "A card appears once two parent-confirmed checkpoints on one scale are logged, the case reaches 4 lessons, 30 days or 6 verified hours, and consent is on.",
+      "tutor_consent_note": "The parent controls whether an anonymous progress card appears on the channel profile.",
+      "privacy_suffix": "Only the parent and tutor on this case can see these checkpoints.",
+      "confirm": "Confirm",
+      "aria_consent": "Share an anonymous progress card",
+      "err_limit": "This case already has four checkpoints. Four is the maximum.",
+      "err_scale_mismatch": "Every checkpoint on a card must use the same scale.",
+      "err_invalid_value": "Enter a valid {{scale}} result, for example {{example}}.",
+      "err_invalid_value_generic": "Enter a result that is valid for the scale.",
+      "err_bad_month": "Pick the month the assessment was sat.",
+      "err_tenure": "A public exam result can be logged once the case has 4 completed lessons, 30 days, or 6 verified hours.",
+      "err_window": "That month is outside the date window allowed for this case.",
+      "err_generic": "Could not save the checkpoint. Please try again.",
+      "load_failed": "Could not load the checkpoints.",
+      "confirm_failed": "Could not confirm that checkpoint. Please try again.",
+      "consent_failed": "Could not change the sharing setting. Please try again."
+    },
     "tab": "Progress & Grades",
     "stat_baseline": "Baseline Score",
     "stat_latest": "Latest Score",
