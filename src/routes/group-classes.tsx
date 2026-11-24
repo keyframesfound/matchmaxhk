@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
-import { canonicalUrl, currentSeoLocale, localizedMeta } from "@/features/i18n/seo";
+import { canonicalUrl, currentSeoLocale, localizedMeta, pickCopy } from "@/features/i18n/seo";
 import { GroupClassesBoard } from "@/features/cases/group-classes-board";
 
 export const Route = createFileRoute("/group-classes")({
@@ -27,10 +27,16 @@ export const Route = createFileRoute("/group-classes")({
         { name: "robots", content: "index, follow" },
         {
           property: "og:description",
-          content:
-            locale !== "en"
-              ? "瀏覽開放招生嘅小組班——2至6人、每位學生費率更低、同一個按每位學生計嘅 1.5 課管理費。"
-              : "Browse open group cohorts, 2 to 6 students, lower per-student rates, the same per-student 1.5-lesson admin fee.",
+          content: pickCopy(
+            {
+              en: "Browse open group cohorts, 2 to 6 students, lower per-student rates, the same per-student 1.5-lesson admin fee.",
+              "zh-HK":
+                "瀏覽開放招生嘅小組班——2至6人、每位學生費率更低、同一個按每位學生計嘅 1.5 課管理費。",
+              "zh-CN":
+                "浏览开放招生的小组课——2至6人、每位学生费率更低、同一个按每位学生计的 1.5 节课行政费。",
+            },
+            locale,
+          ),
         },
         { property: "og:url", content: canonicalUrl("/group-classes") },
       ],

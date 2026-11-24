@@ -128,18 +128,29 @@ export function pickCopy(copy: LocaleCopy, locale: SeoLocale): string {
 export type RouteMetaEntry =
   { title: string } | { name: string; content: string } | { property: string; content: string };
 
+export type MetaCopy = { title: LocaleCopy; description: LocaleCopy };
+
+/**
+ * Resolve the title/description pair for a locale once, so a route's
+ * twitter:title / og:description override can reuse the same locale-keyed
+ * maps instead of repeating a `locale !== "en"` ternary — which handed /cn
+ * the Traditional copy even after the zh-CN renditions landed.
+ */
+export function resolveMetaCopy(
+  locale: SeoLocale,
+  copy: MetaCopy,
+): { title: string; description: string } {
+  return { title: pickCopy(copy.title, locale), description: pickCopy(copy.description, locale) };
+}
+
 /**
  * Build the locale-aware title/description/OG block for a route head().
  * Routes spread this alongside their static extras (robots, canonical, image).
  * English copy is the source of truth; the zh-HK rendition follows the
  * written-Cantonese conventions used across the locale files.
  */
-export function localizedMeta(
-  locale: SeoLocale,
-  copy: { title: LocaleCopy; description: LocaleCopy },
-): RouteMetaEntry[] {
-  const title = pickCopy(copy.title, locale);
-  const description = pickCopy(copy.description, locale);
+export function localizedMeta(locale: SeoLocale, copy: MetaCopy): RouteMetaEntry[] {
+  const { title, description } = resolveMetaCopy(locale, copy);
   return [
     { title },
     { name: "description", content: description },
