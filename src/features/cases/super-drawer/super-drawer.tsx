@@ -179,6 +179,15 @@ export function SuperDrawer({
     onSaved(result);
     void queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
     void queryClient.invalidateQueries({ queryKey: ["super-drawer", "pending"] });
+    // #740: this save writes lesson topics, mastery, the pulse and the next
+    // lesson, so every case-scoped surface is stale afterwards. Invalidating
+    // only the tutor case list left the mastery bar, the lesson-log feed, the
+    // practice rail and the grade chart showing pre-lesson numbers until a
+    // manual reload. A predicate on the case id also covers case-scoped
+    // queries added later, instead of four literal keys drifting apart.
+    void queryClient.invalidateQueries({
+      predicate: (query) => Array.isArray(query.queryKey) && query.queryKey.includes(caseId),
+    });
   };
 
   const sync = useMutation({
