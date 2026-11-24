@@ -171,6 +171,20 @@ export function buildWhatsAppPrefill(input: {
   return `您好！我想查詢${who}。學生資料：${level || "[學制及年級]"} / ${subjects || "[科目]"} / ${where} / 預算約 ${rate}/hr。`;
 }
 
+/**
+ * #751: map a browse filter or a profile lesson mode onto the case request
+ * form's delivery mode. "either" means "no preference" on both browse and the
+ * profile, which the form spells "both"; an unknown or missing value stays
+ * unset so the form keeps its own empty state.
+ */
+export function caseRequestMode(
+  mode: string | null | undefined,
+): "online" | "in_person" | "both" | undefined {
+  if (mode === "online" || mode === "in_person") return mode;
+  if (mode === "either" || mode === "both") return "both";
+  return undefined;
+}
+
 export function buildTutorWhatsAppUrl(
   whatsappNumber: string | undefined,
   tutorCode: string,

@@ -33,6 +33,7 @@ import { TutorSaveButton } from "@/features/tutors/saved-tutors";
 import { CompareBar, CompareDialog, useTutorCompare } from "@/features/tutors/compare-tutors";
 import {
   buildTutorWhatsAppUrl,
+  caseRequestMode,
   getTutorBaseRate,
   getTutorInquiryAction,
 } from "@/features/tutors/tutor-display";
@@ -1087,7 +1088,18 @@ function TutorsDirectory() {
                         </Button>
                       ) : null}
                       <Button asChild variant="solid" color="blue" className="font-bold">
-                        <Link to="/case-request">{t("directory.empty_case")}</Link>
+                        {/* #751: nobody matched these filters, so the request
+                            keeps them instead of starting blank. */}
+                        <Link
+                          to="/case-request"
+                          search={{
+                            req_curriculum: inquirySearch.curriculum ?? undefined,
+                            req_subject: inquirySearch.subjects[0] ?? undefined,
+                            req_mode: caseRequestMode(inquirySearch.mode),
+                          }}
+                        >
+                          {t("directory.empty_case")}
+                        </Link>
                       </Button>
                     </div>
                   </div>

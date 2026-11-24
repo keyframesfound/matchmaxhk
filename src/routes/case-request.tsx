@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { canonicalUrl, localeLinks } from "@/features/i18n/seo";
 import { hourlyRangeLabel } from "@/features/tutors/availability-grid-model";
+import { caseRequestMode } from "@/features/tutors/tutor-display";
 import { PageContainer } from "@/components/layout/PageContainer";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { CaseRequestForm } from "@/features/cases/CaseRequestForm";
@@ -31,6 +32,8 @@ export const Route = createFileRoute("/case-request")({
       req_curriculum?: string;
       req_subject?: string;
       req_time?: string;
+      /** #751: the lesson mode the parent already filtered on. */
+      req_mode?: "online" | "in_person" | "both";
       complete_pending_submit?: boolean;
       /** #815 §2.11 lane B: the referring Partner Centre's public slug. */
       org?: string;
@@ -52,6 +55,13 @@ export const Route = createFileRoute("/case-request")({
       if (match && hour >= 6 && hour <= 23) {
         result.req_time = `${match[1].toLowerCase()}-${hour}`;
       }
+    }
+    // #751: lesson mode from /tutors or a tutor profile. "either" is the
+    // browse filter's spelling of "no preference" and maps to the form's
+    // "both"; anything else is ignored rather than guessed.
+    if (typeof search.req_mode === "string") {
+      const mode = caseRequestMode(search.req_mode.trim().toLowerCase());
+      if (mode) result.req_mode = mode;
     }
     if (hasPendingCompleteParam(search)) result.complete_pending_submit = true;
     // #815 §2.11 lane B: an org referral link records the referrer, nothing
@@ -130,6 +140,7 @@ function CaseRequestPage() {
             referredByOrgSlug={search.org ?? null}
             completePending={search.complete_pending_submit === true}
             prefillNote={prefillNote}
+            prefillMode={search.req_mode ?? null}
             prefillStudy={
               search.req_curriculum || search.req_subject
                 ? {
