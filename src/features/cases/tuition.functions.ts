@@ -60,6 +60,13 @@ export const setTuitionStatus = createServerFn({ method: "POST" })
     const isMine = target.tutor_id === tutorId && cases[0]?.matched_tutor_id === tutorId;
     const error = tuitionEditError({ source: data.source, status: target.status, isMine });
     if (error) throw new Error(error);
+    // #828 AC-A3: never "unpaid" where the tutor nets $0 (Lesson 1 et al.).
+    if (data.status === "unpaid") {
+      const { netTutorHkdFor } = await import("@/features/cases/earnings.functions");
+      const { canMarkTuitionUnpaid } = await import("@/features/cases/earnings");
+      const net = await netTutorHkdFor(db, target.case_id, data.source, target.id);
+      if (!canMarkTuitionUnpaid(net)) throw new Error("UNPAID_NO_NET");
+    }
 
     const { error: updateError } = await db
       .from<Row>(table)

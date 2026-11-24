@@ -823,7 +823,8 @@
     "desk_empty": "没有已登记课堂。",
     "desk_revoke": "撤销",
     "desk_revoked_ok": "已撤销课堂——公开数据已即时重算。",
-    "completed_cases": "已完整个案：{{count}}"
+    "completed_cases": "已完整个案：{{count}}",
+    "err_RATE_MISSING": "此个案尚未锁定每小时收费，因此未能记录课堂。请先请秘书处锁定收费。"
   },
   "hours": {
     "title": "已验证时数",
@@ -3946,7 +3947,9 @@
     "lesson_zone_tutor": "课堂时间以导师时区显示：{{zone}}。",
     "lesson_zone_both": "课堂时间以导师时区显示：{{tutorZone}}；你的时区：{{viewerZone}}。",
     "tutor_week_zone": "你的课堂以 {{zone}} 显示。",
-    "desk_tutor_zone": "导师时区：{{zone}}"
+    "desk_tutor_zone": "导师时区：{{zone}}",
+    "tutor_earnings_err_UNPAID_NO_NET": "这堂的学费用作行政费，没有应付予你的学费，因此不能标记为未付。",
+    "tutor_earnings_no_net": "用作行政费"
   },
   "safety_attestation": {
     "title": "安全、清白纪录及合法行为声明",
@@ -4542,7 +4545,7 @@
   },
   "calendar_hub": {
     "title": "日历",
-    "tutor_title": "你教授的课堂",
+    "tutor_title": "你的家教课堂",
     "parent_title": "你的课堂",
     "counts": "即将上课 {{upcoming}} 堂 · 本月 {{month}} 堂",
     "empty": "暂无即将上的课堂。",
@@ -4562,7 +4565,10 @@
     "freshness_stale": "你的每周可授课时间已 {{days}} 日未确认。请确认仍然有效，让家长看到最新时段（未确认前个人资料完整度将扣 15 分）。",
     "freshness_never": "确认你的每周可授课时间仍然有效，让家长看到最新时段。",
     "freshness_cta": "确认时间表最新状态",
-    "freshness_done": "已确认时间表为最新"
+    "freshness_done": "已确认时间表为最新",
+    "month_tuition": "本月预估学费",
+    "month_tuition_hint": "本月已安排的课堂，加上导师标记为未付的学费。学费直接支付予导师。",
+    "month_tuition_partial": "未计 {{count}} 个尚未设定时薪的个案。"
   },
   "global_search": {
     "title": "搜索",

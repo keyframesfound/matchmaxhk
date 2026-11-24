@@ -823,7 +823,8 @@
     "desk_empty": "No logged sessions.",
     "desk_revoke": "Revoke",
     "desk_revoked_ok": "Session revoked, public totals recalculated.",
-    "completed_cases": "{{count}} completed case(s)"
+    "completed_cases": "{{count}} completed case(s)",
+    "err_RATE_MISSING": "This case has no hourly rate yet, so the lesson can’t be logged. Ask the desk to lock the rate first."
   },
   "hours": {
     "title": "Verified hours",
@@ -3946,7 +3947,9 @@
     "lesson_zone_tutor": "Lesson times are in the tutor's time zone: {{zone}}.",
     "lesson_zone_both": "Lesson times are in the tutor's time zone: {{tutorZone}} · your time zone: {{viewerZone}}.",
     "tutor_week_zone": "Your lessons are shown in {{zone}}.",
-    "desk_tutor_zone": "Tutor time zone: {{zone}}"
+    "desk_tutor_zone": "Tutor time zone: {{zone}}",
+    "tutor_earnings_err_UNPAID_NO_NET": "This lesson's tuition covers the admin fee, so there is no tuition owed to you to mark as unpaid.",
+    "tutor_earnings_no_net": "Covers the admin fee"
   },
   "safety_attestation": {
     "title": "Safety, Clean Record & Legal Conduct Declaration",
@@ -4542,7 +4545,7 @@
   },
   "calendar_hub": {
     "title": "Calendar",
-    "tutor_title": "Lessons you teach",
+    "tutor_title": "Your tutoring lessons",
     "parent_title": "Your lessons",
     "counts": "{{upcoming}} upcoming · {{month}} this month",
     "empty": "No upcoming lessons.",
@@ -4562,7 +4565,10 @@
     "freshness_stale": "Your weekly availability was last confirmed {{days}} days ago. Confirm it is still accurate so parents see current times (Profile Strength is reduced by 15 until confirmed).",
     "freshness_never": "Confirm your weekly availability is up to date so parents see current times.",
     "freshness_cta": "Confirm schedule is up to date",
-    "freshness_done": "Availability confirmed as current"
+    "freshness_done": "Availability confirmed as current",
+    "month_tuition": "Estimated tuition this month",
+    "month_tuition_hint": "Scheduled lessons this month plus tuition your tutor marked unpaid. Paid directly to your tutor.",
+    "month_tuition_partial": "Excludes {{count}} case(s) without a set hourly rate."
   },
   "global_search": {
     "title": "Search",

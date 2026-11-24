@@ -7,6 +7,8 @@
  * sor_case_transition_guard is the backstop for out-of-band writes).
  */
 
+import { PRESENT_WINDOW_DAYS } from "@/features/tutors/present-window";
+
 export const SOR_STATUSES = [
   "draft",
   "introduced",
@@ -125,8 +127,11 @@ export const REQUEST_EXPIRY_HOURS = 12;
 export const CANCEL_WINDOW_HOURS = 12;
 /** #204: F2F lessons of the same tutor need a 30-minute buffer; online has none. */
 export const F2F_BUFFER_MIN = 30;
-/** #204: an active student has a lesson in the last 30 days or a future confirmed lesson. */
-export const ACTIVE_STUDENT_WINDOW_DAYS = 30;
+/**
+ * #204: an active student has a lesson inside the shared Present window
+ * (45 days, #828 AC-C4) or a future confirmed lesson.
+ */
+export const ACTIVE_STUDENT_WINDOW_DAYS = PRESENT_WINDOW_DAYS;
 /** #204: Tutor Plus banner at 4+ active students on an individual organisation. */
 export const TUTOR_PLUS_THRESHOLD = 4;
 export const TUTOR_PLUS_PRICE_HKD = 98;

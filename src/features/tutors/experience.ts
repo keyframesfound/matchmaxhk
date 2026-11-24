@@ -14,6 +14,7 @@
 // student-count parameter anywhere in the pipeline.
 
 import { hktDateKey } from "@/features/cases/sor";
+import { PRESENT_WINDOW_DAYS } from "@/features/tutors/present-window";
 
 export const EXPERIENCE = {
   /** 0.5h increments, 0.5h–4.0h. */
@@ -25,7 +26,7 @@ export const EXPERIENCE = {
   /** A pending log auto-verifies 72h after creation unless disputed. */
   autoVerifyHours: 72,
   /** "– Present" shows while the last verified lesson is within 45 days. */
-  presentWindowDays: 45,
+  presentWindowDays: PRESENT_WINDOW_DAYS,
   /** After 2 disputed logs on a Case the tutor can no longer log on it. */
   maxDisputesPerCase: 2,
 } as const;

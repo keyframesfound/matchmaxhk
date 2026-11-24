@@ -18,6 +18,10 @@ export type HubLesson = {
   counterpart: string;
   confirmedByTutor: boolean;
   confirmedByParent: boolean;
+  /** #828 C3 (parent view): hourly rate × students; null when unset. */
+  lessonValueHkd?: number | null;
+  /** #828 C3: a done lesson the tutor marked unpaid (family owes the tutor). */
+  tuitionUnpaid?: boolean;
 };
 
 export type ConfirmState = "both" | "tutor_only" | "parent_only" | "none";
@@ -28,7 +32,36 @@ export type CalendarSummary = {
   upcoming: HubLesson[];
   thisMonthScheduled: number;
   history: MonthRecord[];
+  /**
+   * #828 C3, parent view only: tuition the family pays the tutor directly —
+   * this month's scheduled lessons plus done lessons marked unpaid. Never an
+   * admin fee (tutor-pays) and never a matching fee (HK$0).
+   */
+  monthTuition?: { hkd: number; casesMissingRate: number };
 };
+
+/** #828 C3: this month's tuition estimate for the parent view. */
+export function monthTuitionEstimate(
+  lessons: readonly HubLesson[],
+  now: Date,
+): { hkd: number; casesMissingRate: number } {
+  const thisMonth = hktMonthKey(now);
+  const missing = new Set<string>();
+  let hkd = 0;
+  for (const l of lessons) {
+    const counts =
+      (LIVE.has(l.status) && hktMonthKey(l.startsAt) === thisMonth) ||
+      (l.status === "done" && l.tuitionUnpaid === true);
+    if (!counts) continue;
+    const value = Number(l.lessonValueHkd);
+    if (l.lessonValueHkd == null || !Number.isFinite(value) || value <= 0) {
+      missing.add(l.caseId);
+      continue;
+    }
+    hkd += Math.round((value * Math.max(0, l.durationMin)) / 60);
+  }
+  return { hkd, casesMissingRate: missing.size };
+}
 
 const HKT_OFFSET_MS = 8 * 60 * 60 * 1000;
 export const HUB_HISTORY_MONTHS = 3;

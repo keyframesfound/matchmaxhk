@@ -11,6 +11,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import { selectRows, type Db } from "@/features/cases/desk-db";
 import {
+  monthTuitionEstimate,
   summarizeCalendar,
   type CalendarSummary,
   type HubLesson,
@@ -26,6 +27,7 @@ type LessonRow = {
   status: string;
   confirmed_by_parent_at: string | null;
   confirmed_by_tutor_at: string | null;
+  tuition_status?: string | null;
 };
 
 export type CalendarHub = {
@@ -43,14 +45,14 @@ async function lessonsFor(db: Db, caseIds: string[]): Promise<LessonRow[]> {
   return selectRows<LessonRow>(
     db,
     "case_lessons",
-    "id, case_id, starts_at, duration_min, status, confirmed_by_parent_at, confirmed_by_tutor_at",
+    "id, case_id, starts_at, duration_min, status, confirmed_by_parent_at, confirmed_by_tutor_at, tuition_status",
     [{ col: "case_id", op: "in", value: caseIds }],
   );
 }
 
 function toHub(
   rows: LessonRow[],
-  cases: Map<string, { code: string; counterpart: string }>,
+  cases: Map<string, { code: string; counterpart: string; lessonValueHkd?: number | null }>,
 ): HubLesson[] {
   return rows.flatMap((l) => {
     const c = cases.get(l.case_id);
@@ -66,6 +68,8 @@ function toHub(
         counterpart: c.counterpart,
         confirmedByTutor: l.confirmed_by_tutor_at !== null,
         confirmedByParent: l.confirmed_by_parent_at !== null,
+        lessonValueHkd: c.lessonValueHkd,
+        tuitionUnpaid: l.tuition_status === "unpaid",
       },
     ];
   });
@@ -103,10 +107,15 @@ export const getMyCalendar = createServerFn({ method: "POST" })
       id: string;
       case_code: string;
       student_id: string | null;
+      hourly_rate_hkd: number | null;
+      student_count: number | null;
       tutors: { display_name: string | null; tutor_code: string | null } | null;
-    }>(db, "tutoring_cases", "id, case_code, student_id, tutors(display_name, tutor_code)", [
-      { col: "parent_id", op: "eq", value: context.userId },
-    ]);
+    }>(
+      db,
+      "tutoring_cases",
+      "id, case_code, student_id, hourly_rate_hkd, student_count, tutors(display_name, tutor_code)",
+      [{ col: "parent_id", op: "eq", value: context.userId }],
+    );
     // #459 §4.4: a claimed child's schedule hidden from the parent stays hidden.
     const hidden = await selectRows<{ id: string }>(db, "students", "id", [
       { col: "parent_user_id", op: "eq", value: context.userId },
@@ -120,13 +129,21 @@ export const getMyCalendar = createServerFn({ method: "POST" })
     const parentMap = new Map(
       visible.map((c) => [
         c.id,
-        { code: c.case_code, counterpart: c.tutors?.display_name ?? c.tutors?.tutor_code ?? "-" },
+        {
+          code: c.case_code,
+          counterpart: c.tutors?.display_name ?? c.tutors?.tutor_code ?? "-",
+          lessonValueHkd:
+            c.hourly_rate_hkd == null
+              ? null
+              : Number(c.hourly_rate_hkd) * Math.max(1, Number(c.student_count ?? 1)),
+        },
       ]),
     );
-    const parent =
-      visible.length === 0
-        ? null
-        : summarizeCalendar(toHub(await lessonsFor(db, [...parentMap.keys()]), parentMap), now);
+    let parent: CalendarSummary | null = null;
+    if (visible.length > 0) {
+      const hub = toHub(await lessonsFor(db, [...parentMap.keys()]), parentMap);
+      parent = { ...summarizeCalendar(hub, now), monthTuition: monthTuitionEstimate(hub, now) };
+    }
 
     return { isTutor: tutorId !== null, tutor, parent };
   });

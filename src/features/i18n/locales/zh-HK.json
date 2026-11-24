@@ -823,7 +823,8 @@
     "desk_empty": "沒有已登記課堂。",
     "desk_revoke": "撤銷",
     "desk_revoked_ok": "已撤銷課堂——公開數據已即時重算。",
-    "completed_cases": "已完成個案：{{count}}"
+    "completed_cases": "已完成個案：{{count}}",
+    "err_RATE_MISSING": "此個案尚未鎖定每小時收費，因此未能記錄課堂。請先請秘書處鎖定收費。"
   },
   "hours": {
     "title": "已驗證時數",
@@ -3946,7 +3947,9 @@
     "lesson_zone_tutor": "課堂時間以導師時區顯示：{{zone}}。",
     "lesson_zone_both": "課堂時間以導師時區顯示：{{tutorZone}}；你嘅時區：{{viewerZone}}。",
     "tutor_week_zone": "你嘅課堂以 {{zone}} 顯示。",
-    "desk_tutor_zone": "導師時區：{{zone}}"
+    "desk_tutor_zone": "導師時區：{{zone}}",
+    "tutor_earnings_err_UNPAID_NO_NET": "這堂的學費用作行政費，沒有應付予你的學費，因此不能標記為未付。",
+    "tutor_earnings_no_net": "用作行政費"
   },
   "safety_attestation": {
     "title": "安全、清白紀錄及合法行為聲明",
@@ -4542,7 +4545,7 @@
   },
   "calendar_hub": {
     "title": "日曆",
-    "tutor_title": "你教授的課堂",
+    "tutor_title": "你的補習課堂",
     "parent_title": "你的課堂",
     "counts": "即將上課 {{upcoming}} 堂 · 本月 {{month}} 堂",
     "empty": "暫無即將上的課堂。",
@@ -4562,7 +4565,10 @@
     "freshness_stale": "你的每週可授課時間已 {{days}} 日未確認。請確認仍然有效，讓家長看到最新時段（未確認前個人檔案完整度將扣 15 分）。",
     "freshness_never": "確認你的每週可授課時間仍然有效，讓家長看到最新時段。",
     "freshness_cta": "確認時間表最新狀態",
-    "freshness_done": "已確認時間表為最新"
+    "freshness_done": "已確認時間表為最新",
+    "month_tuition": "本月預估學費",
+    "month_tuition_hint": "本月已安排的課堂，加上導師標記為未付的學費。學費直接支付予導師。",
+    "month_tuition_partial": "未計 {{count}} 個尚未設定時薪的個案。"
   },
   "global_search": {
     "title": "搜尋",
