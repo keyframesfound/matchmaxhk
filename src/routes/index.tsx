@@ -149,11 +149,15 @@ export const Route = createFileRoute("/")({
           title: {
             en: "MatchMax | Tutoring Made Convenient in Hong Kong",
             "zh-HK": "MatchMax | 香港最透明的補習配對平台 · 極速配對・免中介費",
+            // #401 locked Simplified homepage copy (#824 AC-401-1).
+            "zh-CN": "MatchMax | 香港最便捷的家教配对平台 · 透明收费・高效匹配",
           },
           description: {
             en: "Hong Kong's fairest and most transparent tutoring matching platform. Fast concierge matching, zero parent fees, an industry-low 1.5-lesson commission for tutors, and an integrated study notes shop.",
             "zh-HK":
               "Tutoring Made Convenient。打破傳統中介收費模式，提供極速專人配對及精讀筆記專門店。家長全免手續費，導師盡享全港最公平的 1.5 堂行政費。",
+            "zh-CN":
+              "打破传统中介模式，提供高效专人匹配及备考笔记商城。家长完全免收中介费，导师享有最公平的 1.5 节课行政费，让香港上门家教变得更简单透明。",
           },
         }),
         { name: "robots", content: "index, follow" },

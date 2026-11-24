@@ -115,11 +115,13 @@ export function seoLocaleFromLanguage(language: string | undefined): SeoLocale {
   return normalizeLocale(language);
 }
 
-/** zh-CN copy is optional: meta falls back to the Traditional rendition. */
-type LocaleCopy = { en: string; "zh-HK": string; "zh-CN"?: string };
+/**
+ * #824 §2.1 (AC-401-3): every locale carries its own copy. zh-CN is required
+ * so /cn never silently serves Traditional meta; the compiler enforces it.
+ */
+export type LocaleCopy = { en: string; "zh-HK": string; "zh-CN": string };
 
 export function pickCopy(copy: LocaleCopy, locale: SeoLocale): string {
-  if (locale === "zh-CN") return copy["zh-CN"] ?? copy["zh-HK"];
   return copy[locale];
 }
 
