@@ -1,4 +1,4 @@
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -132,6 +132,14 @@ function CohortFormDialog({
   const queryClient = useQueryClient();
   const [form, setForm] = useState<CohortFormState>(initial);
   const [saving, setSaving] = useState(false);
+
+  // The dialog stays mounted between cohorts, so it has to adopt the cohort it
+  // was opened for. Without this re-sync "Edit" rendered the previous form and
+  // submit sent `id: undefined`, which upsertMyGroupCohort treats as an INSERT
+  // (duplicate cohort); a cancelled edit also leaked into the next Create.
+  useEffect(() => {
+    if (open) setForm(initial);
+  }, [open, initial]);
   const sessionsLabelId = useId();
   const update = (patch: Partial<CohortFormState>) => setForm((f) => ({ ...f, ...patch }));
 
@@ -398,6 +406,13 @@ export function GroupClassesSection() {
 
   const cohorts = cohortsQuery.data ?? [];
 
+  // Cancel/close drops the working copy, so a following Create starts blank even
+  // if it reused the same `initial` reference.
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setEditing(EMPTY_FORM);
+  };
+
   const closeCohort = async (cohortId: string) => {
     setClosingId(cohortId);
     try {
@@ -518,7 +533,7 @@ export function GroupClassesSection() {
         )}
       </div>
 
-      <CohortFormDialog open={dialogOpen} initial={editing} onClose={() => setDialogOpen(false)} />
+      <CohortFormDialog open={dialogOpen} initial={editing} onClose={closeDialog} />
     </SettingsCard>
   );
 }

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { DEFAULT_TUTOR_TIMEZONE, formatInTutorZone } from "@/features/cases/tutor-timezone";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
@@ -82,7 +82,11 @@ function TuitionList({ result }: { result: EarningsResult }) {
         {realized.map(({ c, l }) => (
           <li key={l.id} className="flex flex-wrap items-center justify-between gap-2">
             <span className="tabular-nums text-xs text-[color:var(--ink)]">
-              {format(new Date(l.startsAt), "d MMM")} · {c.studentLabel} · {hkd(l.grossHkd)}
+              {formatInTutorZone(l.startsAt, DEFAULT_TUTOR_TIMEZONE, {
+                day: "numeric",
+                month: "short",
+              })}{" "}
+              · {c.studentLabel} · {hkd(l.grossHkd)}
               {l.tuitionUnpaid ? ` · ${t("sor.tutor_earnings_unpaid_tag")}` : ""}
             </span>
             <Button

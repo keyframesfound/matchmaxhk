@@ -230,7 +230,10 @@ function AdminMaterials() {
       }),
     onSuccess: (result) => {
       toast.success(
-        `Batch paid: ${result.sellerCount} seller(s), HK$${result.totalHkd.toFixed(2)}.`,
+        `Batch paid: ${result.sellerCount} seller(s), HK$${result.totalHkd.toFixed(2)}.` +
+          (result.heldCount > 0
+            ? ` ${result.heldCount} held back for missing payout details.`
+            : ""),
       );
       setBatchNote("");
       setApproveBatch(false);
@@ -243,7 +246,9 @@ function AdminMaterials() {
           ? "This batch includes HK$500+ of adjustments. Tick the manager approval box first."
           : message === "NO_SELLERS_DUE"
             ? "No seller clears the HK$50 minimum."
-            : message,
+            : message === "MISSING_PAYOUT_DETAILS"
+              ? "No payable seller has payout details on file. Add FPS details before running the batch."
+              : message,
       );
     },
   });

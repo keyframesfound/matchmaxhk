@@ -402,7 +402,7 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
           queryKey: ["tutors", "occupancy", params.tutorCode],
           queryFn: () =>
             fetchTutorOccupiedHours({
-              data: { tutorId: tutor.id, tutorUserId: tutor.user_id },
+              data: { tutorId: tutor.id },
             }).then((result) => result.occupied),
         })
       : emptyHourlyOpenHours();

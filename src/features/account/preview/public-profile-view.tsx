@@ -315,7 +315,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
     queryFn: async () => {
       if (!tutor.user_id) return emptyHourlyOpenHours();
       const result = await fetchTutorOccupiedHours({
-        data: { tutorId: tutor.id, tutorUserId: tutor.user_id },
+        data: { tutorId: tutor.id },
       });
       return result.occupied;
     },

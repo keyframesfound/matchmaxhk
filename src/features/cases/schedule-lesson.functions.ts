@@ -14,7 +14,8 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import { insertAudit, selectRows, type Db } from "@/features/cases/desk-db";
-import { format } from "date-fns";
+import { hktClock } from "@/features/cases/case-schedule";
+import { hktDateKey } from "@/features/cases/sor";
 import { nextLessonSequence, scheduleLessonError } from "@/features/cases/schedule-lesson";
 import { loadFullCohortSessions } from "@/features/cases/cohort-busy.server";
 import { shortCaseOverrunError } from "@/features/cases/short-case";
@@ -162,7 +163,7 @@ export const scheduleNextLesson = createServerFn({ method: "POST" })
             starts_at: new Date(data.startsAtIso).toISOString(),
             heading: "New lesson scheduled",
             body: "Your tutor scheduled a lesson; it is waiting for your confirmation.",
-            lessonLine: format(new Date(data.startsAtIso), "EEE d MMM, HH:mm"),
+            lessonLine: `${hktDateKey(new Date(data.startsAtIso))} ${hktClock(data.startsAtIso)} HKT`,
           },
           lessonId,
         );

@@ -50,6 +50,7 @@ import { cn } from "@/lib/utils";
 const ERROR_KEYS: Record<string, string> = {
   NO_ELIGIBLE_LESSON: "sor.rate_err_no_lesson",
   REVIEW_FROZEN: "sor.rate_err_frozen",
+  RATE_LIMITED: "sor.rate_err_rate_limited",
   CASE_NOT_FOUND: "sor.rate_err_case",
   NO_TUTOR: "sor.rate_err_case",
   BAD_REASON: "sor.rate_err_case",

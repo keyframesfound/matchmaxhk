@@ -31,6 +31,7 @@ type TokenRow = {
   student_id: string;
   parent_user_id: string;
   token_hash: string;
+  delivery_channel: string;
   delivery_target: string;
   expires_at: string;
   used_at: string | null;
@@ -61,6 +62,60 @@ function stateOf(
   if (row.revoked_at) return "revoked";
   if (new Date(row.expires_at).getTime() <= now.getTime()) return "expired";
   return "valid";
+}
+
+/** One place for claim-email comparison so casing/whitespace cannot split it. */
+export function normalizeClaimEmail(value: string | null | undefined): string {
+  return (value ?? "").trim().toLowerCase();
+}
+
+/** A delivery target is identity-bound only when it parses as an address. */
+export function deliveryTargetIsEmail(value: string): boolean {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalizeClaimEmail(value));
+}
+
+export type ClaimDeliveryVerdict =
+  /** Delivered by a non-email channel: the link holder is still the identity. */
+  | "not_bound"
+  /** The authenticated caller owns the address the invite went to. */
+  | "match"
+  /** The caller's claims carry no usable verified email — refuse. */
+  | "unverified"
+  /** The caller is signed in as a different address — refuse. */
+  | "wrong_account";
+
+/**
+ * §15.3 hole: the token hash proves the LINK was delivered, not who is now
+ * holding it. A forwarded invite therefore used to hand a child profile (and
+ * every tutoring case on it) to a stranger, so an email-delivered token is
+ * bound to the invited address and only the account that owns it may consume
+ * it. `email_verified === false` is an explicit "not this address"; an absent
+ * flag is left to the JWT's own signature (Google OAuth always sets it true,
+ * and Supabase only omits it when the provider says nothing).
+ *
+ * A token delivered by phone/WhatsApp keeps the old behaviour: we cannot
+ * compare a phone number from the request claims, so the link holder stays the
+ * identity (stated here so the gap is deliberate, not an oversight).
+ */
+export function claimDeliveryVerdict(
+  token: Pick<TokenRow, "delivery_channel" | "delivery_target">,
+  claims: unknown,
+): ClaimDeliveryVerdict {
+  if (token.delivery_channel !== "email") return "not_bound";
+  const target = normalizeClaimEmail(token.delivery_target);
+  // The write path validates an email, so a non-email target on the email
+  // channel is corrupt data: fail closed rather than skip the binding.
+  if (!deliveryTargetIsEmail(target)) return "unverified";
+  const claimEmail = normalizeClaimEmail(
+    typeof (claims as { email?: unknown } | null | undefined)?.email === "string"
+      ? ((claims as { email: string }).email ?? "")
+      : "",
+  );
+  if (!claimEmail) return "unverified";
+  if ((claims as { email_verified?: unknown } | null | undefined)?.email_verified === false) {
+    return "unverified";
+  }
+  return claimEmail === target ? "match" : "wrong_account";
 }
 
 async function requireClaimableChild(db: Db, userId: string, studentId: string) {
@@ -189,7 +244,7 @@ export const getChildClaimPreview = createServerFn({ method: "POST" })
     const rows = await selectRows<TokenRow>(
       db,
       "child_claim_tokens",
-      "id, student_id, parent_user_id, token_hash, delivery_target, expires_at, used_at, used_by_user_id, revoked_at",
+      "id, student_id, parent_user_id, token_hash, delivery_channel, delivery_target, expires_at, used_at, used_by_user_id, revoked_at",
       [{ col: "token_hash", op: "eq", value: hashToken(data.token) }],
     );
     const token = rows[0];
@@ -225,7 +280,7 @@ export const acceptChildClaim = createServerFn({ method: "POST" })
     const rows = await selectRows<TokenRow>(
       db,
       "child_claim_tokens",
-      "id, student_id, parent_user_id, token_hash, delivery_target, expires_at, used_at, used_by_user_id, revoked_at",
+      "id, student_id, parent_user_id, token_hash, delivery_channel, delivery_target, expires_at, used_at, used_by_user_id, revoked_at",
       [{ col: "token_hash", op: "eq", value: hashToken(data.token) }],
     );
     const token = rows[0];
@@ -234,6 +289,21 @@ export const acceptChildClaim = createServerFn({ method: "POST" })
     if (state !== "valid") throw new Error(`CLAIM_${state.toUpperCase()}`);
     // §15.3 edge: the signed-in account must not be the parent themself.
     if (context.userId === token.parent_user_id) throw new Error("CLAIM_SELF_PARENT");
+
+    // §15.3 hole: an email invite is bound to the address it was sent to, so a
+    // forwarded link cannot hand this child (and their cases, contact and
+    // billing view) to whoever opens it. Checked BEFORE the token is consumed,
+    // so a wrong-account attempt leaves the real recipient's link usable.
+    //
+    // Refusal copy is deliberately the shared CLAIM_INVALID one: the route maps
+    // `children.claim.err_<code>` with a generic fallback, and a distinct code
+    // would both need copy this task may not add and let a stranger probe
+    // whether a token exists. Today every token is email-delivered; a phone
+    // token (not yet implemented) keeps the old link-holder behaviour.
+    const deliveryVerdict = claimDeliveryVerdict(token, context.claims);
+    if (deliveryVerdict === "wrong_account" || deliveryVerdict === "unverified") {
+      throw new Error("CLAIM_INVALID");
+    }
 
     const students = await selectRows<{
       display_name: string | null;

@@ -32,6 +32,57 @@ async function admin(): Promise<AdminDb> {
 }
 
 // ---------------------------------------------------------------------------
+// #702 anti-manipulation: weekly note-rating cap
+// ---------------------------------------------------------------------------
+
+/** #702: note ratings a buyer may CREATE per rolling window (edits are free). */
+export const NOTE_REVIEW_WEEKLY_CAP = 5;
+export const NOTE_REVIEW_WEEKLY_WINDOW_DAYS = 7;
+
+const NOTE_REVIEW_DAY_MS = 86_400_000;
+
+/**
+ * Refuse a NEW note review once the buyer already created
+ * NOTE_REVIEW_WEEKLY_CAP rows inside the window. The upsert below edits one row
+ * per (material, buyer), so an existing review is never capped — the reviewer
+ * keeps the edit-in-place behaviour and no counter is double-spent.
+ *
+ * `created_at` is the insert stamp (the upsert never writes it), so re-saving
+ * the same note cannot move the count.
+ */
+export async function assertNoteReviewCap(
+  db: AdminDb,
+  userId: string,
+  materialId: string,
+  now: Date = new Date(),
+): Promise<void> {
+  const { data: mine, error: mineError } = await db
+    .from<{ id: string }>("material_reviews")
+    .select("id")
+    .eq("material_id", materialId)
+    .eq("buyer_account_id", userId)
+    .maybeSingle();
+  if (mineError && !isMissingTable(mineError)) throw new Error(mineError.message);
+  if (mine) return;
+
+  const since = new Date(
+    now.getTime() - NOTE_REVIEW_WEEKLY_WINDOW_DAYS * NOTE_REVIEW_DAY_MS,
+  ).toISOString();
+  const { data: recent, error } = await db
+    .from<{ id: string }>("material_reviews")
+    .select("id")
+    .eq("buyer_account_id", userId)
+    .gte("created_at", since);
+  if (error) {
+    if (isMissingTable(error)) return;
+    throw new Error(error.message);
+  }
+  if (((recent ?? []) as { id: string }[]).length >= NOTE_REVIEW_WEEKLY_CAP) {
+    throw new Error("RATE_LIMITED");
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Reviews
 // ---------------------------------------------------------------------------
 
@@ -160,6 +211,9 @@ export const submitNoteReview = createServerFn({ method: "POST" })
 
     const { hasAccess, orderId } = await buyerHasAccess(db, material.id, context.userId);
     if (!hasAccess) throw new Error("Only buyers who received this note can rate it.");
+
+    // #702: cap NEW ratings; editing my existing review for this note is free.
+    await assertNoteReviewCap(db, context.userId, material.id);
 
     const comment = data.comment?.trim() || null;
     if (comment) {

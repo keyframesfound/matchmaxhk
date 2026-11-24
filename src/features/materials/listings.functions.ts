@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
-import { computeFolderAdjustedPrice } from "@/features/materials/lifecycle";
+import { computeFolderAdjustedPrice, ORDER_GRANTED_STATUSES } from "@/features/materials/lifecycle";
 import {
   mapPublicNote,
   PUBLIC_NOTE_COLUMNS,
@@ -218,11 +218,14 @@ export const getFolderPriceQuote = createServerFn({ method: "POST" })
       .eq("status", "published");
     const publishedChildren = childRows ?? [];
 
+    // #392: must match what startCheckout actually credits — paid or granted
+    // (escrow held / Stripe paid_held), not just delivered, or the card shows
+    // a higher price than the buyer is charged.
     const { data: ownedOrders } = await db
       .from<{ material_id: string; gross_hkd: number }>("material_orders")
       .select("material_id, gross_hkd")
       .eq("buyer_account_id", context.userId)
-      .eq("status", "delivered")
+      .in("status", [...ORDER_GRANTED_STATUSES])
       .in("material_id", childIds);
 
     const paidGross = (ownedOrders ?? []).map((order) => Number(order.gross_hkd));

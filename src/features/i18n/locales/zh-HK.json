@@ -324,7 +324,9 @@
   "caseDesk": {
     "tutor_code_label": "導師編號",
     "tutor_code_placeholder": "輸入導師編號搜尋…",
-    "matched_tutor_label": "配對導師"
+    "matched_tutor_label": "配對導師",
+    "fee_waived_badge": "已豁免行政費",
+    "fee_waived_detail": "自帶學生的個案已豁免行政費"
   },
   "caseFilters": {
     "all_curricula": "全部課程",
@@ -1711,7 +1713,11 @@
     "copied": "已複製到剪貼簿。",
     "empty": "本週未有已核實課堂或活動。",
     "copy_header": "MatchMax 每週學習進度",
-    "copy_case": "個案 {{code}}"
+    "copy_case": "個案 {{code}}",
+    "part_covered": "已涵蓋課題",
+    "part_progress": "學習進度",
+    "part_practice": "額外練習",
+    "part_next": "下一步"
   },
   "notes_rail": {
     "title": "呢個個案嘅推薦練習",
@@ -3873,6 +3879,9 @@
     "bell_search_match_cases_one": "有 1 個新個案符合你儲存的搜尋「{{label}}」",
     "bell_search_match_cases_other": "有 {{count}} 個新個案符合你儲存的搜尋「{{label}}」",
     "bell_search_match_cases": "有 {{count}} 個新個案符合你儲存的搜尋「{{label}}」",
+    "bell_search_match_notes_one": "有 1 份新筆記符合你儲存的搜尋「{{label}}」",
+    "bell_search_match_notes_other": "有 {{count}} 份新筆記符合你儲存的搜尋「{{label}}」",
+    "bell_search_match_notes": "有 {{count}} 份新筆記符合你儲存的搜尋「{{label}}」",
     "bell_saved_profile": "有人收藏了你的導師檔案（{{label}}），記得更新可上課時間！",
     "bell_saved_note": "有人收藏了「{{label}}」",
     "bell_saved_case": "有導師收藏了你的個案 {{label}}",
@@ -3898,6 +3907,7 @@
     "rate_saved_text_held": "已儲存。星級已公開；文字部分待審核。",
     "rate_err_no_lesson": "完成第一堂課後才會開放公開評價。",
     "rate_err_frozen": "這則評價已不能再修改。",
+    "rate_err_rate_limited": "你本週已達到評價上限，請幾日後再提交。",
     "rate_err_case": "未能載入這個個案。",
     "rate_no_lesson_title": "完成第一堂課後才可評價",
     "rate_no_lesson_body": "這個個案仍未完成任何課堂，所以沒有公開評價。你仍可以私下通知我們的服務台。",
@@ -4000,6 +4010,7 @@
   },
   "channel": {
     "birthday_badge": "🎂 {{date}}",
+    "self_declared": "自稱",
     "not_found": "找不到此頻道。",
     "load_failed": "未能載入此頻道，可能只係網絡慢。",
     "retry": "再試一次",

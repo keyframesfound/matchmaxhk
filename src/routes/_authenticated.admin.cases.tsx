@@ -50,12 +50,14 @@ import {
   ADMIN_CASE_SELECT_COLUMNS,
   CASE_STATUSES,
   DESK_LANGUAGE_LABEL,
+  FEE_WAIVED_PILL_CLASS,
   MODE_LABEL,
   PRIORITY_PILL_CLASS,
   START_LABEL,
   STATUS_LABEL,
   STATUS_PILL_CLASS,
   caseBudgetHkdBounds,
+  caseFeeWaived,
   whatsappUrl,
   type CaseRow,
   type CaseStatus,
@@ -811,6 +813,19 @@ function AdminCases() {
                             <span className="font-mono text-sm font-semibold text-[color:var(--ink)]">
                               {row.case_code}
                             </span>
+                            {caseFeeWaived(row) ? (
+                              <span
+                                className={cn(
+                                  "inline-flex items-center rounded px-1.5 py-0.5 text-[11px] font-semibold",
+                                  FEE_WAIVED_PILL_CLASS,
+                                )}
+                                title={t("caseDesk.fee_waived_detail", {
+                                  defaultValue: "Admin fee waived for a bring-your-own student",
+                                })}
+                              >
+                                {t("caseDesk.fee_waived_badge", { defaultValue: "Fee waived" })}
+                              </span>
+                            ) : null}
                             {(() => {
                               const tier = normalizePriorityTier(row.priority_tier);
                               return (

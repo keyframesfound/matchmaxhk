@@ -324,7 +324,9 @@
   "caseDesk": {
     "tutor_code_label": "Tutor code",
     "tutor_code_placeholder": "Search by tutor code…",
-    "matched_tutor_label": "Matched tutor"
+    "matched_tutor_label": "Matched tutor",
+    "fee_waived_badge": "Fee waived",
+    "fee_waived_detail": "Admin fee waived for a bring-your-own student"
   },
   "caseFilters": {
     "all_curricula": "All curricula",
@@ -1711,7 +1713,11 @@
     "copied": "Copied to clipboard.",
     "empty": "No verified lesson or activity this week.",
     "copy_header": "MatchMax weekly update",
-    "copy_case": "Case {{code}}"
+    "copy_case": "Case {{code}}",
+    "part_covered": "Covered",
+    "part_progress": "Progress",
+    "part_practice": "Additional practice",
+    "part_next": "Next steps"
   },
   "notes_rail": {
     "title": "Recommended for this case",
@@ -3873,6 +3879,9 @@
     "bell_search_match_cases_one": "1 new case matches your saved search “{{label}}”",
     "bell_search_match_cases_other": "{{count}} new cases match your saved search “{{label}}”",
     "bell_search_match_cases": "{{count}} new cases match your saved search “{{label}}”",
+    "bell_search_match_notes_one": "1 new note matches your saved search “{{label}}”",
+    "bell_search_match_notes_other": "{{count}} new notes match your saved search “{{label}}”",
+    "bell_search_match_notes": "{{count}} new notes match your saved search “{{label}}”",
     "bell_saved_profile": "Someone saved your tutor profile ({{label}}). Keep your availability updated!",
     "bell_saved_note": "Someone saved your note “{{label}}”",
     "bell_saved_case": "A tutor saved your case {{label}}",
@@ -3898,6 +3907,7 @@
     "rate_saved_text_held": "Saved. Your stars are live; the text was held for review.",
     "rate_err_no_lesson": "A public review opens after the first completed lesson.",
     "rate_err_frozen": "This review is closed for edits.",
+    "rate_err_rate_limited": "You have submitted the maximum ratings for this week. You can rate again in a few days.",
     "rate_err_case": "We could not load this case.",
     "rate_no_lesson_title": "Reviews open after the first lesson",
     "rate_no_lesson_body": "No lesson has been completed on this case yet, so there is no public review. You can still tell our desk privately.",
@@ -4000,6 +4010,7 @@
   },
   "channel": {
     "birthday_badge": "🎂 {{date}}",
+    "self_declared": "Self-declared",
     "not_found": "Channel not found.",
     "load_failed": "This channel didn't load. It may just be a slow connection.",
     "retry": "Try again",

@@ -3,6 +3,8 @@ import { ProfileStrengthBanner } from "@/features/profile-strength/profile-stren
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { getMyBell } from "@/features/cases/bus.functions";
 import { EducationCvSection } from "@/features/account/education-cv-section";
+import { WeeklyDigestCard } from "@/features/cases/weekly-digest-card";
+import { DashboardSuggestedTutors } from "@/features/dashboard/suggested-tutors-panel";
 import { AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -188,6 +190,7 @@ function AccountPage() {
       if (error) throw error;
       return data as { date_of_birth: string | null } | null;
     },
+    enabled: Boolean(user),
   });
   const dobMissing = profileQuery.data !== undefined && profileQuery.data?.date_of_birth == null;
 
@@ -799,6 +802,28 @@ function AccountPage() {
             </div>
           ) : null}
         </section>
+
+        {/* #742 / #796 §2.6: weekly learning digest above the case list. One
+            card per case, newest three (the query already orders newest first)
+            so a multi-child account never fans out unbounded; a card hides
+            itself on a quiet week, so nothing is shown without a real recap. */}
+        {activeRole === "parent" && shownCases.length > 0 ? (
+          <div className="mt-12 space-y-3">
+            {shownCases.slice(0, 3).map((row) => (
+              <WeeklyDigestCard key={row.id} caseId={row.id} caseTitle={row.title} />
+            ))}
+          </div>
+        ) : null}
+
+        {/* #716: the landing page's "Suggested for you" row for signed-in
+            parents, above their own cases. Same component, same query, same
+            card: it stays hidden for guests and when fewer than two honest
+            picks exist. */}
+        {activeRole === "parent" ? (
+          <section className="mt-12">
+            <DashboardSuggestedTutors />
+          </section>
+        ) : null}
 
         {/* P6 parent block: my cases */}
         <section className="mt-12 space-y-4">

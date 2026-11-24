@@ -13,7 +13,24 @@
  *    any public read (no RPC selects it, no client query touches the table);
  *  - before the first completed lesson the writer gets NO_ELIGIBLE_LESSON and
  *    the UI offers the private desk report instead.
+ *
+ * #702 anti-manipulation (all three live here so no submit path can skip them):
+ *  - WEEKLY RATE CAP: a fresh row is refused with RATE_LIMITED once the caller
+ *    already wrote RATING_WEEKLY_CAP rows in the rolling window. Editing the
+ *    existing row for a case+direction is never capped (it writes no new row).
+ *  - SELF-DEALING COLLISION: a rater whose profile shares the tutor's account,
+ *    normalised phone or email does not publish — the row is written 'held'
+ *    with held_reason 'self_deal: <signal>'.
+ *  - BURST FLAG: a new five-star that would be the tutor's third published
+ *    five-star inside the window, while the tutor has fewer than
+ *    RATING_BURST_MIN_LESSONS completed lessons, is held for the desk and the
+ *    existing ops webhook is pinged.
+ *  Held rows never enter the public aggregate: the RPC counts status 'visible'
+ *  only, and its legacy lazy-publish flips the two legacy reasons alone.
  */
+
+import { normalizePhone } from "@/features/cases/import-plan";
+import { normalizeContact } from "@/features/rosters/roster-logic";
 
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import {
@@ -35,6 +52,21 @@ type Row = Record<string, unknown>;
 type Db = ReturnType<typeof asAdminDb>;
 
 export type RatingDirection = "parent_to_tutor" | "tutor_to_parent";
+
+/** #702 anti-manipulation caps — tune HERE, this is the one place ops edits. */
+export const RATING_WEEKLY_CAP = 3;
+/** Rolling window for every #702 counter (days). */
+export const RATING_WEEKLY_WINDOW_DAYS = 7;
+/** #702 burst: a new 5★ that would make this many published 5★ in the window… */
+export const RATING_BURST_FIVE_STAR = 3;
+/** …while the tutor has fewer than this many completed lessons → desk hold. */
+export const RATING_BURST_MIN_LESSONS = 3;
+
+const RATING_DAY_MS = 86_400_000;
+
+function windowStartIso(now: Date): string {
+  return new Date(now.getTime() - RATING_WEEKLY_WINDOW_DAYS * RATING_DAY_MS).toISOString();
+}
 
 export type SaveCaseRatingInput = {
   caseId: string;
@@ -99,12 +131,141 @@ async function tutorRowForUser(db: Db, userId: string): Promise<{ id: string } |
   return rows[0] ?? null;
 }
 
+const LESSON_COLUMNS = "status, confirmed_by_parent_at, confirmed_by_tutor_at";
+
 async function lessonsForCase(db: Db, caseId: string): Promise<LessonConfirmRow[]> {
   const { data } = await db
     .from<LessonConfirmRow>("case_lessons")
-    .select("status, confirmed_by_parent_at, confirmed_by_tutor_at")
+    .select(LESSON_COLUMNS)
     .eq("case_id", caseId);
   return ((data ?? []) as LessonConfirmRow[]).filter((l) => typeof l?.status === "string");
+}
+
+/** Every completed lesson the tutor has recorded, across all their cases. */
+async function tutorCompletedLessonCount(db: Db, tutorId: string): Promise<number> {
+  const { data: cases } = await db
+    .from<{ id: string }>("tutoring_cases")
+    .select("id")
+    .eq("matched_tutor_id", tutorId);
+  const caseIds = ((cases ?? []) as { id: string }[]).map((c) => c.id);
+  if (caseIds.length === 0) return 0;
+  const { data } = await db
+    .from<LessonConfirmRow>("case_lessons")
+    .select(LESSON_COLUMNS)
+    .in("case_id", caseIds);
+  return ((data ?? []) as LessonConfirmRow[]).filter(isEligibleReviewLesson).length;
+}
+
+// ---------------------------------------------------------------------------
+// #702 anti-manipulation helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Distinct case+direction rows the caller INSERTED inside the window. Counted
+ * once per case+direction (the unique index makes that one row), so editing an
+ * existing row never moves the counter. `created_at` is the insert stamp —
+ * updates only touch `updated_at`.
+ */
+async function recentAuthoredReviewCount(
+  db: Db,
+  userId: string,
+  sinceIso: string,
+): Promise<number> {
+  const { data } = await db
+    .from<{ case_id: string; direction: string }>("case_reviews")
+    .select("case_id, direction")
+    .eq("author_account_id", userId)
+    .in("status", ["visible", "held", "hidden"])
+    .gte("created_at", sinceIso);
+  const keys = new Set(
+    ((data ?? []) as { case_id: string; direction: string }[]).map(
+      (r) => `${r.case_id}:${r.direction}`,
+    ),
+  );
+  return keys.size;
+}
+
+/** The account behind a tutor card (null while the card has no login yet). */
+async function tutorAccountUserId(db: Db, tutorId: string): Promise<string | null> {
+  const { data } = await db
+    .from<{ id: string; user_id: string | null }>("tutors")
+    .select("id, user_id")
+    .eq("id", tutorId);
+  const rows = (data ?? []) as { id: string; user_id: string | null }[];
+  return rows[0]?.user_id ?? null;
+}
+
+type ContactProfile = { id: string; email: string | null; phone: string | null };
+
+async function contactProfile(db: Db, userId: string): Promise<ContactProfile | null> {
+  const { data } = await db
+    .from<ContactProfile>("profiles")
+    .select("id, email, phone")
+    .eq("id", userId);
+  const rows = (data ?? []) as ContactProfile[];
+  return rows[0] ?? null;
+}
+
+/**
+ * Both helpers below are the EXISTING normalisers, not new ones: phone is the
+ * #201/#205 collision key from import-plan.ts (digits with the +852 prefix
+ * folded, already used for parent duplicate detection in byos), email is the
+ * roster duplicate key from roster-logic.ts (lowercase canonical form).
+ */
+function samePhone(a: string | null, b: string | null): boolean {
+  const x = normalizePhone(a ?? "");
+  const y = normalizePhone(b ?? "");
+  return x.length >= 8 && y.length >= 8 && x === y;
+}
+
+function sameEmail(a: string | null, b: string | null): boolean {
+  const x = (a ?? "").trim();
+  const y = (b ?? "").trim();
+  if (!x.includes("@") || !y.includes("@")) return false;
+  return normalizeContact(x) === normalizeContact(y);
+}
+
+export type SelfDealSignal = "account" | "phone" | "email";
+
+/**
+ * #702 self-dealing collision. There is no Stripe CUSTOMER fingerprint stored
+ * for either side in this schema (the only Stripe column is
+ * material_orders.stripe_payment_intent_id, which is per-order, not per-person),
+ * so this compares the three signals that genuinely exist.
+ */
+async function findSelfDealSignal(
+  db: Db,
+  raterUserId: string,
+  tutorUserId: string | null,
+): Promise<SelfDealSignal | null> {
+  if (!tutorUserId) return null;
+  if (tutorUserId === raterUserId) return "account";
+  const [rater, tutor] = await Promise.all([
+    contactProfile(db, raterUserId),
+    contactProfile(db, tutorUserId),
+  ]);
+  if (!rater || !tutor) return null;
+  if (samePhone(rater.phone, tutor.phone)) return "phone";
+  if (sameEmail(rater.email, tutor.email)) return "email";
+  return null;
+}
+
+/** Published five-stars on the tutor inside the window, EXCLUDING this row. */
+async function tutorRecentFiveStarCount(
+  db: Db,
+  tutorId: string,
+  sinceIso: string,
+  excludeReviewId: string | null,
+): Promise<number> {
+  const { data } = await db
+    .from<{ id: string }>("case_reviews")
+    .select("id")
+    .eq("tutor_id", tutorId)
+    .eq("direction", "parent_to_tutor")
+    .eq("status", "visible")
+    .eq("rating", 5)
+    .gte("created_at", sinceIso);
+  return ((data ?? []) as { id: string }[]).filter((r) => r.id !== excludeReviewId).length;
 }
 
 type ReviewRow = {
@@ -249,6 +410,14 @@ export async function saveCaseRatingCore(
   if (!validity.ok) throw new Error(validity.message);
   const contactHeld = validity.heldReasons.length > 0;
 
+  // #702 WEEKLY RATE CAP. Only a NEW row is capped: editing the single
+  // case+direction row is never a new write, so a cooling-off typo fix keeps
+  // working however many cases the author has rated this week.
+  if (!mine) {
+    const used = await recentAuthoredReviewCount(db, userId, windowStartIso(now));
+    if (used >= RATING_WEEKLY_CAP) throw new Error("RATE_LIMITED");
+  }
+
   const nowIso = now.toISOString();
   // The note is private to the desk and may have been written on an earlier
   // visit: an edit that does not mention it keeps it, and only an explicit
@@ -264,15 +433,47 @@ export async function saveCaseRatingCore(
   // typo fix would silently republish a moderated row.
   const hidden = mine?.status === "hidden";
   const canHeld = contactHeld && !hidden;
+
+  // #702 hold signals. Both only ever apply to the public direction: a
+  // tutor→parent row never publishes, so holding it would be noise.
+  let selfDeal: SelfDealSignal | null = null;
+  let burst: { recentFiveStar: number; completedLessons: number } | null = null;
+  if (input.direction === "parent_to_tutor" && !hidden && c.matched_tutor_id) {
+    const tutorId = c.matched_tutor_id;
+    const tutorUserId = await tutorAccountUserId(db, tutorId);
+    selfDeal = await findSelfDealSignal(db, userId, tutorUserId);
+    // A burst needs a five-star that would PUBLISH; a 1–4★ never trips it.
+    if (input.rating === 5) {
+      const recentFiveStar = await tutorRecentFiveStarCount(
+        db,
+        tutorId,
+        windowStartIso(now),
+        mine?.id ?? null,
+      );
+      if (recentFiveStar + 1 >= RATING_BURST_FIVE_STAR) {
+        const completedLessons = await tutorCompletedLessonCount(db, tutorId);
+        if (completedLessons < RATING_BURST_MIN_LESSONS) {
+          burst = { recentFiveStar: recentFiveStar + 1, completedLessons };
+        }
+      }
+    }
+  }
+
+  // Most severe signal first, so the desk reason names the root cause.
+  const holdReasons: string[] = [];
+  if (selfDeal) holdReasons.push(`self_deal: ${selfDeal}`);
+  if (burst) holdReasons.push("burst: five_star_reviews");
+  if (canHeld) holdReasons.push(`comment_held: ${validity.heldReasons.join(", ")}`);
+
   const nextStatus: "visible" | "held" | "hidden" = hidden
     ? "hidden"
-    : canHeld
+    : holdReasons.length > 0
       ? "held"
       : "visible";
   const heldReason = hidden
     ? (mine?.held_reason ?? null)
-    : canHeld
-      ? `comment_held: ${validity.heldReasons.join(", ")}`
+    : holdReasons.length > 0
+      ? holdReasons.join(", ")
       : null;
   const row: Row = {
     case_id: c.id,
@@ -294,12 +495,33 @@ export async function saveCaseRatingCore(
     updated_at: nowIso,
   };
 
+  let reviewId = mine?.id ?? null;
   if (mine) {
     const { error } = await db.from<Row>("case_reviews").update(row).eq("id", mine.id);
     if (error) throw new Error(error.message);
   } else {
-    const { error } = await db.from<Row>("case_reviews").insert(row).select("id").single();
+    const { data, error } = await db
+      .from<{ id: string }>("case_reviews")
+      .insert(row)
+      .select("id")
+      .single();
     if (error) throw new Error(error.message);
+    reviewId = data?.id ?? null;
+  }
+
+  // #702 BURST FLAG: the desk already drinks from notifyOps (fee desk, trust
+  // queue, applications), so reuse that channel rather than inventing one.
+  // Never awaited — a webhook hiccup must not fail the author's save.
+  if (burst && c.matched_tutor_id) {
+    const { notifyOps } = await import("@/lib/ops-webhook.server");
+    void notifyOps("case.rating_burst_hold", {
+      case_id: c.id,
+      review_id: reviewId,
+      tutor_id: c.matched_tutor_id,
+      rating: input.rating,
+      recent_five_star: burst.recentFiveStar,
+      tutor_completed_lessons: burst.completedLessons,
+    }).catch(() => {});
   }
 
   // Re-evaluate so the caller sees the fresh window (14 days from THIS save).

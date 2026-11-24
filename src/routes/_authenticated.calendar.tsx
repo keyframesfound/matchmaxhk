@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { DEFAULT_TUTOR_TIMEZONE, formatInTutorZone } from "@/features/cases/tutor-timezone";
 import { useEffect, useMemo, useState } from "react";
 import { CircleHelp, Loader2, X } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
@@ -72,8 +72,16 @@ function SummarySection({ summary, role }: { summary: CalendarSummary; role: "tu
             <li key={l.id} className="flex flex-wrap items-center justify-between gap-2 py-2.5">
               <div>
                 <p className="text-sm font-semibold">
-                  {format(new Date(l.startsAt), "EEE d MMM, HH:mm")} ·{" "}
-                  {t("calendar_hub.minutes", { n: l.durationMin })}
+                  {/* Absolute instant: pin the zone, a bare format() reads the device zone. */}
+                  {formatInTutorZone(l.startsAt, DEFAULT_TUTOR_TIMEZONE, {
+                    weekday: "short",
+                    day: "numeric",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    hour12: false,
+                  })}{" "}
+                  · {t("calendar_hub.minutes", { n: l.durationMin })}
                 </p>
                 <p className="text-xs text-muted-foreground">
                   {t(role === "tutor" ? "calendar_hub.with_student" : "calendar_hub.with_tutor", {
@@ -244,6 +252,7 @@ function CalendarPage() {
     void queryClient.invalidateQueries({ queryKey: ["case-manager-schedule"] });
     void queryClient.invalidateQueries({ queryKey: ["calendar-hub"] });
     void queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
+    void queryClient.invalidateQueries({ queryKey: ["sor", "earnings"] });
   };
   // #594: an unknown or unauthorized ?case= keeps the hub up and drops the param.
   useEffect(() => {

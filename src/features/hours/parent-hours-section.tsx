@@ -6,7 +6,7 @@
 
 import { useState } from "react";
 import { useMutation } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { formatHktDateTime } from "@/features/rosters/roster-logic";
 import { Check, Loader2, X } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -26,7 +26,7 @@ export function ParentHoursSection({
   rows: HoursLedgerRowT[];
   onChanged: () => void;
 }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [disputingId, setDisputingId] = useState<string | null>(null);
   const [reason, setReason] = useState("");
 
@@ -67,7 +67,7 @@ export function ParentHoursSection({
           <li key={row.id} className="rounded-lg border border-[color:var(--ink)]/10 p-3">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium text-[color:var(--ink)]">
-                {format(new Date(row.occurred_at), "EEE d MMM HH:mm")} ·{" "}
+                {formatHktDateTime(row.occurred_at, i18n.language)} ·{" "}
                 {t("hours.duration_hours", { hours: Number(row.duration_hours) })}
               </span>
               <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-2 py-0.5 text-xs text-muted-foreground">

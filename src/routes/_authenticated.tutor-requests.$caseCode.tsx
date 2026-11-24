@@ -62,7 +62,11 @@ import { toast } from "sonner";
 import { caseChips } from "@/features/cases/case-chips";
 import { useAuth } from "@/features/auth/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { getPublicCaseByCode, type PublicCaseBoardItem } from "@/lib/cases.functions";
+import {
+  getCaseNetRateHkd,
+  getPublicCaseByCode,
+  type PublicCaseBoardItem,
+} from "@/lib/cases.functions";
 import { shortCaseFeeAmount, shortCasePackageValueHkd } from "@/features/cases/short-case";
 import { shareOrCopy } from "@/lib/share";
 import {
@@ -302,6 +306,16 @@ function CaseDetailPage() {
     };
   }, [user]);
   const viewerGender = viewerTutor?.gender ?? null;
+  // #815 §2.11: the centre's net rate is private payroll data, so the board
+  // payload never carries it. The tutor-gated handler serves it instead, only
+  // for a signed-in viewer on an overflow (lane A) case.
+  const getNetRate = useServerFn(getCaseNetRateHkd);
+  const netRateQuery = useQuery({
+    queryKey: ["case-net-rate", item.caseCode],
+    queryFn: () => getNetRate({ data: { caseCode: item.caseCode } }),
+    enabled: item.b2b && Boolean(user),
+  });
+  const netRateHkd = netRateQuery.data?.netRateHkd ?? null;
   // #81: the dim rule IS the shared canApplyToCase gender gate, factored
   // into applications.ts so the WhatsApp dim and in-app Apply can't drift.
   const genderMismatch = caseGenderMismatch(item.preferredGender, viewerGender);
@@ -954,10 +968,11 @@ function CaseDetailPage() {
                     <CaseFeePill packageType={item.packageType} />
                   </div>
                   {/* #815 §2.11 AC-OV-4: the attributed net rate on an
-                  overflow case. Absent on a legacy row, so nothing renders. */}
-                  {item.b2b && item.netRateHkd != null ? (
+                  overflow case, fetched from the tutor-gated handler. Absent on
+                  a legacy row or for a non-tutor viewer, so nothing renders. */}
+                  {item.b2b && netRateHkd != null ? (
                     <p className="text-sm font-semibold text-[color:var(--ink)]">
-                      {t("tutor_requests.net_rate", { rate: item.netRateHkd })}
+                      {t("tutor_requests.net_rate", { rate: netRateHkd })}
                     </p>
                   ) : null}
                   <p className="text-sm font-semibold text-[color:var(--ink)]">

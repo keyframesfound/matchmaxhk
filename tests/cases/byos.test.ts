@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  BYOS_PRIOR_CONTACT_WINDOW_DAYS,
   byosClaimRefusal,
   byosInviteExpired,
   byosInvitePath,
+  byosPriorContactRefused,
   hashInviteToken,
   isWellFormedInviteToken,
   newInviteToken,
@@ -72,6 +74,65 @@ describe("#783 §2.4 BYOS invite", () => {
     expect(
       byosClaimRefusal({ inviteStatus: "active", claimantIsTutor: true, prior: noContact }),
     ).toBe("own_invite");
+  });
+});
+
+describe("#737 the prior-contact refusal only looks back 180 days", () => {
+  const DAY = 24 * 60 * 60 * 1000;
+  const now = new Date("2026-11-24T12:00:00.000Z");
+  const daysAgo = (days: number) => new Date(now.getTime() - days * DAY).toISOString();
+
+  it("refuses contact from inside the window (179 days ago)", () => {
+    const prior = { ...noContact, matchedCase: true, lastContactAt: daysAgo(179) };
+    expect(byosPriorContactRefused(prior, now)).toBe(true);
+    expect(
+      byosClaimRefusal({
+        inviteStatus: "active",
+        claimantIsTutor: false,
+        prior: { ...noContact, trialIntro: true, lastContactAt: daysAgo(179) },
+        now,
+      }),
+    ).toBe("prior_contact");
+  });
+
+  it("allows the waiver once the contact ages past the window (181 days)", () => {
+    const prior = { ...noContact, matchedCase: true, lastContactAt: daysAgo(181) };
+    expect(byosPriorContactRefused(prior, now)).toBe(false);
+    expect(
+      byosClaimRefusal({ inviteStatus: "active", claimantIsTutor: false, prior, now }),
+    ).toBeNull();
+  });
+
+  it("treats exactly 180 days as outside the window", () => {
+    expect(BYOS_PRIOR_CONTACT_WINDOW_DAYS).toBe(180);
+    const prior = { ...noContact, tutorApplied: true, lastContactAt: daysAgo(180) };
+    expect(byosPriorContactRefused(prior, now)).toBe(false);
+    expect(
+      byosPriorContactRefused(
+        { ...noContact, tutorApplied: true, lastContactAt: daysAgo(180 - 0.001) },
+        now,
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps refusing history it cannot date", () => {
+    expect(
+      byosPriorContactRefused({ ...noContact, matchedCase: true, lastContactAt: null }, now),
+    ).toBe(true);
+    expect(
+      byosPriorContactRefused({ ...noContact, matchedCase: true, lastContactAt: undefined }, now),
+    ).toBe(true);
+    expect(
+      byosPriorContactRefused(
+        { ...noContact, matchedCase: true, lastContactAt: "not-a-date" },
+        now,
+      ),
+    ).toBe(true);
+  });
+
+  it("still grants a genuinely new off-platform student", () => {
+    expect(byosPriorContactRefused(noContact, now)).toBe(false);
+    expect(byosPriorContactRefused({ ...noContact, lastContactAt: daysAgo(1) }, now)).toBe(false);
   });
 });
 

@@ -51,6 +51,14 @@ export type CaseRow = {
   fee_amount_cents: number | null;
   tags: string[];
   source: string;
+  /**
+   * #737: BYOS / hire carve-out. Both waiver columns are service-role only and
+   * the authenticated role holds NO column SELECT grant for them, so a desk
+   * query cannot read them today — they stay optional and the badge falls back
+   * to `source` (caseFeeWaived below).
+   */
+  case_source?: string | null;
+  admin_fee_waived?: boolean | null;
   // Issue #190: vertical columns (absent on rows selected before the
   // migration, hence optional).
   academic_tier?: string | null;
@@ -130,6 +138,25 @@ export const PRIORITY_PILL_CLASS: Record<PriorityTier, string> = {
   P3: "bg-purple-500/15 text-purple-700 dark:text-purple-400",
   P4: "bg-[color:var(--ink)]/[0.06] text-muted-foreground",
 };
+
+/**
+ * #737 ops visibility: a BYOS_DIRECT case carries admin_fee_waived = true and
+ * `source` = "byos_direct" (written by admin_create_sor_case when the invite is
+ * claimed). Only `source` is readable by the desk's authenticated query, so the
+ * badge accepts any of the three signals — a future column grant needs no UI
+ * change.
+ */
+export const BYOS_SOURCE_VALUE = "byos_direct";
+
+export const FEE_WAIVED_PILL_CLASS = "bg-teal-500/15 text-teal-700 dark:text-teal-400";
+
+export function caseFeeWaived(
+  row: Pick<CaseRow, "source"> & Partial<Pick<CaseRow, "case_source" | "admin_fee_waived">>,
+): boolean {
+  if (row.admin_fee_waived === true) return true;
+  if (row.case_source === "BYOS_DIRECT") return true;
+  return (row.source ?? "").trim().toLowerCase() === BYOS_SOURCE_VALUE;
+}
 
 export const MODE_LABEL: Record<string, string> = {
   online: "Online",

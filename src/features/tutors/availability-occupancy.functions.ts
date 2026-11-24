@@ -51,15 +51,14 @@ const BATCH_TUTOR_LIMIT = 60;
 
 const inputSchema = z.object({
   tutorId: z.string().uuid(),
-  tutorUserId: z.string().uuid().nullable(),
 });
 
 const batchInputSchema = z.object({
   tutors: z.array(inputSchema).max(BATCH_TUTOR_LIMIT),
 });
 
-/** One tutor the batched occupancy read needs to resolve. */
-export type OccupancyTarget = { tutorId: string; tutorUserId: string | null };
+/** One tutor the occupancy read needs to resolve (owner id looked up server-side). */
+export type OccupancyTarget = { tutorId: string };
 
 function addHours(grid: HourlyOpenHours, day: GridDay, hours: number[]) {
   const bucket = grid[day];
@@ -97,23 +96,44 @@ export function cohortHoursWhenFull(
 
 /**
  * Batch core: derive Occupied (day, hour) cells for every tutor in ONE pass of
- * at most six queries. Every read failure degrades to base Open hours for the
- * affected source — this function never throws.
+ * at most seven queries. The roster owner id is resolved from the database by
+ * tutor id — never taken from the caller — so no client-supplied user id can
+ * expose another tutor's private-class grid. Every read failure degrades to
+ * base Open hours for the affected source; this function never throws.
  */
 export async function computeOccupiedHoursByTutor(
   db: Db,
   tutors: readonly OccupancyTarget[],
 ): Promise<Map<string, HourlyOpenHours>> {
   const grids = new Map<string, HourlyOpenHours>();
-  const tutorIdByUserId = new Map<string, string>();
   for (const tutor of tutors) {
     if (grids.has(tutor.tutorId)) continue;
     grids.set(tutor.tutorId, emptyHourlyOpenHours());
-    if (tutor.tutorUserId && !tutorIdByUserId.has(tutor.tutorUserId)) {
-      tutorIdByUserId.set(tutor.tutorUserId, tutor.tutorId);
-    }
   }
   if (grids.size === 0) return grids;
+
+  // Resolve rosters.owner_user_id from the tutor row itself (#768): a public,
+  // unauthenticated read must never accept the owner id as input, or an
+  // anonymous caller could pass a victim's auth user id and get their grid.
+  const tutorIdByUserId = new Map<string, string>();
+  try {
+    const tutorRows = await selectRows<{ id: string; user_id: string | null }>(
+      db,
+      "tutors",
+      "id, user_id",
+      [{ col: "id", op: "in", value: [...grids.keys()] }],
+    );
+    for (const row of tutorRows) {
+      if (row.user_id && !tutorIdByUserId.has(row.user_id)) {
+        tutorIdByUserId.set(row.user_id, row.id);
+      }
+    }
+  } catch (error) {
+    console.warn(
+      "[availability-occupancy] tutors owner read failed, public grid shows base hours only:",
+      error instanceof Error ? error.message : error,
+    );
+  }
 
   const now = Date.now();
   const aheadCutoff = now + OCCUPANCY_AHEAD_DAYS * MS_PER_DAY;
@@ -269,9 +289,7 @@ export const fetchTutorOccupiedHours = createServerFn({ method: "POST" })
     const occupied = emptyHourlyOpenHours();
     const db = await loadAdminDb();
     if (!db) return { occupied };
-    const grids = await computeOccupiedHoursByTutor(db, [
-      { tutorId: data.tutorId, tutorUserId: data.tutorUserId },
-    ]);
+    const grids = await computeOccupiedHoursByTutor(db, [{ tutorId: data.tutorId }]);
     return { occupied: grids.get(data.tutorId) ?? occupied };
   });
 

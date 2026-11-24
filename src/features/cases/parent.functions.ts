@@ -8,7 +8,6 @@
  * selected here; tutor real name is never exposed (tutor_code only).
  */
 
-import { format } from "date-fns";
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
@@ -20,8 +19,8 @@ import {
 } from "@/features/trust/trust";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import type { FeeStatus, SorStatus } from "@/features/cases/sor-db";
-import { cancelActionFor, canMarkDone } from "@/features/cases/sor";
-import { isLearnerParty } from "@/features/cases/case-schedule";
+import { cancelActionFor, canMarkDone, hktDateKey } from "@/features/cases/sor";
+import { hktClock, isLearnerParty } from "@/features/cases/case-schedule";
 import { shortCaseOverrunError } from "@/features/cases/short-case";
 import { generateSlots, lessonConflicts } from "@/features/cases/slot";
 import { cohortSessionConflicts } from "@/features/cases/cohort-conflicts";
@@ -409,7 +408,10 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         station: s.station,
       }));
     }
-    const slotDays = [...new Set(slots.map((s) => s.startsAt.slice(0, 10)))];
+    // Group slot days by the HKT calendar day. Slicing the ISO string grouped
+    // by UTC, so a lesson at 01:00 HKT filed under the previous day's header
+    // while the button beneath it showed the HKT time (#756 timezone pass).
+    const slotDays = [...new Set(slots.map((s) => hktDateKey(new Date(s.startsAt))))];
 
     // #794 §2.1 lazy publish on read: a LEGACY held row (pending_fee_settlement
     // / pending_lesson_threshold) flips as soon as the case has one eligible
@@ -672,7 +674,7 @@ export const cancelLessonParent = createServerFn({ method: "POST" })
         starts_at: lesson.starts_at,
         heading: "Lesson cancelled",
         body: "The parent cancelled this lesson.",
-        lessonLine: format(new Date(lesson.starts_at), "EEE d MMM, HH:mm"),
+        lessonLine: `${hktDateKey(new Date(lesson.starts_at))} ${hktClock(lesson.starts_at)} HKT`,
         caseCode: lesson.tutoring_cases?.case_code ?? undefined,
       },
       lesson.id,
@@ -811,7 +813,7 @@ export const requestSlot = createServerFn({ method: "POST" })
           starts_at: data.startsAt,
           heading: "New lesson scheduled",
           body: "The parent requested a lesson slot; please confirm or cancel it.",
-          lessonLine: format(new Date(data.startsAt), "EEE d MMM, HH:mm"),
+          lessonLine: `${hktDateKey(new Date(data.startsAt))} ${hktClock(data.startsAt)} HKT`,
           caseCode: c.case_code ?? undefined,
         },
         String(lessonRow.id),

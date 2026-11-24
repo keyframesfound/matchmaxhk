@@ -196,7 +196,28 @@ export const getByosInvitePreview = createServerFn({ method: "POST" })
     };
   });
 
-/** Live records tying the claimant (account or phone) to this tutor. */
+/** Newest of a set of ISO stamps (unparseable values never win). */
+function latestStamp(stamps: string[]): string | null {
+  let newest: string | null = null;
+  let newestAt = Number.NEGATIVE_INFINITY;
+  for (const stamp of stamps) {
+    const at = Date.parse(stamp);
+    if (!Number.isFinite(at)) continue;
+    if (at > newestAt) {
+      newestAt = at;
+      newest = stamp;
+    }
+  }
+  return newest;
+}
+
+/**
+ * Live records tying the claimant (account or phone) to this tutor.
+ *
+ * #737: each qualifying row also contributes its timestamp so the refusal can
+ * be windowed to the last 180 days instead of blocking forever. A qualifying
+ * row with no usable stamp still counts (undated history is treated as recent).
+ */
 async function priorContactWith(
   db: Db,
   tutorId: string,
@@ -204,45 +225,76 @@ async function priorContactWith(
   claimantPhone: string | null,
 ): Promise<PriorContact> {
   const [ownCases, trials] = await Promise.all([
-    selectRows<{ id: string; matched_tutor_id: string | null }>(
+    selectRows<{ id: string; matched_tutor_id: string | null; matched_at: string | null }>(
       db,
       "tutoring_cases",
-      "id, matched_tutor_id",
+      "id, matched_tutor_id, matched_at",
       [{ col: "parent_id", op: "eq", value: claimantId }],
     ),
-    selectRows<{ id: string }>(db, "case_trial_intros", "id", [
-      { col: "tutor_id", op: "eq", value: tutorId },
-      { col: "parent_id", op: "eq", value: claimantId },
-    ]),
+    selectRows<{ id: string; created_at: string | null }>(
+      db,
+      "case_trial_intros",
+      "id, created_at",
+      [
+        { col: "tutor_id", op: "eq", value: tutorId },
+        { col: "parent_id", op: "eq", value: claimantId },
+      ],
+    ),
   ]);
 
-  let matchedCase = ownCases.some((c) => c.matched_tutor_id === tutorId);
+  const stamps: string[] = [];
+  let undated = false;
+  const noteStamp = (at: string | null | undefined) => {
+    if (at) stamps.push(at);
+    else undated = true;
+  };
+
+  const ownMatched = ownCases.filter((c) => c.matched_tutor_id === tutorId);
+  ownMatched.forEach((c) => noteStamp(c.matched_at));
+  let matchedCase = ownMatched.length > 0;
   if (!matchedCase && claimantPhone) {
     // A request filed under another account with the same phone still counts.
     const phone = normalizePhone(claimantPhone);
     if (phone.length >= 8) {
-      const tutorCases = await selectRows<{ contact_phone: string | null }>(
-        db,
-        "tutoring_cases",
-        "contact_phone",
-        [{ col: "matched_tutor_id", op: "eq", value: tutorId }],
-      );
-      matchedCase = tutorCases.some(
+      const tutorCases = await selectRows<{
+        contact_phone: string | null;
+        matched_at: string | null;
+      }>(db, "tutoring_cases", "contact_phone, matched_at", [
+        { col: "matched_tutor_id", op: "eq", value: tutorId },
+      ]);
+      const phoneMatches = tutorCases.filter(
         (c) => c.contact_phone != null && normalizePhone(c.contact_phone) === phone,
       );
+      phoneMatches.forEach((c) => noteStamp(c.matched_at));
+      matchedCase = phoneMatches.length > 0;
     }
   }
 
+  trials.forEach((row) => noteStamp(row.created_at));
+
   let tutorApplied = false;
   if (ownCases.length > 0) {
-    const applications = await selectRows<{ id: string }>(db, "case_applications", "id", [
-      { col: "tutor_id", op: "eq", value: tutorId },
-      { col: "case_id", op: "in", value: ownCases.map((c) => c.id) },
-    ]);
+    const applications = await selectRows<{ id: string; created_at: string | null }>(
+      db,
+      "case_applications",
+      "id, created_at",
+      [
+        { col: "tutor_id", op: "eq", value: tutorId },
+        { col: "case_id", op: "in", value: ownCases.map((c) => c.id) },
+      ],
+    );
+    applications.forEach((row) => noteStamp(row.created_at));
     tutorApplied = applications.length > 0;
   }
 
-  return { matchedCase, trialIntro: trials.length > 0, tutorApplied };
+  const newest = latestStamp(stamps);
+  return {
+    matchedCase,
+    trialIntro: trials.length > 0,
+    tutorApplied,
+    // null = history exists but cannot be dated; undefined = no history at all.
+    lastContactAt: newest ?? (undated ? null : undefined),
+  };
 }
 
 export type ByosClaimResult =

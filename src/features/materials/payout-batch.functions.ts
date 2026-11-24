@@ -54,6 +54,24 @@ export const getWeeklyPayoutPreview = createServerFn({ method: "POST" })
     return buildPayoutPreview(entries, sellerRows, details);
   });
 
+const round2 = (value: number) => Math.round(value * 100) / 100;
+
+/** A payout row can only be sent when a transfer target is actually known. */
+export function hasPayoutTarget(row: { method: string | null; payeeName: string | null }): boolean {
+  return Boolean(row.method?.trim()) && Boolean(row.payeeName?.trim());
+}
+
+/**
+ * The rows that may enter a batch: due, and with a transfer target. A seller
+ * with no FPS/bank details is held back rather than debited with nowhere to
+ * send the money — the admin screen already reports them as missing details.
+ */
+export function selectBatchPayable<
+  T extends { dueHkd: number; method: string | null; payeeName: string | null },
+>(rows: readonly T[]): T[] {
+  return rows.filter((row) => row.dueHkd > 0 && hasPayoutTarget(row));
+}
+
 /**
  * Runs the Monday FPS batch: one ledger payout entry per seller, a batch row
  * and its items, all inside the run_payout_batch() RPC so a partial write can
@@ -62,6 +80,15 @@ export const getWeeklyPayoutPreview = createServerFn({ method: "POST" })
  * The preview is recomputed here — the client never supplies amounts. A batch
  * containing HK$500 or more of adjustments needs an explicit managerApproval
  * from an admin, matching MANAGER_APPROVAL_HKD.
+ *
+ * Two money-safety rules are load-bearing:
+ *
+ *   * A seller with no payout method/payee is excluded, not paid-and-wiped.
+ *     The rest of the run still goes out so ops are never blocked by one
+ *     missing row; the response reports how many were held back.
+ *   * The RPC re-checks each seller's live ledger balance under an advisory
+ *     lock, so a stale preview or a double POST cannot pay the same balance
+ *     twice.
  */
 export const runPayoutBatch = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -80,8 +107,12 @@ export const runPayoutBatch = createServerFn({ method: "POST" })
     await requireAdmin(db, context.userId);
 
     const preview = await getWeeklyPayoutPreview();
-    const payable = preview.rows.filter((row) => row.dueHkd > 0);
-    if (payable.length === 0) throw new Error("NO_SELLERS_DUE");
+    const dueCount = preview.rows.filter((row) => row.dueHkd > 0).length;
+    const payable = selectBatchPayable(preview.rows);
+    const heldCount = dueCount - payable.length;
+    if (payable.length === 0) {
+      throw new Error(heldCount > 0 ? "MISSING_PAYOUT_DETAILS" : "NO_SELLERS_DUE");
+    }
     if (preview.needsManagerApproval && !data.managerApproval) {
       throw new Error("MANAGER_APPROVAL_REQUIRED");
     }
@@ -108,6 +139,10 @@ export const runPayoutBatch = createServerFn({ method: "POST" })
     return {
       batchId: batchId as unknown as string,
       sellerCount: items.length,
-      totalHkd: preview.dueTotalHkd,
+      // Sum of what was actually sent, not the preview total: rows held back
+      // for missing details must not inflate the reported batch value.
+      totalHkd: round2(items.reduce((sum, item) => sum + item.paidHkd, 0)),
+      /** Due sellers left out of this run because they have no transfer target. */
+      heldCount,
     };
   });

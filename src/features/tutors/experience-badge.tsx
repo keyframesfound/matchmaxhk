@@ -7,8 +7,6 @@
 // page. Zero-state rule: 0 verified lessons → render NOTHING (never
 // "0 lessons · 0 hours"). No shadows (repo rule), border + tint only.
 
-import { format } from "date-fns";
-import { zhHK } from "date-fns/locale";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -51,10 +49,19 @@ function useTutorExperience(tutorId: string | undefined): TutorExperience | null
   return exp;
 }
 
+/**
+ * "Sep 2026" for the public experience range. The zone is pinned to HKT:
+ * a bare local-time format makes the start month flip per viewer for a
+ * lesson that landed on a month boundary.
+ */
 function monthYear(iso: string, lang: string): string {
-  return format(new Date(iso), "LLL yyyy", {
-    locale: lang.toLowerCase().startsWith("zh") ? zhHK : undefined,
-  });
+  const date = new Date(iso);
+  if (Number.isNaN(date.getTime())) return "";
+  return new Intl.DateTimeFormat(lang.toLowerCase().startsWith("zh") ? "zh-HK" : "en-HK", {
+    timeZone: "Asia/Hong_Kong",
+    month: "short",
+    year: "numeric",
+  }).format(date);
 }
 
 /**

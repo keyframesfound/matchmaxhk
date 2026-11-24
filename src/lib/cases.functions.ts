@@ -276,8 +276,9 @@ export type PublicCaseBoardItem = {
    * pays the educator a net rate off-platform and never pays a matching fee.
    */
   b2b: boolean;
-  /** #815 §2.11: the off-platform net rate in HKD (lane A only). */
-  netRateHkd: number | null;
+  // The off-platform net rate is negotiated payroll data (centre-case.functions
+  // .ts: "Never published") and is deliberately absent from this payload;
+  // tutor-facing reads go through getCaseNetRateHkd.
   // Issues #412 / #423 B2B slice: verified centre identity on centre cases
   // (null on parent cases). verified = org status "active" post BR review.
   // #582 3-stage reveal: the full name only leaves the server once the
@@ -308,7 +309,7 @@ export type PublicCaseBoardItem = {
 };
 
 const PUBLIC_CASE_COLUMNS =
-  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, location_estate, schedule_mode, schedule_slots, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, who_for, start_timing, package_type, student_count, rate_unit, is_short_case, scheduled_lesson_count, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, case_type, overflow_lane, net_rate_hkd, compliance_triage, organizations!organisation_id(name, slug, status, org_type, show_public_name)";
+  "id, case_code, title, description, subjects, student_level, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, exam_system, district, location_estate, schedule_mode, schedule_slots, mode, sessions_per_week, session_length_minutes, language_of_instruction, tutor_background, specific_component, target_school, tags, sen_required, sen_categories, preferred_gender, who_for, start_timing, package_type, student_count, rate_unit, is_short_case, scheduled_lesson_count, budget_currency, budget_min, budget_max, budget_min_hkd, budget_max_hkd, board_published_at, created_at, case_type, overflow_lane, compliance_triage, organizations!organisation_id(name, slug, status, org_type, show_public_name)";
 
 // Never contact_name / contact_phone / student_school / student_grade_current.
 // sen_details is also withheld: the board is public and the free-text needs
@@ -368,10 +369,9 @@ function mapPublicCaseRow(
     // Issue #423: tolerant reads, every legacy row predating the migration
     // carries the same defaults the DB columns were added with.
     caseType: (row.case_type as string | null) ?? null,
-    // #815 §2.11: lane A overflow flag + the centre's net rate. Both are
-    // tolerant reads — every legacy row has no lane and no net rate.
+    // #815 §2.11: lane A overflow flag. Tolerant read — every legacy row has
+    // no lane. The net rate is payroll data and never maps onto this payload.
     b2b: row.overflow_lane === "centre_overflow",
-    netRateHkd: typeof row.net_rate_hkd === "number" ? row.net_rate_hkd : null,
     packageType:
       row.package_type === "short_20" || row.package_type === "pro_bono"
         ? row.package_type
@@ -471,8 +471,8 @@ export const getPublicCaseBoard = createServerFn({ method: "GET" }).handler(asyn
     supabaseAdmin.from("app_settings").select("value").eq("key", "whatsapp_number").maybeSingle(),
   ]);
   if (casesResult.error) throw new Error(casesResult.error.message);
-  // #815: `overflow_lane` / `net_rate_hkd` are not in the generated types yet,
-  // so the select result is widened before the mapper reads it tolerantly.
+  // The mapper reads untrusted JSONB columns (schedule_slots,
+  // compliance_triage) defensively, so rows are widened before mapping.
   const rows = (casesResult.data ?? []) as unknown as Array<Record<string, unknown>>;
   const settingsValue = settingsResult.data?.value;
   const items = rows.map((r) => mapPublicCaseRow(r));
@@ -550,6 +550,42 @@ export const getPublicCaseByCode = createServerFn({ method: "GET" })
     return {
       item: { ...item, parentTrust: trust.get(item.id) ?? null },
       whatsappNumber: typeof settingsValue === "string" ? settingsValue.trim() : "",
+    };
+  });
+
+/**
+ * #815 §2.11 lane A: the centre's negotiated net rate is private payroll data
+ * ("Never published", see centre-case.functions.ts) and must never ride along
+ * on a board payload. This is its only reader: signed-in tutors only, resolved
+ * server-side from tutors.user_id = the caller, so an anonymous or non-tutor
+ * viewer gets null instead of another party's rate.
+ */
+export const getCaseNetRateHkd = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth, requireAccountActive])
+  .inputValidator((data: unknown) =>
+    z.object({ caseCode: z.string().trim().min(1).max(40) }).parse(data),
+  )
+  .handler(async ({ data, context }): Promise<{ netRateHkd: number | null }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const tutors = await selectRows<{ id: string }>(asAdminDb(supabaseAdmin), "tutors", "id", [
+      { col: "user_id", op: "eq", value: context.userId },
+    ]);
+    if (!tutors[0]?.id) return { netRateHkd: null };
+
+    const { data: row, error } = await supabaseAdmin
+      .from("tutoring_cases")
+      .select("net_rate_hkd, overflow_lane")
+      .eq("case_code", data.caseCode)
+      .not("board_published_at", "is", null)
+      .not("status", "in", "(matched,closed,rejected,compliance_hold,released)")
+      .maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!row || row.overflow_lane !== "centre_overflow") return { netRateHkd: null };
+    return {
+      netRateHkd:
+        typeof row.net_rate_hkd === "number" && Number.isFinite(row.net_rate_hkd)
+          ? row.net_rate_hkd
+          : null,
     };
   });
 
