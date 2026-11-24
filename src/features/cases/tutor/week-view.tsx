@@ -8,13 +8,21 @@ import i18n from "@/features/i18n/config";
 import { ConsolePanel } from "@/components/ui/console-panel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getMyWeekView } from "@/features/cases/tutor.functions";
-import { DEFAULT_TUTOR_TIMEZONE, formatInTutorZone } from "@/features/cases/tutor-timezone";
+import {
+  formatInTutorZone,
+  isDefaultTutorZone,
+  timezoneLabel,
+} from "@/features/cases/tutor-timezone";
 import { cn } from "@/lib/utils";
 
 /**
  * #204 tutor week view: the next 14 days of booked lessons (status pills) and
- * open derived slots (muted), grouped by HKT calendar day. Read-only, lesson
+ * open derived slots (muted), grouped by calendar day. Read-only, lesson
  * actions live in the cases block.
+ *
+ * #798: the day buckets arrive already grouped in the tutor's own zone, so the
+ * clock, the day header and the zone note all agree for a tutor abroad. The
+ * HKT default renders exactly as before.
  */
 export function TutorWeekView() {
   const { t } = useTranslation();
@@ -25,6 +33,11 @@ export function TutorWeekView() {
 
   return (
     <ConsolePanel title={t("sor.tutor_week_title")}>
+      {data && !isDefaultTutorZone(data.timezone) ? (
+        <p className="px-4 pt-3 text-xs text-muted-foreground">
+          {t("sor.tutor_week_zone", { zone: timezoneLabel(data.timezone) })}
+        </p>
+      ) : null}
       {isLoading ? (
         <div className="space-y-2 p-4">
           {[0, 1, 2].map((i) => (
@@ -40,7 +53,9 @@ export function TutorWeekView() {
             .map((day) => (
               <li key={day.dateKey} className="px-4 py-3">
                 <p className="text-xs font-medium text-muted-foreground">
-                  {format(new Date(`${day.dateKey}T00:00:00Z`), "EEE d MMM", {
+                  {/* A date-only key: parse it as local noon so no device
+                      offset can slide the header onto the previous day. */}
+                  {format(new Date(`${day.dateKey}T12:00:00`), "EEE d MMM", {
                     locale: dateFnsLocale(i18n.language),
                   })}
                 </p>
@@ -51,12 +66,13 @@ export function TutorWeekView() {
                         className="h-4 w-4 shrink-0 text-muted-foreground"
                         aria-hidden="true"
                       />
-                      {/* The day grouping above is computed in HKT, so the
-                          clock must be too: a bare format() renders the
-                          DEVICE zone, which put a 20:00 HKT lesson under
-                          Monday while stamping it 12:00 for a tutor abroad. */}
+                      {/* The day grouping is computed in the tutor's stored
+                          zone, so the clock must be too: a bare format()
+                          renders the DEVICE zone, which put a 20:00 HKT lesson
+                          under Monday while stamping it 12:00 for a tutor
+                          abroad. */}
                       <span className="font-medium text-[color:var(--ink)]">
-                        {formatInTutorZone(l.starts_at, DEFAULT_TUTOR_TIMEZONE, {
+                        {formatInTutorZone(l.starts_at, data.timezone, {
                           hour: "2-digit",
                           minute: "2-digit",
                           hour12: false,
@@ -86,7 +102,13 @@ export function TutorWeekView() {
                       className="flex items-center gap-2 text-sm text-muted-foreground"
                     >
                       <CalendarClock className="h-4 w-4 shrink-0" aria-hidden="true" />
-                      <span>{format(s.startsAt, "HH:mm")}</span>
+                      <span>
+                        {formatInTutorZone(s.startsAt.toISOString(), data.timezone, {
+                          hour: "2-digit",
+                          minute: "2-digit",
+                          hour12: false,
+                        })}
+                      </span>
                       <span className="text-xs">{t("sor.tutor_open_slot")}</span>
                     </li>
                   ))}

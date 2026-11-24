@@ -15,6 +15,8 @@ import {
 } from "@/features/tutors/availability-grid-model";
 import { HourlyAvailabilityEditor } from "@/features/tutors/availability-hourly-editor";
 import { needsFreshnessReview } from "@/features/tutors/availability-freshness";
+import { useMyTutorTimezone } from "@/features/cases/use-my-tutor-timezone";
+import { isDefaultTutorZone, timezoneLabel } from "@/features/cases/tutor-timezone";
 import { supabase } from "@/integrations/supabase/client";
 
 /**
@@ -37,6 +39,8 @@ type TutorHourlyRow = {
 };
 
 export function AvailabilityGridEditor({ className }: { className?: string }) {
+  // #798: hours are typed in HKT and shown in the tutor's zone.
+  const timezone = useMyTutorTimezone();
   const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -153,6 +157,15 @@ export function AvailabilityGridEditor({ className }: { className?: string }) {
               setDirty(true);
             }}
           />
+
+          {/* #798: hours are stored in HKT and rendered in the tutor's zone, so
+              a tutor abroad is told which clock to type on. HKT tutors keep the
+              unchanged card. */}
+          {!isDefaultTutorZone(timezone) ? (
+            <p className="text-xs text-muted-foreground">
+              {t("settings.grid.hourly_zone_note", { zone: timezoneLabel(timezone) })}
+            </p>
+          ) : null}
 
           {gridEmpty ? (
             <p className="text-xs text-amber-700 dark:text-amber-400">

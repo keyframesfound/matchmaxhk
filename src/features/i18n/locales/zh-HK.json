@@ -515,7 +515,8 @@
     "step_contact": "聯絡",
     "step_admissions": "入學申請",
     "step_tutoring": "補習",
-    "step_logistics": "時間地點"
+    "step_logistics": "時間地點",
+    "notes_time_prefill_zone": "偏好時間：{{slot}}（{{city}}時間）"
   },
   "case_status": {
     "title": "配對進度",
@@ -2767,7 +2768,9 @@
     "grid_cell_open": "可約",
     "grid_cell_occupied": "已佔用",
     "availability_empty": "尚未設定時間表，請直接聯絡以安排時間.",
-    "grid_timezone_note": "所有時間為香港時間 (HKT)"
+    "grid_timezone_note": "所有時間為香港時間 (HKT)",
+    "grid_zone_tutor": "時段以導師時區顯示：{{zone}}。",
+    "grid_zone_both": "時段以導師時區顯示：{{tutorZone}}；你嘅時區：{{viewerZone}}。"
   },
   "report": {
     "button_aria": "舉報{{item}}",
@@ -3283,7 +3286,7 @@
       "drop_protection_note": "上完一堂付費課就結束嘅個案，即使用咗 Drop-Protection，仍然會計入你嘅完成率同已核實時數。",
       "promo_saved": "首堂優惠已儲存",
       "timezone_label": "你的時區",
-      "timezone_hint": "你的可用時間表會按此時區解讀。課堂時間一律以絕對時間儲存。",
+      "timezone_hint": "你嘅可補時段以香港時間輸入，並會按此時區喺你嘅檔案顯示。課堂時間一律以絕對時間儲存。",
       "timezone_saved": "時區已儲存。",
       "hide_profile_label": "隱藏公開檔案",
       "hide_profile_hint": "開啟此選項即可暫時喺 MatchMax 目錄中隱藏你嘅檔案。（適合排滿堂或者考試期間休息）。'隱藏' 之後你嘅檔案會即時喺公開目錄中移除。",
@@ -3403,7 +3406,8 @@
       "hourly_description": "拖曳格仔設定每週可約時段，或點擊一格切換。時間表會顯示喺你嘅公開檔案。",
       "review_prompt": "這些可約時段是否仍然有空？",
       "review_dismiss": "知道了",
-      "drag_hint": "拖曳格仔塗繪可約時段，或點擊一格切換"
+      "drag_hint": "拖曳格仔塗繪可約時段，或點擊一格切換",
+      "hourly_zone_note": "請以香港時間填寫時段；家長會以 {{zone}} 睇到你嘅可補時間。"
     },
     "proofs": {
       "title": "成就相片證明",
@@ -3938,7 +3942,11 @@
     "desk_report_saved": "已傳送至 MatchMax 服務台。",
     "desk_report_cta": "私下通知服務台",
     "err_NO_ELIGIBLE_LESSON": "完成第一堂課後才會開放公開評價。",
-    "err_REVIEW_FROZEN": "這則評價已不能再修改。"
+    "err_REVIEW_FROZEN": "這則評價已不能再修改。",
+    "lesson_zone_tutor": "課堂時間以導師時區顯示：{{zone}}。",
+    "lesson_zone_both": "課堂時間以導師時區顯示：{{tutorZone}}；你嘅時區：{{viewerZone}}。",
+    "tutor_week_zone": "你嘅課堂以 {{zone}} 顯示。",
+    "desk_tutor_zone": "導師時區：{{zone}}"
   },
   "safety_attestation": {
     "title": "安全、清白紀錄及合法行為聲明",

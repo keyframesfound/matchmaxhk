@@ -2,7 +2,13 @@ import { DemandSidePanel } from "@/features/cases/demand-side/demand-side-panel"
 import { createFileRoute, Link, notFound, useNavigate } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
-import { DEFAULT_TUTOR_TIMEZONE, formatInTutorZone } from "@/features/cases/tutor-timezone";
+import {
+  dateKeyInZone,
+  formatInTutorZone,
+  isDefaultTutorZone,
+  timezoneLabel,
+} from "@/features/cases/tutor-timezone";
+import { useViewerTimezone } from "@/features/tutors/use-viewer-timezone";
 import { CalendarPlus, Check, FileText, Loader2, Star, X } from "lucide-react";
 import { useState } from "react";
 import { toast } from "sonner";
@@ -73,6 +79,20 @@ function ParentCaseDetailPage() {
     queryKey: ["sor", "parent-case", caseId],
     queryFn: () => getParentCaseDetail({ data: { caseId } }),
   });
+
+  // #798: lesson instants read in the matched tutor's zone. The note only
+  // appears for a non-HKT tutor, and names the reader's own zone too when the
+  // browser reports one, so a cross-zone family can compare at a glance.
+  const viewerTimezone = useViewerTimezone();
+  const lessonZoneNote =
+    data && !isDefaultTutorZone(data.tutor_timezone)
+      ? viewerTimezone && viewerTimezone !== data.tutor_timezone
+        ? t("sor.lesson_zone_both", {
+            tutorZone: timezoneLabel(data.tutor_timezone),
+            viewerZone: timezoneLabel(viewerTimezone),
+          })
+        : t("sor.lesson_zone_tutor", { zone: timezoneLabel(data.tutor_timezone) })
+      : null;
 
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["sor", "parent-case", caseId] });
@@ -221,6 +241,11 @@ function ParentCaseDetailPage() {
               <h2 className="text-sm font-semibold text-muted-foreground">
                 {t("sor.parent_lessons_title")}
               </h2>
+              {/* #798: only a non-HKT tutor needs the zone named; the HKT
+                  default reads exactly as it did before. */}
+              {lessonZoneNote ? (
+                <p className="text-xs text-muted-foreground">{lessonZoneNote}</p>
+              ) : null}
               {data.lessons.length === 0 && (
                 <p className="text-sm text-muted-foreground">{t("sor.parent_lessons_empty")}</p>
               )}
@@ -232,8 +257,9 @@ function ParentCaseDetailPage() {
                   <span className="text-sm font-medium text-[color:var(--ink)]">
                     {t("sor.tutor_lesson_n", { n: l.sequence })} ·{" "}
                     {/* Absolute instant: a bare format() would use the DEVICE
-                        zone. HKT until the schedule surfaces move per zone. */}
-                    {formatInTutorZone(l.starts_at, DEFAULT_TUTOR_TIMEZONE, {
+                        zone. #798 reads it in the MATCHED TUTOR's stored zone,
+                        resolved server-side on this case's payload. */}
+                    {formatInTutorZone(l.starts_at, data.tutor_timezone, {
                       weekday: "short",
                       day: "numeric",
                       month: "short",
@@ -293,15 +319,17 @@ function ParentCaseDetailPage() {
                   data.slotDays.map((day) => (
                     <div key={day} className="flex flex-wrap items-center gap-2">
                       <span className="w-24 text-xs font-semibold text-muted-foreground">
-                        {/* Slot day key: HKT, or a negative-offset device shows yesterday. */}
-                        {formatInTutorZone(`${day}T00:00:00Z`, DEFAULT_TUTOR_TIMEZONE, {
+                        {/* A date-only key: render it as-is (UTC) so no offset can
+                            slide the heading onto another day. #798 groups the
+                            slots by the tutor's zone, same as the times below. */}
+                        {formatInTutorZone(`${day}T00:00:00Z`, "UTC", {
                           weekday: "short",
                           day: "numeric",
                           month: "short",
                         })}
                       </span>
                       {data.slots
-                        .filter((s) => s.startsAt.startsWith(day))
+                        .filter((s) => dateKeyInZone(s.startsAt, data.tutor_timezone) === day)
                         .map((s) => (
                           <Button
                             key={s.startsAt}
@@ -311,7 +339,7 @@ function ParentCaseDetailPage() {
                             onClick={() => request.mutate(s.startsAt)}
                           >
                             <CalendarPlus className="h-4 w-4" />
-                            {formatInTutorZone(s.startsAt, DEFAULT_TUTOR_TIMEZONE, {
+                            {formatInTutorZone(s.startsAt, data.tutor_timezone, {
                               hour: "2-digit",
                               minute: "2-digit",
                               hour12: false,
@@ -443,7 +471,8 @@ function SessionLogsSection({
           <li key={l.id} className="rounded-lg border border-[color:var(--ink)]/10 p-3">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium text-[color:var(--ink)]">
-                {formatInTutorZone(`${l.log_date}T00:00:00Z`, DEFAULT_TUTOR_TIMEZONE, {
+                {/* Session-log dates are stored date keys: render literally. */}
+                {formatInTutorZone(`${l.log_date}T00:00:00Z`, "UTC", {
                   weekday: "short",
                   day: "numeric",
                   month: "short",

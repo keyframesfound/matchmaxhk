@@ -1,7 +1,7 @@
 import { HouseholdSummary } from "@/features/cases/demand-side/household-summary";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { type QueryClient, useQuery } from "@tanstack/react-query";
-import { DEFAULT_TUTOR_TIMEZONE, formatInTutorZone } from "@/features/cases/tutor-timezone";
+import { formatInTutorZone } from "@/features/cases/tutor-timezone";
 import { CalendarClock, Wallet } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -125,7 +125,7 @@ function ParentCasesPage() {
                     <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
                       <CalendarClock className="h-3 w-3" aria-hidden="true" />
                       {/* Absolute instant: pin the zone, a bare format() reads the device zone. */}
-                      {formatInTutorZone(c.next_lesson_at, DEFAULT_TUTOR_TIMEZONE, {
+                      {formatInTutorZone(c.next_lesson_at, c.tutor_timezone, {
                         weekday: "short",
                         day: "numeric",
                         month: "short",

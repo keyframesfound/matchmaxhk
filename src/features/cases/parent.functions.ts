@@ -23,6 +23,7 @@ import { cancelActionFor, canMarkDone, hktDateKey } from "@/features/cases/sor";
 import { hktClock, isLearnerParty } from "@/features/cases/case-schedule";
 import { shortCaseOverrunError } from "@/features/cases/short-case";
 import { generateSlots, lessonConflicts } from "@/features/cases/slot";
+import { dateKeyInZone, resolveTutorTimezone } from "@/features/cases/tutor-timezone";
 import { cohortSessionConflicts } from "@/features/cases/cohort-conflicts";
 import { loadFullCohortSessions } from "@/features/cases/cohort-busy.server";
 import { checkSlotRequest } from "@/features/cases/parent/review-flow";
@@ -112,6 +113,8 @@ export type ParentCaseListItem = {
   fee_status: FeeStatus | null;
   fee_amount_hkd: number | null;
   next_lesson_at: string | null;
+  /** #798: the matched tutor's zone, so the next-lesson clock reads in it. */
+  tutor_timezone: string;
 };
 
 export const getMyParentCases = createServerFn({ method: "POST" })
@@ -128,13 +131,13 @@ export const getMyParentCases = createServerFn({ method: "POST" })
       status: string;
       sor_status: SorStatus | null;
       matched_tutor_id: string | null;
-      tutors: { tutor_code: string | null } | null;
+      tutors: { tutor_code: string | null; timezone?: string | null } | null;
       created_at: string;
       student_id: string | null;
     }>(
       db,
       "tutoring_cases",
-      "id, case_code, title, subjects, exam_system, status, sor_status, matched_tutor_id, tutors(tutor_code), created_at, student_id",
+      "id, case_code, title, subjects, exam_system, status, sor_status, matched_tutor_id, tutors(tutor_code, timezone), created_at, student_id",
       [{ col: "parent_id", op: "eq", value: context.userId }],
       { col: "created_at", asc: false, limit: 100 },
     );
@@ -191,6 +194,7 @@ export const getMyParentCases = createServerFn({ method: "POST" })
       fee_status: openFee.get(c.id)?.status ?? null,
       fee_amount_hkd: openFee.get(c.id)?.amount ?? null,
       next_lesson_at: nextLesson.get(c.id) ?? null,
+      tutor_timezone: resolveTutorTimezone(c.tutors?.timezone ?? null),
     }));
   });
 
@@ -210,6 +214,11 @@ export type ParentCaseDetail = {
   tutor_code: string | null;
   status: string;
   matched_tutor_id: string | null;
+  /**
+   * #798: the matched tutor's stored zone, already resolved for display.
+   * Lesson instants are absolute; this is how they are read on this page.
+   */
+  tutor_timezone: string;
   /** #529 bait-and-switch card: who was matched, on the case's locked terms. */
   matched_tutor: MatchedTutorCardView | null;
   /** #650 share-sheet context: case mode + district-level area only. */
@@ -295,7 +304,7 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
       }>(
         db,
         "tutoring_cases",
-        "case_code, title, subjects, exam_system, student_level, status, matched_tutor_id, ended_by_parent_at, ended_by_tutor_at, hourly_rate_hkd, student_count, district, mode, referred_by_organization_id, tutors(tutor_code, display_name, photo_url, undergrad_university)",
+        "case_code, title, subjects, exam_system, student_level, status, matched_tutor_id, ended_by_parent_at, ended_by_tutor_at, hourly_rate_hkd, student_count, district, mode, referred_by_organization_id, tutors(tutor_code, display_name, photo_url, undergrad_university, timezone)",
         [{ col: "id", op: "eq", value: c.id }],
       ),
       selectRows<{
@@ -348,6 +357,9 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
       ]),
     ]);
     const head = full[0];
+    // #798: the matched tutor's stored zone, used for the slot picker's day
+    // groups and returned for the lesson timeline / wire labels.
+    const tutorTimezone = resolveTutorTimezone(head?.tutors?.timezone ?? null);
     // #815 §2.11 lane B: the referring Partner Centre's public name only.
     const referredOrgName = head?.referred_by_organization_id
       ? ((
@@ -408,10 +420,12 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         station: s.station,
       }));
     }
-    // Group slot days by the HKT calendar day. Slicing the ISO string grouped
-    // by UTC, so a lesson at 01:00 HKT filed under the previous day's header
-    // while the button beneath it showed the HKT time (#756 timezone pass).
-    const slotDays = [...new Set(slots.map((s) => hktDateKey(new Date(s.startsAt))))];
+    // Group slot days by one calendar day. Slicing the ISO string grouped by
+    // UTC, so a lesson at 01:00 HKT filed under the previous day's header while
+    // the button beneath it showed the HKT time (#756 timezone pass). #798: the
+    // group is the same zone the buttons render in, so a cross-zone slot never
+    // splits its heading from its time.
+    const slotDays = [...new Set(slots.map((s) => dateKeyInZone(s.startsAt, tutorTimezone)))];
 
     // #794 §2.1 lazy publish on read: a LEGACY held row (pending_fee_settlement
     // / pending_lesson_threshold) flips as soon as the case has one eligible
@@ -501,6 +515,7 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
       exam_system: head?.exam_system ?? null,
       student_level: head?.student_level ?? null,
       tutor_code: head?.tutors?.tutor_code ?? null,
+      tutor_timezone: tutorTimezone,
       status: head?.status ?? c.status,
       matched_tutor_id: head?.matched_tutor_id ?? null,
       matched_tutor: head?.matched_tutor_id

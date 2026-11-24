@@ -723,6 +723,7 @@ export function PublicProfileView({ tutor, isOwn }: { tutor: Tutor; isOwn: boole
                 occupiedHours={occupied ?? emptyHourlyOpenHours()}
                 tutorCode={tutor.tutor_code}
                 allowPrefill={requestActionable}
+                timezone={tutor.timezone}
               />
             </ProfileSection>
 

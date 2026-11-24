@@ -1,7 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { format } from "date-fns";
 import { dateFnsLocale } from "@/lib/relative-time";
-import { DEFAULT_TUTOR_TIMEZONE, formatInTutorZone } from "@/features/cases/tutor-timezone";
+import {
+  formatInTutorZone,
+  isDefaultTutorZone,
+  timezoneLabel,
+} from "@/features/cases/tutor-timezone";
+import { useMyTutorTimezone } from "@/features/cases/use-my-tutor-timezone";
 import { CaseContactLine } from "@/features/cases/case-contact-line";
 import { Bell, CalendarClock, Check, Loader2, Sparkles, Star, X } from "lucide-react";
 import { useState } from "react";
@@ -131,11 +136,14 @@ function LessonRow({
   caseId,
   lesson,
   managed,
+  timezone,
   t,
 }: {
   caseId: string;
   lesson: TutorCaseItem["lessons"][number];
   managed: boolean;
+  /** #798: the tutor's stored zone; lesson instants read in it. */
+  timezone: string;
   t: ReturnType<typeof useTranslation>["t"];
 }) {
   const queryClient = useQueryClient();
@@ -183,11 +191,11 @@ function LessonRow({
   const actions = lessonActionsFor(lesson, new Date(), canMarkDone);
   const busy = confirm.isPending || decline.isPending || cancel.isPending;
   // A lesson instant is absolute; a bare format() would render the DEVICE
-  // zone, so a tutor abroad saw the wrong clock on their own lessons. Same
-  // choice as the week view: HKT until the schedule surfaces move per zone.
+  // zone, so a tutor abroad saw the wrong clock on their own lessons. #798:
+  // read in the tutor's own stored zone, same as the week view.
   const startLabel = formatInTutorZone(
     lesson.starts_at,
-    DEFAULT_TUTOR_TIMEZONE,
+    timezone,
     { weekday: "short", day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" },
     i18n.language,
   );
@@ -507,6 +515,8 @@ function TutorPlusBanner({ t }: { t: ReturnType<typeof useTranslation>["t"] }) {
 export function TutorCasesSection() {
   const { t } = useTranslation();
   const queryClient = useQueryClient();
+  // #798: one read of the tutor's own zone, shared by every lesson row.
+  const timezone = useMyTutorTimezone();
   const invalidateTutorCases = () =>
     queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
   const { data, isLoading } = useQuery({
@@ -522,6 +532,13 @@ export function TutorCasesSection() {
   return (
     <div className="space-y-4">
       <ConsolePanel title={t("sor.tutor_cases_title")}>
+        {/* #798: name the zone only when it is not the HKT default, so the
+            existing roster reads exactly as before. */}
+        {!isDefaultTutorZone(timezone) ? (
+          <p className="px-4 pt-3 text-xs text-muted-foreground">
+            {t("sor.lesson_zone_tutor", { zone: timezoneLabel(timezone) })}
+          </p>
+        ) : null}
         {isLoading ? (
           <p className="p-4 text-sm text-muted-foreground">{t("sor.loading")}</p>
         ) : (data?.length ?? 0) === 0 ? (
@@ -590,7 +607,14 @@ export function TutorCasesSection() {
                 {c.lessons.length > 0 && (
                   <ul className="mt-3 space-y-2">
                     {c.lessons.map((l) => (
-                      <LessonRow key={l.id} caseId={c.id} lesson={l} managed={c.managed} t={t} />
+                      <LessonRow
+                        key={l.id}
+                        caseId={c.id}
+                        lesson={l}
+                        managed={c.managed}
+                        timezone={timezone}
+                        t={t}
+                      />
                     ))}
                   </ul>
                 )}

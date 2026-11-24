@@ -106,6 +106,7 @@ import {
 } from "@/features/tutors/verticals-form";
 import { TrophyCabinet } from "@/features/tutors/trophy-cabinet";
 import { AvailabilityHourlyGrid } from "@/features/tutors/availability-hourly-grid";
+import { useViewerTimezone } from "@/features/tutors/use-viewer-timezone";
 import { TutorReviews } from "@/features/tutors/tutor-reviews";
 import { fetchMaterialsForTutor } from "@/features/materials/queries";
 import { TutorMaterialsSection } from "@/features/materials/tutor-materials-section";
@@ -578,6 +579,8 @@ function TutorDetail() {
   const { t: translate, i18n } = useTranslation();
   const { currency: displayCurrency, rates: fxRates } = useDisplayCurrency();
   const { user } = useAuth();
+  // #798: name the reader's own zone beside the tutor's on the grid.
+  const viewerTimezone = useViewerTimezone();
 
   const { data: whatsappNumber } = useQuery({
     queryKey: ["settings", "whatsapp_number"],
@@ -1460,13 +1463,17 @@ function TutorDetail() {
 
               {/* Issue #768: the hourly Open/Occupied calendar replaces the
                   3-hour grid and its hide-when-empty behaviour — the section
-                  stays visible with the empty state when no Open hours exist. */}
+                  stays visible with the empty state when no Open hours exist.
+                  #798: rendered in the tutor's stored zone, with the reader's
+                  own zone named alongside it. */}
               <ProfileSection icon={Clock} title={translate("profile.section_availability")}>
                 <AvailabilityHourlyGrid
                   openHours={openHours}
                   occupiedHours={occupied}
                   tutorCode={t.tutor_code}
                   allowPrefill={requestActionable}
+                  timezone={t.timezone}
+                  viewerTimezone={viewerTimezone}
                 />
               </ProfileSection>
 

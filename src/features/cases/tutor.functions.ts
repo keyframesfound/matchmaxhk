@@ -12,6 +12,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
+import { resolveTutorTimezone } from "@/features/cases/tutor-timezone";
 import type { CaseLessonRow, FeeStatus, SorStatus } from "@/features/cases/sor-db";
 import {
   cancelActionFor,
@@ -75,13 +76,25 @@ async function selectRows<T extends Row>(
   return (data ?? []) as T[];
 }
 
+/**
+ * Resolve the signed-in tutor's card (throws when the account has no card).
+ * #798: the stored zone rides along so the week view never needs a second
+ * round trip to learn it.
+ */
+async function myTutorCard(db: Db, userId: string): Promise<{ id: string; timezone: string }> {
+  const rows = await selectRows<{ id: string; timezone: string | null }>(
+    db,
+    "tutors",
+    "id, timezone",
+    [{ col: "user_id", op: "eq", value: userId }],
+  );
+  if (rows.length === 0) throw new Error("NO_TUTOR_CARD");
+  return { id: rows[0].id, timezone: resolveTutorTimezone(rows[0].timezone ?? null) };
+}
+
 /** Resolve the signed-in tutor's card id (throws when the account has no card). */
 async function myTutorId(db: Db, userId: string): Promise<string> {
-  const rows = await selectRows<{ id: string }>(db, "tutors", "id", [
-    { col: "user_id", op: "eq", value: userId },
-  ]);
-  if (rows.length === 0) throw new Error("NO_TUTOR_CARD");
-  return rows[0].id;
+  return (await myTutorCard(db, userId)).id;
 }
 
 async function insertAudit(
@@ -676,19 +689,29 @@ export const removeMyBlackout = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
-// Week view (#204): derived slots + booked lessons, grouped by HKT day
+// Week view (#204): derived slots + booked lessons, grouped by the tutor's zone day
 // ---------------------------------------------------------------------------
 
 export type WeekViewDay = WeekDayGroup & {
   lessons: (WeekLesson & { status: string })[];
 };
 
+export type WeekViewPayload = {
+  days: WeekViewDay[];
+  generatedAt: string;
+  /** #798: the zone the days and lesson clocks are read in. */
+  timezone: string;
+};
+
 export const getMyWeekView = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .handler(async ({ context }): Promise<{ days: WeekViewDay[]; generatedAt: string }> => {
+  .handler(async ({ context }): Promise<WeekViewPayload> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    const tutorId = await myTutorId(db, context.userId);
+    // #798: the tutor's own week reads in their stored zone — both the lesson
+    // clock and the day buckets move together, so a lesson never shows under
+    // one day while being stamped with another day's hour.
+    const { id: tutorId, timezone } = await myTutorCard(db, context.userId);
     const now = new Date();
     const horizon = 14;
 
@@ -756,8 +779,8 @@ export const getMyWeekView = createServerFn({ method: "POST" })
       mode: l.tutoring_cases?.mode ?? null,
     }));
 
-    const days = groupWeekByDay(mappedLessons, slots, now, horizon) as WeekViewDay[];
-    return { days, generatedAt: now.toISOString() };
+    const days = groupWeekByDay(mappedLessons, slots, now, horizon, timezone) as WeekViewDay[];
+    return { days, generatedAt: now.toISOString(), timezone };
   });
 
 // ---------------------------------------------------------------------------
