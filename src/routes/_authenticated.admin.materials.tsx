@@ -5,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import { optionACopyKey } from "@/features/materials/marketplace-policy";
 import {
   getWeeklyPayoutPreview,
+  listPayoutApprovers,
   runPayoutBatch,
 } from "@/features/materials/payout-batch.functions";
 import { payoutPreviewCsv } from "@/features/materials/payout-batch";
@@ -218,14 +219,22 @@ function AdminMaterials() {
     queryFn: () => getWeeklyPayoutPreview(),
   });
   const [batchNote, setBatchNote] = useState("");
-  const [approveBatch, setApproveBatch] = useState(false);
+  // #784 money-safety: a HK$500+ adjustment batch is signed off by a second
+  // admin, never by the person running it. The picker lists everyone holding
+  // admin/super_admin except the caller; the server re-checks the role.
+  const [approverId, setApproverId] = useState("");
+  const payoutApprovers = useQuery({
+    queryKey: ["admin", "payout-approvers"],
+    queryFn: () => listPayoutApprovers(),
+    enabled: Boolean(user) && payoutPreview.data?.needsManagerApproval === true,
+  });
   const runBatchMutation = useMutation({
     mutationFn: () =>
       runPayoutBatch({
         data: {
           batchDate: new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Hong_Kong" }),
           note: batchNote.trim() || undefined,
-          managerApproval: approveBatch,
+          approverId: approverId || undefined,
         },
       }),
     onSuccess: (result) => {
@@ -236,19 +245,23 @@ function AdminMaterials() {
             : ""),
       );
       setBatchNote("");
-      setApproveBatch(false);
+      setApproverId("");
       void queryClient.invalidateQueries({ queryKey: ["admin", "payout-preview"] });
     },
     onError: (error) => {
       const message = error instanceof Error ? error.message : "Batch failed.";
       toast.error(
-        message === "MANAGER_APPROVAL_REQUIRED"
-          ? "This batch includes HK$500+ of adjustments. Tick the manager approval box first."
-          : message === "NO_SELLERS_DUE"
-            ? "No seller clears the HK$50 minimum."
-            : message === "MISSING_PAYOUT_DETAILS"
-              ? "No payable seller has payout details on file. Add FPS details before running the batch."
-              : message,
+        message === "APPROVER_REQUIRED"
+          ? "This batch includes HK$500+ of adjustments. Choose the admin approving it first."
+          : message === "SELF_APPROVAL_FORBIDDEN"
+            ? "A HK$500+ adjustment batch cannot be approved by the person running it. Ask another admin to approve."
+            : message === "APPROVER_NOT_ADMIN"
+              ? "The chosen approver no longer holds an admin role. Pick another admin."
+              : message === "NO_SELLERS_DUE"
+                ? "No seller clears the HK$50 minimum."
+                : message === "MISSING_PAYOUT_DETAILS"
+                  ? "No payable seller has payout details on file. Add FPS details before running the batch."
+                  : message,
       );
     },
   });
@@ -442,7 +455,7 @@ function AdminMaterials() {
             disabled={
               runBatchMutation.isPending ||
               (payoutPreview.data?.dueCount ?? 0) === 0 ||
-              (payoutPreview.data?.needsManagerApproval === true && !approveBatch)
+              (payoutPreview.data?.needsManagerApproval === true && !approverId)
             }
           >
             {runBatchMutation.isPending ? (
@@ -457,15 +470,43 @@ function AdminMaterials() {
           <div className="mt-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-xs">
             <p className="font-medium text-[color:var(--ink)]">
               This batch includes HK${(payoutPreview.data?.adjustmentHkd ?? 0).toFixed(2)} of
-              adjustments. Ops Manager sign-off is required before it writes.
+              adjustments, above the HK$500 approval threshold. A second admin must approve it
+              before it writes.
             </p>
-            <label className="mt-2 flex items-center gap-2">
-              <Checkbox
-                checked={approveBatch}
-                onCheckedChange={(v) => setApproveBatch(v === true)}
-              />
-              <span>I approve this batch as Ops Manager</span>
-            </label>
+            <div className="mt-2 max-w-xs space-y-1">
+              <Label htmlFor="payout-approver" className="text-xs">
+                Approving admin
+              </Label>
+              <Select
+                value={approverId || undefined}
+                onValueChange={setApproverId}
+                disabled={payoutApprovers.isLoading || (payoutApprovers.data ?? []).length === 0}
+              >
+                <SelectTrigger id="payout-approver" className="h-9 w-full">
+                  <SelectValue
+                    placeholder={
+                      payoutApprovers.isLoading
+                        ? "Loading admins…"
+                        : (payoutApprovers.data ?? []).length === 0
+                          ? "No other admin available"
+                          : "Choose an admin…"
+                    }
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  {(payoutApprovers.data ?? []).map((approver) => (
+                    <SelectItem key={approver.id} value={approver.id}>
+                      {approver.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <p className="text-[11px] text-muted-foreground">
+                {(payoutApprovers.data ?? []).length === 0 && !payoutApprovers.isLoading
+                  ? "Grant another account the admin role before running this batch."
+                  : "The person running the batch cannot be its approver."}
+              </p>
+            </div>
           </div>
         ) : null}
         <div className="mt-3 flex flex-wrap items-center gap-2">
