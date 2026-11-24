@@ -399,7 +399,11 @@ export function SuperDrawer({
             <SectionTitle icon={<Activity className="h-4 w-4" aria-hidden="true" />}>
               {t("super_drawer.pulse_title")}
             </SectionTitle>
-            <p className="mt-1 text-xs text-muted-foreground">{t("super_drawer.pulse_private")}</p>
+            {/* #746/#734: this line used to promise "tutor-only - never shown
+                to parents", but #734 requires the tags on the verified lesson
+                row for student, parent, tutor and admin, and the feed renders
+                them to every case party. Corrected to say who sees it. */}
+            <p className="mt-1 text-xs text-muted-foreground">{t("super_drawer.pulse_audience")}</p>
             <div className="mt-2 space-y-3">
               <div>
                 <p className="text-xs font-medium text-muted-foreground">
