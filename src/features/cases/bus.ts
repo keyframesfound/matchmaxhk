@@ -151,6 +151,23 @@ export type BusChannel = "in_app" | "email";
  */
 export type BusContext = "learning" | "teaching" | "system";
 
+/**
+ * #726 engagement payloads (saves and likes) ride ONE payload-addressed event
+ * type. `action` distinguishes a like from a save (absent = save, the shape the
+ * saved_materials trigger has always emitted); both are anonymous — the payload
+ * carries the recipient, the item label and a link, never the liker/saver's
+ * account id or role.
+ */
+export type EngagementEventPayload = {
+  recipient_account_id: string;
+  context: BusContext;
+  entity_type: "tutor" | "material" | "case";
+  action?: "saved" | "liked";
+  label?: string;
+  link?: string;
+  actor_kind?: "user" | "parent_or_student";
+};
+
 /** Events delivered straight to a payload-named account (role `recipient`). */
 const RECIPIENT_ROLE_EVENTS: readonly string[] = [
   "report.filed",

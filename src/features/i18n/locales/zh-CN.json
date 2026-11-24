@@ -3888,6 +3888,7 @@
     "bell_search_match_notes": "有 {{count}} 份新笔记符合你保存的搜寻「{{label}}」",
     "bell_saved_profile": "有人收藏了你的导师档案（{{label}}），记得更新可上课时间！",
     "bell_saved_note": "有人收藏了「{{label}}」",
+    "bell_liked_note": "有人赞好了「{{label}}」",
     "bell_saved_case": "有导师收藏了你的个案 {{label}}",
     "bell_saved_generic": "有人在 MatchMax 收藏了你的项目",
     "bell_contact_nudge": "第一堂将于 16 小时内开始，但仍未确认。请立即确认。",

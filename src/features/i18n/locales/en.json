@@ -3888,6 +3888,7 @@
     "bell_search_match_notes": "{{count}} new notes match your saved search “{{label}}”",
     "bell_saved_profile": "Someone saved your tutor profile ({{label}}). Keep your availability updated!",
     "bell_saved_note": "Someone saved your note “{{label}}”",
+    "bell_liked_note": "Someone liked your note “{{label}}”",
     "bell_saved_case": "A tutor saved your case {{label}}",
     "bell_saved_generic": "Someone saved your listing on MatchMax",
     "bell_contact_nudge": "Lesson 1 starts within 16 hours and is not confirmed yet. Please confirm it now.",

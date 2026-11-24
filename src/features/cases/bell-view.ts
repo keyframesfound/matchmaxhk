@@ -71,7 +71,10 @@ export function bellLabel(item: BellLabelInput, t: BellTranslate): string {
   switch (item.event_type) {
     // #726: "Someone saved your tutor profile (MM-T003)" — never who.
     case "engagement.saved": {
-      const label = str(p.label);
+      const label = str(p.label) ?? "";
+      // #726 creates ride the same event with action:"liked"; a like is not a
+      // save, so it gets its own copy key (and still never names the liker).
+      if (p.action === "liked") return t("sor.bell_liked_note", { label });
       const key =
         p.entity_type === "material"
           ? "sor.bell_saved_note"
@@ -197,7 +200,7 @@ export function bellLabelKey(item: BellLabelInput): string {
     case "search.match_new":
       return "sor.bell_search_match";
     case "engagement.saved":
-      return "sor.bell_saved_generic";
+      return item.payload?.action === "liked" ? "sor.bell_liked_note" : "sor.bell_saved_generic";
     case "case.already_taken":
       return "sor.bell_case_taken";
     case "case.match_waves_exhausted":
