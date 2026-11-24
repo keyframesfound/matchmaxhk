@@ -25,6 +25,7 @@ import {
   mistakeImageCapMb,
   mistakeImageError,
   nextMistakeStatus,
+  solutionVisible,
   type MistakeErrorReason,
   type MistakeStatus,
 } from "@/features/cases/mistake-book";
@@ -433,7 +434,7 @@ function MistakeCard({
   item,
   role,
   revealMode,
-  revealed,
+  showAnswer,
   onToggleReveal,
   onChanged,
 }: {
@@ -441,13 +442,13 @@ function MistakeCard({
   item: MistakeItem;
   role: MistakeBookState["role"];
   revealMode: boolean;
-  revealed: boolean;
+  /** Resolved by the parent through the tested `solutionVisible` predicate. */
+  showAnswer: boolean;
   onToggleReveal: () => void;
   onChanged: () => void;
 }) {
   const { t } = useTranslation();
   const onError = useMistakeErrorToast();
-  const showSolution = !revealMode || revealed;
   const next = nextMistakeStatus(item.status);
 
   const advance = useMutation({
@@ -507,12 +508,12 @@ function MistakeCard({
       <div className="mt-2 flex flex-wrap items-center gap-2">
         {revealMode ? (
           <Button type="button" size="sm" variant="outline" onClick={onToggleReveal}>
-            {revealed ? (
+            {showAnswer ? (
               <EyeOff className="h-4 w-4" aria-hidden />
             ) : (
               <Eye className="h-4 w-4" aria-hidden />
             )}
-            {revealed ? t("mistakes.hide_solution") : t("mistakes.reveal_solution")}
+            {showAnswer ? t("mistakes.hide_solution") : t("mistakes.reveal_solution")}
           </Button>
         ) : null}
         {item.canEdit && next ? (
@@ -547,7 +548,7 @@ function MistakeCard({
         ) : null}
       </div>
 
-      {showSolution && (item.solutionText || item.solutionImageUrl) ? (
+      {showAnswer && (item.solutionText || item.solutionImageUrl) ? (
         <div className="mt-2 rounded-lg border border-border bg-[color:var(--surface-subtle)] p-2">
           <p className="text-[11px] font-medium text-muted-foreground">
             {t("mistakes.solution_label")}
@@ -568,11 +569,14 @@ function MistakeCard({
           ) : null}
         </div>
       ) : null}
-      {!showSolution && (item.solutionText || item.solutionImageUrl) ? (
+      {!showAnswer && (item.solutionText || item.solutionImageUrl) ? (
         <p className="mt-2 text-xs text-muted-foreground">{t("mistakes.solution_hidden")}</p>
       ) : null}
 
-      {item.tutorTipText ? (
+      {/* #741: the tutor tip carries the method/trap, so Revision Mode has to
+          hide it exactly like the solution. It used to render unconditionally,
+          which handed the answer to the student without a Reveal tap. */}
+      {showAnswer && item.tutorTipText ? (
         <p className="mt-2 rounded-lg border border-border p-2 text-sm text-[color:var(--ink)]">
           <span className="text-[11px] font-medium text-muted-foreground">
             {t("mistakes.tip_label")}
@@ -691,7 +695,7 @@ export function MistakeBookSection({ caseId }: { caseId: string }) {
               item={item}
               role={data.role}
               revealMode={revealMode}
-              revealed={revealed.has(item.id)}
+              showAnswer={solutionVisible(revealMode, revealed, item.id)}
               onToggleReveal={() => toggleReveal(item.id)}
               onChanged={invalidate}
             />
