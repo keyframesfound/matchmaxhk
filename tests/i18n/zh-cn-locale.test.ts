@@ -50,8 +50,8 @@ describe("Simplified Chinese locale (/cn)", () => {
     );
   });
 
-  it("falls back to the Traditional meta copy when no zh-CN copy exists", () => {
-    expect(pickCopy({ en: "A", "zh-HK": "乙" }, "zh-CN")).toBe("乙");
+  // #824 AC-401-3: zh-CN copy is required (no silent Traditional fallback).
+  it("serves the zh-CN meta copy on /cn", () => {
     expect(pickCopy({ en: "A", "zh-HK": "乙", "zh-CN": "乙简" }, "zh-CN")).toBe("乙简");
   });
 });
