@@ -2,7 +2,13 @@ import { createFileRoute } from "@tanstack/react-router";
 
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { SiteFooter } from "@/components/layout/SiteFooter";
-import { canonicalUrl, currentSeoLocale, localizedMeta, pickCopy } from "@/features/i18n/seo";
+import {
+  canonicalUrl,
+  currentSeoLocale,
+  localeLinks,
+  localizedMeta,
+  pickCopy,
+} from "@/features/i18n/seo";
 import { GroupClassesBoard } from "@/features/cases/group-classes-board";
 
 export const Route = createFileRoute("/group-classes")({
@@ -40,7 +46,7 @@ export const Route = createFileRoute("/group-classes")({
         },
         { property: "og:url", content: canonicalUrl("/group-classes") },
       ],
-      links: [{ rel: "canonical", href: canonicalUrl("/group-classes") }],
+      links: localeLinks("/group-classes"),
     };
   },
   component: GroupClassesPage,

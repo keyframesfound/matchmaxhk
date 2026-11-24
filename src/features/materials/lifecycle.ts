@@ -240,21 +240,27 @@ export function classifyOwnerEdit(delta: {
 }
 
 /**
- * P9: which statuses keep buyer access (Bought list shows Download).
+ * P9: the canonical "this order grants access" status set — the SINGLE source
+ * of truth. Anything that must decide "did the buyer already get this note?"
+ * (order page download, Bought list, #392 folder proration credit) derives
+ * from this list; never hardcode a second narrower one.
  * #429: the escrow hold does NOT lock the buyer's file — the SELLER's payout
  * is what MatchMax holds — so held and released orders keep downloading.
+ * #784 §2.1: Stripe Option A states. Access is immediate after payment and
+ * after release; none while the buyer's own dispute is open (#543).
  */
+export const ORDER_GRANTED_STATUSES = [
+  "delivered",
+  "held",
+  "released",
+  "paid_held",
+  "delivered_held",
+  "completed_released",
+] as const;
+
+/** P9: which statuses keep buyer access (Bought list shows Download). */
 export function orderGrantsAccess(status: string): boolean {
-  return (
-    status === "delivered" ||
-    status === "held" ||
-    status === "released" ||
-    // #784 §2.1: Stripe Option A states. Access is immediate after payment
-    // and after release; none while the buyer's own dispute is open (#543).
-    status === "paid_held" ||
-    status === "delivered_held" ||
-    status === "completed_released"
-  );
+  return (ORDER_GRANTED_STATUSES as readonly string[]).includes(status);
 }
 
 /**

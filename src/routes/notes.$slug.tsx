@@ -33,7 +33,13 @@ import { GigDetailPage } from "@/features/gigs/gig-detail";
 import { FolderDetailPage } from "@/features/folders/folder-detail";
 import { CourseDetailPage } from "@/features/courses/course-detail";
 import { ReportMenuButton } from "@/features/reports/report-button";
-import { canonicalUrl } from "@/features/i18n/seo";
+import {
+  canonicalUrl,
+  currentSeoLocale,
+  localeLinks,
+  localizedMeta,
+  type LocaleCopy,
+} from "@/features/i18n/seo";
 import { NOTES_OPTION_A_LIVE } from "@/features/materials/marketplace-policy";
 import { getNoteStoreContext } from "@/features/materials/store-context.functions";
 import { NoteGallery, NoteIncludedAndSyllabus } from "@/features/materials/note-rich-listing";
@@ -64,22 +70,33 @@ export const Route = createFileRoute("/notes/$slug")({
     // not notes, give each family its own document title.
     const materialType = (loaderData as { note?: { materialType?: string } | null } | undefined)
       ?.note?.materialType;
-    const title =
+    // The listing title and description are localized per family so /en, /zh
+    // and /cn stop sharing one English title and competing as duplicates.
+    const kindLabel: LocaleCopy =
       materialType === "gig"
-        ? "Service | MatchMax"
+        ? { en: "Service", "zh-HK": "服務", "zh-CN": "服务" }
         : materialType === "topic_folder"
-          ? "Topic Folder | MatchMax"
+          ? { en: "Topic Folder", "zh-HK": "主題資料夾", "zh-CN": "主题文件夹" }
           : materialType === "video_course" || materialType === "general_course"
-            ? "Course | MatchMax"
-            : "Notes | MatchMax";
+            ? { en: "Course", "zh-HK": "課程", "zh-CN": "课程" }
+            : { en: "Notes", "zh-HK": "學習筆記", "zh-CN": "学习笔记" };
+    const title: LocaleCopy = {
+      en: `${kindLabel.en} | MatchMax`,
+      "zh-HK": `${kindLabel["zh-HK"]}｜MatchMax`,
+      "zh-CN": `${kindLabel["zh-CN"]}｜MatchMax`,
+    };
+    const description: LocaleCopy = {
+      en: "Preview and buy study notes on MatchMax.",
+      "zh-HK": "喺 MatchMax 睇預覽、買學習筆記，由香港導師上載。",
+      "zh-CN": "在 MatchMax 查看预览、购买学习笔记，由香港导师上传。",
+    };
     return {
       meta: [
-        { title },
+        ...localizedMeta(currentSeoLocale(), { title, description }),
         { property: "og:type", content: "product" },
         { property: "og:url", content: canonicalUrl(`/notes/${params.slug}`) },
-        { name: "description", content: "Preview and buy study notes on MatchMax." },
       ],
-      links: [{ rel: "canonical", href: canonicalUrl(`/notes/${params.slug}`) }],
+      links: localeLinks(`/notes/${params.slug}`),
     };
   },
   loader: async ({

@@ -97,7 +97,7 @@ function SavedPostsPage() {
           <div className="flex items-end justify-between gap-4">
             <div>
               <p className="text-sm font-bold text-[color:var(--muted-foreground)]">
-                Your collection
+                {t("saved.eyebrow")}
               </p>
               <h1 className="mt-2 text-4xl font-bold tracking-tight text-[color:var(--ink)] sm:text-5xl">
                 {t("saved.title")}
@@ -107,7 +107,7 @@ function SavedPostsPage() {
               </p>
             </div>
             <Button variant="outline" onClick={() => void navigate({ to: "/tutors" })}>
-              Find tutors
+              {t("saved.find_tutors")}
             </Button>
           </div>
 
@@ -144,14 +144,14 @@ function SavedPostsPage() {
             <>
               <div className="mt-8 p-0 sm:p-2">
                 {savedTutorsQuery.isLoading ? (
-                  <div className="text-sm text-muted-foreground">Loading saved tutors...</div>
+                  <div className="text-sm text-muted-foreground">{t("saved.loading_tutors")}</div>
                 ) : savedTutorsQuery.isError ? (
                   <div className="p-12 text-center">
                     <p className="text-lg font-bold text-[color:var(--ink)]">
-                      We couldn't load your saved tutors
+                      {t("saved.tutors_error_title")}
                     </p>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Please refresh the page and try again.
+                      {t("saved.tutors_error_body")}
                     </p>
                   </div>
                 ) : savedTutors.length === 0 ? (
@@ -161,10 +161,10 @@ function SavedPostsPage() {
                       aria-hidden="true"
                     />
                     <p className="mt-4 text-lg font-bold text-[color:var(--ink)]">
-                      You haven't saved any tutors yet
+                      {t("saved.tutors_empty_title")}
                     </p>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Browse the tutor directory and bookmark the profiles you want to revisit.
+                      {t("saved.tutors_empty_body")}
                     </p>
                   </div>
                 ) : (
@@ -211,11 +211,11 @@ function SavedPostsPage() {
 
                 <div className="mt-14">
                   <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
-                    Saved requests
+                    {t("saved.requests_title")}
                   </h2>
                   {savedCaseIdsQuery.isLoading || caseBoardQuery.isLoading ? (
                     <div className="mt-6 text-sm text-muted-foreground">
-                      Loading saved requests...
+                      {t("saved.requests_loading")}
                     </div>
                   ) : savedCases.length === 0 ? (
                     <div className="mt-6 p-10 text-center">
@@ -224,13 +224,13 @@ function SavedPostsPage() {
                         aria-hidden="true"
                       />
                       <p className="mt-4 text-base font-bold text-[color:var(--ink)]">
-                        You haven't saved any requests yet
+                        {t("saved.requests_empty_title")}
                       </p>
                       <p className="mt-2 text-sm text-muted-foreground">
-                        Bookmark tutoring requests from the board to revisit them later.
+                        {t("saved.requests_empty_body")}
                       </p>
                       <Button variant="outline" className="mt-5" asChild>
-                        <Link to="/tutor-requests">Browse requests</Link>
+                        <Link to="/tutor-requests">{t("saved.browse_requests")}</Link>
                       </Button>
                     </div>
                   ) : (
@@ -282,7 +282,7 @@ function SavedPostsPage() {
                               <CaseCompareToggle caseId={item.id} />
                               <CaseSaveButton caseId={item.id} compact />
                               <span className="text-sm font-semibold text-[color:var(--ink)]">
-                                View details
+                                {t("saved.view_details")}
                               </span>
                             </div>
                           </Link>
@@ -295,11 +295,11 @@ function SavedPostsPage() {
                 {CENTRE_MARKET_ENABLED && (
                   <div className="mt-14">
                     <h2 className="text-xl font-bold tracking-tight text-[color:var(--ink)]">
-                      Saved courses
+                      {t("saved.courses_title")}
                     </h2>
                     {savedCoursesQuery.isLoading ? (
                       <div className="mt-6 text-sm text-muted-foreground">
-                        Loading saved courses...
+                        {t("saved.courses_loading")}
                       </div>
                     ) : savedCourses.length === 0 ? (
                       <div className="mt-6 p-10 text-center">
@@ -308,14 +308,16 @@ function SavedPostsPage() {
                           aria-hidden="true"
                         />
                         <p className="mt-4 text-base font-bold text-[color:var(--ink)]">
-                          You haven't saved any courses yet
+                          {t("saved.courses_empty_title")}
                         </p>
                         <p className="mt-2 text-sm text-muted-foreground">
-                          Bookmark courses from the directory to build your shortlist.
+                          {t("saved.courses_empty_body")}
                         </p>
-                        <Button variant="outline" className="mt-5" asChild>
-                          <Link to="/courses">Browse courses</Link>
-                        </Button>
+                        {CENTRE_MARKET_ENABLED && (
+                          <Button variant="outline" className="mt-5" asChild>
+                            <Link to="/courses">{t("saved.browse_courses")}</Link>
+                          </Button>
+                        )}
                       </div>
                     ) : (
                       <div className="mt-6 space-y-3">

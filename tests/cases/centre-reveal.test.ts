@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { CAP57_CONFIRM_REQUIRED, assertCentreCap57 } from "@/features/cases/centre-reveal";
+import { CAP57_CONFIRM_REQUIRED, assertCentreCap57 } from "../../src/features/cases/centre-reveal";
 
 describe("#815 §2.9 Stage 2 Cap. 57 gate (AC-RV-2)", () => {
   it("blocks a Centre case application without the confirm", () => {

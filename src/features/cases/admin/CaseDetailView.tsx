@@ -91,6 +91,7 @@ import { UsefulnessPulsePanel } from "@/features/cases/admin/UsefulnessPulsePane
 import {
   CASE_STATUSES,
   DESK_LANGUAGE_LABEL,
+  FEE_WAIVED_PILL_CLASS,
   GENDER_LABEL,
   MODE_LABEL,
   PRIORITY_PILL_CLASS,
@@ -100,6 +101,7 @@ import {
   STUDENT_GENDER_LABEL,
   WHO_FOR_LABEL,
   caseBudgetHkdBounds,
+  caseFeeWaived,
   formatBudget,
   whatsappUrl,
   type CaseNoteRow,
@@ -477,6 +479,19 @@ export function CaseDetailView({
             >
               {STATUS_LABEL[caseRow.status]}
             </span>
+            {caseFeeWaived(caseRow) ? (
+              <span
+                className={cn(
+                  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold",
+                  FEE_WAIVED_PILL_CLASS,
+                )}
+                title={t("caseDesk.fee_waived_detail", {
+                  defaultValue: "Admin fee waived for a bring-your-own student",
+                })}
+              >
+                {t("caseDesk.fee_waived_badge", { defaultValue: "Fee waived" })}
+              </span>
+            ) : null}
           </div>
           <p className="mt-1.5 text-xs text-muted-foreground">
             Received {formatDistanceToNow(new Date(caseRow.created_at), { addSuffix: true })} via{" "}

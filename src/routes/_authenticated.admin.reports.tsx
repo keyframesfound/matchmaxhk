@@ -310,6 +310,7 @@ function EmergencySuspendButton({ tutorId, reportId }: { tutorId: string; report
     mutationFn: (note: string) => emergencySuspendAccount({ data: { tutorId, reportId, note } }),
     onSuccess: (res) => {
       toast.success(`Account frozen. ${res.hiddenListings} listing(s) hidden.`);
+      void queryClient.invalidateQueries({ queryKey: ["admin", "reports"] });
       void queryClient.invalidateQueries({ queryKey: ["admin", "safety-quarantines"] });
     },
     onError: (e) => toast.error(e instanceof Error ? e.message : "Suspend failed."),

@@ -1,21 +1,26 @@
 import { useEffect } from "react";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 
-import { canonicalUrl, hreflangLinks } from "@/features/i18n/seo";
+import { canonicalUrl, currentSeoLocale, localeLinks, localizedMeta } from "@/features/i18n/seo";
 export const Route = createFileRoute("/become-a-tutor")({
   head: () => ({
     meta: [
-      { title: "Become a Tutor in Hong Kong | MatchMax" },
-      { name: "description", content: "Apply to join MatchMax as a tutor in Hong Kong." },
-      { name: "robots", content: "noindex, follow" },
-      { property: "og:title", content: "Become a Tutor in Hong Kong | MatchMax" },
-      { property: "og:description", content: "Apply to join MatchMax as a tutor in Hong Kong." },
+      ...localizedMeta(currentSeoLocale(), {
+        title: {
+          en: "Become a Tutor in Hong Kong | MatchMax",
+          "zh-HK": "成為香港導師 | MatchMax",
+          "zh-CN": "成为香港导师 | MatchMax",
+        },
+        description: {
+          en: "Apply to join MatchMax as a tutor in Hong Kong.",
+          "zh-HK": "申請成為 MatchMax 香港導師，建立導師檔案，設定科目同收費，等家長搵到你。",
+          "zh-CN": "申请成为 MatchMax 香港导师，建立导师档案，设置科目和收费，让家长找到你。",
+        },
+      }),
+      { name: "robots", content: "index, follow" },
       { property: "og:url", content: canonicalUrl("/become-a-tutor") },
     ],
-    links: [
-      { rel: "canonical", href: canonicalUrl("/become-a-tutor") },
-      ...hreflangLinks("/become-a-tutor"),
-    ],
+    links: localeLinks("/become-a-tutor"),
   }),
   component: BecomeATutorRedirect,
 });

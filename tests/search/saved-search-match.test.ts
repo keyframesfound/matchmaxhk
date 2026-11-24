@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   caseMatchesSavedSearch,
+  noteMatchesSavedSearch,
   tutorMatchesSavedSearch,
 } from "../../src/features/search/saved-search-match";
 
@@ -81,5 +82,48 @@ describe("#725 saved-search matcher: cases", () => {
     expect(caseMatchesSavedSearch({ category: "IB" }, item)).toBe(false);
     expect(caseMatchesSavedSearch({ district: "Central" }, item)).toBe(false);
     expect(caseMatchesSavedSearch({ mode: "online" }, { ...item, mode: "in_person" })).toBe(false);
+  });
+});
+
+describe("#725 saved-search matcher: notes", () => {
+  const note = {
+    title: "IB Physics HL IA: Mechanics exemplar",
+    summary: "Full-mark IA on projectile motion with annotations",
+    description: null,
+    subject_tag: "Physics",
+    school_tag: "South Island School",
+    curriculum_tag: "IB",
+    subcategory: "ia",
+    content_language: "en",
+    grade_achieved: "7",
+    price_hkd: 120,
+    material_type: "exemplar",
+    topic: "Mechanics",
+    search_tags: ["projectile motion", "ia"],
+    slug: "ib-physics-hl-ia-mechanics",
+  };
+
+  it("matches subject, curriculum, price band and kind", () => {
+    expect(
+      noteMatchesSavedSearch(
+        { subject: "Physics", curriculum: "IB", priceBand: "paid", kind: "coursework" },
+        note,
+      ),
+    ).toBe(true);
+  });
+
+  it("rejects a wrong subject, wrong price band or wrong kind", () => {
+    expect(noteMatchesSavedSearch({ subject: "Chemistry" }, note)).toBe(false);
+    expect(noteMatchesSavedSearch({ priceBand: "free" }, note)).toBe(false);
+    expect(noteMatchesSavedSearch({ kind: "mocks" }, note)).toBe(false);
+  });
+
+  it("matches a free-text query against the shop's weighted document", () => {
+    expect(noteMatchesSavedSearch({ query: "mechanics" }, note)).toBe(true);
+    expect(noteMatchesSavedSearch({ query: "economics essay" }, note)).toBe(false);
+  });
+
+  it("never matches a gig listing", () => {
+    expect(noteMatchesSavedSearch({}, { ...note, material_type: "gig" })).toBe(false);
   });
 });

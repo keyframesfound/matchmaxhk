@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { ContentsRow, GuideHeading, GuidePage } from "@/features/guide/guide-shell";
 import { useSupportWhatsAppHref } from "@/features/help/components";
 
-import { canonicalUrl } from "@/features/i18n/seo";
+import { canonicalUrl, localeLinks } from "@/features/i18n/seo";
 export const Route = createFileRoute("/guide/partners")({
   head: () => ({
     meta: [
@@ -27,7 +27,7 @@ export const Route = createFileRoute("/guide/partners")({
       },
       { property: "og:url", content: canonicalUrl("/guide/partners") },
     ],
-    links: [{ rel: "canonical", href: canonicalUrl("/guide/partners") }],
+    links: localeLinks("/guide/partners"),
   }),
   component: GuidePartnersPage,
 });

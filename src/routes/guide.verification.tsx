@@ -11,7 +11,7 @@ import {
   GuideSteps,
 } from "@/features/guide/guide-shell";
 
-import { canonicalUrl } from "@/features/i18n/seo";
+import { canonicalUrl, localeLinks } from "@/features/i18n/seo";
 export const Route = createFileRoute("/guide/verification")({
   head: () => ({
     meta: [
@@ -30,7 +30,7 @@ export const Route = createFileRoute("/guide/verification")({
       },
       { property: "og:url", content: canonicalUrl("/guide/verification") },
     ],
-    links: [{ rel: "canonical", href: canonicalUrl("/guide/verification") }],
+    links: localeLinks("/guide/verification"),
   }),
   component: GuideVerificationPage,
 });

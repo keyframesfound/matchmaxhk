@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import { cn } from "@/lib/utils";
 import { getOrganisationLessonDashboard } from "@/features/cases/earnings.functions";
+import { REGION_CONFIG } from "@/features/region/config";
 
 /**
  * Issue #461 Phase A 3d — the centre's lesson summary across its own cases:
@@ -16,7 +17,7 @@ type RangeKind = "week" | "month";
 const RANGES: readonly RangeKind[] = ["week", "month"];
 
 function hkd(amount: number): string {
-  return `HK$${Math.round(amount).toLocaleString("en-HK")}`;
+  return `${REGION_CONFIG.HK.currency}${Math.round(amount).toLocaleString("en-HK")}`;
 }
 
 export function OrganisationLessonsPanel({ organizationId }: { organizationId: string }) {

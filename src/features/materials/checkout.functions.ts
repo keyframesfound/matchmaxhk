@@ -12,6 +12,7 @@ import {
   buildOrderReference,
   computeFolderAdjustedPrice,
   isCourseMaterialType,
+  ORDER_GRANTED_STATUSES,
   orderGrantsAccess,
   splitMaterialMoney,
 } from "@/features/materials/lifecycle";
@@ -239,6 +240,21 @@ export function pickReusableOrder(
   return null;
 }
 
+/**
+ * #392 folder proration credit — the gross of the buyer's child orders that
+ * actually grant access. The status predicate goes through orderGrantsAccess /
+ * ORDER_GRANTED_STATUSES (lifecycle.ts) instead of a second hardcoded list: a
+ * child paid through escrow (held) or Stripe (paid_held / delivered_held) has
+ * already been paid for, so it must discount the folder exactly like a
+ * delivered one. Grant rows carry gross 0 and consume no credit.
+ * Extracted pure for tests; startCheckout filters rows with the same list.
+ */
+export function folderProrationPaidChildGross(
+  rows: { status: string; gross_hkd: number | string | null }[],
+): number[] {
+  return rows.filter((row) => orderGrantsAccess(row.status)).map((row) => Number(row.gross_hkd));
+}
+
 /** Escapes untrusted text (note titles) for interpolation into HTML email. */
 export function escapeHtml(text: string): string {
   return text
@@ -407,8 +423,9 @@ export const startCheckout = createServerFn({ method: "POST" })
     const reference = buildOrderReference();
 
     // #392 folder proration: the SERVER owns the price. Sum the buyer's
-    // DELIVERED orders on the folder's CURRENT children (paid or granted —
-    // grants carry gross 0), subtract from the bulk price, floor at 0. The
+    // access-granting orders on the folder's CURRENT children — delivered AND
+    // escrow-held / Stripe-paid, because those children are already paid for
+    // (grants carry gross 0) — subtract from the bulk price, floor at 0. The
     // listing's price_hkd is only a display hint until this runs.
     if (material.material_type === "topic_folder") {
       const { data: items } = await db
@@ -420,14 +437,17 @@ export const startCheckout = createServerFn({ method: "POST" })
       let adjusted = Number(material.price_hkd);
       if (childIds.length > 0) {
         const { data: ownedOrders } = await db
-          .from<{ gross_hkd: number }>("material_orders")
-          .select("gross_hkd")
+          .from<{ status: string; gross_hkd: number }>("material_orders")
+          .select("status,gross_hkd")
           .eq("buyer_account_id", context.userId)
-          .eq("status", "delivered")
+          // Paid or granted — NOT just delivered. An escrow-held (#429) or
+          // Stripe paid_held (#784) child was already charged for, so it must
+          // discount the folder or the buyer pays twice.
+          .in("status", [...ORDER_GRANTED_STATUSES])
           .in("material_id", childIds);
         adjusted = computeFolderAdjustedPrice({
           bulkHkd: Number(material.price_hkd),
-          paidChildGross: (ownedOrders ?? []).map((order) => Number(order.gross_hkd)),
+          paidChildGross: folderProrationPaidChildGross(ownedOrders ?? []),
         }).adjusted;
       }
 

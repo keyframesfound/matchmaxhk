@@ -356,7 +356,9 @@ export const submitReport = createServerFn({ method: "POST" })
 export const listReportsAdmin = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
-    assertAdminClient(context);
+    // The guard is async; without await it resolves later and every service-role
+    // write below still runs for a non-admin caller.
+    await assertAdminClient(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const admin = supabaseAdmin as unknown as {
       from: (table: string) => {
@@ -495,7 +497,9 @@ export const resolveReport = createServerFn({ method: "POST" })
       .parse(data),
   )
   .handler(async ({ data, context }) => {
-    assertAdminClient(context);
+    // The guard is async; without await it resolves later and every service-role
+    // write below still runs for a non-admin caller.
+    await assertAdminClient(context);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
     const admin = supabaseAdmin as unknown as {

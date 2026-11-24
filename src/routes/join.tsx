@@ -8,7 +8,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { useAuth } from "@/features/auth/useAuth";
-import { canonicalUrl, localeLinks } from "@/features/i18n/seo";
+import { canonicalUrl, currentSeoLocale, localeLinks, localizedMeta } from "@/features/i18n/seo";
 import { JoinChooser } from "@/features/tutor-application/join-chooser";
 import { ApplicationForm } from "@/features/tutor-application/ApplicationForm";
 import { supabase } from "@/integrations/supabase/client";
@@ -34,18 +34,21 @@ export const Route = createFileRoute("/join")({
   validateSearch: joinSearch,
   head: () => ({
     meta: [
-      { title: "Join MatchMax - Become a Tutor" },
-      {
-        name: "description",
-        content:
-          "Fill one complete tutor intake — matching data, grades, bio and availability — publish your card, sell study notes, or partner with MatchMax as a tutoring centre in Hong Kong.",
-      },
-      { property: "og:title", content: "Join MatchMax" },
-      {
-        property: "og:description",
-        content:
-          "Fill one complete tutor intake — matching data, grades, bio and availability — publish your card, sell study notes, or partner with MatchMax as a tutoring centre in Hong Kong.",
-      },
+      ...localizedMeta(currentSeoLocale(), {
+        title: {
+          en: "Join MatchMax | Become a Tutor",
+          "zh-HK": "加入 MatchMax | 成為導師、賣筆記或者合作",
+          "zh-CN": "加入 MatchMax | 成为导师、出售笔记或合作",
+        },
+        description: {
+          en: "Fill one complete tutor intake — matching data, grades, bio and availability — publish your card, sell study notes, or partner with MatchMax as a tutoring centre in Hong Kong.",
+          "zh-HK":
+            "一份導師資料就搞掂：配對資料、成績、自我介紹同時間表，發佈導師卡、賣學習筆記，或者以補習中心身份同 MatchMax 合作。",
+          "zh-CN":
+            "填写一份完整的导师资料：匹配数据、成绩、自我介绍和可上课时间，发布导师卡片、出售学习笔记，或以补习中心身份与 MatchMax 合作。",
+        },
+      }),
+      { name: "robots", content: "index, follow" },
       { property: "og:type", content: "website" },
       { property: "og:url", content: canonicalUrl("/join") },
       { name: "twitter:card", content: "summary_large_image" },
@@ -90,11 +93,7 @@ function JoinPage() {
     enabled: Boolean(user) && tutorPath,
     queryFn: async () => {
       const [card, profile] = await Promise.all([
-        supabase
-          .from("tutors")
-          .select("id, is_published")
-          .eq("user_id", user!.id)
-          .maybeSingle(),
+        supabase.from("tutors").select("id, is_published").eq("user_id", user!.id).maybeSingle(),
         supabase.from("profiles").select("handle").eq("id", user!.id).maybeSingle(),
       ]);
       const handle = profile.data?.handle ?? null;

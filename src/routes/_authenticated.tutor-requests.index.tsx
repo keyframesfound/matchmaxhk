@@ -3,7 +3,13 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { type QueryClient, useQuery } from "@tanstack/react-query";
 import { useTranslation } from "react-i18next";
 import { formatPostedAgo } from "@/lib/relative-time";
-import { currentSeoLocale, localeLinks, localizedMeta, pickCopy } from "@/features/i18n/seo";
+import {
+  canonicalUrl,
+  currentSeoLocale,
+  localeLinks,
+  localizedMeta,
+  pickCopy,
+} from "@/features/i18n/seo";
 import {
   ArrowRight,
   BadgeCheck,
@@ -245,7 +251,11 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
               "浏览家长和学生发布的家教需求，或免费提交你的要求，让合资格的导师申请你的个案。",
           },
         }),
-        { name: "robots", content: "index, follow" },
+        // This board sits under `_authenticated` with ssr:false: a crawler gets
+        // the skeleton and then a client redirect to /auth, which is noindex.
+        // Declaring it indexable is what put it in Search Console as a phantom
+        // "Excluded by noindex" URL while the sitemap advertised it.
+        { name: "robots", content: "noindex, follow" },
         {
           property: "og:description",
           content: pickCopy(
@@ -258,7 +268,7 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
             locale,
           ),
         },
-        { property: "og:url", content: "https://matchmax.hk/tutor-requests" },
+        { property: "og:url", content: canonicalUrl("/tutor-requests") },
       ],
       links: localeLinks("/tutor-requests"),
     };
@@ -304,8 +314,8 @@ function CaseShareButton({ item }: { item: PublicCaseBoardItem }) {
         event.stopPropagation();
         setIsSharing(true);
         void shareOrCopy({
-          title: `${primary}, Case ${item.caseCode} | MatchMax`,
-          text: `Check out this tutoring request (Case ${item.caseCode}) on MatchMax.`,
+          title: t("tutor_requests.share_title", { title: primary, code: item.caseCode }),
+          text: t("tutor_requests.share_text", { code: item.caseCode }),
           url: `${window.location.origin}/tutor-requests/${item.caseCode}`,
         }).finally(() => setIsSharing(false));
       }}
@@ -797,14 +807,13 @@ function TutorRequestsPage() {
           <section className="border-b border-border bg-[color:var(--surface-header)] lg:border-b-0">
             <PageContainer width="default" className="py-10 sm:py-12">
               <Badge variant="outline" className="mb-4">
-                Tutor requests
+                {t("tutor_requests.badge")}
               </Badge>
               <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
-                Requesting a tutor that meets your requirements?
+                {t("tutor_requests.hero_title")}
               </h1>
               <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                Fill in this form and tutors who&rsquo;re qualified and interested can apply for
-                your case!
+                {t("tutor_requests.hero_body")}
               </p>
               <div className="mt-6">
                 <Button
@@ -814,7 +823,7 @@ function TutorRequestsPage() {
                   shape="pill"
                   className="h-11 px-6 font-bold"
                 >
-                  {formOpen ? "Hide form" : "Post your request"}
+                  {formOpen ? t("tutor_requests.hide_form") : t("tutor_requests.post_cta")}
                 </Button>
               </div>
               <CasesSearchMobile
@@ -834,11 +843,10 @@ function TutorRequestsPage() {
               <PageContainer width="default" className="py-10 sm:py-12">
                 <div className="mb-6">
                   <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
-                    Post your request
+                    {t("tutor_requests.form_title")}
                   </h2>
                   <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                    Tell us what you need and our team will review it, approved requests appear on
-                    this board so qualified tutors can apply directly.
+                    {t("tutor_requests.form_body")}
                   </p>
                 </div>
                 <CaseRequestForm
@@ -881,11 +889,10 @@ function TutorRequestsPage() {
                   aria-hidden="true"
                 />
                 <DialogTitle className="mt-6 text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-[28px]">
-                  Requesting a tutor that meets your requirements?
+                  {t("tutor_requests.hero_title")}
                 </DialogTitle>
                 <DialogDescription className="mt-2 text-base leading-relaxed">
-                  Fill in this form and tutors who&rsquo;re qualified and interested can apply for
-                  your case!
+                  {t("tutor_requests.hero_body")}
                 </DialogDescription>
                 <div className="mt-8 flex flex-col gap-2">
                   <Button
@@ -898,14 +905,14 @@ function TutorRequestsPage() {
                     shape="pill"
                     className="h-13 w-full text-base font-bold"
                   >
-                    Post your request
+                    {t("tutor_requests.post_cta")}
                   </Button>
                   <Button
                     onClick={dismissNoticePermanently}
                     variant="ghost"
                     className="h-10 w-full text-sm text-muted-foreground"
                   >
-                    Don&rsquo;t show again
+                    {t("tutor_requests.notice_dismiss")}
                   </Button>
                 </div>
               </div>
@@ -917,15 +924,15 @@ function TutorRequestsPage() {
             <div className="mx-auto w-full max-w-[1360px] px-4 sm:px-6 lg:px-8">
               <div className="mb-10">
                 <Badge variant="outline" className="mb-4">
-                  Tutor requests
+                  {t("tutor_requests.badge")}
                 </Badge>
                 <h2 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
-                  Open requests
+                  {t("tutor_requests.board_title")}
                 </h2>
                 {hasActiveFilters ? (
                   <div className="mt-2 flex flex-wrap items-center gap-3">
                     <p className="text-sm font-semibold text-[color:var(--ink)]/70">
-                      {filteredCases.length} {filteredCases.length === 1 ? "match" : "matches"}
+                      {t("tutor_requests.match_count", { count: filteredCases.length })}
                     </p>
                     {/* #725: save this case search for 1-tap reuse. */}
                     <SaveSearchButton
@@ -955,8 +962,7 @@ function TutorRequestsPage() {
                   onApply={(params) => navigate({ search: params as CaseBoardSearch })}
                 />
                 <p className="mt-3 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-                  Real tutoring requests from Hong Kong parents. Open a case for the full details
-                  and apply for the ones that fit your schedule.
+                  {t("tutor_requests.board_body")}
                 </p>
                 <CaseTypeFilter
                   value={search.type}
@@ -1092,11 +1098,10 @@ function TutorRequestsPage() {
                       />
                     </div>
                     <h3 className="mt-4 text-xl font-bold tracking-tight text-[color:var(--ink)] sm:text-2xl">
-                      No open requests right now
+                      {t("tutor_requests.empty_title")}
                     </h3>
                     <p className="mx-auto mt-2 max-w-md text-sm leading-relaxed text-muted-foreground">
-                      Approved parent requests appear here for tutors to apply. Be the first, post
-                      your requirements and let tutors come to you.
+                      {t("tutor_requests.empty_body")}
                     </p>
                     <div className="mt-6 flex justify-center">
                       <Button
@@ -1106,7 +1111,7 @@ function TutorRequestsPage() {
                         shape="pill"
                         className="h-11 px-6 font-bold"
                       >
-                        Post your request
+                        {t("tutor_requests.post_cta")}
                       </Button>
                     </div>
                   </div>
@@ -1159,8 +1164,7 @@ function TutorRequestsPage() {
                 )}
 
                 <p className="mt-8 text-center text-xs text-muted-foreground sm:text-sm">
-                  Interested in a case? Apply via WhatsApp and the MatchMax team will connect you
-                  with the parent. Free for parents, our team replies within one business day.
+                  {t("tutor_requests.footer_note")}
                 </p>
               </div>
             </div>

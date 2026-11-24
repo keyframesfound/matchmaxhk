@@ -1293,7 +1293,11 @@ export function CaseRequestForm({
     );
   }
 
-  const stepLabels = ["Contact", isAdmissions ? "Admissions" : "Tutoring", "Logistics"];
+  const stepLabels = [
+    t("case_request.step_contact"),
+    isAdmissions ? t("case_request.step_admissions") : t("case_request.step_tutoring"),
+    t("case_request.step_logistics"),
+  ];
 
   return (
     <form

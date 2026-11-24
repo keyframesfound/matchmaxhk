@@ -23,7 +23,7 @@ import {
   type CaseApplicationAdminRow,
 } from "@/features/cases/applications";
 import { checkFirstLessonCap } from "@/features/trust/trust";
-import { adminFeeOverdue } from "@/features/cases/fee-desk";
+import { resolveApplyFeeGate } from "@/features/cases/fee-desk.functions";
 
 type Row = Record<string, unknown>;
 type Db = ReturnType<typeof asAdminDb>;
@@ -141,40 +141,21 @@ export const applyToCase = createServerFn({ method: "POST" })
     // 72h window (no accepted proof) blocks NEW case applications until the
     // tutor settles it or ops verifies a proof. Lesson logging, teaching and
     // every existing-case tool stay untouched.
-    const tutorCaseIds = (
-      await selectRows<{ id: string }>(db, "tutoring_cases", "id", [
-        { col: "matched_tutor_id", op: "eq", value: tutor.id },
-      ])
-    ).map((r) => r.id);
-    let hasOverdueAdminFee = false;
-    if (tutorCaseIds.length > 0) {
-      const feeRows = await selectRows<{
-        status: string;
-        proof_status: string | null;
-        proof_rejected_at: string | null;
-        created_at: string | null;
-      }>(db, "case_fees", "status, proof_status, proof_rejected_at, created_at", [
-        { col: "case_id", op: "in", value: tutorCaseIds },
-      ]);
-      const now = new Date();
-      hasOverdueAdminFee = feeRows.some((f) =>
-        adminFeeOverdue(
-          {
-            status: f.status,
-            payment_screenshot_path: null,
-            proof_status: f.proof_status,
-            proof_rejected_at: f.proof_rejected_at,
-            created_at: f.created_at,
-          },
-          now,
-        ),
-      );
-    }
+    // #756 [was #260]: the same read, plus the open-dispute carve-out. An
+    // unresolved tutor dispute lifts the 72h block for this application only,
+    // and writes a case_audit row so ops can see why the gate was bypassed.
+    const feeGate = await resolveApplyFeeGate(db, {
+      tutorId: tutor.id,
+      userId: context.userId,
+      targetCaseId: caseRow.id,
+    });
 
     // Hard server-side gates. The centre screening radio is a UI-level gate
     // (the server cannot see it), so it is intentionally not re-checked here —
     // board visibility, status and the gender rule are the enforceable ones.
-    const eligibility = validateEligibilityOnServer(caseRow, tutor, { hasOverdueAdminFee });
+    const eligibility = validateEligibilityOnServer(caseRow, tutor, {
+      hasOverdueAdminFee: feeGate.blocks,
+    });
     if (eligibility) throw new Error(eligibility);
 
     const note = validateApplicationNote(data.note);

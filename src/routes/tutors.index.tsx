@@ -328,13 +328,13 @@ function TutorsDirectory() {
   // with a demand-stats row can render a footer; the server caps the batch.
   const occupancyTargets = useMemo(() => {
     const tutorById = new Map(tutors.map((tut) => [tut.id, tut]));
-    const targets: { tutorId: string; tutorUserId: string | null }[] = [];
+    const targets: { tutorId: string }[] = [];
     for (const tutorId of socialProofTutorIds) {
       if (targets.length >= OCCUPANCY_BATCH_LIMIT) break;
       if (!socialProofById.has(tutorId)) continue;
       const tutor = tutorById.get(tutorId);
       if (!tutor) continue;
-      targets.push({ tutorId: tutor.id, tutorUserId: tutor.user_id });
+      targets.push({ tutorId: tutor.id });
     }
     return targets;
   }, [socialProofTutorIds, socialProofById, tutors]);

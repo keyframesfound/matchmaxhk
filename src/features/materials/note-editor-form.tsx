@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { findContactViolations } from "@/lib/contact-filter";
+import { REGION_CONFIG } from "@/features/region/config";
 import {
   GRADE_ACHIEVED_MAX_LEN,
   MATERIAL_TYPES,
@@ -183,7 +184,7 @@ function EarningsCalculator({ priceHkd }: { priceHkd: number; materialType?: str
     );
   }
   const e = earningsEstimate(priceHkd, PLATFORM_FEE_RATE);
-  const money = (v: number) => `HK$${v.toFixed(2)}`;
+  const money = (v: number) => `${REGION_CONFIG.HK.currency}${v.toFixed(2)}`;
   return (
     <div className="space-y-2 rounded-xl border border-border p-4 text-sm">
       <p className="font-semibold">{t("notes_option_a.fee_title")}</p>
@@ -269,6 +270,23 @@ function parseTags(text: string): string[] {
 }
 
 const BULK_MIN_FILES = 2;
+
+/**
+ * Caches a completed save must refresh. Extras are replaced wholesale on the
+ * server (deleted rows, pruned Storage objects), so leaving the owner list
+ * cached reopens the editor with the pre-save files and the next save deletes
+ * whatever was added last. The public listing, the note page and the seller
+ * storefront each read their own key under the router's 30s staleTime, so a
+ * remount inside that window would still paint the old price and body.
+ */
+const noteSaveInvalidations = (materialId: string) => [
+  ["account"],
+  ["materials"], // marketplace listing, rating aggregates, public counts
+  ["notes", "public"], // public note page (/notes/$slug)
+  ["notes", "owner-extras", materialId], // this editor's stored extras
+  ["tutor", "materials"], // seller storefront note list
+  ["tutor", "authored_notes"],
+];
 
 export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null }) {
   const { t } = useTranslation();
@@ -411,15 +429,23 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
     };
   }, [listOrgsFn]);
 
-  // Edit mode: load stored extras + links once.
+  // Edit mode: load stored extras + links. Short stale time (not Infinity) so
+  // a remount in a later session refetches instead of replaying a pre-save
+  // list; hydrate once per material so a background refetch cannot overwrite
+  // edits made while the editor is open.
+  const hydratedExtrasFor = useRef<string | null>(null);
   const extrasQuery = useQuery({
     queryKey: ["notes", "owner-extras", existing?.id],
     queryFn: () => getNoteExtrasForOwner({ data: { materialId: existing?.id ?? "" } }),
     enabled: Boolean(existing?.id),
-    staleTime: Infinity,
+    staleTime: 10_000,
+    refetchOnWindowFocus: false,
   });
   useEffect(() => {
     if (!extrasQuery.data) return;
+    const hydrateId = existing?.id ?? null;
+    if (hydrateId && hydratedExtrasFor.current === hydrateId) return;
+    hydratedExtrasFor.current = hydrateId;
     setExtras(
       extrasQuery.data
         .filter((e) => e.kind === "file")
@@ -436,7 +462,7 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
         .filter((e) => e.kind === "link" && e.url)
         .map((e) => ({ key: nextKey(), url: e.url ?? "", label: e.label ?? "" })),
     );
-  }, [extrasQuery.data]);
+  }, [extrasQuery.data, existing?.id]);
 
   // Edit mode: the stored original drives the page picker until replaced.
   useEffect(() => {
@@ -1174,14 +1200,14 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
         // Shown on the Account page too (rejection reason); edit and resubmit.
         throw new Error(t("notes.auto.rejected", { reason: result.reason ?? "" }));
       }
-      return result.status;
+      return { status: result.status, id };
     }
-    return null;
+    return { status: null, id };
   };
 
   const saveMutation = useMutation({
     mutationFn: persist,
-    onSuccess: (status, kind) => {
+    onSuccess: ({ status, id }, kind) => {
       toast.success(
         isLive
           ? t("notes.upload.live_saved")
@@ -1191,8 +1217,10 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
               : t("notes_option_a.flagged_note")
             : t("notes.form.draft_saved"),
       );
-      // SPA navigation keeps the /zh | /cn prefix; refresh the Account lists.
-      void queryClient.invalidateQueries({ queryKey: ["account"] });
+      for (const queryKey of noteSaveInvalidations(id)) {
+        void queryClient.invalidateQueries({ queryKey });
+      }
+      // SPA navigation keeps the /zh | /cn prefix.
       void navigate({ to: "/account" });
     },
     onError: (error) =>

@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { format } from "date-fns";
-import { dateFnsLocale } from "@/lib/relative-time";
+import { DEFAULT_TUTOR_TIMEZONE, formatInTutorZone } from "@/features/cases/tutor-timezone";
 import { CalendarClock, Check, Loader2, Wallet, X } from "lucide-react";
 import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
@@ -33,6 +32,20 @@ import { EarningsPanel } from "@/features/cases/tutor/earnings-panel";
  * card is always labelled as the fee the TUTOR owes MatchMax (#461: tutor
  * pays, never the parent), never added to the notes net.
  */
+
+/** Lesson line anatomy, rendered in an explicit zone rather than the device's. */
+const LESSON_LINE_OPTIONS: Intl.DateTimeFormatOptions = {
+  weekday: "short",
+  day: "numeric",
+  month: "short",
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+};
+
+function intlLocale(): string {
+  return i18n.language?.toLowerCase().startsWith("zh") ? "zh-HK" : "en-HK";
+}
 
 function toHomeLessons(cases: TutorCaseItem[]): HomeLesson[] {
   return cases.flatMap((c) =>
@@ -87,7 +100,10 @@ function PendingConfirmRow({
   t: ReturnType<typeof useTranslation>["t"];
 }) {
   const queryClient = useQueryClient();
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
+    void queryClient.invalidateQueries({ queryKey: ["sor", "earnings"] });
+  };
 
   const confirm = useMutation({
     mutationFn: () => confirmLessonTutor({ data: { lessonId: lesson.lessonId } }),
@@ -111,9 +127,13 @@ function PendingConfirmRow({
     <li className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[color:var(--ink)]/10 p-3">
       <div>
         <p className="text-sm font-medium text-[color:var(--ink)]">
-          {format(new Date(lesson.startsAt), "EEE d MMM, HH:mm", {
-            locale: dateFnsLocale(i18n.language),
-          })}{" "}
+          {/* Absolute instant: pin the zone, a bare format() reads the device zone. */}
+          {formatInTutorZone(
+            lesson.startsAt,
+            DEFAULT_TUTOR_TIMEZONE,
+            LESSON_LINE_OPTIONS,
+            intlLocale(),
+          )}{" "}
           · {lesson.studentFirstName}
           {lesson.subject ? ` · ${lesson.subject}` : ""}
         </p>
@@ -223,9 +243,13 @@ export function TutorHomeSection() {
           <div className="p-4">
             <p className="flex items-center gap-2 text-base font-semibold text-[color:var(--ink)]">
               <CalendarClock className="h-4 w-4" aria-hidden="true" />
-              {format(new Date(next.startsAt), "EEE d MMM, HH:mm", {
-                locale: dateFnsLocale(i18n.language),
-              })}
+              {/* Absolute instant: pin the zone, a bare format() reads the device zone. */}
+              {formatInTutorZone(
+                next.startsAt,
+                DEFAULT_TUTOR_TIMEZONE,
+                LESSON_LINE_OPTIONS,
+                intlLocale(),
+              )}
             </p>
             <p className="mt-1 text-sm text-[color:var(--ink)]">
               {next.studentFirstName}

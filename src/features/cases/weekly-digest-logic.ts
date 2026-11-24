@@ -73,6 +73,8 @@ const DIGEST_WEEK_MS = 6 * DAY_MS + WEEK_CUTOFF_MS;
 /** Recaps and focus areas are summary lines, never a wall of text. */
 export const DIGEST_RECAP_MAX = 3;
 export const DIGEST_FOCUS_MAX = 5;
+/** "Covered" is a headline list of the week's topics, not the full syllabus. */
+export const DIGEST_TOPIC_MAX = 5;
 
 /** Recaps, focus and the case code are tutor/parent-authored: never leak a
  * contact detail or an internal id into a message that leaves the app. */
@@ -92,6 +94,12 @@ export type WeeklyDigest = {
   nextLesson: { startsAt: string; tag: string | null } | null;
   mastery: { mastered: number; practicing: number; weak: number };
   focus: string[];
+  /**
+   * The week's tags, newest log first — the "Covered" part of the four-part
+   * recap. Optional so an older digest literal and the email section stay
+   * valid; the card simply omits the part when it is absent.
+   */
+  topicsCovered?: string[];
 };
 
 /** `case_lessons` columns the digest reads. Structurally a LessonConfirmRow. */
@@ -190,6 +198,28 @@ function windowRecaps(ordered: readonly DrawerLogRow[], startMs: number, endMs: 
     const recap = (log.recap ?? "").trim();
     if (!recap) continue;
     out.push(recap);
+  }
+  return out;
+}
+
+/**
+ * "Covered": the tags the tutor recorded on logs created inside the window,
+ * newest log first, deduped on the heatmap key so casing never duplicates a
+ * topic. Capped, because this is the recap headline and not the heatmap.
+ */
+function windowTopics(ordered: readonly DrawerLogRow[], startMs: number, endMs: number): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const log of ordered) {
+    const at = parseMs(log.created_at);
+    if (at === null || at < startMs || at > endMs) continue;
+    for (const topic of parseDrawerTopics(log.topics)) {
+      if (out.length >= DIGEST_TOPIC_MAX) return out;
+      const key = heatmapTopicKey(topic.tag);
+      if (!key || seen.has(key)) continue;
+      seen.add(key);
+      out.push(topic.tag);
+    }
   }
   return out;
 }
@@ -306,6 +336,7 @@ export function composeWeeklyDigest(input: ComposeWeeklyDigestInput): WeeklyDige
       weak: summary.weak,
     },
     focus: focusTags(cells),
+    topicsCovered: windowTopics(ordered, startMs, endMs),
   };
 }
 

@@ -143,7 +143,10 @@ function LessonRow({
   // #794 §2.1: Mark done opens the 1-tap rating sheet immediately.
   const [rateOpen, setRateOpen] = useState(false);
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
+  const invalidate = () => {
+    void queryClient.invalidateQueries({ queryKey: ["sor", "tutor-cases"] });
+    void queryClient.invalidateQueries({ queryKey: ["sor", "earnings"] });
+  };
 
   const confirm = useMutation({
     mutationFn: () => confirmLessonTutor({ data: { lessonId: lesson.id } }),

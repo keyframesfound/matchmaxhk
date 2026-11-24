@@ -57,7 +57,17 @@ async function writeClipboard(text: string): Promise<boolean> {
  * The server returns null for a learner-only or quiet week, and the card
  * renders nothing rather than hinting at a case the caller cannot see.
  */
-export function WeeklyDigestCard({ caseId }: { caseId: string }) {
+export function WeeklyDigestCard({
+  caseId,
+  caseTitle,
+}: {
+  caseId: string;
+  /**
+   * Optional case label. The dashboard stacks one card per case, so without it
+   * two children's digests would be indistinguishable; the case page omits it.
+   */
+  caseTitle?: string;
+}) {
   const { t } = useTranslation();
   const tZh = i18n.getFixedT("zh-HK");
   const headingId = useId();
@@ -98,13 +108,26 @@ export function WeeklyDigestCard({ caseId }: { caseId: string }) {
     t("weekly_digest.hours_week", { h: digest.hoursThisWeek }),
     t("weekly_digest.hours_total", { h: digest.hoursTotal }),
   ];
+
+  /**
+   * The four-part recap (#742 / #796 §2.6): covered, progress, additional
+   * practice, next steps. Each part renders only from a fact the case already
+   * holds, so an absent part is absent, never invented. "Additional practice"
+   * is the homework and mistake work the student actually completed; the
+   * practice a tutor assigns is not recorded anywhere yet: no column holds a
+   * set practice list, so that half of the part is honest about what exists.
+   */
+  const covered = digest.topicsCovered ?? [];
+  const practiceRows: string[] = [];
   if (digest.homeworkCompleted > 0) {
-    rows.push(t("weekly_digest.homework", { n: digest.homeworkCompleted }));
+    practiceRows.push(t("weekly_digest.homework", { n: digest.homeworkCompleted }));
   }
   if (digest.mistakesMastered > 0) {
-    rows.push(t("weekly_digest.mistakes", { n: digest.mistakesMastered }));
+    practiceRows.push(t("weekly_digest.mistakes", { n: digest.mistakesMastered }));
   }
-  if (nextWhen) rows.push(t("weekly_digest.next_lesson", { when: nextWhen }));
+  const hasMastery = mastered + practicing + weak > 0;
+  const hasPractice = practiceRows.length > 0;
+  const hasNext = nextWhen !== null || focus.length > 0;
 
   /**
    * Raw i18next templates, not interpolated strings: the copy builder fills
@@ -150,6 +173,10 @@ export function WeeklyDigestCard({ caseId }: { caseId: string }) {
         <p className="text-xs text-muted-foreground">{t("weekly_digest.period", { start, end })}</p>
       </div>
 
+      {caseTitle ? (
+        <p className="mt-0.5 truncate text-xs text-muted-foreground">{caseTitle}</p>
+      ) : null}
+
       {hasFacts ? (
         <>
           <ul className="mt-3 space-y-1 text-sm text-[color:var(--ink)]">
@@ -158,29 +185,82 @@ export function WeeklyDigestCard({ caseId }: { caseId: string }) {
             ))}
           </ul>
 
-          {mastered + practicing + weak > 0 ? (
-            <p className="mt-2 text-xs text-muted-foreground">
-              {t("weekly_digest.mastery", { mastered, practicing, weak })}
-            </p>
-          ) : null}
+          {/* Four parts in reading order: covered, progress, additional
+              practice, next steps. A hairline separates them; a part with no
+              fact behind it is absent rather than empty. */}
+          <div className="mt-3 divide-y divide-border">
+            {covered.length > 0 ? (
+              <div className="py-2">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {t("weekly_digest.part_covered")}
+                </p>
+                <ul className="mt-1.5 flex flex-wrap gap-1.5">
+                  {covered.map((topic) => (
+                    <li
+                      key={topic}
+                      className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-[color:var(--ink)]"
+                    >
+                      {topic}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
 
-          {focus.length > 0 ? (
-            <div className="mt-3">
-              <p className="text-xs font-medium text-muted-foreground">
-                {t("weekly_digest.focus")}
-              </p>
-              <ul className="mt-1.5 flex flex-wrap gap-1.5">
-                {focus.map((item) => (
-                  <li
-                    key={item}
-                    className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-[color:var(--ink)]"
-                  >
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ) : null}
+            {hasMastery ? (
+              <div className="py-2">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {t("weekly_digest.part_progress")}
+                </p>
+                <p className="mt-1.5 text-sm text-[color:var(--ink)]">
+                  {t("weekly_digest.mastery", { mastered, practicing, weak })}
+                </p>
+              </div>
+            ) : null}
+
+            {hasPractice ? (
+              <div className="py-2">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {t("weekly_digest.part_practice")}
+                </p>
+                <ul className="mt-1.5 space-y-1 text-sm text-[color:var(--ink)]">
+                  {practiceRows.map((row) => (
+                    <li key={row}>{row}</li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {hasNext ? (
+              <div className="space-y-1.5 py-2">
+                <p className="text-xs font-medium text-muted-foreground">
+                  {t("weekly_digest.part_next")}
+                </p>
+                {nextWhen ? (
+                  <p className="text-sm text-[color:var(--ink)]">
+                    {t("weekly_digest.next_lesson", { when: nextWhen })}
+                  </p>
+                ) : null}
+                {focus.length > 0 ? (
+                  <div>
+                    <p className="text-xs font-medium text-muted-foreground">
+                      {t("weekly_digest.focus")}
+                    </p>
+                    <ul className="mt-1.5 flex flex-wrap gap-1.5">
+                      {focus.map((item) => (
+                        <li
+                          key={item}
+                          className="rounded-full border border-border px-2.5 py-0.5 text-xs font-medium text-[color:var(--ink)]"
+                        >
+                          {item}
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
 
           {digest.recaps.length > 0 ? (
             <div className="mt-3 space-y-1">

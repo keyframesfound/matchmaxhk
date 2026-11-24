@@ -446,16 +446,27 @@ export const transitionCase = createServerFn({ method: "POST" })
         { col: "case_id", op: "eq", value: c.id },
         { col: "status", op: "eq", value: "invoiced" },
       ]);
+      const markedPaid: string[] = [];
       for (const fee of invoiced) {
-        await db
-          .from<Row>("case_fees")
-          .update({
+        const claimed = await claimFeePaid({
+          db,
+          feeId: fee.id,
+          patch: {
             status: "paid",
             paid_at: nowIso,
             marked_paid_by: context.userId,
             fps_reference: data.fpsReference ?? null,
-          })
-          .eq("id", fee.id);
+          },
+        });
+        if (claimed) markedPaid.push(fee.id);
+      }
+      // #816 §2.2 residual: this path marked the ledger paid, so it must also
+      // write the legacy mirror the referral-bounty trigger reads — otherwise a
+      // referrer's 15% is silently never created when the desk closes the fee
+      // from the SoR machine instead of Mark paid. Same helper, so the receipt
+      // and the mirror fire exactly once per request on either path.
+      if (markedPaid.length > 0) {
+        await applyPaidFeeSideEffects({ db, caseId: c.id, feeIds: markedPaid, nowIso });
       }
     }
     return { sor_status: to };
@@ -561,6 +572,116 @@ async function advanceSorCaseStatus(
   await insertAudit(db, caseId, actorId, from, to, `fee action → ${to}`);
 }
 
+/**
+ * #816 §2.2 residual: the fee desk wrote "paid" by id alone, so a waived or
+ * already-paid fee could be re-marked paid — re-firing the receipt and the
+ * referral-bounty mirror on money that was never collected.
+ *
+ * These predicates are the read half of the guard (they also decide the error
+ * code); the write half is a claim on the row itself, filtering on
+ * status = "invoiced" with count: "exact", so a concurrent waive cannot slip
+ * between the read and the update.
+ */
+
+/** Error code that refuses a pay action, or null when the fee may be paid. */
+export function feeMarkPaidRefusal(
+  fee: { status: string; waive_reason: string | null } | null | undefined,
+): string | null {
+  if (!fee) return "FEE_NOT_FOUND";
+  if (fee.status !== "invoiced" || fee.waive_reason !== null) return "FEE_NOT_INVOICED";
+  return null;
+}
+
+/** Error code that refuses a waive action, or null when the fee may be waived. */
+export function feeWaiveRefusal(fee: { status: string } | null | undefined): string | null {
+  if (!fee) return "FEE_NOT_FOUND";
+  // Paid and refunded rows already carry money: re-labelling one waived leaves
+  // paid_at / marked_paid_by / the collected mirror behind, so derivePaidState
+  // reports "none" and the desk can re-invoice what was already collected.
+  if (fee.status === "paid" || fee.status === "refunded") return "FEE_ALREADY_PAID";
+  if (fee.status !== "invoiced") return "FEE_NOT_INVOICED";
+  return null;
+}
+
+/**
+ * The legacy tutoring_cases.fee_collected_at / fee_amount_cents columns are
+ * what trg_cases_fee_referral_bounty reads to create a referrer's 15% bounty
+ * (#816 §2.2). Both pay paths use this so they write identical numbers: the
+ * summed paid case_fees amount for the case, once. An existing mirror is never
+ * moved — the desk must not see its own number rewritten.
+ */
+export function legacyFeeMirrorPatch(args: {
+  existingCollectedAt: string | null;
+  paidAmountsHkd: readonly (number | string | null | undefined)[];
+  nowIso: string;
+}): { fee_collected_at: string; fee_amount_cents: number } | null {
+  if (args.existingCollectedAt !== null) return null;
+  const total = args.paidAmountsHkd.reduce<number>((sum, amount) => {
+    const n = Number(amount);
+    return Number.isFinite(n) && n > 0 ? sum + n : sum;
+  }, 0);
+  if (total <= 0) return null;
+  return { fee_collected_at: args.nowIso, fee_amount_cents: Math.round(total * 100) };
+}
+
+/**
+ * The guarded claim both pay paths use: only an invoiced row flips to paid, and
+ * a false result means nothing was written — no receipt, no bounty mirror, no
+ * audit row. The #259 FPS trigger code is surfaced as-is.
+ */
+export async function claimFeePaid(args: { db: Db; feeId: string; patch: Row }): Promise<boolean> {
+  const { error, count } = await args.db
+    .from<Row>("case_fees")
+    .update(args.patch, { count: "exact" })
+    .eq("id", args.feeId)
+    .eq("status", "invoiced");
+  if (error) {
+    throw new Error(
+      error.message.includes("FPS_REFERENCE_USED") ? "FPS_REFERENCE_USED" : error.message,
+    );
+  }
+  return (count ?? 0) > 0;
+}
+
+/**
+ * One paid fee, one set of side effects — shared by feeMarkPaid and by
+ * transitionCase to fee_paid, so a referrer's bounty never depends on which
+ * desk path closed the fee. Callers only reach here after a claim that affected
+ * a row, and each request takes one path, so the receipt (once-only via
+ * receipt_sent_at) and the mirror (once per case) cannot double-fire.
+ */
+async function applyPaidFeeSideEffects(args: {
+  db: Db;
+  caseId: string;
+  feeIds: readonly string[];
+  nowIso: string;
+}): Promise<void> {
+  const { sendFeeReceipt } = await import("@/features/cases/fee-desk.functions");
+  for (const feeId of args.feeIds) await sendFeeReceipt(args.db, feeId);
+
+  const [paid, legacy] = await Promise.all([
+    selectRows<{ amount_hkd: number | null }>(args.db, "case_fees", "amount_hkd", [
+      { col: "case_id", op: "eq", value: args.caseId },
+      { col: "status", op: "eq", value: "paid" },
+    ]),
+    selectRows<{ fee_collected_at: string | null }>(args.db, "tutoring_cases", "fee_collected_at", [
+      { col: "id", op: "eq", value: args.caseId },
+    ]),
+  ]);
+  const legacyRow = legacy[0];
+  if (!legacyRow) return;
+  const mirror = legacyFeeMirrorPatch({
+    existingCollectedAt: legacyRow.fee_collected_at,
+    paidAmountsHkd: paid.map((p) => p.amount_hkd),
+    nowIso: args.nowIso,
+  });
+  if (!mirror) return;
+  const { error } = await args.db.from<Row>("tutoring_cases").update(mirror).eq("id", args.caseId);
+  // The payment already landed; a failed mirror must not fail the receipt. The
+  // desk can still record it from the legacy panel, and the trigger backstops.
+  if (error) console.warn("[fee] legacy fee mirror failed:", error.message);
+}
+
 export const feeMarkPaid = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
@@ -572,134 +693,114 @@ export const feeMarkPaid = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     await requireAdmin(db, context.userId);
-    const feeCase = await selectRows<{ case_id: string; amount_hkd: number | null }>(
-      db,
-      "case_fees",
-      "case_id, amount_hkd",
-      [{ col: "id", op: "eq", value: data.feeId }],
-    );
-    const { assertReferenceFree, sendFeeReceipt } =
-      await import("@/features/cases/fee-desk.functions");
+    const fee = (
+      await selectRows<{
+        case_id: string;
+        amount_hkd: number | null;
+        status: FeeStatus;
+        waive_reason: string | null;
+      }>(db, "case_fees", "case_id, amount_hkd, status, waive_reason", [
+        { col: "id", op: "eq", value: data.feeId },
+      ])
+    )[0];
+    if (!fee) throw new Error("FEE_NOT_FOUND");
+    // #816 §2.2 residual: a waived or already-paid fee must never be re-marked
+    // paid — that re-fires the receipt and can create a 15% referral bounty on a
+    // fee that was written off, and rewrites paid_at on a paid row.
+    const refusal = feeMarkPaidRefusal(fee);
+    if (refusal) throw new Error(refusal);
+
+    const { assertReferenceFree } = await import("@/features/cases/fee-desk.functions");
     // #259: a bank reference that already closed another case is rejected
     // (the DB trigger backstops races with the same FPS_REFERENCE_USED code).
-    if (feeCase[0]) await assertReferenceFree(db, feeCase[0].case_id, data.fpsReference);
-    const { error } = await db
-      .from<Row>("case_fees")
-      .update({
+    await assertReferenceFree(db, fee.case_id, data.fpsReference);
+
+    const nowIso = new Date().toISOString();
+    const claimed = await claimFeePaid({
+      db,
+      feeId: data.feeId,
+      patch: {
         status: "paid",
-        paid_at: new Date().toISOString(),
+        paid_at: nowIso,
         marked_paid_by: context.userId,
         fps_reference: data.fpsReference ?? null,
-      })
-      .eq("id", data.feeId);
-    if (error) {
-      throw new Error(
-        error.message.includes("FPS_REFERENCE_USED") ? "FPS_REFERENCE_USED" : error.message,
-      );
-    }
-    if (feeCase[0]) {
-      await sendFeeReceipt(db, data.feeId);
-      await insertAudit(
-        db,
-        feeCase[0].case_id,
-        context.userId,
-        null,
-        "fee_paid",
-        data.fpsReference ?? null,
-      );
-      // #816 §2.2 residual: two fee truths. `case_fees` is the SoR, but the
-      // referral bounty trigger keys off the legacy `tutoring_cases` columns,
-      // so paying through this panel credited no referrer. Mirror the payment
-      // into those columns once, and only when the legacy panel has not
-      // already recorded a fee — the desk must not see its own number moved.
-      // `deskUndoFeeCollected` now refuses while a paid `case_fees` row exists,
-      // so pay → undo → pay cannot double-credit a referrer or strand a bounty.
-      const legacy = (
-        await selectRows<{ fee_collected_at: string | null; fee_amount_cents: number | null }>(
+      },
+    });
+    // A concurrent waive won the claim: nothing was written, so no receipt, no
+    // bounty mirror and no audit row may run.
+    if (!claimed) throw new Error("FEE_NOT_INVOICED");
+
+    // #816 §2.2 residual: two fee truths. case_fees is the SoR, but the referral
+    // bounty trigger keys off the legacy tutoring_cases columns, so every pay
+    // path mirrors the collected total once (shared with transitionCase).
+    // deskUndoFeeCollected refuses while a paid case_fees row exists, so
+    // pay → undo → pay cannot double-credit a referrer or strand a bounty.
+    await applyPaidFeeSideEffects({ db, caseId: fee.case_id, feeIds: [data.feeId], nowIso });
+    await insertAudit(db, fee.case_id, context.userId, null, "fee_paid", data.fpsReference ?? null);
+
+    // QA (#375): the fee action must also advance the SoR machine, a case stuck
+    // on fee_invoiced keeps parent slot requests locked.
+    await advanceSorCaseStatus(db, context.userId, fee.case_id, "fee_paid");
+
+    // #542 Trigger 2 / #561 AR-3: contact is now shared — both sides get the
+    // introduction notification as an Action Required item until Lesson 1
+    // is scheduled/confirmed on the case. Best-effort, never fails the fee.
+    try {
+      const introCase = (
+        await selectRows<{
+          id: string;
+          case_code: string;
+          contact_name: string | null;
+          subjects: string[] | null;
+          who_for: string | null;
+          matched_tutor_id: string | null;
+        }>(
           db,
           "tutoring_cases",
-          "fee_collected_at, fee_amount_cents",
-          [{ col: "id", op: "eq", value: feeCase[0].case_id }],
+          "id, case_code, contact_name, subjects, who_for, matched_tutor_id",
+          [{ col: "id", op: "eq", value: fee.case_id }],
         )
       )[0];
-      const amountHkd = Number(feeCase[0].amount_hkd ?? 0);
-      if (legacy && legacy.fee_collected_at === null && amountHkd > 0) {
-        const { error: mirrorError } = await db
-          .from<Row>("tutoring_cases")
-          .update({
-            fee_collected_at: new Date().toISOString(),
-            fee_amount_cents: Math.round(amountHkd * 100),
-          })
-          .eq("id", feeCase[0].case_id);
-        // The payment already landed; a failed mirror must not fail the
-        // receipt. The desk can still record it from the legacy panel.
-        if (mirrorError) console.warn("[fee] legacy fee mirror failed:", mirrorError.message);
-      }
-
-      // QA (#375): the fee action must also advance the SoR machine, a case
-      // stuck on fee_invoiced keeps parent slot requests locked.
-      await advanceSorCaseStatus(db, context.userId, feeCase[0].case_id, "fee_paid");
-
-      // #542 Trigger 2 / #561 AR-3: contact is now shared — both sides get the
-      // introduction notification as an Action Required item until Lesson 1
-      // is scheduled/confirmed on the case. Best-effort, never fails the fee.
-      try {
-        const introCase = (
-          await selectRows<{
-            id: string;
-            case_code: string;
-            contact_name: string | null;
-            subjects: string[] | null;
-            who_for: string | null;
-            matched_tutor_id: string | null;
-          }>(
-            db,
-            "tutoring_cases",
-            "id, case_code, contact_name, subjects, who_for, matched_tutor_id",
-            [{ col: "id", op: "eq", value: feeCase[0].case_id }],
-          )
-        )[0];
-        if (introCase) {
-          const introTutorId = introCase.matched_tutor_id;
-          const tutorRow = introTutorId
-            ? (
-                await selectRows<{ id: string; display_name: string }>(
-                  db,
-                  "tutors",
-                  "id, display_name",
-                  [{ col: "id", op: "eq", value: introTutorId }],
-                )
-              )[0]
-            : undefined;
-          const isParent = introCase.who_for !== "myself";
-          const sharedPayload = {
+      if (introCase) {
+        const introTutorId = introCase.matched_tutor_id;
+        const tutorRow = introTutorId
+          ? (
+              await selectRows<{ id: string; display_name: string }>(
+                db,
+                "tutors",
+                "id, display_name",
+                [{ col: "id", op: "eq", value: introTutorId }],
+              )
+            )[0]
+          : undefined;
+        const isParent = introCase.who_for !== "myself";
+        const sharedPayload = {
+          case_id: introCase.id,
+          case_code: introCase.case_code,
+          tutor_id: introTutorId,
+          tutor_name: tutorRow?.display_name ?? "",
+          contact_name: introCase.contact_name ?? "",
+          subject: (introCase.subjects ?? [])[0] ?? "",
+          badge: isParent ? "Parent Account" : "Independent Student",
+          badge_zh: isParent ? "家長帳戶" : "獨立學生帳戶",
+        };
+        const { emitActionEvent } = await import("@/features/cases/action-required.functions");
+        await emitActionEvent(db, "intro.shared_parent", sharedPayload, introCase.id);
+        await emitActionEvent(db, "intro.shared_tutor", sharedPayload, introCase.id);
+        // #428 Phase 1: the master reliability gate.
+        const { logFunnelEvent } = await import("@/features/cases/funnel-events");
+        await logFunnelEvent(
+          db,
+          {
             case_id: introCase.id,
-            case_code: introCase.case_code,
-            tutor_id: introTutorId,
-            tutor_name: tutorRow?.display_name ?? "",
-            contact_name: introCase.contact_name ?? "",
-            subject: (introCase.subjects ?? [])[0] ?? "",
-            badge: isParent ? "Parent Account" : "Independent Student",
-            badge_zh: isParent ? "家長帳戶" : "獨立學生帳戶",
-          };
-          const { emitActionEvent } = await import("@/features/cases/action-required.functions");
-          await emitActionEvent(db, "intro.shared_parent", sharedPayload, introCase.id);
-          await emitActionEvent(db, "intro.shared_tutor", sharedPayload, introCase.id);
-          // #428 Phase 1: the master reliability gate.
-          const { logFunnelEvent } = await import("@/features/cases/funnel-events");
-          await logFunnelEvent(
-            db,
-            {
-              case_id: introCase.id,
-              tutor_id: introCase.matched_tutor_id,
-              event_type: "fee_marked_paid",
-            },
-            context.userId,
-          );
-        }
-      } catch (introError) {
-        console.warn("[admin-desk] intro notification failed:", introError);
+            tutor_id: introCase.matched_tutor_id,
+            event_type: "fee_marked_paid",
+          },
+          context.userId,
+        );
       }
+    } catch (introError) {
+      console.warn("[admin-desk] intro notification failed:", introError);
     }
     return { ok: true };
   });
@@ -713,18 +814,29 @@ export const feeWaive = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     await requireAdmin(db, context.userId);
-    const { error } = await db
+    const fee = (
+      await selectRows<{ case_id: string; status: FeeStatus }>(db, "case_fees", "case_id, status", [
+        { col: "id", op: "eq", value: data.feeId },
+      ])
+    )[0];
+    if (!fee) throw new Error("FEE_NOT_FOUND");
+    // A paid or refunded fee keeps paid_at, marked_paid_by and the collected
+    // mirror: re-labelling it waived makes derivePaidState report "none" and
+    // lets the desk re-invoice money already collected.
+    const refusal = feeWaiveRefusal(fee);
+    if (refusal) throw new Error(refusal);
+
+    const { error, count } = await db
       .from<Row>("case_fees")
-      .update({ status: "waived", waive_reason: data.reason })
-      .eq("id", data.feeId);
+      .update({ status: "waived", waive_reason: data.reason }, { count: "exact" })
+      .eq("id", data.feeId)
+      .eq("status", "invoiced");
     if (error) throw new Error(error.message);
-    const feeCase = await selectRows<{ case_id: string }>(db, "case_fees", "case_id", [
-      { col: "id", op: "eq", value: data.feeId },
-    ]);
-    if (feeCase[0]) {
-      await insertAudit(db, feeCase[0].case_id, context.userId, null, "fee_waived", data.reason);
-      await advanceSorCaseStatus(db, context.userId, feeCase[0].case_id, "waived");
-    }
+    // A concurrent pay won the claim: nothing was waived, so no audit row runs.
+    if ((count ?? 0) === 0) throw new Error("FEE_NOT_INVOICED");
+
+    await insertAudit(db, fee.case_id, context.userId, null, "fee_waived", data.reason);
+    await advanceSorCaseStatus(db, context.userId, fee.case_id, "waived");
     return { ok: true };
   });
 

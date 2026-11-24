@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { format } from "date-fns";
+import { DEFAULT_TUTOR_TIMEZONE, formatInTutorZone } from "@/features/cases/tutor-timezone";
 import { ArrowRight } from "lucide-react";
 import { useTranslation } from "react-i18next";
 
@@ -118,8 +118,16 @@ function UpcomingModule({
                 search={{ case: l.caseCode }}
                 className="font-medium text-[color:var(--ink)] hover:underline"
               >
-                {format(new Date(l.startsAt), "EEE d MMM, HH:mm")} ·{" "}
-                {t("calendar_hub.minutes", { n: l.durationMin })}
+                {/* Absolute instant: pin the zone, a bare format() reads the device zone. */}
+                {formatInTutorZone(l.startsAt, DEFAULT_TUTOR_TIMEZONE, {
+                  weekday: "short",
+                  day: "numeric",
+                  month: "short",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                })}{" "}
+                · {t("calendar_hub.minutes", { n: l.durationMin })}
               </Link>
               <span className="ml-2 text-xs text-muted-foreground">
                 {l.counterpart} · {l.caseCode}

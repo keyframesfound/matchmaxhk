@@ -65,7 +65,39 @@ export type PriorContact = {
   matchedCase: boolean;
   trialIntro: boolean;
   tutorApplied: boolean;
+  /**
+   * #737: when the MOST RECENT qualifying interaction happened (ISO). `null`
+   * means there is history but no datable row; `undefined` means the caller
+   * supplies no timestamps at all (legacy callers keep the old rule).
+   */
+  lastContactAt?: string | null;
 };
+
+/**
+ * #737: prior on-platform contact only refuses the waiver while it is recent.
+ *
+ * A single interaction years ago must not lock a tutor's own off-platform
+ * student out of the HK$0 fee forever, so the lookback stops at 180 days. Past
+ * the window the invite is allowed; the normal fee path was always available.
+ */
+export const BYOS_PRIOR_CONTACT_WINDOW_DAYS = 180;
+
+const DAY_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * True when a qualifying interaction falls inside the lookback window.
+ *
+ * Undatable history (a flag set with no timestamp) stays refused — the only
+ * cost is the normal admin fee, while granting it to a tutee the tutor already
+ * met on-platform is the exact loophole this rule exists to close.
+ */
+export function byosPriorContactRefused(prior: PriorContact, now: Date = new Date()): boolean {
+  if (!prior.matchedCase && !prior.trialIntro && !prior.tutorApplied) return false;
+  if (prior.lastContactAt === undefined) return true;
+  const at = prior.lastContactAt === null ? Number.NaN : Date.parse(prior.lastContactAt);
+  if (!Number.isFinite(at)) return true;
+  return now.getTime() - at < BYOS_PRIOR_CONTACT_WINDOW_DAYS * DAY_MS;
+}
 
 export type ByosClaimRefusal = "own_invite" | "prior_contact" | "not_active" | "expired";
 
@@ -92,8 +124,9 @@ export function byosInviteExpired(
 }
 
 /**
- * Null = the waiver may be granted. Anti-circumvention: any prior on-platform
- * contact with this tutor refuses the waiver (the normal fee applies).
+ * Null = the waiver may be granted. Anti-circumvention: prior on-platform
+ * contact with this tutor INSIDE the 180-day window refuses the waiver (the
+ * normal fee applies).
  */
 export function byosClaimRefusal(input: {
   inviteStatus: string;
@@ -101,12 +134,13 @@ export function byosClaimRefusal(input: {
   prior: PriorContact;
   /** #737 §3: the invite's 7-day window has closed. */
   expired?: boolean;
+  /** #737: clock for the 180-day prior-contact window (tests pin it). */
+  now?: Date;
 }): ByosClaimRefusal | null {
   if (input.inviteStatus !== "active") return "not_active";
   if (input.expired) return "expired";
   if (input.claimantIsTutor) return "own_invite";
-  const { matchedCase, trialIntro, tutorApplied } = input.prior;
-  if (matchedCase || trialIntro || tutorApplied) return "prior_contact";
+  if (byosPriorContactRefused(input.prior, input.now)) return "prior_contact";
   return null;
 }
 

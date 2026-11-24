@@ -16,8 +16,8 @@ const tenure = { completedLessons: 6, daysSinceFirstLesson: 90, verifiedHours: 9
 
 const base: CardCandidate = {
   checkpoints: [
-    { type: "school_quiz", scale: "hkdse", value: "4", month: "2026-02" },
-    { type: "mock", scale: "hkdse", value: "5*", month: "2026-06" },
+    { type: "school_quiz", scale: "dse", value: "4", month: "2026-02" },
+    { type: "mock", scale: "dse", value: "5*", month: "2026-06" },
   ],
   verification: "parent_attested",
   anonymousShareConsent: true,
@@ -34,7 +34,7 @@ describe("#794 §2.6 progress card rules", () => {
   it("keeps a single datapoint private", () => {
     const verdict = evaluateProgressCard({
       ...base,
-      checkpoints: [{ type: "mock", scale: "hkdse", value: "5", month: "2026-06" }],
+      checkpoints: [{ type: "mock", scale: "dse", value: "5", month: "2026-06" }],
     });
     expect(verdict).toEqual({ publishable: false, reasons: ["too_few_checkpoints"] });
   });
@@ -43,7 +43,7 @@ describe("#794 §2.6 progress card rules", () => {
     const verdict = evaluateProgressCard({
       ...base,
       checkpoints: [
-        { type: "mock", scale: "hkdse", value: "4", month: "2026-02" },
+        { type: "mock", scale: "dse", value: "4", month: "2026-02" },
         { type: "mock", scale: "ibdp", value: "6", month: "2026-06" },
       ],
     });
@@ -91,8 +91,8 @@ describe("#794 §2.6 progress card rules", () => {
       ...base,
       lastLessonAt: "2026-06-01",
       checkpoints: [
-        { type: "mock", scale: "hkdse", value: "4", month: "2026-02" },
-        { type: "public_exam", scale: "hkdse", value: "5**", month: "2026-09" },
+        { type: "mock", scale: "dse", value: "4", month: "2026-02" },
+        { type: "public_exam", scale: "dse", value: "5**", month: "2026-09" },
       ],
     });
     expect(inside).toEqual({ publishable: true });
@@ -101,8 +101,8 @@ describe("#794 §2.6 progress card rules", () => {
       ...base,
       lastLessonAt: "2026-01-01",
       checkpoints: [
-        { type: "mock", scale: "hkdse", value: "4", month: "2026-02" },
-        { type: "public_exam", scale: "hkdse", value: "5**", month: "2026-09" },
+        { type: "mock", scale: "dse", value: "4", month: "2026-02" },
+        { type: "public_exam", scale: "dse", value: "5**", month: "2026-09" },
       ],
     });
     expect(outside.publishable).toBe(false);
@@ -114,8 +114,8 @@ describe("#794 §2.6 progress card rules", () => {
       ...base,
       lastLessonAt: "2026-03-01",
       checkpoints: [
-        { type: "mock", scale: "hkdse", value: "4", month: "2026-02" },
-        { type: "term_exam", scale: "hkdse", value: "5", month: "2026-06" },
+        { type: "mock", scale: "dse", value: "4", month: "2026-02" },
+        { type: "term_exam", scale: "dse", value: "5", month: "2026-06" },
       ],
     });
     expect(verdict).toEqual({ publishable: false, reasons: ["outside_windows"] });
@@ -123,27 +123,27 @@ describe("#794 §2.6 progress card rules", () => {
   });
 
   it("validates values per scale", () => {
-    expect(isValidScaleValue("hkdse", "5**")).toBe(true);
-    expect(isValidScaleValue("hkdse", "5***")).toBe(false);
+    expect(isValidScaleValue("dse", "5**")).toBe(true);
+    expect(isValidScaleValue("dse", "5***")).toBe(false);
     expect(isValidScaleValue("ibdp", "7")).toBe(true);
     expect(isValidScaleValue("ibdp", "8")).toBe(false);
     expect(isValidScaleValue("alevel", "A*")).toBe(true);
-    expect(isValidScaleValue("percentage", "82")).toBe(true);
-    expect(isValidScaleValue("percentage", "140")).toBe(false);
+    expect(isValidScaleValue("percent", "82")).toBe(true);
+    expect(isValidScaleValue("percent", "140")).toBe(false);
   });
 
   it("orders cards by most recent verified assessment, not biggest jump", () => {
     const olderBigJump = {
       checkpoints: [
-        { type: "mock" as const, scale: "hkdse" as const, value: "1", month: "2025-06" },
-        { type: "mock" as const, scale: "hkdse" as const, value: "5**", month: "2025-09" },
+        { type: "mock" as const, scale: "dse" as const, value: "1", month: "2025-06" },
+        { type: "mock" as const, scale: "dse" as const, value: "5**", month: "2025-09" },
       ],
       lastLessonAt: "2025-10-01",
     };
     const newerSmallJump = {
       checkpoints: [
-        { type: "mock" as const, scale: "hkdse" as const, value: "4", month: "2026-04" },
-        { type: "mock" as const, scale: "hkdse" as const, value: "5", month: "2026-05" },
+        { type: "mock" as const, scale: "dse" as const, value: "4", month: "2026-04" },
+        { type: "mock" as const, scale: "dse" as const, value: "5", month: "2026-05" },
       ],
       lastLessonAt: "2026-05-20",
     };
@@ -153,8 +153,8 @@ describe("#794 §2.6 progress card rules", () => {
   it("labels a delta in the native scale and carries the non-guarantee disclaimer", () => {
     expect(
       deltaLabel(
-        { type: "mock", scale: "hkdse", value: "4", month: "2026-02" },
-        { type: "mock", scale: "hkdse", value: "5*", month: "2026-06" },
+        { type: "mock", scale: "dse", value: "4", month: "2026-02" },
+        { type: "mock", scale: "dse", value: "5*", month: "2026-06" },
       ),
     ).toBe("4 → 5*");
     expect(PROGRESS_DISCLAIMER).toContain("no grade is guaranteed");

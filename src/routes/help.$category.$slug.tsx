@@ -19,7 +19,7 @@ import {
   type HelpArticle,
 } from "@/features/help/content";
 import { cn } from "@/lib/utils";
-import { canonicalUrl, localeLinks } from "@/features/i18n/seo";
+import { canonicalUrl, currentSeoLocale, localeLinks } from "@/features/i18n/seo";
 
 // Issue #500 (GLM review round 2): the redesign deleted these stub URLs, so
 // their indexed/bookmarked paths would hard-404. Each 301s to its successor
@@ -100,6 +100,23 @@ export const Route = createFileRoute("/help/$category/$slug")({
     const article = getHelpArticle(match.params.category, match.params.slug);
     if (!article) return { meta: [{ title: "Help Centre | MatchMax" }] };
     const path = `/help/${article.category}/${article.slug}`;
+    const locale = currentSeoLocale();
+    // Help articles are authored in English only — frontmatter title, summary and
+    // body are single-source, so /zh and /cn serve identical prose with translated
+    // chrome. Declaring those as language alternates is what produced the
+    // "duplicate, Google chose different canonical" and "duplicate without
+    // user-selected canonical" clusters, so every non-English URL consolidates
+    // onto the English one instead. Revisit if the articles are ever translated.
+    const canonicalHref = canonicalUrl(path, "en");
+    const category = getHelpCategory(article.category);
+    // Breadcrumb names mirror what the page renders: category and article
+    // titles are authored in English, so only the trail roots are fixed copy.
+    const crumbTrail = [
+      { name: "Home", url: canonicalUrl("/") },
+      { name: "Help Centre", url: canonicalUrl("/help") },
+      ...(category ? [{ name: category.name, url: canonicalUrl("/help") }] : []),
+      { name: article.title, url: canonicalUrl(path) },
+    ];
     return {
       meta: [
         { title: `${article.title} | MatchMax Help Centre` },
@@ -107,9 +124,9 @@ export const Route = createFileRoute("/help/$category/$slug")({
         { name: "robots", content: article.status === "draft" ? "noindex" : "index, follow" },
         { property: "og:title", content: `${article.title} | MatchMax Help Centre` },
         { property: "og:description", content: article.summary },
-        { property: "og:url", content: canonicalUrl(path) },
+        { property: "og:url", content: canonicalHref },
       ],
-      links: localeLinks(path),
+      links: locale === "en" ? localeLinks(path) : [{ rel: "canonical", href: canonicalHref }],
       scripts: [
         {
           type: "application/ld+json",
@@ -126,7 +143,22 @@ export const Route = createFileRoute("/help/$category/$slug")({
             },
             url: canonicalUrl(path),
             dateModified: article.updated,
+            // The article body itself is English on every locale, so the
+            // structured data must say so even when the chrome is Chinese.
             inLanguage: "en",
+          }),
+        },
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "BreadcrumbList",
+            itemListElement: crumbTrail.map((crumb, index) => ({
+              "@type": "ListItem",
+              position: index + 1,
+              name: crumb.name,
+              item: crumb.url,
+            })),
           }),
         },
       ],

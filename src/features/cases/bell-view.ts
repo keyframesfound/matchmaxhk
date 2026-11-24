@@ -85,7 +85,11 @@ export function bellLabel(item: BellLabelInput, t: BellTranslate): string {
       const label = str(p.label);
       const count = typeof p.count === "number" ? p.count : 1;
       const key =
-        p.scope === "cases" ? "sor.bell_search_match_cases" : "sor.bell_search_match_tutors";
+        p.scope === "cases"
+          ? "sor.bell_search_match_cases"
+          : p.scope === "notes"
+            ? "sor.bell_search_match_notes"
+            : "sor.bell_search_match_tutors";
       return label ? t(key, { count, label }) : t("sor.bell_search_match");
     }
     // Schedule Updated (#636/#461): "Schedule updated on {CaseTitle}" /

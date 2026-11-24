@@ -5,6 +5,16 @@ import { PageSkeleton } from "@/components/layout/PageSkeleton";
 
 export const Route = createFileRoute("/_authenticated")({
   ssr: false,
+  // Without an explicit head this shell inherits the root's indexable title.
+  // The private tree is noindex; robots.txt leaves it crawlable so Google can
+  // actually read this tag and drop the URLs.
+  head: () => ({
+    meta: [
+      { title: "MatchMax account | MatchMax" },
+      { name: "description", content: "Sign in to view your MatchMax account." },
+      { name: "robots", content: "noindex, follow" },
+    ],
+  }),
   component: AuthedLayout,
 });
 

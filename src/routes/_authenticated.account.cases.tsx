@@ -7,5 +7,12 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
  * page would never mount — the same bug this pair fixes for `/account`.
  */
 export const Route = createFileRoute("/_authenticated/account/cases")({
+  head: () => ({
+    meta: [
+      { title: "My cases | MatchMax" },
+      { name: "description", content: "Your MatchMax cases." },
+      { name: "robots", content: "noindex, follow" },
+    ],
+  }),
   component: () => <Outlet />,
 });

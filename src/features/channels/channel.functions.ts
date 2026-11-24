@@ -50,7 +50,19 @@ export type ChannelProfileData = {
     activeProBonoCases: number;
   } | null;
   stats: ChannelStats | null;
-  affiliations: { id: string; centreName: string; centreSlug: string; roleType: string }[];
+  affiliations: {
+    id: string;
+    centreName: string;
+    centreSlug: string;
+    roleType: string;
+    /**
+     * #548 P2 audit: an `alumni_student` affiliation is a self-declared claim.
+     * Nothing verifies it, so the channel must never render it as a confirmed
+     * centre relationship. The centre can still confirm it later via
+     * `decideAffiliation`, which clears the marker.
+     */
+    selfDeclared: boolean;
+  }[];
   birthdayMonthDay: string | null;
   publicRecords: {
     id: string;
@@ -63,6 +75,58 @@ export type ChannelProfileData = {
     grades_or_results: string | null;
   }[];
 };
+
+/**
+ * Is this centre affiliation a self-declared claim rather than a centre
+ * decision? Only `alumni_student` rows qualify, and only while nobody but the
+ * claimant has decided them:
+ *
+ * - rows written by `requestAffiliation` after this fix carry `decided_by: null`
+ *   (no decision was taken at all);
+ * - legacy rows stamped `decided_by: <the claimant>` on the auto-approve path
+ *   are self-declared too — the claimant deciding their own row is not a
+ *   centre decision;
+ * - a centre approving it later writes the admin's id, which clears the marker.
+ */
+export function isSelfDeclaredAffiliation(input: {
+  roleType: string;
+  decidedBy: string | null;
+  userId: string;
+}): boolean {
+  if (input.roleType !== "alumni_student") return false;
+  return input.decidedBy === null || input.decidedBy === input.userId;
+}
+
+/**
+ * A tutor card is public only when it is published, not locked by a ban and
+ * its owner account is not banned. Same rule the search and centre-channel
+ * surfaces apply, so a hidden card cannot be reached through /u/[handle].
+ */
+export function isChannelCardPublic(card: {
+  isPublished: boolean | null;
+  cardHiddenByBan: boolean | null;
+  ownerAccountStatus: string | null;
+}): boolean {
+  return (
+    card.isPublished === true &&
+    card.cardHiddenByBan !== true &&
+    card.ownerAccountStatus !== "banned"
+  );
+}
+
+/**
+ * #522: the opt-in 🎂 month/day badge is for logged-in viewers only — the
+ * comment in `getChannelProfile` always said so, the code did not.
+ */
+export function visibleBirthdayMonthDay(input: {
+  viewerId: string | null;
+  showBirthdayPublic: boolean | null;
+  dateOfBirth: string | null;
+}): string | null {
+  if (input.viewerId === null) return null;
+  if (input.showBirthdayPublic !== true || !input.dateOfBirth) return null;
+  return input.dateOfBirth.slice(5); // MM-DD; the year never leaves the server
+}
 
 async function tutorStats(db: Db, tutorId: string): Promise<ChannelStats> {
   const [hours, activeCases, materials, reviews] = await Promise.all([
@@ -192,13 +256,34 @@ export const getChannelProfile = createServerFn({ method: "POST" })
       accepts_reduced_rate: boolean | null;
       reduced_hourly_rate_hkd: number | null;
       pro_bono_max_slots: number | null;
+      card_hidden_by_ban: boolean | null;
+      owner_account_status: string | null;
     }>(
       db,
       "tutors",
-      "id, tutor_code, headline, badge, subjects, hourly_rate, min_hourly_rate_hkd, is_published, is_accepting_students, accepts_pro_bono, accepts_reduced_rate, reduced_hourly_rate_hkd, pro_bono_max_slots",
+      "id, tutor_code, headline, badge, subjects, hourly_rate, min_hourly_rate_hkd, is_published, is_accepting_students, accepts_pro_bono, accepts_reduced_rate, reduced_hourly_rate_hkd, pro_bono_max_slots, card_hidden_by_ban, owner_account_status",
       [{ col: "user_id", op: "eq", value: profile.id }],
     );
     const tutor = tutors[0] ?? null;
+
+    /**
+     * #548 P2 audit: an unpublished or banned card still served its headline,
+     * rate and stats here, so a hidden card stayed reachable at /u/[handle]
+     * even though search and the centre channel had already dropped it. A
+     * profile with no tutor card at all (parent, staff, centre contact) is
+     * unaffected — the channel is their only public page.
+     */
+    if (
+      tutor &&
+      viewerId !== profile.id &&
+      !isChannelCardPublic({
+        isPublished: tutor.is_published,
+        cardHiddenByBan: tutor.card_hidden_by_ban,
+        ownerAccountStatus: tutor.owner_account_status,
+      })
+    ) {
+      return notFound;
+    }
 
     /**
      * #548 regression, found on production 2026-11-22: this read selected
@@ -234,12 +319,19 @@ export const getChannelProfile = createServerFn({ method: "POST" })
     const affils = tutor
       ? await selectRows<{
           id: string;
+          user_id: string;
           role_type: string;
+          decided_by: string | null;
           organizations: { name: string; slug: string } | null;
-        }>(db, "centre_affiliations", "id, role_type, organizations(name, slug)", [
-          { col: "user_id", op: "eq", value: profile.id },
-          { col: "status", op: "eq", value: "approved" },
-        ])
+        }>(
+          db,
+          "centre_affiliations",
+          "id, user_id, role_type, decided_by, organizations(name, slug)",
+          [
+            { col: "user_id", op: "eq", value: profile.id },
+            { col: "status", op: "eq", value: "approved" },
+          ],
+        )
       : [];
     const { data: records } = await db
       .from<{
@@ -290,10 +382,11 @@ export const getChannelProfile = createServerFn({ method: "POST" })
       stats,
       // #522: opt-in 🎂 month/day badge, logged-in viewers only; the year
       // and exact age never leave the server.
-      birthdayMonthDay:
-        profile.show_birthday_public === true && profile.date_of_birth
-          ? profile.date_of_birth.slice(5) // MM-DD
-          : null,
+      birthdayMonthDay: visibleBirthdayMonthDay({
+        viewerId,
+        showBirthdayPublic: profile.show_birthday_public,
+        dateOfBirth: profile.date_of_birth,
+      }),
       affiliations: affils
         .filter((a) => a.organizations)
         .map((a) => ({
@@ -301,6 +394,11 @@ export const getChannelProfile = createServerFn({ method: "POST" })
           centreName: a.organizations!.name,
           centreSlug: a.organizations!.slug,
           roleType: a.role_type,
+          selfDeclared: isSelfDeclaredAffiliation({
+            roleType: a.role_type,
+            decidedBy: a.decided_by ?? null,
+            userId: a.user_id,
+          }),
         })),
       publicRecords: records ?? [],
     };
@@ -337,7 +435,16 @@ export const setProBonoPreferences = createServerFn({ method: "POST" })
     return { ok: true };
   });
 
-/** Request a centre affiliation (#548 B1). alumni auto-approves. */
+/**
+ * Request a centre affiliation (#548 B1).
+ *
+ * `alumni_student` stays auto-visible but is **self-declared**: it is never
+ * stamped as a centre decision (`decided_by`/`decided_at` stay null) and the
+ * channel renders it as unconfirmed. The honest alternative — routing alumni
+ * through `pending` — has no centre-side approval screen
+ * (`listPendingAffiliations` has no UI), so it would bury every alumni claim
+ * permanently instead of labelling it.
+ */
 export const requestAffiliation = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .validator((input: unknown) =>
@@ -357,7 +464,6 @@ export const requestAffiliation = createServerFn({ method: "POST" })
     const centre = orgs[0];
     if (!centre) throw new Error("CENTRE_NOT_FOUND");
     const status = data.roleType === "alumni_student" ? "approved" : "pending";
-    const now = new Date().toISOString();
     const { error } = await db.from("centre_affiliations").upsert(
       {
         user_id: context.userId,
@@ -365,8 +471,11 @@ export const requestAffiliation = createServerFn({ method: "POST" })
         role_type: data.roleType,
         status,
         requested_by: context.userId,
-        decided_by: status === "approved" ? context.userId : null,
-        decided_at: status === "approved" ? now : null,
+        // No decision was taken: the claimant wrote their own alumni claim.
+        // A centre approving it later (decideAffiliation) fills these in and
+        // clears the self-declared marker on the channel.
+        decided_by: null,
+        decided_at: null,
       },
       { onConflict: "user_id,centre_id" },
     );

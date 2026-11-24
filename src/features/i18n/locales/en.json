@@ -324,7 +324,9 @@
   "caseDesk": {
     "tutor_code_label": "Tutor code",
     "tutor_code_placeholder": "Search by tutor code…",
-    "matched_tutor_label": "Matched tutor"
+    "matched_tutor_label": "Matched tutor",
+    "fee_waived_badge": "Fee waived",
+    "fee_waived_detail": "Admin fee waived for a bring-your-own student"
   },
   "caseFilters": {
     "all_curricula": "All curricula",
@@ -509,7 +511,11 @@
     "notes_tutor_prefill": "Referred tutor: {{code}} (1-on-1 trial requested from this tutor's Notes page)",
     "notes_time_prefill": "Preferred time: {{slot}} (HKT)",
     "referred_by_org": "You were referred by a Partner Centre. We will record the referral.",
-    "referred_by": "Referred by {{name}} · Matched on MatchMax"
+    "referred_by": "Referred by {{name}} · Matched on MatchMax",
+    "step_contact": "Contact",
+    "step_admissions": "Admissions",
+    "step_tutoring": "Tutoring",
+    "step_logistics": "Logistics"
   },
   "case_status": {
     "title": "Match status",
@@ -1711,7 +1717,11 @@
     "copied": "Copied to clipboard.",
     "empty": "No verified lesson or activity this week.",
     "copy_header": "MatchMax weekly update",
-    "copy_case": "Case {{code}}"
+    "copy_case": "Case {{code}}",
+    "part_covered": "Covered",
+    "part_progress": "Progress",
+    "part_practice": "Additional practice",
+    "part_next": "Next steps"
   },
   "notes_rail": {
     "title": "Recommended for this case",
@@ -3273,9 +3283,9 @@
       "drop_protection_note": "Cases that end after exactly one paid lesson still count toward your completion rate and verified hours, even if Drop-Protection is applied.",
       "promo_saved": "First-lesson offers saved",
       "timezone_label": "Your timezone",
-    "timezone_hint": "Your availability grid is read in this timezone. Lesson times are always absolute.",
-    "timezone_saved": "Timezone saved.",
-    "hide_profile_label": "Hide Public Profile",
+      "timezone_hint": "Your availability grid is read in this timezone. Lesson times are always absolute.",
+      "timezone_saved": "Timezone saved.",
+      "hide_profile_label": "Hide Public Profile",
       "hide_profile_hint": "Turn this on to temporarily hide your profile from the MatchMax directory. (Useful if you are fully booked or taking a break for exams).",
       "hidden_toast": "Your profile is now hidden from the directory",
       "shown_toast": "Your profile is visible in the directory again",
@@ -3873,6 +3883,9 @@
     "bell_search_match_cases_one": "1 new case matches your saved search “{{label}}”",
     "bell_search_match_cases_other": "{{count}} new cases match your saved search “{{label}}”",
     "bell_search_match_cases": "{{count}} new cases match your saved search “{{label}}”",
+    "bell_search_match_notes_one": "1 new note matches your saved search “{{label}}”",
+    "bell_search_match_notes_other": "{{count}} new notes match your saved search “{{label}}”",
+    "bell_search_match_notes": "{{count}} new notes match your saved search “{{label}}”",
     "bell_saved_profile": "Someone saved your tutor profile ({{label}}). Keep your availability updated!",
     "bell_saved_note": "Someone saved your note “{{label}}”",
     "bell_saved_case": "A tutor saved your case {{label}}",
@@ -3898,6 +3911,7 @@
     "rate_saved_text_held": "Saved. Your stars are live; the text was held for review.",
     "rate_err_no_lesson": "A public review opens after the first completed lesson.",
     "rate_err_frozen": "This review is closed for edits.",
+    "rate_err_rate_limited": "You have submitted the maximum ratings for this week. You can rate again in a few days.",
     "rate_err_case": "We could not load this case.",
     "rate_no_lesson_title": "Reviews open after the first lesson",
     "rate_no_lesson_body": "No lesson has been completed on this case yet, so there is no public review. You can still tell our desk privately.",
@@ -4000,6 +4014,7 @@
   },
   "channel": {
     "birthday_badge": "🎂 {{date}}",
+    "self_declared": "Self-declared",
     "not_found": "Channel not found.",
     "load_failed": "This channel didn't load. It may just be a slow connection.",
     "retry": "Try again",
@@ -4617,7 +4632,25 @@
     "tab_marketplace": "Marketplace",
     "marketplace_empty_title": "No saved notes yet",
     "marketplace_empty_body": "Tap the heart on any Marketplace note to keep it here.",
-    "browse_marketplace": "Browse the Marketplace"
+    "browse_marketplace": "Browse the Marketplace",
+    "eyebrow": "Your collection",
+    "find_tutors": "Find tutors",
+    "loading_tutors": "Loading saved tutors...",
+    "tutors_error_title": "We couldn't load your saved tutors",
+    "tutors_error_body": "Please refresh the page and try again.",
+    "tutors_empty_title": "You haven't saved any tutors yet",
+    "tutors_empty_body": "Browse the tutor directory and bookmark the profiles you want to revisit.",
+    "requests_title": "Saved requests",
+    "requests_loading": "Loading saved requests...",
+    "requests_empty_title": "You haven't saved any requests yet",
+    "requests_empty_body": "Bookmark tutoring requests from the board to revisit them later.",
+    "browse_requests": "Browse requests",
+    "courses_title": "Saved courses",
+    "courses_loading": "Loading saved courses...",
+    "courses_empty_title": "You haven't saved any courses yet",
+    "courses_empty_body": "Bookmark courses from the directory to build your shortlist.",
+    "browse_courses": "Browse courses",
+    "view_details": "View details"
   },
   "safety": {
     "contact_title": "Trusted contact (optional)",
@@ -6006,6 +6039,23 @@
   "tutor_requests": {
     "b2b_chip": "B2B overflow",
     "net_rate": "Net rate: HK${{rate}}/hr",
-    "cap57_overflow": "This is an introduction to a self-employed educator. The centre pays the tutor directly; you pay MatchMax the applicable admin fee."
+    "cap57_overflow": "This is an introduction to a self-employed educator. The centre pays the tutor directly; you pay MatchMax the applicable admin fee.",
+    "badge": "Tutor requests",
+    "hero_title": "Requesting a tutor that meets your requirements?",
+    "hero_body": "Fill in this form and tutors who're qualified and interested can apply for your case!",
+    "case_request_body": "Fill in this form and tutors who're qualified and interested can apply for your case! No account needed to fill it in; you sign in with Google when you submit and your answers carry over automatically.",
+    "post_cta": "Post your request",
+    "hide_form": "Hide form",
+    "form_title": "Post your request",
+    "form_body": "Tell us what you need and our team will review it. Approved requests appear on this board so qualified tutors can apply directly.",
+    "notice_dismiss": "Don't show again",
+    "board_title": "Open requests",
+    "board_body": "Real tutoring requests from Hong Kong parents. Open a case for the full details and apply for the ones that fit your schedule.",
+    "empty_title": "No open requests right now",
+    "empty_body": "Approved parent requests appear here for tutors to apply. Be the first: post your requirements and let tutors come to you.",
+    "footer_note": "Interested in a case? Apply via WhatsApp and the MatchMax team will connect you with the parent. Free for parents, our team replies within one business day.",
+    "share_title": "{{title}}, case {{code}} | MatchMax",
+    "share_text": "Check out this tutoring request (case {{code}}) on MatchMax.",
+    "match_count": "{{count}} matches"
   }
 }

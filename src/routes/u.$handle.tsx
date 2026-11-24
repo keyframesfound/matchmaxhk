@@ -207,6 +207,7 @@ function ChannelProfilePage() {
                         {a.roleType === "affiliated_tutor"
                           ? t("channel.affiliated_tutor", { centre: a.centreName })
                           : t("channel.alumni_student", { centre: a.centreName })}
+                        {a.selfDeclared ? ` · ${t("channel.self_declared")}` : ""}
                       </Link>
                     ))}
                   </p>

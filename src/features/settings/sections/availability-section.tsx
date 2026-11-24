@@ -26,6 +26,25 @@ type TutorAvailability = {
   preferred_time_windows: string[] | null;
 };
 
+/** Start-date group draft. Pure so the dirty guard stays testable. */
+export function availabilityStartDraft(row: TutorAvailability) {
+  return {
+    startImmediately: row.start_immediately !== false,
+    startDate: row.earliest_start_date ?? "",
+  };
+}
+
+/** Capacity group draft. Pure so the dirty guard stays testable. */
+export function availabilityCapacityDraft(row: TutorAvailability) {
+  return {
+    acceptingStudents: row.is_accepting_students !== false,
+    openSlots: typeof row.remaining_student_slots === "number" ? row.remaining_student_slots : 2,
+    timeWindows: (row.preferred_time_windows ?? []).filter((w): w is PreferredTimeWindow =>
+      (PREFERRED_TIME_WINDOWS as readonly string[]).includes(w),
+    ),
+  };
+}
+
 /**
  * "Availability", tutor self-serve start date (issue #106). Saves through the
  * update_my_availability RPC so the tutor can only ever touch these two
@@ -62,21 +81,27 @@ export function AvailabilitySection() {
     enabled: Boolean(user),
   });
 
+  // Two field groups, two hydrations. Saving either group invalidates this same
+  // query, and the router's staleTime lets a window-focus refetch do it too, so a
+  // single unguarded effect wiped a half-typed edit in the group being ignored.
+  // Each group only re-hydrates while it is not dirty, and a dirty flag is cleared
+  // by its own save only — never by a refetch.
   useEffect(() => {
     const row = availabilityQuery.data;
-    if (!row) return;
-    setStartImmediately(row.start_immediately !== false);
-    setStartDate(row.earliest_start_date ?? "");
-    setAcceptingStudents(row.is_accepting_students !== false);
-    setOpenSlots(typeof row.remaining_student_slots === "number" ? row.remaining_student_slots : 2);
-    setTimeWindows(
-      (row.preferred_time_windows ?? []).filter((w): w is PreferredTimeWindow =>
-        (PREFERRED_TIME_WINDOWS as readonly string[]).includes(w),
-      ),
-    );
-    setDirty(false);
-    setCapacityDirty(false);
-  }, [availabilityQuery.data]);
+    if (!row || dirty) return;
+    const draft = availabilityStartDraft(row);
+    setStartImmediately(draft.startImmediately);
+    setStartDate(draft.startDate);
+  }, [availabilityQuery.data, dirty]);
+
+  useEffect(() => {
+    const row = availabilityQuery.data;
+    if (!row || capacityDirty) return;
+    const draft = availabilityCapacityDraft(row);
+    setAcceptingStudents(draft.acceptingStudents);
+    setOpenSlots(draft.openSlots);
+    setTimeWindows(draft.timeWindows);
+  }, [availabilityQuery.data, capacityDirty]);
 
   async function save() {
     setSaving(true);
@@ -89,10 +114,12 @@ export function AvailabilitySection() {
       toast.error(error.message);
       return;
     }
-    setDirty(false);
+    // Refetch before clearing the flag, so the re-hydration that follows reads the
+    // saved row instead of the stale one.
     await queryClient.invalidateQueries({
       queryKey: ["settings", "availability", user?.id],
     });
+    setDirty(false);
     toast.success(t("settings.availability.saved"));
   }
 
@@ -108,10 +135,10 @@ export function AvailabilitySection() {
       toast.error(error.message);
       return;
     }
-    setCapacityDirty(false);
     await queryClient.invalidateQueries({
       queryKey: ["settings", "availability", user?.id],
     });
+    setCapacityDirty(false);
     toast.success(t("settings.capacity.saved"));
   }
 

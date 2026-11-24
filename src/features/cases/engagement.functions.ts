@@ -85,6 +85,74 @@ async function requireStaff(userId: string): Promise<boolean> {
   return false;
 }
 
+/** Who the caller is to this engagement; null means "no party access". */
+export type EngagementPartyRole = "staff" | "customer" | "tutor";
+
+export type EngagementPartyFacts = {
+  isStaff: boolean;
+  isParent: boolean;
+  isMatchedTutor: boolean;
+  isActiveOrgMember: boolean;
+};
+
+/**
+ * Pure party table (vitest-covered): staff act on the desk, the parent is the
+ * customer, the matched tutor's account is the educator, and an active member
+ * of the centre organisation stands in for the customer. Anyone else is a
+ * stranger to the engagement and gets no access at all.
+ */
+export function resolveEngagementPartyRole(
+  facts: EngagementPartyFacts,
+): EngagementPartyRole | null {
+  if (facts.isStaff) return "staff";
+  if (facts.isParent) return "customer";
+  if (facts.isMatchedTutor) return "tutor";
+  if (facts.isActiveOrgMember) return "customer";
+  return null;
+}
+
+/**
+ * The single server-side party gate for the #412 F engagement surface. Every
+ * read/write that touches an engagement summary or change report resolves the
+ * caller here rather than trusting a payload field.
+ */
+async function resolveEngagementParty(
+  c: CaseRow,
+  userId: string,
+): Promise<EngagementPartyRole | null> {
+  const isStaff = await requireStaff(userId);
+  const facts: EngagementPartyFacts = {
+    isStaff,
+    isParent: c.parent_id === userId,
+    isMatchedTutor: false,
+    isActiveOrgMember: false,
+  };
+
+  if (!isStaff && !facts.isParent) {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    if (c.matched_tutor_id) {
+      const { data: tutor } = await supabaseAdmin
+        .from("tutors")
+        .select("user_id")
+        .eq("id", c.matched_tutor_id)
+        .maybeSingle();
+      facts.isMatchedTutor = (tutor as { user_id: string } | null)?.user_id === userId;
+    }
+    if (!facts.isMatchedTutor && c.organisation_id) {
+      const { data: member } = await supabaseAdmin
+        .from("organization_members")
+        .select("id")
+        .eq("organization_id", c.organisation_id)
+        .eq("user_id", userId)
+        .eq("status", "active")
+        .maybeSingle();
+      facts.isActiveOrgMember = Boolean(member);
+    }
+  }
+
+  return resolveEngagementPartyRole(facts);
+}
+
 /** Build (or rebuild) the summary payload from the live case + triage. */
 async function buildPayload(c: CaseRow): Promise<EngagementSummaryPayload> {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -240,32 +308,8 @@ export const getEngagementSummary = createServerFn({ method: "GET" })
   .inputValidator((data: unknown) => z.object({ caseId: z.string().uuid() }).parse(data))
   .handler(async ({ data, context }) => {
     const c = await loadCase(data.caseId);
-    const isStaff = await requireStaff(context.userId);
-
-    if (!isStaff) {
-      let allowed = c.parent_id === context.userId;
-      if (!allowed && c.matched_tutor_id) {
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { data: tutor } = await supabaseAdmin
-          .from("tutors")
-          .select("user_id")
-          .eq("id", c.matched_tutor_id)
-          .maybeSingle();
-        allowed = (tutor as { user_id: string } | null)?.user_id === context.userId;
-      }
-      if (!allowed && c.organisation_id) {
-        const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-        const { data: member } = await supabaseAdmin
-          .from("organization_members")
-          .select("id")
-          .eq("organization_id", c.organisation_id)
-          .eq("user_id", context.userId)
-          .eq("status", "active")
-          .maybeSingle();
-        allowed = Boolean(member);
-      }
-      if (!allowed) throw new Error("Forbidden");
-    }
+    const role = await resolveEngagementParty(c, context.userId);
+    if (!role) throw new Error("Forbidden");
 
     const summary = await loadSummaryRow(c.id);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
@@ -275,7 +319,6 @@ export const getEngagementSummary = createServerFn({ method: "GET" })
       .eq("case_id", c.id)
       .order("created_at", { ascending: false })
       .limit(20);
-    const role = isStaff ? "staff" : c.parent_id === context.userId ? "customer" : "tutor";
     return {
       role,
       summary: summary
@@ -345,6 +388,12 @@ export const confirmEngagementSummary = createServerFn({ method: "POST" })
  * hours, or contracting structure. The report lands unresolved and the case
  * goes back into compliance_hold so staff re-screen, matching, circulation,
  * and contact release stay locked until they clear it.
+ *
+ * Party-gated like the sibling handlers: only the parent customer, the
+ * matched educator, an active member of the centre organisation, or staff can
+ * freeze a case this way, and `reported_by_role` is derived from that
+ * resolution — never from the client payload (a forged role or a stranger
+ * holding a caseId must not be able to re-hold a case).
  */
 export const reportEngagementChange = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -352,7 +401,9 @@ export const reportEngagementChange = createServerFn({ method: "POST" })
     z
       .object({
         caseId: z.string().uuid(),
-        role: z.enum(["tutor", "customer"]),
+        // Accepted for the existing client payload but intentionally ignored:
+        // the reporter's role is resolved server-side below.
+        role: z.enum(["tutor", "customer"]).optional(),
         description: z.string().trim().min(10).max(500),
       })
       .parse(data),
@@ -360,11 +411,14 @@ export const reportEngagementChange = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const c = await loadCase(data.caseId);
+    const role = await resolveEngagementParty(c, context.userId);
+    if (!role) throw new Error("Forbidden");
+
     const summary = await loadSummaryRow(c.id);
     const { error } = await supabaseAdmin.from("engagement_change_reports").insert({
       case_id: c.id,
       engagement_id: summary?.id ?? null,
-      reported_by_role: data.role,
+      reported_by_role: role,
       reported_by_user: context.userId,
       description: data.description,
     } as never);

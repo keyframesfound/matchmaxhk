@@ -354,12 +354,36 @@ export const getOrganizationCases = createServerFn({ method: "GET" })
     }>;
   });
 
+/** Facts behind the tutor clarify gate (pure, vitest-covered). */
+export type ComplianceFlagFacts = {
+  /** The caller holds a real tutors row, not merely a signed-in account. */
+  hasTutorCard: boolean;
+  /** The caller is the case's own parent customer. */
+  isCaseParent: boolean;
+  /** The caller is an active member of the organisation that owns the case. */
+  isActiveOrgMember: boolean;
+};
+
+/**
+ * #412 E: only a tutor who is not a party to the request may raise it. A
+ * parent cannot re-hold their own case and an owning-centre member cannot
+ * freeze the case they commissioned, so both are refused.
+ */
+export function canFlagComplianceConcern(facts: ComplianceFlagFacts): boolean {
+  if (!facts.hasTutorCard) return false;
+  if (facts.isCaseParent) return false;
+  if (facts.isActiveOrgMember) return false;
+  return true;
+}
+
 /**
  * #412 E: tutor-side clarify on a centre case. The tutor reads the screening
  * summary on the public case page; "I need to correct or clarify something"
  * writes the note and puts the case back into compliance_hold so staff can
- * re-screen before anything circulates. Service-role write, membership-free
- * (any authenticated tutor can flag), idempotent in effect.
+ * re-screen before anything circulates. Service-role write, but gated: the
+ * caller needs a real tutors row, must not be the case's parent, and must not
+ * be an active member of the owning organisation. The status write is
+ * conditional on the status it read, so a concurrent transition wins.
  */
 export const flagCaseComplianceConcern = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
@@ -375,7 +399,7 @@ export const flagCaseComplianceConcern = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: row, error } = await supabaseAdmin
       .from("tutoring_cases")
-      .select("id, status, compliance_triage")
+      .select("id, status, compliance_triage, parent_id, organisation_id")
       .eq("id", data.caseId)
       .maybeSingle();
     if (error) throw new Error(error.message);
@@ -383,13 +407,47 @@ export const flagCaseComplianceConcern = createServerFn({ method: "POST" })
     if (!row || triage?.scope !== "centre") {
       throw new Error("This request is not a centre engagement.");
     }
-    const { error: updateError } = await supabaseAdmin
+
+    // Tutor gate, same shape as applyToCase: a signed-in account is not enough.
+    const { data: tutorRow } = await supabaseAdmin
+      .from("tutors")
+      .select("id")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+
+    let isActiveOrgMember = false;
+    if (row.organisation_id) {
+      const { data: member } = await supabaseAdmin
+        .from("organization_members")
+        .select("id")
+        .eq("organization_id", row.organisation_id)
+        .eq("user_id", context.userId)
+        .eq("status", "active")
+        .maybeSingle();
+      isActiveOrgMember = Boolean(member);
+    }
+
+    const allowed = canFlagComplianceConcern({
+      hasTutorCard: Boolean(tutorRow),
+      isCaseParent: row.parent_id === context.userId,
+      isActiveOrgMember,
+    });
+    if (!allowed) throw new Error("Forbidden");
+
+    // Conditional write: only transitions the exact status that was read, so a
+    // concurrent desk/tutor transition is never clobbered.
+    const { data: updated, error: updateError } = await supabaseAdmin
       .from("tutoring_cases")
       .update({
         status: "compliance_hold",
         compliance_note: data.note,
       } as never)
-      .eq("id", row.id as string);
+      .eq("id", row.id)
+      .eq("status", row.status)
+      .select("id");
     if (updateError) throw new Error(updateError.message);
+    if (!updated || updated.length === 0) {
+      throw new Error("This request changed while you were flagging it. Reload and try again.");
+    }
     return { ok: true };
   });

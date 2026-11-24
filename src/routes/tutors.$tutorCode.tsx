@@ -92,9 +92,11 @@ import { VerifiedHoursLine } from "@/features/tutors/verified-hours-line";
 import { TutorGroupClassesSection } from "@/features/cases/tutor-cohorts-section";
 import { InitialAvatar } from "@/components/ui/initial-avatar";
 import {
+  normalizeTargetLevels,
   normalizeUniversityCourses,
   normalizeUniversityGpa,
   normalizeUniversityYear,
+  type TargetTeachingLevel,
 } from "@/features/tutors/verticals";
 import { kindergartenTopicLabel, yearOfStudyLabel } from "@/features/tutors/verticals-labels";
 import {
@@ -121,20 +123,72 @@ import { ConnectTutorButton } from "@/features/connections/connect-tutor-button"
 import { Skeleton } from "@/components/ui/skeleton";
 import { MarkdownText } from "@/components/ui/markdown-text";
 import { shareOrCopy } from "@/lib/share";
-import { canonicalUrl, hreflangLinks } from "@/features/i18n/seo";
+import {
+  canonicalUrl,
+  currentSeoLocale,
+  localeLinks,
+  localizedMeta,
+  ogLocaleMeta,
+  type LocaleCopy,
+  type SeoLocale,
+} from "@/features/i18n/seo";
 import { ConciergeReferButton } from "@/features/connections/concierge-refer-button";
 
-function buildTutorSeoMeta(tutor: Tutor, url: string) {
+/**
+ * SEO fix: tutors.target_students stores canonical English level tags (data,
+ * not copy), so the per-locale meta title/description needs its own label map
+ * rather than a new locale JSON key.
+ */
+const TEACHING_LEVEL_LABEL: Record<SeoLocale, Record<TargetTeachingLevel, string>> = {
+  en: {
+    Kindergarten: "Kindergarten",
+    Primary: "Primary",
+    Secondary: "Secondary",
+    University: "University",
+  },
+  "zh-HK": {
+    Kindergarten: "幼稚園",
+    Primary: "小學",
+    Secondary: "中學",
+    University: "大學",
+  },
+  "zh-CN": {
+    Kindergarten: "幼儿园",
+    Primary: "小学",
+    Secondary: "中学",
+    University: "大学",
+  },
+};
+
+function joinLevels(labels: string[], locale: SeoLocale): string {
+  // Chinese lists read with an enumeration comma; English joins the last item
+  // with "and" ("Secondary and University", never "A and B and C").
+  if (labels.length <= 1) return labels[0] ?? "";
+  if (locale === "en") {
+    return `${labels.slice(0, -1).join(", ")} and ${labels[labels.length - 1]}`;
+  }
+  return labels.join("、");
+}
+
+function buildTutorSeoCopy(tutor: Tutor): { title: LocaleCopy; description: LocaleCopy } {
   const subjects = (tutor.subjects ?? []).filter(Boolean);
   const subjectText = subjects.slice(0, 3).join(", ");
   const areaText = getTutorStationsText(tutor);
-  const locationText = areaText ? ` in ${areaText}` : " in Hong Kong";
-  const lessonModeText =
-    tutor.lesson_mode === "online"
-      ? "online"
-      : tutor.lesson_mode === "either"
-        ? "online or in-person"
-        : "in-person";
+  const levels = normalizeTargetLevels(tutor.target_students);
+  const levelText: LocaleCopy = {
+    en: joinLevels(
+      levels.map((level) => TEACHING_LEVEL_LABEL.en[level]),
+      "en",
+    ),
+    "zh-HK": joinLevels(
+      levels.map((level) => TEACHING_LEVEL_LABEL["zh-HK"][level]),
+      "zh-HK",
+    ),
+    "zh-CN": joinLevels(
+      levels.map((level) => TEACHING_LEVEL_LABEL["zh-CN"][level]),
+      "zh-CN",
+    ),
+  };
   // Issue #502: prefer the display name in the SEO/og title when set, keeping
   // the tutor code in brackets so parents can still quote it. Issue #568: the
   // code itself can be stored as the display_name when no public name was set
@@ -146,10 +200,45 @@ function buildTutorSeoMeta(tutor: Tutor, url: string) {
     rawName !== tutor.tutor_code &&
     rawName !== formatTutorCode(tutor.tutor_code);
   const identity = hasRealDisplayName ? `${rawName} (${tutor.tutor_code})` : tutor.tutor_code;
-  const title = `${identity} | ${subjectText || "Tutor"} ${lessonModeText} ${locationText} | MatchMax`;
-  const description = `Tutor ${identity} offers ${subjectText || "subject"} support${locationText}. Browse profile details, lesson mode, rates and availability on MatchMax.`;
 
-  return { title, description, url };
+  const modeSentence: LocaleCopy = {
+    en:
+      tutor.lesson_mode === "online"
+        ? "Lessons are available online."
+        : tutor.lesson_mode === "either"
+          ? "Lessons are available online or in person."
+          : "Lessons are held in person.",
+    "zh-HK":
+      tutor.lesson_mode === "online"
+        ? "可以網上上堂。"
+        : tutor.lesson_mode === "either"
+          ? "網上同面授都得。"
+          : "只做面授。",
+    "zh-CN":
+      tutor.lesson_mode === "online"
+        ? "支持线上上课。"
+        : tutor.lesson_mode === "either"
+          ? "线上和线下都可以。"
+          : "只提供线下授课。",
+  };
+  const place: LocaleCopy = {
+    en: areaText ? `in ${areaText}, Hong Kong` : "in Hong Kong",
+    "zh-HK": areaText ? `喺${areaText}一帶` : "喺香港",
+    "zh-CN": areaText ? `在${areaText}一带` : "在香港",
+  };
+
+  return {
+    title: {
+      en: `${identity} | ${subjectText || "Tutoring"} Tutor${levelText.en ? ` for ${levelText.en}` : ""} | MatchMax`,
+      "zh-HK": `${identity}｜${subjectText || "補習"}導師${levelText["zh-HK"] ? `（${levelText["zh-HK"]}）` : ""}｜MatchMax`,
+      "zh-CN": `${identity}｜${subjectText || "补习"}导师${levelText["zh-CN"] ? `（${levelText["zh-CN"]}）` : ""}｜MatchMax`,
+    },
+    description: {
+      en: `Tutor ${identity} teaches ${subjectText || "tutoring"}${levelText.en ? ` to ${levelText.en} students` : ""} ${place.en}. ${modeSentence.en} Browse rates, availability and reviews on MatchMax.`,
+      "zh-HK": `導師 ${identity} 教授${subjectText || "各科"}${levelText["zh-HK"] ? `，對象係${levelText["zh-HK"]}學生` : ""}，授課地點${place["zh-HK"]}。${modeSentence["zh-HK"]} 上 MatchMax 睇學費、上堂時間同評價。`,
+      "zh-CN": `导师 ${identity} 教授${subjectText || "各科"}${levelText["zh-CN"] ? `，面向${levelText["zh-CN"]}学生` : ""}，授课地点${place["zh-CN"]}。${modeSentence["zh-CN"]} 在 MatchMax 查看学费、上课时间与评价。`,
+    },
+  };
 }
 
 /** Issue #23 header format: "HKU (Bachelor of Engineering in Computer
@@ -402,7 +491,7 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
           queryKey: ["tutors", "occupancy", params.tutorCode],
           queryFn: () =>
             fetchTutorOccupiedHours({
-              data: { tutorId: tutor.id, tutorUserId: tutor.user_id },
+              data: { tutorId: tutor.id },
             }).then((result) => result.occupied),
         })
       : emptyHourlyOpenHours();
@@ -411,31 +500,30 @@ export const Route = createFileRoute("/tutors/$tutorCode")({
   pendingComponent: TutorProfileSkeleton,
   pendingMs: 0,
   head: ({ loaderData, params }) => {
-    const url = canonicalUrl(`/tutors/${params.tutorCode}`);
+    const path = `/tutors/${params.tutorCode}`;
+    const locale = currentSeoLocale();
     if (!loaderData) {
       return {
         meta: [{ title: "Tutor not found | MatchMax" }, { name: "robots", content: "noindex" }],
-        links: [{ rel: "canonical", href: url }],
+        links: localeLinks(path),
       };
     }
-    const seo = buildTutorSeoMeta(loaderData.tutor, url);
+    const { tutor } = loaderData;
     return {
       meta: [
-        { title: seo.title },
-        { name: "description", content: seo.description },
+        ...localizedMeta(locale, buildTutorSeoCopy(tutor)),
         { name: "robots", content: "index, follow" },
-        { property: "og:title", content: seo.title },
-        { property: "og:description", content: seo.description },
-        { property: "og:url", content: seo.url },
+        { property: "og:url", content: canonicalUrl(path) },
         { property: "og:type", content: "profile" },
-        ...(loaderData.tutor.photo_url
+        ...ogLocaleMeta(locale),
+        ...(tutor.photo_url
           ? [
-              { property: "og:image", content: loaderData.tutor.photo_url },
-              { name: "twitter:image", content: loaderData.tutor.photo_url },
+              { property: "og:image", content: tutor.photo_url },
+              { name: "twitter:image", content: tutor.photo_url },
             ]
           : []),
       ],
-      links: [{ rel: "canonical", href: url }, ...hreflangLinks(`/tutors/${params.tutorCode}`)],
+      links: localeLinks(path),
     };
   },
   notFoundComponent: function TutorNotFound() {
@@ -682,11 +770,41 @@ function TutorDetail() {
     ...(t.subjects?.length ? { knowsAbout: t.subjects } : {}),
   };
 
+  // Breadcrumb trail mirrors the visible navigation: home → directory → profile.
+  const breadcrumbStructuredData = {
+    "@context": "https://schema.org",
+    "@type": "BreadcrumbList",
+    itemListElement: [
+      {
+        "@type": "ListItem",
+        position: 1,
+        name: "Home",
+        item: canonicalUrl("/"),
+      },
+      {
+        "@type": "ListItem",
+        position: 2,
+        name: "Tutors",
+        item: canonicalUrl("/tutors"),
+      },
+      {
+        "@type": "ListItem",
+        position: 3,
+        name: t.tutor_code,
+        item: canonicalUrl(`/tutors/${t.tutor_code}`),
+      },
+    ],
+  };
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(tutorStructuredData) }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbStructuredData) }}
       />
       <SiteHeader />
       <main className="flex-1">

@@ -11,6 +11,7 @@ import { buildTutorCardInsert, mappedCardContactError } from "@/lib/tutor-card-m
 import { tutorApplicationSchema } from "@/lib/tutor-application.schema";
 import type { TutorApplication } from "./tutor-application.schema";
 import { phoneIsValid } from "@/features/tutor-application/activation";
+import { localityPatch } from "@/features/tutor-application/locality";
 import type { Json } from "@/integrations/supabase/types";
 import { getRuntimeEnv } from "./runtime-env";
 
@@ -342,9 +343,14 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
     // Issue #798: city / locality and the confirmed IANA time zone land
     // directly on the tutor row (the card mapper has no locality columns).
     // Only the fields the application actually carried are written.
-    const localityUpdate: { city?: string; time_zone?: string } = {};
-    if (application.city) localityUpdate.city = application.city;
-    if (application.timeZone) localityUpdate.time_zone = application.timeZone;
+    // #798 AC-9: write the canonical `timezone` column, not the legacy
+    // `time_zone` the intake used to target — scheduling, the settings picker
+    // and the CHECK constraint all read `timezone`, so the old target silently
+    // dropped a confirmed zone.
+    const localityUpdate = localityPatch({
+      city: application.city,
+      timeZone: application.timeZone,
+    });
     if (Object.keys(localityUpdate).length > 0) {
       const { error: localityError } = await asAdminDb(supabaseAdmin)
         .from<{ id: string }>("tutors")

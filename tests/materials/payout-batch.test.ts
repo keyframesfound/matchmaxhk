@@ -7,6 +7,10 @@ import {
   type PayoutLedgerRow,
   type PayoutSeller,
 } from "../../src/features/materials/payout-batch";
+import {
+  hasPayoutTarget,
+  selectBatchPayable,
+} from "../../src/features/materials/payout-batch.functions";
 
 const sellers: PayoutSeller[] = [
   { user_id: "u1", display_name: "Alice", tutor_code: "MM-T001" },
@@ -136,5 +140,38 @@ describe("#784 §2.2 weekly payout preview", () => {
     expect(lines[0]).toBe("seller,tutor_code,method,payee,balance_hkd,due_hkd");
     expect(lines).toHaveLength(2);
     expect(lines[1]).toBe('"Alice","MM-T001","fps_phone","Alice Chan",60.00,60.00');
+  });
+});
+
+describe("#784 payout batch money guards (issue #784 audit)", () => {
+  const row = (dueHkd: number, method: string | null, payeeName: string | null) => ({
+    dueHkd,
+    method,
+    payeeName,
+  });
+
+  it("requires a real transfer target, not just a due balance", () => {
+    expect(hasPayoutTarget(row(80, "fps_phone", "Alice Chan"))).toBe(true);
+    expect(hasPayoutTarget(row(80, null, null))).toBe(false);
+    expect(hasPayoutTarget(row(80, "fps_phone", null))).toBe(false);
+    expect(hasPayoutTarget(row(80, null, "Alice Chan"))).toBe(false);
+    expect(hasPayoutTarget(row(80, "   ", "Alice Chan"))).toBe(false);
+    expect(hasPayoutTarget(row(80, "bank_account", "  "))).toBe(false);
+  });
+
+  it("never debits a seller with no payout details, and keeps the rest of the run", () => {
+    const payable = selectBatchPayable([
+      row(120, "fps_phone", "Alice Chan"),
+      row(300, null, null), // no details on file
+      row(90, "bank_account", ""), // half-filled details
+      row(0, "fps_phone", "Bob Lee"), // under the minimum, not due
+      row(55, "fps_phone", "Cara Wong"),
+    ]);
+    expect(payable).toHaveLength(2);
+    expect(payable.map((r) => r.payeeName)).toEqual(["Alice Chan", "Cara Wong"]);
+  });
+
+  it("returns nothing when every due seller is missing details", () => {
+    expect(selectBatchPayable([row(120, null, null), row(70, "fps_phone", null)])).toEqual([]);
   });
 });

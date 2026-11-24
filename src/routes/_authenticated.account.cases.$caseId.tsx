@@ -293,7 +293,12 @@ function ParentCaseDetailPage() {
                   data.slotDays.map((day) => (
                     <div key={day} className="flex flex-wrap items-center gap-2">
                       <span className="w-24 text-xs font-semibold text-muted-foreground">
-                        {format(new Date(`${day}T00:00:00Z`), "EEE d MMM")}
+                        {/* Slot day key: HKT, or a negative-offset device shows yesterday. */}
+                        {formatInTutorZone(`${day}T00:00:00Z`, DEFAULT_TUTOR_TIMEZONE, {
+                          weekday: "short",
+                          day: "numeric",
+                          month: "short",
+                        })}
                       </span>
                       {data.slots
                         .filter((s) => s.startsAt.startsWith(day))
@@ -306,7 +311,11 @@ function ParentCaseDetailPage() {
                             onClick={() => request.mutate(s.startsAt)}
                           >
                             <CalendarPlus className="h-4 w-4" />
-                            {format(new Date(s.startsAt), "HH:mm")}
+                            {formatInTutorZone(s.startsAt, DEFAULT_TUTOR_TIMEZONE, {
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            })}
                           </Button>
                         ))}
                     </div>
@@ -434,8 +443,12 @@ function SessionLogsSection({
           <li key={l.id} className="rounded-lg border border-[color:var(--ink)]/10 p-3">
             <div className="flex flex-wrap items-center gap-2">
               <span className="text-sm font-medium text-[color:var(--ink)]">
-                {format(new Date(`${l.log_date}T00:00:00Z`), "EEE d MMM")} ·{" "}
-                {timeLabel(l.start_minute)} ·{" "}
+                {formatInTutorZone(`${l.log_date}T00:00:00Z`, DEFAULT_TUTOR_TIMEZONE, {
+                  weekday: "short",
+                  day: "numeric",
+                  month: "short",
+                })}{" "}
+                · {timeLabel(l.start_minute)} ·{" "}
                 {t("experience.duration_hours", { hours: l.duration_min / 60 })}
               </span>
               <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-2 py-0.5 text-xs text-muted-foreground">

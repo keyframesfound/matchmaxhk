@@ -40,6 +40,8 @@ import {
 import { MobileSearchTrigger } from "@/components/search/mobile-search-trigger";
 import { PanelLabel, SearchBigInput, Segmented } from "@/components/search/search-controls";
 import { setSearchSlideDirection } from "@/components/search/slide-direction";
+import { SaveSearchButton, SavedSearchStrip } from "@/components/search/saved-search-ui";
+import { type SavedSearchParams } from "@/features/search/saved-searches";
 import {
   Select,
   SelectContent,
@@ -94,6 +96,18 @@ type KindFilter =
   "all" | "notes" | "mocks" | "coursework" | "courses" | "folders" | "services" | "free";
 
 const COURSEWORK_SUBCATEGORIES = new Set(["ia", "ee", "tok", "sba", "coursework"]);
+
+/* #725: a saved notes search only carries kind values the shop can render. */
+const KIND_FILTERS: readonly KindFilter[] = [
+  "all",
+  "notes",
+  "mocks",
+  "coursework",
+  "courses",
+  "folders",
+  "services",
+  "free",
+];
 
 /* Radix Select items can't hold an empty value, so each filter's "all"
  * choice rides this sentinel and maps back to "". */
@@ -449,6 +463,63 @@ export function MaterialsDirectory({
     { value: "folders", label: t("shop.filter_folders") },
     { value: "free", label: t("notes.category.free") },
   ];
+
+  // #725: the notes-scope saved search. Only the keys noteMatchesSavedSearch
+  // honours; `savedOnly` / `verifiedOnly` are per-viewer and never saved, and
+  // "all" kind is dropped so an unfiltered visit is not savable.
+  const savedSearchParams = {
+    query,
+    school,
+    subject,
+    curriculum,
+    kind: kind === "all" ? undefined : kind,
+    subcategory,
+    language,
+    grade,
+    priceBand,
+  };
+  // Label is derived purely from the applied filters (no free-text field).
+  const savedSearchLabel = [
+    query ? `“${query}”` : null,
+    kind !== "all" ? (kindChips.find((chip) => chip.value === kind)?.label ?? null) : null,
+    curriculum || null,
+    subject || null,
+    school || null,
+    subcategory ? t(`notes.subcategory.${subcategory}`) : null,
+    language ? t(`notes.language.${language}`) : null,
+    grade || null,
+    priceBand === "free"
+      ? t("explore_search.price_free")
+      : priceBand === "paid"
+        ? t("explore_search.price_paid")
+        : null,
+  ]
+    .filter(Boolean)
+    .slice(0, 3)
+    .join(" · ");
+
+  // #725: tapping a saved pill restores every filter it captured.
+  const applySavedShopSearch = (params: SavedSearchParams) => {
+    const pick = (key: string): string => {
+      const value = params[key];
+      return typeof value === "string" ? value : "";
+    };
+    const nextKind = pick("kind");
+    const band = pick("priceBand");
+    setShopTab("notes");
+    setQuery(pick("query"));
+    setSchool(pick("school"));
+    setSubject(pick("subject"));
+    setCurriculum(pick("curriculum"));
+    setSubcategory(pick("subcategory"));
+    setLanguage(pick("language"));
+    setGrade(pick("grade"));
+    setKind(KIND_FILTERS.includes(nextKind as KindFilter) ? (nextKind as KindFilter) : "all");
+    setPriceBand(band === "free" || band === "paid" ? band : "");
+    // Never saved, so a restored search always starts from the viewer's own state.
+    setSavedOnly(false);
+    setVerifiedOnly(false);
+  };
 
   return (
     <section className="pt-6 pb-12 sm:pt-8">
@@ -942,7 +1013,13 @@ export function MaterialsDirectory({
           </div>
         ) : null}
 
-        <div className="mb-6 flex items-baseline justify-between">
+        {/* #725: saved notes searches, one tap restores every filter. The
+            Gigs tab is out of this scope, so the affordance stays on Notes. */}
+        {shopTab === "notes" ? (
+          <SavedSearchStrip scope="notes" className="mb-4" onApply={applySavedShopSearch} />
+        ) : null}
+
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
           {isLoading ? (
             <Skeleton className="h-4 w-28" />
           ) : (
@@ -950,6 +1027,9 @@ export function MaterialsDirectory({
               {t("materials.result_count", { count: filtered.length })}
             </p>
           )}
+          {shopTab === "notes" ? (
+            <SaveSearchButton scope="notes" params={savedSearchParams} label={savedSearchLabel} />
+          ) : null}
         </div>
 
         {isLoading && (
