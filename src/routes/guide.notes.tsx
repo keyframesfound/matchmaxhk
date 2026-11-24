@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { ArrowRight, CircleCheck, CircleX, Upload } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { canonicalUrl } from "@/features/i18n/seo";
+import { canonicalUrl, localeLinks } from "@/features/i18n/seo";
 import { optionACopyKey } from "@/features/materials/marketplace-policy";
 import {
   GuideCtaRow,
@@ -31,7 +31,7 @@ export const Route = createFileRoute("/guide/notes")({
       },
       { property: "og:url", content: canonicalUrl("/guide/notes") },
     ],
-    links: [{ rel: "canonical", href: canonicalUrl("/guide/notes") }],
+    links: localeLinks("/guide/notes"),
   }),
   component: GuideNotesPage,
 });

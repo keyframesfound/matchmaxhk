@@ -30,6 +30,13 @@ import { AdminCommandPalette } from "@/features/admin/admin-command-palette";
 import { fetchPendingApplicationCount } from "@/features/tutor-application/admin/queries";
 
 export const Route = createFileRoute("/_authenticated/admin")({
+  head: () => ({
+    meta: [
+      { title: "Admin | MatchMax" },
+      { name: "description", content: "MatchMax admin console." },
+      { name: "robots", content: "noindex, follow" },
+    ],
+  }),
   component: AdminLayout,
 });
 

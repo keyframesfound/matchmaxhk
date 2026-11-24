@@ -5,7 +5,7 @@ import { ArrowRight, CircleCheck, CircleX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { HelpArticleLink } from "@/features/help/components";
 import { getHelpArticle } from "@/features/help/content";
-import { canonicalUrl } from "@/features/i18n/seo";
+import { canonicalUrl, localeLinks } from "@/features/i18n/seo";
 import {
   GuideCtaRow,
   GuideHeading,
@@ -32,7 +32,7 @@ export const Route = createFileRoute("/guide/refer")({
       },
       { property: "og:url", content: canonicalUrl("/guide/refer") },
     ],
-    links: [{ rel: "canonical", href: canonicalUrl("/guide/refer") }],
+    links: localeLinks("/guide/refer"),
   }),
   component: GuideReferPage,
 });

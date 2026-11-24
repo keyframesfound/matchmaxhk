@@ -19,6 +19,27 @@
         "mcp"
       ],
       "enabled": true
+    },
+    "playwright": {
+      "type": "local",
+      "enabled": true,
+      "command": [
+        "npx",
+        "-y",
+        "@playwright/mcp@latest",
+        "--isolated",
+        "--storage-state",
+        "/Users/ryanyeung/Developer/matchmaxhk/tests/e2e/.auth/user.json",
+        "--browser",
+        "chrome",
+        "--headless",
+        "--viewport-size",
+        "1440x900",
+        "--console-level",
+        "error",
+        "--output-dir",
+        "/Users/ryanyeung/Developer/matchmaxhk/test-results/mcp"
+      ]
     }
   }
 }

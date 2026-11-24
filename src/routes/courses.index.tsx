@@ -198,9 +198,11 @@ function CoursesDirectory() {
                     ) : undefined
                   }
                   secondaryAction={
-                    <Button asChild variant="ghost" prefix={<Building2 />}>
-                      <Link to="/pricing">List your courses</Link>
-                    </Button>
+                    CENTRE_MARKET_ENABLED ? (
+                      <Button asChild variant="ghost" prefix={<Building2 />}>
+                        <Link to="/pricing">List your courses</Link>
+                      </Button>
+                    ) : undefined
                   }
                 />
               )}

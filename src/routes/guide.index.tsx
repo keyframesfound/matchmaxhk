@@ -128,6 +128,27 @@ function useGuideContent() {
   };
 }
 
+/** FAQ answers render as plain text; JSON-LD must carry no markup. */
+function plainText(value: string): string {
+  return value
+    .replace(/<[^>]*>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** One FAQPage block over the exact question/answer pairs the accordion renders. */
+function buildFaqStructuredData(items: FaqItem[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: plainText(item.title),
+      acceptedAnswer: { "@type": "Answer", text: plainText(item.content) },
+    })),
+  };
+}
+
 /** Issue #492 wireframe D: fee bars — old agencies' full slate bar vs the
  * short azure MatchMax bar (~25% width). Labels ride the token azure
  * (--btn-accent), never raw #1d9bf0, so the AA floor holds. */
@@ -208,6 +229,14 @@ function GuideIndexPage() {
   const { t } = useTranslation();
   const { guideComparison, tutorFaqItems, parentFaqItems, billingFaqItems } = useGuideContent();
 
+  // Every FAQ group renders on this page (GuideFaq maps the full list), so the
+  // structured data covers all three groups in render order.
+  const faqStructuredData = buildFaqStructuredData([
+    ...tutorFaqItems,
+    ...parentFaqItems,
+    ...billingFaqItems,
+  ]);
+
   const guideCards: GuideCard[] = [
     {
       to: "/guide/parents",
@@ -251,6 +280,10 @@ function GuideIndexPage() {
 
   return (
     <GuidePage current="/guide">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(faqStructuredData) }}
+      />
       {/* Why us */}
       <section
         id="why-us"

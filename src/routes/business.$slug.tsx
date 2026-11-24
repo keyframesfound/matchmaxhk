@@ -450,9 +450,11 @@ function BusinessPublicProfile() {
               title="Business profile not available"
               description="This business profile doesn't exist or isn't active on MatchMax yet."
               action={
-                <Button asChild>
-                  <Link to="/courses">Browse courses</Link>
-                </Button>
+                CENTRE_MARKET_ENABLED ? (
+                  <Button asChild>
+                    <Link to="/courses">Browse courses</Link>
+                  </Button>
+                ) : undefined
               }
             />
           </div>
@@ -461,13 +463,15 @@ function BusinessPublicProfile() {
         {org && (
           <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 sm:py-8">
             <div className="flex items-center justify-between gap-3">
-              <Link
-                to="/courses"
-                className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--brand-link)]"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                All courses
-              </Link>
+              {CENTRE_MARKET_ENABLED && (
+                <Link
+                  to="/courses"
+                  className="inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--brand-link)]"
+                >
+                  <ArrowLeft className="h-4 w-4" />
+                  All courses
+                </Link>
+              )}
               <Button
                 variant="outline"
                 size="sm"

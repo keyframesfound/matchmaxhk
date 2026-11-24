@@ -511,7 +511,11 @@
     "notes_tutor_prefill": "指定导师：{{code}}（由此导师的笔记页面申请 1 对 1 试堂）",
     "notes_time_prefill": "偏好时间：{{slot}}（香港时间）",
     "referred_by_org": "你由合作中心转介。我们会记录这个转介。",
-    "referred_by": "由 {{name}} 转介 · 由 MatchMax 配对"
+    "referred_by": "由 {{name}} 转介 · 由 MatchMax 配对",
+    "step_contact": "联络",
+    "step_admissions": "入学申请",
+    "step_tutoring": "家教",
+    "step_logistics": "时间地点"
   },
   "case_status": {
     "title": "配对进度",
@@ -4628,7 +4632,25 @@
     "tab_marketplace": "市集",
     "marketplace_empty_title": "未有收藏的笔记",
     "marketplace_empty_body": "在市集按笔记上的心形，即可收藏在这里。",
-    "browse_marketplace": "浏览市集"
+    "browse_marketplace": "浏览市集",
+    "eyebrow": "你的收藏",
+    "find_tutors": "找导师",
+    "loading_tutors": "正在载入已收藏的导师…",
+    "tutors_error_title": "载入不到你收藏的导师",
+    "tutors_error_body": "试下重新载入页面再试。",
+    "tutors_empty_title": "你还没收藏任何导师",
+    "tutors_empty_body": "去导师目录看下，将想再联络的导师加入收藏。",
+    "requests_title": "已收藏的个案",
+    "requests_loading": "正在载入已收藏的个案…",
+    "requests_empty_title": "你还没收藏任何个案",
+    "requests_empty_body": "在个案板收藏想跟进的个案，之后回来看。",
+    "browse_requests": "浏览个案",
+    "courses_title": "已收藏的课程",
+    "courses_loading": "正在载入已收藏的课程…",
+    "courses_empty_title": "你还没收藏任何课程",
+    "courses_empty_body": "在课程目录收藏，建立你的清单。",
+    "browse_courses": "浏览课程",
+    "view_details": "看详情"
   },
   "safety": {
     "contact_title": "信任联络人（可选）",
@@ -6017,6 +6039,23 @@
   "tutor_requests": {
     "b2b_chip": "B2B 溢出",
     "net_rate": "净时薪：港币 {{rate}}／小时",
-    "cap57_overflow": "此为独立自雇教育工作者的介绍。学费由中心直接支付导师；你须向 MatchMax 支付适用的行政费。"
+    "cap57_overflow": "此为独立自雇教育工作者的介绍。学费由中心直接支付导师；你须向 MatchMax 支付适用的行政费。",
+    "badge": "家教个案板",
+    "hero_title": "想找一个符合你要求的导师？",
+    "hero_body": "填好这份表格，合资格又有兴趣的导师就可以申请你的个案！",
+    "case_request_body": "填好这份表格，合资格又有兴趣的导师就可以申请你的个案！填表不需要账户，提交时用 Google 登录，你的答案会自动保留。",
+    "post_cta": "发布你的需求",
+    "hide_form": "收起表格",
+    "form_title": "发布你的需求",
+    "form_body": "告诉我们知你需要什么，我们团队会审核。已批核的需求会出现在这个个案板，合资格导师就可以直接申请。",
+    "notice_dismiss": "不要再显示",
+    "board_title": "开放中的个案",
+    "board_body": "这些都是香港家长真实的家教需求。开个案看详情，再申请适合你时间表的个案。",
+    "empty_title": "暂时未有开放中的个案",
+    "empty_body": "已批核的家长需求会出现在这里，等导师申请。你可以做第一个：发布你的需求，等导师主动找你。",
+    "footer_note": "有兴趣的个案？透过 WhatsApp 申请，MatchMax 团队会帮你联络家长。家长免费，我们团队会在一个工作天内回复。",
+    "share_title": "{{title}}，个案 {{code}} | MatchMax",
+    "share_text": "看下这个家教需求（个案 {{code}}），来自 MatchMax。",
+    "match_count": "{{count}} 个配对"
   }
 }

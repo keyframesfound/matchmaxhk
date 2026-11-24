@@ -511,7 +511,11 @@
     "notes_tutor_prefill": "指定導師：{{code}}（由此導師嘅筆記頁面申請 1 對 1 試堂）",
     "notes_time_prefill": "偏好時間：{{slot}}（香港時間）",
     "referred_by_org": "你由合作中心轉介。我哋會記錄呢個轉介。",
-    "referred_by": "由 {{name}} 轉介 · 由 MatchMax 配對"
+    "referred_by": "由 {{name}} 轉介 · 由 MatchMax 配對",
+    "step_contact": "聯絡",
+    "step_admissions": "入學申請",
+    "step_tutoring": "補習",
+    "step_logistics": "時間地點"
   },
   "case_status": {
     "title": "配對進度",
@@ -3279,9 +3283,9 @@
       "drop_protection_note": "上完一堂付費課就結束嘅個案，即使用咗 Drop-Protection，仍然會計入你嘅完成率同已核實時數。",
       "promo_saved": "首堂優惠已儲存",
       "timezone_label": "你的時區",
-    "timezone_hint": "你的可用時間表會按此時區解讀。課堂時間一律以絕對時間儲存。",
-    "timezone_saved": "時區已儲存。",
-    "hide_profile_label": "隱藏公開檔案",
+      "timezone_hint": "你的可用時間表會按此時區解讀。課堂時間一律以絕對時間儲存。",
+      "timezone_saved": "時區已儲存。",
+      "hide_profile_label": "隱藏公開檔案",
       "hide_profile_hint": "開啟此選項即可暫時喺 MatchMax 目錄中隱藏你嘅檔案。（適合排滿堂或者考試期間休息）。'隱藏' 之後你嘅檔案會即時喺公開目錄中移除。",
       "hidden_toast": "你嘅檔案已經喺目錄中隱藏",
       "shown_toast": "你嘅檔案已經重新喺目錄中顯示",
@@ -4628,7 +4632,25 @@
     "tab_marketplace": "市集",
     "marketplace_empty_title": "未有收藏的筆記",
     "marketplace_empty_body": "在市集按筆記上的心形，即可收藏在這裏。",
-    "browse_marketplace": "瀏覽市集"
+    "browse_marketplace": "瀏覽市集",
+    "eyebrow": "你嘅收藏",
+    "find_tutors": "搵導師",
+    "loading_tutors": "正在載入已收藏嘅導師…",
+    "tutors_error_title": "載入唔到你收藏嘅導師",
+    "tutors_error_body": "試下重新載入頁面再試。",
+    "tutors_empty_title": "你仲未收藏任何導師",
+    "tutors_empty_body": "去導師目錄睇下，將想再聯絡嘅導師加入收藏。",
+    "requests_title": "已收藏嘅個案",
+    "requests_loading": "正在載入已收藏嘅個案…",
+    "requests_empty_title": "你仲未收藏任何個案",
+    "requests_empty_body": "喺個案板收藏想跟進嘅個案，之後返嚟睇。",
+    "browse_requests": "瀏覽個案",
+    "courses_title": "已收藏嘅課程",
+    "courses_loading": "正在載入已收藏嘅課程…",
+    "courses_empty_title": "你仲未收藏任何課程",
+    "courses_empty_body": "喺課程目錄收藏，建立你嘅清單。",
+    "browse_courses": "瀏覽課程",
+    "view_details": "睇詳情"
   },
   "safety": {
     "contact_title": "信任聯絡人（可選）",
@@ -6017,6 +6039,23 @@
   "tutor_requests": {
     "b2b_chip": "B2B 溢出",
     "net_rate": "淨時薪：港幣 {{rate}}／小時",
-    "cap57_overflow": "此為獨立自僱教育工作者的介紹。學費由中心直接支付導師；你須向 MatchMax 支付適用嘅行政費。"
+    "cap57_overflow": "此為獨立自僱教育工作者的介紹。學費由中心直接支付導師；你須向 MatchMax 支付適用嘅行政費。",
+    "badge": "補習個案板",
+    "hero_title": "想搵一個符合你要求嘅導師？",
+    "hero_body": "填好呢份表格，合資格又有興趣嘅導師就可以申請你嘅個案！",
+    "case_request_body": "填好呢份表格，合資格又有興趣嘅導師就可以申請你嘅個案！填表唔需要帳戶，提交時用 Google 登入，你嘅答案會自動保留。",
+    "post_cta": "發佈你嘅需求",
+    "hide_form": "收起表格",
+    "form_title": "發佈你嘅需求",
+    "form_body": "話畀我哋知你需要咩，我哋團隊會審核。已批核嘅需求會出現喺呢個個案板，合資格導師就可以直接申請。",
+    "notice_dismiss": "唔好再顯示",
+    "board_title": "開放中嘅個案",
+    "board_body": "呢啲都係香港家長真實嘅補習需求。開個案睇詳情，再申請適合你時間表嘅個案。",
+    "empty_title": "暫時未有開放中嘅個案",
+    "empty_body": "已批核嘅家長需求會出現喺呢度，等導師申請。你可以做第一個：發佈你嘅需求，等導師主動搵你。",
+    "footer_note": "有興趣嘅個案？透過 WhatsApp 申請，MatchMax 團隊會幫你聯絡家長。家長免費，我哋團隊會喺一個工作天內回覆。",
+    "share_title": "{{title}}，個案 {{code}} | MatchMax",
+    "share_text": "睇下呢個補習需求（個案 {{code}}），嚟自 MatchMax。",
+    "match_count": "{{count}} 個配對"
   }
 }

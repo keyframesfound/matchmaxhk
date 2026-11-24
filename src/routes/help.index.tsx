@@ -19,7 +19,7 @@ import {
 } from "@/features/help/content";
 import { cn } from "@/lib/utils";
 
-import { canonicalUrl, localeLinks } from "@/features/i18n/seo";
+import { canonicalUrl, currentSeoLocale, localeLinks, localizedMeta } from "@/features/i18n/seo";
 export const Route = createFileRoute("/help/")({
   // `q` prefills the search box when arriving from a sub-header search on a
   // topic/article page (issue #500: persistent Help search), so the index
@@ -48,19 +48,21 @@ export const Route = createFileRoute("/help/")({
   }),
   head: () => ({
     meta: [
-      { title: "Help Centre | MatchMax" },
-      {
-        name: "description",
-        content:
-          "Guides and answers for MatchMax tutors and parents, parent communication, scheduling, pedagogy, payments, policies, and getting started with lessons.",
-      },
+      ...localizedMeta(currentSeoLocale(), {
+        title: {
+          en: "MatchMax Help Centre | Parent, tutor and centre answers",
+          "zh-HK": "MatchMax 幫助中心 | 家長、導師同中心解答",
+          "zh-CN": "MatchMax 帮助中心 | 家长、导师和中心解答",
+        },
+        description: {
+          en: "Guides and answers for MatchMax tutors and parents, parent communication, scheduling, pedagogy, payments, policies, and getting started with lessons.",
+          "zh-HK":
+            "MatchMax 導師同家長嘅指南：家長溝通、時間安排、教學方法、付款、政策同第一堂準備，全部喺度搵到答案。",
+          "zh-CN":
+            "MatchMax 导师和家长的指南：家长沟通、时间安排、教学方法、付款、政策以及第一节课的准备，答案都在这里。",
+        },
+      }),
       { name: "robots", content: "index, follow" },
-      { property: "og:title", content: "Help Centre | MatchMax" },
-      {
-        property: "og:description",
-        content:
-          "Guides and answers for MatchMax tutors and parents, communication, scheduling, pedagogy, payments, and policies.",
-      },
       { property: "og:url", content: canonicalUrl("/help") },
     ],
     links: localeLinks("/help"),

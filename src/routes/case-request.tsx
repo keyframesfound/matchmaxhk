@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
-import { canonicalUrl, localeLinks } from "@/features/i18n/seo";
+import { canonicalUrl, currentSeoLocale, localeLinks, localizedMeta } from "@/features/i18n/seo";
 import { hourlyRangeLabel } from "@/features/tutors/availability-grid-model";
 import { caseRequestMode } from "@/features/tutors/tutor-display";
 import { PageContainer } from "@/components/layout/PageContainer";
@@ -70,28 +70,33 @@ export const Route = createFileRoute("/case-request")({
     return result;
   },
   ssr: false,
-  head: () => ({
-    meta: [
-      { title: "Request a Tutor — Free Case Request | MatchMax" },
-      {
-        name: "description",
-        content:
-          "Tell us what your child needs — subjects, budget and schedule — and MatchMax matches a vetted Hong Kong tutor. Free for parents, no account needed to apply.",
-      },
-      { name: "robots", content: "noindex, follow" },
-      { property: "og:title", content: "Request a Tutor — Free Case Request | MatchMax" },
-      {
-        property: "og:description",
-        content:
-          "Tell us what your child needs — subjects, budget and schedule — and MatchMax matches a vetted Hong Kong tutor. Free for parents, no account needed to apply.",
-      },
-      { property: "og:url", content: canonicalUrl("/case-request") },
-    ],
-    links: [
-      { rel: "canonical", href: canonicalUrl("/case-request") },
-      ...localeLinks("/case-request"),
-    ],
-  }),
+  head: () => {
+    const locale = currentSeoLocale();
+    return {
+      meta: [
+        ...localizedMeta(locale, {
+          title: {
+            en: "Request a tutor, free case request | MatchMax",
+            "zh-HK": "搵導師，免費出需求 | MatchMax",
+            "zh-CN": "找导师，免费发布需求 | MatchMax",
+          },
+          description: {
+            en: "Tell us what your child needs: subjects, budget and schedule. MatchMax matches a vetted Hong Kong tutor. Free for parents, no account needed to apply.",
+            "zh-HK":
+              "話畀我哋知你小朋友需要咩：科目、預算同時段，MatchMax 會配對合適嘅香港導師。家長免費，申請唔需要帳戶。",
+            "zh-CN":
+              "告诉我们你的孩子需要什么：科目、预算和时间，MatchMax 会配对合适的香港导师。家长免费，申请不需要账户。",
+          },
+        }),
+        { name: "robots", content: "noindex, follow" },
+        { property: "og:url", content: canonicalUrl("/case-request") },
+      ],
+      links: [
+        { rel: "canonical", href: canonicalUrl("/case-request") },
+        ...localeLinks("/case-request"),
+      ],
+    };
+  },
   component: CaseRequestPage,
 });
 
@@ -122,12 +127,10 @@ function CaseRequestPage() {
       <section className="border-b border-border bg-[color:var(--surface-header)]">
         <PageContainer width="default" className="py-10 sm:py-12">
           <h1 className="text-2xl font-bold tracking-tight text-[color:var(--ink)] sm:text-3xl">
-            Requesting a tutor that meets your requirements?
+            {t("tutor_requests.hero_title")}
           </h1>
           <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground">
-            Fill in this form and tutors who&rsquo;re qualified and interested can apply for your
-            case! No account needed to fill it in — you sign in with Google when you submit and your
-            answers carry over automatically.
+            {t("tutor_requests.case_request_body")}
           </p>
         </PageContainer>
       </section>

@@ -1,35 +1,27 @@
 # https://matchmax.hk/robots.txt
 #
-# Only private app areas are blocked. Retired / coming-soon pages (/courses,
-# /pricing, /cases, /business) are deliberately NOT blocked: Google must be
-# able to crawl them to see their 404 or noindex and drop them from the index.
+# Private app areas are deliberately NOT blocked here. Every one of them
+# (/account, /admin, /dashboard, /auth, /notifications, the tutor-request
+# board) sends `noindex` from its route head, and Google can only drop such a
+# page from the index if it is allowed to crawl it and read that noindex.
+# Blocking them is what left ~15 URLs stuck as "Indexed, though blocked by
+# robots.txt".
+#
+# Only non-document, infinite spaces are blocked below:
+#   /api/      server endpoints (JSON, webhooks, redirects), never documents
+#   /lovable/  retired editor scaffolding, never public content
+#
+# /assets/ is deliberately NOT blocked: those are the hashed CSS/JS bundles, and
+# Googlebot needs them to render the page. Blocking them would remove render
+# signal from every URL on the site.
+#
+# Retired / coming-soon pages (/courses, /pricing, /cases, /business) stay
+# crawlable for the same reason: Google must see their 404 or noindex.
 
 User-agent: *
 Allow: /
 
-Disallow: /admin
-Disallow: /dashboard
-Disallow: /auth
-Disallow: /my-cases
-Disallow: /post-case
+Disallow: /api/
 Disallow: /lovable/
-Disallow: /en/admin
-Disallow: /zh/admin
-Disallow: /cn/admin
-Disallow: /en/dashboard
-Disallow: /zh/dashboard
-Disallow: /cn/dashboard
-Disallow: /en/auth
-Disallow: /zh/auth
-Disallow: /cn/auth
-Disallow: /en/my-cases
-Disallow: /zh/my-cases
-Disallow: /cn/my-cases
-Disallow: /en/post-case
-Disallow: /zh/post-case
-Disallow: /cn/post-case
-Disallow: /en/lovable/
-Disallow: /zh/lovable/
-Disallow: /cn/lovable/
 
 Sitemap: https://matchmax.hk/sitemap.xml

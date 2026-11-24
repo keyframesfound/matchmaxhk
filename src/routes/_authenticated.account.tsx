@@ -8,5 +8,12 @@ import { createFileRoute, Outlet } from "@tanstack/react-router";
  * chrome here would double it.
  */
 export const Route = createFileRoute("/_authenticated/account")({
+  head: () => ({
+    meta: [
+      { title: "Account | MatchMax" },
+      { name: "description", content: "Your MatchMax account." },
+      { name: "robots", content: "noindex, follow" },
+    ],
+  }),
   component: () => <Outlet />,
 });

@@ -70,6 +70,32 @@ function renderUrl(entry: SitemapEntry): string {
     .join("\n");
 }
 
+/**
+ * Minimal structural type for `digital_materials`, which the generated
+ * Supabase types do not cover yet — cast through `unknown` for the same
+ * reason as src/features/materials/queries.ts.
+ */
+type PublishedNoteRow = { slug?: unknown; updated_at?: unknown };
+
+type PublishedNotesQuery = {
+  eq: (column: string, value: string) => PublishedNotesQuery;
+  not: (column: string, op: string, value: string | null) => PublishedNotesQuery;
+  order: (column: string, opts: { ascending: boolean }) => PublishedNotesQuery;
+  range: (
+    from: number,
+    to: number,
+  ) => Promise<{
+    data: PublishedNoteRow[] | null;
+    error?: { message?: string } | null;
+  }>;
+};
+
+type PublishedNotesTable = {
+  from: (table: "digital_materials") => {
+    select: (columns: string) => PublishedNotesQuery;
+  };
+};
+
 async function fetchPublishedTutorEntries(): Promise<SitemapEntry[]> {
   const pageSize = 1000;
   let from = 0;
@@ -103,24 +129,74 @@ async function fetchPublishedTutorEntries(): Promise<SitemapEntry[]> {
   return entries;
 }
 
+/**
+ * Published notes marketplace: every `digital_materials` row with
+ * `status = 'published'` and a slug has a real /notes/{slug} page. RLS on the
+ * anon client already limits rows to published materials of visible sellers.
+ */
+async function fetchPublishedNoteEntries(): Promise<SitemapEntry[]> {
+  const pageSize = 1000;
+  let from = 0;
+  const entries: SitemapEntry[] = [];
+
+  while (true) {
+    const { data, error } = await (supabase as unknown as PublishedNotesTable)
+      .from("digital_materials")
+      .select("slug, updated_at")
+      .eq("status", "published")
+      .not("slug", "is", null)
+      .order("slug", { ascending: true })
+      .range(from, from + pageSize - 1);
+
+    if (error) throw new Error(error.message);
+
+    const rows = data ?? [];
+    for (const note of rows) {
+      if (typeof note.slug !== "string" || !note.slug) continue;
+      entries.push({
+        path: `/notes/${note.slug}`,
+        lastmod: toLastmod(typeof note.updated_at === "string" ? note.updated_at : null),
+        changefreq: "monthly",
+        priority: "0.5",
+      });
+    }
+
+    if (rows.length < pageSize) break;
+    from += pageSize;
+  }
+
+  return entries;
+}
+
 export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
-        const today = new Date().toISOString().slice(0, 10);
+        // `lastmod` is emitted ONLY where a real updated timestamp exists
+        // (Help frontmatter, tutors.updated_at, digital_materials.updated_at).
+        // Stamping today's date on route entries every request trained Google
+        // to ignore the field, so core routes carry no lastmod at all.
+        //
+        // /tutor-requests is deliberately absent: it sits behind
+        // `_authenticated` with `ssr: false`, so a crawler only ever gets a
+        // skeleton or a sign-in redirect — 404/soft-404 fuel.
         const entries: SitemapEntry[] = [
-          { path: "/", lastmod: today, changefreq: "weekly", priority: "1.0" },
-          { path: "/tutors", lastmod: today, changefreq: "daily", priority: "0.9" },
-          { path: "/tutor-requests", lastmod: today, changefreq: "monthly", priority: "0.8" },
-          { path: "/guide", lastmod: today, changefreq: "monthly", priority: "0.7" },
-          { path: "/guide/parents", lastmod: today, changefreq: "monthly", priority: "0.6" },
-          { path: "/guide/tutors", lastmod: today, changefreq: "monthly", priority: "0.6" },
-          { path: "/guide/notes", lastmod: today, changefreq: "monthly", priority: "0.6" },
-          { path: "/guide/refer", lastmod: today, changefreq: "monthly", priority: "0.5" },
-          { path: "/guide/verification", lastmod: today, changefreq: "monthly", priority: "0.5" },
-          { path: "/legal/notes-terms", lastmod: today, changefreq: "yearly", priority: "0.4" },
-          { path: "/help", lastmod: today, changefreq: "weekly", priority: "0.7" },
-          { path: "/join", lastmod: today, changefreq: "monthly", priority: "0.7" },
+          { path: "/", changefreq: "weekly", priority: "1.0" },
+          { path: "/tutors", changefreq: "daily", priority: "0.9" },
+          { path: "/group-classes", changefreq: "weekly", priority: "0.7" },
+          { path: "/guide", changefreq: "monthly", priority: "0.7" },
+          { path: "/guide/parents", changefreq: "monthly", priority: "0.6" },
+          { path: "/guide/tutors", changefreq: "monthly", priority: "0.6" },
+          { path: "/guide/notes", changefreq: "monthly", priority: "0.6" },
+          { path: "/guide/refer", changefreq: "monthly", priority: "0.5" },
+          { path: "/guide/verification", changefreq: "monthly", priority: "0.5" },
+          { path: "/legal/notes-terms", changefreq: "yearly", priority: "0.4" },
+          { path: "/tos", changefreq: "yearly", priority: "0.4" },
+          { path: "/privacy-policy", changefreq: "yearly", priority: "0.4" },
+          { path: "/copyright", changefreq: "yearly", priority: "0.4" },
+          { path: "/help", changefreq: "weekly", priority: "0.7" },
+          { path: "/join", changefreq: "monthly", priority: "0.7" },
+          { path: "/become-a-tutor", changefreq: "monthly", priority: "0.7" },
         ];
 
         // Issue #500: every published Help article is a real indexable URL.
@@ -130,7 +206,7 @@ export const Route = createFileRoute("/sitemap.xml")({
           if (article.status !== "published" || article.external) continue;
           entries.push({
             path: `/help/${article.category}/${article.slug}`,
-            lastmod: article.updated ?? today,
+            lastmod: toLastmod(article.updated),
             changefreq: "monthly",
             priority: "0.5",
           });
@@ -139,6 +215,13 @@ export const Route = createFileRoute("/sitemap.xml")({
         try {
           const tutorEntries = await fetchPublishedTutorEntries();
           entries.push(...tutorEntries);
+        } catch {
+          // ignore, sitemap still serves core public routes
+        }
+
+        try {
+          const noteEntries = await fetchPublishedNoteEntries();
+          entries.push(...noteEntries);
         } catch {
           // ignore, sitemap still serves core public routes
         }

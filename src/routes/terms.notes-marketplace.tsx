@@ -7,6 +7,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
  */
 export const Route = createFileRoute("/terms/notes-marketplace")({
   beforeLoad: ({ search }) => {
-    throw redirect({ to: "/legal/notes-terms", search, replace: true });
+    // 301, not the default 307: /legal/notes-terms is the permanent address.
+    throw redirect({ to: "/legal/notes-terms", search, replace: true, statusCode: 301 });
   },
 });

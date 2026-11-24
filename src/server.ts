@@ -136,6 +136,24 @@ function looksLikeFilePath(pathname: string): boolean {
   return lastSegment.includes(".");
 }
 
+// #seo trailing slash — 2026-11-24. `/en/tutors/` used to fall through to
+// the router's normaliser, which answered with a 307 (temporary). Google keeps
+// a temporary redirect as an unresolved URL and re-crawls it forever, which is
+// part of the "Page with redirect" backlog in Search Console. Canonicalise the
+// slash ourselves with a permanent 308 before anything else looks at the path.
+function getTrailingSlashRedirect(request: Request): Response | null {
+  if (request.method !== "GET" && request.method !== "HEAD") return null;
+
+  const url = new URL(request.url);
+  const { pathname } = url;
+  if (pathname.length <= 1 || !pathname.endsWith("/")) return null;
+  // Never touch asset and file requests: /assets/ and /sitemap.xml style paths.
+  if (looksLikeFilePath(pathname)) return null;
+
+  url.pathname = pathname.replace(/\/+$/, "");
+  return Response.redirect(url.toString(), 308);
+}
+
 function getLocaleRedirect(request: Request): Response | null {
   if (request.method !== "GET" && request.method !== "HEAD") return null;
 
@@ -238,6 +256,11 @@ export default {
       const canonicalRedirect = getCanonicalRedirect(request);
       if (canonicalRedirect) {
         return canonicalRedirect;
+      }
+
+      const trailingSlashRedirect = getTrailingSlashRedirect(request);
+      if (trailingSlashRedirect) {
+        return trailingSlashRedirect;
       }
 
       const localeRedirect = getLocaleRedirect(request);

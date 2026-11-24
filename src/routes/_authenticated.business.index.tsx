@@ -217,9 +217,13 @@ function BusinessOverview() {
                 </Button>
               }
               secondaryAction={
-                <Button variant="outline" asChild>
-                  <Link to="/pricing">Compare plans</Link>
-                </Button>
+                // /pricing 404s while the centre market is off, so do not link
+                // to a page the router refuses to serve.
+                CENTRE_MARKET_ENABLED ? (
+                  <Button variant="outline" asChild>
+                    <Link to="/pricing">Compare plans</Link>
+                  </Button>
+                ) : undefined
               }
             />
           </div>

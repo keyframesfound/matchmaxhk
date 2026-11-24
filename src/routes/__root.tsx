@@ -26,7 +26,7 @@ import { WhatsAppFloatButton } from "@/components/layout/WhatsAppFloatButton";
 import { CompareSelectionReset } from "@/features/cases/compare-cases";
 import { Toaster } from "@/components/ui/sonner";
 import { currentSeoLocale, localizedMeta, ogLocaleMeta, canonicalUrl } from "@/features/i18n/seo";
-import { getActiveUrlLocale } from "@/features/i18n/routing";
+import { getActiveUrlLocale, stripLocalePrefix } from "@/features/i18n/routing";
 import { applyUrlLocale, persistUrlLocaleChoice } from "@/features/i18n/config";
 import { useTranslation } from "react-i18next";
 
@@ -146,11 +146,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     applyUrlLocale(locale);
     persistUrlLocaleChoice(locale);
   },
-  head: () => {
+  head: ({ matches }) => {
     // Issue #401: the root fallback title/description follow the active
     // locale; routes with their own head() override these. English copy is
     // main's post-#407 scrub ("elite", no Verified claims).
     const locale = currentSeoLocale();
+    // SEO fix: og:url used to be hardcoded to the homepage, so every route
+    // without its own og:url advertised "/" as the shared URL. Derive it from
+    // the page actually rendered — the deepest match's pathname is already
+    // locale-stripped by the router's rewrite, and canonicalUrl re-prefixes
+    // the active segment. Routes that set their own og:url still win.
+    const activePath = stripLocalePrefix(matches[matches.length - 1]?.pathname ?? "/");
     return {
       meta: [
         { charSet: "utf-8" },
@@ -172,7 +178,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         { name: "author", content: "MatchMax" },
         { property: "og:site_name", content: "MatchMax" },
         { property: "og:type", content: "website" },
-        { property: "og:url", content: canonicalUrl("/") },
+        { property: "og:url", content: canonicalUrl(activePath, locale) },
         ...ogLocaleMeta(locale),
         { property: "og:image", content: "https://matchmax.hk/matchmax-logo.png" },
         { name: "twitter:card", content: "summary_large_image" },

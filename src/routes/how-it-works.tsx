@@ -15,6 +15,8 @@ export const Route = createFileRoute("/how-it-works")({
     // SPA hash-scroll in GuidePage picks it up after the redirect lands.
     const hash = ((search as { hash?: string } | undefined)?.hash ?? "").replace(/^#/, "");
     const target = HASH_TARGETS[hash] ?? "/guide";
-    throw redirect({ to: target, hash: hash || undefined });
+    // 301, not the default 307: the explainer page is retired and the hub is
+    // its permanent successor (the same convention as help/$category/$slug).
+    throw redirect({ to: target, hash: hash || undefined, statusCode: 301 });
   },
 });

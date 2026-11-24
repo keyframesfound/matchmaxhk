@@ -20,7 +20,7 @@ import {
   GuideSteps,
 } from "@/features/guide/guide-shell";
 
-import { canonicalUrl } from "@/features/i18n/seo";
+import { canonicalUrl, localeLinks } from "@/features/i18n/seo";
 export const Route = createFileRoute("/guide/parents")({
   head: () => ({
     meta: [
@@ -40,7 +40,7 @@ export const Route = createFileRoute("/guide/parents")({
       },
       { property: "og:url", content: canonicalUrl("/guide/parents") },
     ],
-    links: [{ rel: "canonical", href: canonicalUrl("/guide/parents") }],
+    links: localeLinks("/guide/parents"),
   }),
   component: GuideParentsPage,
 });

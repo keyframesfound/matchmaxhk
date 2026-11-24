@@ -6,6 +6,8 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
  */
 export const Route = createFileRoute("/cookies")({
   beforeLoad: () => {
-    throw redirect({ to: "/privacy-policy", hash: "cookies", replace: true });
+    // 301, not the default 307: /cookies is retired for good, so search
+    // equity moves to the privacy policy's Cookies section.
+    throw redirect({ to: "/privacy-policy", hash: "cookies", replace: true, statusCode: 301 });
   },
 });
