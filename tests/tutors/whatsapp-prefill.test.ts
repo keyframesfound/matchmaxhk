@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { buildWhatsAppPrefill } from "../../src/features/tutors/tutor-display";
+import { buildWhatsAppPrefill, caseRequestMode } from "../../src/features/tutors/tutor-display";
 
 describe("#751 WhatsApp request pre-fill", () => {
   it("keeps the placeholders when nothing was chosen", () => {
@@ -36,3 +36,23 @@ describe("#751 WhatsApp request pre-fill", () => {
     expect(text).toContain("學生資料：IBDP / [科目] / 網上 / 預算約 $[X]/hr。");
   });
 });
+
+describe("#751 lesson mode carried into the web request form", () => {
+  it("passes online and in-person straight through", () => {
+    expect(caseRequestMode("online")).toBe("online");
+    expect(caseRequestMode("in_person")).toBe("in_person");
+  });
+
+  it("maps the browse 'either' and the form 'both' to the same value", () => {
+    expect(caseRequestMode("either")).toBe("both");
+    expect(caseRequestMode("both")).toBe("both");
+  });
+
+  it("leaves anything unknown unset so the form keeps its own empty state", () => {
+    expect(caseRequestMode(undefined)).toBeUndefined();
+    expect(caseRequestMode(null)).toBeUndefined();
+    expect(caseRequestMode("")).toBeUndefined();
+    expect(caseRequestMode("hybrid")).toBeUndefined();
+  });
+});
+

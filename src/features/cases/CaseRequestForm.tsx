@@ -354,6 +354,9 @@ type CaseRequestFormProps = {
   prefillNote?: string;
   /** #731: curriculum / subject carried from a Marketplace note. */
   prefillStudy?: { curriculum: string | null; subjects: string[] };
+  /** #751: the lesson mode the parent already filtered on, carried into the
+   * web form the same way the WhatsApp request already carries it. */
+  prefillMode?: "online" | "in_person" | "both" | null;
   /** #731/#759: the public tutor code this request pre-filled, when any —
    * drives the concierge success copy. */
   tutorCode?: string | null;
@@ -375,6 +378,7 @@ export function CaseRequestForm({
   onSubmitted,
   prefillNote,
   prefillStudy,
+  prefillMode = null,
   tutorCode,
   sourceIssue = "#049",
   completePending = false,
@@ -707,6 +711,18 @@ export function CaseRequestForm({
     prefillApplied.current = true;
     setForm((prev) => (prev.notes.trim() ? prev : { ...prev, notes: prefillNote.slice(0, 500) }));
   }, [restored, prefillNote]);
+
+  // #751: the browse filter's lesson mode fills the field only when the
+  // visitor has not chosen one, once, and never over a restored draft. The
+  // WhatsApp request path already carries mode; this is the web equivalent.
+  const modeApplied = useRef(false);
+  useEffect(() => {
+    if (modeApplied.current) return;
+    modeApplied.current = true;
+    if (restored || !prefillMode) return;
+    setForm((prev) => (prev.deliveryMode ? prev : { ...prev, deliveryMode: prefillMode }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- apply once on mount
+  }, []);
 
   // #731: a note's curriculum / subject fill only empty fields, once.
   const studyApplied = useRef(false);

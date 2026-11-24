@@ -73,6 +73,7 @@ import {
 import { DEFAULT_CURRENCY, formatMoney, toCurrencyCode } from "@/lib/money";
 import {
   formatAvailabilityDate,
+  caseRequestMode,
   formatTutorCode,
   getTutorAvailabilityReadiness,
   getTutorInquiryAction,
@@ -509,6 +510,9 @@ function TutorDetail() {
     initialData: tutor,
   });
   const t: Tutor = liveTutor ?? tutor;
+  // #751: the profile's lesson mode rides into the web request form, the same
+  // way the WhatsApp request already carries the applied filters.
+  const requestMode = caseRequestMode(t.lesson_mode);
 
   // Issues #83 + #105 (+ reviews half of #116): verified parent/student
   // reviews, admin-curated. Read-only; hidden entirely when there are none.
@@ -1010,7 +1014,10 @@ function TutorDetail() {
                     color="blue"
                     className="mt-3 w-full font-bold sm:w-auto"
                   >
-                    <Link to="/case-request">
+                    <Link
+                      to="/case-request"
+                      search={{ tutor: t.tutor_code, req_mode: requestMode }}
+                    >
                       <MessageCircle className="mr-2 h-4 w-4" /> Request via our team
                     </Link>
                   </Button>
@@ -1483,7 +1490,10 @@ function TutorDetail() {
                   </span>
                 </p>
                 <Button asChild variant="solid" color="blue" className="mt-3 font-bold">
-                  <Link to="/case-request" search={{ tutor: tutor.tutor_code }}>
+                  <Link
+                    to="/case-request"
+                    search={{ tutor: tutor.tutor_code, req_mode: requestMode }}
+                  >
                     {translate("profile.submit_case")}
                   </Link>
                 </Button>
