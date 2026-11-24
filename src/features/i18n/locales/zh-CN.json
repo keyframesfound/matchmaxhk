@@ -1328,7 +1328,7 @@
       "playbook_link": "阅读《导师实战手册》",
       "h1": "独立导师：点样运作",
       "playbook_pill": "需要家长沟通范本？阅读《导师实战手册》→",
-      "same_account": "已经有 MatchMax 学生或家长账户？唔使第二个 email。喺账户选单㩒「成为导师」，就可以喺原有档案之上启用教学模式。",
+      "same_account": "已经有 MatchMax 学生或家长账户？唔使第二个 email。喺页首㩒「加入 MatchMax」，就可以喺原有档案之上启用教学模式。",
       "case_badges": "每张个案卡都会显示「家长账户」或「独立学生」徽章，未联络之前就知对面系边个。",
       "cap57": "MatchMax 嘅独立导师系《第 57 章》下嘅自雇人士，唔系 MatchMax 嘅雇员或代理。"
     },
@@ -4190,8 +4190,6 @@
     "proof_open": "查看照片证明",
     "proof_pill": "照片证明",
     "proof_caption": "由导师自行公开的照片证明。私人核实文件绝不会在此显示。",
-    "badge_slots_left": "可预约 · 尚余 {{count}} 个名额",
-    "badge_available_now": "现正招生",
     "rating_new_cue": "新"
   },
   "tutor_compare": {

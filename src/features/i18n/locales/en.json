@@ -1328,7 +1328,7 @@
       "playbook_link": "Read the Tutor Playbook",
       "h1": "Independent Tutors: how it works",
       "playbook_pill": "Need first-lesson templates? Read the Tutor Playbook →",
-      "same_account": "Already have a MatchMax student or parent account? No second email needed. Click Become a Tutor in your account header to activate Teaching Mode alongside your existing profile.",
+      "same_account": "Already have a MatchMax student or parent account? No second email needed. Click Join MatchMax in the header to activate Teaching Mode alongside your existing profile.",
       "case_badges": "Every case card displays a Parent Account or Independent Student badge, so you know who you are contacting before you reach out.",
       "cap57": "Independent tutors on MatchMax are self-employed operators under Cap. 57, never MatchMax employees or agents."
     },
@@ -4190,8 +4190,6 @@
     "proof_open": "View photo proof",
     "proof_pill": "Photo proof",
     "proof_caption": "Public photo proof published by the tutor. Private verification documents are never shown here.",
-    "badge_slots_left": "Available · {{count}} slot(s) left",
-    "badge_available_now": "Available now",
     "rating_new_cue": "New"
   },
   "tutor_compare": {

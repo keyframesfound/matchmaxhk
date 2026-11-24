@@ -1328,7 +1328,7 @@
       "playbook_link": "閱讀《導師實戰手冊》",
       "h1": "獨立導師：點樣運作",
       "playbook_pill": "需要家長溝通範本？閱讀《導師實戰手冊》→",
-      "same_account": "已經有 MatchMax 學生或家長帳戶？唔使第二個 email。喺帳戶選單㩒「成為導師」，就可以喺原有檔案之上啟用教學模式。",
+      "same_account": "已經有 MatchMax 學生或家長帳戶？唔使第二個 email。喺頁首㩒「加入 MatchMax」，就可以喺原有檔案之上啟用教學模式。",
       "case_badges": "每張個案卡都會顯示「家長帳戶」或「獨立學生」徽章，未聯絡之前就知對面係邊個。",
       "cap57": "MatchMax 嘅獨立導師係《第 57 章》下嘅自僱人士，唔係 MatchMax 嘅僱員或代理。"
     },
@@ -4190,8 +4190,6 @@
     "proof_open": "查看相片證明",
     "proof_pill": "相片證明",
     "proof_caption": "由導師自行公開的相片證明。私人核實文件絕不會在此顯示。",
-    "badge_slots_left": "可預約 · 尚餘 {{count}} 個名額",
-    "badge_available_now": "現正招生",
     "rating_new_cue": "新"
   },
   "tutor_compare": {
