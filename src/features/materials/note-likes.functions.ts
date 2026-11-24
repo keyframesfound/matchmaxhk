@@ -283,15 +283,22 @@ export const setNoteLiked = createServerFn({ method: "POST" })
         label: loaded.note.title,
         slug: loaded.note.slug,
       });
-      // Advisory: a failed notice must never fail the like itself.
+      // #726 AC-4: emit through the SAME RPC the save path uses, with
+      // _action='liked'. That function owns the toggle-proof dedupe
+      // (engagement_notified is keyed by actor + item + action), so
+      // Like / Unlike / Like five times in a row produces exactly one notice.
+      // Inserting case_events here would have bypassed that dedupe.
       if (planned && planDeliveriesForEvent(planned.eventType).kind === "deliver") {
         try {
-          const { error } = await db.from<never>("case_events").insert({
-            event_type: planned.eventType,
-            source_table: "material_likes",
-            source_id: data.materialId,
-            payload: planned.payload,
-          });
+          const { error } = await db.rpc(
+            "notify_engagement_saved" as never,
+            {
+              _actor: context.userId,
+              _entity_type: "material",
+              _entity_id: data.materialId,
+              _action: "liked",
+            } as never,
+          );
           if (error) console.warn("[note-likes] like notice not recorded:", error.message);
         } catch (e) {
           console.warn("[note-likes] like notice failed:", e instanceof Error ? e.message : e);
