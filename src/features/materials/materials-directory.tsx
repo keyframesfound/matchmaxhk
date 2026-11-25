@@ -57,6 +57,7 @@ import {
   type MarketplaceMaterial,
 } from "@/features/materials/queries";
 import { NoteBrowseCard } from "@/features/materials/note-browse-card";
+import { useMyNoteLikeIds, useNoteLikeCounts } from "@/features/materials/note-like-queries";
 import {
   fetchMaterialPublicCounts,
   type MaterialPublicCounts,
@@ -351,6 +352,10 @@ export function MaterialsDirectory({
     staleTime: 5 * 60_000,
   });
   const publicCounts = countsQuery.data ?? new Map<string, MaterialPublicCounts>();
+  // #726: one batch like-count read for the same visible window.
+  const likeCounts = useNoteLikeCounts(visibleIds);
+  // #726: the viewer's own likes in the same batch, so the heart paints filled.
+  const likedIds = useMyNoteLikeIds(visibleIds);
   const tailoringLabel = tailoring?.curriculum
     ? learnerCurriculumLabel(tailoring.curriculum)
     : (tailoring?.subjects ?? []).join(", ");
@@ -441,6 +446,9 @@ export function MaterialsDirectory({
           saved={savedIds.has(material.id)}
           socialProof={publicCounts.get(material.id) ?? null}
           onToggleSave={() => void toggleSave(material.id)}
+          likeCount={likeCounts[material.id]}
+          liked={likedIds.has(material.id)}
+          onRequireAuth={() => setAuthGateOpen(true)}
         />
       ))}
     </div>

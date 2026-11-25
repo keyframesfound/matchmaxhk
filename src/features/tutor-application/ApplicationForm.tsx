@@ -89,6 +89,18 @@ import type { PreferredTimeWindow } from "@/features/tutors/queries";
 import { PREFERRED_TIME_WINDOWS } from "@/features/tutors/queries";
 import { ACTIVATION_GENDERS } from "@/features/tutor-application/activation";
 import {
+  FIT_OPTIONS,
+  MAX_FIT,
+  MAX_STYLES,
+  MAX_TAGS,
+  STYLE_OPTIONS,
+  TAG_OPTIONS,
+  chipLabel,
+  sanitizeChips,
+  toggleChip,
+  type ChipOption,
+} from "@/features/tutor-application/matching-chips";
+import {
   COUNTRY_DEFAULT_TIME_ZONE,
   isValidIanaTimeZone,
   suggestTimeZone,
@@ -979,6 +991,78 @@ function SubjectPicker({
   );
 }
 
+const MATCHING_COPY = {
+  en: {
+    sectionTitle: "How you tutor (helps us match better cases)",
+    sectionHint: "Optional. These answers never block publishing.",
+    styleLabel: "Teaching style",
+    fitLabel: "Who you work best with",
+    tagLabel: "Specialty syllabus topics (optional, up to 5)",
+    hint: (selected: number, max: number) => `Pick up to ${max} (${selected} selected)`,
+    showAll: "Show all",
+    showLess: "Show less",
+  },
+  zh: {
+    sectionTitle: "你的教學方式（有助我們更準確配對）",
+    sectionHint: "可選填，不影響發佈。",
+    styleLabel: "教學風格",
+    fitLabel: "最適合指導的學生",
+    tagLabel: "專長課程主題（可選，最多 5 項）",
+    hint: (selected: number, max: number) => `最多選 ${max} 項（已選 ${selected} 項）`,
+    showAll: "顯示全部",
+    showLess: "收起",
+  },
+} as const;
+
+/**
+ * Issue #798 AC-2: one optional chip group. Buttons (not checkboxes) because
+ * the selection reads as a set of toggles; aria-pressed carries the state and
+ * a full group disables its unselected chips instead of silently ignoring the
+ * click.
+ */
+function MatchingChips({
+  groupLabel,
+  options,
+  selected,
+  max,
+  language,
+  onToggle,
+}: {
+  groupLabel: string;
+  options: readonly ChipOption[];
+  selected: string[];
+  max: number;
+  language: "en" | "zh";
+  onToggle: (value: string) => void;
+}) {
+  return (
+    <div role="group" aria-label={groupLabel} className="flex flex-wrap gap-2">
+      {options.map((option) => {
+        const active = selected.includes(option.value);
+        const atCap = !active && selected.length >= max;
+        return (
+          <button
+            key={option.value}
+            type="button"
+            aria-pressed={active}
+            disabled={atCap}
+            onClick={() => onToggle(option.value)}
+            className={cn(
+              "rounded-md border px-3 py-1.5 text-xs font-semibold transition-colors",
+              active
+                ? "border-transparent bg-[color:var(--foreground)]/[0.08] text-[color:var(--ink)]"
+                : "border-border text-muted-foreground hover:bg-[color:var(--foreground)]/[0.04] hover:text-[color:var(--ink)]",
+              atCap && "cursor-not-allowed opacity-50",
+            )}
+          >
+            {chipLabel(language, options, option.value)}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 type ApplicationBaseState = {
   name: string;
   preferredName: string;
@@ -1041,6 +1125,11 @@ type ApplicationBaseState = {
   // referral_signup, the surface tag is decided server-side by whether the
   // submit arrived through a referrer link.
   termsGate: boolean;
+  // Issue #798 AC-2: optional matching chips. Caps are enforced by the chip
+  // group and re-enforced server-side; an empty selection must always submit.
+  tutoringStyles: string[];
+  studentFit: string[];
+  syllabusTags: string[];
   // Issue #718: gender re-attached from the #576 quick sheet (a required
   // one-tap chip row; parents filter tutors by gender preference).
   gender: string;
@@ -1077,7 +1166,11 @@ const PHOTO_PENDING_KEY = "tutor-application:photo";
 const PENDING_SOURCE_ISSUE: PendingSourceIssue = "#718";
 
 export function ApplicationForm({ completePending = false }: { completePending?: boolean }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  // Issue #798 AC-2: the chip labels are copy-only additions, so they live in
+  // MATCHING_COPY beside the chip group instead of the shared namespace.
+  const chipLanguage: "en" | "zh" = i18n.language?.startsWith("zh") ? "zh" : "en";
+  const matchingCopy = MATCHING_COPY[chipLanguage];
   const senCategoryLabels = useSenCategoryLabels();
   const submit = useServerFn(submitTutorApplication);
   const saveResumeDraft = useServerFn(saveJoinResumeDraft);
@@ -1205,7 +1298,14 @@ export function ApplicationForm({ completePending = false }: { completePending?:
     terms: false,
     termsGate: false,
     gender: "",
+    // Issue #798 AC-2: optional matching chips, empty by default.
+    tutoringStyles: [] as string[],
+    studentFit: [] as string[],
+    syllabusTags: [] as string[],
   });
+  // Issue #798 AC-2: the tag row shows the first 6 chips and reveals the rest
+  // behind one control, so the optional section stays short on a phone.
+  const [showAllTags, setShowAllTags] = useState(false);
   // Issue #718: availability collected at intake — the same weekly grid and
   // capacity fields as Dashboard → Availability. Defaults match the
   // self-serve editor (accepting students, 2 open slots, no windows set).
@@ -1471,6 +1571,13 @@ export function ApplicationForm({ completePending = false }: { completePending?:
       ...prev,
       ...restoredDraft.base,
       photo: null,
+      // Issue #798 AC-2: restoredDraft.base is spread unvalidated, so the chip
+      // arrays are re-sanitized here (unknown or renamed values drop, blanks
+      // and duplicates collapse, the caps re-apply) instead of trusting
+      // whatever localStorage or the resume payload carried.
+      tutoringStyles: sanitizeChips(restoredDraft.base?.tutoringStyles, STYLE_OPTIONS, MAX_STYLES),
+      studentFit: sanitizeChips(restoredDraft.base?.studentFit, FIT_OPTIONS, MAX_FIT),
+      syllabusTags: sanitizeChips(restoredDraft.base?.syllabusTags, TAG_OPTIONS, MAX_TAGS),
     }));
     // Issue #798: a restored zone that differs from the automatic suggestion
     // was chosen by the tutor, so freeze it; a zone that still equals the
@@ -1558,6 +1665,9 @@ export function ApplicationForm({ completePending = false }: { completePending?:
     return {
       step,
       base: {
+        // Issue #798 AC-2: tutoringStyles / studentFit / syllabusTags ride
+        // along with the rest of the base state, so autosave, draft restore
+        // and the in-app-browser resume link all keep the chip selection.
         ...base,
         photo: null,
       },
@@ -2356,6 +2466,11 @@ export function ApplicationForm({ completePending = false }: { completePending?:
           .map((achievement) => `${achievement.title}: ${achievement.description}`)
           .join("\n"),
         selfIntroduction: base.selfIntroduction,
+        // Issue #798 AC-2: optional matching chips; the server re-sanitizes
+        // them and never blocks on an empty selection.
+        tutoringStyles: base.tutoringStyles,
+        studentFit: base.studentFit,
+        syllabusTags: base.syllabusTags,
         // Issue #319: two base rates + profile-only extras. hourlyRate is no
         // longer collected, tutor-application.functions.ts derives it from
         // the min of the two base rates before the row is stored.
@@ -4130,6 +4245,79 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                   <p className="mt-1 text-right text-xs text-muted-foreground" aria-live="polite">
                     {base.selfIntroduction.length}/2000
                   </p>
+                </Field>
+              </div>
+              <div className="mt-6 border-t border-border pt-5">
+                {/* Issue #798 AC-2: optional matching chips. Nothing here is
+                    required and nothing here feeds the publish gate, so an
+                    empty selection simply stores no values. */}
+                <p className="text-sm font-semibold text-[color:var(--ink)]">
+                  {matchingCopy.sectionTitle}
+                </p>
+                <p className="mt-0.5 text-xs text-muted-foreground">{matchingCopy.sectionHint}</p>
+                <Field
+                  label={matchingCopy.styleLabel}
+                  optional
+                  className="mt-4"
+                  hint={matchingCopy.hint(base.tutoringStyles.length, MAX_STYLES)}
+                >
+                  <MatchingChips
+                    groupLabel={matchingCopy.styleLabel}
+                    options={STYLE_OPTIONS}
+                    selected={base.tutoringStyles}
+                    max={MAX_STYLES}
+                    language={chipLanguage}
+                    onToggle={(value) =>
+                      setBaseField(
+                        "tutoringStyles",
+                        toggleChip(base.tutoringStyles, value, MAX_STYLES),
+                      )
+                    }
+                  />
+                </Field>
+                <Field
+                  label={matchingCopy.fitLabel}
+                  optional
+                  className="mt-4"
+                  hint={matchingCopy.hint(base.studentFit.length, MAX_FIT)}
+                >
+                  <MatchingChips
+                    groupLabel={matchingCopy.fitLabel}
+                    options={FIT_OPTIONS}
+                    selected={base.studentFit}
+                    max={MAX_FIT}
+                    language={chipLanguage}
+                    onToggle={(value) =>
+                      setBaseField("studentFit", toggleChip(base.studentFit, value, MAX_FIT))
+                    }
+                  />
+                </Field>
+                <Field
+                  label={matchingCopy.tagLabel}
+                  optional
+                  className="mt-4"
+                  hint={matchingCopy.hint(base.syllabusTags.length, MAX_TAGS)}
+                >
+                  <MatchingChips
+                    groupLabel={matchingCopy.tagLabel}
+                    options={showAllTags ? TAG_OPTIONS : TAG_OPTIONS.slice(0, 6)}
+                    selected={base.syllabusTags}
+                    max={MAX_TAGS}
+                    language={chipLanguage}
+                    onToggle={(value) =>
+                      setBaseField("syllabusTags", toggleChip(base.syllabusTags, value, MAX_TAGS))
+                    }
+                  />
+                  {TAG_OPTIONS.length > 6 ? (
+                    <button
+                      type="button"
+                      aria-expanded={showAllTags}
+                      onClick={() => setShowAllTags((current) => !current)}
+                      className="mt-2 text-xs font-semibold text-[color:var(--ink)] underline underline-offset-4"
+                    >
+                      {showAllTags ? matchingCopy.showLess : matchingCopy.showAll}
+                    </button>
+                  ) : null}
                 </Field>
               </div>
               <div className="mt-6 border-t border-border pt-5">

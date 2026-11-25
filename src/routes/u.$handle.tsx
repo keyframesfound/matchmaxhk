@@ -26,6 +26,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
 import { ActiveCasesSection } from "@/features/cases/active-cases/active-cases-section";
+import { PublicProgressSection } from "@/features/cases/public-progress-section";
+import { listPublicProgressCards } from "@/features/cases/progress-checkpoints.functions";
 import { CHANNEL_EDITORS, ChannelInlineEditors } from "@/features/channels/channel-inline-editors";
 import { ProfileStrengthBanner } from "@/features/profile-strength/profile-strength-banner";
 import {
@@ -90,6 +92,12 @@ function ChannelProfilePage() {
   const reviewsQuery = useQuery({
     queryKey: ["channel-reviews", handle],
     queryFn: () => getChannelReviews({ data: { handle } }),
+    enabled: tab === "reviews",
+  });
+  // #794 §2.6: anonymous progress cards sit beside reviews, never on Explore.
+  const progressQuery = useQuery({
+    queryKey: ["channel-progress", handle],
+    queryFn: () => listPublicProgressCards({ data: { handle } }),
     enabled: tab === "reviews",
   });
 
@@ -388,28 +396,31 @@ function ChannelProfilePage() {
               </ul>
             )}
             {tab === "reviews" && (
-              <ul className="space-y-2">
-                {(reviewsQuery.data ?? []).map((r) => (
-                  <li key={r.id} className="rounded-xl border border-border bg-card p-4">
-                    <p className="text-sm font-semibold text-[color:var(--ink)]">
-                      {"★".repeat(r.rating)}
-                      <span className="text-muted-foreground">{"★".repeat(5 - r.rating)}</span>
+              <div className="space-y-4">
+                <PublicProgressSection cards={progressQuery.data ?? []} />
+                <ul className="space-y-2">
+                  {(reviewsQuery.data ?? []).map((r) => (
+                    <li key={r.id} className="rounded-xl border border-border bg-card p-4">
+                      <p className="text-sm font-semibold text-[color:var(--ink)]">
+                        {"★".repeat(r.rating)}
+                        <span className="text-muted-foreground">{"★".repeat(5 - r.rating)}</span>
+                      </p>
+                      {r.comment && (
+                        <p className="mt-1 text-sm text-[color:var(--ink)]">{r.comment}</p>
+                      )}
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        {r.name ?? t("channel.anonymous")} ·{" "}
+                        {new Date(r.createdAt).toLocaleDateString(i18n.language)}
+                      </p>
+                    </li>
+                  ))}
+                  {!reviewsQuery.isLoading && (reviewsQuery.data ?? []).length === 0 && (
+                    <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
+                      {t("channel.reviews_empty")}
                     </p>
-                    {r.comment && (
-                      <p className="mt-1 text-sm text-[color:var(--ink)]">{r.comment}</p>
-                    )}
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      {r.name ?? t("channel.anonymous")} ·{" "}
-                      {new Date(r.createdAt).toLocaleDateString(i18n.language)}
-                    </p>
-                  </li>
-                ))}
-                {!reviewsQuery.isLoading && (reviewsQuery.data ?? []).length === 0 && (
-                  <p className="rounded-xl border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-                    {t("channel.reviews_empty")}
-                  </p>
-                )}
-              </ul>
+                  )}
+                </ul>
+              </div>
             )}
           </div>
         )}

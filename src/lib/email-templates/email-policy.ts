@@ -52,6 +52,21 @@ export function promoSubjectsAllowed(
   });
 }
 
+/**
+ * #783 AC-717-2 at its enforcement point: a promo send may only carry the
+ * subjects the recipient has no active trial or case in, and an empty result
+ * means the promo must not be sent at all. Called from `sendTemplateEmail`
+ * before the 7-day marketing slot is claimed, so a suppressed promo cannot
+ * burn the recipient's one automated email of the week.
+ */
+export function promoDecision(
+  candidates: readonly string[],
+  activeSubjects: readonly string[],
+): { send: boolean; subjects: string[] } {
+  const subjects = promoSubjectsAllowed(candidates, activeSubjects);
+  return { send: subjects.length > 0, subjects };
+}
+
 // --- One-click unsubscribe token (HMAC-SHA256, no expiry, account-bound) ---
 
 function toHex(buffer: ArrayBuffer): string {

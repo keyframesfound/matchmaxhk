@@ -59,14 +59,25 @@ export const WeeklyDigestEmail = ({ sections = [], unsubscribeUrl }: WeeklyDiges
           </React.Fragment>
         ))}
         <Hr style={hr} />
+        {/* #783 AC-717-3: the footer carries both languages, like the body. */}
         <Text style={footer}>
           Issued via MatchMax (matchmax.hk) based on verified lesson records and independent tutor
           assessments.
+        </Text>
+        <Text style={footer}>
+          由 MatchMax（matchmax.hk）根據已核實的課堂記錄及獨立導師評估發出。
         </Text>
         {unsubscribeUrl ? (
           <Text style={footer}>
             <Link href={unsubscribeUrl} style={unsubscribeLink}>
               Unsubscribe from weekly digests
+            </Link>
+          </Text>
+        ) : null}
+        {unsubscribeUrl ? (
+          <Text style={footer}>
+            <Link href={unsubscribeUrl} style={unsubscribeLink}>
+              取消訂閱每週摘要
             </Link>
           </Text>
         ) : null}

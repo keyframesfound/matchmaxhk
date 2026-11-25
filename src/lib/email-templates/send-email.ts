@@ -2,7 +2,7 @@ import * as React from "react";
 import { render } from "@react-email/render";
 import { Resend } from "resend";
 import { TEMPLATES } from "./registry";
-import { emailClassFor, signUnsubscribeToken } from "./email-policy";
+import { emailClassFor, promoDecision, signUnsubscribeToken } from "./email-policy";
 
 // Server-only: reads RESEND_API_KEY. Never import from client components.
 
@@ -29,7 +29,11 @@ function getResend(): Resend {
 }
 
 export type SendTemplateEmailResult =
-  { sent: true } | { sent: false; reason: "recipient_suppressed" | "capped_or_opted_out" };
+  | { sent: true }
+  | {
+      sent: false;
+      reason: "recipient_suppressed" | "capped_or_opted_out" | "promo_suppressed";
+    };
 
 export interface SendTemplateEmailOptions {
   templateData?: Record<string, unknown>;
@@ -41,6 +45,16 @@ export interface SendTemplateEmailOptions {
    * have opted in and must not have had an automated email in 7 days.
    */
   marketingUserId?: string;
+  /**
+   * #783 AC-717-2: promo subject candidates for this send. When present on a
+   * marketing template, subjects the recipient already has an active trial or
+   * case in (#772 / #615) are dropped, the survivors are passed to the
+   * template as `subjects`, and an empty result suppresses the send entirely
+   * — before the 7-day slot is claimed.
+   */
+  promoSubjects?: readonly string[];
+  /** Subjects the recipient currently has an active trial or case in. */
+  activeSubjects?: readonly string[];
 }
 
 const SITE_URL = "https://matchmax.hk";
@@ -81,6 +95,13 @@ export async function sendTemplateEmail(
   // #783 §2.3: marketing mail = opt-in + max one automated email per 7 days
   // (atomic DB claim). Transactional mail is never capped.
   const headers: Record<string, string> = {};
+  if (emailClassFor(templateName) === "automated_marketing" && options.promoSubjects) {
+    // Suppress BEFORE claiming the slot: a blocked promo must not consume the
+    // recipient's one automated email of the week.
+    const decision = promoDecision(options.promoSubjects, options.activeSubjects ?? []);
+    if (!decision.send) return { sent: false, reason: "promo_suppressed" };
+    templateData.subjects = decision.subjects;
+  }
   if (emailClassFor(templateName) === "automated_marketing") {
     if (!options.marketingUserId) {
       throw new Error(`Template '${templateName}' is marketing mail and needs marketingUserId`);

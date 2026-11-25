@@ -4,6 +4,7 @@ import {
   AUTOMATED_EMAIL_WINDOW_MS,
   automatedSlotOpen,
   emailClassFor,
+  promoDecision,
   promoSubjectsAllowed,
   registerAutomatedMarketingTemplate,
   signUnsubscribeToken,
@@ -86,5 +87,26 @@ describe("#783 §2.3 unsubscribe token", () => {
   it("rejects a malformed token", async () => {
     expect(await verifyUnsubscribeToken("garbage", "secret")).toBeNull();
     expect(await verifyUnsubscribeToken("a.b.c", "secret")).toBeNull();
+  });
+});
+
+describe("#783 AC-717-2 promo suppression decision", () => {
+  it("drops subjects the recipient already has an active trial or case in", () => {
+    const decision = promoDecision(["IB Physics", "DSE Maths", "IGCSE Biology"], ["DSE maths"]);
+    expect(decision.send).toBe(true);
+    expect(decision.subjects).toEqual(["IB Physics", "IGCSE Biology"]);
+  });
+
+  it("suppresses the whole send when every subject is already active", () => {
+    const decision = promoDecision(["IB Physics"], ["IB Physics HL"]);
+    expect(decision).toEqual({ send: false, subjects: [] });
+  });
+
+  it("suppresses an empty candidate list rather than sending a blank promo", () => {
+    expect(promoDecision([], [])).toEqual({ send: false, subjects: [] });
+  });
+
+  it("keeps the send when the recipient has no active matches", () => {
+    expect(promoDecision(["IB Physics"], [])).toEqual({ send: true, subjects: ["IB Physics"] });
   });
 });

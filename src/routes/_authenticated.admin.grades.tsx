@@ -30,6 +30,7 @@ import {
 } from "@/features/tutors/admin/grade-review.functions";
 import { GRADE_REJECTION_REASONS, type GradeRejectionReason } from "@/features/tutors/grades";
 import { NeedVerificationQueue } from "@/features/cases/admin/NeedVerificationQueue";
+import { ProgressEvidenceQueue } from "@/features/cases/admin/ProgressEvidenceQueue";
 
 export const Route = createFileRoute("/_authenticated/admin/grades")({
   head: () => ({
@@ -474,6 +475,10 @@ function AdminGrades() {
           </div>
         )}
       </div>
+
+      {/* Issue #794 §2.6: desk verification of case progress evidence (Report Card
+          Checked). The document is destroyed on either decision. */}
+      <ProgressEvidenceQueue />
 
       {/* Issue #794 §2.3 (AC-560-3): proof-of-need review for the pro-bono rate. */}
       <NeedVerificationQueue />

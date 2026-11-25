@@ -12,6 +12,15 @@ import { tutorApplicationSchema } from "@/lib/tutor-application.schema";
 import type { TutorApplication } from "./tutor-application.schema";
 import { phoneIsValid } from "@/features/tutor-application/activation";
 import { localityPatch } from "@/features/tutor-application/locality";
+import {
+  FIT_OPTIONS,
+  MAX_FIT,
+  MAX_STYLES,
+  MAX_TAGS,
+  STYLE_OPTIONS,
+  TAG_OPTIONS,
+  sanitizeChips,
+} from "@/features/tutor-application/matching-chips";
 import type { Json } from "@/integrations/supabase/types";
 import { getRuntimeEnv } from "./runtime-env";
 
@@ -347,17 +356,35 @@ export const submitTutorApplication = createServerFn({ method: "POST" })
     // `time_zone` the intake used to target — scheduling, the settings picker
     // and the CHECK constraint all read `timezone`, so the old target silently
     // dropped a confirmed zone.
+    // Issue #798 AC-2: the optional matching chips ride in the SAME update as
+    // locality. Each selection is re-sanitized against the canonical option
+    // lists (zod only checked the shape), and an empty selection is omitted
+    // rather than written: re-submitting the join form must never clear chips
+    // the settings editor already stored.
+    const tutoringStyles = sanitizeChips(application.tutoringStyles, STYLE_OPTIONS, MAX_STYLES);
+    const studentFit = sanitizeChips(application.studentFit, FIT_OPTIONS, MAX_FIT);
+    const syllabusTags = sanitizeChips(application.syllabusTags, TAG_OPTIONS, MAX_TAGS);
+    const chipsUpdate: {
+      tutoring_styles?: string[];
+      student_fit?: string[];
+      syllabus_tags?: string[];
+    } = {};
+    if (tutoringStyles.length > 0) chipsUpdate.tutoring_styles = tutoringStyles;
+    if (studentFit.length > 0) chipsUpdate.student_fit = studentFit;
+    if (syllabusTags.length > 0) chipsUpdate.syllabus_tags = syllabusTags;
+
     const localityUpdate = localityPatch({
       city: application.city,
       timeZone: application.timeZone,
     });
-    if (Object.keys(localityUpdate).length > 0) {
+    const tutorUpdate = { ...localityUpdate, ...chipsUpdate };
+    if (Object.keys(tutorUpdate).length > 0) {
       const { error: localityError } = await asAdminDb(supabaseAdmin)
         .from<{ id: string }>("tutors")
-        .update(localityUpdate)
+        .update(tutorUpdate)
         .eq("id", published.tutorId);
       if (localityError) {
-        console.warn("[submit-tutor-application] locality failed:", localityError.message);
+        console.warn("[submit-tutor-application] locality/chips failed:", localityError.message);
       }
     }
 
