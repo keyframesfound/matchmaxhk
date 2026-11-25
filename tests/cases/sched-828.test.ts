@@ -1,13 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { monthTuitionEstimate, type HubLesson } from "@/features/cases/calendar-hub";
+import { monthTuitionEstimate, type HubLesson } from "../../src/features/cases/calendar-hub";
 import {
   canMarkTuitionUnpaid,
   lessonNetHkd,
   type EarningsCaseInput,
-} from "@/features/cases/earnings";
-import { ACTIVE_STUDENT_WINDOW_DAYS } from "@/features/cases/sor";
-import { EXPERIENCE } from "@/features/tutors/experience";
+} from "../../src/features/cases/earnings";
+import { ACTIVE_STUDENT_WINDOW_DAYS } from "../../src/features/cases/sor";
+import { EXPERIENCE } from "../../src/features/tutors/experience";
 
 const now = new Date("2026-11-15T04:00:00Z");
 

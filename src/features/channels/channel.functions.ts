@@ -4,6 +4,14 @@ import { z } from "zod";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import { selectRows, type Db, selectRowsOrEmpty } from "@/features/cases/desk-db";
+import type { HourlyOpenHours } from "@/features/tutors/availability-grid-model";
+import { emptyHourlyOpenHours } from "@/features/tutors/availability-grid-model";
+import { computeOccupiedHoursByTutor } from "@/features/tutors/availability-occupancy.functions";
+import { resolvePublicOpenHours } from "@/features/tutors/queries";
+import {
+  selectPinnedProofPosts,
+  type ChannelProofPost,
+} from "@/features/channels/channel-proof-posts";
 
 /**
  * Issue #548: Unified Channel Profile. Public channel data for
@@ -23,6 +31,18 @@ export type ChannelStats = {
   materialsCount: number;
   reviewsCount: number;
   avgRating: number | null;
+};
+
+/**
+ * #712 AC-1: the read-only weekly grid on the channel. Open hours come from the
+ * same `resolvePublicOpenHours` derivation the public tutor page uses; Occupied
+ * cells come from the same batched booking read. Both carry day/hour integers
+ * only, so no student, lesson or earnings detail can appear on the channel.
+ */
+export type ChannelAvailability = {
+  openHours: HourlyOpenHours;
+  occupiedHours: HourlyOpenHours;
+  timezone: string | null;
 };
 
 export type ChannelProfileData = {
@@ -50,6 +70,10 @@ export type ChannelProfileData = {
     activeProBonoCases: number;
   } | null;
   stats: ChannelStats | null;
+  /** #712: up to three achievements that carry a public proof photo. */
+  proofPosts: ChannelProofPost[];
+  /** #712: weekly Open/Occupied grid; null when the profile has no tutor card. */
+  availability: ChannelAvailability | null;
   affiliations: {
     id: string;
     centreName: string;
@@ -220,6 +244,8 @@ export const getChannelProfile = createServerFn({ method: "POST" })
       acceptingStudents: true,
       proBono: null,
       stats: null,
+      proofPosts: [],
+      availability: null,
       affiliations: [],
       publicRecords: [],
       birthdayMonthDay: null,
@@ -258,10 +284,15 @@ export const getChannelProfile = createServerFn({ method: "POST" })
       pro_bono_max_slots: number | null;
       card_hidden_by_ban: boolean | null;
       owner_account_status: string | null;
+      achievements: unknown;
+      availability_grid: unknown;
+      availability_grid_hourly: unknown;
+      availability_grid_hourly_reviewed_at: string | null;
+      timezone: string | null;
     }>(
       db,
       "tutors",
-      "id, tutor_code, headline, badge, subjects, hourly_rate, min_hourly_rate_hkd, is_published, is_accepting_students, accepts_pro_bono, accepts_reduced_rate, reduced_hourly_rate_hkd, pro_bono_max_slots, card_hidden_by_ban, owner_account_status",
+      "id, tutor_code, headline, badge, subjects, hourly_rate, min_hourly_rate_hkd, is_published, is_accepting_students, accepts_pro_bono, accepts_reduced_rate, reduced_hourly_rate_hkd, pro_bono_max_slots, card_hidden_by_ban, owner_account_status, achievements, availability_grid, availability_grid_hourly, availability_grid_hourly_reviewed_at, timezone",
       [{ col: "user_id", op: "eq", value: profile.id }],
     );
     const tutor = tutors[0] ?? null;
@@ -302,6 +333,40 @@ export const getChannelProfile = createServerFn({ method: "POST" })
     const blueTick = grades.some((g) => g.status === "approved");
 
     const stats = tutor ? await tutorStats(db, tutor.id) : null;
+
+    /**
+     * #712 AC-1: public proof posts. Only achievements with a published proof
+     * photo qualify; `selectPinnedProofPosts` copies the four public fields
+     * and nothing else.
+     */
+    const proofPosts = tutor ? selectPinnedProofPosts(tutor.achievements) : [];
+
+    /**
+     * #712 AC-1: the read-only weekly availability grid, derived exactly like
+     * the public tutor page — base Open hours from the tutor's stored hourly
+     * column (legacy fallback included), Occupied from confirmed bookings at
+     * read time. The occupancy read degrades to base Open hours, never throws,
+     * so a channel still renders when that source is unavailable.
+     */
+    let availability: ChannelAvailability | null = null;
+    if (tutor) {
+      const openHours = resolvePublicOpenHours({
+        availability_grid_hourly: tutor.availability_grid_hourly,
+        availability_grid_hourly_reviewed_at: tutor.availability_grid_hourly_reviewed_at,
+        availability_grid: tutor.availability_grid,
+      });
+      let occupiedHours = emptyHourlyOpenHours();
+      try {
+        const occupied = await computeOccupiedHoursByTutor(db, [{ tutorId: tutor.id }]);
+        occupiedHours = occupied.get(tutor.id) ?? occupiedHours;
+      } catch (error) {
+        console.warn(
+          "[channel] occupancy read failed, showing base Open hours:",
+          error instanceof Error ? error.message : error,
+        );
+      }
+      availability = { openHours, occupiedHours, timezone: tutor.timezone };
+    }
 
     // #548: live pro-bono slot usage = open cases with the private request.
     let activeProBonoCases = 0;
@@ -380,6 +445,8 @@ export const getChannelProfile = createServerFn({ method: "POST" })
             }
           : null,
       stats,
+      proofPosts,
+      availability,
       // #522: opt-in 🎂 month/day badge, logged-in viewers only; the year
       // and exact age never leave the server.
       birthdayMonthDay: visibleBirthdayMonthDay({

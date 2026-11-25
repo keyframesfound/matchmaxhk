@@ -19,6 +19,15 @@
 export const NOTES_OPTION_A_LIVE = false;
 
 /**
+ * Display-only switch for the seller payout breakdown in the note editor
+ * (#784 AC-784-FORM-1 / AC-784-FORM-2). It NEVER enables checkout, terms or
+ * payouts: every Stripe path stays gated on NOTES_OPTION_A_LIVE above. Kept
+ * separate so sellers can see the real payout split while pricing a listing
+ * without turning on payments.
+ */
+export const SHOW_EARNINGS_BREAKDOWN = true;
+
+/**
  * Copy keys that change at launch: `key` today, `notes_option_a.<swap>` once
  * NOTES_OPTION_A_LIVE is on. One table, so the launch is a one-line flip.
  */
@@ -139,6 +148,41 @@ export function earningsEstimate(grossHkd: number, takeRate: number = PLATFORM_F
   const platform = platformFeeHkd(gross, takeRate);
   const gateway = estimateGatewayFeeHkd(gross);
   return { gross, platform, gateway, net: cents(gross - platform - gateway) };
+}
+
+export type SellerBreakdownHkd = {
+  /** A HK$0 listing: nothing to charge, nothing to pay out. */
+  isFree: boolean;
+  /** False for a free listing, which hides the fee and net rows entirely. */
+  showFeeLines: boolean;
+  grossHkd: number;
+  platformFeeHkd: number;
+  estimatedGatewayFeeHkd: number;
+  netHkd: number;
+};
+
+/**
+ * The note editor's seller breakdown (#784 AC-784-FORM-1 / AC-784-FORM-2),
+ * kept pure so the visible numbers can be asserted without React. A paid
+ * listing nets exactly gross - 2% platform fee - estimated gateway fee; a
+ * HK$0 listing has no fee lines (publishing free never asks for payout
+ * details).
+ */
+export function sellerBreakdownHkd(
+  priceHkd: number,
+  rate: number = PLATFORM_FEE_RATE,
+): SellerBreakdownHkd {
+  const price = Number.isFinite(priceHkd) ? cents(Math.max(0, priceHkd)) : 0;
+  const e = earningsEstimate(price, rate);
+  const isFree = e.gross <= 0;
+  return {
+    isFree,
+    showFeeLines: !isFree,
+    grossHkd: isFree ? 0 : e.gross,
+    platformFeeHkd: isFree ? 0 : e.platform,
+    estimatedGatewayFeeHkd: isFree ? 0 : e.gateway,
+    netHkd: isFree ? 0 : e.net,
+  };
 }
 
 /** Stripe reports the fee in cents on balance_transaction.fee. */

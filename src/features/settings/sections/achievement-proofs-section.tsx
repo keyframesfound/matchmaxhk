@@ -8,7 +8,11 @@ import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import { materialCoverUrl } from "@/features/materials/material-card";
-import { saveMyAchievementProofs, uploadAchievementProof } from "@/features/tutors/proof.functions";
+import {
+  PROOF_CONTACT_BLOCKED,
+  saveMyAchievementProofs,
+  uploadAchievementProof,
+} from "@/features/tutors/proof.functions";
 import { createServerFn } from "@tanstack/react-start";
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { selectRows } from "@/features/cases/desk-db";
@@ -19,6 +23,15 @@ import { selectRows } from "@/features/cases/desk-db";
  * documents (HKID etc.) do not belong here — staff verification files are a
  * separate, private flow.
  */
+
+/**
+ * #712 AC-1 copy. Held as a const so the locale key reaches i18next as a
+ * variable (the locale files are owned elsewhere); the English defaultValue
+ * renders until the translation lands.
+ */
+const PROOF_CONTACT_BLOCKED_KEY = "settings.proofs.contact_blocked";
+const PROOF_CONTACT_BLOCKED_COPY =
+  "Achievement captions are public: no phone numbers, WhatsApp / WeChat / Instagram handles, emails or links. Parents reach you through MatchMax.";
 
 export const getMyAchievementProofs = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
@@ -66,7 +79,13 @@ export function AchievementProofsSection() {
       setPending({});
       void queryClient.invalidateQueries({ queryKey: ["achievement-proofs"] });
     },
-    onError: (e: Error) => toast.error(e.message),
+    // #712 AC-1: the server returns a stable code, never the matched pattern.
+    onError: (e: Error) =>
+      toast.error(
+        e.message.includes(PROOF_CONTACT_BLOCKED)
+          ? t(PROOF_CONTACT_BLOCKED_KEY, { defaultValue: PROOF_CONTACT_BLOCKED_COPY })
+          : e.message,
+      ),
   });
 
   const pickFile = (index: number) => {
