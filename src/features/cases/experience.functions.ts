@@ -20,6 +20,7 @@ import type { SorStatus } from "@/features/cases/sor";
 import { hktDateKey } from "@/features/cases/sor";
 import {
   canLogOnCase,
+  unpaidAllowed,
   validateSessionLogInput,
   type ExperienceGuardReason,
 } from "@/features/tutors/experience";
@@ -114,6 +115,10 @@ export const logTutorSession = createServerFn({ method: "POST" })
         durationMin: z.number().int(),
         // #461 3b: the family has not paid this lesson's tuition yet.
         tuitionUnpaid: z.boolean().optional(),
+        // #828 AC-A1: tutor-only note, never rendered to the family.
+        privateNote: z.string().trim().max(500).optional(),
+        // #828 AC-A1: UI-generated UUID so a double submit creates one row.
+        clientRequestId: z.string().uuid(),
         // #428 §1.2: optional 1-tap focus chip — never blocks logging.
         sessionFocus: z
           .enum(["Concept Building", "Past Paper", "IA/EE/SBA", "Homework", "Skill Practice"])
@@ -165,6 +170,20 @@ export const logTutorSession = createServerFn({ method: "POST" })
     const reason = validateSessionLogInput(data, hktDateKey(new Date()));
     if (reason) throw new Error(reason);
 
+    // #828 AC-A1: a retry with the same request id is the same session.
+    const existing = await selectRows<{ id: string }>(db, "tutor_session_logs", "id", [
+      { col: "case_id", op: "eq", value: c.id },
+      { col: "client_request_id", op: "eq", value: data.clientRequestId },
+    ]);
+    if (existing.length > 0) return { ok: true };
+
+    // #828 AC-A3: "unpaid" means the family still owes the tutor, so it is
+    // meaningless when the tutor nets nothing. A2 already refuses a missing
+    // rate, which makes this unreachable today — it stays as the guard for any
+    // future path that reaches billing with a zero net.
+    const netHkd = rate * (data.durationMin / 60);
+    if (data.tuitionUnpaid && !unpaidAllowed(netHkd)) throw new Error("UNPAID_NO_NET");
+
     const insert = db.from<Row>("tutor_session_logs").insert({
       case_id: c.id,
       tutor_id: tutorId,
@@ -172,6 +191,8 @@ export const logTutorSession = createServerFn({ method: "POST" })
       start_minute: data.startMinute,
       duration_min: data.durationMin,
       status: "pending",
+      client_request_id: data.clientRequestId,
+      ...(data.privateNote ? { private_note: data.privateNote } : {}),
       ...(data.tuitionUnpaid
         ? { tuition_status: "unpaid", tuition_status_at: new Date().toISOString() }
         : {}),
@@ -189,6 +210,8 @@ export const logTutorSession = createServerFn({ method: "POST" })
       .select()
       .single();
     if (error) {
+      // A retried request id is the same session, not a second one (#828 AC-A1).
+      if (/client_request_id/i.test(error.message)) return { ok: true };
       // UNIQUE(case_id, log_date): max 1 logged session per case per day.
       if (/duplicate|unique/i.test(error.message)) throw new Error("DUPLICATE_DAY");
       throw new Error(error.message);

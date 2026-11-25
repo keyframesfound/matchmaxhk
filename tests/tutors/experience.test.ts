@@ -172,10 +172,11 @@ describe("display helpers", () => {
   });
 
   it("counts down the dispute window (ceil, never negative)", () => {
+    // #828 AC-A5: the window is the shared 24h, so the countdown starts there.
     const created = new Date("2026-10-23T00:00:00Z");
-    expect(disputeHoursLeft(created, created)).toBe(72);
-    expect(disputeHoursLeft(created, new Date("2026-10-23T01:30:00Z"))).toBe(71);
-    expect(disputeHoursLeft(created, new Date("2026-10-26T00:00:00Z"))).toBe(0);
+    expect(disputeHoursLeft(created, created)).toBe(24);
+    expect(disputeHoursLeft(created, new Date("2026-10-23T01:30:00Z"))).toBe(23);
+    expect(disputeHoursLeft(created, new Date("2026-10-24T00:00:00Z"))).toBe(0);
     expect(disputeHoursLeft(created, new Date("2026-10-30T00:00:00Z"))).toBe(0);
   });
 });

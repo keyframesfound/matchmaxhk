@@ -294,7 +294,7 @@ function LessonRow({
 /**
  * #387, log a completed ongoing session (Date / Start / Duration in 0.5h
  * steps). Guardrails validated inline client-side AND server-side; pending
- * rows auto-verify 72h after logging unless the parent disputes.
+ * rows auto-verify after the shared 24h clock (#828 AC-A5) unless disputed.
  */
 function SessionLogForm({ item }: { item: TutorCaseItem }) {
   const { t } = useTranslation();
@@ -309,6 +309,10 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
   const [tuitionUnpaid, setTuitionUnpaid] = useState(false);
   // #428 §1.2: optional 1-tap focus chip — never blocks the log.
   const [sessionFocus, setSessionFocus] = useState("");
+  // #828 AC-A1: tutor-only note, never shown to the family.
+  const [privateNote, setPrivateNote] = useState("");
+  // #828 AC-A1: stable per submission, so a retry cannot log the session twice.
+  const [clientRequestId, setClientRequestId] = useState(() => crypto.randomUUID());
 
   const timeMatch = /^(\d{1,2}):(\d{2})$/.exec(start);
   const startMinute = timeMatch ? Number(timeMatch[1]) * 60 + Number(timeMatch[2]) : -1;
@@ -326,6 +330,8 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
           startMinute,
           durationMin,
           tuitionUnpaid,
+          privateNote: privateNote.trim() || undefined,
+          clientRequestId,
           sessionFocus: (sessionFocus || undefined) as
             | "Concept Building"
             | "Past Paper"
@@ -340,6 +346,8 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
       setOpen(false);
       setTuitionUnpaid(false);
       setSessionFocus("");
+      setPrivateNote("");
+      setClientRequestId(crypto.randomUUID());
       invalidate();
       void queryClient.invalidateQueries({ queryKey: ["sor", "earnings"] });
     },
@@ -451,6 +459,18 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
                 ),
               )}
             </select>
+            {/* #828 AC-A1: private note to yourself. Never rendered to the family. */}
+            <label className="mt-2 grid gap-1 text-xs text-muted-foreground">
+              {t("experience.log_private_note")}
+              <textarea
+                value={privateNote}
+                onChange={(e) => setPrivateNote(e.target.value.slice(0, 500))}
+                rows={2}
+                maxLength={500}
+                placeholder={t("experience.log_private_note_hint")}
+                className="w-full rounded-lg border border-border bg-transparent px-2 py-1.5 text-xs text-[color:var(--ink)]"
+              />
+            </label>
             <div className="mt-2 flex justify-end gap-2">
               <Button size="sm" variant="ghost" onClick={() => setOpen(false)}>
                 {t("sor.admin_cancel")}

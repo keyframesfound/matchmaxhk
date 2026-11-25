@@ -794,9 +794,9 @@
     "log_start": "開始時間",
     "log_duration": "時長",
     "log_submit": "提交紀錄",
-    "log_hint": "系統會通知家長，家長可提出異議。72 小時內無異議，課堂即自動核實並計入你的檔案。",
+    "log_hint": "系統會通知家長，家長可提出異議。24 小時內無異議，課堂即自動核實並計入你的檔案。",
     "log_tuition_unpaid": "家長尚未支付這堂的學費",
-    "log_success": "已登記課堂——如家長沒有異議，72 小時後自動核實。",
+    "log_success": "已登記課堂——如家長沒有異議，24 小時後自動核實。",
     "log_status_pending": "待核實",
     "log_status_verified": "已核實",
     "log_status_disputed": "已異議",
@@ -824,7 +824,10 @@
     "desk_revoke": "撤銷",
     "desk_revoked_ok": "已撤銷課堂——公開數據已即時重算。",
     "completed_cases": "已完成個案：{{count}}",
-    "err_RATE_MISSING": "此個案尚未鎖定每小時收費，因此未能記錄課堂。請先請秘書處鎖定收費。"
+    "err_RATE_MISSING": "此個案尚未鎖定每小時收費，因此未能記錄課堂。請先請秘書處鎖定收費。",
+    "err_UNPAID_NO_NET": "呢堂你冇實際收入，所以冇「未繳學費」可以標記。請取消勾選「學費未繳」。",
+    "log_private_note": "私人備註（只有你睇到）",
+    "log_private_note_hint": "今堂教咗咩、下次要跟進咩。"
   },
   "hours": {
     "title": "已驗證時數",
@@ -4553,6 +4556,9 @@
   },
   "calendar_hub": {
     "title": "日曆",
+    "zone_hkt": "所有時間均為香港時間（HKT）。",
+    "zone_tutor": "所有時間均為你的時區：{{zone}}。",
+    "zone_grid_hkt": "月曆以香港時間（HKT）顯示。",
     "tutor_title": "你的補習課堂",
     "parent_title": "你的課堂",
     "counts": "即將上課 {{upcoming}} 堂 · 本月 {{month}} 堂",

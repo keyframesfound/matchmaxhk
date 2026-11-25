@@ -79,10 +79,17 @@ export function ThinCalendar({
   lessons,
   blockedDates,
   onOpenCase,
+  zone,
 }: {
   lessons: readonly HubScheduleLesson[];
   blockedDates: readonly string[];
   onOpenCase: (caseCode: string) => void;
+  /**
+   * #828 AC-C5: the tutor's stored zone. The grid itself buckets and clocks in
+   * HKT (a day boundary is a property of that zone), so a non-HK tutor needs
+   * that stated rather than left to guess.
+   */
+  zone?: string;
 }) {
   const { t, i18n } = useTranslation();
   const chipLabel = useChipLabel();
@@ -141,6 +148,11 @@ export function ThinCalendar({
             </button>
           ) : null}
         </div>
+        {zone && zone !== "Asia/Hong_Kong" ? (
+          <p className="w-full text-xs text-muted-foreground sm:w-auto">
+            {t("calendar_hub.zone_grid_hkt")}
+          </p>
+        ) : null}
         <div className="flex w-full items-center justify-between gap-1 sm:w-auto sm:justify-end">
           <div
             role="group"

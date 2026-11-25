@@ -7,7 +7,8 @@ import {
   type EarningsCaseInput,
 } from "../../src/features/cases/earnings";
 import { ACTIVE_STUDENT_WINDOW_DAYS } from "../../src/features/cases/sor";
-import { EXPERIENCE } from "../../src/features/tutors/experience";
+import { EXPERIENCE, unpaidAllowed } from "../../src/features/tutors/experience";
+import { AUTO_VERIFY_HOURS } from "../../src/features/hours/hours";
 
 const now = new Date("2026-11-15T04:00:00Z");
 
@@ -47,6 +48,20 @@ describe("#828 AC-A3 unpaid tuition only where the tutor nets money", () => {
       canMarkTuitionUnpaid(lessonNetHkd(baseCase({ hourlyRateHkd: null }), "lesson", "L3", now)),
     ).toBe(false);
     expect(canMarkTuitionUnpaid(lessonNetHkd(baseCase(), "lesson", "nope", now))).toBe(false);
+  });
+});
+
+describe("#828 AC-A3/A-A5 the log path shares the same rules", () => {
+  it("unpaid is refused whenever the tutor nets nothing", () => {
+    expect(unpaidAllowed(0)).toBe(false);
+    expect(unpaidAllowed(-1)).toBe(false);
+    expect(unpaidAllowed(Number.NaN)).toBe(false);
+    expect(unpaidAllowed(400)).toBe(true);
+  });
+
+  it("the session-log auto-verify clock is the shared 24h, not a second 72h literal", () => {
+    expect(EXPERIENCE.autoVerifyHours).toBe(AUTO_VERIFY_HOURS);
+    expect(EXPERIENCE.autoVerifyHours).toBe(24);
   });
 });
 

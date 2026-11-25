@@ -1,6 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { DEFAULT_TUTOR_TIMEZONE, formatInTutorZone } from "@/features/cases/tutor-timezone";
+import {
+  DEFAULT_TUTOR_TIMEZONE,
+  formatInTutorZone,
+  timezoneLabel,
+} from "@/features/cases/tutor-timezone";
+import { useMyTutorTimezone } from "@/features/cases/use-my-tutor-timezone";
 import { useEffect, useMemo, useState } from "react";
 import { CircleHelp, Loader2, X } from "lucide-react";
 import { useMutation } from "@tanstack/react-query";
@@ -51,7 +56,16 @@ export const Route = createFileRoute("/_authenticated/calendar")({
   component: CalendarPage,
 });
 
-function SummarySection({ summary, role }: { summary: CalendarSummary; role: "tutor" | "parent" }) {
+function SummarySection({
+  summary,
+  role,
+  zone,
+}: {
+  summary: CalendarSummary;
+  role: "tutor" | "parent";
+  /** #828 AC-C5: the tutor's stored zone, so a non-HK tutor reads their own clock. */
+  zone: string;
+}) {
   const { t } = useTranslation();
   return (
     <section className="space-y-4 rounded-[var(--radius-panel)] border border-border bg-card p-5">
@@ -63,6 +77,12 @@ function SummarySection({ summary, role }: { summary: CalendarSummary; role: "tu
           upcoming: summary.upcoming.length,
           month: summary.thisMonthScheduled,
         })}
+      </p>
+      {/* #828 AC-C5: state the zone instead of leaving the reader to guess. */}
+      <p className="text-xs text-muted-foreground">
+        {zone === DEFAULT_TUTOR_TIMEZONE
+          ? t("calendar_hub.zone_hkt")
+          : t("calendar_hub.zone_tutor", { zone: timezoneLabel(zone) })}
       </p>
       {/* #828 C3: parent-only estimate of tuition paid directly to the tutor. */}
       {role === "parent" && summary.monthTuition ? (
@@ -92,7 +112,7 @@ function SummarySection({ summary, role }: { summary: CalendarSummary; role: "tu
               <div>
                 <p className="text-sm font-semibold">
                   {/* Absolute instant: pin the zone, a bare format() reads the device zone. */}
-                  {formatInTutorZone(l.startsAt, DEFAULT_TUTOR_TIMEZONE, {
+                  {formatInTutorZone(l.startsAt, zone, {
                     weekday: "short",
                     day: "numeric",
                     month: "short",
@@ -308,6 +328,8 @@ function CalendarPage() {
   const noLiveCases = scheduleLoaded && liveCases.length === 0;
   const brandNew = Boolean(data) && !data?.tutor && !data?.parent;
   const hubRole = data?.isTutor ? "tutor" : "parent";
+  // #828 AC-C5: one zone for the whole hub, read from the tutor's stored row.
+  const tutorZone = useMyTutorTimezone();
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
@@ -342,6 +364,7 @@ function CalendarPage() {
           lessons={schedule.data?.lessons ?? []}
           blockedDates={schedule.data?.blockedDates ?? []}
           onOpenCase={setCaseParam}
+          zone={tutorZone}
         />
         <ActiveCaseList
           cases={schedule.data?.cases ?? []}
@@ -363,11 +386,11 @@ function CalendarPage() {
         )}
         {data?.tutor && (
           <>
-            <SummarySection summary={data.tutor} role="tutor" />
+            <SummarySection summary={data.tutor} role="tutor" zone={tutorZone} />
             <EarningsPanel />
           </>
         )}
-        {data?.parent && <SummarySection summary={data.parent} role="parent" />}
+        {data?.parent && <SummarySection summary={data.parent} role="parent" zone={tutorZone} />}
         {noLiveCases ? <EmptyCases role={hubRole} /> : null}
         {brandNew && schedule.data?.isTutor ? <ProfileStrengthSection /> : null}
         {brandNew ? <HomeworkSamplePreview /> : null}

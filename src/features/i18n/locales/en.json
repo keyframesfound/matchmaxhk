@@ -794,9 +794,9 @@
     "log_start": "Start time",
     "log_duration": "Duration",
     "log_submit": "Submit log",
-    "log_hint": "The parent is notified and can dispute. With no dispute within 72 hours the session is verified and counts on your profile.",
+    "log_hint": "The parent is notified and can dispute. With no dispute within 24 hours the session is verified and counts on your profile.",
     "log_tuition_unpaid": "The family hasn't paid tuition for this lesson yet",
-    "log_success": "Session logged, it verifies automatically in 72 hours unless the parent disputes.",
+    "log_success": "Session logged, it verifies automatically in 24 hours unless the parent disputes.",
     "log_status_pending": "Pending verification",
     "log_status_verified": "Verified",
     "log_status_disputed": "Disputed",
@@ -824,7 +824,10 @@
     "desk_revoke": "Revoke",
     "desk_revoked_ok": "Session revoked, public totals recalculated.",
     "completed_cases": "{{count}} completed case(s)",
-    "err_RATE_MISSING": "This case has no hourly rate yet, so the lesson can’t be logged. Ask the desk to lock the rate first."
+    "err_RATE_MISSING": "This case has no hourly rate yet, so the lesson can’t be logged. Ask the desk to lock the rate first.",
+    "err_UNPAID_NO_NET": "This lesson earns you nothing, so there is no unpaid tuition to mark. Untick “Tuition unpaid”.",
+    "log_private_note": "Private note (only you see this)",
+    "log_private_note_hint": "What you covered, what to revisit next time."
   },
   "hours": {
     "title": "Verified hours",
@@ -4553,6 +4556,9 @@
   },
   "calendar_hub": {
     "title": "Calendar",
+    "zone_hkt": "All times are Hong Kong time (HKT).",
+    "zone_tutor": "All times are in your time zone: {{zone}}.",
+    "zone_grid_hkt": "The calendar grid uses Hong Kong time (HKT).",
     "tutor_title": "Your tutoring lessons",
     "parent_title": "Your lessons",
     "counts": "{{upcoming}} upcoming · {{month}} this month",
