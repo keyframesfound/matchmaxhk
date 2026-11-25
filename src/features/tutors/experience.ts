@@ -13,8 +13,18 @@
 // student. Callers pass one ExperienceSession per session, there is no
 // student-count parameter anywhere in the pipeline.
 
+import { AUTO_VERIFY_HOURS } from "@/features/hours/hours";
 import { hktDateKey } from "@/features/cases/sor";
 import { PRESENT_WINDOW_DAYS } from "@/features/tutors/present-window";
+
+/**
+ * #828 AC-A3: "tuition unpaid" means the family still owes the tutor, so it can
+ * only be set when the tutor actually nets something. Shared by the log form
+ * and the earnings-panel toggle.
+ */
+export function unpaidAllowed(netTutorHkd: number): boolean {
+  return Number.isFinite(netTutorHkd) && netTutorHkd > 0;
+}
 
 export const EXPERIENCE = {
   /** 0.5h increments, 0.5h–4.0h. */
@@ -23,8 +33,11 @@ export const EXPERIENCE = {
   durationStepMin: 30,
   /** Max 7-day backdating window. */
   backdateWindowDays: 7,
-  /** A pending log auto-verifies 72h after creation unless disputed. */
-  autoVerifyHours: 72,
+  /**
+   * A pending log auto-verifies after the shared windows (#828 AC-A5: 24h,
+   * matching the #459 hours ledger's AUTO_VERIFY_HOURS — one clock, not two).
+   */
+  autoVerifyHours: AUTO_VERIFY_HOURS,
   /** "– Present" shows while the last verified lesson is within 45 days. */
   presentWindowDays: PRESENT_WINDOW_DAYS,
   /** After 2 disputed logs on a Case the tutor can no longer log on it. */

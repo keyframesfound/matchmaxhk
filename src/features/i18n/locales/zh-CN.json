@@ -794,9 +794,9 @@
     "log_start": "开始时间",
     "log_duration": "时长",
     "log_submit": "提交纪录",
-    "log_hint": "系统会通知家长，家长可提出异议。72 小时内无异议，课堂即自动核实并计入你的档案。",
+    "log_hint": "系统会通知家长，家长可提出异议。24 小时内无异议，课堂即自动核实并计入你的档案。",
     "log_tuition_unpaid": "家长尚未支付这堂的学费",
-    "log_success": "已登记课堂——如家长没有异议，72 小时后自动核实。",
+    "log_success": "已登记课堂——如家长没有异议，24 小时后自动核实。",
     "log_status_pending": "待核实",
     "log_status_verified": "已核实",
     "log_status_disputed": "已异议",
@@ -824,7 +824,10 @@
     "desk_revoke": "撤销",
     "desk_revoked_ok": "已撤销课堂——公开数据已即时重算。",
     "completed_cases": "已完整个案：{{count}}",
-    "err_RATE_MISSING": "此个案尚未锁定每小时收费，因此未能记录课堂。请先请秘书处锁定收费。"
+    "err_RATE_MISSING": "此个案尚未锁定每小时收费，因此未能记录课堂。请先请秘书处锁定收费。",
+    "err_UNPAID_NO_NET": "这堂你没有实际收入，所以没有「未缴学费」可以标记。请取消勾选「学费未缴」。",
+    "log_private_note": "私人备注（只有你看到）",
+    "log_private_note_hint": "这堂课教了什么、下次要跟进什么。"
   },
   "hours": {
     "title": "已验证时数",
@@ -4553,6 +4556,9 @@
   },
   "calendar_hub": {
     "title": "日历",
+    "zone_hkt": "所有时间均为香港时间（HKT）。",
+    "zone_tutor": "所有时间均为你的时区：{{zone}}。",
+    "zone_grid_hkt": "月历以香港时间（HKT）显示。",
     "tutor_title": "你的家教课堂",
     "parent_title": "你的课堂",
     "counts": "即将上课 {{upcoming}} 堂 · 本月 {{month}} 堂",
