@@ -232,7 +232,7 @@ function buildTutorSeoCopy(tutor: Tutor): { title: LocaleCopy; description: Loca
     title: {
       en: `${identity} | ${subjectText || "Tutoring"} Tutor${levelText.en ? ` for ${levelText.en}` : ""} | MatchMax`,
       "zh-HK": `${identity}｜${subjectText || "補習"}導師${levelText["zh-HK"] ? `（${levelText["zh-HK"]}）` : ""}｜MatchMax`,
-      "zh-CN": `${identity}｜${subjectText || "补习"}导师${levelText["zh-CN"] ? `（${levelText["zh-CN"]}）` : ""}｜MatchMax`,
+      "zh-CN": `${identity}｜${subjectText || "家教"}导师${levelText["zh-CN"] ? `（${levelText["zh-CN"]}）` : ""}｜MatchMax`,
     },
     description: {
       en: `Tutor ${identity} teaches ${subjectText || "tutoring"}${levelText.en ? ` to ${levelText.en} students` : ""} ${place.en}. ${modeSentence.en} Browse rates, availability and reviews on MatchMax.`,
