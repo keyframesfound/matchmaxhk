@@ -3421,7 +3421,8 @@
       "replace": "更換相片",
       "remove": "移除",
       "save": "儲存相片證明",
-      "saved": "相片證明已更新"
+      "saved": "相片證明已更新",
+      "contact_blocked": "成就簡介會公開顯示：不可包含電話號碼、WhatsApp／微信／Instagram 帳號、電郵或連結。家長會透過 MatchMax 聯絡你。"
     }
   },
   "share": {
@@ -4028,6 +4029,9 @@
     "vis_public": "公開於我的導師檔案"
   },
   "channel": {
+    "proof_title": "精選證明與亮點",
+    "availability_title": "每週可約時間",
+    "availability_hint": "學生可以預約的時段，以及已被佔用的時間。",
     "birthday_badge": "🎂 {{date}}",
     "self_declared": "自稱",
     "not_found": "找不到此頻道。",
@@ -5112,6 +5116,7 @@
     "err_ALREADY_REVIEWED": "此功課已經批改。"
   },
   "billing": {
+    "share_whatsapp": "用 WhatsApp 分享",
     "settlement_title": "行政費結算",
     "settlement_state_payment_due": "待付款",
     "settlement_state_pending_verification": "等待核實",

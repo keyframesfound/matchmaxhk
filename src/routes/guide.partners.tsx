@@ -16,14 +16,14 @@ export const Route = createFileRoute("/guide/partners")({
       {
         name: "description",
         content:
-          "Partnering with MatchMax: how tuition centres and educational consultancies join as Organisation Partners — verification, the centre workspace, qualified enquiries, and the performance-based introduction fee.",
+          "Partnering with MatchMax: how tuition centres and educational consultancies join as Organisation Partners. Verification, the centre workspace, qualified enquiries, and a HK$0 matching fee for the centre.",
       },
       { name: "robots", content: "index, follow" },
       { property: "og:title", content: "Centres & Educators | MatchMax" },
       {
         property: "og:description",
         content:
-          "Partnering with MatchMax: how tuition centres and educational consultancies join as Organisation Partners — verification, the centre workspace, qualified enquiries, and the performance-based introduction fee.",
+          "Partnering with MatchMax: how tuition centres and educational consultancies join as Organisation Partners. Verification, the centre workspace, qualified enquiries, and a HK$0 matching fee for the centre.",
       },
       { property: "og:url", content: canonicalUrl("/guide/partners") },
     ],

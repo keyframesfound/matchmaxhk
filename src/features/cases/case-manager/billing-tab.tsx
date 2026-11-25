@@ -14,6 +14,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { statementShareUrl } from "@/features/cases/statement-share";
 import {
   RESCHEDULE_NOTE_MAX,
   STATEMENT_STATUSES,
@@ -228,9 +229,10 @@ function MonthCard({
     onSuccess: () => toast.success(t("billing.shared")),
     onError,
   });
+  const summary = statementSummary(t, month, when);
   const copy = async () => {
     try {
-      await navigator.clipboard.writeText(statementSummary(t, month, when));
+      await navigator.clipboard.writeText(summary);
       toast.success(t("billing.copied"));
     } catch {
       toast.error(t("billing.copy_failed"));
@@ -291,6 +293,12 @@ function MonthCard({
       <div className="mt-3 flex flex-wrap gap-2">
         <Button type="button" size="sm" variant="outline" onClick={() => void copy()}>
           {t("billing.copy")}
+        </Button>
+        {/* #712 AC-3: hand the same summary to WhatsApp without a server round trip. */}
+        <Button size="sm" variant="outline" asChild>
+          <a href={statementShareUrl(summary)} target="_blank" rel="noopener noreferrer">
+            {t("billing.share_whatsapp")}
+          </a>
         </Button>
         <Button
           type="button"

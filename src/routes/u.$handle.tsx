@@ -30,6 +30,8 @@ import { PublicProgressSection } from "@/features/cases/public-progress-section"
 import { listPublicProgressCards } from "@/features/cases/progress-checkpoints.functions";
 import { CHANNEL_EDITORS, ChannelInlineEditors } from "@/features/channels/channel-inline-editors";
 import { ProfileStrengthBanner } from "@/features/profile-strength/profile-strength-banner";
+import { materialCoverUrl } from "@/features/materials/material-card";
+import { AvailabilityHourlyGrid } from "@/features/tutors/availability-hourly-grid";
 import {
   getChannelCollections,
   getChannelMaterials,
@@ -261,6 +263,53 @@ function ChannelProfilePage() {
                   label={t("channel.stat_reviews")}
                 />
               </div>
+            )}
+
+            {/* #712 AC-1: up to three pinned proof posts (photo + caption).
+                Sourced from the tutor's own achievement proofs, so a private
+                verification file can never appear here. Hidden when empty. */}
+            {data.proofPosts.length > 0 && (
+              <section
+                aria-labelledby="channel-proof-title"
+                className="rounded-2xl border border-border bg-card p-5"
+              >
+                <h2
+                  id="channel-proof-title"
+                  className="text-sm font-semibold text-[color:var(--ink)]"
+                >
+                  {t("channel.proof_title")}
+                </h2>
+                <ul className="mt-4 grid gap-3 sm:grid-cols-3">
+                  {data.proofPosts.map((post) => {
+                    const url = materialCoverUrl(post.imagePath);
+                    return (
+                      <li
+                        key={post.index}
+                        className="overflow-hidden rounded-xl border border-border bg-muted/30"
+                      >
+                        {url ? (
+                          <img
+                            src={url}
+                            alt=""
+                            loading="lazy"
+                            className="h-36 w-full object-cover"
+                          />
+                        ) : null}
+                        <div className="p-3">
+                          <p className="text-sm font-semibold text-[color:var(--ink)]">
+                            {post.shortText}
+                          </p>
+                          {post.detailText ? (
+                            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                              {post.detailText}
+                            </p>
+                          ) : null}
+                        </div>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
             )}
 
             {/* #633: Active Cases strip; owner links lead to Case Manager. */}
@@ -511,6 +560,26 @@ function OverviewTab({
           </p>
         )}
       </div>
+
+      {/* #712 AC-1: read-only weekly availability. Flat, never tappable:
+          cell prefill stays a request-form concern. */}
+      {data.availability ? (
+        <div className="rounded-2xl border border-border bg-card p-5">
+          <h2 className="text-sm font-semibold text-[color:var(--ink)]">
+            {t("channel.availability_title")}
+          </h2>
+          <p className="mt-1 text-sm text-muted-foreground">{t("channel.availability_hint")}</p>
+          <div className="mt-4">
+            <AvailabilityHourlyGrid
+              openHours={data.availability.openHours}
+              occupiedHours={data.availability.occupiedHours}
+              tutorCode={data.tutorCode}
+              allowPrefill={false}
+              timezone={data.availability.timezone}
+            />
+          </div>
+        </div>
+      ) : null}
 
       {/* #576 Stage 3: inline editors for everything /join no longer collects. */}
       {editMode && data.isOwner && (

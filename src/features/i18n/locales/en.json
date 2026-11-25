@@ -3421,7 +3421,8 @@
       "replace": "Replace photo",
       "remove": "Remove",
       "save": "Save photo proofs",
-      "saved": "Photo proofs updated"
+      "saved": "Photo proofs updated",
+      "contact_blocked": "Achievement captions are public: no phone numbers, WhatsApp / WeChat / Instagram handles, emails or links. Parents reach you through MatchMax."
     }
   },
   "share": {
@@ -4028,6 +4029,9 @@
     "vis_public": "Public on my tutor profile"
   },
   "channel": {
+    "proof_title": "Pinned proof and highlights",
+    "availability_title": "Weekly availability",
+    "availability_hint": "Open hours a student can book, and the times already taken.",
     "birthday_badge": "🎂 {{date}}",
     "self_declared": "Self-declared",
     "not_found": "Channel not found.",
@@ -5112,6 +5116,7 @@
     "err_ALREADY_REVIEWED": "This homework has already been reviewed."
   },
   "billing": {
+    "share_whatsapp": "Share on WhatsApp",
     "settlement_title": "Admin fee settlement",
     "settlement_state_payment_due": "Payment due",
     "settlement_state_pending_verification": "Awaiting verification",

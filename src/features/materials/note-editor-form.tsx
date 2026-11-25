@@ -106,10 +106,9 @@ import { detectDocumentLanguage } from "@/features/materials/note-ai";
 import { NotePreviewPicker } from "@/features/materials/note-preview-picker";
 import { NotePriceGuidePanel } from "@/features/materials/note-price-guide-panel";
 import {
-  earningsEstimate,
   marketplaceTakeRate,
-  NOTES_OPTION_A_LIVE,
-  PLATFORM_FEE_RATE,
+  sellerBreakdownHkd,
+  SHOW_EARNINGS_BREAKDOWN,
   validateListingPrice,
 } from "@/features/materials/marketplace-policy";
 import { isCourseMaterialType } from "@/features/materials/lifecycle";
@@ -167,15 +166,18 @@ function StarterChips({
 }
 
 /**
- * #573 Option A live calculator (#784 §2.6): listed price → MatchMax 2% →
- * Stripe card fee (an estimate here; the real fee comes from Stripe) → seller
- * net, released after the 72h hold in the weekly Monday FPS batch. Uses the
- * locked 2% launch rate, never the unconfirmed #672 tiers. Seller-only: the
- * buyer still pays exactly the listed price.
+ * #784 AC-784-FORM-1 / AC-784-FORM-2 seller payout breakdown: listed price →
+ * MatchMax 2% → card fee (an estimate here; the real fee comes from Stripe) →
+ * seller net, released after the 72h hold in the weekly Monday FPS batch.
+ * Uses the locked 2% launch rate, never the unconfirmed #672 tiers.
+ * Seller-only: the buyer still pays exactly the listed price. Display only:
+ * SHOW_EARNINGS_BREAKDOWN never enables checkout. A HK$0 listing hides the
+ * fee rows and shows the free-publishing copy instead.
  */
-function EarningsCalculator({ priceHkd }: { priceHkd: number; materialType?: string }) {
+function EarningsCalculator({ priceHkd }: { priceHkd: number }) {
   const { t } = useTranslation();
-  if (!(priceHkd > 0)) {
+  const b = sellerBreakdownHkd(priceHkd);
+  if (!b.showFeeLines) {
     return (
       <div className="rounded-xl border border-border p-4 text-sm">
         <p className="font-semibold">{t("notes_option_a.fee_title")}</p>
@@ -183,7 +185,6 @@ function EarningsCalculator({ priceHkd }: { priceHkd: number; materialType?: str
       </div>
     );
   }
-  const e = earningsEstimate(priceHkd, PLATFORM_FEE_RATE);
   const money = (v: number) => `${REGION_CONFIG.HK.currency}${v.toFixed(2)}`;
   return (
     <div className="space-y-2 rounded-xl border border-border p-4 text-sm">
@@ -191,19 +192,19 @@ function EarningsCalculator({ priceHkd }: { priceHkd: number; materialType?: str
       <dl className="space-y-1">
         <div className="flex justify-between">
           <dt>{t("notes_option_a.fee_gross")}</dt>
-          <dd>{money(e.gross)}</dd>
+          <dd>{money(b.grossHkd)}</dd>
         </div>
         <div className="flex justify-between text-muted-foreground">
           <dt>{t("notes_option_a.fee_platform")}</dt>
-          <dd>- {money(e.platform)}</dd>
+          <dd>- {money(b.platformFeeHkd)}</dd>
         </div>
         <div className="flex justify-between text-muted-foreground">
           <dt>{t("notes_option_a.fee_gateway")}</dt>
-          <dd>- {money(e.gateway)}</dd>
+          <dd>- {money(b.estimatedGatewayFeeHkd)}</dd>
         </div>
         <div className="flex justify-between border-t border-border pt-1 font-bold">
           <dt>{t("notes_option_a.fee_net")}</dt>
-          <dd>{money(e.net)}</dd>
+          <dd>{money(b.netHkd)}</dd>
         </div>
       </dl>
       <p className="text-xs text-muted-foreground">{t("notes_option_a.fee_note")}</p>
@@ -2053,11 +2054,9 @@ export function NoteEditorForm({ existing }: { existing?: MyMaterialsRow | null 
             </span>
           </label>
         ) : null}
-        {NOTES_OPTION_A_LIVE ? (
-          <EarningsCalculator
-            priceHkd={Number.isNaN(priceNum) ? 0 : priceNum}
-            materialType={materialType}
-          />
+        {/* #784: display only. Checkout stays gated on NOTES_OPTION_A_LIVE. */}
+        {SHOW_EARNINGS_BREAKDOWN ? (
+          <EarningsCalculator priceHkd={Number.isNaN(priceNum) ? 0 : priceNum} />
         ) : null}
       </section>
 

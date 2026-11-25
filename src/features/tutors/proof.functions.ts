@@ -5,6 +5,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import { selectRows, type Row } from "@/features/cases/desk-db";
 import { looksLikeHkid } from "@/features/tutors/grades";
+import { contactFilterError } from "@/lib/contact-filter";
 
 /**
  * Issue #575 — public photo proofs on achievements.
@@ -96,6 +97,33 @@ export const uploadAchievementProof = createServerFn({ method: "POST" })
     return { path };
   });
 
+/**
+ * #712 AC-1 — the caption fields (`short_text` / `detail_text`) are rendered
+ * verbatim on the public profile, so they must not carry a direct-contact
+ * channel: the concierge flow only works while MatchMax sits between parent and
+ * tutor. Same rule vocabulary as every other public tutor text (contact-filter
+ * is the single source of truth); a stable code is returned instead of the
+ * regex detail so the response never says which pattern matched.
+ */
+export const PROOF_CONTACT_BLOCKED = "PROOF_CONTACT_BLOCKED";
+
+/**
+ * Screen the caption fields that end up in the public achievements JSON.
+ * Returns `PROOF_CONTACT_BLOCKED` when any field leaks a phone number,
+ * WhatsApp/WeChat/Instagram-style channel, email or link; null when clean.
+ */
+export function proofContactViolation(
+  items: ReadonlyArray<{ short_text?: unknown; detail_text?: unknown }>,
+): string | null {
+  for (const item of items) {
+    for (const value of [item.short_text, item.detail_text]) {
+      if (typeof value !== "string" || !value.trim()) continue;
+      if (contactFilterError(value)) return PROOF_CONTACT_BLOCKED;
+    }
+  }
+  return null;
+}
+
 const AchievementSchema = z.object({
   short_text: z.string().trim().min(1).max(120),
   detail_text: z.string().trim().max(600).optional(),
@@ -121,6 +149,11 @@ export const saveMyAchievementProofs = createServerFn({ method: "POST" })
         throw new Error("That proof photo is not yours. Upload your own certificate or award.");
       }
     }
+
+    // #712 AC-1: screen every caption BEFORE any DB work. One code for both
+    // fields, so a caller cannot probe which pattern fired.
+    const blocked = proofContactViolation(data.achievements);
+    if (blocked) throw new Error(blocked);
 
     const db = asAdminDb((await import("@/integrations/supabase/client.server")).supabaseAdmin);
     const rows = await selectRows<{ id: string; achievements: unknown }>(
