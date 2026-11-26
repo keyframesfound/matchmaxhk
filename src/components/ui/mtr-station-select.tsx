@@ -5,6 +5,7 @@ import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { cn } from "@/lib/utils";
 import { MTR_LINES, getNearestMtrStation } from "@/features/tutor-application/mtr";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { spring } from "@/lib/motion-tokens";
 
 function useMtrGroups(query: string) {
   return React.useMemo(() => {
@@ -73,11 +74,7 @@ function AnimatedRowCheck({ selected }: { selected: boolean }) {
           initial={shouldReduceMotion ? {} : { scale: 0 }}
           animate={shouldReduceMotion ? {} : { scale: 1 }}
           exit={shouldReduceMotion ? {} : { scale: 0 }}
-          transition={
-            shouldReduceMotion
-              ? { duration: 0 }
-              : { type: "spring", stiffness: 400, damping: 25, mass: 0.5, duration: 0.2 }
-          }
+          transition={shouldReduceMotion ? { duration: 0 } : spring.snappy}
         >
           <Check className="h-3 w-3" strokeWidth={3} />
         </motion.span>

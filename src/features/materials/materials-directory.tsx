@@ -74,6 +74,7 @@ import {
 import { getMySavedNoteIds, setNoteSaved } from "@/features/materials/note-engagement.functions";
 import { SAVED_NOTES_QUERY_KEY, SimilarNotesSection } from "@/features/materials/note-engagement";
 import { formatMaterialTypeLabel } from "@/features/materials/queries";
+import { spring } from "@/lib/motion-tokens";
 
 /**
  * Issue #131 + #392: the SHOP side of the /tutors directory toggle, ONE
@@ -1163,11 +1164,7 @@ export function DirectoryToggle({
                 layoutId="directory-toggle-thumb"
                 aria-hidden="true"
                 className="absolute inset-0 rounded-full bg-[color:var(--ink)]"
-                transition={
-                  prefersReducedMotion
-                    ? { duration: 0 }
-                    : { type: "spring", bounce: 0.15, duration: 0.45 }
-                }
+                transition={prefersReducedMotion ? { duration: 0 } : spring.morph}
               />
             ) : null}
             <Icon className="relative z-10 h-4 w-4" aria-hidden="true" />

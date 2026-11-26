@@ -5,6 +5,7 @@ import type { ButtonHTMLAttributes, ReactNode, Ref } from "react";
 import { useEffect, useRef } from "react";
 
 import { cn } from "@/lib/utils";
+import { spring } from "@/lib/motion-tokens";
 
 const buttonVariants = cva(
   // #713 §2.2 (AC-PRS-1) — DESIGN.md Motion press: `active:scale-[0.97]` on the
@@ -202,9 +203,7 @@ function Button({
                 : { marginRight: 0, opacity: 0, width: 0 }
             }
             key="spinner"
-            transition={
-              shouldReduceMotion ? { duration: 0 } : { bounce: 0.1, duration: 0.25, type: "spring" }
-            }
+            transition={shouldReduceMotion ? { duration: 0 } : spring.snappy}
           >
             <Spinner />
           </motion.span>
