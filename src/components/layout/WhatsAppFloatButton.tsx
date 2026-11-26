@@ -1,5 +1,4 @@
 import { useRouterState } from "@tanstack/react-router";
-import { motion, useReducedMotion } from "motion/react";
 
 import { useCompareBarVisible } from "@/lib/compare-bar";
 import { useWhatsAppNumber } from "@/lib/use-whatsapp-number";
@@ -31,7 +30,6 @@ export function WhatsAppIcon(props: React.SVGProps<SVGSVGElement>) {
 export function WhatsAppFloatButton() {
   const pathname = useRouterState({ select: (state) => state.location.pathname });
   const compareBarVisible = useCompareBarVisible();
-  const prefersReducedMotion = useReducedMotion();
   const isHelpRoute = pathname === "/help" || pathname.startsWith("/help/");
   const digits = useWhatsAppNumber(!isHelpRoute && pathname !== "/join");
   // #759 Part 4 (was #751): the float rides along with any Explore search
@@ -68,25 +66,18 @@ export function WhatsAppFloatButton() {
   const href = `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
 
   return (
-    <motion.a
+    <a
       href={href}
       target="_blank"
       rel="noreferrer"
       aria-label="Contact MatchMax support on WhatsApp"
-      // Quiet entrance: the float settles in shortly after load instead of
-      // popping with the first paint. Reduced-motion renders it immediately.
-      initial={prefersReducedMotion ? false : { opacity: 0, scale: 0.85 }}
-      animate={{ opacity: 1, scale: 1 }}
-      transition={
-        prefersReducedMotion
-          ? { duration: 0 }
-          : { delay: 0.6, duration: 0.3, ease: [0.22, 1, 0.36, 1] }
-      }
+      // #713 AC-ENT-2: no delayed entrance — the float is there with the
+      // first paint (retired entrance choreography), in every motion setting.
       // #713 AC-RED-1: reduced motion keeps the hover fill, drops the scale.
       className="fixed bottom-[calc(5rem+env(safe-area-inset-bottom))] right-4 z-50 inline-flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--brand-whatsapp)] text-white transition-[scale,background-color] duration-200 hover:scale-105 hover:bg-[color:var(--brand-whatsapp-hover)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--ink)] focus-visible:ring-offset-2 motion-reduce:transition-none motion-reduce:hover:scale-100 lg:bottom-6 lg:right-6"
     >
       <WhatsAppIcon className="h-7 w-7" aria-hidden="true" />
       <span className="sr-only">WhatsApp support</span>
-    </motion.a>
+    </a>
   );
 }

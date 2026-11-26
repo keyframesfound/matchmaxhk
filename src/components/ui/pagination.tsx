@@ -5,6 +5,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { cn } from "@/lib/utils";
+import { spring } from "@/lib/motion-tokens";
 
 /*
  * Arc pagination pattern: prev/next around a fixed five-page window, with
@@ -84,11 +85,7 @@ export function Pagination({
                 className="pointer-events-none absolute inset-0 rounded-md bg-[color:var(--surface-invert)]"
                 initial={false}
                 layoutId={layoutId}
-                transition={
-                  shouldReduceMotion
-                    ? { duration: 0 }
-                    : { type: "spring", stiffness: 420, damping: 32 }
-                }
+                transition={shouldReduceMotion ? { duration: 0 } : spring.morph}
               />
             ) : null}
             <span className="relative">{n}</span>

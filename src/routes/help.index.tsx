@@ -20,6 +20,7 @@ import {
 import { cn } from "@/lib/utils";
 
 import { canonicalUrl, currentSeoLocale, localeLinks, localizedMeta } from "@/features/i18n/seo";
+import { spring } from "@/lib/motion-tokens";
 export const Route = createFileRoute("/help/")({
   // `q` prefills the search box when arriving from a sub-header search on a
   // topic/article page (issue #500: persistent Help search), so the index
@@ -351,11 +352,7 @@ function HelpCentrePage() {
                     className="absolute inset-0 -z-10 rounded-full bg-[color:var(--foreground)]"
                     initial={false}
                     layoutId="help-audience-pill"
-                    transition={
-                      shouldReduceMotion
-                        ? { duration: 0 }
-                        : { type: "spring", stiffness: 420, damping: 32 }
-                    }
+                    transition={shouldReduceMotion ? { duration: 0 } : spring.morph}
                   />
                 ) : null}
                 {label}

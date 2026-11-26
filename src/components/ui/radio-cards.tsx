@@ -4,6 +4,7 @@ import * as React from "react";
 import { motion, useReducedMotion } from "motion/react";
 
 import { cn } from "@/lib/utils";
+import { spring } from "@/lib/motion-tokens";
 
 /*
  * Selectable option cards (Arc radio-cards pattern): one selection ring
@@ -138,11 +139,7 @@ export function RadioCards({
                 className="pointer-events-none absolute inset-0 rounded-md border-2 border-[color:var(--ink)]/55 bg-[color:var(--ink)]/[0.04]"
                 initial={false}
                 layoutId={layoutId}
-                transition={
-                  shouldReduceMotion
-                    ? { duration: 0 }
-                    : { type: "spring", stiffness: 420, damping: 32 }
-                }
+                transition={shouldReduceMotion ? { duration: 0 } : spring.morph}
               />
             ) : null}
             <div className="relative min-w-0">
@@ -169,11 +166,7 @@ export function RadioCards({
                 className="h-2 w-2 rounded-full bg-[color:var(--ink)]"
                 initial={false}
                 animate={{ scale: isSelected ? 1 : 0 }}
-                transition={
-                  shouldReduceMotion
-                    ? { duration: 0 }
-                    : { type: "spring", stiffness: 500, damping: 30 }
-                }
+                transition={shouldReduceMotion ? { duration: 0 } : spring.snappy}
               />
             </span>
           </div>

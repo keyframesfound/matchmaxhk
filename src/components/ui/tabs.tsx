@@ -3,6 +3,7 @@ import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { motion, useReducedMotion } from "motion/react";
 
 import { cn } from "@/lib/utils";
+import { spring } from "@/lib/motion-tokens";
 
 /*
  * The active-tab fill slides between triggers (Arc tabs / bottom-nav
@@ -79,9 +80,7 @@ const TabsTrigger = React.forwardRef<
           className="absolute inset-0 -z-10 rounded-md border border-[color:var(--ink)]/10 bg-[color:var(--surface)]"
           initial={false}
           layoutId={state.layoutId}
-          transition={
-            shouldReduceMotion ? { duration: 0 } : { type: "spring", stiffness: 420, damping: 32 }
-          }
+          transition={shouldReduceMotion ? { duration: 0 } : spring.morph}
         />
       ) : null}
       {children}

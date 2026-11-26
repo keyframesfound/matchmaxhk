@@ -10,6 +10,7 @@ import {
   type MobileNavSlot,
 } from "@/components/layout/mobile-nav-slots";
 import { cn } from "@/lib/utils";
+import { spring } from "@/lib/motion-tokens";
 
 // Equal 20% columns; 10px labels so "Notifications" stays on one line at 320px.
 const slotClass =
@@ -65,11 +66,7 @@ function TabSlot({ slot, active }: { slot: MobileNavSlot; active: boolean }) {
           <motion.span
             layoutId="mobile-bottom-nav-indicator"
             className="block h-0.5 rounded-full bg-[color:var(--foreground)]"
-            transition={
-              prefersReducedMotion
-                ? { duration: 0 }
-                : { type: "spring", bounce: 0.15, duration: 0.4 }
-            }
+            transition={prefersReducedMotion ? { duration: 0 } : spring.morph}
           />
         ) : null}
       </span>
