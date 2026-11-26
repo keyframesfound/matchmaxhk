@@ -811,7 +811,7 @@
     "err_DUPLICATE_DAY": "每個個案每日只可登記一堂。",
     "err_CASE_NOT_FOUND": "找不到個案。",
     "err_LOG_NOT_FOUND": "找不到課堂紀錄。",
-    "err_NOT_PENDING": "只有待核實的課堂可以提出異議。",
+    "err_NOT_PENDING": "這節課堂已不是待確認狀態，因此不能更改。",
     "err_CASE_CLOSED": "此個案已結束。",
     "err_FORBIDDEN": "你沒有權限執行此操作。",
     "parent_title": "導師登記的課堂",
@@ -827,7 +827,13 @@
     "err_RATE_MISSING": "此個案尚未鎖定每小時收費，因此未能記錄課堂。請先請秘書處鎖定收費。",
     "err_UNPAID_NO_NET": "呢堂你冇實際收入，所以冇「未繳學費」可以標記。請取消勾選「學費未繳」。",
     "log_private_note": "私人備註（只有你睇到）",
-    "log_private_note_hint": "今堂教咗咩、下次要跟進咩。"
+    "log_private_note_hint": "今堂教咗咩、下次要跟進咩。",
+    "undo": "撤銷",
+    "undo_confirm": "撤銷這節已記錄的課堂？撤銷後不會計入時數或收入。",
+    "undo_done": "已撤銷課堂記錄",
+    "err_NOT_YOUR_LOG": "只有記錄這節課堂的導師可以撤銷。",
+    "err_UNDO_WINDOW_PASSED": "課堂記錄只可在記錄後 2 小時內撤銷。",
+    "err_REWARDS_CONSUMED": "與這節課堂相關的獎勵已被使用，因此不能撤銷。"
   },
   "hours": {
     "title": "已驗證時數",

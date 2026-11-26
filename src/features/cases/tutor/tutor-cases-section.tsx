@@ -37,7 +37,7 @@ import {
   submitTutorReview,
   type TutorCaseItem,
 } from "@/features/cases/tutor.functions";
-import { logTutorSession } from "@/features/cases/experience.functions";
+import { logTutorSession, undoCompleteSession } from "@/features/cases/experience.functions";
 import { EndCaseControl } from "@/features/cases/end-case-control";
 import { AttendanceForm } from "@/features/academy/attendance-form";
 import { ReviewStepHeader } from "@/features/cases/review-step-header";
@@ -59,6 +59,7 @@ import { lessonActionsFor } from "@/features/cases/tutor/week-model";
 import { REVIEW_COMMENT_MAX_TUTOR } from "@/features/cases/case-reviews";
 import { canMarkDone, hktDateKey } from "@/features/cases/sor";
 import {
+  canUndoSession,
   formatExperienceHours,
   validateSessionLogInput,
   type ExperienceGuardReason,
@@ -321,6 +322,17 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
     today,
   );
 
+  // #828 AC-A6: undo a just-logged session (2-hour window).
+  const undo = useMutation({
+    mutationFn: (logId: string) => undoCompleteSession({ data: { logId } }),
+    onSuccess: () => {
+      toast.success(t("experience.undo_done"));
+      invalidate();
+      void queryClient.invalidateQueries({ queryKey: ["sor", "earnings"] });
+    },
+    onError: (e) => toast.error(t(`experience.err_${e.message}`, { defaultValue: e.message })),
+  });
+
   const log = useMutation({
     mutationFn: () =>
       logTutorSession({
@@ -384,6 +396,19 @@ function SessionLogForm({ item }: { item: TutorCaseItem }) {
             <span className="rounded-full bg-[color:var(--foreground)]/[0.06] px-2 py-0.5">
               {t(`experience.log_status_${l.status}`)}
             </span>
+            {/* #828 AC-A6: undo within 2 hours of logging. */}
+            {canUndoSession(l.status, l.created_at, new Date()) ? (
+              <button
+                type="button"
+                className="font-semibold text-[color:var(--brand-link)] hover:underline disabled:opacity-60"
+                disabled={undo.isPending}
+                onClick={() => {
+                  if (window.confirm(t("experience.undo_confirm"))) undo.mutate(l.id);
+                }}
+              >
+                {t("experience.undo")}
+              </button>
+            ) : null}
           </li>
         ))}
       </ul>

@@ -205,3 +205,50 @@ export function formatExperienceHours(hours: number): string {
 export function isExperienceVisible(totals: ExperienceTotals): boolean {
   return totals.lessons > 0;
 }
+
+/** #828 AC-A6: a tutor may undo a session log for 2 hours after logging it. */
+export const UNDO_SESSION_WINDOW_HOURS = 2;
+
+export type UndoSessionError =
+  "NOT_YOUR_LOG" | "NOT_PENDING" | "UNDO_WINDOW_PASSED" | "REWARDS_CONSUMED";
+
+/**
+ * #828 AC-A6: has a rebate or points balance already been spent on the back
+ * of this log? There is no rewards / points consumption store on main: the
+ * #468 Rewards Vault is parked, and #387 logs are lesson 3+ so they carry no
+ * admin-fee rebate (fee-breakdown.ts rebates only touch the L2 balance).
+ * Wire the live #468 helper in here when it ships; do not invent a rule.
+ */
+export function rewardsConsumedForSessionLog(): boolean {
+  return false;
+}
+
+export function undoSessionError(input: {
+  status: string;
+  createdAt: Date;
+  now: Date;
+  isOwner: boolean;
+  isStaff: boolean;
+  rewardsConsumed: boolean;
+}): UndoSessionError | null {
+  if (!input.isOwner && !input.isStaff) return "NOT_YOUR_LOG";
+  if (input.status !== "pending") return "NOT_PENDING";
+  const windowMs = UNDO_SESSION_WINDOW_HOURS * 60 * 60 * 1000;
+  if (input.now.getTime() - input.createdAt.getTime() > windowMs) return "UNDO_WINDOW_PASSED";
+  if (input.rewardsConsumed) return "REWARDS_CONSUMED";
+  return null;
+}
+
+/** Client mirror: show Undo only while the server would accept it. */
+export function canUndoSession(status: string, createdAt: string, now: Date): boolean {
+  return (
+    undoSessionError({
+      status,
+      createdAt: new Date(createdAt),
+      now,
+      isOwner: true,
+      isStaff: false,
+      rewardsConsumed: false,
+    }) === null
+  );
+}
