@@ -5,7 +5,7 @@ import {
   canUndoSession,
   rewardsConsumedForSessionLog,
   undoSessionError,
-} from "@/features/tutors/experience";
+} from "../../src/features/tutors/experience";
 
 const created = new Date("2026-11-25T02:00:00Z");
 const base = {
