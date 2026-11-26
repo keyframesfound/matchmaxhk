@@ -811,7 +811,7 @@
     "err_DUPLICATE_DAY": "每个个案每日只可登记一堂。",
     "err_CASE_NOT_FOUND": "找不到个案。",
     "err_LOG_NOT_FOUND": "找不到课堂纪录。",
-    "err_NOT_PENDING": "只有待核实的课堂可以提出异议。",
+    "err_NOT_PENDING": "这节课堂已不是待确认状态，因此不能更改。",
     "err_CASE_CLOSED": "此个案已结束。",
     "err_FORBIDDEN": "你没有权限执行此操作。",
     "parent_title": "导师登记的课堂",
@@ -827,7 +827,13 @@
     "err_RATE_MISSING": "此个案尚未锁定每小时收费，因此未能记录课堂。请先请秘书处锁定收费。",
     "err_UNPAID_NO_NET": "这堂你没有实际收入，所以没有「未缴学费」可以标记。请取消勾选「学费未缴」。",
     "log_private_note": "私人备注（只有你看到）",
-    "log_private_note_hint": "这堂课教了什么、下次要跟进什么。"
+    "log_private_note_hint": "这堂课教了什么、下次要跟进什么。",
+    "undo": "撤销",
+    "undo_confirm": "撤销这节已记录的课堂？撤销后不会计入时数或收入。",
+    "undo_done": "已撤销课堂记录",
+    "err_NOT_YOUR_LOG": "只有记录这节课堂的导师可以撤销。",
+    "err_UNDO_WINDOW_PASSED": "课堂记录只可在记录后 2 小时内撤销。",
+    "err_REWARDS_CONSUMED": "与这节课堂相关的奖励已被使用，因此不能撤销。"
   },
   "hours": {
     "title": "已验证时数",

@@ -358,6 +358,75 @@ export const revokeSession = createServerFn({ method: "POST" })
   });
 
 // ---------------------------------------------------------------------------
+// #828 AC-A6: tutor (or staff) undoes a session log within 2 hours
+// ---------------------------------------------------------------------------
+
+export const undoCompleteSession = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) => z.object({ logId: z.string().uuid() }).parse(input))
+  .handler(async ({ context, data }): Promise<{ ok: boolean }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    const { undoSessionError, rewardsConsumedForSessionLog } =
+      await import("@/features/tutors/experience");
+
+    const rows = await selectRows<{
+      id: string;
+      status: string;
+      case_id: string;
+      tutor_id: string;
+      created_at: string;
+    }>(db, "tutor_session_logs", "id, status, case_id, tutor_id, created_at", [
+      { col: "id", op: "eq", value: data.logId },
+    ]);
+    const log = rows[0];
+    if (!log) throw new Error("LOG_NOT_FOUND");
+
+    const tutors = await selectRows<{ id: string }>(db, "tutors", "id", [
+      { col: "user_id", op: "eq", value: context.userId },
+    ]);
+    const isOwner = tutors[0]?.id === log.tutor_id;
+    let isStaff = false;
+    if (!isOwner) {
+      try {
+        await requireAdmin(db, context.userId);
+        isStaff = true;
+      } catch {
+        isStaff = false;
+      }
+    }
+    const reason = undoSessionError({
+      status: log.status,
+      createdAt: new Date(log.created_at),
+      now: new Date(),
+      isOwner,
+      isStaff,
+      rewardsConsumed: rewardsConsumedForSessionLog(),
+    });
+    if (reason) throw new Error(reason);
+
+    // Atomic: only a still-pending row flips, so a parent dispute or a sweep
+    // that landed in between wins and the undo reports NOT_PENDING.
+    const update = db
+      .from<Row>("tutor_session_logs")
+      .update({ status: "revoked", revoked_by: context.userId })
+      .eq("id", log.id)
+      .eq("status", "pending");
+    const { data: changed, error } = await (
+      update as unknown as {
+        select: (cols: string) => Promise<{
+          data: { id: string }[] | null;
+          error: { message: string } | null;
+        }>;
+      }
+    ).select("id");
+    if (error) throw new Error(error.message);
+    if (!changed || changed.length !== 1) throw new Error("NOT_PENDING");
+    await insertAudit(db, log.case_id, context.userId, "experience_log_undone", null);
+    return { ok: true };
+  });
+
+// ---------------------------------------------------------------------------
 // Staff/admin: list the logs of one case (SoR desk section)
 // ---------------------------------------------------------------------------
 

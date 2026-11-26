@@ -811,7 +811,7 @@
     "err_DUPLICATE_DAY": "Only one logged session per day per case.",
     "err_CASE_NOT_FOUND": "Case not found.",
     "err_LOG_NOT_FOUND": "Session log not found.",
-    "err_NOT_PENDING": "Only pending sessions can be disputed.",
+    "err_NOT_PENDING": "This session is no longer pending, so it cannot be changed.",
     "err_CASE_CLOSED": "This case is closed.",
     "err_FORBIDDEN": "You do not have permission to do that.",
     "parent_title": "Tutor-logged sessions",
@@ -827,7 +827,13 @@
     "err_RATE_MISSING": "This case has no hourly rate yet, so the lesson can’t be logged. Ask the desk to lock the rate first.",
     "err_UNPAID_NO_NET": "This lesson earns you nothing, so there is no unpaid tuition to mark. Untick “Tuition unpaid”.",
     "log_private_note": "Private note (only you see this)",
-    "log_private_note_hint": "What you covered, what to revisit next time."
+    "log_private_note_hint": "What you covered, what to revisit next time.",
+    "undo": "Undo",
+    "undo_confirm": "Undo this logged session? It will be removed and will not count toward hours or earnings.",
+    "undo_done": "Session log undone",
+    "err_NOT_YOUR_LOG": "Only the tutor who logged this session can undo it.",
+    "err_UNDO_WINDOW_PASSED": "A session can only be undone within 2 hours of logging it.",
+    "err_REWARDS_CONSUMED": "This session can no longer be undone because a reward linked to it has been used."
   },
   "hours": {
     "title": "Verified hours",
