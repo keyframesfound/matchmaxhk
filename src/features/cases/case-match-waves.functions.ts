@@ -40,10 +40,10 @@ const OPEN_RUNS_PER_TICK = 25;
 const NEW_RUN_MAX_AGE_MS = 14 * 24 * 60 * 60 * 1000;
 const CLOSED_STATUSES = new Set(["matched", "closed", "rejected", "compliance_hold", "released"]);
 
-const CASE_COLUMNS =
+export const CASE_COLUMNS =
   "id, case_code, status, board_published_at, subjects, student_level, academic_tier, exam_system, district, mode, preferred_gender, tutor_background, tags, parent_id, matched_tutor_id, replacement_of_case_id, start_timing, prefer_scrc_tutor";
 
-type CaseRow = {
+export type CaseRow = {
   id: string;
   case_code: string;
   status: string;
@@ -88,7 +88,7 @@ const RUN_COLUMNS =
   "case_id, status, current_wave, next_wave_at, match_fingerprint, stop_reason, taken_notified_at";
 const QUEUE_COLUMNS = "id, tutor_id, score, rank, wave_no, notified_at, opened_at";
 
-function toMatchCase(c: CaseRow): MatchCase {
+export function toMatchCase(c: CaseRow): MatchCase {
   return {
     subjects: c.subjects ?? [],
     studentLevel: c.student_level,
@@ -104,7 +104,11 @@ function toMatchCase(c: CaseRow): MatchCase {
   };
 }
 
-async function loadMatchTutors(db: Db, excludeIds: string[], now: Date): Promise<MatchTutor[]> {
+export async function loadMatchTutors(
+  db: Db,
+  excludeIds: string[],
+  now: Date,
+): Promise<MatchTutor[]> {
   const rows = await selectRows<{
     id: string;
     tutor_code: string | null;

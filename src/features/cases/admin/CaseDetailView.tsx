@@ -59,6 +59,7 @@ import { ShortCasePanel } from "@/features/cases/admin/ShortCasePanel";
 import { DropProtectionPanel } from "@/features/cases/admin/DropProtectionPanel";
 import { CaseFitPanel } from "@/features/cases/admin/CaseFitPanel";
 import { CaseMatchWavesPanel } from "@/features/cases/admin/CaseMatchWavesPanel";
+import { CsBackupsPanel } from "@/features/cases/admin/CsBackupsPanel";
 import { AcademyPanel } from "@/features/cases/admin/AcademyPanel";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { formatStudentLevel } from "@/features/cases/display";
@@ -869,6 +870,8 @@ export function CaseDetailView({
 
           {/* #657: ranked match alert waves and staff overrides. */}
           <CaseMatchWavesPanel caseId={caseRow.id} />
+          {/* #825: 3 backup lookalikes for NO / ghost / rematch. */}
+          <CsBackupsPanel caseId={caseRow.id} />
 
           {/* #528: soft fit tags, matching hint, L1 signals. */}
           <CaseFitPanel caseId={caseRow.id} />
