@@ -4433,6 +4433,13 @@
       "saved": "已儲存。"
     }
   },
+  "checkout": {
+    "title": "結帳",
+    "subtitle": "以信用卡、Apple Pay、支付寶香港或微信支付安全付款，你只需支付標示售價。",
+    "secure": "安全付款",
+    "loading": "正在載入安全付款頁面…",
+    "back_to_orders": "返回我的訂單"
+  },
   "notes_option_a": {
     "fee_title": "預計收益",
     "fee_gross": "標示售價",

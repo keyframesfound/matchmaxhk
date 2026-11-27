@@ -73,6 +73,7 @@ const WHATSAPP_FALLBACK = ""; // no number configured → the WhatsApp button hi
 
 function OrderPage() {
   const { orderId } = Route.useParams() as { orderId: string };
+  const navigate = Route.useNavigate();
   const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
@@ -96,8 +97,11 @@ function OrderPage() {
   const continuePayment = useMutation({
     mutationFn: () => startStripeCheckout({ data: { orderId } }),
     onSuccess: (res) => {
-      if ("url" in res) window.location.assign(res.url);
-      else void queryClient.invalidateQueries({ queryKey: ["order", orderId] });
+      if ("alreadyPaid" in res) {
+        void queryClient.invalidateQueries({ queryKey: ["order", orderId] });
+        return;
+      }
+      void navigate({ to: "/checkout", search: { order: orderId } });
     },
     onError: (e) =>
       toast.error(e instanceof Error ? e.message : t("notes_option_a.checkout_unavailable")),
