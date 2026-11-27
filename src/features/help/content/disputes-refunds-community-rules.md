@@ -41,6 +41,10 @@ If any point fails, it is the seller's fault and the buyer is refunded in full f
 
 ## For sellers: community rules
 
+**What I keep, and what MatchMax takes.** Buyers pay exactly your listed price. MatchMax charges a flat 2% platform fee on the gross price of every paid file, and the actual card processing fee (Stripe) is also deducted from your side, so the amount you receive is the listed price less 2% and less that processing fee. The 2% is a launch rate: it holds for the first 6 months after in-app checkout launched, or until cumulative study-notes sales reach HK$50,000, whichever comes first. Any change after that is announced 30 days in advance.
+
+**When I get paid.** Your payout is released after the 72-hour buyer-protection window ends, then paid in the weekly Monday FPS batch (Sunday 23:59 HKT cut-off, minimum HK$50). A held or disputed order stays out of the batch until it is resolved.
+
 - Upload only your own work, or material you have written permission to sell.
 - No exam-board papers, marking schemes, school-internal material, or anything else on the ban list.
 - No phone numbers, payment handles, or other contact details inside files or listings.
@@ -79,6 +83,10 @@ If any point fails, it is the seller's fault and the buyer is refunded in full f
 任何一項不通過，即屬賣家過失，買家會從暫存款項獲全額退款。三項全部通過的話，爭議一般會被拒絕，暫存款項於 72 小時屆滿時如常發放。如只有部分檔案受影響，職員亦可退回部分款項。
 
 ## 賣家須知：社群守則
+
+**你會收到多少，平台收取多少。**買家只需支付你的標價。MatchMax 就每份收費教材的標價總額收取 2% 平台服務費，實際信用卡手續費（Stripe）亦會從你一方扣除，因此你收到的金額為標價減 2%，再減該筆付款手續費。2% 為推出優惠費率：由應用程式內信用卡結帳推出起計 6 個月內有效，或直至教材累計銷售額達 HK$50,000，以較早者為準。其後如有調整，會於 30 天前通知。
+
+**何時出糧。**72 小時買家保障期屆滿後，款項會於每週一的轉數快批次發放（星期日 23:59 香港時間截數，最低 HK$50）。暫存或爭議中的訂單不會計入該批次，直至處理完畢。
 
 - 只上載你自己的作品，或已取得書面許可出售的材料。
 - 不可上載考評局或考試局試卷、評分準則、學校內部材料，或任何違禁清單上的內容。
