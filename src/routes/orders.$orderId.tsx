@@ -321,7 +321,13 @@ function OrderPage() {
                   </p>
                 </div>
               </div>
-              <p className="mt-3 text-sm text-muted-foreground">{t("orders.reference_hint")}</p>
+              {/* #784 §2.1: a card order is already paid, so the FPS cashier's
+                  "send your payment" line would be wrong here. */}
+              <p className="mt-3 text-sm text-muted-foreground">
+                {NOTES_OPTION_A_LIVE && !isGig
+                  ? t("notes_option_a.receipt_hint")
+                  : t("orders.reference_hint")}
+              </p>
             </div>
 
             {/* #328 gig fulfillment panels (in_fulfillment upload + due date,

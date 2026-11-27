@@ -4500,6 +4500,7 @@
     "checkout_confirming": "正在确认付款……下载链接稍后会在此显示。",
     "checkout_cancelled": "尚未完成付款，你没有被收费。",
     "checkout_unavailable": "结帐暂时未能使用，请稍后再试。",
+    "receipt_hint": "请保留此订单编号以备查阅，收据已电子邮件给你。",
     "continue_payment": "继续付款",
     "seller_sold": "教材已售出 — 款项进入 72 小时保障托管",
     "window_closed": "72 小时保障期已结束。"
