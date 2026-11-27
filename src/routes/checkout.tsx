@@ -35,7 +35,12 @@ export const Route = createFileRoute("/checkout")({
 });
 
 type StripeJs = {
-  initEmbeddedCheckout: (options: { clientSecret: string }) => Promise<{
+  /**
+   * Stripe's documented option is a function that returns the client secret,
+   * not the secret itself, so the SDK can refetch it on its own schedule
+   * (an expired session gets a fresh one without a page reload).
+   */
+  initEmbeddedCheckout: (options: { fetchClientSecret: () => Promise<string> }) => Promise<{
     mount: (selector: string) => void;
     destroy: () => void;
   }>;
@@ -98,7 +103,7 @@ function CheckoutPage() {
         const factory = await loadStripeJs();
         const stripe = factory(config.publishableKey);
         const embedded = await stripe.initEmbeddedCheckout({
-          clientSecret: session.clientSecret,
+          fetchClientSecret: async () => session.clientSecret,
         });
         if (cancelled) {
           embedded.destroy();
