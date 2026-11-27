@@ -3276,6 +3276,7 @@
       "saving": "Saving…",
       "saved": "Profile saved, changes are live",
       "form_errors": "Please resolve the highlighted errors.",
+      "form_errors_detail": "Please resolve: {{detail}}",
       "promo_title": "First-lesson offers",
       "promo_hint": "Optional badges on your public card. Regular lessons always start at your full rate, and the Platform Administrative Fee is worked out on that full rate.",
       "free_trial_label": "Offer a free 15–20 min online intro",

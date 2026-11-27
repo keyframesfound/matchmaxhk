@@ -220,6 +220,30 @@ function parseRateInput(raw: string): number | null | "invalid" {
   return value >= RATE_MIN && value <= RATE_MAX ? value : "invalid";
 }
 
+/** Field keys THIS editor renders an inline error slot for (see the JSX below).
+ * Customer report 2026-11-27: zod issues whose key had no slot produced a
+ * "resolve the highlighted errors" toast with nothing highlighted. */
+const INLINE_ERROR_KEYS = new Set([
+  "academic_headline",
+  "custom_headline_en",
+  "custom_headline_zh",
+  "self_introduction",
+  "subjects",
+  "stations",
+  "online_rate",
+  "inperson_rate",
+  "rate_rows",
+  "travel_note",
+  "rate_note",
+  "university_gpa",
+  "university_courses",
+]);
+
+/** Fields the shared admin schema validates but this self-serve editor does
+ * not own or render — legacy rows may carry empty/odd values here and must
+ * not block a profile save (highlight curation is admin/CEO territory). */
+const SETTINGS_IGNORED_ZOD_KEYS = new Set(["card_highlights"]);
+
 /**
  * Issue #319, curricula the suggest-a-rate query anchors to. Exam systems
  * use their display label ("IB Diploma"); pricing-tier curricula are the
@@ -676,13 +700,32 @@ export function MyTutorProfileSection() {
     const parsed = tutorFormSchema.safeParse(form);
     if (!parsed.success) {
       for (const issue of parsed.error.issues) {
-        const key = issue.path.join(".");
+        const root = String(issue.path[0] ?? "");
+        // Fields the shared admin schema checks but this editor does not own:
+        // legacy rows can carry empty/odd values here that must never block a
+        // self-serve save (highlights are curated by admin/CEO).
+        if (SETTINGS_IGNORED_ZOD_KEYS.has(root)) continue;
+        // Nested array paths ("subjects.3", "rate_rows.0.rate") have no inline
+        // slot of their own — roll them up to the parent field so the visible
+        // error lands on the control the user can actually fix.
+        const key =
+          issue.path.length > 1 && INLINE_ERROR_KEYS.has(root) ? root : issue.path.join(".");
         if (!nextErrors[key]) nextErrors[key] = issue.message;
       }
     }
     if (Object.keys(nextErrors).length > 0) {
       setErrors(nextErrors);
-      toast.error(t("settings.my_tutor.form_errors"));
+      // Never fire a generic "resolve the highlighted errors" toast when no
+      // inline slot can render the reason (customer report 2026-11-27): fall
+      // back to naming the first unmapped message in the toast itself.
+      const unmapped = Object.entries(nextErrors)
+        .filter(([key]) => !INLINE_ERROR_KEYS.has(key))
+        .map(([, message]) => message);
+      toast.error(
+        unmapped.length > 0
+          ? t("settings.my_tutor.form_errors_detail", { detail: unmapped[0] })
+          : t("settings.my_tutor.form_errors"),
+      );
       return;
     }
     setErrors({});
