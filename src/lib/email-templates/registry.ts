@@ -9,6 +9,7 @@ import { FeeReminderEmail } from "./fee-reminder";
 import { LessonUpdateEmail } from "./lesson-update";
 import { OrderDeliveredEmail } from "./order-delivered";
 import { TutorCardLiveEmail } from "./tutor-card-live";
+import { TutorSuggestionsEmail } from "./tutor-suggestions";
 import { WeeklyDigestEmail } from "./weekly-digest";
 
 export interface TemplateEntry {
@@ -31,6 +32,16 @@ export interface TemplateEntry {
 export const TEMPLATES: Record<string, TemplateEntry> = {
   // Add templates here as they are created, e.g.:
   // 'welcome': welcomeTemplate,
+
+  // #717 / #783 §2.3: "3 tutors with open slots" (automated marketing:
+  // opt-in, 7-day cap, same-subject suppression, one-click unsubscribe).
+  "tutor-suggestions": {
+    component: TutorSuggestionsEmail as unknown as ComponentType<Record<string, unknown>>,
+    subject: (data: Record<string, unknown>) =>
+      data?.locale === "zh-HK"
+        ? `3 位符合 ${String(data?.subjectLabel ?? "")} 並尚有名額的獨立導師 | MatchMax`
+        : `3 tutors for ${String(data?.subjectLabel ?? "")} with open slots this month | MatchMax`,
+  },
 
   // Issue #308: one email per account status change (suspend / ban /
   // restore). Content is the status line + community-commitment pointer.

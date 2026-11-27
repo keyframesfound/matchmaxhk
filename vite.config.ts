@@ -81,7 +81,9 @@ export default defineConfig({
         // #796 §2.6 rides the same hourly trigger: the plan allows only three
         // cron expressions, and the digest task self-gates to Sunday 20:00 HKT
         // (`isWeeklyDigestSlot`), so it no-ops on the other 167 hours.
-        "0 * * * *": ["materials-release", "weekly-digest"],
+        // #717 tutor suggestions also self-gate (Tue / Thu 11:00 HKT) and stay
+        // off until app_settings.tutor_suggestion_emails_enabled is true.
+        "0 * * * *": ["materials-release", "weekly-digest", "tutor-suggestions"],
         // #561: daily Action Required reminder sweep, 09:00 HKT.
         "0 1 * * *": "action-reminders",
       },
