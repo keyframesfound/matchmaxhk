@@ -6,25 +6,29 @@ import { Button } from "@/components/ui/button";
 import { ContentsRow, GuideHeading, GuidePage } from "@/features/guide/guide-shell";
 import { useSupportWhatsAppHref } from "@/features/help/components";
 
-import { canonicalUrl, localeLinks } from "@/features/i18n/seo";
+import { canonicalUrl, currentSeoLocale, localeLinks, localizedMeta } from "@/features/i18n/seo";
 export const Route = createFileRoute("/guide/partners")({
   head: () => ({
     meta: [
       // Issue #541: the Centres & Educators guide (B2B partners are no
       // longer orphaned on the learning/tutor tabs).
-      { title: "Centres & Educators | MatchMax" },
-      {
-        name: "description",
-        content:
-          "Partnering with MatchMax: how tuition centres and educational consultancies join as Organisation Partners. Verification, the centre workspace, qualified enquiries, and a HK$0 matching fee for the centre.",
-      },
+      // #824: this page is indexable in all three locales, but the meta was
+      // hard-coded English, so the zh SERPs carried an English title.
+      ...localizedMeta(currentSeoLocale(), {
+        title: {
+          en: "Centres & Educators | MatchMax",
+          "zh-HK": "中心與教育機構指南 | MatchMax",
+          "zh-CN": "机构与教育伙伴指南 | MatchMax",
+        },
+        description: {
+          en: "Partnering with MatchMax: how tuition centres and educational consultancies join as Organisation Partners. Verification, the centre workspace, qualified enquiries, and a HK$0 matching fee for the centre.",
+          "zh-HK":
+            "MatchMax 如何與補習中心及升學顧問合作：機構伙伴驗證、中心工作台、合資格查詢，中心免配對費。",
+          "zh-CN":
+            "MatchMax 如何与培训机构及升学顾问合作：机构伙伴验证、机构工作台、符合条件的查询，机构免配对费。",
+        },
+      }),
       { name: "robots", content: "index, follow" },
-      { property: "og:title", content: "Centres & Educators | MatchMax" },
-      {
-        property: "og:description",
-        content:
-          "Partnering with MatchMax: how tuition centres and educational consultancies join as Organisation Partners. Verification, the centre workspace, qualified enquiries, and a HK$0 matching fee for the centre.",
-      },
       { property: "og:url", content: canonicalUrl("/guide/partners") },
     ],
     links: localeLinks("/guide/partners"),

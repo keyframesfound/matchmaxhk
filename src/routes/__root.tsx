@@ -27,7 +27,7 @@ import { CompareSelectionReset } from "@/features/cases/compare-cases";
 import { Toaster } from "@/components/ui/sonner";
 import { currentSeoLocale, localizedMeta, ogLocaleMeta, canonicalUrl } from "@/features/i18n/seo";
 import { getActiveUrlLocale, stripLocalePrefix } from "@/features/i18n/routing";
-import { applyUrlLocale, persistUrlLocaleChoice } from "@/features/i18n/config";
+import i18n, { applyUrlLocale, persistUrlLocaleChoice } from "@/features/i18n/config";
 import { useTranslation } from "react-i18next";
 
 export function NotFoundComponent() {
@@ -248,7 +248,9 @@ function RootShell({ children }: { children: ReactNode }) {
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-md focus:bg-[color:var(--surface)] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-[color:var(--ink)] focus-visible:ring-2 focus-visible:ring-[color:var(--ring)]"
         >
-          Skip to main content
+          {/* #824: the shell sits above the i18n provider, so read the default
+              instance with the URL locale instead of useTranslation(). */}
+          {i18n.t("a11y.skip_to_content", { lng: locale })}
         </a>
         {children}
         <Scripts />

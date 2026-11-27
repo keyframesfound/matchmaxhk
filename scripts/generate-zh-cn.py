@@ -27,6 +27,7 @@ npm run check:i18n fails on key parity if zh-CN.json is stale.
 """
 
 import json
+import re
 from pathlib import Path
 
 import opencc
@@ -72,6 +73,10 @@ VOCAB = [
     ("支援", "支持"),
     ("介面", "界面"),
     ("电邮", "电子邮件"),
+    # #824: mainland terms, applied everywhere (including legal namespaces,
+    # where the marketing table is deliberately skipped).
+    ("幼稚园", "幼儿园"),
+    ("私隐", "隐私"),
     # Extra vocabulary found in the HK copy.
     ("字元", "字符"),
     ("钟费", "课时费"),
@@ -348,10 +353,18 @@ def _mask(
     return text, placeholders, index
 
 
+# #824: a lesson is counted with 节 in Mandarin, never with 堂. Only the
+# numeral-measure shape is rewritten ("1.5 堂行政费" -> "1.5 节课行政费"), so
+# 课堂 (a class), 试堂 and 堂 as part of a longer word are left alone. The
+# lookaheads stop 第一堂课 / 每堂时数 from producing 节课课 / 节课时.
+LESSON_MEASURE = re.compile(r"([0-9]+(?:\.[0-9]+)?)\s*[堂课](?![节课程堂题])")
+
+
 def to_simplified(text: str, marketing: bool = True) -> str:
     out = converter.convert(text)
     for old, new in VOCAB:
         out = out.replace(old, new)
+    out = LESSON_MEASURE.sub(lambda m: f"{m.group(1)} 节课", out)
     for old, new in PRE_PHRASES:
         out = out.replace(old, new)
 

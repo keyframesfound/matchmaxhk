@@ -1,4 +1,7 @@
 {
+  "a11y": {
+    "skip_to_content": "Skip to main content"
+  },
   "account": {
     "dob_banner": "Add your birthday so we can tailor age-appropriate features and optional birthday wishes. Your birth year stays private.",
     "dob_banner_cta": "Add birthday in Settings",
