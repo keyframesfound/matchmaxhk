@@ -99,6 +99,36 @@ accepted `admin`/`super_admin`, so a staff user saw the page and got
   while an unpaid or disputed fee is kept until the case is closed. EN plus
   the zh summary.
 
+### #625 — referral cash: collected take and the payout gate
+
+The tutor lane already paid 15% of the **paid** fee, so reduced takes flowed
+through. What was missing was enforcement of the payout gate and any statement
+of the 30% lane.
+
+- `referral_payout_gate(bounty_id)` returns allowed / reason and requires the
+  collected fee **and** (L1 and L2 done, or the case settled with a known final
+  take, or a short package whose scheduled lessons are done).
+- `trg_referral_bounty_payout_gate` enforces it in the database on every
+  `ready_for_payout` / `paid` transition, so the admin table, a manual update
+  and any future surface all obey it.
+- `trg_case_fees_void_referral_bounty` voids a pending or cleared bounty when
+  its fee is waived or refunded with no paid row left.
+- Manual bounty creation now refuses unless the referred tutor has a
+  fee-collected case, and stores that case as `source_case_id`.
+- The admin page states the rule (15% of collected take; 30% sales-agent / org
+  lane tracked in the Master Sheet) and maps the gate's reason codes to desk
+  sentences. The tutor dashboard copy now says "the admin fee MatchMax actually
+  collects" and the real gate.
+- `docs/referral-cash-rule.md` is the in-repo written rule with worked examples.
+
+Live gate test on CR-0008, rolled back: no fee → `FEE_NOT_COLLECTED`; paid fee
+with no lessons → `PAYOUT_GATE_NOT_MET`; L1+L2 done → `ready_for_payout`; fee
+waived → `voided`; voided → paid → blocked again. Zero rows left behind.
+
+The 30% sales-agent / org-referral lane has no payee entity in the product
+(agents live in the Drive contract and the Master Sheet), so it stays an ops
+ledger under the same rule rather than a second in-app ledger.
+
 ### #825 — the queue wrote to the wrong ledger
 
 The panel recorded a queued backup as a `tutor_pinged` funnel row only. The
@@ -181,7 +211,6 @@ there and was suggested again on the next pass.
 | #816 phone-view audit row | Needs a product decision on what counts as a "view" |
 | #816 macros duplicated | Four copies, no versioning; a refactor with no AC pressure |
 | #825 AC-CS-7 403 | Non-staff are refused, but the transport surfaces a server error, not a 403 |
-| #625 referral cash gate | Ticket carries `manual`; agents must not build it |
 | #736 streaks | Parked with #468 |
 
 ## Migrations applied (live, 2026-11-27 23:55 HKT)
@@ -195,6 +224,8 @@ back:
 | 20261127155549 | issue_816_case_support_tickets | both tables, checks, partial unique index and grants read back; `other` without a note rejected (23514); a second open ticket rejected (23505); message insert ok; test row deleted, zero leftovers |
 | 20261127155552 | issue_736_homework_score | case_homework.score_pct integer with the 0-100 check read back |
 | 20261127155558 | issue_825_queue_source | case_match_queue.source text NOT NULL DEFAULT 'engine' with the engine/cs_backup check read back |
+| 20261127160505 | issue_625_bounty_void_status | `referral_bounty_status` now has `pending`, `ready_for_payout`, `paid`, `voided` |
+| 20261127160513 | issue_625_referral_payout_gate | gate function + status trigger + fee-reversal void trigger read back; live gate scenarios passed |
 
 No production row was changed: the ticket test row was inserted and deleted in
 the same call (its message cascaded), and the RPC was exercised read-only.

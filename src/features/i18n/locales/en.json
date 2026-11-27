@@ -3056,7 +3056,7 @@
     },
     "referrals": {
       "title": "Refer & Earn 15%",
-      "description": "Know a top-tier scholar who would make a great MatchMax tutor? Send them your unique link. When they land their first case, you automatically earn a 15% cut of the administrative fee they pay MatchMax. Parents never pay a matching fee. No limits on how many friends you can invite.",
+      "description": "Know a top-tier scholar who would make a great MatchMax tutor? Send them your unique link. When they land their first case, you automatically earn 15% of the admin fee MatchMax actually collects for it. Parents never pay a matching fee. No limits on how many friends you can invite.",
       "link_label": "Your referral link",
       "copy": "Copy",
       "copied": "Referral link copied",
@@ -3066,7 +3066,7 @@
       "pending": "Bounties pending",
       "pending_cleared": "Includes {{amount}} already cleared for FPS payout.",
       "paid": "Total bounties paid",
-      "note": "Pending bounties are officially cleared for payout via FPS once your referred friend successfully completes the 2-lesson concierge window with their first client.",
+      "note": "A bounty clears for FPS payout once your referred friend completes Lesson 1 and Lesson 2, or the case settles early with a known final fee, and MatchMax has received the admin fee for that case. If the fee is waived or refunded before it is collected, the bounty is void.",
       "rules_link": "Read the full Refer & Earn rules",
       "not_linked": "Your tutor profile isn't linked to this account yet. After your application is accepted, our team will connect your profile and your referral link will appear here."
     },

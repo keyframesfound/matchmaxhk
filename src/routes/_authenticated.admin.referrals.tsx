@@ -27,6 +27,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/features/auth/useAuth";
 import { cn } from "@/lib/utils";
 import { formatMoneyFromCents } from "@/lib/money";
+import { referralGateMessage } from "@/features/cases/referral-gate";
 
 export const Route = createFileRoute("/_authenticated/admin/referrals")({
   head: () => ({
@@ -39,7 +40,7 @@ export const Route = createFileRoute("/_authenticated/admin/referrals")({
   component: AdminReferrals,
 });
 
-type BountyStatus = "pending" | "ready_for_payout" | "paid";
+type BountyStatus = "pending" | "ready_for_payout" | "paid" | "voided";
 
 type ReferredTutorRow = {
   id: string;
@@ -85,6 +86,10 @@ const BOUNTY_STATUS_PILL: Record<BountyStatus, { label: string; className: strin
   paid: {
     label: "Paid",
     className: "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400",
+  },
+  voided: {
+    label: "Voided, fee not collected",
+    className: "bg-muted text-muted-foreground",
   },
 };
 
@@ -174,11 +179,28 @@ function AdminReferrals() {
     mutationFn: async ({ tutorId, cents }: { tutorId: string; cents: number }) => {
       const tutor = referredTutors.find((row) => row.id === tutorId);
       if (!tutor?.referred_by) throw new Error("This tutor has no referrer on file.");
+      // #625: a bounty must name the case whose collected fee it is a share of.
+      // Without one the payout gate cannot be checked, so refuse to create it.
+      const { data: sourceCase, error: caseError } = await supabase
+        .from("tutoring_cases")
+        .select("id, case_code, fee_collected_at")
+        .eq("matched_tutor_id", tutorId)
+        .not("fee_collected_at", "is", null)
+        .order("fee_collected_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (caseError) throw caseError;
+      if (!sourceCase) {
+        throw new Error(
+          "No fee-collected case found for this tutor. Record the admin fee in Cases first.",
+        );
+      }
       const { error } = await supabase.from("referral_bounties").insert({
         referred_tutor_id: tutorId,
         referring_tutor_id: tutor.referred_by,
         amount_cents: cents,
         status: "pending",
+        source_case_id: (sourceCase as { id: string }).id,
       } as never);
       if (error) throw error;
     },
@@ -221,7 +243,9 @@ function AdminReferrals() {
       );
       invalidateReferrals();
     },
-    onError: (e: Error) => toast.error(e.message),
+    // #625: the database gate raises REFERRAL_GATE:<REASON>; show the desk
+    // sentence instead of the raw constraint error.
+    onError: (e: Error) => toast.error(referralGateMessage(e.message) ?? e.message),
   });
 
   const totals = useMemo(() => {
@@ -282,9 +306,11 @@ function AdminReferrals() {
           Referrals &amp; bounties
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Track the 15% referral program. When a case's fee is recorded in Cases, the referrer's
-          bounty is logged here automatically at 15%. Clear it once the referred tutor finishes
-          their first two lessons, and mark it paid after the FPS transfer, payouts stay manual.
+          Tutor referral cash is 15% of the admin fee MatchMax actually collects for the referred
+          tutor's first case. A bounty clears for payout only once Lesson 1 and Lesson 2 are done,
+          or the case settles with a known final fee, and that fee has been received. Mark it paid
+          after the FPS transfer; payouts stay manual. Sales-agent and org-referral cash is 30% of
+          the same collected take and is tracked in the Master Sheet.
         </p>
       </div>
 
@@ -327,7 +353,7 @@ function AdminReferrals() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {(["all", "pending", "ready_for_payout", "paid"] as const).map((value) => (
+          {(["all", "pending", "ready_for_payout", "paid", "voided"] as const).map((value) => (
             <button
               key={value}
               type="button"
