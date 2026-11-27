@@ -6,6 +6,7 @@ import { PageContainer } from "@/components/layout/PageContainer";
 import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { localeLinks } from "@/features/i18n/seo";
+import { LegalZhSummary, type ZhLegalItem } from "@/features/legal/legal-zh-summary";
 
 export const Route = createFileRoute("/tos")({
   head: () => ({
@@ -667,8 +668,97 @@ function renderInline(text: string) {
   );
 }
 
+/**
+ * #783 AC-544-2: 繁中 summary for the Chinese routes. The English body below
+ * is the binding text; this section says so and covers the headings plus the
+ * clauses with money, refunds, liability and data consequences. Keep it in
+ * step with SECTIONS when a clause changes materially.
+ */
+const ZH_SUMMARY: readonly ZhLegalItem[] = [
+  {
+    heading: "1. 適用範圍、定義與接受條款",
+    body: "使用 MatchMax 即代表你接受本條款。條款中「客戶」指家長或成年學員，「導師」指獨立自僱人士，並非 MatchMax 的員工。",
+  },
+  {
+    heading: "2. 帳戶、資格與未成年人",
+    body: "你需要提供真實資料並自行保管登入憑證。未滿 18 歲的學員須由家長或監護人開設及管理帳戶，並由該成年人同意預約與付款。",
+  },
+  {
+    heading: "3. MatchMax 的角色與導師的獨立性",
+    body: "MatchMax 是配對平台，不是補習服務提供者。導師以自僱身分自行提供課程，師生之間的教學關係由雙方直接建立。",
+  },
+  {
+    heading: "4. 導師資歷、認證與人工智能",
+    body: "我們會查核導師提交的學歷及身分證明，並可能使用人工智能輔助審閱資料。認證只代表文件層面的核實，不代表我們保證教學質素或成績。",
+  },
+  {
+    heading: "5. 課堂、學費與取消",
+    body: "學費由家長直接支付予導師，MatchMax 不代收、不託管亦不經手課堂學費。取消與改期安排由雙方議定，平台規則另有說明。",
+  },
+  {
+    heading: "6. MatchMax 收費",
+    body: "配對服務向導師收取行政費，家長毋須支付配對費。標準個案為 1.5 堂（第 1 堂全額加第 2 堂半額）；5 堂或以下的短期個案按套餐總額 20% 計算，於第 1 堂後開立發票。",
+  },
+  {
+    heading: "7. 安全保障與可接受使用",
+    body: "禁止騷擾、歧視、假冒身分、私下繞過平台收費，以及任何危及未成年人的行為。違規可導致警告、限制或終止帳戶。",
+  },
+  {
+    heading: "8. 私隱、個人檔案與知識產權",
+    body: "我們按下方的《私隱政策》處理個人資料。你保留自己內容的權利，並授權 MatchMax 為提供服務而儲存、描述及展示該內容。",
+  },
+  {
+    heading: "9. 通訊與第三方服務",
+    body: "我們可能就帳戶、個案及交易發出通知。平台使用第三方服務（例如儲存、電郵、付款），該等服務受其自身條款約束。",
+  },
+  {
+    heading: "10. 投訴、限制與終止",
+    body: "你可以隨時提出投訴。我們可在合理理由下限制或終止帳戶，例如違反條款、危害安全或涉及欺詐。",
+  },
+  {
+    heading: "11. 免責聲明與責任",
+    body: "MatchMax 不保證成績、取錄或教學成果。在法律允許的範圍內，我們就平台服務的責任設有上限；此段以英文原文為準。",
+  },
+  {
+    heading: "12. 彌償",
+    body: "如因你違反條款、侵犯他人權利或上載違法內容而令 MatchMax 蒙受損失，你須作出彌償。此段涉及法律責任，請閱讀英文原文或諮詢法律意見。",
+  },
+  {
+    heading: "13. 條款變更與一般規定",
+    body: "我們可就條款作出變更，重大變更會於生效前通知。條款受香港法律管轄。",
+  },
+  {
+    heading: "14. 聯絡我們",
+    body: "如有疑問，可透過平台上列明的聯絡方式與我們聯絡。",
+  },
+  {
+    heading: "15. 配對、行政費與我們不保證的事項",
+    body: "行政費是為 MatchMax 的介紹服務而收取，不是導師的轉介佣金，亦不是學費的一部分。我們不保證能找到導師、不保證課堂時數，亦不保證任何學術結果。",
+  },
+  {
+    heading: "16. 導師卡片、認證與推薦",
+    body: "導師卡片上的標示反映我們已核實的資料。推薦或排序不構成對教學質素的保證。",
+  },
+  {
+    heading: "17. 筆記：授權、交付與退款",
+    body: "買家支付標示售價，款項以信用卡或電子錢包即時支付，檔案在付款後即時解鎖。賣家承擔 2% 平台費及實際付款手續費。款項設 72 小時保障期，期內只可按客觀理由（D1 至 D9）退款，不設冷靜期；72 小時後交易即告最終。賣家有 48 小時回應或修復爭議。",
+  },
+  {
+    heading: "18. 推薦獎賞",
+    body: "推薦獎賞為被推薦導師首個成功個案的行政費 15%，於第 1、2 堂完成並結清行政費後，在下一個月的 1 號以轉數快發放。",
+  },
+  {
+    heading: "19. 筆記訂單紀錄與私隱",
+    body: "每張筆記訂單會記錄買家帳戶、教材編號、付款參考及下載時間，用於交付、爭議處理及防漏。詳見《私隱政策》。",
+  },
+];
+
+const ZH_NOTICE =
+  "以下為中文摘要，方便理解。本條款以英文原文為準；如中英文版本有任何歧義，概以英文版本為依據。";
+
 function TermsOfUsePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const showZhSummary = Boolean(i18n.language?.startsWith("zh"));
   return (
     <PublicPage>
       <PageIntro
@@ -680,6 +770,10 @@ function TermsOfUsePage() {
       <section className="py-14 sm:py-20">
         <PageContainer width="narrow">
           <div className="space-y-12">
+            {showZhSummary ? (
+              <LegalZhSummary items={ZH_SUMMARY} notice={ZH_NOTICE} title="中文摘要" />
+            ) : null}
+
             <div className="border-b border-border pb-12 text-base leading-7 text-muted-foreground">
               <p className="whitespace-pre-wrap">{INTRO_TEXT}</p>
             </div>

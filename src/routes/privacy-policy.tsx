@@ -4,6 +4,8 @@ import { PageIntro } from "@/components/layout/PageIntro";
 import { PublicPage } from "@/components/layout/PublicPage";
 import { localeLinks } from "@/features/i18n/seo";
 import { CookieSettingsPanel } from "@/components/layout/CookieConsentBanner";
+import { useTranslation } from "react-i18next";
+import { LegalZhSummary, type ZhLegalItem } from "@/features/legal/legal-zh-summary";
 
 export const Route = createFileRoute("/privacy-policy")({
   head: () => ({
@@ -353,7 +355,76 @@ function renderInline(text: string) {
   );
 }
 
+/**
+ * #783 AC-COOKIE-2: 繁中 summary for the Chinese route. English is the binding
+ * text and the summary says so; it covers every heading plus the clauses with
+ * data, retention, cookies and notes-order consequences.
+ */
+const ZH_SUMMARY: readonly ZhLegalItem[] = [
+  {
+    heading: "1. 適用範圍與收集通知",
+    body: "本政策說明 MatchMax 如何收集、使用、披露及保留你的個人資料，適用於平台的所有使用者，包括家長、學員及導師。",
+  },
+  {
+    heading: "2. 我們收集的個人資料",
+    body: "包括帳戶資料（姓名、電郵、電話、語言）、導師的學歷與認證文件、個案與課堂紀錄、筆記訂單資料，以及技術資料（IP、裝置與瀏覽器資訊、使用紀錄）。",
+  },
+  {
+    heading: "3. 收集目的",
+    body: "用於配對與介紹、處理個案與收費、交付教材、安全保障與防止濫用、客戶支援，以及按你已同意的範圍發送推廣訊息。",
+  },
+  {
+    heading: "4. 未成年人",
+    body: "未滿 18 歲學員的資料由家長或監護人提供及管理。我們只收集提供服務所需的資料，並限制公開範圍。",
+  },
+  {
+    heading: "5. 公開導師檔案",
+    body: "導師的姓名、科目、學歷及收費等資料會公開展示，用於配對。你可選擇不公開部分資料，但可能影響配對機會。",
+  },
+  {
+    heading: "6. 資料披露",
+    body: "我們只向提供服務所需的第三方披露資料，例如儲存、電郵、付款（包括 Stripe 處理信用卡、Apple Pay、支付寶香港及微信支付）、身分及安全服務供應商，以及法律要求的機構。",
+  },
+  {
+    heading: "7. 外部處理、人工智能與安全",
+    body: "部分服務由外部供應商處理，並受其條款約束。我們會以加密、存取控制及審計紀錄保護資料。提示你切勿提交密碼或卡片安全碼。",
+  },
+  {
+    heading: "8. Cookies",
+    body: "我們使用 cookies 及類似技術維持登入、保安及偏好設定。首次到訪時可選擇「全部接受」或「僅必要 cookies」，並可隨時在私隱政策此段更改選擇。",
+  },
+  {
+    heading: "9. 保留與刪除",
+    body: "我們只保留提供服務、處理爭議及符合法律要求所需的時間。收費紀錄一般保留七年。你亦可要求刪除帳戶及相關資料。",
+  },
+  {
+    heading: "10. 查閱、更正與私隱要求",
+    body: "你有權查閱及更正個人資料，並可提出刪除或限制處理的要求。我們會按香港《個人資料（私隱）條例》處理，並於合理時間內回覆。",
+  },
+  {
+    heading: "11. 政策變更",
+    body: "我們可能更新本政策；重大變更會於生效前通知，並更新頁面上方的版本日期。",
+  },
+  {
+    heading: "12. 學習材料（筆記）訂單",
+    body: "購買筆記時，我們只處理狹窄的訂單紀錄：買家帳戶、教材編號、付款參考及下載時間。交付的檔案會加入訂單編號及遮蔽後的買家電郵，每次下載均會記錄，用於爭議時證明交付。信用卡由 Stripe 直接處理，我們不儲存卡號。",
+  },
+  {
+    heading: "12A. 筆記賣家、審核與保留",
+    body: "賣家的收款資料只供內部使用，不會公開展示。上載內容會經自動及人手審核，違規內容可被移除。",
+  },
+  {
+    heading: "13. 配對個案與行政費",
+    body: "提交個案時，我們會記錄個案內容、提交帳戶及你的收費同意紀錄（版本、帳戶及時間）。配對成功後，個案亦會保存付款人姓名、費用金額、轉數快付款參考及標記為已付款的時間。",
+  },
+];
+
+const ZH_NOTICE =
+  "以下為中文摘要，方便理解。本政策以英文原文為準；如中英文版本有任何歧義，概以英文版本為依據。";
+
 function PrivacyPolicyPage() {
+  const { i18n } = useTranslation();
+  const showZhSummary = Boolean(i18n.language?.startsWith("zh"));
   return (
     <PublicPage>
       <PageIntro
@@ -365,6 +436,10 @@ function PrivacyPolicyPage() {
       <section className="py-14 sm:py-20">
         <PageContainer width="narrow">
           <div className="space-y-12">
+            {showZhSummary ? (
+              <LegalZhSummary items={ZH_SUMMARY} notice={ZH_NOTICE} title="中文摘要" />
+            ) : null}
+
             <div className="border-b border-border pb-12 text-base leading-7 text-muted-foreground">
               <p className="whitespace-pre-wrap">{INTRO_TEXT}</p>
             </div>
