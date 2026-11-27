@@ -2,6 +2,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
+import { LanguageToggle } from "@/components/brand/LanguageToggle";
 import { Logo } from "@/components/brand/Logo";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Button } from "@/components/ui/button";
@@ -142,6 +143,11 @@ function AuthPage() {
               </svg>
               {busy ? t("auth.signing_in") : t("auth.continue_google")}
             </Button>
+            {/* #824 AC-111-1: the sign-in page has no footer, so the EN / 繁 / 简
+                switch lives here (same control as the site footer). */}
+            <div className="mt-6 flex justify-center">
+              <LanguageToggle />
+            </div>
           </div>
         </div>
       </main>
