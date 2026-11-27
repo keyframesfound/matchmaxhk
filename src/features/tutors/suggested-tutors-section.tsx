@@ -7,7 +7,6 @@ import { useAuth } from "@/features/auth/useAuth";
 import { listMyChildren } from "@/features/children/children.functions";
 import { CHILDREN_QUERY_KEY } from "@/features/children/my-children-section";
 import {
-  learnerCurriculumLabel,
   learnerFunnelLevel,
   normalizeLearnerCurriculum,
   readRecentSearchSignals,
@@ -18,11 +17,7 @@ import { getMyParentCases } from "@/features/cases/parent.functions";
 import { ACTIVE_SUBJECT_SOR } from "@/features/cases/trial-lock";
 import type { Tutor } from "@/features/tutors/queries";
 import { getTutorInquiryAction } from "@/features/tutors/tutor-display";
-import {
-  buildSuggestionTargets,
-  suggestTutors,
-  type SuggestionTarget,
-} from "@/features/tutors/suggested-tutors";
+import { buildSuggestionTargets, suggestTutors } from "@/features/tutors/suggested-tutors";
 
 /**
  * #716 exclusion set — now the SHARED #772 definition (ACTIVE_SUBJECT_SOR in
@@ -86,25 +81,19 @@ export function SuggestedTutorsSection({
       .filter((c) => ACTIVE_SOR.has(c.sor_status ?? "") && c.subject)
       .map((c) => c.subject as string);
     const targets = buildSuggestionTargets({ interests, excludedSubjects });
-    return suggestTutors(tutors, targets, (tutor) => {
-      const kind = getTutorInquiryAction(tutor, undefined, "en").kind;
-      return kind === "request" || kind === "pre_book";
-    });
+    return suggestTutors(
+      tutors,
+      targets,
+      (tutor) => {
+        const kind = getTutorInquiryAction(tutor, undefined, "en").kind;
+        return kind === "request" || kind === "pre_book";
+      },
+      // One full row of four on desktop (#716 density).
+      4,
+    );
   }, [user, learner, recent, childrenQuery.data, casesQuery.data, casesQuery.isLoading, tutors]);
 
   if (!user || picks.length < 2) return null;
-
-  const reason = (target: SuggestionTarget) => {
-    const curriculum = learnerCurriculumLabel(target.curriculum);
-    if (target.kind === "complementary") {
-      return curriculum
-        ? t("suggested.reason_complementary", { curriculum })
-        : t("suggested.reason_complementary_plain");
-    }
-    return t("suggested.reason_search", {
-      value: [curriculum, target.subject].filter(Boolean).join(" "),
-    });
-  };
 
   return (
     <section aria-labelledby="mm-suggested-heading">
@@ -118,19 +107,12 @@ export function SuggestedTutorsSection({
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">{t("suggested.subtitle")}</p>
       </div>
-      <div className="-mx-4 rail-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pt-1 pb-2 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 lg:grid-cols-3">
-        {picks.map(({ tutor, target }) => (
+      <div className="-mx-4 rail-scroll flex snap-x snap-mandatory gap-3 overflow-x-auto scroll-px-4 px-4 pt-1 pb-2 md:mx-0 md:grid md:grid-cols-2 md:gap-6 md:overflow-visible md:px-0 lg:grid-cols-4">
+        {picks.map(({ tutor }) => (
           <div
             key={tutor.id}
-            className="flex w-[min(80vw,380px)] shrink-0 snap-start flex-col gap-2 md:w-auto"
+            className="flex w-[min(80vw,380px)] shrink-0 snap-start flex-col md:w-auto"
           >
-            <span className="inline-flex w-fit max-w-full items-center rounded-full border border-[color:var(--brand-link)]/40 bg-[color:var(--brand-link)]/10 px-2.5 py-0.5 text-xs font-semibold text-[color:var(--ink)]">
-              <span className="truncate">
-                {target.learnerName
-                  ? t("suggested.for_learner", { name: target.learnerName, reason: reason(target) })
-                  : reason(target)}
-              </span>
-            </span>
             {renderCard(tutor)}
           </div>
         ))}
