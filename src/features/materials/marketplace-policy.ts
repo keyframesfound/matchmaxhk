@@ -19,13 +19,18 @@
 export const NOTES_OPTION_A_LIVE = false;
 
 /**
- * Display-only switch for the seller payout breakdown in the note editor
+ * Display switch for the seller payout breakdown in the note editor
  * (#784 AC-784-FORM-1 / AC-784-FORM-2). It NEVER enables checkout, terms or
- * payouts: every Stripe path stays gated on NOTES_OPTION_A_LIVE above. Kept
- * separate so sellers can see the real payout split while pricing a listing
- * without turning on payments.
+ * payouts: every Stripe path stays gated on NOTES_OPTION_A_LIVE above.
+ *
+ * It is deliberately DERIVED, not independent. #784 §2.3 / AC-573-1: no
+ * environment may show 2% + Stripe-fee terms while the live public paid path
+ * is the 20% FPS cashier, because the seller's real take would be 80%, not
+ * gross − 2% − gateway. So the breakdown appears exactly when Option A goes
+ * live, and FORM-1 / FORM-2 tick in that same release. An earlier PR exposed
+ * it while checkout was dark; that misstated the contract.
  */
-export const SHOW_EARNINGS_BREAKDOWN = true;
+export const SHOW_EARNINGS_BREAKDOWN = NOTES_OPTION_A_LIVE;
 
 /**
  * Copy keys that change at launch: `key` today, `notes_option_a.<swap>` once

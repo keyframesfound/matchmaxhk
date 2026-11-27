@@ -43,6 +43,14 @@ export const DROP_PROTECTED_MULTIPLIER = 0.5;
  * commission-credit rule keeps the 3–4 lesson window.
  */
 export const STOPPED_AFTER_L2_MULTIPLIER = 1.0;
+/**
+ * #760 22 Nov Lock #6 / #828 AC-B4: a parent no-show or <24h cancel before
+ * Lesson 1 still bills 1.0×R to MatchMax (capped by the tier base, so Tier 3
+ * pays 0.5×R and the $0 tier pays nothing), but the PAYER is the parent, not
+ * the tutor — the tutor takes home $0 and owes no admin fee. The amount stays
+ * in final_commission_due; fee_charge_payer names who owes it.
+ */
+export const PARENT_NO_SHOW_MULTIPLIER = 1.0;
 export const SHADOWBAN_DAYS = 30;
 /** #525 repeat pattern: this many prior quality-complaint drops voids protection. */
 export const REPEAT_QUALITY_DROP_THRESHOLD = 2;
@@ -167,12 +175,21 @@ export type FeeConsequences = {
   flagTutorForReview: boolean;
 };
 
+/** Who owes the resolved fee (#828 AC-B4). */
+export type FeeChargePayer = "tutor" | "parent";
+
 export type FeeResolution = {
   ruleId: FeeRuleId;
-  /** × R before student scaling; null while nothing is final. */
+  /** × R due before student scaling; null while nothing is final. */
   multiplier: number | null;
   /** Whole HKD due to MatchMax; null while nothing is final. */
   finalCommissionDueHkd: number | null;
+  /**
+   * Who owes finalCommissionDueHkd. "parent" only for a pre-L1 no-show /
+   * <24h cancel (#760 Lock #6 / #828 AC-B4), where MatchMax collects the fee
+   * from the family and the tutor takes home $0; "tutor" everywhere else.
+   */
+  chargePayer: FeeChargePayer;
   /** Base fee of this case's tier if it continues (× R). */
   baseMultiplier: number;
   protectionApplied: boolean;
@@ -243,6 +260,7 @@ function clampPct(pct: number | undefined): number {
 type Draft = Omit<FeeResolution, "finalCommissionDueHkd" | "baseMultiplier">;
 
 type DraftOverrides = {
+  chargePayer?: FeeChargePayer;
   protectionApplied?: boolean;
   opensOwnershipWindow?: boolean;
   advancesRetainedTier?: boolean;
@@ -257,6 +275,7 @@ function draft(
   return {
     ruleId,
     multiplier,
+    chargePayer: overrides.chargePayer ?? "tutor",
     protectionApplied: overrides.protectionApplied ?? false,
     opensOwnershipWindow: overrides.opensOwnershipWindow ?? false,
     advancesRetainedTier: overrides.advancesRetainedTier ?? false,
@@ -430,10 +449,13 @@ function resolveMultiplier(input: FeeResolutionInput, base: number): Draft {
     case "trial_only_stop":
       return draft("FREE_TRIAL_STOP", 0);
     case "l1_no_show":
-      return draft(
-        "NO_SHOW_L1_DUE",
-        Math.min(base, tierL1Portion(input.tier ?? "primary", input.splitMode ?? "100_50")),
-      );
+      // #760 22 Nov Lock #6 / #828 AC-B4: 1.0×R is still due to MatchMax
+      // (tier-capped), but the PARENT pays it via MatchMax — the tutor takes
+      // home $0 and owes nothing out of pocket. No Drop-Protection, no
+      // blacklist. Note the fixed 1.0× also replaces the 75_75 L1 portion.
+      return draft("NO_SHOW_L1_DUE", Math.min(base, PARENT_NO_SHOW_MULTIPLIER), {
+        chargePayer: "parent",
+      });
     case "continued":
       return input.bypass === "confirmed"
         ? draft("BYPASS_CONFIRMED_FULL", base, {
@@ -500,7 +522,8 @@ export const FEE_RULE_LABELS: Record<FeeRuleId, string> = {
   OWNERSHIP_EXPIRED: "Past the 6-month window: $0, tutor-owned",
   PRE_L1_REJECT: "Rejected before Lesson 1: $0, no window opened",
   FREE_TRIAL_STOP: "Free online intro only: $0",
-  NO_SHOW_L1_DUE: "No-show or late cancel: Lesson 1 portion due",
+  NO_SHOW_L1_DUE:
+    "#760 No-show or late cancel before Lesson 1: parent pays 1.0×R via MatchMax, tutor $0",
   CONTINUED_FULL: "Continued past Lesson 2: full tier fee",
   STOPPED_AFTER_L2_PARENT_CHOICE:
     "#760 parent stops after Lesson 2 (before L3): 1.0×R total — L2's 0.5×R waived (50% earned-tuition cap)",

@@ -25,7 +25,7 @@ flowchart TD
   kind -- L1 not done --> pending0[nothing final · IN_PROGRESS]
   kind -- rejected before L1 --> zero2[$0 · PRE_L1_REJECT<br/>window never opens]
   kind -- free online intro only --> zero3[$0 · FREE_TRIAL_STOP]
-  kind -- parent no-show / <24h cancel --> l1due[L1 portion · NO_SHOW_L1_DUE]
+  kind -- parent no-show / <24h cancel --> l1due[1.0×R, payer parent · NO_SHOW_L1_DUE<br/>tutor $0 out of pocket]
   kind -- continued past L2 --> full[tier base · CONTINUED_FULL<br/>advances retained tier]
   kind -- stopped after one paid L1 --> bypass{Bypass?}
 
@@ -65,13 +65,21 @@ flowchart TD
 | Same-client ladder | 1.5 → 1.0 → 0.5 → $0; protection floor 0.5×R | none | none | tier input |
 | Day 181+ Ownership | $0, not a case | tutor's relationship | none | `OWNERSHIP_EXPIRED` |
 | Centre secondary in window | Retained-Only ladder | none | none | tier input |
-| Parent no-show / <24h cancel before L1 | L1 portion, not Drop-Protection | none | none | `NO_SHOW_L1_DUE` |
+| Parent no-show / <24h cancel before L1 (#828 AC-B4) | min(tier base, 1.0×R), paid by the parent via MatchMax (`fee_charge_payer = 'parent'`) | $0 out of pocket, keeps take-home | pays via MatchMax; no Drop-Protection, no blacklist | `NO_SHOW_L1_DUE` |
 | Suspected bypass | L1 portion, protection void | flagged | none | `BYPASS_SUSPECTED_VOID` |
 | Confirmed bypass | tier base, ban (human action) | banned | none | `BYPASS_CONFIRMED_FULL` |
 
 Notes:
 
 - L1 portion = min(tier base, 1.0×R) under `100_50`, min(tier base, 0.75×R) under the opt-in `75_75` A/B. Centre tiers split differently (#760): Tier 2 bills 0.5×R L1 + 0.5×R L2 and Tier 3 bills 0.5×R L1 + $0 L2 (`tierL1Portion`), so a Tier 2/3 student dropping after Lesson 1 owes only the 0.5×R L1 slice.
+- Pre-L1 parent no-show (#760 22 Nov Lock #6 / #828 AC-B4): the ONE rule that
+  bills the parent instead of the tutor. `final_commission_due` is unchanged —
+  still `min(tier base, 1.0×R)`, so Tier 3 is 0.5×R and the $0 tier is $0 — and the
+  new `fee_charge_payer = 'parent'` column names who owes it. The tutor takes home
+  $0 out of pocket. No Drop-Protection, no blacklist, no ownership window.
+- `fee_charge_payer` (`tutoring_cases`) defaults to `'tutor'`; only
+  `NO_SHOW_L1_DUE` writes `'parent'`. `final_commission_due` keeps its meaning
+  ("whole HKD due to MatchMax") on every rule.
 - #760 boundary: a stop with EXACTLY Lessons 1–2 done resolves to `STOPPED_AFTER_L2_PARENT_CHOICE` (1.0×R cap). The #672 parent-fault credit rule (`PARENT_DROP_L2_L4`, max(0.5, 0.2×completed) with overpaid difference → commission credit) keeps the 3–4-lesson window only.
 - Short case (declared 1–5 lessons at intake, `is_short_case`): the 20% package fee replaces the 1.5-lesson rule. #760 locks: declared BEFORE Lesson 1 is confirmed (no retroactive reclassification — `SHORT_LOCKED_AFTER_L1`); Lesson N+1 cannot be scheduled or dual-confirmed until the desk converts to ongoing (`SHORT_CASE_OVERRUN`); converting bills only the top-up difference to the 1.5-lesson fee (`shortCaseTopUpHkd`, desk bills on the paid basis via `convertBalanceAmountHkd`).
 - A tutor-funded first-lesson discount scales the L1 portion and the protection to the amount actually paid. Regular lessons stay on full R.

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   FEE_RULE_LABELS,
+  PARENT_NO_SHOW_MULTIPLIER,
   SHADOWBAN_DAYS,
   STOPPED_AFTER_L2_MULTIPLIER,
   buildOutcome,
@@ -103,10 +104,13 @@ describe("resolveCaseFee — #520 QA checklist", () => {
     expect(r.protectionApplied).toBe(false);
   });
 
-  it("parent no-show / <24h cancel before L1 → 100% L1, not Drop-Protection", () => {
+  it("parent no-show / <24h cancel before L1 → 1.0×R billed to the parent", () => {
     const r = fee({ outcome: { kind: "l1_no_show" } });
     expect(r.ruleId).toBe("NO_SHOW_L1_DUE");
+    // #828 AC-B4 / #760 Lock #6: the amount is unchanged, the payer is not.
+    expect(r.multiplier).toBe(PARENT_NO_SHOW_MULTIPLIER);
     expect(r.finalCommissionDueHkd).toBe(600);
+    expect(r.chargePayer).toBe("parent");
     expect(r.protectionApplied).toBe(false);
   });
 
@@ -489,10 +493,44 @@ describe("#760 Part 2 — centre tier split (Tier 2 = 0.5 L1 + 0.5 L2, Tier 3 = 
     expect(r.finalCommissionDueHkd).toBe(200);
   });
 
-  it("Tier 3 no-show → 0.5×R L1 portion (never above the tier base)", () => {
+  it("Tier 3 no-show → 0.5×R (tier ceiling) billed to the parent", () => {
     const r = resolveCaseFee({ lessonValueHkd: 400, tier: 3, outcome: { kind: "l1_no_show" } });
     expect(r.ruleId).toBe("NO_SHOW_L1_DUE");
     expect(r.finalCommissionDueHkd).toBe(200);
+    expect(r.chargePayer).toBe("parent");
+  });
+});
+
+describe("#828 AC-B4 — the pre-L1 no-show is billed to the parent", () => {
+  it("Tier 4 / $0 tier charges nobody, but still names the parent", () => {
+    const r = resolveCaseFee({ lessonValueHkd: 400, tier: 4, outcome: { kind: "l1_no_show" } });
+    expect(r.ruleId).toBe("NO_SHOW_L1_DUE");
+    expect(r.finalCommissionDueHkd).toBe(0);
+    expect(r.chargePayer).toBe("parent");
+  });
+
+  it("scales by student count and rounds once", () => {
+    const r = resolveCaseFee({
+      lessonValueHkd: 333,
+      studentCount: 3,
+      outcome: { kind: "l1_no_show" },
+    });
+    expect(r.finalCommissionDueHkd).toBe(999);
+    expect(r.chargePayer).toBe("parent");
+  });
+
+  it("75_75 bills the full 1.0×R L1 portion (the lock text, not 0.75×R)", () => {
+    const r = fee({ splitMode: "75_75", outcome: { kind: "l1_no_show" } });
+    expect(r.finalCommissionDueHkd).toBe(600);
+    expect(r.chargePayer).toBe("parent");
+  });
+
+  it("every other rule stays on the tutor", () => {
+    expect(fee({ outcome: { kind: "continued" } }).chargePayer).toBe("tutor");
+    expect(fee({ outcome: { kind: "pre_l1_reject" } }).chargePayer).toBe("tutor");
+    expect(fee({ outcome: { kind: "in_progress" } }).chargePayer).toBe("tutor");
+    expect(fee({ outcome: stop("verified") }).chargePayer).toBe("tutor");
+    expect(fee({ bypass: "confirmed", outcome: stop("verified") }).chargePayer).toBe("tutor");
   });
 });
 
