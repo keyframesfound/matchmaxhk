@@ -11,6 +11,8 @@ export const HOMEWORK_TEXT_MAX = 1000;
 export const HOMEWORK_NOTE_MAX = 500;
 export const HOMEWORK_REVIEW_MAX = 200;
 export const HOMEWORK_LINK_MAX = 500;
+/** #736: homework scores are whole percent, so the gradebook can plot them. */
+export const HOMEWORK_SCORE_MAX = 100;
 
 /** Exam-paper wording the shared contact filter would read as a phone or a channel. */
 const YEAR_PAIR = /\b(?:19|20)\d{2}[\s\-–]+(?:19|20)\d{2}\b/g;
@@ -154,4 +156,28 @@ export function homeworkTextError(text: string | null | undefined): "CONTACT_DET
   if (!text) return null;
   const cleaned = text.replace(YEAR_PAIR, " ").replace(EXAM_BOARD_IG, " ");
   return hasContactDetails(cleaned) ? "CONTACT_DETAILS" : null;
+}
+
+/**
+ * #736: a blank score is allowed (review without grading). Anything else must
+ * be a whole percent from 0 to 100, the same range as the DB check.
+ */
+export function homeworkScoreError(value: number | null | undefined): "BAD_SCORE" | null {
+  if (value === null || value === undefined) return null;
+  if (!Number.isInteger(value) || value < 0 || value > HOMEWORK_SCORE_MAX) return "BAD_SCORE";
+  return null;
+}
+
+/**
+ * Deploy safety: a migration lands after the code reads the new column. This
+ * recognises Postgres undefined_column (42703) both as a PostgREST error
+ * object and as the wrapped Error that selectRows throws, so a reader can
+ * retry without the column instead of failing the whole tab.
+ */
+export function isUndefinedColumn(error: unknown): boolean {
+  if (error === null || typeof error !== "object") return false;
+  const { code, message } = error as { code?: unknown; message?: unknown };
+  if (code === "42703") return true;
+  if (typeof message !== "string") return false;
+  return /\b42703\b/.test(message) || /\bcolumn\b[^.]*\bdoes not exist\b/i.test(message);
 }

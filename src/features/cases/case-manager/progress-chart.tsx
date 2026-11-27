@@ -13,6 +13,8 @@ const PLOT_HEIGHT = VIEW_HEIGHT - PAD_Y * 2;
 const GRID_PERCENTS = [0, 50, 100];
 const MARKER_R = 4;
 const HIT_R = 16;
+/** #736: verified hours read as background bars behind the score line. */
+const BAR_WIDTH = 12;
 
 export type ChartScore = AssessmentScore & {
   id: string;
@@ -26,19 +28,26 @@ function yFor(pct: number): number {
 }
 
 /**
- * #653 grade curve: one series, so the heading names it and there is no legend.
- * Plain SVG, no chart library. The assessment log below is its table view.
- * Details sit under the plot, so they never cover a point on a small screen.
+ * #653 grade curve with #736 verified hours behind it: the line stays on top,
+ * the bars are context. Plain SVG, no chart library. The assessment log below
+ * is its table view. Details sit under the plot, so they never cover a point
+ * on a small screen.
  */
 export function ProgressChart({
   scores,
   targetPct,
   targetLabel,
+  hours,
+  hoursMax,
   sample = false,
 }: {
   scores: readonly ChartScore[];
   targetPct: number | null;
   targetLabel: string | null;
+  /** #736: bar heights, aligned 1:1 with the plotted points. */
+  hours?: readonly { pctOfMax: number }[];
+  /** #736: the hours value drawn at full bar height, for the aria sentence. */
+  hoursMax?: number;
   sample?: boolean;
 }) {
   const { t } = useTranslation();
@@ -49,16 +58,35 @@ export function ProgressChart({
     py: PAD_Y + p.y,
   }));
   const active = points.find((p) => p.id === activeId) ?? null;
+  const bars =
+    hours && points.length > 0 && hours.some((h) => h.pctOfMax > 0)
+      ? points.map((p, i) => ({ px: p.px, pct: hours[i]?.pctOfMax ?? 0 }))
+      : [];
+  const baselineY = yFor(0);
 
   return (
     <figure className="m-0">
       <svg
         viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
         role="img"
-        aria-label={t("progress.chart_aria", { n: points.length })}
+        aria-label={
+          bars.length > 0
+            ? t("progress.chart_aria_hours", { n: points.length, max: hoursMax ?? 0 })
+            : t("progress.chart_aria", { n: points.length })
+        }
         className="block h-auto w-full"
         onMouseLeave={() => setActiveId(null)}
       >
+        {bars.map((bar, index) => (
+          <rect
+            key={index}
+            x={bar.px - BAR_WIDTH / 2}
+            y={baselineY - (bar.pct / 100) * PLOT_HEIGHT}
+            width={BAR_WIDTH}
+            height={(bar.pct / 100) * PLOT_HEIGHT}
+            fill="color-mix(in oklab, var(--ink) 10%, transparent)"
+          />
+        ))}
         {GRID_PERCENTS.map((pct) => (
           <g key={pct}>
             <line
@@ -130,6 +158,27 @@ export function ProgressChart({
           </g>
         ))}
       </svg>
+      {bars.length > 0 ? (
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+          <span className="inline-flex items-center gap-1">
+            <svg aria-hidden viewBox="0 0 12 2" className="h-0.5 w-3">
+              <line x1="0" y1="1" x2="12" y2="1" stroke="var(--brand-link)" strokeWidth={2} />
+            </svg>
+            {t("progress.legend_score")}
+          </span>
+          <span className="inline-flex items-center gap-1">
+            <svg aria-hidden viewBox="0 0 12 8" className="h-2 w-3">
+              <rect
+                width="12"
+                height="8"
+                rx="1"
+                fill="color-mix(in oklab, var(--ink) 10%, transparent)"
+              />
+            </svg>
+            {t("progress.legend_hours")}
+          </span>
+        </div>
+      ) : null}
       {targetLabel ? (
         <figcaption className="mt-1 text-xs text-muted-foreground">{targetLabel}</figcaption>
       ) : null}

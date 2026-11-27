@@ -2,9 +2,11 @@
  * #825 §2.1 / §2.2 — CS backup lookalikes, server half. Staff only.
  *
  * getCsBackupTutors ranks up to 3 backups for a case; queueCsBackupWave
- * records the staff's pick as `tutor_pinged` rows in the existing #428
- * funnel ledger (request_source = staff_shortlist). Nothing is sent: the
- * desk sends the WhatsApp by hand (#797). No contact fields are returned.
+ * writes the staff's picks into the #657 wave ledger (case_match_queue, so the
+ * desk's wave panel shows them and the next suggestion pass skips them) and
+ * records a matching `tutor_pinged` row in the #428 funnel ledger
+ * (request_source = staff_shortlist). Nothing is sent: the desk sends the
+ * WhatsApp by hand (#797). No contact fields are returned.
  */
 
 import { createServerFn } from "@tanstack/react-start";
@@ -12,7 +14,9 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
-import { insertAudit, requireAdmin, selectRows, type Db } from "@/features/cases/desk-db";
+import { caseMatchFingerprint } from "@/features/cases/case-match-waves";
+import { isUndefinedColumn } from "@/features/cases/homework";
+import { insertAudit, requireDeskStaff, selectRows, type Db } from "@/features/cases/desk-db";
 import {
   CASE_COLUMNS,
   loadMatchTutors,
@@ -23,6 +27,7 @@ import {
   RELAX_RATE_PCT,
   ghostingTutors,
   isManualOnlyCase,
+  nextBackupQueueRows,
   pendingPingTutors,
   pickCsBackups,
   queueRoom,
@@ -34,6 +39,11 @@ import {
 
 const PING_TYPES = ["tutor_pinged", "tutor_replied_yes", "tutor_replied_no"];
 const REMATCH_REASONS = ["RATE_TOO_HIGH", "TUTOR_QUIT", "PARENT_REQUESTED", "OTHER"] as const;
+
+/** 23505 = unique_violation; older PostgREST responses only carry the message. */
+function isDuplicateKey(error: { message: string; code?: string }): boolean {
+  return error.code === "23505" || /duplicate key/i.test(error.message);
+}
 
 type CsCaseRow = CaseRow & {
   organisation_id: string | null;
@@ -110,7 +120,7 @@ export const getCsBackupTutors = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<CsBackupResult> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
     const now = new Date();
     const c = await loadCase(db, data.caseId);
     if (isManualOnlyCase(c)) return { status: "manual_centre" };
@@ -220,21 +230,29 @@ export const getCsBackupTutors = createServerFn({ method: "POST" })
     };
   });
 
-/** AC-CS-2 / AC-UI-2: record the staff's pick; blocked above 3 pending pings. */
+/** AC-CS-2 / AC-UI-2: queue the staff's picks into the wave ledger; blocked above 3 pending pings. */
 export const queueCsBackupWave = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((input: unknown) =>
     z
       .object({
         caseId: z.string().uuid(),
-        tutorIds: z.array(z.string().uuid()).min(1).max(3),
+        picks: z
+          .array(
+            z.object({
+              tutorId: z.string().uuid(),
+              score: z.number().finite().nonnegative(),
+            }),
+          )
+          .min(1)
+          .max(3),
       })
       .parse(input),
   )
   .handler(async ({ context, data }): Promise<{ queued: number }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
     const c = await loadCase(db, data.caseId);
     if (isManualOnlyCase(c)) throw new Error("MANUAL_CENTRE");
     const [events, declined] = await Promise.all([
@@ -242,29 +260,84 @@ export const queueCsBackupWave = createServerFn({ method: "POST" })
       declinedOn(db, c.id),
     ]);
     const pending = pendingPingTutors(c.id, events, declined);
-    const fresh = [...new Set(data.tutorIds)].filter((id) => !pending.has(id));
+    const fresh: { tutorId: string; score: number }[] = [];
+    const seen = new Set<string>();
+    for (const pick of data.picks) {
+      if (pending.has(pick.tutorId) || seen.has(pick.tutorId)) continue;
+      seen.add(pick.tutorId);
+      fresh.push(pick);
+    }
     if (fresh.length > queueRoom(pending.size)) throw new Error("WAVE_CAP");
+
+    // The wave panel reads case_match_runs; an existing run keeps its status
+    // and current_wave, so a duplicate-key error here is the normal path.
+    // A case with no run gets a paused one carrying the current fingerprint:
+    // the desk has taken over matching, so the drain neither appends engine
+    // rows nor sends a wave. Staff can resume or notify from the wave panel
+    // when they want the engine back.
+    const { error: runError } = await db
+      .from<Record<string, unknown>>("case_match_runs")
+      .insert({
+        case_id: c.id,
+        status: "paused",
+        match_fingerprint: caseMatchFingerprint(toMatchCase(c)),
+      })
+      .select("case_id")
+      .single();
+    if (runError && !isDuplicateKey(runError)) throw new Error(runError.message);
+
+    const existing = await selectRows<{ rank: number }>(db, "case_match_queue", "rank", [
+      { col: "case_id", op: "eq", value: c.id },
+    ]);
+    const maxRank = existing.reduce((max, row) => Math.max(max, Number(row.rank) || 0), 0);
+    const queued: { tutorId: string; score: number; rank: number }[] = [];
+    for (const row of nextBackupQueueRows(maxRank, fresh)) {
+      const { error } = await db
+        .from<Record<string, unknown>>("case_match_queue")
+        .insert({
+          case_id: c.id,
+          tutor_id: row.tutorId,
+          score: row.score,
+          rank: row.rank,
+          // #825: desk-queued, never auto-notified (wave drain skips it).
+          source: "cs_backup",
+        })
+        .select("id")
+        .single();
+      if (error) {
+        // #825 deploy safety: never silently insert without source, or the
+        // drain would treat a desk pick as an engine row and auto-send it.
+        if (isUndefinedColumn(error)) throw new Error("QUEUE_SOURCE_MIGRATION_REQUIRED");
+        if (!isDuplicateKey(error)) throw new Error(error.message);
+        console.warn("[cs-backups] queue insert skipped:", error.message);
+        continue;
+      }
+      queued.push(row);
+    }
+
     const { logFunnelEvent } = await import("@/features/cases/funnel-events");
-    for (const [i, tutorId] of fresh.entries()) {
+    for (const row of queued) {
       await logFunnelEvent(
         db,
         {
           case_id: c.id,
-          tutor_id: tutorId,
+          tutor_id: row.tutorId,
           event_type: "tutor_pinged",
           request_source: "staff_shortlist",
-          rank_position: i + 1,
-          metadata: { source: "cs_backup_825" },
+          rank_position: row.rank,
+          metadata: { source: "cs_backup_825", queued_to: "case_match_queue" },
         },
         context.userId,
       );
     }
-    await insertAudit(
-      db,
-      c.id,
-      context.userId,
-      c.status,
-      `[#825] queued ${fresh.length} backup(s)`,
-    );
-    return { queued: fresh.length };
+    if (queued.length > 0) {
+      await insertAudit(
+        db,
+        c.id,
+        context.userId,
+        c.status,
+        `[#825] queued ${queued.length} backup(s)`,
+      );
+    }
+    return { queued: queued.length };
   });

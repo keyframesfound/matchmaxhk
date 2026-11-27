@@ -336,6 +336,9 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
         items: [
           "The tutor on a case never sees the payer’s phone number. The payer does not see the tutor’s phone number until the introduction rules allow it (after the admin fee is settled).",
           "Centre contact details and the student’s full name are visible to MatchMax staff only.",
+          "MatchMax staff see the case details only to introduce the match and collect the fee.",
+          "We do not sell the case list.",
+          "A delete request hides the profile. An unpaid or disputed fee is kept until the case is closed.",
           "Fee records are kept for seven years.",
         ],
       },
@@ -415,7 +418,7 @@ const ZH_SUMMARY: readonly ZhLegalItem[] = [
   },
   {
     heading: "13. 配對個案與行政費",
-    body: "提交個案時，我們會記錄個案內容、提交帳戶及你的收費同意紀錄（版本、帳戶及時間）。配對成功後，個案亦會保存付款人姓名、費用金額、轉數快付款參考及標記為已付款的時間。",
+    body: "提交個案時，我們會記錄個案內容、提交帳戶及你的收費同意紀錄（版本、帳戶及時間）。配對成功後，個案亦會保存付款人姓名、費用金額、轉數快付款參考及標記為已付款的時間。職員僅為介紹配對及收取費用而查閱個案資料；我們不會出售個案名單。刪除要求會隱藏個人檔案，未繳付或爭議中的費用則保留至個案結束。",
   },
 ];
 

@@ -296,7 +296,11 @@ function BusinessPublicProfile() {
     retry: false,
   });
 
-  const { data: courses, isLoading: coursesLoading } = useQuery({
+  const {
+    data: courses,
+    isLoading: coursesLoading,
+    isError: coursesError,
+  } = useQuery({
     queryKey: ["organization-profile-courses", org?.id],
     queryFn: () => fetchCoursesByOrganizationId(org!.id),
     enabled: !!org,
@@ -670,7 +674,10 @@ function BusinessPublicProfile() {
                       label: t("centre_channel.stat_courses"),
                       value: coursesLoading ? "…" : courseCount,
                     },
-                    { label: t("centre_channel.stat_notes"), value: 0 },
+                    {
+                      label: t("centre_channel.stat_notes"),
+                      value: materials.isLoading ? "…" : (materials.data?.length ?? 0),
+                    },
                   ].map((stat) => (
                     <div key={stat.label} className="flex items-baseline gap-1.5">
                       <span className="font-semibold tabular-nums text-[color:var(--ink)]">
@@ -853,7 +860,14 @@ function BusinessPublicProfile() {
                           <Skeleton className="h-64 rounded-xl" />
                         </>
                       )}
-                      {!coursesLoading && filteredCourses.length === 0 && (
+                      {!coursesLoading && coursesError && (
+                        <div className="sm:col-span-2 lg:col-span-3">
+                          <p role="alert" className="text-sm text-destructive">
+                            {t("centre_channel.courses_error")}
+                          </p>
+                        </div>
+                      )}
+                      {!coursesLoading && !coursesError && filteredCourses.length === 0 && (
                         <div className="sm:col-span-2 lg:col-span-3">
                           <EmptyState
                             icon={BookOpen}

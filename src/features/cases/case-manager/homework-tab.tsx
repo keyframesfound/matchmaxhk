@@ -20,6 +20,7 @@ import { hktClock, hktDayLabel } from "@/features/cases/case-schedule";
 import {
   HOMEWORK_NOTE_MAX,
   HOMEWORK_REVIEW_MAX,
+  HOMEWORK_SCORE_MAX,
   HOMEWORK_TEXT_MAX,
   HOMEWORK_TITLE_MAX,
   MATERIAL_FILTERS,
@@ -258,11 +259,23 @@ function ReviewForm({
   const { t } = useTranslation();
   const onError = useErrorToast();
   const [comment, setComment] = useState("");
+  const [score, setScore] = useState("");
+  const scoreValue = score === "" ? undefined : Number(score);
+  const scoreValid =
+    scoreValue === undefined ||
+    (Number.isInteger(scoreValue) && scoreValue >= 0 && scoreValue <= HOMEWORK_SCORE_MAX);
   const save = useMutation({
-    mutationFn: () =>
-      reviewHomework({
-        data: { caseId, homeworkId: item.id, comment: comment.trim() || undefined },
-      }),
+    mutationFn: () => {
+      if (!scoreValid) throw new Error("BAD_SCORE");
+      return reviewHomework({
+        data: {
+          caseId,
+          homeworkId: item.id,
+          comment: comment.trim() || undefined,
+          scorePct: scoreValue,
+        },
+      });
+    },
     onSuccess: onDone,
     onError,
   });
@@ -275,7 +288,22 @@ function ReviewForm({
         maxLength={HOMEWORK_REVIEW_MAX}
         onChange={(e) => setComment(e.target.value)}
       />
-      <Button type="button" size="sm" disabled={save.isPending} onClick={() => save.mutate()}>
+      <Input
+        type="number"
+        inputMode="numeric"
+        min={0}
+        max={HOMEWORK_SCORE_MAX}
+        aria-label={t("homework.field_score")}
+        placeholder={t("homework.field_score_hint")}
+        value={score}
+        onChange={(e) => setScore(e.target.value)}
+      />
+      <Button
+        type="button"
+        size="sm"
+        disabled={save.isPending || !scoreValid}
+        onClick={() => save.mutate()}
+      >
         {save.isPending ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden /> : null}
         {t("homework.mark_reviewed")}
       </Button>
@@ -352,6 +380,11 @@ function HomeworkCard({
             </p>
           ) : null}
         </div>
+      ) : null}
+      {item.scorePct !== null ? (
+        <p className="mt-2 text-xs font-semibold">
+          {t("homework.score_value", { pct: item.scorePct })}
+        </p>
       ) : null}
       {item.reviewComment ? (
         <p className="mt-2 text-xs [overflow-wrap:anywhere]">

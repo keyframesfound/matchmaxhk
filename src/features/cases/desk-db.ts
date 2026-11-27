@@ -100,9 +100,24 @@ export async function selectRowsInRange<T extends Row>(
   return (data ?? []) as T[];
 }
 
-/** admin / super_admin only (fee and trust decisions are Operator actions). */
+/**
+ * Two guards, two scopes (#816 §2.1):
+ * - requireAdmin: destructive, irreversible or money-approval actions (bulk
+ *   status changes, fee waivers, trust decisions) stay Operator-only.
+ * - requireDeskStaff: day-to-day case operations (read the desk, open a case,
+ *   assign a tutor, log L1/L2, audit notes, mark a fee paid) admit staff too.
+ */
 export async function requireAdmin(db: Db, userId: string): Promise<void> {
   for (const role of ["admin", "super_admin"] as const) {
+    const { data } = await db.rpc("has_role", { _user_id: userId, _role: role });
+    if (data === true) return;
+  }
+  throw new Error("FORBIDDEN");
+}
+
+/** staff / admin / super_admin: the desk operations guard (see requireAdmin). */
+export async function requireDeskStaff(db: Db, userId: string): Promise<void> {
+  for (const role of ["staff", "admin", "super_admin"] as const) {
     const { data } = await db.rpc("has_role", { _user_id: userId, _role: role });
     if (data === true) return;
   }

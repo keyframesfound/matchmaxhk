@@ -44,7 +44,8 @@ export function CaseMatchWavesPanel({ caseId }: { caseId: string }) {
 
   const run = data?.run ?? null;
   const tutors = data?.tutors ?? [];
-  const notified = tutors.filter((t) => t.waveNo !== null);
+  // #825: desk-queued backups are never notified by the wave engine.
+  const notified = tutors.filter((t) => t.waveNo !== null && t.source !== "cs_backup");
   const paused = run?.status === "paused";
 
   return (
@@ -117,7 +118,11 @@ export function CaseMatchWavesPanel({ caseId }: { caseId: string }) {
                   {t.score} · {t.tutorCode} {t.displayName}
                 </span>
                 <span className="shrink-0">
-                  {t.waveNo === null ? "Queued" : `Wave ${t.waveNo}`}
+                  {t.source === "cs_backup"
+                    ? "Desk queued / 待人手發送"
+                    : t.waveNo === null
+                      ? "Queued"
+                      : `Wave ${t.waveNo}`}
                   {t.opened ? " · opened" : ""}
                   {t.applied ? " · applied" : ""}
                 </span>

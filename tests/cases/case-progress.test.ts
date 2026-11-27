@@ -4,6 +4,9 @@ import {
   assessmentError,
   assessmentPct,
   chartPoints,
+  cumulativeHours,
+  hoursAtScores,
+  hoursBars,
   sortAssessments,
   summarizeProgress,
   type AssessmentScore,
@@ -118,5 +121,77 @@ describe("chartPoints", () => {
     expect(chartPoints([score()], frame)[0].x).toBe(150);
     const sameDay = chartPoints([score(), score()], frame);
     expect(sameDay.map((p) => p.x)).toEqual([150, 150]);
+  });
+});
+
+/** Issue #736: verified hours run behind the score line, in the same time frame. */
+describe("cumulativeHours", () => {
+  it("sorts by date and keeps a running total for every row", () => {
+    expect(
+      cumulativeHours([
+        { occurredOn: "2026-10-05", hours: 1.5 },
+        { occurredOn: "2026-10-01", hours: 2 },
+        { occurredOn: "2026-10-05", hours: 0.25 },
+      ]),
+    ).toEqual([
+      { occurredOn: "2026-10-01", hours: 2, cumulativeHours: 2 },
+      { occurredOn: "2026-10-05", hours: 1.5, cumulativeHours: 3.5 },
+      { occurredOn: "2026-10-05", hours: 0.25, cumulativeHours: 3.8 },
+    ]);
+  });
+
+  it("is empty with no rows", () => {
+    expect(cumulativeHours([])).toEqual([]);
+  });
+});
+
+describe("hoursAtScores", () => {
+  const hours = cumulativeHours([
+    { occurredOn: "2026-10-01", hours: 2 },
+    { occurredOn: "2026-10-05", hours: 1.5 },
+  ]);
+
+  it("takes the running total as of each score, including that day's hours", () => {
+    const rows = [score({ assessedOn: "2026-10-05" }), score({ assessedOn: "2026-10-01" })];
+    expect(hoursAtScores(rows, hours)).toEqual([2, 3.5]);
+  });
+
+  it("is zero before the first log row", () => {
+    expect(hoursAtScores([score({ assessedOn: "2026-09-30" })], hours)).toEqual([0]);
+    expect(hoursAtScores([score({ assessedOn: "2026-09-30" })], [])).toEqual([0]);
+  });
+
+  it("stays aligned with the plotted score order", () => {
+    const rows = [
+      score({ assessedOn: "2026-10-05" }),
+      score({ assessedOn: "2026-10-01" }),
+      score({ assessedOn: "2026-09-01" }),
+    ];
+    expect(hoursAtScores(rows, hours)).toEqual([0, 2, 3.5]);
+  });
+});
+
+describe("hoursBars", () => {
+  const hours = cumulativeHours([
+    { occurredOn: "2026-10-01", hours: 2 },
+    { occurredOn: "2026-10-05", hours: 3 },
+  ]);
+
+  it("puts the latest total at 100 and earlier scores below it", () => {
+    expect(
+      hoursBars([score({ assessedOn: "2026-10-01" }), score({ assessedOn: "2026-10-05" })], hours),
+    ).toEqual([{ pctOfMax: 40 }, { pctOfMax: 100 }]);
+  });
+
+  it("rounds a bar height to one decimal", () => {
+    const third = cumulativeHours([
+      { occurredOn: "2026-10-01", hours: 1 },
+      { occurredOn: "2026-10-02", hours: 2 },
+    ]);
+    expect(hoursBars([score({ assessedOn: "2026-10-01" })], third)).toEqual([{ pctOfMax: 33.3 }]);
+  });
+
+  it("is all zero when nothing is verified", () => {
+    expect(hoursBars([score()], [])).toEqual([{ pctOfMax: 0 }]);
   });
 });

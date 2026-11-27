@@ -15,20 +15,24 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import {
   insertAudit,
-  requireAdmin,
+  requireDeskStaff,
   selectRows,
   selectRowsInRange,
   type Db,
 } from "@/features/cases/desk-db";
+import { isUndefinedColumn } from "@/features/cases/homework";
 import { emitActionEvent } from "@/features/cases/action-required.functions";
 import {
   caseMatchFingerprint,
   decideWaveStep,
+  isAutoSendable,
+  legacyQueueRows,
   rankTutorsForCase,
   WAVE_SIZE,
   waveWindowEndsAt,
   type MatchCase,
   type MatchTutor,
+  type QueueSource,
 } from "@/features/cases/case-match-waves";
 
 const ENABLED_SETTING = "case_match_waves_enabled";
@@ -80,13 +84,36 @@ type QueueRow = {
   score: number;
   rank: number;
   wave_no: number | null;
+  source: QueueSource;
   notified_at: string | null;
   opened_at: string | null;
 };
 
 const RUN_COLUMNS =
   "case_id, status, current_wave, next_wave_at, match_fingerprint, stop_reason, taken_notified_at";
-const QUEUE_COLUMNS = "id, tutor_id, score, rank, wave_no, notified_at, opened_at";
+const QUEUE_COLUMNS = "id, tutor_id, score, rank, wave_no, source, notified_at, opened_at";
+const QUEUE_COLUMNS_LEGACY = "id, tutor_id, score, rank, wave_no, notified_at, opened_at";
+
+/**
+ * #825 deploy safety: the source column ships in 20261127160000. Read the
+ * legacy shape until it is applied so the wave engine keeps working.
+ */
+async function readQueue(db: Db, caseId: string): Promise<QueueRow[]> {
+  try {
+    return await selectRows<QueueRow>(db, "case_match_queue", QUEUE_COLUMNS, [
+      { col: "case_id", op: "eq", value: caseId },
+    ]);
+  } catch (error) {
+    if (!isUndefinedColumn(error)) throw error;
+    const rows = await selectRows<Omit<QueueRow, "source">>(
+      db,
+      "case_match_queue",
+      QUEUE_COLUMNS_LEGACY,
+      [{ col: "case_id", op: "eq", value: caseId }],
+    );
+    return legacyQueueRows(rows);
+  }
+}
 
 export function toMatchCase(c: CaseRow): MatchCase {
   return {
@@ -190,9 +217,7 @@ export async function loadMatchTutors(
 
 /** Adds newly eligible tutors behind the existing queue; returns how many. */
 async function appendToQueue(db: Db, c: CaseRow, now: Date): Promise<number> {
-  const existing = await selectRows<QueueRow>(db, "case_match_queue", QUEUE_COLUMNS, [
-    { col: "case_id", op: "eq", value: c.id },
-  ]);
+  const existing = await readQueue(db, c.id);
   const queued = new Set(existing.map((row) => row.tutor_id));
   // #782 AC-703-3: a parent paused by the strike ladder gets no new matches.
   const { ladderByAccount } = await import("@/features/trust/match-eligibility.server");
@@ -271,10 +296,11 @@ async function sendNextWave(
   now: Date,
   opts: { all?: boolean } = {},
 ): Promise<number> {
-  const queue = await selectRows<QueueRow>(db, "case_match_queue", QUEUE_COLUMNS, [
-    { col: "case_id", op: "eq", value: c.id },
-  ]);
-  const pending = queue.filter((row) => row.wave_no === null).sort((a, b) => a.rank - b.rank);
+  const queue = await readQueue(db, c.id);
+  // #825: desk-queued backups stay out of every automated wave.
+  const pending = queue
+    .filter((row) => isAutoSendable({ waveNo: row.wave_no, source: row.source }))
+    .sort((a, b) => a.rank - b.rank);
   const batch = opts.all ? pending : pending.slice(0, WAVE_SIZE);
   if (batch.length === 0) return 0;
 
@@ -370,9 +396,7 @@ async function notifyTaken(db: Db, c: CaseRow): Promise<void> {
 }
 
 async function countResponses(db: Db, c: CaseRow, run: RunRow): Promise<number> {
-  const queue = await selectRows<QueueRow>(db, "case_match_queue", QUEUE_COLUMNS, [
-    { col: "case_id", op: "eq", value: c.id },
-  ]);
+  const queue = await readQueue(db, c.id);
   const inWave = queue.filter((row) => row.wave_no === run.current_wave);
   const applications = await selectRows<{ tutor_id: string }>(db, "case_applications", "tutor_id", [
     { col: "case_id", op: "eq", value: c.id },
@@ -389,14 +413,15 @@ async function advanceRun(db: Db, c: CaseRow, run: RunRow, now: Date): Promise<v
   }
   if (run.status !== "active") return;
 
-  const queue = await selectRows<{ wave_no: number | null }>(db, "case_match_queue", "wave_no", [
-    { col: "case_id", op: "eq", value: c.id },
-  ]);
+  const queue = await readQueue(db, c.id);
   const step = decideWaveStep({
     currentWave: run.current_wave,
     nextWaveAt: run.next_wave_at,
     responses: run.current_wave > 0 ? await countResponses(db, c, run) : 0,
-    remaining: queue.filter((row) => row.wave_no === null).length,
+    // #825: desk-queued backups are never sendable, so they must not keep a
+    // run alive waiting for a wave that will never go out.
+    remaining: queue.filter((row) => isAutoSendable({ waveNo: row.wave_no, source: row.source }))
+      .length,
     now,
   });
   if (step === "responded") await updateRun(db, c.id, { status: "responded", next_wave_at: null });
@@ -492,10 +517,10 @@ export const markCaseMatchOpened = createServerFn({ method: "POST" })
       { col: "case_code", op: "eq", value: data.caseCode },
     ]);
     if (cases.length === 0) return;
-    const queue = await selectRows<QueueRow>(db, "case_match_queue", QUEUE_COLUMNS, [
-      { col: "case_id", op: "eq", value: cases[0].id },
-      { col: "tutor_id", op: "in", value: tutors.map((t) => t.id) },
-    ]);
+    const caseTutorIds = new Set(tutors.map((t) => t.id));
+    const queue = (await readQueue(db, cases[0].id)).filter((row) =>
+      caseTutorIds.has(row.tutor_id),
+    );
     for (const row of queue) {
       if (!row.notified_at || row.opened_at) continue;
       await db
@@ -518,6 +543,7 @@ export type CaseMatchWavesState = {
     displayName: string;
     score: number;
     waveNo: number | null;
+    source: QueueSource;
     opened: boolean;
     applied: boolean;
   }[];
@@ -529,15 +555,13 @@ export const getCaseMatchWaves = createServerFn({ method: "GET" })
   .handler(async ({ context, data }): Promise<CaseMatchWavesState> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
     const runs = await selectRows<RunRow>(db, "case_match_runs", RUN_COLUMNS, [
       { col: "case_id", op: "eq", value: data.caseId },
     ]);
     const run = runs[0];
     if (!run) return { run: null, tutors: [] };
-    const queue = await selectRows<QueueRow>(db, "case_match_queue", QUEUE_COLUMNS, [
-      { col: "case_id", op: "eq", value: data.caseId },
-    ]);
+    const queue = await readQueue(db, data.caseId);
     const tutorIds = queue.map((row) => row.tutor_id);
     const tutors = tutorIds.length
       ? await selectRows<{ id: string; tutor_code: string | null; display_name: string | null }>(
@@ -570,6 +594,7 @@ export const getCaseMatchWaves = createServerFn({ method: "GET" })
           displayName: byId.get(row.tutor_id)?.display_name ?? "",
           score: Number(row.score),
           waveNo: row.wave_no,
+          source: row.source,
           opened: Boolean(row.opened_at),
           applied: applied.has(row.tutor_id),
         })),
@@ -590,7 +615,7 @@ export const runCaseMatchWaveAction = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ notified: number }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
     const now = new Date();
     const cases = await selectRows<CaseRow>(db, "tutoring_cases", CASE_COLUMNS, [
       { col: "id", op: "eq", value: data.caseId },

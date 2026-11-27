@@ -33,6 +33,8 @@ const COPY = {
   centre: "Manual matching for Centre cases / 中心個案請以人手配對",
   queue: "Queue selected wave (max 3) / 加入派單名單（最多 3 位）",
   cap: "3 pings are already pending on this case. Wait for replies before queueing more.",
+  migration:
+    "Queueing needs the wave-ledger update. Run the #825 migration first. / 派單名單需要先套用 #825 資料庫更新。",
 } as const;
 
 const REASONS = [
@@ -68,13 +70,22 @@ export function CsBackupsPanel({ caseId }: { caseId: string }) {
   });
 
   const queue = useMutation({
-    mutationFn: () => queueWave({ data: { caseId, tutorIds: selected } }),
+    mutationFn: (picks: { tutorId: string; score: number }[]) =>
+      queueWave({ data: { caseId, picks } }),
     onSuccess: ({ queued }) => {
       toast.success(`Queued ${queued}. Send the WhatsApp from the desk.`);
       setSelected([]);
       void queryClient.invalidateQueries({ queryKey: ["cs-backups", caseId] });
+      void queryClient.invalidateQueries({ queryKey: ["case-match-waves", caseId] });
     },
-    onError: (e: Error) => toast.error(e.message === "WAVE_CAP" ? COPY.cap : e.message),
+    onError: (e: Error) =>
+      toast.error(
+        e.message === "WAVE_CAP"
+          ? COPY.cap
+          : e.message === "QUEUE_SOURCE_MIGRATION_REQUIRED"
+            ? COPY.migration
+            : e.message,
+      ),
   });
 
   const ok: OkResult | null = data && data.status === "ok" ? (data as OkResult) : null;
@@ -180,7 +191,14 @@ export function CsBackupsPanel({ caseId }: { caseId: string }) {
                   type="button"
                   size="sm"
                   disabled={selected.length === 0 || queue.isPending || room === 0}
-                  onClick={() => queue.mutate()}
+                  onClick={() =>
+                    queue.mutate(
+                      selected.flatMap((tutorId) => {
+                        const pick = ok.picks.find((p) => p.tutorId === tutorId);
+                        return pick ? [{ tutorId, score: pick.score }] : [];
+                      }),
+                    )
+                  }
                 >
                   {COPY.queue}
                 </Button>

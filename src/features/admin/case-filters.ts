@@ -377,6 +377,9 @@ export function applyCaseFilters(
     if (cutoffMs !== null && new Date(row.created_at).getTime() < cutoffMs) return false;
     if (q) {
       const matches =
+        // #816 AC-55-3: staff can paste a case uuid. Guarded by length so a
+        // one-letter query cannot match every uuid by coincidence.
+        (q.length >= 8 && (row.id ?? "").toLowerCase().includes(q)) ||
         (row.case_code ?? "").toLowerCase().includes(q) ||
         (row.title ?? "").toLowerCase().includes(q) ||
         (row.contact_name ?? "").toLowerCase().includes(q) ||

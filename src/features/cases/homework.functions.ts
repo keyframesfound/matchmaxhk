@@ -10,16 +10,19 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
-import { selectRows, type Db, type Row } from "@/features/cases/desk-db";
+import { selectRows, type Db, type Match, type Row } from "@/features/cases/desk-db";
 import { partyCase, type PartyRole } from "@/features/cases/case-schedule.functions";
 import {
   HOMEWORK_LINK_MAX,
   HOMEWORK_NOTE_MAX,
   HOMEWORK_REVIEW_MAX,
+  HOMEWORK_SCORE_MAX,
   HOMEWORK_TEXT_MAX,
   HOMEWORK_TITLE_MAX,
+  homeworkScoreError,
   homeworkTextError,
   isAllowedHomeworkLink,
+  isUndefinedColumn,
 } from "@/features/cases/homework";
 
 const ENDED_STATUSES = new Set(["closed", "replaced"]);
@@ -43,10 +46,36 @@ type HomeworkRow = {
   submission_url: string | null;
   reviewed_at: string | null;
   review_comment: string | null;
+  score_pct: number | null;
 };
 
 const HOMEWORK_COLS =
+  "id, case_id, title, due_at, instructions, resource_url, submitted_at, submission_note, submission_url, reviewed_at, review_comment, score_pct";
+/** Deploy safety: what a pre-migration database can answer. */
+const HOMEWORK_COLS_NO_SCORE =
   "id, case_id, title, due_at, instructions, resource_url, submitted_at, submission_note, submission_url, reviewed_at, review_comment";
+
+type HomeworkRowBase = Omit<HomeworkRow, "score_pct">;
+
+/**
+ * #736 deploy safety: read the score when the column exists, fall back to the
+ * old column list and null scores until the migration lands. Only an
+ * undefined-column error retries; every other failure still throws.
+ */
+async function readHomeworkRows(db: Db, match: Match[]): Promise<HomeworkRow[]> {
+  try {
+    return await selectRows<HomeworkRow>(db, "case_homework", HOMEWORK_COLS, match);
+  } catch (error) {
+    if (!isUndefinedColumn(error)) throw error;
+    const rows = await selectRows<HomeworkRowBase>(
+      db,
+      "case_homework",
+      HOMEWORK_COLS_NO_SCORE,
+      match,
+    );
+    return rows.map((row) => ({ ...row, score_pct: null }));
+  }
+}
 
 export type HomeworkEntry = {
   id: string;
@@ -59,6 +88,8 @@ export type HomeworkEntry = {
   submissionUrl: string | null;
   reviewedAt: string | null;
   reviewComment: string | null;
+  /** #736: optional 0-100 score set on review; null means ungraded. */
+  scorePct: number | null;
 };
 
 export type CaseHomework = {
@@ -72,7 +103,7 @@ function assertCleanText(...texts: (string | null | undefined)[]): void {
 }
 
 async function homeworkOnCase(db: Db, homeworkId: string, caseId: string): Promise<HomeworkRow> {
-  const rows = await selectRows<HomeworkRow>(db, "case_homework", HOMEWORK_COLS, [
+  const rows = await readHomeworkRows(db, [
     { col: "id", op: "eq", value: homeworkId },
     { col: "case_id", op: "eq", value: caseId },
   ]);
@@ -87,9 +118,7 @@ export const getCaseHomework = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
     const { c, role } = await partyCase(db, data.caseId, context.userId);
-    const rows = await selectRows<HomeworkRow>(db, "case_homework", HOMEWORK_COLS, [
-      { col: "case_id", op: "eq", value: c.id },
-    ]);
+    const rows = await readHomeworkRows(db, [{ col: "case_id", op: "eq", value: c.id }]);
     return {
       role,
       readOnly: c.sor_status !== null && ENDED_STATUSES.has(c.sor_status),
@@ -104,6 +133,7 @@ export const getCaseHomework = createServerFn({ method: "POST" })
         submissionUrl: r.submission_url,
         reviewedAt: r.reviewed_at,
         reviewComment: r.review_comment,
+        scorePct: r.score_pct,
       })),
     };
   });
@@ -202,6 +232,8 @@ export const reviewHomework = createServerFn({ method: "POST" })
         caseId: z.string().uuid(),
         homeworkId: z.string().uuid(),
         comment: z.string().trim().max(HOMEWORK_REVIEW_MAX).optional(),
+        // #736: omitted keeps the current score; null clears it.
+        scorePct: z.number().int().min(0).max(HOMEWORK_SCORE_MAX).nullable().optional(),
       })
       .parse(input),
   )
@@ -211,6 +243,8 @@ export const reviewHomework = createServerFn({ method: "POST" })
     const { c, role } = await writableParty(db, data.caseId, context.userId);
     if (role !== "tutor") throw new Error("TUTOR_ONLY");
     assertCleanText(data.comment);
+    const scoreError = homeworkScoreError(data.scorePct);
+    if (scoreError) throw new Error(scoreError);
     const row = await homeworkOnCase(db, data.homeworkId, c.id);
     if (!row.submitted_at) throw new Error("NOT_SUBMITTED");
     const reviewedAt = row.reviewed_at ?? new Date().toISOString();
@@ -220,9 +254,16 @@ export const reviewHomework = createServerFn({ method: "POST" })
         reviewed_at: reviewedAt,
         reviewed_by: context.userId,
         review_comment: data.comment || null,
+        ...(data.scorePct === undefined ? {} : { score_pct: data.scorePct }),
         updated_at: new Date().toISOString(),
       })
       .eq("id", row.id);
-    if (error) throw new Error(error.message);
+    if (error) {
+      // A supplied score is never silently dropped: the tutor is told to retry.
+      if (data.scorePct !== undefined && isUndefinedColumn(error)) {
+        throw new Error("SCORE_UNAVAILABLE");
+      }
+      throw new Error(error.message);
+    }
     return { reviewedAt };
   });

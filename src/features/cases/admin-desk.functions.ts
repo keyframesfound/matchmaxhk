@@ -23,6 +23,7 @@ import {
   isLegalTransition,
 } from "@/features/cases/sor";
 import { buildCaseFlagRow, type CaseFlagReason } from "@/features/cases/case-flags";
+import { requireAdmin, requireDeskStaff } from "@/features/cases/desk-db";
 import { syncCaseFeeMilestones } from "@/features/cases/fee-milestones.server";
 import { assertAdminFeeNotWaived } from "@/features/cases/fee-waiver.server";
 import { shortCaseOverrunError } from "@/features/cases/short-case";
@@ -48,14 +49,6 @@ async function selectRows<T extends Row>(
   if (order?.limit) q = q.limit(order.limit);
   const { data } = await q;
   return (data ?? []) as T[];
-}
-
-async function requireAdmin(db: Db, userId: string): Promise<void> {
-  for (const role of ["admin", "super_admin"] as const) {
-    const { data } = await db.rpc("has_role", { _user_id: userId, _role: role });
-    if (data === true) return;
-  }
-  throw new Error("FORBIDDEN");
 }
 
 async function insertAudit(
@@ -103,7 +96,7 @@ export const listDeskCases = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<DeskCaseRow[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
 
     const cases = await selectRows<
       SorCaseRow & { tutors: { display_name: string; tutor_code: string | null } | null }
@@ -166,7 +159,7 @@ export const getDeskCase = createServerFn({ method: "POST" })
   .handler(async ({ context, data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
 
     const cases = await selectRows<
       SorCaseRow & {
@@ -299,7 +292,7 @@ export const setCaseSchedulePaused = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ paused: boolean }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
     const { error } = await db
       .from<Row>("tutoring_cases")
       .update({ schedule_paused_at: data.paused ? new Date().toISOString() : null })
@@ -331,7 +324,7 @@ export const transitionCase = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ sor_status: SorStatus }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
 
     const rows = await selectRows<
       Pick<
@@ -495,7 +488,7 @@ export const feeInvoiceCustom = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ ok: boolean }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
 
     const rows = await selectRows<
       Pick<SorCaseRow, "id" | "hourly_rate_hkd" | "student_count" | "is_short_case">
@@ -701,7 +694,7 @@ export const feeMarkPaid = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ ok: boolean }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
     const fee = (
       await selectRows<{
         case_id: string;
@@ -822,7 +815,7 @@ export const feeWaive = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ ok: boolean }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
     const fee = (
       await selectRows<{ case_id: string; status: FeeStatus }>(db, "case_fees", "case_id, status", [
         { col: "id", op: "eq", value: data.feeId },
@@ -869,7 +862,7 @@ export const deskClearMatch = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ ok: true }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
 
     const rows = await selectRows<{
       matched_tutor_id: string | null;
@@ -911,7 +904,7 @@ export const deskRecordFeeCollected = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ ok: true }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
 
     const amountCents = Math.round(data.amountHkd * 100);
     const { error } = await db
@@ -937,7 +930,7 @@ export const deskUndoFeeCollected = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ ok: true }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
 
     // The desk is the source of truth: once a `case_fees` row is `paid`, the
     // legacy columns below are only a mirror that `feeMarkPaid` writes to fire
@@ -1019,6 +1012,7 @@ export const deskBatchSetCaseStatus = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ updated: number; skipped: number }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
+    // Bulk status write stays admin-only: it is destructive at scale (#816 §2.1).
     await requireAdmin(db, context.userId);
 
     const rows = await selectRows<{ id: string; status: string | null; case_code: string }>(
@@ -1081,7 +1075,7 @@ export const lessonAdminLog = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ ok: boolean }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
 
     const cases = await selectRows<{ matched_tutor_id: string | null }>(
       db,
@@ -1147,7 +1141,7 @@ export const lessonAdminConfirm = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ status: string }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
 
     const rows = await selectRows<CaseLessonRow>(db, "case_lessons", "*", [
       { col: "id", op: "eq", value: data.lessonId },
@@ -1208,7 +1202,7 @@ export const lessonAdminMark = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ ok: boolean }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
 
     const rows = await selectRows<CaseLessonRow>(db, "case_lessons", "*", [
       { col: "id", op: "eq", value: data.lessonId },
@@ -1262,7 +1256,7 @@ export const unpaidQueue = createServerFn({ method: "POST" })
   .handler(async ({ context }): Promise<UnpaidQueueRow[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
 
     const fees = await selectRows<{
       id: string;
@@ -1326,7 +1320,7 @@ export const createSorCase = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ caseId: string; caseCode: string }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
     // #782: a new case with an assigned tutor is an introduction.
     const { assertTutorCanBeIntroduced, assertParentCanBeMatched } =
       await import("@/features/trust/match-eligibility.server");
@@ -1377,7 +1371,7 @@ export const listCaseFlags = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<DeskCaseFlag[]> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
     return selectRows<DeskCaseFlag>(
       db,
       "case_flags",
@@ -1401,7 +1395,7 @@ export const flagCase = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ ok: true }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
 
     const row = buildCaseFlagRow({
       caseId: data.caseId,

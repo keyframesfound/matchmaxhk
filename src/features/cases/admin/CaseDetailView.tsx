@@ -42,9 +42,25 @@ import { listRiskFlags } from "@/features/admin/risk-flags.functions";
 import {
   DESK_LEVEL_LABELS,
   L1_DROPOFF_REVIEW_THRESHOLD,
+  TUTOR_SERVICE_GUIDE_URL,
   type DeskTrackRow,
 } from "@/features/admin/desk-track";
 import { getDeskTracks } from "@/features/admin/desk-track.functions";
+import { resolveCaseType } from "@/features/cases/case-type";
+import { setRiskFlag } from "@/features/admin/risk-flags.functions";
+import {
+  findTutorForPin,
+  getShortlistPin,
+  setShortlistPin,
+} from "@/features/cases/shortlist.functions";
+import {
+  SHORTLIST_LIMIT,
+  pinAvailability,
+  sortPinnedFirst,
+  strongMatchCount,
+  whyLabels,
+} from "@/features/cases/shortlist";
+import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -52,6 +68,7 @@ import { TagInput } from "@/components/ui/tag-input";
 import { CaseEditDialog } from "@/features/cases/admin/CaseEditDialog";
 import { CaseApplicationsCard } from "@/features/cases/admin/CaseApplicationsCard";
 import { MatchFeePanel } from "@/features/cases/admin/MatchFeePanel";
+import { CaseSupportTicketsPanel } from "@/features/cases/admin/CaseSupportTicketsPanel";
 import { MeetingLinkDeskPanel } from "@/features/cases/admin/MeetingLinkDeskPanel";
 import { TrialLockDeskPanel } from "@/features/cases/trial-lock-card";
 import { DeskCockpitPanel } from "@/features/cases/admin/DeskCockpitPanel";
@@ -86,6 +103,7 @@ import { cn } from "@/lib/utils";
 import { BehaviourReportPanel } from "@/features/trust/behaviour-report-panel";
 import { CaseReviewsDeskPanel } from "@/features/cases/admin/CaseReviewsDeskPanel";
 import { OutcomeLedgerPanel } from "@/features/cases/admin/OutcomeLedgerPanel";
+import { StaffProgressPanel } from "@/features/cases/case-manager/staff-progress-panel";
 import { DeskReportsPanel } from "@/features/cases/admin/DeskReportsPanel";
 import { ImpactDeskPanel } from "@/features/cases/admin/ImpactDeskPanel";
 import { UsefulnessPulsePanel } from "@/features/cases/admin/UsefulnessPulsePanel";
@@ -123,31 +141,64 @@ type SuggestedTutor = {
   experience_years: number | null;
   languages: string[] | null;
   score: number;
+  /** #816 §2.7: machine tokens from match_tutors_for_case (labelled in the UI). */
+  why: string[] | null;
 };
 
 /** #448: internal desk-track chips on the matchmaking shortlist (admin-only). */
 function DeskTrackChips({ track }: { track: DeskTrackRow | undefined }) {
-  const { t } = useTranslation();
   if (!track) return null;
+  return <DeskTrackChipRow track={track} />;
+}
+
+/**
+ * AC-816-DT-1: the shortlist row carries the same three desk actions as the
+ * tutor editor — Guide link copy, guide-sent stamp and the #441 REVIEW path —
+ * without opening the editor. Split from the wrapper so the mutation hook is
+ * never called conditionally.
+ */
+function DeskTrackChipRow({ track }: { track: DeskTrackRow }) {
+  const { t } = useTranslation();
+  const queryClient = useQueryClient();
   const dropoffs = track.l1_early_dropoffs;
+  const needsReview = dropoffs >= L1_DROPOFF_REVIEW_THRESHOLD;
   const chipClass =
     "rounded-md bg-[color:var(--foreground)]/[0.06] px-1.5 py-0.5 text-[11px] font-bold text-[color:var(--foreground)]";
+
+  const reviewFlag = useMutation({
+    mutationFn: () =>
+      setRiskFlag({ data: { entity: "tutor", id: track.tutor_id, flag: "REVIEW" } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "risk-flags"] });
+      toast.success(t("deskTrack.review_set", { defaultValue: "REVIEW flag set" }));
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const copyGuide = async () => {
+    try {
+      await navigator.clipboard.writeText(TUTOR_SERVICE_GUIDE_URL);
+      toast.success("Guide link copied");
+    } catch {
+      toast.error("Copy failed. Select the link text instead.");
+    }
+  };
+
   return (
     <div className="mt-1 flex flex-wrap items-center gap-1">
       <span className={chipClass}>{DESK_LEVEL_LABELS[track.tutor_level]}</span>
       {track.guide_sent_at ? (
         <span className={cn(chipClass, "inline-flex items-center gap-0.5")}>
           <Check className="h-3 w-3" aria-hidden="true" />
-          {t("deskTrack.chip_guide_sent", { defaultValue: "Guide sent" })}
+          {t("deskTrack.chip_guide_sent", { defaultValue: "Guide sent" })}{" "}
+          {formatDistanceToNow(new Date(track.guide_sent_at), { addSuffix: true })}
         </span>
       ) : null}
       {dropoffs > 0 ? (
         <span
           className={cn(
             "rounded-md px-1.5 py-0.5 text-[11px] font-bold",
-            dropoffs >= L1_DROPOFF_REVIEW_THRESHOLD
-              ? "bg-destructive/10 text-destructive"
-              : chipClass,
+            needsReview ? "bg-destructive/10 text-destructive" : chipClass,
           )}
         >
           {t("deskTrack.chip_dropoffs", {
@@ -155,6 +206,28 @@ function DeskTrackChips({ track }: { track: DeskTrackRow | undefined }) {
             count: dropoffs,
           })}
         </span>
+      ) : null}
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="h-6 gap-1 px-1.5 text-[11px] font-medium"
+        onClick={() => void copyGuide()}
+      >
+        <Copy className="h-3 w-3" aria-hidden="true" />
+        {t("deskTrack.guide_copy", { defaultValue: "Copy link" })}
+      </Button>
+      {needsReview ? (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-6 px-1.5 text-[11px] font-medium"
+          disabled={reviewFlag.isPending}
+          onClick={() => reviewFlag.mutate()}
+        >
+          Set REVIEW
+        </Button>
       ) : null}
     </div>
   );
@@ -270,6 +343,10 @@ export function CaseDetailView({
   const { t } = useTranslation();
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  // #816 §2.7 / AC-428-3: centre cases stay manual until the centre flow is
+  // stable, so the ranked shortlist is never rendered for them.
+  const isCentreCase =
+    resolveCaseType({ caseType: caseRow.case_type, centre: caseRow.organisation_id }) === "centre";
   const [noteBody, setNoteBody] = useState("");
   const [confirmDelete, setConfirmDelete] = useState(false);
   // Closed/Rejected (and board unpublish) are one-click irreversible from a
@@ -323,10 +400,11 @@ export function CaseDetailView({
 
   const { data: suggestions = [], isLoading: suggestionsLoading } = useQuery({
     queryKey: ["admin", "case-matches", caseRow.id],
+    enabled: !isCentreCase,
     queryFn: async () => {
       const { data, error } = await supabase.rpc("match_tutors_for_case", {
         _case_id: caseRow.id,
-        _limit: 5,
+        _limit: SHORTLIST_LIMIT,
       });
       if (error) throw error;
       return (data ?? []) as unknown as SuggestedTutor[];
@@ -342,6 +420,43 @@ export function CaseDetailView({
     enabled: suggestionIds.length > 0,
   });
   const deskTrackById = new Map(deskTracks.map((row) => [row.tutor_id, row]));
+
+  // #816 §2.7: staff pin/override. Read through the service-role fn, never
+  // from ADMIN_CASE_SELECT_COLUMNS: before the migration lands this returns
+  // available:false and the panel hides its controls instead of 400ing the
+  // whole admin case list. The write also records the funnel + audit rows.
+  const { data: pinState } = useQuery({
+    queryKey: ["admin", "case-pin", caseRow.id],
+    queryFn: () => getShortlistPin({ data: { caseId: caseRow.id } }),
+  });
+  const { pinnedTutorId: pinnedId, showControls: pinControlsAvailable } = pinAvailability(pinState);
+  const [pinCode, setPinCode] = useState("");
+  const [pinLookupError, setPinLookupError] = useState<string | null>(null);
+
+  const pinMutation = useMutation({
+    mutationFn: (tutorId: string | null) =>
+      setShortlistPin({ data: { caseId: caseRow.id, tutorId } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["admin", "cases"] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "case-matches", caseRow.id] });
+      queryClient.invalidateQueries({ queryKey: ["admin", "case-pin", caseRow.id] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
+  const pinByCodeMutation = useMutation({
+    mutationFn: (tutorCode: string) => findTutorForPin({ data: { caseId: caseRow.id, tutorCode } }),
+    onSuccess: (candidate) => {
+      if (!candidate) {
+        setPinLookupError("No published tutor with that code.");
+        return;
+      }
+      setPinLookupError(null);
+      setPinCode("");
+      pinMutation.mutate(candidate.id);
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
 
   const updateMutation = useMutation({
     mutationFn: async (patch: Partial<CaseRow>) => {
@@ -705,6 +820,8 @@ export function CaseDetailView({
           {/* #816 §2.7: the outcome ledger has been write-only since #428;
               this is its first reader. */}
           <OutcomeLedgerPanel caseId={caseRow.id} />
+          {/* #816 §2.7 / #736 AC6: read-only staff view of the case's progress graph. */}
+          <StaffProgressPanel caseId={caseRow.id} />
           {/* #796 §2.4: private lesson usefulness pulses (desk-only, read-only). */}
           <UsefulnessPulsePanel caseId={caseRow.id} />
           {/* Issue #412: compliance hold banner, the case is locked out of
@@ -854,6 +971,8 @@ export function CaseDetailView({
           <TrialLockDeskPanel caseId={caseRow.id} />
 
           <MatchFeePanel caseRow={caseRow} onPatched={invalidateCase} />
+          {/* Fee conversation lives here, so the fee/no-show ticket belongs beside it. */}
+          <CaseSupportTicketsPanel caseId={caseRow.id} />
           {/* #785 AC-CONV-1: the desk saves the same online-lesson link as the
               tutor. Read through the server fn — the column has no SELECT grant
               for `authenticated`, so it is not on the admin case row. */}
@@ -978,51 +1097,139 @@ export function CaseDetailView({
                 aria-hidden="true"
               />
             </div>
-            <div className="mt-3 space-y-2">
-              {suggestionsLoading ? (
-                <>
-                  <Skeleton className="h-14 w-full rounded-xl" />
-                  <Skeleton className="h-14 w-full rounded-xl" />
-                </>
-              ) : suggestions.length === 0 ? (
-                <p className="text-xs text-muted-foreground">No published tutors to suggest yet.</p>
-              ) : (
-                suggestions.map((t) => (
-                  <div
-                    key={t.id}
-                    className="flex items-center gap-3 rounded-xl border border-[color:var(--ink)]/[0.07] px-3 py-2.5"
-                  >
-                    {t.photo_url ? (
-                      <img
-                        src={t.photo_url}
-                        alt=""
-                        className="h-9 w-9 rounded-lg object-cover ring-1 ring-[color:var(--ink)]/10"
+            {isCentreCase ? (
+              <p className="mt-3 text-xs text-muted-foreground">
+                Manual matching for centre cases. The ranked shortlist stays off until the centre
+                flow is stable.
+              </p>
+            ) : (
+              <>
+                <div className="mt-3 space-y-2">
+                  {suggestionsLoading ? (
+                    <>
+                      <Skeleton className="h-14 w-full rounded-xl" />
+                      <Skeleton className="h-14 w-full rounded-xl" />
+                    </>
+                  ) : suggestions.length === 0 ? (
+                    <p className="text-xs text-muted-foreground">
+                      No published tutors to suggest yet.
+                    </p>
+                  ) : (
+                    sortPinnedFirst(suggestions, pinnedId).map((tutor) => {
+                      const pinned = tutor.id === pinnedId;
+                      const labels = whyLabels(tutor.why);
+                      return (
+                        <div
+                          key={tutor.id}
+                          className="flex items-center gap-3 rounded-xl border border-[color:var(--ink)]/[0.07] px-3 py-2.5"
+                        >
+                          {tutor.photo_url ? (
+                            <img
+                              src={tutor.photo_url}
+                              alt=""
+                              className="h-9 w-9 rounded-lg object-cover ring-1 ring-[color:var(--ink)]/10"
+                            />
+                          ) : (
+                            // Issue #437: branded deterministic initial avatar.
+                            <InitialAvatar
+                              stableId={tutor.tutor_code || tutor.id}
+                              name={tutor.display_name}
+                              className="h-9 w-9 text-[11px]"
+                            />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className="flex items-center gap-1.5">
+                              <p className="truncate text-xs font-bold text-[color:var(--ink)]">
+                                {tutor.display_name}
+                              </p>
+                              {pinned ? (
+                                <span className="shrink-0 rounded-md border border-[color:var(--ink)]/15 px-1.5 py-0.5 text-[10px] font-bold text-[color:var(--ink)]">
+                                  Pinned
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="truncate text-[11px] text-muted-foreground">
+                              HK${tutor.hourly_rate}/hr
+                              {tutor.district ? ` · ${tutor.district}` : ""}
+                            </p>
+                            {labels.length > 0 ? (
+                              <div className="mt-1 flex flex-wrap gap-1">
+                                {labels.map((label) => (
+                                  <span
+                                    key={label}
+                                    className="rounded-md bg-muted/60 px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground"
+                                  >
+                                    {label}
+                                  </span>
+                                ))}
+                              </div>
+                            ) : null}
+                            <DeskTrackChips track={deskTrackById.get(tutor.id)} />
+                          </div>
+                          <span className="rounded-md bg-[color:var(--foreground)]/[0.06] px-1.5 py-0.5 text-[11px] font-bold text-[color:var(--foreground)]">
+                            {Number(tutor.score).toFixed(0)}
+                          </span>
+                          {pinControlsAvailable ? (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-7 shrink-0 px-2 text-[11px]"
+                              disabled={pinMutation.isPending}
+                              onClick={() => pinMutation.mutate(pinned ? null : tutor.id)}
+                            >
+                              {pinned ? "Unpin" : "Pin"}
+                            </Button>
+                          ) : null}
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+                {!suggestionsLoading &&
+                suggestions.length > 0 &&
+                strongMatchCount(suggestions) < 5 ? (
+                  <p className="mt-2 text-[11px] text-muted-foreground">
+                    Fewer than 5 strong matches. Try the backups panel or widen the case filters.
+                  </p>
+                ) : null}
+                {!suggestionsLoading && pinControlsAvailable ? (
+                  <div className="mt-3 border-t border-border pt-3">
+                    <Label
+                      htmlFor="shortlist-pin-code"
+                      className="text-[11px] text-muted-foreground"
+                    >
+                      Pin another tutor
+                    </Label>
+                    <div className="mt-1 flex items-center gap-2">
+                      <Input
+                        id="shortlist-pin-code"
+                        value={pinCode}
+                        onChange={(event) => {
+                          setPinCode(event.target.value);
+                          setPinLookupError(null);
+                        }}
+                        placeholder="Tutor code e.g. MM-T001"
+                        className="h-8 text-xs"
                       />
-                    ) : (
-                      // Issue #437: branded deterministic initial avatar.
-                      <InitialAvatar
-                        stableId={t.tutor_code || t.id}
-                        name={t.display_name}
-                        className="h-9 w-9 text-[11px]"
-                      />
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <p className="truncate text-xs font-bold text-[color:var(--ink)]">
-                        {t.display_name}
-                      </p>
-                      <p className="truncate text-[11px] text-muted-foreground">
-                        HK${t.hourly_rate}/hr
-                        {t.district ? ` · ${t.district}` : ""}
-                      </p>
-                      <DeskTrackChips track={deskTrackById.get(t.id)} />
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="h-8 shrink-0 px-3 text-[11px]"
+                        disabled={
+                          !pinCode.trim() || pinMutation.isPending || pinByCodeMutation.isPending
+                        }
+                        onClick={() => pinByCodeMutation.mutate(pinCode.trim())}
+                      >
+                        Pin
+                      </Button>
                     </div>
-                    <span className="rounded-md bg-[color:var(--foreground)]/[0.06] px-1.5 py-0.5 text-[11px] font-bold text-[color:var(--foreground)]">
-                      {Number(t.score).toFixed(0)}
-                    </span>
+                    {pinLookupError ? (
+                      <p className="mt-1 text-[11px] text-destructive">{pinLookupError}</p>
+                    ) : null}
                   </div>
-                ))
-              )}
-            </div>
+                ) : null}
+              </>
+            )}
           </ConsolePanel>
 
           <section className="rounded-2xl border border-destructive/20 bg-[color:var(--surface)] p-5">

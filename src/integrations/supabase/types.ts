@@ -1235,6 +1235,7 @@ export type Database = {
           short_case_fee: number | null;
           short_case_confirmed_by: string | null;
           short_case_confirmed_at: string | null;
+          shortlist_pinned_tutor_id: string | null;
         };
         Insert: {
           prefer_scrc_tutor?: boolean;
@@ -1323,6 +1324,7 @@ export type Database = {
           short_case_fee?: number | null;
           short_case_confirmed_by?: string | null;
           short_case_confirmed_at?: string | null;
+          shortlist_pinned_tutor_id?: string | null;
         };
         Update: {
           prefer_scrc_tutor?: boolean;
@@ -1904,6 +1906,16 @@ export type Database = {
           display_name: string;
           district: string;
           experience_years: number;
+          factor_background: number;
+          factor_desk_track: number;
+          factor_district: number;
+          factor_experience: number;
+          factor_gender: number;
+          factor_language: number;
+          factor_mode: number;
+          factor_paid_fee: number;
+          factor_rate: number;
+          factor_subject: number;
           gender: string;
           headline: string;
           hourly_rate: number;
@@ -1913,6 +1925,7 @@ export type Database = {
           score: number;
           subjects: string[];
           tutor_code: string;
+          why: string[] | null;
         }[];
       };
       org_is_active: { Args: { _org_id: string }; Returns: boolean };

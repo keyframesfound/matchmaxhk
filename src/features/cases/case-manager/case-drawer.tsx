@@ -26,6 +26,8 @@ import { AvailabilityHourlyGrid } from "@/features/tutors/availability-hourly-gr
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
 
+import { CaseSupportTicketCard } from "@/features/cases/CaseSupportTicketCard";
+
 import { BillingTab } from "./billing-tab";
 import { CaseDetailsCard } from "./case-details-card";
 import { CoachingNotes } from "./coaching-notes";
@@ -376,6 +378,12 @@ export function CaseDrawer({
               <p className="font-semibold">{t("case_manager.attendance_title")}</p>
               <p className="text-muted-foreground">{t("case_manager.attendance_soon")}</p>
             </section>
+
+            {/* #816 §2.3: the tutor's own support ticket, reachable from the
+                lesson workspace instead of only from the desk. */}
+            <div className="mt-5">
+              <CaseSupportTicketCard caseId={scheduleCase.id} />
+            </div>
 
             <div className="mt-5 flex flex-col gap-2 text-sm">
               {isTutor ? (

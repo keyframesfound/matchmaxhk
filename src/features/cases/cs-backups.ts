@@ -205,6 +205,32 @@ export function queueRoom(pendingCount: number): number {
   return Math.max(0, MAX_PENDING_PINGS - pendingCount);
 }
 
+export type BackupQueuePick = { tutorId: string; score: number };
+export type BackupQueueRow = BackupQueuePick & { rank: number };
+
+/**
+ * AC-CS-2: plan the `case_match_queue` rows for the staff's picks. Rank
+ * continues after the case's current queue max so the desk reads one ordered
+ * ledger; a tutor picked twice is queued once, in first-pick order.
+ */
+export function nextBackupQueueRows(
+  existingMaxRank: number,
+  picks: readonly BackupQueuePick[],
+): BackupQueueRow[] {
+  const seen = new Set<string>();
+  const rows: BackupQueueRow[] = [];
+  for (const pick of picks) {
+    if (seen.has(pick.tutorId)) continue;
+    seen.add(pick.tutorId);
+    rows.push({
+      tutorId: pick.tutorId,
+      score: pick.score,
+      rank: existingMaxRank + rows.length + 1,
+    });
+  }
+  return rows;
+}
+
 /** AC-CS-7: Centre / B2B cases stay manual until #815 is stable. */
 export function isManualOnlyCase(c: {
   organisation_id: string | null;

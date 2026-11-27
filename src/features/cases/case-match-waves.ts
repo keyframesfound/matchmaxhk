@@ -169,6 +169,29 @@ export function waveWindowEndsAt(from: Date): Date {
 
 export type WaveStep = "wait" | "send_next" | "responded" | "exhausted";
 
+export type QueueSource = "engine" | "cs_backup";
+
+/**
+ * #825: only engine rows may be auto-notified. A cs_backup row is desk-queued
+ * and sent by WhatsApp by hand (#797), so the wave drain must skip it.
+ */
+export function isAutoSendable(row: {
+  waveNo: number | null;
+  source: QueueSource | null;
+}): boolean {
+  return row.waveNo === null && row.source !== "cs_backup";
+}
+
+/**
+ * #825 deploy safety: until 20261127160000 adds the column, queue reads fall
+ * back to the legacy column list. Every pre-migration row was engine-ranked.
+ */
+export function legacyQueueRows<T extends object>(
+  rows: readonly T[],
+): (T & { source: QueueSource })[] {
+  return rows.map((row) => ({ ...row, source: "engine" as QueueSource }));
+}
+
 /** What an active run does on this tick. A response is an open or an Apply. */
 export function decideWaveStep(input: {
   currentWave: number;

@@ -22,6 +22,7 @@ import {
   TARGET_GRADE_MAX,
   assessmentError,
   assessmentPct,
+  hoursBars,
   sortAssessments,
   summarizeProgress,
   type AssessmentCategory,
@@ -314,6 +315,14 @@ export function ProgressTab({ caseId }: { caseId: string }) {
   const summary = summarizeProgress(data.scores, data.targetPct);
   const log = sortAssessments(data.scores).reverse();
   const percent = (value: number | null) => (value === null ? "--" : `${value}%`);
+  const averagePct =
+    data.scores.length === 0
+      ? null
+      : Math.round(
+          (data.scores.reduce((sum, s) => sum + assessmentPct(s.marks, s.maxMarks), 0) /
+            data.scores.length) *
+            10,
+        ) / 10;
   const progressValue =
     summary.delta === null
       ? summary.baseline === null
@@ -325,10 +334,12 @@ export function ProgressTab({ caseId }: { caseId: string }) {
 
   return (
     <div className="mt-4 space-y-4">
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
         <StatCard label={t("progress.stat_baseline")} value={percent(summary.baseline)} />
         <StatCard label={t("progress.stat_latest")} value={percent(summary.latest)} />
         <StatCard label={t("progress.stat_progress")} value={progressValue} />
+        <StatCard label={t("progress.stat_average")} value={percent(averagePct)} />
+        <StatCard label={t("progress.stat_hours")} value={`${data.verifiedHours.toFixed(1)}h`} />
       </div>
       <section className="space-y-2">
         <h3 className="text-sm font-semibold">{t("progress.chart_title")}</h3>
@@ -347,6 +358,8 @@ export function ProgressTab({ caseId }: { caseId: string }) {
             scores={data.scores}
             targetPct={data.targetPct}
             targetLabel={targetText(t, data.targetPct, data.targetGrade)}
+            hours={hoursBars(data.scores, data.hoursSeries)}
+            hoursMax={data.verifiedHours}
           />
         )}
       </section>

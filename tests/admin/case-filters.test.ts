@@ -369,8 +369,25 @@ describe("applyCaseFilters — fixture queue", () => {
     expect(out).toEqual(["edge-in"]);
   });
 
-  it("free-text q keeps the existing predicate (code/title/contact/subjects/tags)", () => {
+  it("free-text q keeps the existing predicate (code/title/contact/subjects/tags/id)", () => {
     expect(apply({ q: "9123" })).toEqual(["r1"]); // contact phone
+    expect(apply({ q: "CASE-0002" })).toEqual(["r2"]); // case code
+    // #816 AC-55-3: a pasted case uuid is searchable; short queries do not
+    // accidentally match every uuid.
+    expect(
+      applyCaseFilters(
+        [mkRow({ id: "3f7c2f7e-1c4a-4c7e-9a10-2b3c4d5e6f70" })],
+        { ...DEFAULT_CASE_FILTERS, q: "1c4a-4c7e" },
+        NOW,
+      ),
+    ).toHaveLength(1);
+    expect(
+      applyCaseFilters(
+        [mkRow({ id: "3f7c2f7e-1c4a-4c7e-9a10-2b3c4d5e6f70" })],
+        { ...DEFAULT_CASE_FILTERS, q: "3f7" },
+        NOW,
+      ),
+    ).toHaveLength(0);
     expect(apply({ q: "physics" })).toEqual(["r2"]); // subject, case-insensitive
     expect(apply({ q: "sen" })).toEqual(["r3"]); // tag
     expect(apply({ q: "no such case" })).toEqual([]);

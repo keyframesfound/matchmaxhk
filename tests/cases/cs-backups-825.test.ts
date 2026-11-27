@@ -4,6 +4,7 @@ import type { MatchCase } from "../../src/features/cases/case-match-waves";
 import {
   ghostingTutors,
   isManualOnlyCase,
+  nextBackupQueueRows,
   pendingPingTutors,
   pickCsBackups,
   queueRoom,
@@ -182,6 +183,18 @@ describe("#825 ledger reads", () => {
     expect(queueRoom(pending.size)).toBe(2);
     expect(queueRoom(3)).toBe(0);
     expect(pendingPingTutors("c1", events, new Set(["a"])).size).toBe(0);
+  });
+
+  it("AC-CS-2: a queued backup continues the wave ledger after its current max", () => {
+    const rows = nextBackupQueueRows(6, [
+      { tutorId: "t1", score: 88 },
+      { tutorId: "t2", score: 74 },
+    ]);
+    expect(rows).toEqual([
+      { tutorId: "t1", score: 88, rank: 7 },
+      { tutorId: "t2", score: 74, rank: 8 },
+    ]);
+    expect(queueRoom(1)).toBe(2);
   });
 
   it("AC-CS-7: Centre / B2B cases are manual only", () => {

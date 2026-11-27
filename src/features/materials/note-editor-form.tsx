@@ -106,7 +106,6 @@ import { detectDocumentLanguage } from "@/features/materials/note-ai";
 import { NotePreviewPicker } from "@/features/materials/note-preview-picker";
 import { NotePriceGuidePanel } from "@/features/materials/note-price-guide-panel";
 import {
-  marketplaceTakeRate,
   sellerBreakdownHkd,
   SHOW_EARNINGS_BREAKDOWN,
   validateListingPrice,

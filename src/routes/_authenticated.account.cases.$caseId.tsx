@@ -15,6 +15,7 @@ import { toast } from "sonner";
 import { useTranslation } from "react-i18next";
 import { cn } from "@/lib/utils";
 
+import { CaseSupportTicketCard } from "@/features/cases/CaseSupportTicketCard";
 import { EngagementSummaryCard } from "@/features/cases/engagement-summary-card";
 import { MatchStatusCard } from "@/features/cases/parent/match-status-card";
 import { TrialLockCard } from "@/features/cases/trial-lock-card";
@@ -419,6 +420,10 @@ function ParentCaseDetailPage() {
             {/* #459: verified-hours review queue — confirm/dispute lessons
                 the tutor marked done; unreviewed rows auto-verify in 24h. */}
             <ParentHoursSection rows={data.hoursLedger} onChanged={invalidate} />
+
+            {/* #816 §2.3: the family's own support ticket. Mounted last, inside
+                the loaded case, so it also works before a tutor is matched. */}
+            <CaseSupportTicketCard caseId={caseId} />
           </div>
         )}
       </PageContainer>
