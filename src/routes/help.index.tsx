@@ -58,7 +58,7 @@ export const Route = createFileRoute("/help/")({
         description: {
           en: "Guides and answers for MatchMax tutors and parents, parent communication, scheduling, pedagogy, payments, policies, and getting started with lessons.",
           "zh-HK":
-            "MatchMax 導師同家長嘅指南：家長溝通、時間安排、教學方法、付款、政策同第一堂準備，全部喺度搵到答案。",
+            "MatchMax 導師及家長指南：家長溝通、時間安排、教學方法、付款、政策及第一堂準備，一站式解答你的疑問。",
           "zh-CN":
             "MatchMax 导师和家长的指南：家长沟通、时间安排、教学方法、付款、政策以及第一节课的准备，答案都在这里。",
         },

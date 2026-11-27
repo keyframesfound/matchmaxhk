@@ -39,7 +39,7 @@ export const Route = createFileRoute("/guide/")({
           description: {
             en: "Why MatchMax, how matching works, and what we verify, plus guides for parents, tutors, notes buyers, and referrers.",
             "zh-HK":
-              "點解揀 MatchMax、配對點運作、我哋核實啲乜——仲有家長、導師、筆記買家同推薦人嘅指南。",
+              "為何選擇 MatchMax、配對如何運作、我們核實甚麼，以及家長、導師、筆記買家及推薦人的指南。",
             "zh-CN":
               "为什么选择 MatchMax、配对如何运作、我们核实什么——以及给家长、导师、笔记买家和推荐人的指南。",
           },

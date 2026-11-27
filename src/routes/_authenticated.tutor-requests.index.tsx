@@ -246,7 +246,7 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
           description: {
             en: "Browse open tutoring cases posted by parents and students, or submit your requirements free and let qualified tutors apply for your case.",
             "zh-HK":
-              "瀏覽家長同學生張貼嘅開放補習個案，或者免費提交你嘅要求，等合資格導師申請你嘅個案。",
+              "瀏覽家長及學生發佈的開放補習個案，或免費提交你的要求，讓合資格導師申請你的個案。",
             "zh-CN":
               "浏览家长和学生发布的家教需求，或免费提交你的要求，让合资格的导师申请你的个案。",
           },
@@ -261,7 +261,7 @@ export const Route = createFileRoute("/_authenticated/tutor-requests/")({
           content: pickCopy(
             {
               en: "Real tutoring requests from Hong Kong parents. Apply for a case that fits you, or post your own, free for parents.",
-              "zh-HK": "真實香港家長補習需求。申請適合你嘅個案，或者自己出需求——家長完全免費。",
+              "zh-HK": "真實的香港家長補習需求。申請適合你的個案，或自行發佈需求，家長完全免費。",
               "zh-CN":
                 "真实的香港家长家教需求。申请适合你的家教需求，或自己发布需求——家长完全免费。",
             },

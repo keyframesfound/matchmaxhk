@@ -251,13 +251,13 @@ export const Route = createFileRoute("/tutors/")({
           // English copy is main's post-#407 scrub ("elite", no Verified claims).
           title: {
             en: "Find Elite Tutors in Hong Kong | MatchMax",
-            "zh-HK": "搵到香港精英導師 | MatchMax",
+            "zh-HK": "尋找香港精英導師 | MatchMax",
             "zh-CN": "寻找香港精英家教 | MatchMax",
           },
           description: {
             en: "Browse elite tutors in Hong Kong by subject, MTR station, lesson mode and price. Search for IB, DSE, IGCSE, AP, A-Level, Mathematics, English and more.",
             "zh-HK":
-              "按科目、港鐵站、上課模式同意價瀏覽香港精英導師。搵 IB、DSE、IGCSE、AP、A-Level、數學、英文等導師。",
+              "按科目、港鐵站、上課模式及價格瀏覽香港精英導師，尋找 IB、DSE、IGCSE、AP、A-Level、數學、英文等科目導師。",
             "zh-CN":
               "按科目、港铁站、上课方式和价格浏览香港精英导师。查找 IB、DSE、IGCSE、AP、A-Level、数学、英文等科目的导师。",
           },
