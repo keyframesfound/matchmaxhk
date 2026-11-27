@@ -115,8 +115,14 @@ function notesStatusChipClass(status: string): string {
   if (status === "delivered" || status === "released") {
     return "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-700";
   }
-  if (status === "held") {
+  if (status === "held" || status === "paid_held" || status === "delivered_held") {
     return "rounded-md bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-700";
+  }
+  if (status === "completed_released") {
+    return "rounded-md bg-emerald-500/10 px-2 py-0.5 text-xs font-bold text-emerald-700";
+  }
+  if (status === "disputed_frozen") {
+    return "rounded-md bg-rose-500/10 px-2 py-0.5 text-xs font-bold text-rose-700";
   }
   if (status === "refunded_from_hold") {
     return "rounded-md bg-rose-500/10 px-2 py-0.5 text-xs font-bold text-rose-700";

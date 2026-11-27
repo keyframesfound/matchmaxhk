@@ -69,6 +69,9 @@ export const listMaterialOrdersAdmin = createServerFn({ method: "POST" })
         .select(
           "id, reference, gross_hkd, status, payment_screenshot_path, fps_reference, created_at, hold_until, released_at, refund_amount, dispute_status, dispute_reason, dispute_detail, dispute_opened_at, dispute_evidence_path, digital_materials(title)",
         )
+        // #784 §2.1: card orders live in the Stripe escrow states, which are
+        // not the cashier's "held"/"released". Leaving them out made a paid
+        // card order — and a card dispute — invisible to staff.
         .in("status", [
           "awaiting_payment",
           "paid",
@@ -80,6 +83,10 @@ export const listMaterialOrdersAdmin = createServerFn({ method: "POST" })
           "held",
           "released",
           "refunded_from_hold",
+          "paid_held",
+          "delivered_held",
+          "disputed_frozen",
+          "completed_released",
         ])
         .order("created_at", { ascending: false })
         .limit(200);
