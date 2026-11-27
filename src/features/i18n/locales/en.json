@@ -4469,6 +4469,7 @@
     "checkout_confirming": "Confirming your payment… your download appears here in a moment.",
     "checkout_cancelled": "Payment was not completed. You have not been charged.",
     "checkout_unavailable": "Checkout is temporarily unavailable. Please try again shortly.",
+    "receipt_hint": "Keep this reference for your records. Your receipt has been emailed to you.",
     "continue_payment": "Continue to payment",
     "seller_sold": "Material sold — funds in 72-hour protection hold",
     "window_closed": "The 72-hour protection window has ended."
