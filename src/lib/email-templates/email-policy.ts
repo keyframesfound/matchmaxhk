@@ -14,7 +14,7 @@ export type EmailClass = "transactional" | "automated_marketing";
  * the one-click unsubscribe. New promo or digest templates MUST be listed here
  * as automated_marketing.
  */
-const AUTOMATED_MARKETING_TEMPLATES = new Set<string>(["weekly-digest"]);
+const AUTOMATED_MARKETING_TEMPLATES = new Set<string>(["weekly-digest", "tutor-suggestions"]);
 
 export function emailClassFor(templateName: string): EmailClass {
   return AUTOMATED_MARKETING_TEMPLATES.has(templateName) ? "automated_marketing" : "transactional";
