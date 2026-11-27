@@ -251,6 +251,22 @@ function OrderPage() {
     order.materialType === "general_course" ||
     order.materialType === "topic_folder";
 
+  // #784 §2.1: a card order walks the Stripe escrow states, not the cashier's
+  // paid → stamping → delivered → held → released. Delivery already happened
+  // when it reads paid_held, so treat the card states as paid + delivered and
+  // the hold as running; without this every step rendered unfinished on a
+  // freshly paid order.
+  const releasedLike = ["released", "refunded_from_hold", "completed_released"];
+  const deliveredLike = [
+    "delivered",
+    "held",
+    "paid_held",
+    "delivered_held",
+    "disputed_frozen",
+  ].concat(releasedLike);
+  const paidLike = ["stamping"].concat(deliveredLike);
+  const holdRunning = ["held", "paid_held", "delivered_held", "disputed_frozen"];
+
   const steps: { key: string; done: boolean; current: boolean }[] = isGig
     ? gigTimelineSteps(order.status)
     : [
@@ -261,27 +277,29 @@ function OrderPage() {
         },
         {
           key: "orders.step_paid",
-          done: ["stamping", "delivered", "held", "released", "refunded_from_hold"].includes(
-            order.status,
-          ),
+          done: paidLike.includes(order.status),
           current: order.status === "paid",
         },
         {
           key: "orders.step_stamping",
-          done: ["delivered", "held", "released", "refunded_from_hold"].includes(order.status),
+          done: deliveredLike.includes(order.status),
           current: order.status === "stamping",
         },
         {
           key: "orders.step_delivered",
-          done: ["delivered", "held", "released", "refunded_from_hold"].includes(order.status),
+          done: deliveredLike.includes(order.status),
           current: false,
         },
         {
           key: "orders.step_held",
-          done: ["released", "refunded_from_hold"].includes(order.status),
-          current: order.status === "held",
+          done: releasedLike.includes(order.status),
+          current: holdRunning.includes(order.status),
         },
-        { key: "orders.step_released", done: order.status === "released", current: false },
+        {
+          key: "orders.step_released",
+          done: releasedLike.includes(order.status) && order.status !== "refunded_from_hold",
+          current: false,
+        },
       ];
 
   return (
