@@ -29,16 +29,34 @@ export type OverviewFeeRow = {
   case_code: string | null;
 };
 
+export type OverviewCaseRow = {
+  id: string;
+  case_code: string;
+  title: string;
+  created_at: string;
+};
+
 export type AdminOverviewProtected = {
   reportCount: number;
   reports: OverviewReportRow[];
   fees: OverviewFeeRow[];
+  /**
+   * tutoring_cases has SELECT revoked from `authenticated` on purpose
+   * (20261017170000 + three later lockdowns), so the browser client cannot
+   * count or list it at all — it answers 403 and used to blank the whole
+   * dashboard. These reads live here, behind the same admin gate.
+   */
+  caseCount: number;
+  newCaseWeekCount: number;
+  reviewCaseCount: number;
+  reviewCases: OverviewCaseRow[];
 };
 
 type LooseResult = { data: unknown; count: number | null; error: { message: string } | null };
 type LooseQuery = {
   select: (columns: string, options?: { count: "exact"; head: boolean }) => LooseQuery;
   eq: (column: string, value: string) => LooseQuery;
+  gte: (column: string, value: string) => LooseQuery;
   order: (column: string, options: { ascending: boolean }) => LooseQuery;
   limit: (count: number) => LooseQuery;
   then<TResult1 = LooseResult, TResult2 = never>(
@@ -70,10 +88,16 @@ export const fetchAdminOverviewProtected = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const admin = supabaseAdmin as unknown as { from: (table: string) => LooseQuery };
 
+    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
+
     const [
       { count: reportCount, error: reportCountError },
       { data: reportRows, error: reportRowsError },
       { data: feeRows, error: feeRowsError },
+      { count: caseCount, error: caseCountError },
+      { count: newCaseWeekCount, error: newCaseWeekError },
+      { count: reviewCaseCount, error: reviewCaseCountError },
+      { data: reviewCaseRows, error: reviewCaseRowsError },
     ] = await Promise.all([
       admin.from("reports").select("id", { count: "exact", head: true }).eq("status", "open"),
       admin
@@ -88,11 +112,27 @@ export const fetchAdminOverviewProtected = createServerFn({ method: "POST" })
         .eq("status", "invoiced")
         .order("created_at", { ascending: false })
         .limit(500),
+      admin.from("tutoring_cases").select("id", { count: "exact", head: true }),
+      admin
+        .from("tutoring_cases")
+        .select("id", { count: "exact", head: true })
+        .gte("created_at", weekAgo),
+      admin.from("tutoring_cases").select("id", { count: "exact", head: true }).eq("status", "new"),
+      admin
+        .from("tutoring_cases")
+        .select("id, case_code, title, created_at")
+        .eq("status", "new")
+        .order("created_at", { ascending: false })
+        .limit(3),
     ]);
 
     if (reportCountError) throw new Error(reportCountError.message);
     if (reportRowsError) throw new Error(reportRowsError.message);
     if (feeRowsError) throw new Error(feeRowsError.message);
+    if (caseCountError) throw new Error(caseCountError.message);
+    if (newCaseWeekError) throw new Error(newCaseWeekError.message);
+    if (reviewCaseCountError) throw new Error(reviewCaseCountError.message);
+    if (reviewCaseRowsError) throw new Error(reviewCaseRowsError.message);
 
     const fees = ((feeRows ?? []) as Array<Record<string, unknown>>).map((row) => {
       const embedded = Array.isArray(row.tutoring_cases)
@@ -111,5 +151,9 @@ export const fetchAdminOverviewProtected = createServerFn({ method: "POST" })
       reportCount: reportCount ?? 0,
       reports: (reportRows ?? []) as OverviewReportRow[],
       fees,
+      caseCount: caseCount ?? 0,
+      newCaseWeekCount: newCaseWeekCount ?? 0,
+      reviewCaseCount: reviewCaseCount ?? 0,
+      reviewCases: (reviewCaseRows ?? []) as OverviewCaseRow[],
     } satisfies AdminOverviewProtected;
   });

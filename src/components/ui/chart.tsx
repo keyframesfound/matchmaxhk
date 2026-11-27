@@ -159,7 +159,11 @@ const ChartTooltipContent = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border/50 bg-background px-2.5 py-1.5 text-xs",
+          // A tooltip floats above the chart, so it needs an opaque surface:
+          // bars are SVG and show straight through a transparent fill.
+          // `--surface` is the design-system token (white / #121212 in dark),
+          // and `.mm-overlay-lift` is the sanctioned elevation for overlays.
+          "mm-overlay-lift relative z-50 grid min-w-[8rem] items-start gap-1.5 rounded-lg border border-border bg-[color:var(--surface)] px-2.5 py-1.5 text-xs text-[color:var(--ink)]",
           className,
         )}
       >

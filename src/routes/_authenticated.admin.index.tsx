@@ -29,7 +29,10 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/features/auth/useAuth";
-import { fetchAdminOverviewProtected } from "@/features/admin/overview.functions";
+import {
+  fetchAdminOverviewProtected,
+  type AdminOverviewProtected,
+} from "@/features/admin/overview.functions";
 import { formatPostedAgo } from "@/lib/relative-time";
 
 export const Route = createFileRoute("/_authenticated/admin/")({
@@ -116,6 +119,8 @@ export type Overview = {
   fees: { id: string; caseCode: string; amountHkd: number; createdAt: string }[];
   feeTotalHkd: number;
   activity: ActivityItem[];
+  /** How many of the parallel reads failed and fell back to an empty value. */
+  degraded: number;
 };
 
 async function selectAs<T>(query: LooseQuery, columns: string): Promise<T[]> {
@@ -129,49 +134,71 @@ async function fetchOverview(): Promise<Overview> {
 
   // reports + case_fees are RLS-deny for every browser client; their queue
   // data comes from the admin-gated server fn (see overview.functions.ts).
-  const [protected_, ...rest] = await Promise.all([
-    fetchAdminOverviewProtected(),
-    headCount("tutors"),
-    headCount("tutoring_cases"),
-    headCount("profiles"),
-    headCount("tutors", [{ column: "created_at", op: "gte", value: weekAgo }]),
-    headCount("tutoring_cases", [{ column: "created_at", op: "gte", value: weekAgo }]),
-    headCount("profiles", [{ column: "created_at", op: "gte", value: weekAgo }]),
-    headCount("tutor_applications", [{ column: "status", op: "eq", value: "pending" }]),
-    headCount("tutoring_cases", [{ column: "status", op: "eq", value: "new" }]),
+  // One failing relation must not blank the whole dashboard: before this,
+  // a single rejected read left every card on its skeleton forever, with no
+  // error surface. Each read now falls back to a safe empty value and bumps
+  // `degraded`, which the page shows as one muted line.
+  let degraded = 0;
+  const fallback =
+    <T,>(value: T) =>
+    (): T => {
+      degraded += 1;
+      return value;
+    };
+
+  // Anyone can read `tutors` / `profiles` / `tutor_applications` with their
+  // own session, but `tutoring_cases` has SELECT revoked from `authenticated`
+  // on purpose, so its counts and queue rows come from the admin-gated server
+  // fn. Reading it here answered 403 and rejected the whole batch.
+  const [
+    protected_,
+    tutors,
+    users,
+    newTutors,
+    newUsers,
+    joinRequestCount,
+    joinRequestRows,
+    tutorRows,
+  ] = await Promise.all([
+    fetchAdminOverviewProtected().catch(
+      fallback<AdminOverviewProtected>({
+        reportCount: 0,
+        reports: [],
+        fees: [],
+        caseCount: 0,
+        newCaseWeekCount: 0,
+        reviewCaseCount: 0,
+        reviewCases: [],
+      }),
+    ),
+    headCount("tutors").catch(fallback<number>(0)),
+    headCount("profiles").catch(fallback<number>(0)),
+    headCount("tutors", [{ column: "created_at", op: "gte", value: weekAgo }]).catch(
+      fallback<number>(0),
+    ),
+    headCount("profiles", [{ column: "created_at", op: "gte", value: weekAgo }]).catch(
+      fallback<number>(0),
+    ),
+    headCount("tutor_applications", [{ column: "status", op: "eq", value: "pending" }]).catch(
+      fallback<number>(0),
+    ),
     selectAs<JoinRequestRow>(
       fromAny("tutor_applications")
         .eq("status", "pending")
         .order("created_at", { ascending: false })
         .limit(3),
       "id, data, created_at",
-    ),
-    selectAs<CaseRow>(
-      fromAny("tutoring_cases")
-        .eq("status", "new")
-        .order("created_at", { ascending: false })
-        .limit(3),
-      "id, case_code, title, created_at",
-    ),
+    ).catch(fallback<JoinRequestRow[]>([])),
     selectAs<RecentTutorRow>(
       fromAny("tutors").eq("is_published", true).order("created_at", { ascending: false }).limit(3),
       "id, display_name, created_at",
-    ),
+    ).catch(fallback<RecentTutorRow[]>([])),
   ]);
 
-  const [
-    tutors,
-    cases,
-    users,
-    newTutors,
-    newCases,
-    newUsers,
-    joinRequestCount,
-    reviewCaseCount,
-    joinRequestRows,
-    caseRows,
-    tutorRows,
-  ] = rest;
+  const cases = protected_.caseCount;
+  const newCases = protected_.newCaseWeekCount;
+  const reviewCaseCount = protected_.reviewCaseCount;
+  const caseRows: CaseRow[] = protected_.reviewCases;
 
   const reportCount = protected_.reportCount;
   const fees = protected_.fees.map((row) => ({
@@ -234,6 +261,7 @@ async function fetchOverview(): Promise<Overview> {
     fees,
     feeTotalHkd: fees.reduce((sum, fee) => sum + fee.amountHkd, 0),
     activity: activity.slice(0, 8),
+    degraded,
   };
 }
 
@@ -311,6 +339,12 @@ function AdminOverview() {
               <Skeleton className="h-4 w-80" />
             )}
           </p>
+          {data && data.degraded > 0 ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {data.degraded} figure{data.degraded === 1 ? "" : "s"} could not load. Refresh to try
+              again.
+            </p>
+          ) : null}
         </div>
         <Button asChild variant="outline" size="sm">
           <Link to="/admin/join-requests" search={{ application: undefined }}>
