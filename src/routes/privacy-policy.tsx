@@ -169,7 +169,7 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
           "the public, search engines and third-party platforms, for authorised public-profile information;",
           "authorised employees, contractors, freelancers and agents;",
           "hosting, authentication, communications, storage, document-processing, AI, security, support, invoicing and related service providers;",
-          "banks and payment providers handling MatchMax fees;",
+          "banks and payment providers handling MatchMax fees, including Stripe for card, Apple Pay, AlipayHK and WeChat Pay payments;",
           "professional advisers, insurers and auditors;",
           "competent authorities and appropriate recipients for lawful reporting, safeguarding, investigations or legal proceedings; and",
           "prospective or actual purchasers or successors in a genuine business sale or restructuring, subject to confidentiality and applicable purpose restrictions.",
@@ -287,7 +287,7 @@ const SECTIONS: { title: string; blocks: Block[] }[] = [
     blocks: [
       {
         kind: "p",
-        text: "When a buyer purchases a tutor’s study materials through MatchMax, we process a narrow order record: the buyer account, the pack identifier, the payment reference, and the download time. We do not use order data for unrelated purposes.",
+        text: "When a buyer purchases a tutor’s study materials through MatchMax, we process a narrow order record: the buyer account, the pack identifier, the payment reference, and the download time. We do not use order data for unrelated purposes. Card payments are processed by Stripe, which receives the payment credentials directly; MatchMax stores only the order record and the Stripe payment reference, never card numbers.",
       },
       {
         kind: "ul",

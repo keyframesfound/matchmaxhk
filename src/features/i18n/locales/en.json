@@ -116,7 +116,7 @@
     "source_file_unavailable": "No source file attached.",
     "order_held": "Payment on hold",
     "order_released": "Hold released",
-    "notes_hold_note": "Payouts for sold notes are held for 48 hours after delivery (72 hours in your first 14 days or first sales), or until the buyer taps 'Received, no issue'. Valid refunds are paid only from still-held seller funds during the hold window."
+    "notes_hold_note": "Payouts for sold notes clear 72 hours after the buyer’s payment. A dispute opened inside that window freezes the funds until it is resolved. Cleared balances join the weekly Monday FPS batch (Sunday 23:59 HKT cut-off, HK$50 minimum)."
   },
   "admin": {
     "ar_title": "Appoint Action",
@@ -1174,8 +1174,8 @@
       "s2_body": "Every upload is checked automatically against the ban list (copied official papers or textbooks, contact details, violence, sexual content). Clean packs go live straight away; unclear ones get a quick staff review.",
       "s3_title": "Buyer pays MatchMax by FPS",
       "s3_body": "The buyer pays MatchMax, not the tutor; the file is released only after payment clears.",
-      "s4_title": "Staff release file inside buyer account",
-      "s4_body": "Delivered inside the buyer’s account; the two sides never see each other’s phone number.",
+      "s4_title": "File unlocks the moment payment clears",
+      "s4_body": "Delivered instantly inside the buyer’s account, so the two sides never see each other’s phone number. MatchMax holds the seller’s payout for 72 hours.",
       "s5_title": "Tutor paid on monthly run (MatchMax keeps 20%)",
       "s5_body": "MatchMax keeps 20%; the tutor’s net is paid by FPS in the monthly run.",
       "banned_title": "The ban list, never allowed",
@@ -1480,7 +1480,7 @@
       },
       "s4": {
         "title": "Exclusive Study Materials",
-        "detail": "Browse and purchase original notes, mock exams, and custom study packs created by our top scholars. You pay MatchMax by FPS and staff release the file inside your account, with a 20% platform fee supporting the creator. After three paid lessons, ask MatchMax and staff can grant that tutor's current packs."
+        "detail": "Browse and purchase original notes, mock exams, and custom study packs created by our top scholars. You pay exactly the listed price by card, Apple Pay, AlipayHK or WeChat Pay and the file unlocks inside your account immediately; MatchMax holds the seller’s payout for 72 hours. After three paid lessons, ask MatchMax and staff can grant that tutor's current packs."
       }
     },
     "parents_link_find": "Find a tutor",
@@ -1503,7 +1503,7 @@
       },
       "s4": {
         "title": "Passive Income with Digital Notes",
-        "detail": "Upload your best study materials and sell them to parents. MatchMax handles all marketing and secure payment collection, takes a low 20% fee, and deposits your earnings directly into your FPS account on the 1st of every month."
+        "detail": "Upload your best study materials and sell them to parents. MatchMax handles all marketing and secure card payment, deducts a 2% platform fee plus the actual payment fee, and pays the rest into your FPS account in the weekly Monday batch."
       }
     },
     "tutors_link_cases": "Browse open cases",
@@ -2052,7 +2052,7 @@
       "s2_p1": "2.1 Open seller activation: any registered user in good standing may activate Seller status, without a tutor profile, by completing the Seller payout and declaration registration on their first upload.",
       "s2_p2": "2.2 Age and authority declaration: by registering a payout method or listing Materials for sale, you declare that (a) you are at least 18 years old, or (b) if you are under 18, you have your parent's or legal guardian's express prior consent to sell Materials on the Platform, be bound by these Notes Terms and receive payouts to your designated payout account.",
       "s2_p3": "2.3 Fees (seller net deduction). (a) Materials may be listed free (HK$0) or paid (minimum HK$20, maximum HK$5,000). (b) MatchMax charges a flat 2% Platform Fee on the gross listing price of every paid Material sold. The 2% rate is a launch rate for the first 6 months after in-app checkout launches or until cumulative Materials sales reach HK$50,000, whichever comes first; MatchMax may then review the rate (for example to 4% to 5%) by giving active Sellers at least 30 days' notice. (c) The actual processing fee charged by the payment gateway (such as Stripe, cards, Apple Pay, AlipayHK, PayMe or FPS) is separate from the Platform Fee and is deducted together with it. (d) Seller net earnings per completed order = gross listing price - 2% Platform Fee - actual payment processing fee. Buyers pay exactly the listed price.",
-      "s2_p4": "2.4 Payouts: net earnings from orders that reach Completed / Released status are paid monthly to the Seller's registered payout method (FPS, PayMe or AlipayHK) once the accumulated balance reaches HK$50; smaller balances roll over to the next month (or are paid in full when the account closes). Sellers are solely responsible for failed or misdirected transfers caused by inaccurate payout details.",
+      "s2_p4": "2.4 Payouts: net earnings from orders that reach Completed / Released status are paid in the weekly Monday FPS batch, with a Sunday 23:59 HKT cut-off, to the Seller's registered payout method (FPS, PayMe or AlipayHK) once the accumulated balance reaches HK$50; smaller balances roll over to the next batch (or are paid in full when the account closes). Sellers are solely responsible for failed or misdirected transfers caused by inaccurate payout details.",
       "s3_title": "3. Intellectual property warranty and ban list",
       "s3_p1": "3.1 By uploading any Material, the Seller warrants that it is 100% their original work, or that they hold every licence, right and written permission needed to reproduce, distribute and sell it.",
       "s3_p2": "3.2 Sellers must not upload, list or distribute: (a) official past papers, examination questions, marking schemes or listening materials of the HKEAA, IB, Cambridge (CIE / Edexcel), College Board or any other examination authority; (b) confidential internal examinations, mock papers, quizzes or proprietary handouts of any school, university, tutorial centre or publisher without express written authorisation; (c) plagiarised notes, unauthorised textbook reproductions, or anything that facilitates academic dishonesty or contract cheating (ghostwriting); (d) files or listings with external contact details (phone numbers, WhatsApp, WeChat, Instagram, Signal, personal links or payment QR codes) intended to solicit off-platform transactions; or (e) corrupted, password-locked, blank, deceptive or malware-infected files.",
@@ -2549,8 +2549,8 @@
       "rejected": "Not published: {{reason}} Edit the note and submit again.",
       "hint": "Every upload is checked automatically for copied official papers or textbooks, contact details, violence and sexual content. Clean notes go live straight away; anything unclear gets a quick staff review."
     },
-    "hold_title": "48–72h payout hold (buyer & seller protection)",
-    "hold_disclosure": "Seller payout is held for 48 hours after delivery (72 hours for new sellers in their first 14 days or first sales), or until the buyer taps 'Received, no issue', whichever is sooner. Refunds for defective or misdescribed files are paid solely from still-held seller funds during the hold window.",
+    "hold_title": "72-hour payout hold (buyer & seller protection)",
+    "hold_disclosure": "MatchMax holds the seller’s payout for 72 hours from your payment. A dispute opened inside that window is refunded only from still-held seller funds, on the objective grounds in the Notes Terms; there is no cooling-off period. After 72 hours the sale is final and the seller is paid.",
     "trial_cta": "Request 1-on-1 Trial with This Tutor ($0 Matching Fee)",
     "helpers": {
       "starters": "Starters:",
@@ -2598,7 +2598,7 @@
     "licence_note": "Licensed to one student. Downloads stay in your Account, the link refreshes each time.",
     "sign_in_required": "Sign in to see your orders.",
     "open_course_button": "Open product",
-    "step_held": "Payment on hold (protection window of 48 to 72 hours)",
+    "step_held": "Payment on hold (72-hour protection window)",
     "step_released": "Hold released, tutor payout scheduled",
     "escrow_banner_title": "Your payment is protected",
     "escrow_banner_held": "MatchMax is holding this payment until {{date}}. The tutor is only paid after the hold ends, so any valid dispute you open during the window can be refunded in full from the held funds.",
@@ -2654,8 +2654,8 @@
     "desk_dispute_decided_refund": "Refunded from the held funds.",
     "desk_dispute_decided_reject": "Dispute rejected, the hold is released.",
     "desk_dispute_rejected_note": "Dispute rejected, released normally",
-    "protection_title": "Buyer & Seller Protection (48–72h Escrow Hold)",
-    "protection_body": "Seller payout is held for 48 hours after delivery (72 hours for new sellers in their first 14 days or first sales), or until the buyer taps 'Received, no issue', whichever is sooner. Refunds for defective or misdescribed files are paid solely from still-held seller funds during the hold window.",
+    "protection_title": "Buyer & Seller Protection (72-hour hold)",
+    "protection_body": "MatchMax holds the seller’s payout for 72 hours from your payment. A dispute opened inside that window is refunded only from still-held seller funds, on the objective grounds in the Notes Terms; there is no cooling-off period. After 72 hours the sale is final and the seller is paid.",
     "trial_upsell_body": "Want 1-on-1 coaching from the author of this note ({{code}})? Parents pay $0 matching fee. Book a trial lesson via MatchMax.",
     "trial_upsell_cta": "Request 1-on-1 Trial with This Tutor ($0 Matching Fee)"
   },

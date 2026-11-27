@@ -37,8 +37,14 @@ export const CENTRE_PARTNERSHIP_TERMS_VERSION = "centre-2026-10";
  * dispute window) has its own version string, recorded ON THE ORDER ROW
  * (shop_terms_version + shop_terms_accepted_at), not in terms_acceptances.
  * Bump it when the shop rules change materially.
+ *
+ * v2 (2026-11-27, #783 §2.1 / #784 §2.3): Option A — the buyer pays exactly
+ * the listed price, the seller bears the 2% platform fee and the actual card
+ * fee, the hold is 72h from paid_at, and the D10 cooling-off refund is gone.
+ * This is a material change, so acceptances recorded at shop-2026-10 (the
+ * FPS cashier contract) must not carry over.
  */
-export const SHOP_TERMS_VERSION = "shop-2026-10";
+export const SHOP_TERMS_VERSION = "shop-2026-11-option-a";
 
 export const TERMS_SURFACES = [
   "signup",

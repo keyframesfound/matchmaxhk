@@ -164,9 +164,12 @@ describe("#573 buyer watermark and launch switch", async () => {
       }),
     ).toBe("Licensed to a***@b***.hk · Order #MM-1234 · One student only · matchmax.hk");
   });
-  it("keeps current copy until launch, swaps at launch", () => {
-    expect(NOTES_OPTION_A_LIVE).toBe(false);
-    expect(optionACopyKey("materials.disclaimer")).toBe("materials.disclaimer");
+  it("serves Option A copy now that the switch is on", () => {
+    // #784 §2.3: the switch flipped for the 2026-11-27 Stripe cutover, so the
+    // default resolves to the Option A key and only unswapped keys pass through.
+    expect(NOTES_OPTION_A_LIVE).toBe(true);
+    expect(optionACopyKey("materials.disclaimer")).toBe("notes_option_a.disclaimer");
+    expect(optionACopyKey("materials.disclaimer", false)).toBe("materials.disclaimer");
     expect(optionACopyKey("materials.disclaimer", true)).toBe("notes_option_a.disclaimer");
     expect(optionACopyKey("guide.notes.s1_title", true)).toBe("guide.notes.s1_title");
   });

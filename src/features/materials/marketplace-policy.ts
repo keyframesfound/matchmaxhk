@@ -12,11 +12,15 @@
  * Launch switch for everything buyer- or seller-visible that depends on the
  * #543 Stripe checkout: the Option A fee copy, the earnings calculator, the
  * no-cooling-off checkout acknowledgement, the new Notes Marketplace Terms
- * and auto-publish of clean uploads. The live notes flow is still the FPS
- * cashier (20%), so publishing 2% / 72h-from-payment terms before Stripe
- * ships would misstate the contract. Flip to true in the Stripe slice.
+ * and auto-publish of clean uploads.
+ *
+ * ON since the 2026-11-27 cutover (#784 §2.3). It may only be true in an
+ * environment where `stripeConfigured()` is also true: 2% / 72h-from-payment
+ * terms with a 20% FPS cashier behind them would misstate the contract
+ * (AC-573-1). Revert this constant, not the secrets, to roll back — orders
+ * already in `paid_held` still need the webhook and the hourly sweep.
  */
-export const NOTES_OPTION_A_LIVE = false;
+export const NOTES_OPTION_A_LIVE = true;
 
 /**
  * Display switch for the seller payout breakdown in the note editor
@@ -29,6 +33,9 @@ export const NOTES_OPTION_A_LIVE = false;
  * gross − 2% − gateway. So the breakdown appears exactly when Option A goes
  * live, and FORM-1 / FORM-2 tick in that same release. An earlier PR exposed
  * it while checkout was dark; that misstated the contract.
+ *
+ * With the switch on, this is true — the note editor now shows list price,
+ * 2%, the Stripe estimate, net, the 72h hold and the Monday FPS batch.
  */
 export const SHOW_EARNINGS_BREAKDOWN = NOTES_OPTION_A_LIVE;
 

@@ -12,11 +12,12 @@ import {
 const cents = (value: number) => Math.round(value * 100) / 100;
 
 describe("#784 seller payout breakdown", () => {
-  it("never shows Option A terms while the live path is the 20% cashier", () => {
-    // #784 §2.3 / AC-573-1: 2% terms and a 20% cashier must never coexist.
+  it("shows the breakdown exactly when Option A is the live paid path", () => {
+    // #784 §2.3 / AC-573-1: 2% terms and a 20% cashier must never coexist, so
+    // the breakdown is derived from the launch switch, never set separately.
     expect(SHOW_EARNINGS_BREAKDOWN).toBe(NOTES_OPTION_A_LIVE);
-    expect(SHOW_EARNINGS_BREAKDOWN).toBe(false);
-    expect(NOTES_OPTION_A_LIVE).toBe(false);
+    expect(NOTES_OPTION_A_LIVE).toBe(true);
+    expect(SHOW_EARNINGS_BREAKDOWN).toBe(true);
   });
 
   it("nets gross - 2% - gateway fee at HK$100", () => {

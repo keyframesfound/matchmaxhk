@@ -1,9 +1,11 @@
 # Stripe cutover runbook (#784 §2.1 / §2.3, #783 §2.1)
 
-**Status 2026-11-27:** the rail is built, deployed and dark. `POST /api/stripe/webhook`
-on production answers `400 not configured`, which proves the route is mounted and the
-only thing missing is `STRIPE_WEBHOOK_SECRET`. Nothing charges a card until
-`NOTES_OPTION_A_LIVE` is flipped.
+**Status 2026-11-27:** the rail is built, deployed and mounted. `POST /api/stripe/webhook`
+on production answers `400 not configured`, which proves the route is live and the only
+thing missing is `STRIPE_WEBHOOK_SECRET`. `NOTES_OPTION_A_LIVE` is now **true**, with the
+#783 §2.1 copy in the same release, so the buyer path is the Stripe Checkout the moment
+both secrets land — and it fails closed (bilingual "checkout unavailable") until then,
+because `getStripeCheckoutAvailability` requires the flag **and** `stripeConfigured()`.
 
 Verified in the repo:
 
@@ -75,10 +77,10 @@ ever leaves `awaiting_payment`, so the buyer is charged and gets nothing.
 
 ## 3. Flag flip
 
-`src/features/materials/marketplace-policy.ts:19`
+`src/features/materials/marketplace-policy.ts:23` — flipped to `true` on 2026-11-27.
 
 ```ts
-export const NOTES_OPTION_A_LIVE = false;  // -> true
+export const NOTES_OPTION_A_LIVE = true;
 ```
 
 `SHOW_EARNINGS_BREAKDOWN` is derived from it (`:33`), so the seller breakdown on
@@ -88,7 +90,7 @@ while checkout was still dark.
 
 **Flip order, same release:**
 
-1. `NOTES_OPTION_A_LIVE = true`.
+1. `NOTES_OPTION_A_LIVE = true`. ✅ done
 2. Ship the #783 §2.1 copy checklist in the same release: `/guide/notes`, Help,
    TOS study-notes, Privacy (Stripe as processor + download logs), `/legal/notes-terms`,
    and the upload / checkout acknowledgements. Half-flipping shows 2% terms next to a

@@ -555,7 +555,9 @@ const SECTIONS: Section[] = [
       },
       {
         kind: "p",
-        text: "A purchased file is delivered inside the buyer’s MatchMax account once staff mark the FPS payment as received. The receipt email contains no file.",
+        text: NOTES_OPTION_A_LIVE
+          ? "A purchased file unlocks inside the buyer’s MatchMax account as soon as the card payment clears. The receipt email contains no file."
+          : "A purchased file is delivered inside the buyer’s MatchMax account once staff mark the FPS payment as received. The receipt email contains no file.",
       },
       {
         kind: "p",
