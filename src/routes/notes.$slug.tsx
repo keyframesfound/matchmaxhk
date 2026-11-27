@@ -205,8 +205,10 @@ function NotePage() {
       // (never back to the 20% FPS cashier). Free listings stay instant.
       if (NOTES_OPTION_A_LIVE && note.priceHkd > 0) {
         const stripe = await startStripeCheckout({ data: { orderId: order.orderId } });
-        if ("url" in stripe) {
-          window.location.assign(stripe.url);
+        // Embedded Checkout: /checkout mounts the Stripe iframe full-screen
+        // (it falls back to the hosted redirect when no publishable key is set).
+        if (!("alreadyPaid" in stripe)) {
+          void navigate({ to: "/checkout", search: { order: order.orderId } });
           return { ...order, redirected: true };
         }
       }

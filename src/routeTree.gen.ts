@@ -14,6 +14,7 @@ import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as BecomeATutorRouteImport } from './routes/become-a-tutor'
 import { Route as CaseRequestRouteImport } from './routes/case-request'
+import { Route as CheckoutRouteImport } from './routes/checkout'
 import { Route as CookiesRouteImport } from './routes/cookies'
 import { Route as CopyrightRouteImport } from './routes/copyright'
 import { Route as DesignSystemRouteImport } from './routes/design-system'
@@ -130,6 +131,11 @@ const BecomeATutorRoute = BecomeATutorRouteImport.update({
 const CaseRequestRoute = CaseRequestRouteImport.update({
   id: '/case-request',
   path: '/case-request',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const CheckoutRoute = CheckoutRouteImport.update({
+  id: '/checkout',
+  path: '/checkout',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CookiesRoute = CookiesRouteImport.update({
@@ -642,6 +648,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
+  '/checkout': typeof CheckoutRoute
   '/cookies': typeof CookiesRoute
   '/copyright': typeof CopyrightRoute
   '/design-system': typeof DesignSystemRoute
@@ -741,6 +748,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
+  '/checkout': typeof CheckoutRoute
   '/cookies': typeof CookiesRoute
   '/copyright': typeof CopyrightRoute
   '/design-system': typeof DesignSystemRoute
@@ -839,6 +847,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/become-a-tutor': typeof BecomeATutorRoute
   '/case-request': typeof CaseRequestRoute
+  '/checkout': typeof CheckoutRoute
   '/cookies': typeof CookiesRoute
   '/copyright': typeof CopyrightRoute
   '/design-system': typeof DesignSystemRoute
@@ -940,6 +949,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
+    | '/checkout'
     | '/cookies'
     | '/copyright'
     | '/design-system'
@@ -1039,6 +1049,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
+    | '/checkout'
     | '/cookies'
     | '/copyright'
     | '/design-system'
@@ -1136,6 +1147,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/become-a-tutor'
     | '/case-request'
+    | '/checkout'
     | '/cookies'
     | '/copyright'
     | '/design-system'
@@ -1237,6 +1249,7 @@ export interface RootRouteChildren {
   AuthRoute: typeof AuthRoute
   BecomeATutorRoute: typeof BecomeATutorRoute
   CaseRequestRoute: typeof CaseRequestRoute
+  CheckoutRoute: typeof CheckoutRoute
   CookiesRoute: typeof CookiesRoute
   CopyrightRoute: typeof CopyrightRoute
   DesignSystemRoute: typeof DesignSystemRoute
@@ -1319,6 +1332,13 @@ declare module '@tanstack/react-router' {
       path: '/case-request'
       fullPath: '/case-request'
       preLoaderRoute: typeof CaseRequestRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/checkout': {
+      id: '/checkout'
+      path: '/checkout'
+      fullPath: '/checkout'
+      preLoaderRoute: typeof CheckoutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/cookies': {
@@ -2123,6 +2143,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthRoute: AuthRoute,
   BecomeATutorRoute: BecomeATutorRoute,
   CaseRequestRoute: CaseRequestRoute,
+  CheckoutRoute: CheckoutRoute,
   CookiesRoute: CookiesRoute,
   CopyrightRoute: CopyrightRoute,
   DesignSystemRoute: DesignSystemRoute,
