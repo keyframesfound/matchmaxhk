@@ -3289,6 +3289,7 @@
       "saving": "儲存中…",
       "saved": "檔案已儲存——變更已生效",
       "form_errors": "請先處理標示的錯誤。",
+      "form_errors_detail": "請先解決：{{detail}}",
       "promo_title": "首堂優惠",
       "promo_hint": "可選擇喺公開檔案卡顯示徽章。正式課堂一律按你嘅全額收費，平台行政費亦按全額計算。",
       "free_trial_label": "提供免費 15–20 分鐘網上介紹",

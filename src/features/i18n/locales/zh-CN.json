@@ -3289,6 +3289,7 @@
       "saving": "保存中…",
       "saved": "档案已保存——变更已生效",
       "form_errors": "请先处理标示的错误。",
+      "form_errors_detail": "请先解决：{{detail}}",
       "promo_title": "首堂优惠",
       "promo_hint": "可选择在公开档案卡显示徽章。正式课堂一律按你的全额收费，平台行政费亦按全额计算。",
       "free_trial_label": "提供免费 15–20 分钟在线介绍",
