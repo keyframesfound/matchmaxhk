@@ -125,7 +125,9 @@ export const startStripeCheckout = createServerFn({ method: "POST" })
         // publishable key configured it stays the hosted redirect.
         session = await stripe.checkout.sessions.create(
           {
-            ...(embedded ? { ui_mode: "embedded" as const } : {}),
+            // Stripe renamed this value: "embedded" is rejected by the current
+            // API version, "embedded_page" is the supported one.
+            ...(embedded ? { ui_mode: "embedded_page" as const } : {}),
             mode: "payment",
             currency: "hkd",
             line_items: [
