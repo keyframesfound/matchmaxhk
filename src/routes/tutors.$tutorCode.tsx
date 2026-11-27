@@ -211,10 +211,10 @@ function buildTutorSeoCopy(tutor: Tutor): { title: LocaleCopy; description: Loca
           : "Lessons are held in person.",
     "zh-HK":
       tutor.lesson_mode === "online"
-        ? "可以網上上堂。"
+        ? "提供網上課堂。"
         : tutor.lesson_mode === "either"
-          ? "網上同面授都得。"
-          : "只做面授。",
+          ? "網上及面授課堂均可。"
+          : "只提供面授課堂。",
     "zh-CN":
       tutor.lesson_mode === "online"
         ? "支持线上上课。"
@@ -224,7 +224,7 @@ function buildTutorSeoCopy(tutor: Tutor): { title: LocaleCopy; description: Loca
   };
   const place: LocaleCopy = {
     en: areaText ? `in ${areaText}, Hong Kong` : "in Hong Kong",
-    "zh-HK": areaText ? `喺${areaText}一帶` : "喺香港",
+    "zh-HK": areaText ? `於${areaText}一帶` : "於香港",
     "zh-CN": areaText ? `在${areaText}一带` : "在香港",
   };
 
@@ -236,7 +236,7 @@ function buildTutorSeoCopy(tutor: Tutor): { title: LocaleCopy; description: Loca
     },
     description: {
       en: `Tutor ${identity} teaches ${subjectText || "tutoring"}${levelText.en ? ` to ${levelText.en} students` : ""} ${place.en}. ${modeSentence.en} Browse rates, availability and reviews on MatchMax.`,
-      "zh-HK": `導師 ${identity} 教授${subjectText || "各科"}${levelText["zh-HK"] ? `，對象係${levelText["zh-HK"]}學生` : ""}，授課地點${place["zh-HK"]}。${modeSentence["zh-HK"]} 上 MatchMax 睇學費、上堂時間同評價。`,
+      "zh-HK": `導師 ${identity} 教授${subjectText || "各科"}${levelText["zh-HK"] ? `，對象為${levelText["zh-HK"]}學生` : ""}，授課地點${place["zh-HK"]}。${modeSentence["zh-HK"]} 於 MatchMax 查看學費、上課時間及評價。`,
       "zh-CN": `导师 ${identity} 教授${subjectText || "各科"}${levelText["zh-CN"] ? `，面向${levelText["zh-CN"]}学生` : ""}，授课地点${place["zh-CN"]}。${modeSentence["zh-CN"]} 在 MatchMax 查看学费、上课时间与评价。`,
     },
   };

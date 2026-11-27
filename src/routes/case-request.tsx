@@ -91,13 +91,13 @@ export const Route = createFileRoute("/case-request")({
         ...localizedMeta(locale, {
           title: {
             en: "Request a tutor, free case request | MatchMax",
-            "zh-HK": "搵導師，免費出需求 | MatchMax",
+            "zh-HK": "尋找導師，免費發佈需求 | MatchMax",
             "zh-CN": "找导师，免费发布需求 | MatchMax",
           },
           description: {
             en: "Tell us what your child needs: subjects, budget and schedule. MatchMax matches a vetted Hong Kong tutor. Free for parents, no account needed to apply.",
             "zh-HK":
-              "話畀我哋知你小朋友需要咩：科目、預算同時段，MatchMax 會配對合適嘅香港導師。家長免費，申請唔需要帳戶。",
+              "告訴我們子女的需要：科目、預算及時段，MatchMax 為你配對合適的香港導師。家長免費，申請無須帳戶。",
             "zh-CN":
               "告诉我们你的孩子需要什么：科目、预算和时间，MatchMax 会配对合适的香港导师。家长免费，申请不需要账户。",
           },

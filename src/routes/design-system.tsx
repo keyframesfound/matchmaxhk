@@ -229,7 +229,7 @@ function DesignSystemPage() {
                 letterSpacing: "-0.03em",
               }}
             >
-              Display · 搵到啱嘅導師
+              Display · 找到最合適的導師
             </p>
             <h1>Heading 1 · Page title 頁面標題</h1>
             <h2>Heading 2 · Section title</h2>

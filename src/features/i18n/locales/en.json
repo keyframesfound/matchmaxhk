@@ -4434,11 +4434,11 @@
     }
   },
   "checkout": {
-      "title": "Checkout",
-      "subtitle": "Pay securely by card, Apple Pay, AlipayHK or WeChat Pay. You pay exactly the listed price.",
-      "secure": "Secure payment",
-      "loading": "Loading secure checkout...",
-      "back_to_orders": "Back to your orders"
+    "title": "Checkout",
+    "subtitle": "Pay securely by card, Apple Pay, AlipayHK or WeChat Pay. You pay exactly the listed price.",
+    "secure": "Secure payment",
+    "loading": "Loading secure checkout...",
+    "back_to_orders": "Back to your orders"
   },
   "notes_option_a": {
     "fee_title": "Your estimated earnings",
@@ -4475,7 +4475,7 @@
     "checkout_success": "Purchase confirmed — download ready.",
     "checkout_confirming": "Confirming your payment… your download appears here in a moment.",
     "checkout_cancelled": "Payment was not completed. You have not been charged.",
-  "checkout_unavailable": "Checkout is temporarily unavailable. Please try again shortly.",
+    "checkout_unavailable": "Checkout is temporarily unavailable. Please try again shortly.",
     "receipt_hint": "Keep this reference for your records. Your receipt has been emailed to you.",
     "continue_payment": "Continue to payment",
     "seller_sold": "Material sold — funds in 72-hour protection hold",

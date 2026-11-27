@@ -90,7 +90,7 @@ export const Route = createFileRoute("/notes/$slug")({
     };
     const description: LocaleCopy = {
       en: "Preview and buy study notes on MatchMax.",
-      "zh-HK": "喺 MatchMax 睇預覽、買學習筆記，由香港導師上載。",
+      "zh-HK": "在 MatchMax 預覽及購買由香港導師上載的學習筆記。",
       "zh-CN": "在 MatchMax 查看预览、购买学习笔记，由香港导师上传。",
     };
     return {

@@ -13,7 +13,7 @@ export const Route = createFileRoute("/become-a-tutor")({
         },
         description: {
           en: "Apply to join MatchMax as a tutor in Hong Kong.",
-          "zh-HK": "申請成為 MatchMax 香港導師，建立導師檔案，設定科目同收費，等家長搵到你。",
+          "zh-HK": "申請成為 MatchMax 香港導師，建立導師檔案，設定科目及收費，讓家長輕鬆找到你。",
           "zh-CN": "申请成为 MatchMax 香港导师，建立导师档案，设置科目和收费，让家长找到你。",
         },
       }),

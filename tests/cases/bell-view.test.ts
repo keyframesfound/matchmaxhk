@@ -96,7 +96,7 @@ describe("#671 copy samples (EN + 繁中 templates)", () => {
   it("Rating prompt renders 'Rate your lesson with {Tutor}' once the producer supplies a name", () => {
     const item = { event_type: "lesson.review_prompt", payload: { tutor_name: "Ms Chan" } };
     expect(bellLabel(item, ten)).toBe("Rate your lesson with Ms Chan");
-    expect(bellLabel(item, tzh)).toBe("為同 Ms Chan 嘅課堂評分");
+    expect(bellLabel(item, tzh)).toBe("為與 Ms Chan 的課堂評分");
     // today's producer carries tutor_id only → standing static label.
     const today = { event_type: "lesson.review_prompt", payload: { tutor_id: "t1" } };
     expect(bellLabel(today, ten)).toBe(en.sor.bell_review_prompt);
