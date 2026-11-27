@@ -1,4 +1,6 @@
 import { cloneElement, isValidElement, useEffect, useMemo, useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
+import { spring } from "@/lib/motion-tokens";
 import {
   AlertCircle,
   ArrowLeft,
@@ -1206,6 +1208,9 @@ export function ApplicationForm({ completePending = false }: { completePending?:
     setReferralCode(match ? match[0] : readStoredReferralCode());
   }, []);
   const [step, setStep] = useState(1);
+  // #713 AC-FRM-1: +1 forward / -1 back, read by the step slide.
+  const stepDirection = useRef<1 | -1>(1);
+  const reduceMotion = useReducedMotion();
   const [done, setDone] = useState(false);
   // Remembered at submit time so the WhatsApp activation deep link can greet
   // the MatchMax team with the applicant's name.
@@ -1767,6 +1772,7 @@ export function ApplicationForm({ completePending = false }: { completePending?:
 
   function changeStep(nextStep: number) {
     shouldScrollToStepper.current = true;
+    stepDirection.current = nextStep >= step ? 1 : -1;
     setStep(nextStep);
   }
 
@@ -3017,13 +3023,18 @@ export function ApplicationForm({ completePending = false }: { completePending?:
                   {isComplete ? <Check className="h-4 w-4" aria-hidden="true" /> : stepNumber}
                 </button>
                 {stepNumber < stepTitles.length ? (
+                  // #713 AC-FRM-1: the connector fills on spring.smooth.
                   <span
-                    className={cn(
-                      "h-px flex-1",
-                      stepNumber < step ? "bg-[color:var(--ink)]" : "bg-border",
-                    )}
+                    className="relative h-px flex-1 overflow-hidden bg-border"
                     aria-hidden="true"
-                  />
+                  >
+                    <motion.span
+                      className="absolute inset-0 origin-left bg-[color:var(--ink)]"
+                      initial={false}
+                      animate={{ scaleX: stepNumber < step ? 1 : 0 }}
+                      transition={reduceMotion ? { duration: 0 } : spring.smooth}
+                    />
+                  </span>
                 ) : null}
               </li>
             );
@@ -3031,1784 +3042,1815 @@ export function ApplicationForm({ completePending = false }: { completePending?:
         </ol>
 
         <div ref={stepperRef}>
-          {draftSavedAt ? (
-            <p className="mb-3 text-xs font-medium text-muted-foreground" aria-live="polite">
-              {t("common.draft_saved")}
-            </p>
-          ) : null}
-          {referralCode ? (
-            <div className="mb-6 flex items-start gap-2.5 rounded-sm border border-border bg-[color:var(--surface)] px-4 py-3 text-sm leading-relaxed text-muted-foreground">
-              <Gift className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              <span>
-                {t("join.form.referral_prefix")}{" "}
-                <span className="font-medium text-[color:var(--ink)]">{referralCode}</span>
-                {t("join.form.referral_suffix")}
-              </span>
-            </div>
-          ) : null}
-          {(error || Object.keys(fieldErrors).length > 0) && (
-            <div
-              role="alert"
-              className="mb-6 flex items-start gap-2.5 rounded-sm border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium leading-relaxed text-destructive"
-            >
-              <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
-              <div className="min-w-0">
-                {error ? <span>{error}</span> : null}
-                {Object.keys(fieldErrors).length > 0 ? (
-                  <>
-                    <span className={error ? "mt-1.5 block" : undefined}>
-                      {t("join.form.error_summary")}
-                    </span>
-                    <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs font-semibold">
-                      {Object.keys(fieldErrors).map((key) => (
-                        <li key={key}>{describeFieldError(key, t)}</li>
-                      ))}
-                    </ul>
-                  </>
-                ) : null}
+          {/* #713 AC-FRM-1: the step slides in from the side it was entered
+              (forward from the right, back from the left) on spring.smooth.
+              It starts partly visible, so there is never a blank white frame;
+              reduced motion swaps instantly. */}
+          <motion.div
+            key={step}
+            initial={reduceMotion ? false : { opacity: 0.35, x: stepDirection.current * 24 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={reduceMotion ? { duration: 0 } : spring.smooth}
+          >
+            {draftSavedAt ? (
+              <p className="mb-3 text-xs font-medium text-muted-foreground" aria-live="polite">
+                {t("common.draft_saved")}
+              </p>
+            ) : null}
+            {referralCode ? (
+              <div className="mb-6 flex items-start gap-2.5 rounded-sm border border-border bg-[color:var(--surface)] px-4 py-3 text-sm leading-relaxed text-muted-foreground">
+                <Gift className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <span>
+                  {t("join.form.referral_prefix")}{" "}
+                  <span className="font-medium text-[color:var(--ink)]">{referralCode}</span>
+                  {t("join.form.referral_suffix")}
+                </span>
               </div>
-            </div>
-          )}
-          {step === 1 ? (
-            <>
-              <Heading
-                step={1}
-                titleKey={
-                  professional
-                    ? "join.form.heading_basic_professional"
-                    : "join.form.heading_basic_info"
-                }
-              />
-              <Field label={t("join.form.profile_photo")} optional className="sm:col-span-2">
-                <ProfilePhotoUpload
-                  file={base.photo}
-                  onSelect={(photo) => setBaseField("photo", photo)}
-                  onRemove={() => setBaseField("photo", null)}
+            ) : null}
+            {(error || Object.keys(fieldErrors).length > 0) && (
+              <div
+                role="alert"
+                className="mb-6 flex items-start gap-2.5 rounded-sm border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm font-medium leading-relaxed text-destructive"
+              >
+                <AlertCircle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+                <div className="min-w-0">
+                  {error ? <span>{error}</span> : null}
+                  {Object.keys(fieldErrors).length > 0 ? (
+                    <>
+                      <span className={error ? "mt-1.5 block" : undefined}>
+                        {t("join.form.error_summary")}
+                      </span>
+                      <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-xs font-semibold">
+                        {Object.keys(fieldErrors).map((key) => (
+                          <li key={key}>{describeFieldError(key, t)}</li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : null}
+                </div>
+              </div>
+            )}
+            {step === 1 ? (
+              <>
+                <Heading
+                  step={1}
+                  titleKey={
+                    professional
+                      ? "join.form.heading_basic_professional"
+                      : "join.form.heading_basic_info"
+                  }
                 />
-                {/* Issue #215: warning only, a photo never blocks the form
+                <Field label={t("join.form.profile_photo")} optional className="sm:col-span-2">
+                  <ProfilePhotoUpload
+                    file={base.photo}
+                    onSelect={(photo) => setBaseField("photo", photo)}
+                    onRemove={() => setBaseField("photo", null)}
+                  />
+                  {/* Issue #215: warning only, a photo never blocks the form
                     in v1; contact-in-photo reports go through staff review. */}
-                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                  Face or teaching photo only. No contact details in the photo, no phone number,
-                  handle, or QR code. Reports are reviewed.
-                </p>
-              </Field>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="grid content-start gap-4">
-                  <Field label={t("join.form.full_name")} required error={fieldErrors.name}>
-                    <Input
-                      value={base.name}
-                      onChange={(event) => setBaseField("name", event.target.value)}
-                      placeholder="Chan Hau Yui Hauzton"
-                    />
-                  </Field>
-                  <Field
-                    label={t("join.display_name_label")}
-                    optional
-                    hint={t("join.display_name_hint")}
-                    error={fieldErrors.preferredName}
-                  >
-                    <Input
-                      value={base.preferredName}
-                      onChange={(event) => setBaseField("preferredName", event.target.value)}
-                      placeholder="Dr Chan"
-                      maxLength={80}
-                    />
-                  </Field>
-                  <Field
-                    label={t("join.form.email")}
-                    required={Boolean(user)}
-                    error={fieldErrors.email}
-                    hint={
-                      user ? t("join.account_email_hint") : t("pending_submit.guest_email_hint")
-                    }
-                  >
-                    {/* Issue #718: the card + claim are keyed on the ACCOUNT
+                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                    Face or teaching photo only. No contact details in the photo, no phone number,
+                    handle, or QR code. Reports are reviewed.
+                  </p>
+                </Field>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="grid content-start gap-4">
+                    <Field label={t("join.form.full_name")} required error={fieldErrors.name}>
+                      <Input
+                        value={base.name}
+                        onChange={(event) => setBaseField("name", event.target.value)}
+                        placeholder="Chan Hau Yui Hauzton"
+                      />
+                    </Field>
+                    <Field
+                      label={t("join.display_name_label")}
+                      optional
+                      hint={t("join.display_name_hint")}
+                      error={fieldErrors.preferredName}
+                    >
+                      <Input
+                        value={base.preferredName}
+                        onChange={(event) => setBaseField("preferredName", event.target.value)}
+                        placeholder="Dr Chan"
+                        maxLength={80}
+                      />
+                    </Field>
+                    <Field
+                      label={t("join.form.email")}
+                      required={Boolean(user)}
+                      error={fieldErrors.email}
+                      hint={
+                        user ? t("join.account_email_hint") : t("pending_submit.guest_email_hint")
+                      }
+                    >
+                      {/* Issue #718: the card + claim are keyed on the ACCOUNT
                         email (publish RPC email lock + confirm_tutor_claim),
                         so the intake shows the account email read-only.
                         #759 Part 1: for guests it fills from the Google
                         account the moment they sign in to submit. */}
-                    <Input
-                      type="email"
-                      readOnly
-                      value={base.email}
-                      onChange={(event) => setBaseField("email", event.target.value)}
-                      placeholder={
-                        user ? "hauzton.chan@gmail.com" : t("pending_submit.guest_email_hint")
+                      <Input
+                        type="email"
+                        readOnly
+                        value={base.email}
+                        onChange={(event) => setBaseField("email", event.target.value)}
+                        placeholder={
+                          user ? "hauzton.chan@gmail.com" : t("pending_submit.guest_email_hint")
+                        }
+                      />
+                    </Field>
+                    <Field
+                      label={t("join.form.country_region")}
+                      required
+                      error={fieldErrors.country}
+                    >
+                      <SearchableSelect
+                        value={base.country}
+                        onChange={setCountry}
+                        options={COUNTRY_OPTIONS}
+                        placeholder={t("join.form.choose_country")}
+                        searchPlaceholder={t("join.form.search_countries")}
+                        emptyText={t("join.form.no_country_match")}
+                        className={controlClassName}
+                        invalid={Boolean(fieldErrors.country)}
+                      />
+                      {base.country === "Other" ? (
+                        <div className="mt-2">
+                          <Input
+                            className={cn(
+                              controlClassName,
+                              fieldErrors.countryOther && invalidInputClassName,
+                            )}
+                            aria-invalid={fieldErrors.countryOther ? true : undefined}
+                            value={base.countryOther}
+                            onChange={(event) => setBaseField("countryOther", event.target.value)}
+                            placeholder={t("join.form.enter_country")}
+                          />
+                          {fieldErrors.countryOther ? (
+                            <p className="mt-1 text-xs font-semibold text-destructive">
+                              {fieldErrors.countryOther}
+                            </p>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </Field>
+                    {/* Issue #798: City / locality sits directly under Country. */}
+                    <Field
+                      label={t("join.city")}
+                      required
+                      error={fieldErrors.city}
+                      hint={t("join.city_hint")}
+                    >
+                      <Input
+                        value={base.city}
+                        onChange={(event) => setBaseField("city", event.target.value)}
+                        autoComplete="address-level2"
+                        maxLength={80}
+                      />
+                    </Field>
+                    {/* Issue #798: the confirmed IANA zone. The datalist is a
+                      suggestion list only; the field accepts any valid zone. */}
+                    <Field
+                      label={t("join.time_zone")}
+                      required
+                      error={fieldErrors.timeZone}
+                      hint={
+                        <>
+                          <span className="block">{t("join.time_zone_hint")}</span>
+                          {showBrowserZoneHint ? (
+                            <span className="block">{t("join.time_zone_hint_browser")}</span>
+                          ) : null}
+                        </>
                       }
+                    >
+                      <Input
+                        list="tutor-time-zone-options"
+                        value={base.timeZone}
+                        onChange={(event) => {
+                          // A manual edit confirms the value; suggestions never
+                          // overwrite it again (see setCountry).
+                          setTimeZoneTouched(true);
+                          setBaseField("timeZone", event.target.value);
+                        }}
+                        autoComplete="off"
+                        spellCheck={false}
+                        maxLength={64}
+                      />
+                    </Field>
+                    <datalist id="tutor-time-zone-options">
+                      {timeZoneOptions.map((zone) => (
+                        <option key={zone} value={zone} />
+                      ))}
+                    </datalist>
+                  </div>
+                  <div className="grid content-start gap-4">
+                    <Field label={t("join.form.phone_whatsapp")} required error={fieldErrors.phone}>
+                      <Input
+                        inputMode="tel"
+                        value={base.phone}
+                        onChange={(event) => setBaseField("phone", event.target.value)}
+                        placeholder="+852 9123 4567"
+                      />
+                    </Field>
+                    <Field
+                      label={t("join.form.medium_of_instruction")}
+                      required
+                      error={fieldErrors.medium}
+                    >
+                      <Choices
+                        options={LANGUAGES}
+                        values={base.medium}
+                        onToggle={(language) =>
+                          setBaseField("medium", updateArray(base.medium, language))
+                        }
+                        invalid={Boolean(fieldErrors.medium)}
+                      />
+                    </Field>
+                    {/* Issue #718: gender re-attached from the #576 quick sheet —
+                      parents filter by gender preference, one tap to answer. */}
+                    <Field label={t("join_flow.gender_label")} required error={fieldErrors.gender}>
+                      <SingleChoice
+                        options={ACTIVATION_GENDERS}
+                        value={base.gender}
+                        onChange={(gender) => {
+                          setBaseField("gender", gender);
+                          clearFieldError("gender");
+                        }}
+                        invalid={Boolean(fieldErrors.gender)}
+                        labelFor={(gender) => t(`join_flow.gender_${gender}`)}
+                      />
+                    </Field>
+                    <Field
+                      label={t("join.form.graduation_year")}
+                      error={fieldErrors.graduationYear}
+                    >
+                      <Input
+                        value={base.graduationYear}
+                        onChange={(event) => setBaseField("graduationYear", event.target.value)}
+                        placeholder="2023"
+                      />
+                    </Field>
+                    <Field
+                      label={t("join.form.earliest_availability")}
+                      required
+                      error={fieldErrors.startDate}
+                      hint="Parents see this on your profile, pick when you can truly start."
+                    >
+                      <SingleChoice
+                        options={["Immediately", "From a specific date"]}
+                        value={base.startImmediately ? "Immediately" : "From a specific date"}
+                        onChange={(value) => {
+                          const immediate = value === "Immediately";
+                          setBaseField("startImmediately", immediate);
+                          if (immediate) setBaseField("startDate", "");
+                        }}
+                        invalid={Boolean(fieldErrors.startDate)}
+                      />
+                      {!base.startImmediately ? (
+                        <div className="mt-2">
+                          <DatePicker
+                            label={t("join.form.earliest_availability")}
+                            className={controlClassName}
+                            invalid={Boolean(fieldErrors.startDate)}
+                            value={isoToDate(base.startDate)}
+                            min={new Date()}
+                            onChange={(date) => setBaseField("startDate", dateToIso(date))}
+                          />
+                          {fieldErrors.startDate ? (
+                            <p className="mt-1 text-xs font-semibold text-destructive">
+                              {fieldErrors.startDate}
+                            </p>
+                          ) : null}
+                        </div>
+                      ) : null}
+                    </Field>
+                  </div>
+                  <Field
+                    label={t("join.form.current_status")}
+                    required
+                    error={fieldErrors.status}
+                    className="sm:col-span-2"
+                  >
+                    {/* Issue #658: the SoT taxonomy chip set — 6 primaries + the
+                      2 "More" codes; FT and PT are separate lanes. */}
+                    <SingleChoice
+                      options={STATUS_FORM_OPTIONS}
+                      value={base.status}
+                      onChange={(status) => {
+                        setBaseField("status", status);
+                        setRoles(
+                          status === "Exam Marker / Specialist"
+                            ? ["Official examiner / moderator"]
+                            : [],
+                        );
+                      }}
+                      invalid={Boolean(fieldErrors.status)}
                     />
-                  </Field>
-                  <Field label={t("join.form.country_region")} required error={fieldErrors.country}>
-                    <SearchableSelect
-                      value={base.country}
-                      onChange={setCountry}
-                      options={COUNTRY_OPTIONS}
-                      placeholder={t("join.form.choose_country")}
-                      searchPlaceholder={t("join.form.search_countries")}
-                      emptyText={t("join.form.no_country_match")}
-                      className={controlClassName}
-                      invalid={Boolean(fieldErrors.country)}
-                    />
-                    {base.country === "Other" ? (
+                    {base.status === "Other" ? (
                       <div className="mt-2">
                         <Input
                           className={cn(
                             controlClassName,
-                            fieldErrors.countryOther && invalidInputClassName,
+                            fieldErrors.statusOther && invalidInputClassName,
                           )}
-                          aria-invalid={fieldErrors.countryOther ? true : undefined}
-                          value={base.countryOther}
-                          onChange={(event) => setBaseField("countryOther", event.target.value)}
-                          placeholder={t("join.form.enter_country")}
+                          aria-invalid={fieldErrors.statusOther ? true : undefined}
+                          value={base.statusOther}
+                          onChange={(event) => setBaseField("statusOther", event.target.value)}
+                          placeholder={t("join.form.please_specify")}
                         />
-                        {fieldErrors.countryOther ? (
+                        {fieldErrors.statusOther ? (
                           <p className="mt-1 text-xs font-semibold text-destructive">
-                            {fieldErrors.countryOther}
+                            {fieldErrors.statusOther}
                           </p>
                         ) : null}
                       </div>
                     ) : null}
-                  </Field>
-                  {/* Issue #798: City / locality sits directly under Country. */}
-                  <Field
-                    label={t("join.city")}
-                    required
-                    error={fieldErrors.city}
-                    hint={t("join.city_hint")}
-                  >
-                    <Input
-                      value={base.city}
-                      onChange={(event) => setBaseField("city", event.target.value)}
-                      autoComplete="address-level2"
-                      maxLength={80}
-                    />
-                  </Field>
-                  {/* Issue #798: the confirmed IANA zone. The datalist is a
-                      suggestion list only; the field accepts any valid zone. */}
-                  <Field
-                    label={t("join.time_zone")}
-                    required
-                    error={fieldErrors.timeZone}
-                    hint={
-                      <>
-                        <span className="block">{t("join.time_zone_hint")}</span>
-                        {showBrowserZoneHint ? (
-                          <span className="block">{t("join.time_zone_hint_browser")}</span>
-                        ) : null}
-                      </>
-                    }
-                  >
-                    <Input
-                      list="tutor-time-zone-options"
-                      value={base.timeZone}
-                      onChange={(event) => {
-                        // A manual edit confirms the value; suggestions never
-                        // overwrite it again (see setCountry).
-                        setTimeZoneTouched(true);
-                        setBaseField("timeZone", event.target.value);
-                      }}
-                      autoComplete="off"
-                      spellCheck={false}
-                      maxLength={64}
-                    />
-                  </Field>
-                  <datalist id="tutor-time-zone-options">
-                    {timeZoneOptions.map((zone) => (
-                      <option key={zone} value={zone} />
-                    ))}
-                  </datalist>
-                </div>
-                <div className="grid content-start gap-4">
-                  <Field label={t("join.form.phone_whatsapp")} required error={fieldErrors.phone}>
-                    <Input
-                      inputMode="tel"
-                      value={base.phone}
-                      onChange={(event) => setBaseField("phone", event.target.value)}
-                      placeholder="+852 9123 4567"
-                    />
-                  </Field>
-                  <Field
-                    label={t("join.form.medium_of_instruction")}
-                    required
-                    error={fieldErrors.medium}
-                  >
-                    <Choices
-                      options={LANGUAGES}
-                      values={base.medium}
-                      onToggle={(language) =>
-                        setBaseField("medium", updateArray(base.medium, language))
-                      }
-                      invalid={Boolean(fieldErrors.medium)}
-                    />
-                  </Field>
-                  {/* Issue #718: gender re-attached from the #576 quick sheet —
-                      parents filter by gender preference, one tap to answer. */}
-                  <Field label={t("join_flow.gender_label")} required error={fieldErrors.gender}>
-                    <SingleChoice
-                      options={ACTIVATION_GENDERS}
-                      value={base.gender}
-                      onChange={(gender) => {
-                        setBaseField("gender", gender);
-                        clearFieldError("gender");
-                      }}
-                      invalid={Boolean(fieldErrors.gender)}
-                      labelFor={(gender) => t(`join_flow.gender_${gender}`)}
-                    />
-                  </Field>
-                  <Field label={t("join.form.graduation_year")} error={fieldErrors.graduationYear}>
-                    <Input
-                      value={base.graduationYear}
-                      onChange={(event) => setBaseField("graduationYear", event.target.value)}
-                      placeholder="2023"
-                    />
-                  </Field>
-                  <Field
-                    label={t("join.form.earliest_availability")}
-                    required
-                    error={fieldErrors.startDate}
-                    hint="Parents see this on your profile, pick when you can truly start."
-                  >
-                    <SingleChoice
-                      options={["Immediately", "From a specific date"]}
-                      value={base.startImmediately ? "Immediately" : "From a specific date"}
-                      onChange={(value) => {
-                        const immediate = value === "Immediately";
-                        setBaseField("startImmediately", immediate);
-                        if (immediate) setBaseField("startDate", "");
-                      }}
-                      invalid={Boolean(fieldErrors.startDate)}
-                    />
-                    {!base.startImmediately ? (
-                      <div className="mt-2">
-                        <DatePicker
-                          label={t("join.form.earliest_availability")}
-                          className={controlClassName}
-                          invalid={Boolean(fieldErrors.startDate)}
-                          value={isoToDate(base.startDate)}
-                          min={new Date()}
-                          onChange={(date) => setBaseField("startDate", dateToIso(date))}
-                        />
-                        {fieldErrors.startDate ? (
-                          <p className="mt-1 text-xs font-semibold text-destructive">
-                            {fieldErrors.startDate}
-                          </p>
-                        ) : null}
-                      </div>
-                    ) : null}
-                  </Field>
-                </div>
-                <Field
-                  label={t("join.form.current_status")}
-                  required
-                  error={fieldErrors.status}
-                  className="sm:col-span-2"
-                >
-                  {/* Issue #658: the SoT taxonomy chip set — 6 primaries + the
-                      2 "More" codes; FT and PT are separate lanes. */}
-                  <SingleChoice
-                    options={STATUS_FORM_OPTIONS}
-                    value={base.status}
-                    onChange={(status) => {
-                      setBaseField("status", status);
-                      setRoles(
-                        status === "Exam Marker / Specialist"
-                          ? ["Official examiner / moderator"]
-                          : [],
-                      );
-                    }}
-                    invalid={Boolean(fieldErrors.status)}
-                  />
-                  {base.status === "Other" ? (
-                    <div className="mt-2">
-                      <Input
-                        className={cn(
-                          controlClassName,
-                          fieldErrors.statusOther && invalidInputClassName,
-                        )}
-                        aria-invalid={fieldErrors.statusOther ? true : undefined}
-                        value={base.statusOther}
-                        onChange={(event) => setBaseField("statusOther", event.target.value)}
-                        placeholder={t("join.form.please_specify")}
-                      />
-                      {fieldErrors.statusOther ? (
-                        <p className="mt-1 text-xs font-semibold text-destructive">
-                          {fieldErrors.statusOther}
-                        </p>
-                      ) : null}
-                    </div>
-                  ) : null}
-                  {(PROFESSIONAL_FORM_STATUSES as readonly string[]).includes(base.status) ||
-                  roles.includes("Official examiner / moderator") ? (
-                    <div className="mt-4">
-                      <label className={labelClassName}>
-                        Examining Board(s)
-                        {fieldErrors.boards ? <RequiredFlag /> : null}
-                      </label>
-                      <div className="mt-1.5">
-                        <Choices
-                          options={EXAMINING_BOARD_OPTIONS}
-                          values={boards}
-                          onToggle={(board) => {
-                            setBoards(updateArray(boards, board));
-                            clearFieldError("boards");
-                          }}
-                          invalid={Boolean(fieldErrors.boards)}
-                        />
-                      </div>
-                    </div>
-                  ) : null}
-                </Field>
-              </div>
-            </>
-          ) : null}
-
-          {step === 2 ? (
-            <>
-              <Heading
-                step={2}
-                titleKey={
-                  professional
-                    ? "join.form.heading_academics_professional"
-                    : "join.form.heading_academics"
-                }
-              />
-              {/* #545: one-click prefill from the user's Education CV. */}
-              <div className="sm:col-span-2 rounded-xl border border-border bg-[color:var(--foreground)]/[0.02] p-4">
-                <p className="text-sm text-muted-foreground">
-                  {cvPrefill === null
-                    ? "Have an Education CV on your MatchMax account? Import it to skip re-typing your academic history."
-                    : cvPrefill.length === 0
-                      ? "No Education CV records found on your account."
-                      : `${cvPrefill.length} record${cvPrefill.length === 1 ? "" : "s"} found on your Education CV.`}
-                </p>
-                <div className="mt-2 flex gap-2">
-                  {cvPrefill === null ? (
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      disabled={cvPrefillBusy}
-                      onClick={loadCvPrefill}
-                    >
-                      {cvPrefillBusy ? "Loading…" : "Check my Education CV"}
-                    </Button>
-                  ) : (
-                    cvPrefill.length > 0 && (
-                      <Button type="button" variant="outline" size="sm" onClick={applyCvPrefill}>
-                        Import into this form
-                      </Button>
-                    )
-                  )}
-                </div>
-              </div>
-              {/* Issue #190: target teaching levels route the verticals. */}
-              <Field
-                label={t("join.form.target_teaching_level")}
-                required
-                error={fieldErrors.targetLevels}
-              >
-                <Choices
-                  options={TARGET_TEACHING_LEVELS}
-                  values={targetLevels}
-                  onToggle={(level) => {
-                    setTargetLevels((current) =>
-                      current.includes(level)
-                        ? current.filter((item) => item !== level)
-                        : [...current, level],
-                    );
-                    clearFieldError("targetLevels");
-                  }}
-                  invalid={Boolean(fieldErrors.targetLevels)}
-                />
-              </Field>
-              {targetLevels.includes("University") ? (
-                <div className="grid gap-4 rounded-sm border border-border p-4 sm:grid-cols-2">
-                  <Field
-                    label={t("join.form.current_year_of_study")}
-                    error={fieldErrors.universityYear}
-                  >
-                    <Select
-                      value={universityYear}
-                      onValueChange={(value) => {
-                        setUniversityYear(value);
-                        clearFieldError("universityYear");
-                      }}
-                    >
-                      <SelectTrigger className={controlClassName}>
-                        <SelectValue placeholder={t("join.form.select_year")} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {YEARS_OF_STUDY.map((year) => (
-                          <SelectItem key={year} value={year}>
-                            {verticalLabels.years[year]}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                  <Field label={t("join.form.cumulative_gpa")} error={fieldErrors.universityGpa}>
-                    <Input
-                      value={universityGpa}
-                      onChange={(event) => {
-                        setUniversityGpa(event.target.value);
-                        clearFieldError("universityGpa");
-                      }}
-                      inputMode="decimal"
-                      placeholder="e.g. 3.85"
-                    />
-                    <Hint>{t("join.form.gpa_hint")}</Hint>
-                  </Field>
-                  <div className="sm:col-span-2">
-                    <Field
-                      label={t("join.form.university_courses")}
-                      required={verticalOnlyUni}
-                      error={fieldErrors.universityCourses}
-                    >
-                      <CourseTagEditor
-                        entries={universityCourses}
-                        onChange={(next) => {
-                          setUniversityCourses(next);
-                          clearFieldError("universityCourses");
-                        }}
-                        placeholder="Type a course code or name, e.g. ECON1210"
-                      />
-                      <Hint>
-                        Course codes are searchable, students looking for ECON1210 will find you.
-                      </Hint>
-                    </Field>
-                  </div>
-                  <div className="sm:col-span-2">
-                    <Field
-                      label={t("join.form.course_specific_grades")}
-                      error={fieldErrors.courseGrades}
-                    >
-                      <CourseGradeEditor
-                        rows={courseGrades}
-                        onChange={(next) => {
-                          setCourseGrades(next);
-                          clearFieldError("courseGrades");
-                        }}
-                      />
-                      <Hint>{t("join.form.course_grades_hint")}</Hint>
-                    </Field>
-                  </div>
-                </div>
-              ) : null}
-              {targetLevels.includes("Kindergarten") ? (
-                <div className="rounded-sm border border-border p-4">
-                  <Field
-                    label={t("join.form.kindergarten_topics")}
-                    required={verticalOnlyKind}
-                    error={fieldErrors.kindergartenTopics}
-                  >
-                    <Choices
-                      options={[...KINDERGARTEN_TOPICS]}
-                      values={kindergartenTopics}
-                      onToggle={(topic) => {
-                        setKindergartenTopics((current) =>
-                          current.includes(topic)
-                            ? current.filter((item) => item !== topic)
-                            : [...current, topic],
-                        );
-                        clearFieldError("kindergartenTopics");
-                      }}
-                      invalid={Boolean(fieldErrors.kindergartenTopics)}
-                    />
-                  </Field>
-                </div>
-              ) : null}
-              <div className="grid gap-4 sm:grid-cols-2">
-                {professional ? (
-                  <Field
-                    label={t("join.form.teaching_qualifications")}
-                    required
-                    error={fieldErrors.credentials}
-                  >
-                    <Choices
-                      options={TEACHING_QUALIFICATION_OPTIONS}
-                      values={credentials}
-                      onToggle={(credential) => {
-                        setCredentials(updateArray(credentials, credential));
-                        clearFieldError("credentials");
-                      }}
-                      invalid={Boolean(fieldErrors.credentials)}
-                    />
-                  </Field>
-                ) : (
-                  <>
-                    <Field
-                      label={t("join.form.secondary_school")}
-                      required
-                      error={fieldErrors.highSchool}
-                    >
-                      <Input
-                        value={base.highSchool}
-                        onChange={(event) => setBaseField("highSchool", event.target.value)}
-                        placeholder="Diocesan Boys' School, 2023"
-                      />
-                    </Field>
-                    <Field
-                      label={t("join.form.current_year_of_study")}
-                      required
-                      error={fieldErrors.year}
-                    >
-                      <Input
-                        value={base.year}
-                        onChange={(event) => setBaseField("year", event.target.value)}
-                        placeholder="Year 1, Year 2, Graduate"
-                      />
-                    </Field>
-                  </>
-                )}
-                <Field label={t("join.form.university")} required error={fieldErrors.university}>
-                  <Input
-                    value={base.university}
-                    onChange={(event) => setBaseField("university", event.target.value)}
-                    placeholder="HKUST"
-                    list="university-suggestions"
-                  />
-                  {/* Issue #190: suggestions + free text, any university works. */}
-                  <datalist id="university-suggestions">
-                    {UNIVERSITY_SUGGESTIONS.map((name) => (
-                      <option key={name} value={name} />
-                    ))}
-                  </datalist>
-                </Field>
-                <Field
-                  label={t("join.form.degree_programme")}
-                  required
-                  error={fieldErrors.programme}
-                >
-                  <Input
-                    value={base.programme}
-                    onChange={(event) => setBaseField("programme", event.target.value)}
-                    placeholder="BBA Global Business & BSc Computer Science"
-                  />
-                </Field>
-                {!professional ? (
-                  <div className="sm:col-span-2">
-                    <label className="flex cursor-pointer items-center gap-2 text-sm text-[color:var(--ink)]">
-                      <Checkbox
-                        checked={base.hasPostgrad}
-                        onCheckedChange={(checked) => {
-                          setBaseField("hasPostgrad", checked === true);
-                          if (!checked) {
-                            clearFieldError("postgradUniversity");
-                            clearFieldError("postgradDegree");
-                          }
-                        }}
-                      />
-                      <span>
-                        I hold or am pursuing a Master&apos;s / Postgraduate / Dual Degree
-                      </span>
-                    </label>
-                  </div>
-                ) : null}
-                {base.hasPostgrad ? (
-                  <>
-                    <Field
-                      label={t("join.form.postgrad_university")}
-                      required
-                      error={fieldErrors.postgradUniversity}
-                    >
-                      <Input
-                        value={base.postgradUniversity}
-                        onChange={(event) => setBaseField("postgradUniversity", event.target.value)}
-                        placeholder="University of Edinburgh"
-                      />
-                    </Field>
-                    <Field
-                      label={t("join.form.postgrad_degree")}
-                      required
-                      error={fieldErrors.postgradDegree}
-                    >
-                      <Input
-                        value={base.postgradDegree}
-                        onChange={(event) => setBaseField("postgradDegree", event.target.value)}
-                        placeholder="MSc Theoretical Physics"
-                      />
-                    </Field>
-                  </>
-                ) : null}
-                {!professional && !verticalOnly ? (
-                  <div className="sm:col-span-2">
-                    <Hint>
-                      Parents and students actively seek alumni from their own secondary schools, or
-                      mentors from their dream universities and majors. Accurate details increase
-                      your chances of securing a premium case.
-                    </Hint>
-                    {qualifications.map((qualification, index) => (
-                      <div key={index} className="mt-4 rounded-sm border border-border p-4">
-                        <div className="grid gap-4 sm:grid-cols-2 sm:items-start">
-                          <Field
-                            label={index === 0 ? "Primary Curriculum" : "Additional Qualification"}
-                            required
-                            error={fieldErrors[`curriculum-${index}`]}
-                          >
-                            <div className="flex items-center gap-2">
-                              <SingleChoice
-                                options={CURRICULUM_OPTIONS}
-                                value={qualification.curriculum}
-                                onChange={(curriculum) =>
-                                  updateQualification(index, blankQualification(curriculum))
-                                }
-                                invalid={Boolean(fieldErrors[`curriculum-${index}`])}
-                              />
-                              {index > 0 ? (
-                                <Button
-                                  type="button"
-                                  size="icon"
-                                  variant="ghost"
-                                  onClick={() =>
-                                    setQualifications((previous) =>
-                                      previous.filter((_, itemIndex) => itemIndex !== index),
-                                    )
-                                  }
-                                >
-                                  <Trash2 />
-                                </Button>
-                              ) : null}
-                            </div>
-                          </Field>
-                          <Field
-                            label={
-                              qualification.curriculum === "HKDSE"
-                                ? "Best 5 Score"
-                                : qualification.curriculum === IELTS_CURRICULUM
-                                  ? "Overall Band Score"
-                                  : ["IBDP", "SAT", ISAT_CURRICULUM].includes(
-                                        qualification.curriculum,
-                                      ) || isUcatCurriculum(qualification.curriculum)
-                                    ? "Overall Achieved Score"
-                                    : "Overall Achieved Grades"
-                            }
-                            error={fieldErrors[`overall-${index}`]}
-                          >
-                            <Input
-                              type={
-                                ["IBDP", "HKDSE", "SAT", ISAT_CURRICULUM].includes(
-                                  qualification.curriculum,
-                                ) || isUcatCurriculum(qualification.curriculum)
-                                  ? "number"
-                                  : "text"
-                              }
-                              value={qualification.overall}
-                              onChange={(event) => {
-                                const value = event.target.value;
-                                const fixedSubject = FIXED_SCORE_SUBJECTS[qualification.curriculum];
-                                if (
-                                  fixedSubject &&
-                                  qualification.scores[0]?.subject === fixedSubject
-                                ) {
-                                  updateQualification(index, {
-                                    overall: value,
-                                    scores: qualification.scores.map((score, scoreIndex) =>
-                                      scoreIndex === 0 ? { ...score, grade: value } : score,
-                                    ),
-                                  });
-                                  return;
-                                }
-                                updateQualification(index, { overall: value });
-                              }}
-                              placeholder={
-                                qualification.curriculum === "IBDP"
-                                  ? "43"
-                                  : qualification.curriculum === "HKDSE"
-                                    ? "32"
-                                    : qualification.curriculum === "SAT"
-                                      ? "1450"
-                                      : qualification.curriculum === ISAT_CURRICULUM
-                                        ? "165"
-                                        : isUcatCurriculum(qualification.curriculum)
-                                          ? "2450"
-                                          : qualification.curriculum === IELTS_CURRICULUM
-                                            ? "8.0"
-                                            : "A*AA"
-                              }
-                            />
-                          </Field>
-                          {["A-Level", "IGCSE / GCSE"].includes(qualification.curriculum) ? (
-                            <Field
-                              label={t("join.form.exam_boards")}
-                              required
-                              error={fieldErrors[`boards-${index}`]}
-                              className="sm:col-span-2"
-                            >
-                              <Choices
-                                options={[
-                                  "Cambridge CAIE",
-                                  "Pearson Edexcel",
-                                  "AQA",
-                                  "OxfordAQA",
-                                  "OCR",
-                                ]}
-                                values={qualification.boards}
-                                onToggle={(board) =>
-                                  updateQualification(index, {
-                                    boards: updateArray(qualification.boards, board),
-                                  })
-                                }
-                                invalid={Boolean(fieldErrors[`boards-${index}`])}
-                              />
-                            </Field>
-                          ) : null}
-                          {qualification.curriculum === "HKDSE" ? (
-                            <Field label={t("join.form.best_6_score")}>
-                              <Input
-                                type="number"
-                                value={qualification.best6}
-                                onChange={(event) =>
-                                  updateQualification(index, { best6: event.target.value })
-                                }
-                                placeholder="36"
-                              />
-                            </Field>
-                          ) : null}
-                        </div>
-                        <div className="mt-5 border-t border-border pt-5">
-                          <h3 className="text-base font-bold text-[color:var(--ink)]">
-                            Subject Scores
-                          </h3>
-                          <Hint>
-                            List your full academic profile. Specific paper grades or breakdowns
-                            highlight niche strengths for parents looking for targeted support.
-                          </Hint>
-                          <div className="mt-4">{scoreEditor(qualification, index)}</div>
-                        </div>
-                      </div>
-                    ))}
-                    <Button
-                      type="button"
-                      variant="outline"
-                      className="mt-4 rounded-sm"
-                      onClick={() =>
-                        setQualifications((previous) => [
-                          ...previous,
-                          blankQualification("IGCSE / GCSE"),
-                        ])
-                      }
-                    >
-                      <Plus /> Add another qualification
-                    </Button>
-                    <Hint>
-                      Did you also complete IGCSE, MYP, IELTS, or another prior qualification?
-                      Adding them opens you to a wider pool of potential cases.
-                    </Hint>
-                  </div>
-                ) : null}
-              </div>
-              {/* Issue #323: required smart headline, auto-filled from the
-                  qualifications while pristine; manual edits freeze it. */}
-              <div className="mt-4">
-                <Field
-                  label={t("join.form.academic_headline")}
-                  required
-                  error={fieldErrors.academicHeadline}
-                  hint={`Auto-filled from your qualifications, edit freely. Shown on your public card (${MAX_ACADEMIC_HEADLINE} characters max).`}
-                >
-                  <Input
-                    maxLength={MAX_ACADEMIC_HEADLINE}
-                    value={academicHeadline}
-                    onChange={(event) => {
-                      setAcademicHeadline(event.target.value);
-                      setHeadlineDirty(true);
-                      if (fieldErrors.academicHeadline) clearFieldError("academicHeadline");
-                    }}
-                    onBlur={() => {
-                      if (academicHeadline.trim() === "") setHeadlineDirty(false);
-                    }}
-                    placeholder="e.g. IBDP 44/45 or HKDSE Tutor"
-                  />
-                </Field>
-              </div>
-              {/* Issue #188: legal-warning card removed by product decision. */}
-            </>
-          ) : null}
-
-          {step === 3 ? (
-            <>
-              <Heading step={3} titleKey="join.form.heading_subjects" />
-              <Field
-                label={t("join.form.curriculum")}
-                optional
-                hint="Narrow the subject list to one curriculum, Primary School, Junior Secondary, or University Admissions & Test Prep (SAT, ACT, IELTS, TOEFL, UCAT, ISAT, personal statement, interview and portfolio support)."
-                className="mb-5"
-              >
-                <SearchableSelect
-                  value={taughtCurriculum}
-                  onChange={setTaughtCurriculum}
-                  options={[
-                    { value: "", label: "All curricula" },
-                    ...TEACHING_CURRICULA.map((curriculum) => ({
-                      value: curriculum.value,
-                      label: curriculum.label,
-                    })),
-                  ]}
-                  placeholder={t("join.form.all_curricula")}
-                  searchPlaceholder={t("join.form.search_curriculum")}
-                  className={controlClassName}
-                />
-              </Field>
-              <Field
-                label={t("join.form.subjects_willing")}
-                required
-                hint="Select subjects from your academic profile that you are confident and capable of teaching. You can choose more than one."
-                error={fieldErrors.subjectsTaught}
-              >
-                <SubjectPicker
-                  studiedSubjects={allResultSubjects.filter(
-                    (subject) => !removedStudiedSubjects.includes(subject),
-                  )}
-                  addedSubjects={base.subjectsTaught}
-                  options={[
-                    ...new Set([
-                      ...(taughtCurriculum
-                        ? getSubjectOptionsForCategory(taughtCurriculum)
-                        : DEFAULT_SUBJECT_OPTIONS),
-                      ...allResultSubjects,
-                    ]),
-                  ]}
-                  invalid={Boolean(fieldErrors.subjectsTaught)}
-                  onToggle={(subject) => {
-                    if (allResultSubjects.includes(subject)) {
-                      setRemovedStudiedSubjects((current) =>
-                        current.includes(subject)
-                          ? current.filter((item) => item !== subject)
-                          : [...current, subject],
-                      );
-                      return;
-                    }
-                    setBaseField("subjectsTaught", updateArray(base.subjectsTaught, subject));
-                  }}
-                />
-              </Field>
-            </>
-          ) : null}
-
-          {step === 4 ? (
-            <>
-              <Heading step={4} titleKey="join.form.heading_preferences" />
-              <div className="grid gap-4">
-                <Field
-                  label={t("join.form.mode_of_lesson")}
-                  required
-                  hint="Being open to in-person lessons significantly increases your match rate."
-                  error={fieldErrors.format}
-                >
-                  <SingleChoice
-                    options={FORMAT_OPTIONS}
-                    value={base.format}
-                    onChange={(format) => setBaseField("format", format)}
-                    invalid={Boolean(fieldErrors.format)}
-                  />
-                </Field>
-                {base.format !== "Online" ? (
-                  <Field
-                    label={t("join.form.teaching_locations")}
-                    required
-                    hint="Suggestions use estimated MTR rail and transfer time, not straight-line station distance. Walking time and delays are not included. You can choose more than one station."
-                    error={fieldErrors.stations}
-                  >
-                    <div
-                      className={cn(
-                        "grid gap-3 rounded-sm border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4",
-                        fieldErrors.stations && "border-destructive",
-                      )}
-                    >
-                      <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-                        <div className="grid gap-2">
-                          <label className={labelClassName}>
-                            {t("join.form.starting_station")}
-                          </label>
-                          <SearchableSelect
-                            value={originStation}
-                            onChange={setOrigin}
-                            options={MTR_STATION_OPTIONS}
-                            placeholder={t("join.form.choose_station")}
-                            searchPlaceholder={t("join.form.search_stations")}
-                            className={controlClassName}
+                    {(PROFESSIONAL_FORM_STATUSES as readonly string[]).includes(base.status) ||
+                    roles.includes("Official examiner / moderator") ? (
+                      <div className="mt-4">
+                        <label className={labelClassName}>
+                          Examining Board(s)
+                          {fieldErrors.boards ? <RequiredFlag /> : null}
+                        </label>
+                        <div className="mt-1.5">
+                          <Choices
+                            options={EXAMINING_BOARD_OPTIONS}
+                            values={boards}
+                            onToggle={(board) => {
+                              setBoards(updateArray(boards, board));
+                              clearFieldError("boards");
+                            }}
+                            invalid={Boolean(fieldErrors.boards)}
                           />
                         </div>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="rounded-sm"
-                          onClick={locateOrigin}
-                          disabled={locating}
-                        >
-                          <LocateFixed />
-                          {locating ? "Locating…" : "Use my location"}
-                        </Button>
                       </div>
-                      {locationMessage ? (
-                        <p className="text-xs font-semibold text-[color:var(--ink)]/70">
-                          {locationMessage}
-                        </p>
-                      ) : null}
-                      <div className="grid gap-2">
-                        <label className={labelClassName}>{t("join.form.travel_time")}</label>
-                        <div className="flex flex-wrap gap-2">
-                          {["10", "20", "30"].map((budget) => (
-                            <button
-                              key={budget}
-                              type="button"
-                              disabled={!originStation}
-                              onClick={() => {
-                                setTravelBudget(budget);
-                                setSuggestionStatus("idle");
-                              }}
-                              className={cn(
-                                "rounded-full border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] disabled:cursor-not-allowed disabled:opacity-50",
-                                travelBudget === budget && originStation
-                                  ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-[color:var(--surface-invert-fg)]"
-                                  : "border-border bg-card text-foreground hover:border-[color:var(--foreground)]/25",
-                              )}
-                            >
-                              Within {budget} min
-                            </button>
+                    ) : null}
+                  </Field>
+                </div>
+              </>
+            ) : null}
+
+            {step === 2 ? (
+              <>
+                <Heading
+                  step={2}
+                  titleKey={
+                    professional
+                      ? "join.form.heading_academics_professional"
+                      : "join.form.heading_academics"
+                  }
+                />
+                {/* #545: one-click prefill from the user's Education CV. */}
+                <div className="sm:col-span-2 rounded-xl border border-border bg-[color:var(--foreground)]/[0.02] p-4">
+                  <p className="text-sm text-muted-foreground">
+                    {cvPrefill === null
+                      ? "Have an Education CV on your MatchMax account? Import it to skip re-typing your academic history."
+                      : cvPrefill.length === 0
+                        ? "No Education CV records found on your account."
+                        : `${cvPrefill.length} record${cvPrefill.length === 1 ? "" : "s"} found on your Education CV.`}
+                  </p>
+                  <div className="mt-2 flex gap-2">
+                    {cvPrefill === null ? (
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        disabled={cvPrefillBusy}
+                        onClick={loadCvPrefill}
+                      >
+                        {cvPrefillBusy ? "Loading…" : "Check my Education CV"}
+                      </Button>
+                    ) : (
+                      cvPrefill.length > 0 && (
+                        <Button type="button" variant="outline" size="sm" onClick={applyCvPrefill}>
+                          Import into this form
+                        </Button>
+                      )
+                    )}
+                  </div>
+                </div>
+                {/* Issue #190: target teaching levels route the verticals. */}
+                <Field
+                  label={t("join.form.target_teaching_level")}
+                  required
+                  error={fieldErrors.targetLevels}
+                >
+                  <Choices
+                    options={TARGET_TEACHING_LEVELS}
+                    values={targetLevels}
+                    onToggle={(level) => {
+                      setTargetLevels((current) =>
+                        current.includes(level)
+                          ? current.filter((item) => item !== level)
+                          : [...current, level],
+                      );
+                      clearFieldError("targetLevels");
+                    }}
+                    invalid={Boolean(fieldErrors.targetLevels)}
+                  />
+                </Field>
+                {targetLevels.includes("University") ? (
+                  <div className="grid gap-4 rounded-sm border border-border p-4 sm:grid-cols-2">
+                    <Field
+                      label={t("join.form.current_year_of_study")}
+                      error={fieldErrors.universityYear}
+                    >
+                      <Select
+                        value={universityYear}
+                        onValueChange={(value) => {
+                          setUniversityYear(value);
+                          clearFieldError("universityYear");
+                        }}
+                      >
+                        <SelectTrigger className={controlClassName}>
+                          <SelectValue placeholder={t("join.form.select_year")} />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {YEARS_OF_STUDY.map((year) => (
+                            <SelectItem key={year} value={year}>
+                              {verticalLabels.years[year]}
+                            </SelectItem>
                           ))}
+                        </SelectContent>
+                      </Select>
+                    </Field>
+                    <Field label={t("join.form.cumulative_gpa")} error={fieldErrors.universityGpa}>
+                      <Input
+                        value={universityGpa}
+                        onChange={(event) => {
+                          setUniversityGpa(event.target.value);
+                          clearFieldError("universityGpa");
+                        }}
+                        inputMode="decimal"
+                        placeholder="e.g. 3.85"
+                      />
+                      <Hint>{t("join.form.gpa_hint")}</Hint>
+                    </Field>
+                    <div className="sm:col-span-2">
+                      <Field
+                        label={t("join.form.university_courses")}
+                        required={verticalOnlyUni}
+                        error={fieldErrors.universityCourses}
+                      >
+                        <CourseTagEditor
+                          entries={universityCourses}
+                          onChange={(next) => {
+                            setUniversityCourses(next);
+                            clearFieldError("universityCourses");
+                          }}
+                          placeholder="Type a course code or name, e.g. ECON1210"
+                        />
+                        <Hint>
+                          Course codes are searchable, students looking for ECON1210 will find you.
+                        </Hint>
+                      </Field>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Field
+                        label={t("join.form.course_specific_grades")}
+                        error={fieldErrors.courseGrades}
+                      >
+                        <CourseGradeEditor
+                          rows={courseGrades}
+                          onChange={(next) => {
+                            setCourseGrades(next);
+                            clearFieldError("courseGrades");
+                          }}
+                        />
+                        <Hint>{t("join.form.course_grades_hint")}</Hint>
+                      </Field>
+                    </div>
+                  </div>
+                ) : null}
+                {targetLevels.includes("Kindergarten") ? (
+                  <div className="rounded-sm border border-border p-4">
+                    <Field
+                      label={t("join.form.kindergarten_topics")}
+                      required={verticalOnlyKind}
+                      error={fieldErrors.kindergartenTopics}
+                    >
+                      <Choices
+                        options={[...KINDERGARTEN_TOPICS]}
+                        values={kindergartenTopics}
+                        onToggle={(topic) => {
+                          setKindergartenTopics((current) =>
+                            current.includes(topic)
+                              ? current.filter((item) => item !== topic)
+                              : [...current, topic],
+                          );
+                          clearFieldError("kindergartenTopics");
+                        }}
+                        invalid={Boolean(fieldErrors.kindergartenTopics)}
+                      />
+                    </Field>
+                  </div>
+                ) : null}
+                <div className="grid gap-4 sm:grid-cols-2">
+                  {professional ? (
+                    <Field
+                      label={t("join.form.teaching_qualifications")}
+                      required
+                      error={fieldErrors.credentials}
+                    >
+                      <Choices
+                        options={TEACHING_QUALIFICATION_OPTIONS}
+                        values={credentials}
+                        onToggle={(credential) => {
+                          setCredentials(updateArray(credentials, credential));
+                          clearFieldError("credentials");
+                        }}
+                        invalid={Boolean(fieldErrors.credentials)}
+                      />
+                    </Field>
+                  ) : (
+                    <>
+                      <Field
+                        label={t("join.form.secondary_school")}
+                        required
+                        error={fieldErrors.highSchool}
+                      >
+                        <Input
+                          value={base.highSchool}
+                          onChange={(event) => setBaseField("highSchool", event.target.value)}
+                          placeholder="Diocesan Boys' School, 2023"
+                        />
+                      </Field>
+                      <Field
+                        label={t("join.form.current_year_of_study")}
+                        required
+                        error={fieldErrors.year}
+                      >
+                        <Input
+                          value={base.year}
+                          onChange={(event) => setBaseField("year", event.target.value)}
+                          placeholder="Year 1, Year 2, Graduate"
+                        />
+                      </Field>
+                    </>
+                  )}
+                  <Field label={t("join.form.university")} required error={fieldErrors.university}>
+                    <Input
+                      value={base.university}
+                      onChange={(event) => setBaseField("university", event.target.value)}
+                      placeholder="HKUST"
+                      list="university-suggestions"
+                    />
+                    {/* Issue #190: suggestions + free text, any university works. */}
+                    <datalist id="university-suggestions">
+                      {UNIVERSITY_SUGGESTIONS.map((name) => (
+                        <option key={name} value={name} />
+                      ))}
+                    </datalist>
+                  </Field>
+                  <Field
+                    label={t("join.form.degree_programme")}
+                    required
+                    error={fieldErrors.programme}
+                  >
+                    <Input
+                      value={base.programme}
+                      onChange={(event) => setBaseField("programme", event.target.value)}
+                      placeholder="BBA Global Business & BSc Computer Science"
+                    />
+                  </Field>
+                  {!professional ? (
+                    <div className="sm:col-span-2">
+                      <label className="flex cursor-pointer items-center gap-2 text-sm text-[color:var(--ink)]">
+                        <Checkbox
+                          checked={base.hasPostgrad}
+                          onCheckedChange={(checked) => {
+                            setBaseField("hasPostgrad", checked === true);
+                            if (!checked) {
+                              clearFieldError("postgradUniversity");
+                              clearFieldError("postgradDegree");
+                            }
+                          }}
+                        />
+                        <span>
+                          I hold or am pursuing a Master&apos;s / Postgraduate / Dual Degree
+                        </span>
+                      </label>
+                    </div>
+                  ) : null}
+                  {base.hasPostgrad ? (
+                    <>
+                      <Field
+                        label={t("join.form.postgrad_university")}
+                        required
+                        error={fieldErrors.postgradUniversity}
+                      >
+                        <Input
+                          value={base.postgradUniversity}
+                          onChange={(event) =>
+                            setBaseField("postgradUniversity", event.target.value)
+                          }
+                          placeholder="University of Edinburgh"
+                        />
+                      </Field>
+                      <Field
+                        label={t("join.form.postgrad_degree")}
+                        required
+                        error={fieldErrors.postgradDegree}
+                      >
+                        <Input
+                          value={base.postgradDegree}
+                          onChange={(event) => setBaseField("postgradDegree", event.target.value)}
+                          placeholder="MSc Theoretical Physics"
+                        />
+                      </Field>
+                    </>
+                  ) : null}
+                  {!professional && !verticalOnly ? (
+                    <div className="sm:col-span-2">
+                      <Hint>
+                        Parents and students actively seek alumni from their own secondary schools,
+                        or mentors from their dream universities and majors. Accurate details
+                        increase your chances of securing a premium case.
+                      </Hint>
+                      {qualifications.map((qualification, index) => (
+                        <div key={index} className="mt-4 rounded-sm border border-border p-4">
+                          <div className="grid gap-4 sm:grid-cols-2 sm:items-start">
+                            <Field
+                              label={
+                                index === 0 ? "Primary Curriculum" : "Additional Qualification"
+                              }
+                              required
+                              error={fieldErrors[`curriculum-${index}`]}
+                            >
+                              <div className="flex items-center gap-2">
+                                <SingleChoice
+                                  options={CURRICULUM_OPTIONS}
+                                  value={qualification.curriculum}
+                                  onChange={(curriculum) =>
+                                    updateQualification(index, blankQualification(curriculum))
+                                  }
+                                  invalid={Boolean(fieldErrors[`curriculum-${index}`])}
+                                />
+                                {index > 0 ? (
+                                  <Button
+                                    type="button"
+                                    size="icon"
+                                    variant="ghost"
+                                    onClick={() =>
+                                      setQualifications((previous) =>
+                                        previous.filter((_, itemIndex) => itemIndex !== index),
+                                      )
+                                    }
+                                  >
+                                    <Trash2 />
+                                  </Button>
+                                ) : null}
+                              </div>
+                            </Field>
+                            <Field
+                              label={
+                                qualification.curriculum === "HKDSE"
+                                  ? "Best 5 Score"
+                                  : qualification.curriculum === IELTS_CURRICULUM
+                                    ? "Overall Band Score"
+                                    : ["IBDP", "SAT", ISAT_CURRICULUM].includes(
+                                          qualification.curriculum,
+                                        ) || isUcatCurriculum(qualification.curriculum)
+                                      ? "Overall Achieved Score"
+                                      : "Overall Achieved Grades"
+                              }
+                              error={fieldErrors[`overall-${index}`]}
+                            >
+                              <Input
+                                type={
+                                  ["IBDP", "HKDSE", "SAT", ISAT_CURRICULUM].includes(
+                                    qualification.curriculum,
+                                  ) || isUcatCurriculum(qualification.curriculum)
+                                    ? "number"
+                                    : "text"
+                                }
+                                value={qualification.overall}
+                                onChange={(event) => {
+                                  const value = event.target.value;
+                                  const fixedSubject =
+                                    FIXED_SCORE_SUBJECTS[qualification.curriculum];
+                                  if (
+                                    fixedSubject &&
+                                    qualification.scores[0]?.subject === fixedSubject
+                                  ) {
+                                    updateQualification(index, {
+                                      overall: value,
+                                      scores: qualification.scores.map((score, scoreIndex) =>
+                                        scoreIndex === 0 ? { ...score, grade: value } : score,
+                                      ),
+                                    });
+                                    return;
+                                  }
+                                  updateQualification(index, { overall: value });
+                                }}
+                                placeholder={
+                                  qualification.curriculum === "IBDP"
+                                    ? "43"
+                                    : qualification.curriculum === "HKDSE"
+                                      ? "32"
+                                      : qualification.curriculum === "SAT"
+                                        ? "1450"
+                                        : qualification.curriculum === ISAT_CURRICULUM
+                                          ? "165"
+                                          : isUcatCurriculum(qualification.curriculum)
+                                            ? "2450"
+                                            : qualification.curriculum === IELTS_CURRICULUM
+                                              ? "8.0"
+                                              : "A*AA"
+                                }
+                              />
+                            </Field>
+                            {["A-Level", "IGCSE / GCSE"].includes(qualification.curriculum) ? (
+                              <Field
+                                label={t("join.form.exam_boards")}
+                                required
+                                error={fieldErrors[`boards-${index}`]}
+                                className="sm:col-span-2"
+                              >
+                                <Choices
+                                  options={[
+                                    "Cambridge CAIE",
+                                    "Pearson Edexcel",
+                                    "AQA",
+                                    "OxfordAQA",
+                                    "OCR",
+                                  ]}
+                                  values={qualification.boards}
+                                  onToggle={(board) =>
+                                    updateQualification(index, {
+                                      boards: updateArray(qualification.boards, board),
+                                    })
+                                  }
+                                  invalid={Boolean(fieldErrors[`boards-${index}`])}
+                                />
+                              </Field>
+                            ) : null}
+                            {qualification.curriculum === "HKDSE" ? (
+                              <Field label={t("join.form.best_6_score")}>
+                                <Input
+                                  type="number"
+                                  value={qualification.best6}
+                                  onChange={(event) =>
+                                    updateQualification(index, { best6: event.target.value })
+                                  }
+                                  placeholder="36"
+                                />
+                              </Field>
+                            ) : null}
+                          </div>
+                          <div className="mt-5 border-t border-border pt-5">
+                            <h3 className="text-base font-bold text-[color:var(--ink)]">
+                              Subject Scores
+                            </h3>
+                            <Hint>
+                              List your full academic profile. Specific paper grades or breakdowns
+                              highlight niche strengths for parents looking for targeted support.
+                            </Hint>
+                            <div className="mt-4">{scoreEditor(qualification, index)}</div>
+                          </div>
                         </div>
-                      </div>
-                      {originStation ? (
-                        <p className="text-xs text-muted-foreground">
-                          Stations within {travelBudget} minutes of {originStation} are preselected.
-                          You can edit the list below.
-                        </p>
-                      ) : null}
-                      <div className="flex flex-wrap items-center gap-3">
-                        <Button
-                          type="button"
-                          variant="solid"
-                          color="accent"
-                          onClick={addTravelSuggestions}
-                          disabled={!originStation || suggestionStatus === "adding"}
-                          loading={suggestionStatus === "adding"}
-                        >
-                          <Plus />
-                          Quick Add Stations
-                        </Button>
-                        {suggestionStatus !== "idle" ? (
-                          <p
-                            className={cn(
-                              "text-sm font-semibold transition-colors",
-                              suggestionStatus === "adding"
-                                ? "animate-pulse text-[color:var(--muted-foreground)]"
-                                : "text-emerald-700",
-                            )}
-                            role="status"
-                            aria-live="polite"
+                      ))}
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="mt-4 rounded-sm"
+                        onClick={() =>
+                          setQualifications((previous) => [
+                            ...previous,
+                            blankQualification("IGCSE / GCSE"),
+                          ])
+                        }
+                      >
+                        <Plus /> Add another qualification
+                      </Button>
+                      <Hint>
+                        Did you also complete IGCSE, MYP, IELTS, or another prior qualification?
+                        Adding them opens you to a wider pool of potential cases.
+                      </Hint>
+                    </div>
+                  ) : null}
+                </div>
+                {/* Issue #323: required smart headline, auto-filled from the
+                  qualifications while pristine; manual edits freeze it. */}
+                <div className="mt-4">
+                  <Field
+                    label={t("join.form.academic_headline")}
+                    required
+                    error={fieldErrors.academicHeadline}
+                    hint={`Auto-filled from your qualifications, edit freely. Shown on your public card (${MAX_ACADEMIC_HEADLINE} characters max).`}
+                  >
+                    <Input
+                      maxLength={MAX_ACADEMIC_HEADLINE}
+                      value={academicHeadline}
+                      onChange={(event) => {
+                        setAcademicHeadline(event.target.value);
+                        setHeadlineDirty(true);
+                        if (fieldErrors.academicHeadline) clearFieldError("academicHeadline");
+                      }}
+                      onBlur={() => {
+                        if (academicHeadline.trim() === "") setHeadlineDirty(false);
+                      }}
+                      placeholder="e.g. IBDP 44/45 or HKDSE Tutor"
+                    />
+                  </Field>
+                </div>
+                {/* Issue #188: legal-warning card removed by product decision. */}
+              </>
+            ) : null}
+
+            {step === 3 ? (
+              <>
+                <Heading step={3} titleKey="join.form.heading_subjects" />
+                <Field
+                  label={t("join.form.curriculum")}
+                  optional
+                  hint="Narrow the subject list to one curriculum, Primary School, Junior Secondary, or University Admissions & Test Prep (SAT, ACT, IELTS, TOEFL, UCAT, ISAT, personal statement, interview and portfolio support)."
+                  className="mb-5"
+                >
+                  <SearchableSelect
+                    value={taughtCurriculum}
+                    onChange={setTaughtCurriculum}
+                    options={[
+                      { value: "", label: "All curricula" },
+                      ...TEACHING_CURRICULA.map((curriculum) => ({
+                        value: curriculum.value,
+                        label: curriculum.label,
+                      })),
+                    ]}
+                    placeholder={t("join.form.all_curricula")}
+                    searchPlaceholder={t("join.form.search_curriculum")}
+                    className={controlClassName}
+                  />
+                </Field>
+                <Field
+                  label={t("join.form.subjects_willing")}
+                  required
+                  hint="Select subjects from your academic profile that you are confident and capable of teaching. You can choose more than one."
+                  error={fieldErrors.subjectsTaught}
+                >
+                  <SubjectPicker
+                    studiedSubjects={allResultSubjects.filter(
+                      (subject) => !removedStudiedSubjects.includes(subject),
+                    )}
+                    addedSubjects={base.subjectsTaught}
+                    options={[
+                      ...new Set([
+                        ...(taughtCurriculum
+                          ? getSubjectOptionsForCategory(taughtCurriculum)
+                          : DEFAULT_SUBJECT_OPTIONS),
+                        ...allResultSubjects,
+                      ]),
+                    ]}
+                    invalid={Boolean(fieldErrors.subjectsTaught)}
+                    onToggle={(subject) => {
+                      if (allResultSubjects.includes(subject)) {
+                        setRemovedStudiedSubjects((current) =>
+                          current.includes(subject)
+                            ? current.filter((item) => item !== subject)
+                            : [...current, subject],
+                        );
+                        return;
+                      }
+                      setBaseField("subjectsTaught", updateArray(base.subjectsTaught, subject));
+                    }}
+                  />
+                </Field>
+              </>
+            ) : null}
+
+            {step === 4 ? (
+              <>
+                <Heading step={4} titleKey="join.form.heading_preferences" />
+                <div className="grid gap-4">
+                  <Field
+                    label={t("join.form.mode_of_lesson")}
+                    required
+                    hint="Being open to in-person lessons significantly increases your match rate."
+                    error={fieldErrors.format}
+                  >
+                    <SingleChoice
+                      options={FORMAT_OPTIONS}
+                      value={base.format}
+                      onChange={(format) => setBaseField("format", format)}
+                      invalid={Boolean(fieldErrors.format)}
+                    />
+                  </Field>
+                  {base.format !== "Online" ? (
+                    <Field
+                      label={t("join.form.teaching_locations")}
+                      required
+                      hint="Suggestions use estimated MTR rail and transfer time, not straight-line station distance. Walking time and delays are not included. You can choose more than one station."
+                      error={fieldErrors.stations}
+                    >
+                      <div
+                        className={cn(
+                          "grid gap-3 rounded-sm border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4",
+                          fieldErrors.stations && "border-destructive",
+                        )}
+                      >
+                        <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                          <div className="grid gap-2">
+                            <label className={labelClassName}>
+                              {t("join.form.starting_station")}
+                            </label>
+                            <SearchableSelect
+                              value={originStation}
+                              onChange={setOrigin}
+                              options={MTR_STATION_OPTIONS}
+                              placeholder={t("join.form.choose_station")}
+                              searchPlaceholder={t("join.form.search_stations")}
+                              className={controlClassName}
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="rounded-sm"
+                            onClick={locateOrigin}
+                            disabled={locating}
                           >
-                            {suggestionStatus === "adding"
-                              ? "Adding stations…"
-                              : `Done · ${autoStations.length} stations within ${travelBudget} min`}
+                            <LocateFixed />
+                            {locating ? "Locating…" : "Use my location"}
+                          </Button>
+                        </div>
+                        {locationMessage ? (
+                          <p className="text-xs font-semibold text-[color:var(--ink)]/70">
+                            {locationMessage}
                           </p>
                         ) : null}
+                        <div className="grid gap-2">
+                          <label className={labelClassName}>{t("join.form.travel_time")}</label>
+                          <div className="flex flex-wrap gap-2">
+                            {["10", "20", "30"].map((budget) => (
+                              <button
+                                key={budget}
+                                type="button"
+                                disabled={!originStation}
+                                onClick={() => {
+                                  setTravelBudget(budget);
+                                  setSuggestionStatus("idle");
+                                }}
+                                className={cn(
+                                  "rounded-full border px-3 py-2 text-sm font-semibold transition-colors focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[color:var(--ring)] disabled:cursor-not-allowed disabled:opacity-50",
+                                  travelBudget === budget && originStation
+                                    ? "border-[color:var(--ink)] bg-[color:var(--surface-invert)] text-[color:var(--surface-invert-fg)]"
+                                    : "border-border bg-card text-foreground hover:border-[color:var(--foreground)]/25",
+                                )}
+                              >
+                                Within {budget} min
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                        {originStation ? (
+                          <p className="text-xs text-muted-foreground">
+                            Stations within {travelBudget} minutes of {originStation} are
+                            preselected. You can edit the list below.
+                          </p>
+                        ) : null}
+                        <div className="flex flex-wrap items-center gap-3">
+                          <Button
+                            type="button"
+                            variant="solid"
+                            color="accent"
+                            onClick={addTravelSuggestions}
+                            disabled={!originStation || suggestionStatus === "adding"}
+                            loading={suggestionStatus === "adding"}
+                          >
+                            <Plus />
+                            Quick Add Stations
+                          </Button>
+                          {suggestionStatus !== "idle" ? (
+                            <p
+                              className={cn(
+                                "text-sm font-semibold transition-colors",
+                                suggestionStatus === "adding"
+                                  ? "animate-pulse text-[color:var(--muted-foreground)]"
+                                  : "text-emerald-700",
+                              )}
+                              role="status"
+                              aria-live="polite"
+                            >
+                              {suggestionStatus === "adding"
+                                ? "Adding stations…"
+                                : `Done · ${autoStations.length} stations within ${travelBudget} min`}
+                            </p>
+                          ) : null}
+                        </div>
                       </div>
-                    </div>
-                    <Accordion
-                      type="single"
-                      collapsible
-                      className="overflow-hidden rounded-sm border border-border px-4"
-                    >
-                      {MTR_LINES.map((line) => (
-                        <AccordionItem key={line.id} value={line.id}>
-                          <AccordionTrigger className="font-semibold text-foreground hover:no-underline">
-                            {line.label} -{" "}
-                            {
-                              line.stations.filter((station) => base.stations.includes(station))
-                                .length
-                            }{" "}
-                            selected
-                          </AccordionTrigger>
-                          <AccordionContent className="pt-2">
-                            <div className="grid gap-3 sm:grid-cols-3">
-                              <label className="flex items-center gap-2 text-sm font-semibold">
-                                <Checkbox
-                                  checked={line.stations.every((station) =>
-                                    base.stations.includes(station),
-                                  )}
-                                  onCheckedChange={() => toggleManualLine(line)}
-                                />{" "}
-                                Select all
-                              </label>
-                              {line.stations.map((station) => (
-                                <label
-                                  key={`${line.id}-${station}`}
-                                  className="flex items-center gap-2 text-sm"
-                                >
+                      <Accordion
+                        type="single"
+                        collapsible
+                        className="overflow-hidden rounded-sm border border-border px-4"
+                      >
+                        {MTR_LINES.map((line) => (
+                          <AccordionItem key={line.id} value={line.id}>
+                            <AccordionTrigger className="font-semibold text-foreground hover:no-underline">
+                              {line.label} -{" "}
+                              {
+                                line.stations.filter((station) => base.stations.includes(station))
+                                  .length
+                              }{" "}
+                              selected
+                            </AccordionTrigger>
+                            <AccordionContent className="pt-2">
+                              <div className="grid gap-3 sm:grid-cols-3">
+                                <label className="flex items-center gap-2 text-sm font-semibold">
                                   <Checkbox
-                                    checked={base.stations.includes(station)}
-                                    onCheckedChange={() => toggleManualStation(station)}
-                                  />
-                                  {station}
+                                    checked={line.stations.every((station) =>
+                                      base.stations.includes(station),
+                                    )}
+                                    onCheckedChange={() => toggleManualLine(line)}
+                                  />{" "}
+                                  Select all
                                 </label>
-                              ))}
-                            </div>
-                          </AccordionContent>
-                        </AccordionItem>
-                      ))}
-                    </Accordion>
-                  </Field>
-                ) : null}
+                                {line.stations.map((station) => (
+                                  <label
+                                    key={`${line.id}-${station}`}
+                                    className="flex items-center gap-2 text-sm"
+                                  >
+                                    <Checkbox
+                                      checked={base.stations.includes(station)}
+                                      onCheckedChange={() => toggleManualStation(station)}
+                                    />
+                                    {station}
+                                  </label>
+                                ))}
+                              </div>
+                            </AccordionContent>
+                          </AccordionItem>
+                        ))}
+                      </Accordion>
+                    </Field>
+                  ) : null}
 
-                {/* Issue #718: availability collected at intake — the same
+                  {/* Issue #718: availability collected at intake — the same
                     weekly grid + capacity editors as Dashboard → Availability.
                     Saved to availability_grid / preferred_time_windows via the
                     owner-scoped RPCs right after the card publishes. */}
-                <div className="rounded-sm border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4">
-                  <Field
-                    label={t("join.availability_title")}
-                    error={fieldErrors.availabilityGrid}
-                    hint={t("join.availability_hint")}
-                  >
-                    <HourlyAvailabilityEditor
-                      value={availabilityGrid}
-                      onChange={(next) => {
-                        setAvailabilityGrid(next);
-                        clearFieldError("availabilityGrid");
-                      }}
-                    />
-                  </Field>
-                  {/* #798 AC-9: the grid is stored and shown in HKT, so a tutor
-                      outside Hong Kong is told that plainly instead of having
-                      their local hours silently read as HKT. */}
-                  {base.timeZone && base.timeZone !== "Asia/Hong_Kong" ? (
-                    <p className="mt-2 text-xs text-muted-foreground">
-                      {t("join.form.availability_hkt_note", { zone: base.timeZone })}
-                    </p>
-                  ) : null}
-                  <div className="mt-5 border-t border-border pt-5">
-                    <p className={labelClassName}>{t("join.capacity_title")}</p>
-                    <div className="mt-1.5">
-                      <CapacityEditorFields
-                        value={{ acceptingStudents, openSlots, timeWindows }}
+                  <div className="rounded-sm border border-[color:var(--ink)]/10 bg-[color:var(--surface-subtle)] p-4">
+                    <Field
+                      label={t("join.availability_title")}
+                      error={fieldErrors.availabilityGrid}
+                      hint={t("join.availability_hint")}
+                    >
+                      <HourlyAvailabilityEditor
+                        value={availabilityGrid}
                         onChange={(next) => {
-                          setAcceptingStudents(next.acceptingStudents);
-                          setOpenSlots(next.openSlots);
-                          setTimeWindows(next.timeWindows);
+                          setAvailabilityGrid(next);
+                          clearFieldError("availabilityGrid");
                         }}
                       />
+                    </Field>
+                    {/* #798 AC-9: the grid is stored and shown in HKT, so a tutor
+                      outside Hong Kong is told that plainly instead of having
+                      their local hours silently read as HKT. */}
+                    {base.timeZone && base.timeZone !== "Asia/Hong_Kong" ? (
+                      <p className="mt-2 text-xs text-muted-foreground">
+                        {t("join.form.availability_hkt_note", { zone: base.timeZone })}
+                      </p>
+                    ) : null}
+                    <div className="mt-5 border-t border-border pt-5">
+                      <p className={labelClassName}>{t("join.capacity_title")}</p>
+                      <div className="mt-1.5">
+                        <CapacityEditorFields
+                          value={{ acceptingStudents, openSlots, timeWindows }}
+                          onChange={(next) => {
+                            setAcceptingStudents(next.acceptingStudents);
+                            setOpenSlots(next.openSlots);
+                            setTimeWindows(next.timeWindows);
+                          }}
+                        />
+                      </div>
                     </div>
                   </div>
                 </div>
-              </div>
-            </>
-          ) : null}
+              </>
+            ) : null}
 
-          {step === 5 ? (
-            <>
-              <Heading step={5} titleKey="join.form.heading_experience" />
-              <Hint>
-                Achievements and experience are optional. Add only items you would like MatchMax to
-                consider. You do not upload any evidence here, grade slips are added later from your
-                profile editor, where MatchMax staff review them.
-              </Hint>
-              <div className="mt-5 grid gap-4">
-                {base.achievements.map((achievement, index) => (
-                  <div
-                    key={index}
-                    className="grid gap-3 rounded-sm border border-border p-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)_auto]"
-                  >
-                    <Field
-                      label={t("join.form.achievement_title")}
-                      required
-                      error={fieldErrors[`achievement-title-${index}`]}
-                    >
-                      <Input
-                        value={achievement.title}
-                        onChange={(event) =>
-                          updateAchievement(index, { title: event.target.value })
-                        }
-                        placeholder={t("join.form.award_role")}
-                      />
-                    </Field>
-                    <Field
-                      label={t("join.form.achievement_description")}
-                      required
-                      error={fieldErrors[`achievement-description-${index}`]}
-                    >
-                      <Textarea
-                        value={achievement.description}
-                        onChange={(event) =>
-                          updateAchievement(index, { description: event.target.value })
-                        }
-                        placeholder={t("join.form.brief_details")}
-                        aria-invalid={
-                          fieldErrors[`achievement-description-${index}`] ? true : undefined
-                        }
-                        className={cn(
-                          "w-full rounded-sm",
-                          fieldErrors[`achievement-description-${index}`] &&
-                            "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30",
-                        )}
-                      />
-                    </Field>
-                    <Button
-                      type="button"
-                      size="icon"
-                      variant="ghost"
-                      aria-label={t("join.form.remove_achievement")}
-                      onClick={() =>
-                        setBaseField(
-                          "achievements",
-                          base.achievements.filter((_, itemIndex) => itemIndex !== index),
-                        )
-                      }
-                    >
-                      <Trash2 />
-                    </Button>
-                  </div>
-                ))}
-                {base.achievements.length < MAX_FILES ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-fit rounded-sm"
-                    onClick={() =>
-                      setBaseField("achievements", [
-                        ...base.achievements,
-                        { title: "", description: "" },
-                      ])
-                    }
-                  >
-                    <Plus /> Add achievement or experience
-                  </Button>
-                ) : null}
-              </div>
-              <div className="mt-6 border-t border-border pt-5">
-                {/* Issue #97: optional Trophy Cabinet. Consent appears only
-                    after a photo is added; blank section = fully anonymous. */}
-                <Field
-                  label={t("join.form.portfolio_photos")}
-                  optional
-                  error={fieldErrors.portfolioConsent}
-                  className="sm:col-span-2"
-                >
-                  <TrophyCabinetUpload
-                    files={base.portfolioImages}
-                    onChange={(images) => setBaseField("portfolioImages", images)}
-                  />
-                  <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
-                    Want to stand out to parents? Upload photos of your competition medals,
-                    trophies, or teaching certificates.
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    JPG, PNG, or WebP, up to {readableFileSize(MAX_FILE_BYTES)} each, up to{" "}
-                    {MAX_PORTFOLIO_FILES} photos. If you prefer to keep your profile 100% anonymous,
-                    simply leave this section blank.
-                  </p>
-                  {base.portfolioImages.length > 0 ? (
-                    <label className="mt-2 flex gap-3 text-sm text-muted-foreground">
-                      <Checkbox
-                        checked={base.portfolioConsent}
-                        onCheckedChange={(checked) => {
-                          setBaseField("portfolioConsent", checked === true);
-                          if (checked) clearFieldError("portfolioConsent");
-                        }}
-                        aria-invalid={fieldErrors.portfolioConsent ? true : undefined}
-                        className={fieldErrors.portfolioConsent ? "border-destructive" : undefined}
-                      />
-                      <span>
-                        I understand that uploading photos here makes them publicly visible on my
-                        MatchMax profile, and I consent to their display.
-                        {fieldErrors.portfolioConsent ? (
-                          <span className="ml-2 align-middle text-xs font-medium text-destructive">
-                            Required
-                          </span>
-                        ) : null}
-                      </span>
-                    </label>
-                  ) : null}
-                </Field>
-              </div>
-              <div className="mt-6 border-t border-border pt-5">
-                <Field
-                  label={t("join.form.self_introduction")}
-                  optional
-                  error={fieldErrors.selfIntroduction}
-                  hint="Write what the form does not ask: how you teach, who you work well with, results not on the transcript, and any specific service (e.g. IA review). No phone number, email, or social handle, parents reach you through MatchMax. You may write in English, Chinese, or both. Paragraph breaks are kept."
-                >
-                  <Textarea
-                    rows={6}
-                    maxLength={2000}
-                    value={base.selfIntroduction}
-                    onChange={(event) => setBaseField("selfIntroduction", event.target.value)}
-                    aria-invalid={fieldErrors.selfIntroduction ? true : undefined}
-                    className={cn(
-                      "w-full rounded-sm",
-                      fieldErrors.selfIntroduction && "border-destructive",
-                    )}
-                    placeholder={
-                      "Hello! I am a current HKU BBA student with 3 years of experience teaching IB and DSE Mathematics.\n\nMy teaching philosophy focuses on breaking down complex concepts into simple, digestible steps. I provide custom notes and past-paper drills, and I am available for questions between lessons.\n\nI successfully helped my last student jump from a Level 4 to a Level 5* in just one semester..."
-                    }
-                  />
-                  <p className="mt-1 text-right text-xs text-muted-foreground" aria-live="polite">
-                    {base.selfIntroduction.length}/2000
-                  </p>
-                </Field>
-              </div>
-              <div className="mt-6 border-t border-border pt-5">
-                {/* Issue #798 AC-2: optional matching chips. Nothing here is
-                    required and nothing here feeds the publish gate, so an
-                    empty selection simply stores no values. */}
-                <p className="text-sm font-semibold text-[color:var(--ink)]">
-                  {matchingCopy.sectionTitle}
-                </p>
-                <p className="mt-0.5 text-xs text-muted-foreground">{matchingCopy.sectionHint}</p>
-                <Field
-                  label={matchingCopy.styleLabel}
-                  optional
-                  className="mt-4"
-                  hint={matchingCopy.hint(base.tutoringStyles.length, MAX_STYLES)}
-                >
-                  <MatchingChips
-                    groupLabel={matchingCopy.styleLabel}
-                    options={STYLE_OPTIONS}
-                    selected={base.tutoringStyles}
-                    max={MAX_STYLES}
-                    language={chipLanguage}
-                    onToggle={(value) =>
-                      setBaseField(
-                        "tutoringStyles",
-                        toggleChip(base.tutoringStyles, value, MAX_STYLES),
-                      )
-                    }
-                  />
-                </Field>
-                <Field
-                  label={matchingCopy.fitLabel}
-                  optional
-                  className="mt-4"
-                  hint={matchingCopy.hint(base.studentFit.length, MAX_FIT)}
-                >
-                  <MatchingChips
-                    groupLabel={matchingCopy.fitLabel}
-                    options={FIT_OPTIONS}
-                    selected={base.studentFit}
-                    max={MAX_FIT}
-                    language={chipLanguage}
-                    onToggle={(value) =>
-                      setBaseField("studentFit", toggleChip(base.studentFit, value, MAX_FIT))
-                    }
-                  />
-                </Field>
-                <Field
-                  label={matchingCopy.tagLabel}
-                  optional
-                  className="mt-4"
-                  hint={matchingCopy.hint(base.syllabusTags.length, MAX_TAGS)}
-                >
-                  <MatchingChips
-                    groupLabel={matchingCopy.tagLabel}
-                    options={showAllTags ? TAG_OPTIONS : TAG_OPTIONS.slice(0, 6)}
-                    selected={base.syllabusTags}
-                    max={MAX_TAGS}
-                    language={chipLanguage}
-                    onToggle={(value) =>
-                      setBaseField("syllabusTags", toggleChip(base.syllabusTags, value, MAX_TAGS))
-                    }
-                  />
-                  {TAG_OPTIONS.length > 6 ? (
-                    <button
-                      type="button"
-                      aria-expanded={showAllTags}
-                      onClick={() => setShowAllTags((current) => !current)}
-                      className="mt-2 text-xs font-semibold text-[color:var(--ink)] underline underline-offset-4"
-                    >
-                      {showAllTags ? matchingCopy.showLess : matchingCopy.showAll}
-                    </button>
-                  ) : null}
-                </Field>
-              </div>
-              <div className="mt-6 border-t border-border pt-5">
-                {/* Issue #199: SEN experience & qualifications. Categories use
-                    the shared HK-common vocabulary (src/features/tutors/sen.ts). */}
-                <label className="flex cursor-pointer items-start justify-between gap-3">
-                  <span>
-                    <span className="block text-sm font-semibold text-[color:var(--ink)]">
-                      {t("sen.join_toggle")}
-                    </span>
-                    <span className="mt-0.5 block text-xs text-muted-foreground">
-                      {t("sen.join_toggle_hint")}
-                    </span>
-                  </span>
-                  <Checkbox
-                    checked={base.senEnabled}
-                    onCheckedChange={(checked) => {
-                      setBaseField("senEnabled", checked === true);
-                      if (checked) clearFieldError("senCategories");
-                    }}
-                    aria-invalid={fieldErrors.senCategories ? true : undefined}
-                    className={fieldErrors.senCategories ? "border-destructive" : undefined}
-                  />
-                </label>
-
-                {base.senEnabled ? (
-                  <div className="mt-4 space-y-4">
-                    <div
-                      role="group"
-                      aria-label={t("sen.categories_aria")}
-                      className="space-y-1.5 rounded-sm border border-border p-3"
-                    >
-                      {SEN_CATEGORY_OPTIONS.map((category) => {
-                        const active = base.senCategories.includes(category);
-                        return (
-                          <label
-                            key={category}
-                            className="flex cursor-pointer items-center gap-3 rounded-sm px-2 py-1.5 text-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.04]"
-                          >
-                            <Checkbox
-                              checked={active}
-                              onCheckedChange={(checked) => {
-                                setBaseField(
-                                  "senCategories",
-                                  checked
-                                    ? [...base.senCategories, category]
-                                    : base.senCategories.filter((item) => item !== category),
-                                );
-                                if (checked) clearFieldError("senCategories");
-                              }}
-                              aria-invalid={fieldErrors.senCategories ? true : undefined}
-                            />
-                            <span className="font-medium">{senCategoryLabels[category]}</span>
-                          </label>
-                        );
-                      })}
-                      {fieldErrors.senCategories ? (
-                        <p className="text-xs font-semibold text-destructive">
-                          {fieldErrors.senCategories}
-                        </p>
-                      ) : null}
-                    </div>
-                    <Field
-                      label={t("sen.experience_label")}
-                      optional
-                      hint={t("sen.experience_hint")}
-                    >
-                      <Textarea
-                        rows={4}
-                        maxLength={2000}
-                        value={base.senExperience}
-                        onChange={(event) => setBaseField("senExperience", event.target.value)}
-                        placeholder={t("sen.experience_placeholder")}
-                        className="w-full rounded-sm"
-                      />
-                    </Field>
-                  </div>
-                ) : null}
-              </div>
-            </>
-          ) : null}
-
-          {step === 6 ? (
-            <>
-              <Heading step={6} titleKey="join.form.heading_logistics" />
-              {primary.curriculum === "IBDP" ? (
+            {step === 5 ? (
+              <>
+                <Heading step={5} titleKey="join.form.heading_experience" />
                 <Hint>
-                  Suggested recent graduate rates: 45/45 HK$500/hr, 43-44 HK$400/hr, 40-42
-                  HK$300-350/hr.
+                  Achievements and experience are optional. Add only items you would like MatchMax
+                  to consider. You do not upload any evidence here, grade slips are added later from
+                  your profile editor, where MatchMax staff review them.
                 </Hint>
-              ) : primary.curriculum === "HKDSE" ? (
-                <Hint>
-                  Suggested DSE rates: high achievers HK$150-200/hr; premium HK$250-300/hr for top
-                  scorers, sought-after majors, or extensive experience.
-                </Hint>
-              ) : null}
-              {/* Issue #319: two base rates replace the single proposed rate.
-                  Whole dollars only (step=1 blocks decimals at the input);
-                  which field is required follows the lesson format.
-                  Issue #113: the tutor picks the currency every rate is
-                  quoted in; labels + the ≈HK$ note follow it. */}
-              <Field label={t("join.rates.currency_label")}>
-                <Select value={base.currency} onValueChange={(v) => setBaseField("currency", v)}>
-                  <SelectTrigger aria-label={t("join.rates.currency_label")} className="max-w-48">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SUPPORTED_CURRENCIES.map((code) => (
-                      <SelectItem key={code} value={code}>
-                        {code}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <Field
-                  label={t("join.rates.online", { currency: base.currency })}
-                  required={base.format !== "Face to face"}
-                  error={fieldErrors.onlineRate}
-                  hint={onlineRateApprox ? `≈ ${onlineRateApprox} / hr` : undefined}
-                >
-                  <Input
-                    type="number"
-                    step={1}
-                    min={RATE_MIN}
-                    max={RATE_MAX}
-                    inputMode="numeric"
-                    value={base.onlineRate}
-                    onChange={(event) => setBaseField("onlineRate", event.target.value)}
-                    placeholder="250"
-                  />
-                </Field>
-                <Field
-                  label={t("join.rates.in_person", { currency: base.currency })}
-                  required={base.format !== "Online"}
-                  error={fieldErrors.inpersonRate}
-                  hint={inpersonRateApprox ? `≈ ${inpersonRateApprox} / hr` : undefined}
-                >
-                  <Input
-                    type="number"
-                    step={1}
-                    min={RATE_MIN}
-                    max={RATE_MAX}
-                    inputMode="numeric"
-                    value={base.inpersonRate}
-                    onChange={(event) => setBaseField("inpersonRate", event.target.value)}
-                    placeholder="350"
-                  />
-                </Field>
-                <Field
-                  label={t("join.form.teaching_materials")}
-                  required
-                  error={fieldErrors.materials}
-                  className="self-start"
-                >
-                  <SingleChoice
-                    options={MATERIALS_OPTIONS}
-                    value={base.materials}
-                    onChange={(materials) => setBaseField("materials", materials)}
-                    invalid={Boolean(fieldErrors.materials)}
-                  />
-                </Field>
-              </div>
-
-              {/* Issue #319: optional travel note, only meaningful when the
-                  tutor teaches in person. */}
-              {base.inpersonRate.trim() !== "" ? (
-                <Field
-                  label={t("join.rates.travel_note")}
-                  optional
-                  error={fieldErrors.travelNote}
-                  hint={t("join.rates.travel_note_hint")}
-                >
-                  <Input
-                    value={base.travelNote}
-                    maxLength={TRAVEL_NOTE_MAX}
-                    onChange={(event) => setBaseField("travelNote", event.target.value)}
-                    placeholder="Kowloon and Hong Kong Island only"
-                  />
-                </Field>
-              ) : null}
-
-              {/* Issue #319: one optional line about anything that changes the rate. */}
-              <Field
-                label={t("join.rates.rate_note")}
-                optional
-                error={fieldErrors.rateNote}
-                hint={t("join.rates.rate_note_hint")}
-              >
-                <Input
-                  value={base.rateNote}
-                  maxLength={RATE_NOTE_MAX}
-                  onChange={(event) => setBaseField("rateNote", event.target.value)}
-                  placeholder="+HK$100 for lessons over 30 minutes away"
-                />
-              </Field>
-
-              {/* Issue #319: optional extra rate rows (profile-only). A row
-                  saves only when BOTH the label and the rate are filled. */}
-              <div className="rounded-md border border-border p-4">
-                <p className="text-sm font-medium text-foreground">{t("join.rates.rows_label")}</p>
-                <p className="mt-0.5 text-xs text-muted-foreground">
-                  {t("join.rates.rows_hint", { max: MAX_RATE_ROWS })}
-                </p>
-                <div className="mt-3 grid gap-3">
-                  {base.rateRows.map((row, index) => (
+                <div className="mt-5 grid gap-4">
+                  {base.achievements.map((achievement, index) => (
                     <div
                       key={index}
-                      className="grid gap-2 rounded-sm border border-border/70 p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end"
+                      className="grid gap-3 rounded-sm border border-border p-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.5fr)_auto]"
                     >
-                      <div className="grid gap-1.5">
-                        <Label
-                          htmlFor={`rate-row-label-${index}`}
-                          className="text-xs font-semibold text-foreground"
-                        >
-                          {t("join.rates.row_label")}
-                        </Label>
+                      <Field
+                        label={t("join.form.achievement_title")}
+                        required
+                        error={fieldErrors[`achievement-title-${index}`]}
+                      >
                         <Input
-                          id={`rate-row-label-${index}`}
-                          value={row.label}
-                          maxLength={RATE_ROW_LABEL_MAX}
-                          onChange={(event) => updateRateRow(index, { label: event.target.value })}
-                          placeholder={t("join.form.small_group")}
+                          value={achievement.title}
+                          onChange={(event) =>
+                            updateAchievement(index, { title: event.target.value })
+                          }
+                          placeholder={t("join.form.award_role")}
                         />
-                      </div>
-                      <div className="grid gap-1.5">
-                        <Label
-                          htmlFor={`rate-row-rate-${index}`}
-                          className="text-xs font-semibold text-foreground"
-                        >
-                          {t("join.rates.row_rate", { currency: base.currency })}
-                        </Label>
-                        <div className="relative">
-                          <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
-                            {base.currency}
-                          </span>
-                          <Input
-                            id={`rate-row-rate-${index}`}
-                            type="number"
-                            step={1}
-                            min={RATE_MIN}
-                            max={RATE_MAX}
-                            inputMode="numeric"
-                            value={row.rate}
-                            onChange={(event) => updateRateRow(index, { rate: event.target.value })}
-                            placeholder="200"
-                            className="pl-11"
-                          />
-                        </div>
-                      </div>
+                      </Field>
+                      <Field
+                        label={t("join.form.achievement_description")}
+                        required
+                        error={fieldErrors[`achievement-description-${index}`]}
+                      >
+                        <Textarea
+                          value={achievement.description}
+                          onChange={(event) =>
+                            updateAchievement(index, { description: event.target.value })
+                          }
+                          placeholder={t("join.form.brief_details")}
+                          aria-invalid={
+                            fieldErrors[`achievement-description-${index}`] ? true : undefined
+                          }
+                          className={cn(
+                            "w-full rounded-sm",
+                            fieldErrors[`achievement-description-${index}`] &&
+                              "border-destructive hover:border-destructive focus-visible:border-destructive focus-visible:ring-destructive/30",
+                          )}
+                        />
+                      </Field>
                       <Button
                         type="button"
                         size="icon"
                         variant="ghost"
-                        aria-label={t("join.form.remove_rate_row")}
-                        onClick={() => removeRateRow(index)}
+                        aria-label={t("join.form.remove_achievement")}
+                        onClick={() =>
+                          setBaseField(
+                            "achievements",
+                            base.achievements.filter((_, itemIndex) => itemIndex !== index),
+                          )
+                        }
                       >
                         <Trash2 />
                       </Button>
                     </div>
                   ))}
-                </div>
-                {fieldErrors.rateRows ? (
-                  <p className="mt-2 text-xs font-medium text-destructive">
-                    {fieldErrors.rateRows}
-                  </p>
-                ) : null}
-                {base.rateRows.length < MAX_RATE_ROWS ? (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="mt-3 w-fit rounded-sm"
-                    onClick={addRateRow}
-                  >
-                    <Plus /> {t("join.rates.add_row")}
-                  </Button>
-                ) : (
-                  <p className="mt-3 text-xs font-medium text-muted-foreground">
-                    Maximum of {MAX_RATE_ROWS} rate rows reached. Remove one to add another.
-                  </p>
-                )}
-              </div>
-
-              {/* Issue #191: intake asks capacity up front so admin can compare
-                  supply against demand without a follow-up email. Optional. */}
-              <Field
-                label={t("join.form.students_at_once")}
-                hint="Leave blank if you're not sure yet."
-              >
-                <Input
-                  type="number"
-                  min={0}
-                  inputMode="numeric"
-                  value={base.maxStudents}
-                  onChange={(event) => setBaseField("maxStudents", event.target.value)}
-                  placeholder="2"
-                />
-              </Field>
-
-              {/* Issue #108: per-curriculum pricing with a Standardize toggle.
-                  The proposed hourly rate above stays the base/flat rate shown
-                  on search cards; tiers override it per curriculum. */}
-              <div className="rounded-md border border-border p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <p className="text-sm font-semibold text-foreground">
-                      {t("join.form.per_curriculum_pricing")}
-                    </p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      Charge different rates for different curriculum levels, or keep one flat rate
-                      across everything you teach.
-                    </p>
-                  </div>
-                  <label className="flex min-h-11 cursor-pointer items-center gap-2 py-1 text-sm text-foreground">
-                    <Checkbox
-                      checked={base.pricingStandardized}
-                      onCheckedChange={(checked) =>
-                        setBaseField("pricingStandardized", checked === true)
+                  {base.achievements.length < MAX_FILES ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="w-fit rounded-sm"
+                      onClick={() =>
+                        setBaseField("achievements", [
+                          ...base.achievements,
+                          { title: "", description: "" },
+                        ])
                       }
-                      aria-label={t("join.form.standardize_rate")}
-                    />
-                    <span>{t("join.form.standardize_rate_label")}</span>
-                  </label>
+                    >
+                      <Plus /> Add achievement or experience
+                    </Button>
+                  ) : null}
                 </div>
-                {!base.pricingStandardized ? (
-                  <div className="mt-4 border-t border-border pt-4">
-                    <p className="text-xs text-muted-foreground">
-                      Enter your rate for each curriculum you completed above. Leave a level blank
-                      and we&apos;ll apply your lowest entered rate to it.
+                <div className="mt-6 border-t border-border pt-5">
+                  {/* Issue #97: optional Trophy Cabinet. Consent appears only
+                    after a photo is added; blank section = fully anonymous. */}
+                  <Field
+                    label={t("join.form.portfolio_photos")}
+                    optional
+                    error={fieldErrors.portfolioConsent}
+                    className="sm:col-span-2"
+                  >
+                    <TrophyCabinetUpload
+                      files={base.portfolioImages}
+                      onChange={(images) => setBaseField("portfolioImages", images)}
+                    />
+                    <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+                      Want to stand out to parents? Upload photos of your competition medals,
+                      trophies, or teaching certificates.
                     </p>
-                    <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                      {qualifications.map((qualification, index) => (
-                        <div key={`${qualification.curriculum}-${index}`} className="space-y-1.5">
+                    <p className="text-xs text-muted-foreground">
+                      JPG, PNG, or WebP, up to {readableFileSize(MAX_FILE_BYTES)} each, up to{" "}
+                      {MAX_PORTFOLIO_FILES} photos. If you prefer to keep your profile 100%
+                      anonymous, simply leave this section blank.
+                    </p>
+                    {base.portfolioImages.length > 0 ? (
+                      <label className="mt-2 flex gap-3 text-sm text-muted-foreground">
+                        <Checkbox
+                          checked={base.portfolioConsent}
+                          onCheckedChange={(checked) => {
+                            setBaseField("portfolioConsent", checked === true);
+                            if (checked) clearFieldError("portfolioConsent");
+                          }}
+                          aria-invalid={fieldErrors.portfolioConsent ? true : undefined}
+                          className={
+                            fieldErrors.portfolioConsent ? "border-destructive" : undefined
+                          }
+                        />
+                        <span>
+                          I understand that uploading photos here makes them publicly visible on my
+                          MatchMax profile, and I consent to their display.
+                          {fieldErrors.portfolioConsent ? (
+                            <span className="ml-2 align-middle text-xs font-medium text-destructive">
+                              Required
+                            </span>
+                          ) : null}
+                        </span>
+                      </label>
+                    ) : null}
+                  </Field>
+                </div>
+                <div className="mt-6 border-t border-border pt-5">
+                  <Field
+                    label={t("join.form.self_introduction")}
+                    optional
+                    error={fieldErrors.selfIntroduction}
+                    hint="Write what the form does not ask: how you teach, who you work well with, results not on the transcript, and any specific service (e.g. IA review). No phone number, email, or social handle, parents reach you through MatchMax. You may write in English, Chinese, or both. Paragraph breaks are kept."
+                  >
+                    <Textarea
+                      rows={6}
+                      maxLength={2000}
+                      value={base.selfIntroduction}
+                      onChange={(event) => setBaseField("selfIntroduction", event.target.value)}
+                      aria-invalid={fieldErrors.selfIntroduction ? true : undefined}
+                      className={cn(
+                        "w-full rounded-sm",
+                        fieldErrors.selfIntroduction && "border-destructive",
+                      )}
+                      placeholder={
+                        "Hello! I am a current HKU BBA student with 3 years of experience teaching IB and DSE Mathematics.\n\nMy teaching philosophy focuses on breaking down complex concepts into simple, digestible steps. I provide custom notes and past-paper drills, and I am available for questions between lessons.\n\nI successfully helped my last student jump from a Level 4 to a Level 5* in just one semester..."
+                      }
+                    />
+                    <p className="mt-1 text-right text-xs text-muted-foreground" aria-live="polite">
+                      {base.selfIntroduction.length}/2000
+                    </p>
+                  </Field>
+                </div>
+                <div className="mt-6 border-t border-border pt-5">
+                  {/* Issue #798 AC-2: optional matching chips. Nothing here is
+                    required and nothing here feeds the publish gate, so an
+                    empty selection simply stores no values. */}
+                  <p className="text-sm font-semibold text-[color:var(--ink)]">
+                    {matchingCopy.sectionTitle}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">{matchingCopy.sectionHint}</p>
+                  <Field
+                    label={matchingCopy.styleLabel}
+                    optional
+                    className="mt-4"
+                    hint={matchingCopy.hint(base.tutoringStyles.length, MAX_STYLES)}
+                  >
+                    <MatchingChips
+                      groupLabel={matchingCopy.styleLabel}
+                      options={STYLE_OPTIONS}
+                      selected={base.tutoringStyles}
+                      max={MAX_STYLES}
+                      language={chipLanguage}
+                      onToggle={(value) =>
+                        setBaseField(
+                          "tutoringStyles",
+                          toggleChip(base.tutoringStyles, value, MAX_STYLES),
+                        )
+                      }
+                    />
+                  </Field>
+                  <Field
+                    label={matchingCopy.fitLabel}
+                    optional
+                    className="mt-4"
+                    hint={matchingCopy.hint(base.studentFit.length, MAX_FIT)}
+                  >
+                    <MatchingChips
+                      groupLabel={matchingCopy.fitLabel}
+                      options={FIT_OPTIONS}
+                      selected={base.studentFit}
+                      max={MAX_FIT}
+                      language={chipLanguage}
+                      onToggle={(value) =>
+                        setBaseField("studentFit", toggleChip(base.studentFit, value, MAX_FIT))
+                      }
+                    />
+                  </Field>
+                  <Field
+                    label={matchingCopy.tagLabel}
+                    optional
+                    className="mt-4"
+                    hint={matchingCopy.hint(base.syllabusTags.length, MAX_TAGS)}
+                  >
+                    <MatchingChips
+                      groupLabel={matchingCopy.tagLabel}
+                      options={showAllTags ? TAG_OPTIONS : TAG_OPTIONS.slice(0, 6)}
+                      selected={base.syllabusTags}
+                      max={MAX_TAGS}
+                      language={chipLanguage}
+                      onToggle={(value) =>
+                        setBaseField("syllabusTags", toggleChip(base.syllabusTags, value, MAX_TAGS))
+                      }
+                    />
+                    {TAG_OPTIONS.length > 6 ? (
+                      <button
+                        type="button"
+                        aria-expanded={showAllTags}
+                        onClick={() => setShowAllTags((current) => !current)}
+                        className="mt-2 text-xs font-semibold text-[color:var(--ink)] underline underline-offset-4"
+                      >
+                        {showAllTags ? matchingCopy.showLess : matchingCopy.showAll}
+                      </button>
+                    ) : null}
+                  </Field>
+                </div>
+                <div className="mt-6 border-t border-border pt-5">
+                  {/* Issue #199: SEN experience & qualifications. Categories use
+                    the shared HK-common vocabulary (src/features/tutors/sen.ts). */}
+                  <label className="flex cursor-pointer items-start justify-between gap-3">
+                    <span>
+                      <span className="block text-sm font-semibold text-[color:var(--ink)]">
+                        {t("sen.join_toggle")}
+                      </span>
+                      <span className="mt-0.5 block text-xs text-muted-foreground">
+                        {t("sen.join_toggle_hint")}
+                      </span>
+                    </span>
+                    <Checkbox
+                      checked={base.senEnabled}
+                      onCheckedChange={(checked) => {
+                        setBaseField("senEnabled", checked === true);
+                        if (checked) clearFieldError("senCategories");
+                      }}
+                      aria-invalid={fieldErrors.senCategories ? true : undefined}
+                      className={fieldErrors.senCategories ? "border-destructive" : undefined}
+                    />
+                  </label>
+
+                  {base.senEnabled ? (
+                    <div className="mt-4 space-y-4">
+                      <div
+                        role="group"
+                        aria-label={t("sen.categories_aria")}
+                        className="space-y-1.5 rounded-sm border border-border p-3"
+                      >
+                        {SEN_CATEGORY_OPTIONS.map((category) => {
+                          const active = base.senCategories.includes(category);
+                          return (
+                            <label
+                              key={category}
+                              className="flex cursor-pointer items-center gap-3 rounded-sm px-2 py-1.5 text-sm text-[color:var(--ink)] transition-colors hover:bg-[color:var(--foreground)]/[0.04]"
+                            >
+                              <Checkbox
+                                checked={active}
+                                onCheckedChange={(checked) => {
+                                  setBaseField(
+                                    "senCategories",
+                                    checked
+                                      ? [...base.senCategories, category]
+                                      : base.senCategories.filter((item) => item !== category),
+                                  );
+                                  if (checked) clearFieldError("senCategories");
+                                }}
+                                aria-invalid={fieldErrors.senCategories ? true : undefined}
+                              />
+                              <span className="font-medium">{senCategoryLabels[category]}</span>
+                            </label>
+                          );
+                        })}
+                        {fieldErrors.senCategories ? (
+                          <p className="text-xs font-semibold text-destructive">
+                            {fieldErrors.senCategories}
+                          </p>
+                        ) : null}
+                      </div>
+                      <Field
+                        label={t("sen.experience_label")}
+                        optional
+                        hint={t("sen.experience_hint")}
+                      >
+                        <Textarea
+                          rows={4}
+                          maxLength={2000}
+                          value={base.senExperience}
+                          onChange={(event) => setBaseField("senExperience", event.target.value)}
+                          placeholder={t("sen.experience_placeholder")}
+                          className="w-full rounded-sm"
+                        />
+                      </Field>
+                    </div>
+                  ) : null}
+                </div>
+              </>
+            ) : null}
+
+            {step === 6 ? (
+              <>
+                <Heading step={6} titleKey="join.form.heading_logistics" />
+                {primary.curriculum === "IBDP" ? (
+                  <Hint>
+                    Suggested recent graduate rates: 45/45 HK$500/hr, 43-44 HK$400/hr, 40-42
+                    HK$300-350/hr.
+                  </Hint>
+                ) : primary.curriculum === "HKDSE" ? (
+                  <Hint>
+                    Suggested DSE rates: high achievers HK$150-200/hr; premium HK$250-300/hr for top
+                    scorers, sought-after majors, or extensive experience.
+                  </Hint>
+                ) : null}
+                {/* Issue #319: two base rates replace the single proposed rate.
+                  Whole dollars only (step=1 blocks decimals at the input);
+                  which field is required follows the lesson format.
+                  Issue #113: the tutor picks the currency every rate is
+                  quoted in; labels + the ≈HK$ note follow it. */}
+                <Field label={t("join.rates.currency_label")}>
+                  <Select value={base.currency} onValueChange={(v) => setBaseField("currency", v)}>
+                    <SelectTrigger aria-label={t("join.rates.currency_label")} className="max-w-48">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {SUPPORTED_CURRENCIES.map((code) => (
+                        <SelectItem key={code} value={code}>
+                          {code}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <Field
+                    label={t("join.rates.online", { currency: base.currency })}
+                    required={base.format !== "Face to face"}
+                    error={fieldErrors.onlineRate}
+                    hint={onlineRateApprox ? `≈ ${onlineRateApprox} / hr` : undefined}
+                  >
+                    <Input
+                      type="number"
+                      step={1}
+                      min={RATE_MIN}
+                      max={RATE_MAX}
+                      inputMode="numeric"
+                      value={base.onlineRate}
+                      onChange={(event) => setBaseField("onlineRate", event.target.value)}
+                      placeholder="250"
+                    />
+                  </Field>
+                  <Field
+                    label={t("join.rates.in_person", { currency: base.currency })}
+                    required={base.format !== "Online"}
+                    error={fieldErrors.inpersonRate}
+                    hint={inpersonRateApprox ? `≈ ${inpersonRateApprox} / hr` : undefined}
+                  >
+                    <Input
+                      type="number"
+                      step={1}
+                      min={RATE_MIN}
+                      max={RATE_MAX}
+                      inputMode="numeric"
+                      value={base.inpersonRate}
+                      onChange={(event) => setBaseField("inpersonRate", event.target.value)}
+                      placeholder="350"
+                    />
+                  </Field>
+                  <Field
+                    label={t("join.form.teaching_materials")}
+                    required
+                    error={fieldErrors.materials}
+                    className="self-start"
+                  >
+                    <SingleChoice
+                      options={MATERIALS_OPTIONS}
+                      value={base.materials}
+                      onChange={(materials) => setBaseField("materials", materials)}
+                      invalid={Boolean(fieldErrors.materials)}
+                    />
+                  </Field>
+                </div>
+
+                {/* Issue #319: optional travel note, only meaningful when the
+                  tutor teaches in person. */}
+                {base.inpersonRate.trim() !== "" ? (
+                  <Field
+                    label={t("join.rates.travel_note")}
+                    optional
+                    error={fieldErrors.travelNote}
+                    hint={t("join.rates.travel_note_hint")}
+                  >
+                    <Input
+                      value={base.travelNote}
+                      maxLength={TRAVEL_NOTE_MAX}
+                      onChange={(event) => setBaseField("travelNote", event.target.value)}
+                      placeholder="Kowloon and Hong Kong Island only"
+                    />
+                  </Field>
+                ) : null}
+
+                {/* Issue #319: one optional line about anything that changes the rate. */}
+                <Field
+                  label={t("join.rates.rate_note")}
+                  optional
+                  error={fieldErrors.rateNote}
+                  hint={t("join.rates.rate_note_hint")}
+                >
+                  <Input
+                    value={base.rateNote}
+                    maxLength={RATE_NOTE_MAX}
+                    onChange={(event) => setBaseField("rateNote", event.target.value)}
+                    placeholder="+HK$100 for lessons over 30 minutes away"
+                  />
+                </Field>
+
+                {/* Issue #319: optional extra rate rows (profile-only). A row
+                  saves only when BOTH the label and the rate are filled. */}
+                <div className="rounded-md border border-border p-4">
+                  <p className="text-sm font-medium text-foreground">
+                    {t("join.rates.rows_label")}
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
+                    {t("join.rates.rows_hint", { max: MAX_RATE_ROWS })}
+                  </p>
+                  <div className="mt-3 grid gap-3">
+                    {base.rateRows.map((row, index) => (
+                      <div
+                        key={index}
+                        className="grid gap-2 rounded-sm border border-border/70 p-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_auto] sm:items-end"
+                      >
+                        <div className="grid gap-1.5">
                           <Label
-                            htmlFor={`tier-rate-${index}`}
+                            htmlFor={`rate-row-label-${index}`}
                             className="text-xs font-semibold text-foreground"
                           >
-                            {qualification.curriculum}
+                            {t("join.rates.row_label")}
+                          </Label>
+                          <Input
+                            id={`rate-row-label-${index}`}
+                            value={row.label}
+                            maxLength={RATE_ROW_LABEL_MAX}
+                            onChange={(event) =>
+                              updateRateRow(index, { label: event.target.value })
+                            }
+                            placeholder={t("join.form.small_group")}
+                          />
+                        </div>
+                        <div className="grid gap-1.5">
+                          <Label
+                            htmlFor={`rate-row-rate-${index}`}
+                            className="text-xs font-semibold text-foreground"
+                          >
+                            {t("join.rates.row_rate", { currency: base.currency })}
                           </Label>
                           <div className="relative">
                             <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
-                              HK$
+                              {base.currency}
                             </span>
                             <Input
-                              id={`tier-rate-${index}`}
+                              id={`rate-row-rate-${index}`}
                               type="number"
-                              min={0}
+                              step={1}
+                              min={RATE_MIN}
+                              max={RATE_MAX}
                               inputMode="numeric"
-                              value={base.pricingTiers[index]?.rate ?? ""}
-                              onChange={(event) => {
-                                const rate = event.target.value;
-                                setBase((previous) => {
-                                  const tiers = [...previous.pricingTiers];
-                                  while (tiers.length <= index)
-                                    tiers.push({ curriculum: "", rate: "" });
-                                  tiers[index] = {
-                                    curriculum: qualification.curriculum,
-                                    rate,
-                                  };
-                                  return { ...previous, pricingTiers: tiers };
-                                });
-                                clearFieldError("pricingTiers");
-                              }}
-                              placeholder={rateFloor || "450"}
-                              className="pl-11 text-sm font-semibold"
+                              value={row.rate}
+                              onChange={(event) =>
+                                updateRateRow(index, { rate: event.target.value })
+                              }
+                              placeholder="200"
+                              className="pl-11"
                             />
                           </div>
                         </div>
-                      ))}
-                    </div>
-                    {fieldErrors.pricingTiers ? (
-                      <p className="mt-2 text-xs font-medium text-destructive">
-                        {fieldErrors.pricingTiers}
-                      </p>
-                    ) : null}
+                        <Button
+                          type="button"
+                          size="icon"
+                          variant="ghost"
+                          aria-label={t("join.form.remove_rate_row")}
+                          onClick={() => removeRateRow(index)}
+                        >
+                          <Trash2 />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
-                ) : null}
-              </div>
-            </>
-          ) : null}
+                  {fieldErrors.rateRows ? (
+                    <p className="mt-2 text-xs font-medium text-destructive">
+                      {fieldErrors.rateRows}
+                    </p>
+                  ) : null}
+                  {base.rateRows.length < MAX_RATE_ROWS ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      className="mt-3 w-fit rounded-sm"
+                      onClick={addRateRow}
+                    >
+                      <Plus /> {t("join.rates.add_row")}
+                    </Button>
+                  ) : (
+                    <p className="mt-3 text-xs font-medium text-muted-foreground">
+                      Maximum of {MAX_RATE_ROWS} rate rows reached. Remove one to add another.
+                    </p>
+                  )}
+                </div>
 
-          {step === stepTitles.length ? (
-            <>
-              <Heading step={stepTitles.length} titleKey="join.form.heading_acknowledgments" />
-              <div className="grid gap-5">
-                <div className="grid gap-1.5">
-                  <label className="flex gap-3 text-sm text-muted-foreground">
-                    <Checkbox
-                      checked={base.terms}
-                      onCheckedChange={(checked) => setBaseField("terms", checked === true)}
-                      aria-invalid={fieldErrors.terms ? true : undefined}
-                      className={fieldErrors.terms ? "border-destructive" : undefined}
-                    />
-                    <span>
-                      I agree to the MatchMax{" "}
-                      <Link
-                        className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
-                        to="/tos"
-                        target="_blank"
-                      >
-                        Terms and Conditions
-                      </Link>{" "}
-                      and confirm the information I have provided is true and complete.
-                      {fieldErrors.terms ? (
-                        <span className="ml-2 align-middle text-xs font-medium text-destructive">
-                          {t("join.form.required")}
-                        </span>
-                      ) : null}
-                      {/* Issue #309: verification scope lines, part of the
-                          tutor terms consent, in both locales. */}
-                      <ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-relaxed">
-                        {([1, 2, 3, 4] as const).map((line) => (
-                          <li key={line}>{t(`join.terms_verification_${line}`)}</li>
+                {/* Issue #191: intake asks capacity up front so admin can compare
+                  supply against demand without a follow-up email. Optional. */}
+                <Field
+                  label={t("join.form.students_at_once")}
+                  hint="Leave blank if you're not sure yet."
+                >
+                  <Input
+                    type="number"
+                    min={0}
+                    inputMode="numeric"
+                    value={base.maxStudents}
+                    onChange={(event) => setBaseField("maxStudents", event.target.value)}
+                    placeholder="2"
+                  />
+                </Field>
+
+                {/* Issue #108: per-curriculum pricing with a Standardize toggle.
+                  The proposed hourly rate above stays the base/flat rate shown
+                  on search cards; tiers override it per curriculum. */}
+                <div className="rounded-md border border-border p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <p className="text-sm font-semibold text-foreground">
+                        {t("join.form.per_curriculum_pricing")}
+                      </p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Charge different rates for different curriculum levels, or keep one flat
+                        rate across everything you teach.
+                      </p>
+                    </div>
+                    <label className="flex min-h-11 cursor-pointer items-center gap-2 py-1 text-sm text-foreground">
+                      <Checkbox
+                        checked={base.pricingStandardized}
+                        onCheckedChange={(checked) =>
+                          setBaseField("pricingStandardized", checked === true)
+                        }
+                        aria-label={t("join.form.standardize_rate")}
+                      />
+                      <span>{t("join.form.standardize_rate_label")}</span>
+                    </label>
+                  </div>
+                  {!base.pricingStandardized ? (
+                    <div className="mt-4 border-t border-border pt-4">
+                      <p className="text-xs text-muted-foreground">
+                        Enter your rate for each curriculum you completed above. Leave a level blank
+                        and we&apos;ll apply your lowest entered rate to it.
+                      </p>
+                      <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                        {qualifications.map((qualification, index) => (
+                          <div key={`${qualification.curriculum}-${index}`} className="space-y-1.5">
+                            <Label
+                              htmlFor={`tier-rate-${index}`}
+                              className="text-xs font-semibold text-foreground"
+                            >
+                              {qualification.curriculum}
+                            </Label>
+                            <div className="relative">
+                              <span className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-xs font-semibold text-muted-foreground">
+                                HK$
+                              </span>
+                              <Input
+                                id={`tier-rate-${index}`}
+                                type="number"
+                                min={0}
+                                inputMode="numeric"
+                                value={base.pricingTiers[index]?.rate ?? ""}
+                                onChange={(event) => {
+                                  const rate = event.target.value;
+                                  setBase((previous) => {
+                                    const tiers = [...previous.pricingTiers];
+                                    while (tiers.length <= index)
+                                      tiers.push({ curriculum: "", rate: "" });
+                                    tiers[index] = {
+                                      curriculum: qualification.curriculum,
+                                      rate,
+                                    };
+                                    return { ...previous, pricingTiers: tiers };
+                                  });
+                                  clearFieldError("pricingTiers");
+                                }}
+                                placeholder={rateFloor || "450"}
+                                className="pl-11 text-sm font-semibold"
+                              />
+                            </div>
+                          </div>
                         ))}
-                      </ul>
-                      {/* Issue #508: tutor-intake row — centre spin-offs are
-                          reportable; short note + fee-guide link. */}
-                      <p className="mt-2 text-xs leading-relaxed">
-                        {t("join.centre_spinoff_note")}{" "}
+                      </div>
+                      {fieldErrors.pricingTiers ? (
+                        <p className="mt-2 text-xs font-medium text-destructive">
+                          {fieldErrors.pricingTiers}
+                        </p>
+                      ) : null}
+                    </div>
+                  ) : null}
+                </div>
+              </>
+            ) : null}
+
+            {step === stepTitles.length ? (
+              <>
+                <Heading step={stepTitles.length} titleKey="join.form.heading_acknowledgments" />
+                <div className="grid gap-5">
+                  <div className="grid gap-1.5">
+                    <label className="flex gap-3 text-sm text-muted-foreground">
+                      <Checkbox
+                        checked={base.terms}
+                        onCheckedChange={(checked) => setBaseField("terms", checked === true)}
+                        aria-invalid={fieldErrors.terms ? true : undefined}
+                        className={fieldErrors.terms ? "border-destructive" : undefined}
+                      />
+                      <span>
+                        I agree to the MatchMax{" "}
                         <Link
                           className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
-                          to="/guide/tutors"
+                          to="/tos"
                           target="_blank"
                         >
-                          {t("join.centre_spinoff_guide_link")}
-                        </Link>
-                      </p>
-                    </span>
-                  </label>
-                </div>
-                {/* Issue #214: the terms gate, records which ToS version the
+                          Terms and Conditions
+                        </Link>{" "}
+                        and confirm the information I have provided is true and complete.
+                        {fieldErrors.terms ? (
+                          <span className="ml-2 align-middle text-xs font-medium text-destructive">
+                            {t("join.form.required")}
+                          </span>
+                        ) : null}
+                        {/* Issue #309: verification scope lines, part of the
+                          tutor terms consent, in both locales. */}
+                        <ul className="mt-2 list-disc space-y-1 pl-4 text-xs leading-relaxed">
+                          {([1, 2, 3, 4] as const).map((line) => (
+                            <li key={line}>{t(`join.terms_verification_${line}`)}</li>
+                          ))}
+                        </ul>
+                        {/* Issue #508: tutor-intake row — centre spin-offs are
+                          reportable; short note + fee-guide link. */}
+                        <p className="mt-2 text-xs leading-relaxed">
+                          {t("join.centre_spinoff_note")}{" "}
+                          <Link
+                            className="font-semibold text-[color:var(--brand-link)] underline underline-offset-4"
+                            to="/guide/tutors"
+                            target="_blank"
+                          >
+                            {t("join.centre_spinoff_guide_link")}
+                          </Link>
+                        </p>
+                      </span>
+                    </label>
+                  </div>
+                  {/* Issue #214: the terms gate, records which ToS version the
                     applicant accepted (server-side) and links the matching,
                     verification and referral sections. */}
-                <TermsGateCheckbox
-                  checked={base.termsGate}
-                  invalid={Boolean(fieldErrors.termsGate)}
-                  onCheckedChange={(checked) => setBaseField("termsGate", checked)}
-                />
-                <div className="grid gap-1.5">
-                  <label className="flex gap-3 text-sm text-muted-foreground">
-                    <Checkbox
-                      checked={base.privacy}
-                      onCheckedChange={(checked) => setBaseField("privacy", checked === true)}
-                      aria-invalid={fieldErrors.privacy ? true : undefined}
-                      className={fieldErrors.privacy ? "border-destructive" : undefined}
-                    />
-                    <span>
-                      {professional
-                        ? t("join.form.privacy_ack_professional")
-                        : t("join.form.privacy_ack")}
-                      {fieldErrors.privacy ? (
-                        <span className="ml-2 align-middle text-xs font-medium text-destructive">
-                          {t("join.form.required")}
-                        </span>
-                      ) : null}
-                    </span>
-                  </label>
+                  <TermsGateCheckbox
+                    checked={base.termsGate}
+                    invalid={Boolean(fieldErrors.termsGate)}
+                    onCheckedChange={(checked) => setBaseField("termsGate", checked)}
+                  />
+                  <div className="grid gap-1.5">
+                    <label className="flex gap-3 text-sm text-muted-foreground">
+                      <Checkbox
+                        checked={base.privacy}
+                        onCheckedChange={(checked) => setBaseField("privacy", checked === true)}
+                        aria-invalid={fieldErrors.privacy ? true : undefined}
+                        className={fieldErrors.privacy ? "border-destructive" : undefined}
+                      />
+                      <span>
+                        {professional
+                          ? t("join.form.privacy_ack_professional")
+                          : t("join.form.privacy_ack")}
+                        {fieldErrors.privacy ? (
+                          <span className="ml-2 align-middle text-xs font-medium text-destructive">
+                            {t("join.form.required")}
+                          </span>
+                        ) : null}
+                      </span>
+                    </label>
+                  </div>
+                  <div className="grid gap-1.5">
+                    <label className="flex gap-3 text-sm text-muted-foreground">
+                      <Checkbox
+                        checked={base.commission}
+                        onCheckedChange={(checked) => setBaseField("commission", checked === true)}
+                        aria-invalid={fieldErrors.commission ? true : undefined}
+                        className={fieldErrors.commission ? "border-destructive" : undefined}
+                      />
+                      <span>
+                        {t("join.form.commission_ack")}
+                        {fieldErrors.commission ? (
+                          <span className="ml-2 align-middle text-xs font-medium text-destructive">
+                            {t("join.form.required")}
+                          </span>
+                        ) : null}
+                      </span>
+                    </label>
+                  </div>
+                  <div ref={captchaRef} className="min-h-[65px]" />
+                  {captchaError ? (
+                    <p className="text-xs font-medium text-destructive" role="alert">
+                      {captchaError}
+                    </p>
+                  ) : null}
+                  {fieldErrors.captcha ? (
+                    <p className="text-xs font-medium text-destructive" role="alert">
+                      {fieldErrors.captcha}
+                    </p>
+                  ) : null}
                 </div>
-                <div className="grid gap-1.5">
-                  <label className="flex gap-3 text-sm text-muted-foreground">
-                    <Checkbox
-                      checked={base.commission}
-                      onCheckedChange={(checked) => setBaseField("commission", checked === true)}
-                      aria-invalid={fieldErrors.commission ? true : undefined}
-                      className={fieldErrors.commission ? "border-destructive" : undefined}
-                    />
-                    <span>
-                      {t("join.form.commission_ack")}
-                      {fieldErrors.commission ? (
-                        <span className="ml-2 align-middle text-xs font-medium text-destructive">
-                          {t("join.form.required")}
-                        </span>
-                      ) : null}
-                    </span>
-                  </label>
-                </div>
-                <div ref={captchaRef} className="min-h-[65px]" />
-                {captchaError ? (
-                  <p className="text-xs font-medium text-destructive" role="alert">
-                    {captchaError}
-                  </p>
-                ) : null}
-                {fieldErrors.captcha ? (
-                  <p className="text-xs font-medium text-destructive" role="alert">
-                    {fieldErrors.captcha}
-                  </p>
-                ) : null}
-              </div>
-            </>
-          ) : null}
+              </>
+            ) : null}
+          </motion.div>
         </div>
 
         {/* #798 AC-4: shown only when Submit was blocked by an in-app browser. */}
