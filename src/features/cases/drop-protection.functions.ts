@@ -47,6 +47,7 @@ import {
   type DropReasonClass,
   type DropVerification,
   type DropVerifiedBy,
+  type FeeChargePayer,
   type FeeResolution,
   type OutcomeKind,
   type PromoType,
@@ -99,10 +100,11 @@ type DropCaseRow = {
   fee_rule_id: string | null;
   consequences_rule_id: string | null;
   final_commission_due: number | null;
+  fee_charge_payer: string | null;
 };
 
 const CASE_COLS =
-  "id, case_code, hourly_rate_hkd, session_length_minutes, student_count, package_type, matched_tutor_id, parent_id, organisation_id, contact_phone, sor_status, ended_by_parent_at, ended_by_tutor_at, promo_type, first_lesson_discount_pct, commission_split_mode, drop_outcome, drop_initiator, drop_reason_class, drop_fit_reason, drop_verification, drop_verified_by, drop_proof_note, drop_recorded_at, bypass_flag, fee_rule_id, consequences_rule_id, final_commission_due";
+  "id, case_code, hourly_rate_hkd, session_length_minutes, student_count, package_type, matched_tutor_id, parent_id, organisation_id, contact_phone, sor_status, ended_by_parent_at, ended_by_tutor_at, promo_type, first_lesson_discount_pct, commission_split_mode, drop_outcome, drop_initiator, drop_reason_class, drop_fit_reason, drop_verification, drop_verified_by, drop_proof_note, drop_recorded_at, bypass_flag, fee_rule_id, consequences_rule_id, final_commission_due, fee_charge_payer";
 
 type LessonRow = { case_id: string; sequence: number; status: string; done_at: string | null };
 
@@ -121,6 +123,8 @@ export type SavedDropDecision = {
   splitMode: SplitMode;
   feeRuleId: string | null;
   finalCommissionDueHkd: number | null;
+  /** #828 AC-B4: who owes finalCommissionDueHkd; legacy/null rows are "tutor". */
+  chargePayer: FeeChargePayer;
 };
 
 export type DropProtectionState = {
@@ -228,6 +232,7 @@ function savedDecision(c: DropCaseRow): SavedDropDecision {
     splitMode: normalizeSplitMode(c.commission_split_mode),
     feeRuleId: c.fee_rule_id,
     finalCommissionDueHkd: c.final_commission_due == null ? null : Number(c.final_commission_due),
+    chargePayer: c.fee_charge_payer === "parent" ? "parent" : "tutor",
   };
 }
 
@@ -512,6 +517,7 @@ export const recordDropOutcome = createServerFn({ method: "POST" })
         fee_rule_id: resolution.ruleId,
         consequences_rule_id: resolution.ruleId,
         final_commission_due: resolution.finalCommissionDueHkd,
+        fee_charge_payer: resolution.chargePayer,
       })
       .eq("id", ctx.c.id);
     if (error) throw new Error(error.message);
@@ -521,7 +527,7 @@ export const recordDropOutcome = createServerFn({ method: "POST" })
       ctx.c.id,
       context.userId,
       "drop_decision",
-      `[#536 ${resolution.ruleId}] due=${resolution.finalCommissionDueHkd ?? "n/a"} tier=${ctx.ownership.tier} window=${ctx.ownership.state}`,
+      `[#536 ${resolution.ruleId}] due=${resolution.finalCommissionDueHkd ?? "n/a"} payer=${resolution.chargePayer} tier=${ctx.ownership.tier} window=${ctx.ownership.state}`,
     );
 
     // #672 Lessons 2–4 parent-fault stop: credit the overpaid difference

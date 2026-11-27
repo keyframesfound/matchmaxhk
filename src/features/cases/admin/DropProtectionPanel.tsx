@@ -429,7 +429,9 @@ function FeePreview({
       <p className="text-sm font-semibold text-[color:var(--ink)]">
         {preview.finalCommissionDueHkd === null
           ? "Nothing final yet"
-          : `Final fee due ${hkd(preview.finalCommissionDueHkd)}`}
+          : `Final fee due ${hkd(preview.finalCommissionDueHkd)}${
+              preview.chargePayer === "parent" ? " · parent pays via MatchMax (tutor $0)" : ""
+            }`}
       </p>
       <p className="mt-0.5 text-[11px] text-muted-foreground">
         {FEE_RULE_LABELS[preview.ruleId]} · R = {hkd(Math.round(state.lessonValueHkd ?? 0))}
@@ -530,7 +532,8 @@ function DropForm({ caseId, state }: PanelProps) {
       }),
     onSuccess: (r) => {
       const due = r.finalCommissionDueHkd !== null ? ` · ${hkd(r.finalCommissionDueHkd)}` : "";
-      toast.success(`${FEE_RULE_LABELS[r.ruleId]}${due}`);
+      const payer = r.chargePayer === "parent" ? " · parent pays via MatchMax (tutor $0)" : "";
+      toast.success(`${FEE_RULE_LABELS[r.ruleId]}${due}${payer}`);
       if (r.consequences.banTutor) {
         toast.warning("Ban the tutor from the account tools: bans stay a human action.");
       }
@@ -672,6 +675,7 @@ export function DropProtectionPanel({ caseId }: { caseId: string }) {
         {state?.saved.finalCommissionDueHkd != null ? (
           <span className="rounded-full bg-[color:var(--ink)]/[0.06] px-2 py-0.5 text-[11px] font-semibold">
             Saved {hkd(state.saved.finalCommissionDueHkd)}
+            {state.saved.chargePayer === "parent" ? " · parent pays via MatchMax" : ""}
           </span>
         ) : null}
       </div>
