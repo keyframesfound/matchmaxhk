@@ -1,4 +1,7 @@
 {
+  "a11y": {
+    "skip_to_content": "跳至主要内容"
+  },
   "account": {
     "dob_banner": "新增您的生日，让我们提供贴合年龄的功能及选择性生日祝福。出生年份保持私密。",
     "dob_banner_cta": "前往设定新增生日",
@@ -257,11 +260,11 @@
     "reset_invalid_body": "这个重设密码链接无效或已过期，请重新申请才能继续。",
     "request_new_link": "重新申请链接",
     "back_to_login": "返回登录",
-    "tos_title": "条款及细则与私隐政策",
+    "tos_title": "条款及细则与隐私政策",
     "tos_body_prefix": "接受即表示你确认已阅读并同意我们的",
     "tos_terms": "条款及细则",
     "tos_body_mid": "及",
-    "tos_privacy": "私隐政策",
+    "tos_privacy": "隐私政策",
     "tos_body_suffix": "。",
     "tos_accept": "接受",
     "tos_decline": "拒绝",
@@ -358,9 +361,9 @@
     "type_filter_all": "全部",
     "type_filter_activity": "活动／讲座",
     "type_filter_aria": "个案类型",
-    "fee_note_standard": "家长直接向你支付学费。你向 MatchMax 支付标准 1.5 堂行政费（短期个案为套餐的 20%）。",
+    "fee_note_standard": "家长直接向你支付学费。你向 MatchMax 支付标准 1.5 节课行政费（短期个案为套餐的 20%）。",
     "fee_note_centre": "中心直接向你支付学费。你按同一中心阶梯向 MatchMax 支付行政费（6 个月内 1.5 → 1.0 → 0.5 → $0）。",
-    "fee_pill_ongoing": "1.5 课收费",
+    "fee_pill_ongoing": "1.5 节课收费",
     "fee_pill_short": "短期 20%",
     "fee_pill_pro_bono": "义教 $0",
     "posted_ago": "{{ago}}张贴",
@@ -389,7 +392,7 @@
     "chip_admissions": "大学入学",
     "all_open_requests": "所有公开个案",
     "apply_now": "立即申请",
-    "apply_short_disclosure": "短个案（≤5 堂）：MatchMax 平台费为包堂总额的 20%，第一堂后收取，不是一般第二堂后的一堂半。",
+    "apply_short_disclosure": "短个案（≤5 节课）：MatchMax 平台费为包堂总额的 20%，第一堂后收取，不是一般第二堂后的一堂半。",
     "ready_title": "准备好申请？",
     "ready_body": "通过 WhatsApp 申请，MatchMax 团队会为你配对家长——导师完全免费，我们会于一个工作天内回复。",
     "location_flexible": "地点灵活",
@@ -408,9 +411,9 @@
     "payout_short2_package": "包堂总额：{{package}}（每小时 {{rate}} × {{hours}} 小时 × {{count}} 堂）",
     "payout_short_net": "导师实收：余下 80%，由家长直接支付",
     "payout_ongoing_tuition": "议定学费：{{rate}} × 1.5 = 行政费 {{fee}}",
-    "payout_ongoing_l1": "第 1 课（100% → MatchMax）：导师实收 HK$0（家长 FPS → MatchMax）",
-    "payout_ongoing_l2": "第 2 课（50% → 导师）：{{rate}} 由家长直接支付",
-    "payout_ongoing_l3": "第 3 课起（100%）：每{{unit}}{{rate}} · 之后 0% 佣金",
+    "payout_ongoing_l1": "第 1 节课（100% → MatchMax）：导师实收 HK$0（家长 FPS → MatchMax）",
+    "payout_ongoing_l2": "第 2 节课（50% → 导师）：{{rate}} 由家长直接支付",
+    "payout_ongoing_l3": "第 3 节课起（100%）：每{{unit}}{{rate}} · 之后 0% 佣金",
     "detail_subjects": "科目：{{list}}",
     "detail_subjects_none": "未指定",
     "detail_cadence": "每周堂数：{{per_week}} · 每次 {{minutes}} 分钟",
@@ -422,7 +425,7 @@
     "detail_pref_start": "开始时间：{{value}}",
     "detail_pref_language": "授课语言：{{value}}",
     "detail_pref_students": "学生人数：{{students}}（小组个案）",
-    "detail_pref_short": "短个案：最多 5 堂 · 20% 行政费",
+    "detail_pref_short": "短个案：最多 5 节课 · 20% 行政费",
     "detail_pref_probono": "义教个案：HK$0 学费 · HK$0 行政费",
     "detail_flexible": "不限",
     "detail_no_preference": "不限",
@@ -472,20 +475,20 @@
   },
   "case_request": {
     "fee_notice_title": "配对费用",
-    "fee_notice": "行政费合共 1.5 课：第一堂学费的 100% 加第二堂学费的 50%，由自雇导师承担，以转数快（FPS）支付给 MatchMax。家长毋须向 MatchMax 缴付配对费用，学费直接支付给导师。每小时 HK$400 即标准行政费为第一堂 HK$400 加第二堂 HK$200。若要求为 5 节或以内的短期个案，费用则改为已编排课程组合的 20%：每小时费率 × 每堂时数 × 堂数 × 0.20。",
+    "fee_notice": "行政费合共 1.5 节课：第一堂学费的 100% 加第二堂学费的 50%，由自雇导师承担，以转数快（FPS）支付给 MatchMax。家长毋须向 MatchMax 缴付配对费用，学费直接支付给导师。每小时 HK$400 即标准行政费为第一堂 HK$400 加第二堂 HK$200。若要求为 5 节或以内的短期个案，费用则改为已编排课程组合的 20%：每小时费率 × 每堂时数 × 堂数 × 0.20。",
     "fee_agree_pre": "我同意",
     "fee_agree_link": "配对费用条款",
     "fee_agree_post": "（版本 {{version}}）。",
     "funnel_level_label": "你需要哪个学术程度的协助？",
-    "funnel_level_kindergarten": "幼稚园",
+    "funnel_level_kindergarten": "幼儿园",
     "funnel_level_primary": "小学",
     "funnel_level_secondary": "中学",
     "funnel_level_university": "大学",
     "funnel_secondary_band_label": "就读哪个中学阶段？",
     "funnel_band_junior": "初中（中一至中三／Year 7–9）",
     "funnel_band_senior": "高中（中四至中六／Year 10–13）",
-    "k_focus_label": "幼稚园重点",
-    "k_focus_aria": "幼稚园重点范围",
+    "k_focus_label": "幼儿园重点",
+    "k_focus_aria": "幼儿园重点范围",
     "k_focus_hint": "可选多项——例如需要英语沉浸、或小组游戏较弱。",
     "tier_label": "学术程度",
     "tier_unspecified": "所有程度",
@@ -498,7 +501,7 @@
     "uni_program_placeholder": "例如：BBA、BEng、MBBS",
     "uni_courses_label": "课程编号／你的需要",
     "uni_courses_placeholder": "ECON1210、功课辅助、论文指导——请尽量具体。",
-    "detail_k_focus": "幼稚园重点：{{value}}",
+    "detail_k_focus": "幼儿园重点：{{value}}",
     "detail_uni_field": "学术领域：{{value}}",
     "detail_uni_name": "大学：{{value}}",
     "detail_uni_program": "学位课程：{{value}}",
@@ -701,10 +704,10 @@
     "guide_open": "开启指南",
     "guide_copy": "复制链接",
     "dropoff_label": "L1 后早期流失",
-    "dropoff_hint": "导师在第 1 课后失联时由客服记录；两次或以上须走 REVIEW 旗标流程。",
+    "dropoff_hint": "导师在第 1 节课后失联时由客服记录；两次或以上须走 REVIEW 旗标流程。",
     "dropoff_minus": "减一次",
     "dropoff_plus": "加一次",
-    "dropoff_note_placeholder": "内部备注：例如 C-2001 第 1 课后失联",
+    "dropoff_note_placeholder": "内部备注：例如 C-2001 第 1 节课后失联",
     "review_hint": "已有 {{count}} 次 L1 后早期流失。请设定 REVIEW 旗标，并在导师顺利完成一个个案前只分配较易个案。",
     "review_action": "设定 REVIEW 旗标",
     "chip_guide_sent": "已发指南",
@@ -713,7 +716,7 @@
   "rematch": {
     "pivot": "失败试堂转配",
     "nextTwo": "下一位：{{tutors}}",
-    "feeL1": "在失败个案开 1.0× 第 1 课帐单",
+    "feeL1": "在失败个案开 1.0× 第 1 节课帐单",
     "emptyNext": "暂时没有合适人选。放宽时间／网课或用 Rate Nudge；P1 转配个案仍会开出。",
     "inactiveSort": "暂停接单（排尾，仍可选用）",
     "exitRemindAfterInvoice": "转配个案开出帐单后才能 exit。"
@@ -729,7 +732,7 @@
     "empty_edu_desc": "我们暂时没有符合这间学校或大学的导师——不过以下来自相近院校的高分导师同样值得参考。",
     "empty_edu_clear": "显示所有导师",
     "popular_tags": "热门标签：",
-    "empty_kindergarten_title": "暂时还没有幼稚园导师",
+    "empty_kindergarten_title": "暂时还没有幼儿园导师",
     "empty_kindergarten_desc": "我们正在招募自然拼读、普通话沉浸及小一面试准备的导师。欢迎在 WhatsApp 查询，团队会为你配对。",
     "empty_university_title": "此筛选条件下暂时没有大学导师",
     "empty_university_desc": "试试其他领域、大学或课程编号——或在 WhatsApp 查询，我们会为你找出合适的导师。",
@@ -910,7 +913,7 @@
     "districts": "地区指南",
     "help": "帮助中心",
     "contact": "联络我们",
-    "privacy": "私隐政策",
+    "privacy": "隐私政策",
     "terms": "条款及细则",
     "commitment": "社群承诺",
     "rights": "版权所有"
@@ -963,7 +966,7 @@
       "title_placeholder": "例如：IB Physics IA 批改",
       "turnaround_hint": "买家订单会据此显示确切交付期限。",
       "turnaround_hours": "{{hours}} 小时",
-      "turnaround_note_placeholder": "例如「48 小时」或「1 堂」"
+      "turnaround_note_placeholder": "例如「48 小时」或「1 节课」"
     },
     "admin_review_title": "服务审核队列",
     "admin_review_count": "{{count}} 个待审核",
@@ -1056,7 +1059,7 @@
     "form_sessions_hint": "小组满额后，这些时段会在你的公开时间表标为已占用。",
     "form_sessions": "每周上课时段",
     "board_title": "小组班（2至6人）",
-    "board_intro": "由导师开班，每位学生费率更低。同一个 1.5 课管理费按每位学生计，每个家庭都有自己的私人一对一个案，不会和其他家长交换任何联络资料。",
+    "board_intro": "由导师开班，每位学生费率更低。同一个 1.5 节课管理费按每位学生计，每个家庭都有自己的私人一对一个案，不会和其他家长交换任何联络资料。",
     "board_empty": "现在暂时未有招生中的小组班。迟些再来看下，或者在导师档案看下他有没有开班。",
     "loading": "载入中…",
     "state_forming": "招生中",
@@ -1076,7 +1079,7 @@
     "booking_title": "小组班报名",
     "booked_toast": "已报名 — 个案编号 {{code}}",
     "booked_body": "报名成功！已为你建立个案 {{code}}。",
-    "booked_next": "团队会介绍导师和确认第一课。1.5 课管理费涵盖整个报名（所有兄弟姊妹）。",
+    "booked_next": "团队会介绍导师和确认第一课。1.5 节课管理费涵盖整个报名（所有兄弟姊妹）。",
     "view_cases": "查看我的个案",
     "close": "关闭",
     "cancel": "取消",
@@ -1095,9 +1098,9 @@
     "fee_preview_split": "第一课：${{lesson1}} · 第二课余款：${{lesson2}}",
     "fee_preview_note": "行政费由自雇导师支付给 MatchMax；家长毋须向 MatchMax 缴付配对费用。",
     "terms_ack": "我同意服务条款和匿名配对模式。",
-    "fee_ack": "我明白 1.5 课管理费（第一课 100% + 第二课 50%）按每位学生计，由自雇导师支付给 MatchMax。",
+    "fee_ack": "我明白 1.5 节课管理费（第一课 100% + 第二课 50%）按每位学生计，由自雇导师支付给 MatchMax。",
     "manager_title": "小组班",
-    "manager_description": "开办 2 至 6 人小组班。家长按每位学生报名，每个家庭有私人一对一个案，1.5 课管理费按每位学生计。",
+    "manager_description": "开办 2 至 6 人小组班。家长按每位学生报名，每个家庭有私人一对一个案，1.5 节课管理费按每位学生计。",
     "create_title": "开新班",
     "edit_title": "编辑小组班",
     "create": "开班",
@@ -1137,19 +1140,19 @@
     "index_parents_body": "配对流程、行政费的用途，以及介绍后我们不做的事。",
     "index_partners_body": "培训机构和教育顾问怎样以机构伙伴身分加入：核实流程、中心工作台，和导师介绍怎样运作（机构配对费 HK$0）。",
     "index_refer_body": "分享链接，朋友以独立导师身分申请，你可赚取他支付予 MatchMax 的行政费的 15%。家长无须支付任何配对费用。",
-    "index_tutors_body": "上架流程、1.5 课行政费的实际意义，以及我们不会碰的东西。",
+    "index_tutors_body": "上架流程、1.5 节课行政费的实际意义，以及我们不会碰的东西。",
     "index_verification_body": "每个层级我们核实什么——以及核实不代表的东西。",
     "index_verification_link": "完整核实详情",
     "match_parents_link": "阅读家长指南",
     "match_parents_p1": "直接浏览导师档案，或提交个案由专人筛选。",
     "match_parents_p2": "客服协助转介，并跟进首两堂。",
-    "match_parents_p3": "行政费合共 1.5 堂（第一堂 100% + 第二堂 50%），由自雇导师承担，以 FPS 付给 MatchMax。家长不用向 MatchMax 付配对费。每堂时薪直接付给导师。",
+    "match_parents_p3": "行政费合共 1.5 节课（第一堂 100% + 第二堂 50%），由自雇导师承担，以 FPS 付给 MatchMax。家长不用向 MatchMax 付配对费。每堂时薪直接付给导师。",
     "match_parents_p4": "转堂、重新配对或付款疑问，随时找客服跟进。",
     "match_parents_title": "给家长",
     "match_tutors_link": "阅读导师指南",
     "match_tutors_p1": "建立匿名档案（可选蓝剔）",
     "match_tutors_p2": "按港铁沿线接案或接收家长预约",
-    "match_tutors_p3": "行政费之后时薪全归你——私人个案 1.5 堂；合作中心介绍在同一中心 6 个月内递减：1.5 → 1 → 0.5 → 第 4 位起免费。",
+    "match_tutors_p3": "行政费之后时薪全归你——私人个案 1.5 节课；合作中心介绍在同一中心 6 个月内递减：1.5 → 1 → 0.5 → 第 4 位起免费。",
     "match_tutors_p4": "自订时薪和档期，只接合适的个案。",
     "match_tutors_title": "给导师",
     "money_title": "金钱安排",
@@ -1226,13 +1229,13 @@
       "s1_body": "按科目、港铁沿线、预算筛选——或交由专人筛选。",
       "s2_title": "专人安排转介及首两堂",
       "s2_body": "确认时间、互通全名，安排首两堂。",
-      "s3_title": "导师缴付 1.5 堂平台行政费",
+      "s3_title": "导师缴付 1.5 节课平台行政费",
       "s3_body": "行政费为第一堂 100% + 第二堂 50%，由自雇导师承担，以 FPS 付给 MatchMax。家长不用向 MatchMax 付配对费。",
       "s4_title": "每堂直接向导师付款",
       "s4_body": "每堂时薪（包括头两堂）都直接付给导师。由第三堂起，时间表完全由你和导师自行安排。",
       "fact_rates_label": "学费由导师厘定",
       "fact_rates_body": "导师自订时薪；导师卡显示的就是导师实收的金额。",
-      "fact_names_label": "配对前保持私隐",
+      "fact_names_label": "配对前保持隐私",
       "fact_names_body": "导师卡显示设定的显示名称或匿名编号；专人转介时，你才会得到导师的全名。",
       "fact_fit_label": "首堂不合适可更换",
       "fact_fit_body": "如果首堂不合适，告诉专人，我们会安排替换导师。",
@@ -1243,13 +1246,13 @@
       "not_lessons_label": "第二堂后不再介入",
       "not_lessons_body": "专人在首两堂全程跟进；之后的安排就在你与导师之间进行。",
       "not_cut_label": "不会抽后续课堂佣金",
-      "not_cut_body": "1.5 堂行政费是 MatchMax 唯一收取的款项。",
+      "not_cut_body": "1.5 节课行政费是 MatchMax 唯一收取的款项。",
       "not_schedule_label": "不干预日常时间表",
       "not_schedule_body": "改期及之后的时间表直接和导师安排。",
       "cta_browse": "浏览导师档案",
       "cta_request": "提交导师需求",
-      "fact_group_label": "一对一或小组（2–6 人；每名学生同样 1.5 堂行政费）",
-      "fact_group_body": "请私人一对一导师，或报读小组班（2–6 人）享较低人均费率。每名学生同样适用 1.5 堂行政费。",
+      "fact_group_label": "一对一或小组（2–6 人；每名学生同样 1.5 节课行政费）",
+      "fact_group_body": "请私人一对一导师，或报读小组班（2–6 人）享较低人均费率。每名学生同样适用 1.5 节课行政费。",
       "h1": "学生与家长：怎样运作",
       "account_callout_title": "帮自己还是帮子女报名？",
       "account_callout_body": "一个 MatchMax 账户可以直接以独立学生身分报名，亦可以在「账户」加入子女子档案，一次性管理多个小朋友的导师。导师会自动知道对面是家长还是学生本人，由第一日起沟通就找对了渠道。",
@@ -1275,7 +1278,7 @@
       "r3": "导师保留教学方法的自主权，亦可以自由服务其他客户。",
       "r4": "职位空缺招聘不在服务范围——MatchMax 从不刊登职位。",
       "fee_title": "伙伴费用结构",
-      "fee_body": "机构向 MatchMax 支付 HK$0：没有上架费，亦没有配对费。每次介绍由独立导师向 MatchMax 支付标准 1.5 堂行政费，并按同一中心阶梯计算（1.5 → 1.0 → 0.5 堂，6 个月内第 4 位学生起 $0）。学费由中心直接支付予导师；MatchMax 从不代收学费。",
+      "fee_body": "机构向 MatchMax 支付 HK$0：没有上架费，亦没有配对费。每次介绍由独立导师向 MatchMax 支付标准 1.5 节课行政费，并按同一中心阶梯计算（1.5 → 1.0 → 0.5 节课，6 个月内第 4 位学生起 $0）。学费由中心直接支付予导师；MatchMax 从不代收学费。",
       "cta": "以伙伴中心身分申请",
       "who_title": "哪个可以以机构伙伴身分加入？",
       "who_1": "家教及学习中心（IB、DSE、IGCSE、A-Level、IELTS/SAT 等）：小组课程、补底班和中心一对一。",
@@ -1324,7 +1327,7 @@
     "tab_verification": "核实",
     "tab_why": "为何选择我们",
     "tutors": {
-      "intro": "以独立导师身分接案；扣了行政费后全数落袋（私人 1.5 堂；中心介绍递减至第 4 位起免费）。",
+      "intro": "以独立导师身分接案；扣了行政费后全数落袋（私人 1.5 节课；中心介绍递减至第 4 位起免费）。",
       "steps_title": "运作方式",
       "s1_title": "建立导师档案",
       "s1_body": "填上成绩和方便你的港铁站。",
@@ -1333,9 +1336,9 @@
       "s3_title": "自选个案或接收预约",
       "s3_body": "认领车站附近的个案，或接收家长预约。",
       "s4_title": "完成首两堂，往后全数归你",
-      "s4_body": "平台行政费一般为 1.5 堂（第一堂 100% + 第二堂 50%），由你以独立导师身分承担。合作中心介绍：同一中心 6 个月内再派学生会递减——1.5 → 1.0 → 0.5 → 第 4 位起免费。私人个案维持每位 1.5 堂。之后每堂时薪全归你。",
+      "s4_body": "平台行政费一般为 1.5 节课（第一堂 100% + 第二堂 50%），由你以独立导师身分承担。合作中心介绍：同一中心 6 个月内再派学生会递减——1.5 → 1.0 → 0.5 → 第 4 位起免费。私人个案维持每位 1.5 节课。之后每堂时薪全归你。",
       "not_cut_label": "不会抽后续百分比",
-      "not_cut_body": "每次配对的行政费就是我们收取的全部——一般是 1.5 堂。中心介绍用递减阶梯（1.5 → 1 → 0.5 → 第 4 位起免费），限同一中心 6 个月内；私人个案维持每位 1.5 堂。",
+      "not_cut_body": "每次配对的行政费就是我们收取的全部——一般是 1.5 节课。中心介绍用递减阶梯（1.5 → 1 → 0.5 → 第 4 位起免费），限同一中心 6 个月内；私人个案维持每位 1.5 节课。",
       "not_clients_label": "不会抢你的学生",
       "not_clients_body": "介绍及行政费之后，学生就是你的。",
       "not_schedule_label": "不会管理你的时间表",
@@ -1402,7 +1405,7 @@
     "copied": "已复制！",
     "diagram_label": "图表即将推出",
     "chips_label": "快速链接",
-    "chip_tutor_fee": "缴付 1.5 堂行政费，解锁家长联络",
+    "chip_tutor_fee": "缴付 1.5 节课行政费，解锁家长联络",
     "chip_tutor_intro": "发送第一个 WhatsApp 自我介绍，订立课堂规则",
     "chip_tutor_dates": "确认上课日期或处理改期",
     "chip_parent_match": "申请核实导师，开始配对",
@@ -1432,7 +1435,7 @@
   },
   "hiw": {
     "hero_title": "更公平、更透明的私人家教配对",
-    "hero_body": "传统中介抽佣好高。我们将行政费严格限制在首 1.5 堂，等家长用合理学费找导师，导师亦拿回应有回报。",
+    "hero_body": "传统中介抽佣好高。我们将行政费严格限制在首 1.5 节课，等家长用合理学费找导师，导师亦拿回应有回报。",
     "hero_cta_browse": "浏览导师档案",
     "hero_cta_apply": "申请成为导师",
     "card_view_profile": "查看导师",
@@ -1449,7 +1452,7 @@
         "max": "精准配对课程、单科成绩、院校和港铁沿线。"
       },
       "privacy": {
-        "aspect": "私隐",
+        "aspect": "隐私",
         "old": "公开显示全名。",
         "max": "导师卡显示设定的显示名称或匿名编号；全名和电话会在介绍之后、行政费安排妥当后才交换。"
       },
@@ -1473,7 +1476,7 @@
       },
       "s3": {
         "title": "试堂满意，直接缴费",
-        "detail": "我们陪你上头几堂。行政费合共 1.5 课——第一堂的 100% 加第二堂的 50%——由自雇导师承担，以 FPS 支付给 MatchMax。家长毋须向 MatchMax 缴付配对费用，学费直接支付给导师。"
+        "detail": "我们陪你上头几堂。行政费合共 1.5 节课——第一堂的 100% 加第二堂的 50%——由自雇导师承担，以 FPS 支付给 MatchMax。家长毋须向 MatchMax 缴付配对费用，学费直接支付给导师。"
       },
       "s4": {
         "title": "独家学习笔记",
@@ -1491,12 +1494,12 @@
         "detail": "建立你的档案：上传官方成绩表、指定科目的逐卷分数，和你可到达的港铁站。"
       },
       "s2": {
-        "title": "人工核实和私隐上架",
+        "title": "人工核实和隐私上架",
         "detail": "我们团队会人工核对你的文件，维持平台的高质量标准。你设定了显示名称的话，导师卡会以它为主；没有设定就会以 MatchMax 编号（例如「MM-T104」）保持匿名——你的全名和联络方式一律不会公开。"
       },
       "s3": {
         "title": "教书，赚多少袋多少",
-        "detail": "接收符合你时间表和通勤路线的学生申请。扣除公平透明的 1.5 课平台费后，收入 100% 属于你——没有代理大额抽佣。"
+        "detail": "接收符合你时间表和通勤路线的学生申请。扣除公平透明的 1.5 节课平台费后，收入 100% 属于你——没有代理大额抽佣。"
       },
       "s4": {
         "title": "数码笔记被动收入",
@@ -1559,7 +1562,7 @@
     "tutor_faq": {
       "paid": {
         "q": "MatchMax 的行政配对费实际上怎么算？",
-        "a": "加入免费。一般长期个案，家长每一课都会按你议定的时薪，直接将学费支付给你——包括第一、二课。你要和 MatchMax 结算的，是一次性的行政配对费：同等学费的 1.5 课——第一堂 100% 加第二堂 50%，以转数快一次性支付。这个是那两堂介绍原本属于你收入的部分，绝对不会在家长那边额外加收。短期个案（5 课或以下）改为收取整个课程总值的 20%，你保留 80%。"
+        "a": "加入免费。一般长期个案，家长每一课都会按你议定的时薪，直接将学费支付给你——包括第一、二课。你要和 MatchMax 结算的，是一次性的行政配对费：同等学费的 1.5 节课——第一堂 100% 加第二堂 50%，以转数快一次性支付。这个是那两堂介绍原本属于你收入的部分，绝对不会在家长那边额外加收。短期个案（5 节课或以下）改为收取整个课程总值的 20%，你保留 80%。"
       },
       "anonymity": {
         "q": "我的名和相会不会在 Google 公开到？",
@@ -1587,11 +1590,11 @@
       },
       "fee_types": {
         "q": "私人学生和合作中心介绍的费用一样吗？",
-        "a": "不一样。私人／一般配对每个学生或个案为 1.5 课学费。合作中心介绍：如果同一间中心在原本介绍的 6 个月内再分配多些学生给你，每多一位的费用会递减——第 1 位 1.5 课、第 2 位 1.0 课、第 3 位 0.5 课、第 4 位起 0。"
+        "a": "不一样。私人／一般配对每个学生或个案为 1.5 节课学费。合作中心介绍：如果同一间中心在原本介绍的 6 个月内再分配多些学生给你，每多一位的费用会递减——第 1 位 1.5 节课、第 2 位 1.0 节课、第 3 位 0.5 节课、第 4 位起 0。"
       },
       "short_package": {
-        "q": "如果是短期套餐（5 课或以下）这？",
-        "a": "5 课或以下的短期个案，改为收取整个套餐总值的 20%，而非 1.5 课费用，你保留 80%。此安排适用于家长明确要求短期课程的情况。"
+        "q": "如果是短期套餐（5 节课或以下）这？",
+        "a": "5 节课或以下的短期个案，改为收取整个套餐总值的 20%，而非 1.5 节课费用，你保留 80%。此安排适用于家长明确要求短期课程的情况。"
       },
       "contact": {
         "q": "什么时候可以先拿到家长的电话或 WhatsApp？",
@@ -1621,7 +1624,7 @@
       },
       "involvement": {
         "q": "MatchMax 会参与我们的家教安排几耐？",
-        "a": "MatchMax 是一项贴身跟进的配对管家服务。我们会主动跟进你的开户流程、确保试堂顺利进行，并在头 2 课期间为你们管理沟通，直至配对行政费缴清。这个初始配对阶段顺利完成之后，MatchMax 就会功成身退，往后的时间表由家长和导师直接安排。"
+        "a": "MatchMax 是一项贴身跟进的配对管家服务。我们会主动跟进你的开户流程、确保试堂顺利进行，并在头 2 节课期间为你们管理沟通，直至配对行政费缴清。这个初始配对阶段顺利完成之后，MatchMax 就会功成身退，往后的时间表由家长和导师直接安排。"
       },
       "verification": {
         "q": "MatchMax 怎样核实导师的学历和成绩？",
@@ -1633,7 +1636,7 @@
       },
       "matching_fee": {
         "q": "我需要向 MatchMax 缴付配对费吗？",
-        "a": "不用。家长永远毋须向 MatchMax 缴付配对费。你每堂都按议定的时薪或套餐价，直接将学费支付给导师——包括头两堂。行政配对费——同等学费的 1.5 课——由导师承担：那个是导师头两堂介绍的收入部分，不会额外计落你支付的学费之上。"
+        "a": "不用。家长永远毋须向 MatchMax 缴付配对费。你每堂都按议定的时薪或套餐价，直接将学费支付给导师——包括头两堂。行政配对费——同等学费的 1.5 节课——由导师承担：那个是导师头两堂介绍的收入部分，不会额外计落你支付的学费之上。"
       },
       "blue_tick": {
         "q": "蓝剔代表什么？",
@@ -1643,7 +1646,7 @@
     "billing_faq": {
       "pay": {
         "q": "我什么时候和怎样付款？",
-        "a": "一般配对之下，家长每堂都按议定的时薪或套餐价，直接将学费支付给导师——包括第一、二堂。家长毋须向 MatchMax 缴付任何配对费。相反，导师须结算一次行政配对费：同等学费的 1.5 课——第一堂 100% 加第二堂 50%，以转数快（FPS）支付给 MatchMax。这个是头两堂介绍原本属于导师收入的部分，绝对不会在家长那边额外加收。礼宾专员会在头几堂紧密跟进，确保配对合适。短期课程（5 课或以下）的费用则为整个已编排课程总学费的 20%。MatchMax 不会经手学费。"
+        "a": "一般配对之下，家长每堂都按议定的时薪或套餐价，直接将学费支付给导师——包括第一、二堂。家长毋须向 MatchMax 缴付任何配对费。相反，导师须结算一次行政配对费：同等学费的 1.5 节课——第一堂 100% 加第二堂 50%，以转数快（FPS）支付给 MatchMax。这个是头两堂介绍原本属于导师收入的部分，绝对不会在家长那边额外加收。礼宾专员会在头几堂紧密跟进，确保配对合适。短期课程（5 节课或以下）的费用则为整个已编排课程总学费的 20%。MatchMax 不会经手学费。"
       },
       "rematch": {
         "q": "如果导师停止授课或不合适怎么办？",
@@ -1663,16 +1666,16 @@
       },
       "centre_ladder": {
         "q": "合作中心的费用阶梯实际上怎样运作？",
-        "a": "如果同一间中心在原本介绍的 6 个月内再分配多些学生给你，每多一位学生的行政费会递减：第 1 位 1.5 课、第 2 位 1.0 课、第 3 位 0.5 课、第 4 位起 0。以议定时薪 HK$400 为例：第 1 位介绍费为 1.5 课（HK$600）、第 2 位 1.0 课（HK$400）、第 3 位 0.5 课（HK$200），第 4 位起免费。私人个案则维持每位 1.5 课。"
+        "a": "如果同一间中心在原本介绍的 6 个月内再分配多些学生给你，每多一位学生的行政费会递减：第 1 位 1.5 节课、第 2 位 1.0 节课、第 3 位 0.5 节课、第 4 位起 0。以议定时薪 HK$400 为例：第 1 位介绍费为 1.5 节课（HK$600）、第 2 位 1.0 节课（HK$400）、第 3 位 0.5 节课（HK$200），第 4 位起免费。私人个案则维持每位 1.5 节课。"
       }
     },
-    "value_pill_1": "只收 1.5 堂行政费 — 第二堂后不再抽佣",
+    "value_pill_1": "只收 1.5 节课行政费 — 第二堂后不再抽佣",
     "value_pill_2": "真实学历认证 — 专人核对蓝剔导师成绩表",
     "fee_title": "每次配对的行政费",
     "fee_old_label": "传统中介",
-    "fee_old_value": "2–8 堂",
+    "fee_old_value": "2–8 节课",
     "fee_max_label": "MatchMax",
-    "fee_max_value": "只收 1.5 堂（其余归导师）"
+    "fee_max_value": "只收 1.5 节课（其余归导师）"
   },
   "home": {
     "trending_title": "本周最多家长查询的导师"
@@ -1801,7 +1804,7 @@
       "resume_hint": "如果链接打不开，按 ··· 再选「在浏览器开启」。",
       "resume_save_failed": "保存续填链接失败，请再试一次。",
       "availability_hkt_note": "家长会以香港时间（HKT）看这些时段。你确认的时区是 {{zone}}，所以请用香港时间填你有空的时段。",
-      "privacy_ack": "本人同意 MatchMax 根据《个人资料（私隐）条例》（第 486 章）收集及使用本表格内的个人资料，用于导师登记及配对用途。",
+      "privacy_ack": "本人同意 MatchMax 根据《个人资料（隐私）条例》（第 486 章）收集及使用本表格内的个人资料，用于导师登记及配对用途。",
       "privacy_ack_professional": "本人同意 MatchMax 使用本人的资历和履历去核实专业身份、推广本人的导师档案，并保障本人的匿名性。",
       "commission_ack": "本人明白 MatchMax 会就每位新学生收取第 1 堂课 100% 及第 2 堂课 50% 的学费，作为配对服务费。",
       "remove_course_grade": "移除课程成绩",
@@ -1825,7 +1828,7 @@
       "gender": "性别",
       "weekly_availability": "每周可约时间",
       "ack_commission": "佣金确认（最后一步）",
-      "ack_privacy": "私隐同意（最后一步）",
+      "ack_privacy": "隐私同意（最后一步）",
       "ack_terms": "条款及细则同意（最后一步）",
       "ack_terms_gate": "服务条款接受（最后一步）",
       "ack_captcha": "安全检查（最后一步）",
@@ -1896,7 +1899,7 @@
       "cumulative_gpa": "累积 GPA",
       "university_courses": "你可以家教的大学课程",
       "course_specific_grades": "个别课程成绩",
-      "kindergarten_topics": "你会教的幼稚园题材",
+      "kindergarten_topics": "你会教的幼儿园题材",
       "teaching_qualifications": "教学资历",
       "secondary_school": "就读中学",
       "university": "大学／院校",
@@ -1942,7 +1945,7 @@
     "back_home": "返回首页",
     "browse_tutors": "浏览导师",
     "centre_spinoff_guide_link": "收费指南",
-    "centre_spinoff_note": "合作中心之后再派学生给你（简介后 6 个月内）属可申报个案，MatchMax 行政费会递减——1.5、1.0、0.5 堂，第 4 位起免费。",
+    "centre_spinoff_note": "合作中心之后再派学生给你（简介后 6 个月内）属可申报个案，MatchMax 行政费会递减——1.5、1.0、0.5 节课，第 4 位起免费。",
     "consent": "提交此表格即表示你同意 MatchMax 可以通过电子邮件或 WhatsApp 就家教机会联络你。",
     "display_name_hint": "会在你的公开导师卡和个人资料上显示，例如 Dr Chan、Hauzton、Mr Lee、Miss Wong。留空就会显示你的导师编号。",
     "display_name_label": "显示名称",
@@ -2696,8 +2699,8 @@
       "region_masked": "香港",
       "verified_parent": "已认证家长",
       "verified_tutor": "已认证导师",
-      "privacy_open": "私隐",
-      "privacy_title": "个案私隐",
+      "privacy_open": "隐私",
+      "privacy_title": "个案隐私",
       "privacy_helper": "关闭后，此卡片不会在您的公开个人资料显示，对方卡片上您的名称会改为已认证身份，但仍计入活跃纪录。",
       "privacy_show": "于我的公开个人资料显示此进行中个案",
       "privacy_mask_rate": "隐藏确实时薪",
@@ -2708,7 +2711,7 @@
       "fee_invoiced": "行政费：第一堂到期（首堂 100% + 第二堂 50%）",
       "fee_paid": "行政费已结算（第一堂 + 第二堂半数）",
       "open_for_new": "可接收新学生",
-      "fee_accruing": "行政费累计中 — 将于第 2 堂后结算",
+      "fee_accruing": "行政费累计中 — 将于第 2 节课后结算",
       "fee_waived": "行政费已豁免（自带学生）· HK$0"
     },
     "verified": "已核实",
@@ -3057,7 +3060,7 @@
       "security": "安全",
       "notifications": "通知",
       "referrals": "推荐奖赏",
-      "privacy": "私隐与资料",
+      "privacy": "隐私与资料",
       "danger": "危险区域",
       "saved_posts": "已保存",
       "sign_out": "退出登录",
@@ -3087,7 +3090,7 @@
     },
     "general": {
       "dob_title": "生日",
-      "dob_desc": "严格保密（个人资料私隐专员公署第 486 章）。仅用于年龄相关功能；可选的公开徽章只显示月及日，绝不显示年份。",
+      "dob_desc": "严格保密（个人资料隐私专员公署第 486 章）。仅用于年龄相关功能；可选的公开徽章只显示月及日，绝不显示年份。",
       "dob_label": "出生日期",
       "dob_saved": "已保存生日",
       "appearance_title": "外观",
@@ -3197,7 +3200,7 @@
       "local_desc": "清除这个浏览器入面保存的表单草稿和比较清单。你的主题和语言设定会保持不变。",
       "local_button": "清除本地资料",
       "local_cleared": "已清除本地草稿和比较清单。",
-      "policy_link": "阅读私隐政策"
+      "policy_link": "阅读隐私政策"
     },
     "danger": {
       "title": "危险区域",
@@ -3471,7 +3474,7 @@
       "field_price": "价格（港币）",
       "field_cover": "封面图片",
       "field_items": "组合项目（2–20 件）",
-      "field_lessons": "课堂（1–10 课）",
+      "field_lessons": "课堂（1–10 节课）",
       "field_course_kind": "课程类型",
       "title_placeholder": "例如：IB Physics HL — 波与振荡",
       "description_placeholder": "说明组合或课程包含的内容、适合哪类学生，以及怎样使用。",
@@ -3493,7 +3496,7 @@
       "course_kind_hint": "视频课程：每课都要有未公开的 YouTube 或 Vimeo 链接。综合课程：每课可以是视频、有浮水印的 PDF，或两者并用。",
       "lessons_label": "课堂",
       "lessons_count": "{{count}} 课",
-      "lessons_hint": "1–10 课。贴上「未公开」的 YouTube 或 Vimeo 链接——不支持 Google Drive、Loom 等其他平台，亦没有视频上传功能。",
+      "lessons_hint": "1–10 节课。贴上「未公开」的 YouTube 或 Vimeo 链接——不支持 Google Drive、Loom 等其他平台，亦没有视频上传功能。",
       "lesson_n": "第 {{n}} 课",
       "lesson_move_up": "上移一课",
       "lesson_move_down": "下移一课",
@@ -3694,12 +3697,12 @@
     "admin_multiplier": "倍数",
     "admin_custom_reason": "自订开单原因",
     "admin_invoice_custom": "开单",
-    "admin_fee_breakdown": "费用 = 第一课 100% + 第二课 50% = 1.5 课",
+    "admin_fee_breakdown": "费用 = 第一课 100% + 第二课 50% = 1.5 节课",
     "admin_paid_partial_chip": "已缴第一课（100%）",
     "short_case_chip": "短计划：{{n}} 堂",
     "admin_preset_l1": "开出 1.0 × 第一课帐单（HK${{amount}}）",
     "admin_preset_l2_balance": "开出 0.5 × 第二课余额帐单（HK${{amount}}）",
-    "admin_preset_full": "一次性开出 1.5 课全数帐单（HK${{amount}}）",
+    "admin_preset_full": "一次性开出 1.5 节课全数帐单（HK${{amount}}）",
     "admin_no_rate_hint": "此个案未有小时费率 — 不能使用默认发票，请用自订开单。",
     "admin_audit_title": "审计记录",
     "admin_audit_empty": "暂时没有审计记录",
@@ -3894,7 +3897,7 @@
     "nf_wa_copy_failed": "复制失败，请再试一次",
     "bell_attendance_recorded": "{{student}} 已纪录课堂点名 — {{status}}",
     "bell_attendance_updated": "{{student}} 之课堂点名已更新 — 现为 {{status}}",
-    "schedule_next_err_SHORT_CASE_OVERRUN": "此短期套票之全部课堂已安排。如需于套票堂数后继续上课，请将个案转为长期课堂（联络 MatchMax 客服），导师仅须补回与标准 1.5 堂行政费之差额。",
+    "schedule_next_err_SHORT_CASE_OVERRUN": "此短期套票之全部课堂已安排。如需于套票堂数后继续上课，请将个案转为长期课堂（联络 MatchMax 客服），导师仅须补回与标准 1.5 节课行政费之差额。",
     "bell_search_match": "有新项目符合你保存的搜索",
     "bell_search_match_tutors_one": "有 1 位新独立导师符合你保存的搜索「{{label}}」",
     "bell_search_match_tutors_other": "有 {{count}} 位新独立导师符合你保存的搜索「{{label}}」",
@@ -4018,7 +4021,7 @@
     "grades": "成绩",
     "case_snapshot_title": "学生学习快照",
     "case_snapshot_hidden": "学生选择不在此个案分享学习快照。",
-    "cat_early_years": "学前（幼稚园／ nursery）",
+    "cat_early_years": "学前（幼儿园／ nursery）",
     "cat_primary": "小学",
     "cat_secondary": "中学",
     "cat_post_secondary": "大学及专上教育",
@@ -4284,12 +4287,12 @@
   },
   "tutors": {
     "tier_aria": "学术程度",
-    "tier_kindergarten": "幼稚园",
+    "tier_kindergarten": "幼儿园",
     "tier_primary_secondary": "中小学",
     "tier_university": "大学",
     "field_of_study": "领域",
     "field_search_placeholder": "搜索领域",
-    "k_filter_title": "幼稚园重点",
+    "k_filter_title": "幼儿园重点",
     "k_filter_phonics": "自然拼读",
     "k_filter_mandarin": "普通话",
     "k_filter_interview": "小一入学面试准备",
@@ -4312,22 +4315,22 @@
     "editor_add_course_grade": "新增课程成绩",
     "editor_remove_course_grade": "移除课程成绩",
     "editor_none": "未设定",
-    "editor_kindergarten": "你执教的幼稚园主题",
-    "editor_kindergarten_hint": "所选主题会并入你的科目，并用于幼稚园分页筛选。",
+    "editor_kindergarten": "你执教的幼儿园主题",
+    "editor_kindergarten_hint": "所选主题会并入你的科目，并用于幼儿园分页筛选。",
     "profile_university": "大学",
-    "profile_kindergarten": "幼稚园",
+    "profile_kindergarten": "幼儿园",
     "profile_year_of_study": "就读年级",
     "profile_gpa": "GPA",
     "profile_courses": "已修课程",
     "profile_course_grades": "课程成绩",
     "level": {
-      "kindergarten": "幼稚园",
+      "kindergarten": "幼儿园",
       "primary": "小学",
       "secondary": "中学",
       "university": "大学"
     },
     "tier": {
-      "kindergarten": "幼稚园",
+      "kindergarten": "幼儿园",
       "primary_secondary": "中小学",
       "university": "大学"
     },
@@ -4530,7 +4533,7 @@
   "cockpit": {
     "title": "配对控制台",
     "fee_title": "平台费（导师支付）",
-    "fee_standard": "标准 1.5 堂：HK${{amount}}",
+    "fee_standard": "标准 1.5 节课：HK${{amount}}",
     "fee_short": "短期个案 20% 套票：HK${{amount}}",
     "fee_rate_missing": "请先设定个案时薪 hourly_rate_hkd。",
     "fee_short_missing": "短期个案需要每堂时长及堂数。",
@@ -4656,7 +4659,7 @@
     "upload_cta": "上传"
   },
   "banner": {
-    "value_prop": "家长免费，导师公平。低至 1.5 课行政费，保留更多收入。",
+    "value_prop": "家长免费，导师公平。低至 1.5 节课行政费，保留更多收入。",
     "referral_promo": "🚀 导师：推荐朋友接个案，即赚 15% 现金奖赏！",
     "referral_cta": "按这里看详情"
   },
@@ -4758,7 +4761,7 @@
     "badge_self_declared": "义教申请 · 自行申报",
     "badge_pending": "义教申请 · 资格审核中",
     "blur_hint": "上传前可遮盖身份证号码、住址及银行账户资料，并请保留姓名及批核日期或状态。",
-    "privacy_assurance": "严格私隐保障：您的证明文件仅供 MatchMax 审核团队查阅，并将于完成核实后即时从伺服器自动删除。导师绝不会看到您的文件内容。",
+    "privacy_assurance": "严格隐私保障：您的证明文件仅供 MatchMax 审核团队查阅，并将于完成核实后即时从伺服器自动删除。导师绝不会看到您的文件内容。",
     "upload_title": "核实资格",
     "upload_intro": "上传文件属自愿性质。如未有上传，申请会以「自行申报」显示，仍然可以送到导师。",
     "proof_kind_label": "你上传的是哪一种文件？",
@@ -4824,7 +4827,7 @@
     "address": "地址",
     "duration": "每堂长度",
     "matching_fee": "MatchMax 配对费：HK$0",
-    "settlement": "第 3 堂起学费直接交给导师。",
+    "settlement": "第 3 节课起学费直接交给导师。",
     "brief_hint": "学习目标及偏好在下面的家庭简介。"
   },
   "case_manager": {
@@ -4946,7 +4949,7 @@
     "section_account": "账户",
     "section_explore": "MatchMax",
     "section_preferences": "偏好设定",
-    "privacy": "私隐",
+    "privacy": "隐私",
     "notifications": "通知",
     "refer": "推荐导师",
     "legal": "条款及政策",
@@ -5141,7 +5144,7 @@
     "settlement_source_case_lesson": "课堂纪录",
     "settlement_total": "行政费合计 {{total}}",
     "settlement_total_missing": "部分阶段金额尚未设定。",
-    "settlement_note_tutor": "MatchMax 行政费为第 1 堂 100%、第 2 堂 50%；第 3 堂起由家长直接支付给你。",
+    "settlement_note_tutor": "MatchMax 行政费为第 1 节课 100%、第 2 节课 50%；第 3 节课起由家长直接支付给你。",
     "settlement_note_short": "短期课程以行政费 20% 结算，不按课堂阶段计算。",
     "tab": "课堂及帐单",
     "request_cta": "申请改期",
@@ -5157,7 +5160,7 @@
     "upcoming_empty": "没有即将上的课堂。",
     "statement_title": "学费流水结算",
     "statement_empty": "暂时没有课堂可显示。",
-    "fee_notice": "MatchMax 行政费仅适用于首 1.5 堂（第一堂全数及第二堂半数）。其后课堂学费由家长与独立导师直接结算。",
+    "fee_notice": "MatchMax 行政费仅适用于首 1.5 节课（第一堂全数及第二堂半数）。其后课堂学费由家长与独立导师直接结算。",
     "fee_notice_short": "此为短期个案，MatchMax 行政费为个案所示的套餐费用。学费由家长与独立导师直接结算。",
     "no_rate": "此个案未有协定时薪记录，因此只显示时数。",
     "case_total": "个案总计：{{total}}",
@@ -5177,7 +5180,7 @@
     "summary_total": "{{lessons}} 堂，{{hours}} 小时 {{total}}",
     "summary_note": "此为按已排课堂计算的估算。学费由家长与独立导师直接结算，MatchMax 不会代收。",
     "sample_reschedule": "【范例】改期待确认：星期二 16:00 → 星期四 17:00",
-    "sample_statement": "【范例】11 月：8 堂 · 12 小时 @ HK$350／小时 → HK$4,200",
+    "sample_statement": "【范例】11 月：8 节课 · 12 小时 @ HK$350／小时 → HK$4,200",
     "err_generic": "发生错误，请再试一次。",
     "err_BAD_TIME": "请输入有效的日期及时间。",
     "err_IN_PAST": "请选择未来的时间。",
@@ -5196,9 +5199,9 @@
     "marked_by": "由 {{name}} 标记{{status}} · {{when}}（香港时间）",
     "role_tutor": "导师",
     "role_parent": "家长",
-    "protection_title": "1.5 堂公平行政费及首 4 堂家长退补保障",
-    "protection_l1": "第一堂后由家长方终止：行政费下调至 0.5 堂（第一堂的 50%）。",
-    "protection_l2_l4": "首 4 堂内（28 日内）非因你的过失而终止：行政费上限为已完成堂数的 20%，多缴差额将以 MatchMax 佣金 credit 自动应用于你下一个个案。",
+    "protection_title": "1.5 节课公平行政费及首 4 节课家长退补保障",
+    "protection_l1": "第一堂后由家长方终止：行政费下调至 0.5 节课（第一堂的 50%）。",
+    "protection_l2_l4": "首 4 节课内（28 日内）非因你的过失而终止：行政费上限为已完成堂数的 20%，多缴差额将以 MatchMax 佣金 credit 自动应用于你下一个个案。",
     "protection_child_switch": "中途转往兄弟姊妹：你接受转换即 HK$0 额外费用；若你拒绝未经同意的变更，则按家长方终止处理并享同等保障。",
     "protection_card_fee": "以转数快（FPS）或银行转帐缴付行政费可享 0% 手续费。选用信用卡付款将加收 4% 卡费服务费。"
   },
@@ -5443,8 +5446,8 @@
     "gender_prefer_not_to_say": "不愿透露",
     "phone_label": "电话（配对个案时联络）",
     "ack_cap57": "本人为《雇佣条例》（第57章）下的独立营运者，并非 MatchMax 雇员。",
-    "ack_fee": "本人同意就已配对的私人个案缴付 1.5 堂行政费。",
-    "ack_terms": "本人同意服务条款及私隐政策。",
+    "ack_fee": "本人同意就已配对的私人个案缴付 1.5 节课行政费。",
+    "ack_terms": "本人同意服务条款及隐私政策。",
     "publish": "发布我的导师卡",
     "publish_hint": "在职员核实资历前，导师卡会显示为自述资料。",
     "published_toast": "你的导师卡已上线，可随时补充资料。",
@@ -5568,7 +5571,7 @@
     "ref_pending": "{{amount}} 待达标",
     "ref_ready": "{{amount}} 待发放",
     "ref_paid": "{{amount}} 已发放",
-    "referral_rule": "当被推荐用户的首个配对个案完成 1.5 堂行政费结算后，奖赏自动解锁，并随星期一批次发放。",
+    "referral_rule": "当被推荐用户的首个配对个案完成 1.5 节课行政费结算后，奖赏自动解锁，并随星期一批次发放。",
     "insights_title": "数据洞察",
     "insights_note": "个人资料及 listing 浏览计数将随收藏事件层推出。收益及推荐已于上方提供。",
     "recent_sales_title": "最近销售",
@@ -5598,7 +5601,7 @@
     "name_placeholder": "名字或暱称（例如 Lucas）",
     "level_label": "年级",
     "level_any": "任何年级",
-    "level_kindergarten": "幼稚园",
+    "level_kindergarten": "幼儿园",
     "level_university": "大学",
     "curriculum_any": "任何课程",
     "subjects_label": "目标科目",
@@ -5796,16 +5799,16 @@
     "source_private_class": "私人班别",
     "tag_matched": "平台配对",
     "tag_self": "自行带来",
-    "engagement_standard_ongoing": "标准持续（多于5堂）",
-    "engagement_short_course": "短期课程（5堂或以内）",
+    "engagement_standard_ongoing": "标准持续（多于5 节课）",
+    "engagement_short_course": "短期课程（5 节课或以内）",
     "engagement_locked": "配对个案不可更改",
     "created_toast": "名单已建立。",
     "milestones_title": "MatchMax 行政费里程碑",
     "milestones_rate": "时薪 HK${{rate}}",
-    "milestones_empty": "已完成 0 堂。当完成课堂点名后，里程碑将自动更新。",
+    "milestones_empty": "已完成 0 节课。当完成课堂点名后，里程碑将自动更新。",
     "milestones_amount": "HK${{amount}}",
-    "milestone_lesson_1_100": "第 1 堂 — 100% 行政费里程碑",
-    "milestone_lesson_2_50": "第 2 堂 — 50% 行政费里程碑",
+    "milestone_lesson_1_100": "第 1 节课 — 100% 行政费里程碑",
+    "milestone_lesson_2_50": "第 2 节课 — 50% 行政费里程碑",
     "milestone_short_course_20": "短期课程 — 20% 套票行政费",
     "package_renewal": "目前套票尚余 {{remaining}} 堂"
   },
@@ -5970,7 +5973,7 @@
   "byos": {
     "card_title": "带自己的学生加入（MatchMax 行政费 HK$0）",
     "card_body": "已经在 MatchMax 以外教紧学生？传送一次性邀请链接给对方。对方确认后，个案会在个案管理中开启，MatchMax 行政费为 HK$0。学费仍然由家长直接付给你。",
-    "card_rule": "只适用于你在平台以外已经教紧的学生，并不是避开 MatchMax 配对个案的 1.5 堂行政费（或短期个案 20% 费用）的方法：如对方之前已经在 MatchMax 查询过你或与你配对，便须按一般程序缴付行政费。",
+    "card_rule": "只适用于你在平台以外已经教紧的学生，并不是避开 MatchMax 配对个案的 1.5 节课行政费（或短期个案 20% 费用）的方法：如对方之前已经在 MatchMax 查询过你或与你配对，便须按一般程序缴付行政费。",
     "field_label": "学生名称（只有你看到）",
     "field_label_hint": "方便你自己辨认，例如「Chloe（中四）」。每位学生同一时间只可有一条未使用的邀请。",
     "field_subject": "科目",
