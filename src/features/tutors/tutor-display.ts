@@ -690,10 +690,13 @@ export function getTutorSubjectGroups(
 
     const matchingSystemIds = systemIdsBySubject.get(normalizeSubjectKey(subject)) ?? [];
     if (matchingSystemIds.length > 0) {
+      // Evidence only. A bare subject name that several curricula share must
+      // not be claimed under whichever system happens to list it first — that
+      // printed HKDSE / GCE rows on a card whose tutor only sits IB + IGCSE
+      // (customer report 2026-11-27). Group under "other" unless an exam
+      // result names the system; an explicit prefix is handled below.
       const inferredSystemId = findExamSystemForSubject(subject, tutor.exam_results);
-      const systemId = matchingSystemIds.includes(inferredSystemId)
-        ? inferredSystemId
-        : matchingSystemIds[0];
+      const systemId = matchingSystemIds.includes(inferredSystemId) ? inferredSystemId : "other";
       addSubject(systemId, subject);
       continue;
     }
