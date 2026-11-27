@@ -17,6 +17,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import {
   bellLinkFor,
+  canClaimDelivery,
   DELIVERY_MAX_ATTEMPTS,
   planDeliveriesForEvent,
   prefsKeyForEmail,
@@ -541,16 +542,16 @@ async function deliverOne(
   const plan = ACTION_PLAN[eventType];
 
   // Insert-if-absent (the unique index backstops races).
-  const existing = await selectRows<{ id: string; status: string; attempts: number }>(
-    db,
-    "event_deliveries",
-    "id, status, attempts",
-    [
-      { col: "event_id", op: "eq", value: eventId },
-      { col: "channel", op: "eq", value: channel },
-      { col: "recipient_account_id", op: "eq", value: accountId },
-    ],
-  );
+  const existing = await selectRows<{
+    id: string;
+    status: string;
+    attempts: number;
+    claimed_at: string | null;
+  }>(db, "event_deliveries", "id, status, attempts, claimed_at", [
+    { col: "event_id", op: "eq", value: eventId },
+    { col: "channel", op: "eq", value: channel },
+    { col: "recipient_account_id", op: "eq", value: accountId },
+  ]);
   let deliveryId: string | undefined = existing[0]?.id;
   if (!deliveryId) {
     const insert: Record<string, unknown> = {
@@ -599,6 +600,41 @@ async function deliverOne(
   if (channel === "email") {
     const template = EMAIL_TEMPLATE_BY_EVENT[eventType];
     if (!template) return;
+    // Claim BEFORE the send (customer report 2026-11-27 — repeated "order
+    // delivered" emails). Previously the status write happened after the
+    // send, so a worker dying mid-drain left the row pending and every later
+    // drain re-sent the email. Now the drain must win a DB claim first; a
+    // fresh in-flight claim is skipped and a stale one (dead worker, older
+    // than CLAIM_WINDOW_MS) may be retaken. attempts is incremented at claim
+    // time so retries stay capped even when the post-send write is lost.
+    if (
+      !canClaimDelivery(
+        existing[0]?.status ?? "pending",
+        existing[0]?.claimed_at ?? null,
+        Date.now(),
+      )
+    ) {
+      return;
+    }
+    const attempts = (existing[0]?.attempts ?? 0) + 1;
+    const { error: claimError } = await db
+      .from<Row>("event_deliveries")
+      .update({
+        status: "sending",
+        attempts,
+        claimed_at: new Date().toISOString(),
+      })
+      .eq("id", deliveryId);
+    if (claimError) return;
+    // Confirm the claim persisted before spending a send on it: if the write
+    // was lost, no email goes out and the next drain retries cleanly.
+    const claimed = await selectRows<{ status: string; attempts: number }>(
+      db,
+      "event_deliveries",
+      "status, attempts",
+      [{ col: "id", op: "eq", value: deliveryId }],
+    );
+    if (claimed[0]?.status !== "sending" || claimed[0]?.attempts !== attempts) return;
     const profiles = await selectRows<{
       email: string | null;
       locale: string | null;
@@ -639,7 +675,6 @@ async function deliverOne(
       errMsg = err instanceof Error ? err.message : String(err);
       ok = false;
     }
-    const attempts = (existing[0]?.attempts ?? 0) + 1;
     const status = ok ? "sent" : attempts >= DELIVERY_MAX_ATTEMPTS ? "failed" : "pending";
     await db
       .from<Row>("event_deliveries")
@@ -665,15 +700,37 @@ async function processPendingEvents(db: Db, now: Date): Promise<void> {
     id: string;
     event_type: string;
     payload: Record<string, unknown>;
+    process_attempts: number | null;
+    created_at: string;
   }>(
     db,
     "case_events",
-    "id, event_type, payload",
+    "id, event_type, payload, process_attempts, created_at",
     [{ col: "status", op: "eq", value: "pending" }],
-    { col: "created_at", asc: true, limit: 20 },
+    // Bounded work per drain: every event fans out to up to 4 deliveries x
+    // several subrequests, and a burst can exhaust the worker's subrequest
+    // budget — the exact mid-drain death that caused the resend loop.
+    { col: "created_at", asc: true, limit: 5 },
   );
 
   for (const ev of events) {
+    // Don't race the emitter: give brand-new events a moment to settle.
+    if (Date.now() - Date.parse(ev.created_at) < 10_000) continue;
+    const attempts = (ev.process_attempts ?? 0) + 1;
+    if (attempts > DELIVERY_MAX_ATTEMPTS) {
+      await db
+        .from<Row>("case_events")
+        .update({
+          status: "failed",
+          last_error: "retry cap reached",
+          processed_at: now.toISOString(),
+        })
+        .eq("id", ev.id);
+      continue;
+    }
+    // Count the attempt BEFORE doing the work, so a mid-process death cannot
+    // leave the event retrying forever.
+    await db.from<Row>("case_events").update({ process_attempts: attempts }).eq("id", ev.id);
     try {
       const plan = planDeliveriesForEvent(ev.event_type);
       if (plan.kind === "skip") {
@@ -729,7 +786,7 @@ async function processPendingEvents(db: Db, now: Date): Promise<void> {
         .update({
           status: allFailed && !anySent ? "failed" : "processed",
           last_error: allFailed && !anySent ? "all deliveries failed" : null,
-          process_attempts: 1,
+          process_attempts: attempts,
           processed_at: now.toISOString(),
         })
         .eq("id", ev.id);

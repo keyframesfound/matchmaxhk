@@ -536,3 +536,21 @@ export function redactBellPayload(
   }
   return payload;
 }
+
+/**
+ * Claim-before-send rule for event_deliveries (customer report 2026-11-27 —
+ * repeated "order delivered" emails). A delivery may send only if no drain
+ * holds a fresh claim on it; a claim older than the window is presumed dead
+ * and may be retaken. Pure so the loop guard is unit-tested.
+ */
+export function canClaimDelivery(
+  status: string,
+  claimedAtIso: string | null,
+  nowMs: number,
+  windowMs = 10 * 60 * 1000,
+): boolean {
+  if (status !== "sending") return true;
+  const claimedAt = claimedAtIso ? Date.parse(claimedAtIso) : Number.NaN;
+  if (!Number.isFinite(claimedAt)) return true;
+  return nowMs - claimedAt > windowMs;
+}
