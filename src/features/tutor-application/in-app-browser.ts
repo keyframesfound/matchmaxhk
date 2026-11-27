@@ -12,13 +12,21 @@
  *   - FBAN / FBAV / FB_IAB — Facebook app and its in-app browser (iOS + Android)
  *   - Instagram              — Instagram webview, same Meta IAB stack
  *   - Messenger             — Facebook Messenger's separate UA marker
- *   - WhatsApp               — WhatsApp in-app browser
  *   - MicroMessenger         — WeChat, the dominant messenger in HK
  *   - Line/                  — LINE (slash keeps it off the word "line" in
  *                              unrelated agents; LINE's UA writes "Line/12.0")
  *   - Twitter / Threads      — X and Threads in-app browsers
  *   - musical_ly             — TikTok (inherited from Musical.ly)
  *   - BytedanceWebview       — TikTok / ByteDance family webview marker
+ *
+ * WhatsApp is NOT a reliable signal and must not be used to test this path.
+ * On iOS it opens links in SFSafariViewController, which sends a plain Safari
+ * UA with a real URL bar — precisely what Google's policy accepts — and on
+ * Android it opens Chrome Custom Tabs, which sends a plain Chrome UA. Both
+ * complete Google sign-in normally, so no marker is present and this detector
+ * correctly stays quiet. The "WhatsApp" entry is kept only for legacy Android
+ * WebViews that appended a token. To exercise the intercept on a phone, use
+ * Instagram, Facebook or Messenger.
  *
  * Matching is case-insensitive because vendors are inconsistent about casing
  * ("Line/" vs "LINE/"), and an empty UA is treated as "not detected" so a
