@@ -32,8 +32,11 @@ export const getStripeCheckoutConfig = createServerFn({ method: "GET" }).handler
   async (): Promise<{ enabled: boolean; publishableKey: string | null }> => {
     const { stripeConfigured } = await import("@/features/materials/stripe.server");
     const publishableKey = process.env.STRIPE_PUBLISHABLE_KEY ?? null;
+    // `enabled` must NOT require the publishable key: without one the session
+    // fn returns a hosted url instead, and the /checkout page redirects to it.
+    // Gating here would have made that fallback unreachable.
     return {
-      enabled: NOTES_OPTION_A_LIVE && stripeConfigured() && Boolean(publishableKey),
+      enabled: NOTES_OPTION_A_LIVE && stripeConfigured(),
       publishableKey,
     };
   },
