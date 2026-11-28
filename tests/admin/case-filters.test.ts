@@ -516,14 +516,10 @@ describe("#816 AC-55-4 desk queue chips", () => {
 
   it("maps the SoR milestones to intro / L1 / L2", () => {
     expect(
-      applyCaseFilters(rows, { ...DEFAULT_CASE_FILTERS, queue: "waiting_l1" }).map(
-        (row) => row.id,
-      ),
+      applyCaseFilters(rows, { ...DEFAULT_CASE_FILTERS, queue: "waiting_l1" }).map((row) => row.id),
     ).toEqual(["a"]);
     expect(
-      applyCaseFilters(rows, { ...DEFAULT_CASE_FILTERS, queue: "waiting_l2" }).map(
-        (row) => row.id,
-      ),
+      applyCaseFilters(rows, { ...DEFAULT_CASE_FILTERS, queue: "waiting_l2" }).map((row) => row.id),
     ).toEqual(["b"]);
     expect(
       applyCaseFilters(rows, { ...DEFAULT_CASE_FILTERS, queue: "waiting_intro" }).map(
