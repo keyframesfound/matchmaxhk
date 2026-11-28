@@ -479,3 +479,62 @@ describe("isDefaultFilters + CLEAR_ALL", () => {
     expect(isDefaultFilters({ ...DEFAULT_CASE_FILTERS, q: "   " })).toBe(true);
   });
 });
+
+describe("#816 AC-55-4 desk queue chips", () => {
+  const rows = [
+    mkRow({
+      id: "a",
+      matched_tutor_id: "tutor-a",
+      fee_collected_at: null,
+      sor_status: "introduced",
+      source: "website",
+    }),
+    mkRow({
+      id: "b",
+      matched_tutor_id: "tutor-b",
+      fee_collected_at: "2026-11-20T00:00:00.000Z",
+      sor_status: "lesson_1_done",
+      source: "website",
+    }),
+    mkRow({
+      id: "c",
+      matched_tutor_id: "tutor-c",
+      fee_collected_at: null,
+      sor_status: "draft",
+      source: "BYOS_DIRECT",
+      case_source: "BYOS_DIRECT",
+    }),
+  ];
+
+  it("selects the matched, still-unpaid, non-waived case", () => {
+    expect(
+      applyCaseFilters(rows, { ...DEFAULT_CASE_FILTERS, queue: "unpaid_admin_fee" }).map(
+        (row) => row.id,
+      ),
+    ).toEqual(["a"]);
+  });
+
+  it("maps the SoR milestones to intro / L1 / L2", () => {
+    expect(
+      applyCaseFilters(rows, { ...DEFAULT_CASE_FILTERS, queue: "waiting_l1" }).map(
+        (row) => row.id,
+      ),
+    ).toEqual(["a"]);
+    expect(
+      applyCaseFilters(rows, { ...DEFAULT_CASE_FILTERS, queue: "waiting_l2" }).map(
+        (row) => row.id,
+      ),
+    ).toEqual(["b"]);
+    expect(
+      applyCaseFilters(rows, { ...DEFAULT_CASE_FILTERS, queue: "waiting_intro" }).map(
+        (row) => row.id,
+      ),
+    ).toEqual(["c"]);
+  });
+
+  it("round-trips the queue through the URL", () => {
+    const search = caseFiltersToSearch({ ...DEFAULT_CASE_FILTERS, queue: "waiting_l2" });
+    expect(search.queue).toBe("waiting_l2");
+    expect(parseCaseFilters(search).queue).toBe("waiting_l2");
+  });
+});

@@ -247,11 +247,11 @@ export function parseCaseFilters(raw: Record<string, unknown>): CaseFilters {
   if (created) {
     const preset = CREATED_ALIASES[created];
     if (preset) filters.created = preset;
-
-    const queue = asString(raw.queue);
-    const queueHit = queue ? oneOf(queue, CASE_QUEUES) : null;
-    if (queueHit) filters.queue = queueHit;
   }
+
+  const queue = asString(raw.queue);
+  const queueHit = queue ? oneOf(queue, CASE_QUEUES) : null;
+  if (queueHit) filters.queue = queueHit;
 
   return filters;
 }
