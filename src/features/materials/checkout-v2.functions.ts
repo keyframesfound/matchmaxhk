@@ -22,6 +22,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { asAdminDb, type AdminDb } from "@/features/materials/storage-helpers";
 import { selectRows } from "@/features/cases/desk-db";
+import { shouldSkipRelease } from "@/features/materials/lifecycle";
 
 /**
  * #672 replaces the flat 2% lock with tiered take rates — the percent is
@@ -72,25 +73,20 @@ async function postSaleNetEntries(db: AdminDb, orderIds: string[]): Promise<void
 
 /**
  * Flip past-due paid_held orders to completed_released. Orders with an OPEN
- * dispute (opened / seller_responded) are skipped: the dispute freezes the
- * release until staff resolve. Advisory — never throws.
+ * dispute (dispute_status 'open' / 'seller_responded') are skipped: the
+ * dispute freezes the release until staff resolve (#784 AC-543-4). The
+ * dispute state lives on the order row itself, so no second table is read.
+ * Advisory — never throws.
  */
 export async function sweepCheckoutHolds(db: AdminDb): Promise<void> {
   try {
     const now = new Date().toISOString();
-    const [due, open] = await Promise.all([
-      db
-        .from<{ id: string }>("material_orders")
-        .select("id")
-        .eq("status", "paid_held")
-        .lte("hold_expires_at", now),
-      db
-        .from<{ order_id: string }>("material_disputes")
-        .select("order_id")
-        .in("status", ["opened", "seller_responded"]),
-    ]);
-    const frozen = new Set((open.data ?? []).map((row) => row.order_id));
-    const ids = (due.data ?? []).map((row) => row.id).filter((id) => !frozen.has(id));
+    const { data: due } = await db
+      .from<{ id: string; dispute_status: string | null }>("material_orders")
+      .select("id, dispute_status")
+      .eq("status", "paid_held")
+      .lte("hold_expires_at", now);
+    const ids = (due ?? []).filter((row) => !shouldSkipRelease(row)).map((row) => row.id);
     if (ids.length === 0) return;
     await db
       .from<never>("material_orders")

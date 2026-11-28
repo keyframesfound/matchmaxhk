@@ -307,6 +307,11 @@
     "overdue_admin_fee_block": "Please settle your completed case administrative fee (unpaid over 72h) to unlock new case applications. You can still teach and manage existing cases."
   },
   "caseDesk": {
+    "queue_all": "All queues",
+    "queue_unpaid_admin_fee": "Unpaid admin fee",
+    "queue_waiting_intro": "Waiting intro",
+    "queue_waiting_l1": "Waiting L1",
+    "queue_waiting_l2": "Waiting L2",
     "tutor_code_label": "Tutor code",
     "tutor_code_placeholder": "Search by tutor code…",
     "matched_tutor_label": "Matched tutor",
@@ -2122,7 +2127,6 @@
     "legal_checkbox": "I confirm I own this material or hold written permission to sell it, and that it is not on the ban list (/guide/notes). I license it to MatchMax for sale: the parent pays MatchMax by FPS, MatchMax keeps 20%, and my net is paid by FPS on the monthly run. I agree to indemnify MatchMax against any third-party copyright claims.",
     "upload_button": "Upload & generate preview",
     "upload_success": "Upload complete, watermarked preview generated.",
-    "upload_not_verified": "Only tutors with the Verified (Tier 2) badge can upload study materials.",
     "upload_requires_login": "Sign in with your verified tutor account to upload study materials.",
     "my_listings_title": "My study materials",
     "listing_pending": "Pending admin review",
@@ -3662,6 +3666,8 @@
     "admin_due": "due",
     "admin_mark_paid": "Mark paid",
     "admin_waive": "Waive",
+    "admin_refund": "Refund",
+    "admin_fee_refunded": "Admin fee refunded",
     "admin_no_open_fee": "No open fee",
     "admin_multiplier": "Multiplier",
     "admin_custom_reason": "Reason for custom invoice",

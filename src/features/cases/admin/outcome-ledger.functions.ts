@@ -18,7 +18,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
-import { requireAdmin, selectRows, type Db } from "@/features/cases/desk-db";
+import { requireDeskStaff, selectRows, type Db } from "@/features/cases/desk-db";
 
 const MAX_EVENTS = 100;
 
@@ -69,7 +69,7 @@ export const getCaseOutcomeLedger = createServerFn({ method: "POST" })
   .inputValidator((input: unknown) => z.object({ caseId: z.string().uuid() }).parse(input))
   .handler(async ({ context, data }): Promise<OutcomeLedgerRow[]> => {
     const db = await adminDb();
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
 
     const rows = await selectRows<{
       id: string;

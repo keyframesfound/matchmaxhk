@@ -17,6 +17,7 @@
 import {
   CASE_STATUSES,
   caseBudgetHkdBounds,
+  caseFeeWaived,
   type CaseRow,
   type CaseStatus,
 } from "@/features/cases/admin/shared";
@@ -39,6 +40,17 @@ export type CaseRateBandId = "lt100" | "100-200" | "200-300" | "gte300";
 
 /** Created-date presets, no date pickers, this is a staff tool. */
 export type CaseCreatedPreset = "7d" | "30d";
+
+/** #816 AC-55-4: the four queue chips the desk actually works from. */
+export type CaseQueue = "all" | "unpaid_admin_fee" | "waiting_intro" | "waiting_l1" | "waiting_l2";
+
+export const CASE_QUEUES: CaseQueue[] = [
+  "all",
+  "unpaid_admin_fee",
+  "waiting_intro",
+  "waiting_l1",
+  "waiting_l2",
+];
 
 /** Full in-memory filter model; every field is always populated. */
 export type CaseFilters = {
@@ -63,6 +75,8 @@ export type CaseFilters = {
   district: string;
   rateBand: CaseRateBandId | "all";
   created: CaseCreatedPreset | "all";
+  /** #816 AC-55-4 queue chip; "all" = unfiltered. */
+  queue: CaseQueue;
 };
 
 export const DEFAULT_CASE_FILTERS: CaseFilters = {
@@ -77,6 +91,7 @@ export const DEFAULT_CASE_FILTERS: CaseFilters = {
   district: "all",
   rateBand: "all",
   created: "all",
+  queue: "all",
 };
 
 /** The Clear-all target: a filter model with every filter reset. */
@@ -97,6 +112,7 @@ export type CaseFiltersSearch = {
   district?: string;
   rate?: string;
   created?: string;
+  queue?: string;
 };
 
 /** Lesson-mode values, in the order the route renders them. */
@@ -231,6 +247,10 @@ export function parseCaseFilters(raw: Record<string, unknown>): CaseFilters {
   if (created) {
     const preset = CREATED_ALIASES[created];
     if (preset) filters.created = preset;
+
+    const queue = asString(raw.queue);
+    const queueHit = queue ? oneOf(queue, CASE_QUEUES) : null;
+    if (queueHit) filters.queue = queueHit;
   }
 
   return filters;
@@ -256,6 +276,7 @@ export function caseFiltersToSearch(filters: CaseFilters): CaseFiltersSearch {
   if (filters.district !== "all") out.district = filters.district;
   if (filters.rateBand !== "all") out.rate = filters.rateBand;
   if (filters.created !== "all") out.created = filters.created;
+  if (filters.queue !== "all") out.queue = filters.queue;
   return out;
 }
 
@@ -375,6 +396,22 @@ export function applyCaseFilters(
       return false;
     }
     if (cutoffMs !== null && new Date(row.created_at).getTime() < cutoffMs) return false;
+    // #816 AC-55-4: queue chips read the SoR milestone. Unpaid admin fee is
+    // the matched case that has not cleared its fee and is not a BYOS waiver;
+    // the other three follow sor_status exactly.
+    if (filters.queue !== "all") {
+      const sor = row.sor_status ?? "";
+      const unpaid = Boolean(row.matched_tutor_id) && !row.fee_collected_at && !caseFeeWaived(row);
+      const inQueue =
+        filters.queue === "unpaid_admin_fee"
+          ? unpaid
+          : filters.queue === "waiting_intro"
+            ? Boolean(row.matched_tutor_id) && (sor === "" || sor === "draft")
+            : filters.queue === "waiting_l1"
+              ? sor === "introduced" || sor === "lesson_1_scheduled"
+              : sor === "lesson_1_done" || sor === "lesson_2_scheduled";
+      if (!inQueue) return false;
+    }
     if (q) {
       const matches =
         // #816 AC-55-3: staff can paste a case uuid. Guarded by length so a
@@ -405,6 +442,7 @@ export function isDefaultFilters(filters: CaseFilters): boolean {
     filters.mode === "all" &&
     filters.district === "all" &&
     filters.rateBand === "all" &&
-    filters.created === "all"
+    filters.created === "all" &&
+    filters.queue === "all"
   );
 }

@@ -1,7 +1,31 @@
 import { createStart, createMiddleware } from "@tanstack/react-start";
+import { setResponseStatus } from "@tanstack/react-start/server";
 
 import { renderErrorPage } from "./lib/error-page";
 import { attachSupabaseAuth } from "@/integrations/supabase/auth-attacher";
+
+/**
+ * #825 AC-CS-7: server-fn errors are converted to a Response by TanStack's
+ * own handler, so request middleware cannot turn them into a 403. This
+ * function middleware runs inside the server fn and stamps the response
+ * status before rethrowing, which keeps the serialised error body while
+ * making the HTTP status truthful (a guard that throws 403 now answers 403).
+ */
+const httpStatusMiddleware = createMiddleware({ type: "function" })
+  .client(async ({ next }) => next())
+  .server(async ({ next }) => {
+    try {
+      return await next();
+    } catch (error) {
+      if (error != null && typeof error === "object" && "statusCode" in error) {
+        const code = Number((error as { statusCode?: unknown }).statusCode);
+        if (Number.isInteger(code) && code >= 400 && code <= 599) {
+          setResponseStatus(code);
+        }
+      }
+      throw error;
+    }
+  });
 
 const errorMiddleware = createMiddleware().server(async ({ next }) => {
   try {
@@ -29,6 +53,6 @@ const errorMiddleware = createMiddleware().server(async ({ next }) => {
 });
 
 export const startInstance = createStart(() => ({
-  functionMiddleware: [attachSupabaseAuth],
+  functionMiddleware: [httpStatusMiddleware, attachSupabaseAuth],
   requestMiddleware: [errorMiddleware],
 }));

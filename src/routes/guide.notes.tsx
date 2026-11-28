@@ -40,8 +40,8 @@ export const Route = createFileRoute("/guide/notes")({
  * Issue #211: the notes page sells the service AND states the ban list.
  * The dangerous "school-specific past-paper solutions" claim is removed from
  * every public surface; the ban list sits above any upload entry point.
- * Issue #492: connected 5-step flow (pay → staff release → monthly payout,
- * MatchMax keeps 20%), neutral ban-list card with subtle ✕ icons.
+ * Issue #492 / #573: connected 5-step flow (card checkout → 72h hold →
+ * weekly Monday FPS payout, 2% Option A fee), neutral ban-list card with subtle ✕ icons.
  */
 function GuideNotesPage() {
   const { t } = useTranslation();

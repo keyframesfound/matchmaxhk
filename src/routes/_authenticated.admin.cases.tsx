@@ -81,6 +81,7 @@ import {
   caseFiltersToSearch,
   CASE_CREATED_PRESETS,
   CASE_MODE_VALUES,
+  CASE_QUEUES,
   CASE_RATE_BANDS,
   CLEAR_ALL,
   isDefaultFilters,
@@ -109,6 +110,9 @@ export const Route = createFileRoute("/_authenticated/admin/cases")({
 
 function AdminCases() {
   const { hasAnyRole, loading } = useAuth();
+  // #816 AC-262-2: the concierge-equivalent staff role may work the desk but
+  // must not export parent phone numbers. Only admin / super_admin get them.
+  const canExportPhones = hasAnyRole(["admin", "super_admin"]);
   const { t } = useTranslation();
   const navigate = Route.useNavigate();
   const queryClient = useQueryClient();
@@ -353,7 +357,9 @@ function AdminCases() {
       { label: "Status", value: (row) => STATUS_LABEL[row.status] },
       { label: "Desk language", value: (row) => row.desk_language },
       { label: "Contact name", value: (row) => row.contact_name },
-      { label: "Contact phone", value: (row) => row.contact_phone },
+      ...(canExportPhones
+        ? [{ label: "Contact phone", value: (row: (typeof cases)[number]) => row.contact_phone }]
+        : []),
       { label: "Subjects", value: (row) => (row.subjects ?? []).join("; ") },
       { label: "Student level", value: (row) => row.student_level },
       { label: "District", value: (row) => row.district ?? "" },
@@ -531,6 +537,32 @@ function AdminCases() {
                       </Button>
                     ) : null}
                   </div>
+                </div>
+                {/* #816 AC-55-4: the four work queues the desk actually runs. */}
+                <div className="flex flex-wrap items-center gap-2">
+                  {CASE_QUEUES.map((queue) => (
+                    <Button
+                      key={queue}
+                      size="sm"
+                      variant={filters.queue === queue ? "secondary" : "outline"}
+                      aria-pressed={filters.queue === queue}
+                      onClick={() => setFilters({ queue })}
+                      className="h-9 border-[color:var(--ink)]/15 bg-[color:var(--surface)] px-3 text-sm font-normal"
+                    >
+                      {t(
+                        queue === "all"
+                          ? "caseDesk.queue_all"
+                          : queue === "unpaid_admin_fee"
+                            ? "caseDesk.queue_unpaid_admin_fee"
+                            : queue === "waiting_intro"
+                              ? "caseDesk.queue_waiting_intro"
+                              : queue === "waiting_l1"
+                                ? "caseDesk.queue_waiting_l1"
+                                : "caseDesk.queue_waiting_l2",
+                        { defaultValue: queue },
+                      )}
+                    </Button>
+                  ))}
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
                   <Select

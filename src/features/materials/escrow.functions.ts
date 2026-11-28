@@ -6,6 +6,7 @@ import { requireAccountActive } from "@/lib/account-status-enforcement";
 import { asAdminDb, type AdminDb } from "@/features/materials/storage-helpers";
 import {
   canOpenDispute,
+  computeSellerReplyDueAt,
   disputeRefundTarget,
   validateDisputeDecision,
   disputeRejectTarget,
@@ -14,6 +15,7 @@ import {
   splitRefundMoney,
   validateDisputeRefundAmount,
   HOLD_HISTORY_STATUSES,
+  OPEN_DISPUTE_STATUSES,
 } from "@/features/materials/lifecycle";
 
 /**
@@ -168,8 +170,9 @@ export const openOrderDispute = createServerFn({ method: "POST" })
         buyer_account_id: string;
         dispute_status: string | null;
         hold_until: string | null;
+        hold_expires_at: string | null;
       }>("material_orders")
-      .select("id, status, buyer_account_id, dispute_status, hold_until")
+      .select("id, status, buyer_account_id, dispute_status, hold_until, hold_expires_at")
       .eq("id", data.orderId)
       .eq("buyer_account_id", context.userId)
       .maybeSingle();
@@ -178,8 +181,15 @@ export const openOrderDispute = createServerFn({ method: "POST" })
       throw new Error("The dispute window for this order has closed.");
     }
     // Belt-and-braces: an expired hold the sweep has not flipped yet is a
-    // closed window (refunds come from STILL-HELD funds only).
+    // closed window (refunds come from STILL-HELD funds only). The legacy
+    // rail uses hold_until; the #784 Stripe states use hold_expires_at.
     if (order.status === "held" && isHoldExpired(order.hold_until)) {
+      throw new Error("The dispute window for this order has closed.");
+    }
+    if (
+      (order.status === "paid_held" || order.status === "delivered_held") &&
+      isHoldExpired(order.hold_expires_at)
+    ) {
       throw new Error("The dispute window for this order has closed.");
     }
     if (order.dispute_status) {
@@ -208,15 +218,24 @@ export const openOrderDispute = createServerFn({ method: "POST" })
     // Same predicate+rowCount race guard: only flip a row still in the state
     // we validated (a concurrent buyer-confirm releasing the hold must win
     // over the dispute, not interleave into released + open dispute).
+    //
+    // #784 AC-543-4: on the Stripe hold states the dispute must actually
+    // FREEZE the order (status disputed_frozen) and start the 48h seller
+    // reply clock. The legacy held/delivered rows keep their status and only
+    // gain the due date.
+    const now = new Date();
+    const freezesOrder = order.status === "paid_held" || order.status === "delivered_held";
     const { count, error } = await db
       .from<never>("material_orders")
       .update(
         {
+          ...(freezesOrder ? { status: "disputed_frozen" } : {}),
           dispute_status: "open",
           dispute_reason: data.reason,
           dispute_detail: data.detail,
           dispute_evidence_path: evidencePath,
-          dispute_opened_at: new Date().toISOString(),
+          dispute_opened_at: now.toISOString(),
+          dispute_seller_reply_due_at: computeSellerReplyDueAt(now),
         },
         { count: "exact" },
       )
@@ -226,6 +245,50 @@ export const openOrderDispute = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     if ((count ?? 0) === 0) {
       throw new Error("The dispute window for this order has closed.");
+    }
+    return { ok: true };
+  });
+
+/**
+ * #784 AC-543-4: the seller of record confirms they have replied to the
+ * buyer's dispute. This completes the 48h clock without unfreezing the
+ * order: status stays disputed_frozen until staff decide. Only the order's
+ * tutor may call it, and only while the dispute is still 'open'.
+ */
+export const markSellerResponded = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth, requireAccountActive])
+  .inputValidator((data: unknown) => z.object({ orderId: z.string().uuid() }).parse(data))
+  .handler(async ({ data, context }) => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+
+    const { data: order } = await db
+      .from<{ id: string; tutor_id: string; dispute_status: string | null }>("material_orders")
+      .select("id, tutor_id, dispute_status")
+      .eq("id", data.orderId)
+      .maybeSingle();
+    if (!order) throw new Error("Order not found.");
+
+    const { data: tutor } = await db
+      .from<{ id: string }>("tutors")
+      .select("id")
+      .eq("user_id", context.userId)
+      .maybeSingle();
+    if (!tutor || tutor.id !== order.tutor_id) throw new Error("Forbidden");
+    if (order.dispute_status !== "open") {
+      throw new Error("No open dispute on this order.");
+    }
+
+    const now = new Date().toISOString();
+    const { count, error } = await db
+      .from<never>("material_orders")
+      .update({ dispute_status: "seller_responded", seller_responded_at: now }, { count: "exact" })
+      .eq("id", order.id)
+      .eq("dispute_status", "open")
+      .eq("tutor_id", tutor.id);
+    if (error) throw new Error(error.message);
+    if ((count ?? 0) === 0) {
+      throw new Error("No open dispute on this order.");
     }
     return { ok: true };
   });
@@ -301,7 +364,10 @@ export const decideOrderDispute = createServerFn({ method: "POST" })
       .eq("id", data.orderId)
       .maybeSingle();
     if (!order) throw new Error("Order not found.");
-    if (order.dispute_status !== "open") {
+    // #784 AC-543-4: a seller reply keeps the dispute undecided, so staff
+    // must still be able to rule on 'seller_responded' (and on the legacy
+    // 'open' state).
+    if (order.dispute_status !== "open" && order.dispute_status !== "seller_responded") {
       throw new Error("No open dispute on this order.");
     }
 
@@ -334,7 +400,7 @@ export const decideOrderDispute = createServerFn({ method: "POST" })
         )
         .eq("id", order.id)
         .eq("status", order.status)
-        .eq("dispute_status", "open");
+        .in("dispute_status", [...OPEN_DISPUTE_STATUSES]);
       if (error) throw new Error(error.message);
       if ((count ?? 0) === 0) {
         throw new Error("A dispute was already decided on this order.");
@@ -356,9 +422,9 @@ export const decideOrderDispute = createServerFn({ method: "POST" })
       throw new Error(`Order in status "${order.status}" cannot resolve a dispute.`);
     }
     const update =
-      target === "released"
+      target === "released" || target === "completed_released"
         ? {
-            status: "released",
+            status: target,
             released_at: now,
             released_reason: "dispute_rejected",
             dispute_status: "rejected",
@@ -378,7 +444,7 @@ export const decideOrderDispute = createServerFn({ method: "POST" })
       .update(update, { count: "exact" })
       .eq("id", order.id)
       .eq("status", order.status)
-      .eq("dispute_status", "open");
+      .in("dispute_status", [...OPEN_DISPUTE_STATUSES]);
     if (error) throw new Error(error.message);
     if ((count ?? 0) === 0) {
       throw new Error("A dispute was already decided on this order.");

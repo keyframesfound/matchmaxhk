@@ -800,6 +800,16 @@ export const feeMarkPaid = createServerFn({ method: "POST" })
           },
           context.userId,
         );
+        // #428 Phase 1: the intro group opens on the same transition.
+        await logFunnelEvent(
+          db,
+          {
+            case_id: introCase.id,
+            tutor_id: introCase.matched_tutor_id,
+            event_type: "intro_group_opened",
+          },
+          context.userId,
+        );
       }
     } catch (introError) {
       console.warn("[admin-desk] intro notification failed:", introError);
@@ -839,6 +849,42 @@ export const feeWaive = createServerFn({ method: "POST" })
 
     await insertAudit(db, fee.case_id, context.userId, null, "fee_waived", data.reason);
     await advanceSorCaseStatus(db, context.userId, fee.case_id, "waived");
+    return { ok: true };
+  });
+
+/**
+ * #816 AC-261-1/2: staff refund of a COLLECTED admin fee. Admin-only (not
+ * the day-to-day staff role) because it moves money; the ledger row keeps
+ * paid_at so a refund cannot be re-invoiced as new revenue. Rematch is still
+ * the first remedy — this is the recorded exception path, not an automatic
+ * Stripe refund.
+ */
+export const feeRefund = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((input: unknown) =>
+    z.object({ feeId: z.string().uuid(), reason: z.string().min(3).max(500) }).parse(input),
+  )
+  .handler(async ({ context, data }): Promise<{ ok: boolean }> => {
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const db = asAdminDb(supabaseAdmin);
+    await requireAdmin(db, context.userId);
+    const fee = (
+      await selectRows<{ case_id: string; status: FeeStatus }>(db, "case_fees", "case_id, status", [
+        { col: "id", op: "eq", value: data.feeId },
+      ])
+    )[0];
+    if (!fee) throw new Error("FEE_NOT_FOUND");
+    if (fee.status !== "paid") throw new Error("FEE_NOT_PAID");
+
+    const { error, count } = await db
+      .from<Row>("case_fees")
+      .update({ status: "refunded", waive_reason: data.reason }, { count: "exact" })
+      .eq("id", data.feeId)
+      .eq("status", "paid");
+    if (error) throw new Error(error.message);
+    if ((count ?? 0) === 0) throw new Error("FEE_NOT_PAID");
+
+    await insertAudit(db, fee.case_id, context.userId, null, "fee_refunded", data.reason);
     return { ok: true };
   });
 

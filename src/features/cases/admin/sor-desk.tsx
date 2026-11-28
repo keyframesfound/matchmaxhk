@@ -27,6 +27,7 @@ import {
   createSorCase,
   feeInvoiceCustom,
   feeMarkPaid,
+  feeRefund,
   feeWaive,
   flagCase,
   getDeskCase,
@@ -132,6 +133,15 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
     mutationFn: (feeId: string) => feeWaive({ data: { feeId, reason: reason || "—" } }),
     onSuccess: () => {
       toast.success(t("sor.admin_fee_waived"));
+      setReason("");
+      invalidate();
+    },
+    onError: (e) => toast.error(e.message),
+  });
+  const refund = useMutation({
+    mutationFn: (feeId: string) => feeRefund({ data: { feeId, reason: reason || "—" } }),
+    onSuccess: () => {
+      toast.success(t("sor.admin_fee_refunded"));
       setReason("");
       invalidate();
     },
@@ -341,6 +351,16 @@ export function SorCasePanel({ caseId }: { caseId: string }) {
                     {t("sor.admin_waive")}
                   </Button>
                 </>
+              )}
+              {openFee.status === "paid" && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  disabled={refund.isPending}
+                  onClick={() => refund.mutate(openFee.id)}
+                >
+                  {t("sor.admin_refund")}
+                </Button>
               )}
             </div>
           ) : (

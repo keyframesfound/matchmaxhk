@@ -14,6 +14,7 @@ import { toast } from "sonner";
 
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { LESSONS_ANCHOR_ID } from "@/features/cases/calendar-anchors";
 import { confirmState, type CalendarSummary } from "@/features/cases/calendar-hub";
 import { getMyCalendar } from "@/features/cases/calendar-hub.functions";
 import { CaseDrawer } from "@/features/cases/case-manager/case-drawer";
@@ -51,7 +52,7 @@ export const Route = createFileRoute("/_authenticated/calendar")({
     return tab === "overview" ? { case: code } : { case: code, tab };
   },
   head: () => ({
-    meta: [{ title: "Case Manager | MatchMax" }, { name: "robots", content: "noindex" }],
+    meta: [{ title: "Calendar | MatchMax" }, { name: "robots", content: "noindex" }],
   }),
   component: CalendarPage,
 });
@@ -154,7 +155,7 @@ function SummarySection({
       {role === "tutor" ? (
         <Link
           to="/dashboard"
-          hash="lessons"
+          hash={LESSONS_ANCHOR_ID}
           className="inline-block text-sm font-semibold text-[color:var(--brand-link)] hover:underline"
         >
           {t("calendar_hub.open_tutor")}

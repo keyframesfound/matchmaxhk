@@ -25,6 +25,7 @@ import { Button } from "@/components/ui/button";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { useAuth } from "@/features/auth/useAuth";
+import { LESSONS_ANCHOR_ID } from "@/features/cases/calendar-anchors";
 import { SuggestedActionsSection } from "@/features/dashboard/action-cards";
 import { TutorStatusSplitBanner } from "@/features/tutors/split-status-banner";
 import { AccountSection } from "@/features/settings/sections/account-section";
@@ -109,7 +110,9 @@ function SafetyTab(props: SettingsSectionProps) {
  */
 function LessonsTab(_props: SettingsSectionProps) {
   return (
-    <div className="space-y-6">
+    // #828: the Calendar hub deep-links here with #lessons; keep the id in sync
+    // via LESSONS_ANCHOR_ID so the hash has a target to land on.
+    <div id={LESSONS_ANCHOR_ID} className="space-y-6">
       <TutorCasesSection />
       <TutorWeekView />
     </div>

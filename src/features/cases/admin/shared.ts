@@ -49,6 +49,8 @@ export type CaseRow = {
   matched_at: string | null;
   fee_collected_at: string | null;
   fee_amount_cents: number | null;
+  /** #816 AC-55-4: SoR milestone; granted to authenticated and safe to read. */
+  sor_status?: string | null;
   tags: string[];
   source: string;
   /**
@@ -233,4 +235,4 @@ export function caseBudgetHkdBounds(
  * Shared with findCasesByTutorCode (#55) so both surfaces stay in lockstep.
  */
 export const ADMIN_CASE_SELECT_COLUMNS =
-  "case_type, organisation_id, id, case_code, title, description, subjects, exam_system, student_level, student_grade_current, student_school, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, district, mode, sessions_per_week, session_length_minutes, schedule_note, start_timing, preferred_gender, who_for, student_gender, language_of_instruction, urgency, budget_min, budget_max, budget_currency, budget_min_hkd, budget_max_hkd, contact_name, contact_phone, status, priority_tier, desk_language, matched_tutor_id, matched_at, fee_collected_at, fee_amount_cents, tags, source, last_contacted_at, board_published_at, compliance_triage, compliance_note, is_short_case, scheduled_lesson_count, created_at, updated_at";
+  "case_type, organisation_id, id, case_code, title, description, subjects, exam_system, student_level, student_grade_current, student_school, academic_tier, uni_field, uni_name, uni_program, uni_course_codes, kindergarten_focus, district, mode, sessions_per_week, session_length_minutes, schedule_note, start_timing, preferred_gender, who_for, student_gender, language_of_instruction, urgency, budget_min, budget_max, budget_currency, budget_min_hkd, budget_max_hkd, contact_name, contact_phone, status, priority_tier, desk_language, matched_tutor_id, matched_at, fee_collected_at, fee_amount_cents, sor_status, tags, source, last_contacted_at, board_published_at, compliance_triage, compliance_note, is_short_case, scheduled_lesson_count, created_at, updated_at";

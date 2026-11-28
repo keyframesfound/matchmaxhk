@@ -307,6 +307,11 @@
     "overdue_admin_fee_block": "請先結清已完成個案之行政費（逾期未繳逾 72 小時），以解鎖申請新學生個案。現有個案的教學與管理不受影響。"
   },
   "caseDesk": {
+    "queue_all": "全部隊列",
+    "queue_unpaid_admin_fee": "未付行政費",
+    "queue_waiting_intro": "待發簡介",
+    "queue_waiting_l1": "待上第一堂",
+    "queue_waiting_l2": "待上第二堂",
     "tutor_code_label": "導師編號",
     "tutor_code_placeholder": "輸入導師編號搜尋…",
     "matched_tutor_label": "配對導師",
@@ -2122,7 +2127,6 @@
     "legal_checkbox": "本人確認擁有此教材或持有出售的書面同意，且其不在禁售清單（/guide/notes）之內。本人授權 MatchMax 出售：家長以 FPS 付款予 MatchMax，MatchMax 保留 20%，本人的淨額於每月結算時以 FPS 支付。本人同意就任何第三方版權申索向 MatchMax 作出彌償。",
     "upload_button": "上傳並產生預覽",
     "upload_success": "上傳完成——浮水印預覽已產生。",
-    "upload_not_verified": "只有持已核實（Tier 2）徽章的導師可率先上載溫習教材。",
     "upload_requires_login": "請以已核實導師帳戶登入後上傳溫習教材。",
     "my_listings_title": "我的溫習教材",
     "listing_pending": "待管理員審核",
@@ -3662,6 +3666,8 @@
     "admin_due": "到期",
     "admin_mark_paid": "標記已繳",
     "admin_waive": "豁免",
+    "admin_refund": "退款",
+    "admin_fee_refunded": "行政費已退款",
     "admin_no_open_fee": "沒有未完成費用",
     "admin_multiplier": "倍數",
     "admin_custom_reason": "自訂開單原因",

@@ -9,7 +9,7 @@ import { z } from "zod";
 
 import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
-import { requireAdmin, selectRows, type Row } from "@/features/cases/desk-db";
+import { requireDeskStaff, selectRows, type Row } from "@/features/cases/desk-db";
 import { DECLINE_REASONS, GROUP_SIZES } from "@/features/cases/cockpit";
 
 /** Pins per subject: enough for a wave of 3 plus spares. */
@@ -41,7 +41,7 @@ export type CockpitData = {
 async function adminDb(userId: string) {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   const db = asAdminDb(supabaseAdmin);
-  await requireAdmin(db, userId);
+  await requireDeskStaff(db, userId);
   return db;
 }
 

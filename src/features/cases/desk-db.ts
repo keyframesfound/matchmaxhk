@@ -112,7 +112,9 @@ export async function requireAdmin(db: Db, userId: string): Promise<void> {
     const { data } = await db.rpc("has_role", { _user_id: userId, _role: role });
     if (data === true) return;
   }
-  throw new Error("FORBIDDEN");
+  // #825 AC-CS-7: carry the HTTP status so the server-fn transport answers
+  // 403 (not the generic 500 page) when a non-staff caller hits the desk.
+  throw Object.assign(new Error("FORBIDDEN"), { statusCode: 403 });
 }
 
 /** staff / admin / super_admin: the desk operations guard (see requireAdmin). */
@@ -121,7 +123,7 @@ export async function requireDeskStaff(db: Db, userId: string): Promise<void> {
     const { data } = await db.rpc("has_role", { _user_id: userId, _role: role });
     if (data === true) return;
   }
-  throw new Error("FORBIDDEN");
+  throw Object.assign(new Error("FORBIDDEN"), { statusCode: 403 });
 }
 
 export async function insertAudit(

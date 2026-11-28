@@ -18,8 +18,15 @@ import {
   HELP_ARTICLES,
   type HelpArticle,
 } from "@/features/help/content";
+import { localizedHelpArticleTitle, localizedHelpCategoryName } from "@/features/help/help-titles";
 import { cn } from "@/lib/utils";
-import { canonicalUrl, currentSeoLocale, localeLinks } from "@/features/i18n/seo";
+import {
+  canonicalUrl,
+  currentSeoLocale,
+  localeLinks,
+  normalizeLocale,
+  type SeoLocale,
+} from "@/features/i18n/seo";
 
 // Issue #500 (GLM review round 2): the redesign deleted these stub URLs, so
 // their indexed/bookmarked paths would hard-404. Each 301s to its successor
@@ -82,6 +89,13 @@ const DELETED_STUB_REDIRECTS: Record<string, { category: string; slug: string }>
 
 // Issue #500: the old handbook hub page folds into the tutor Help tab.
 // Old bookmarks to /help/tutor-guide/tutor-handbook land on the tutor index.
+
+/** Breadcrumb roots and title chrome render in head(), outside React and t(). */
+const HEAD_CHROME: Record<SeoLocale, { home: string; help: string }> = {
+  en: { home: "Home", help: "Help Centre" },
+  "zh-HK": { home: "首頁", help: "幫助中心" },
+  "zh-CN": { home: "主页", help: "帮助中心" },
+};
 export const Route = createFileRoute("/help/$category/$slug")({
   beforeLoad: ({ params }) => {
     if (params.category === "tutor-guide" && params.slug === "tutor-handbook") {
@@ -101,39 +115,39 @@ export const Route = createFileRoute("/help/$category/$slug")({
     if (!article) return { meta: [{ title: "Help Centre | MatchMax" }] };
     const path = `/help/${article.category}/${article.slug}`;
     const locale = currentSeoLocale();
-    // Help articles are authored in English only — frontmatter title, summary and
-    // body are single-source, so /zh and /cn serve identical prose with translated
-    // chrome. Declaring those as language alternates is what produced the
-    // "duplicate, Google chose different canonical" and "duplicate without
-    // user-selected canonical" clusters, so every non-English URL consolidates
-    // onto the English one instead. Revisit if the articles are ever translated.
-    const canonicalHref = canonicalUrl(path, "en");
+    const chrome = HEAD_CHROME[locale];
+    // #824: the title and category label are locale-aware, so each URL is
+    // self-canonical with its own hreflang set. Article bodies (and their
+    // summaries) are still English-only, so prose matches across locales.
+    const title = localizedHelpArticleTitle(article.title, article.slug, locale);
     const category = getHelpCategory(article.category);
-    // Breadcrumb names mirror what the page renders: category and article
-    // titles are authored in English, so only the trail roots are fixed copy.
+    const categoryName = category
+      ? localizedHelpCategoryName(category.name, category.slug, locale)
+      : undefined;
+    const canonicalHref = canonicalUrl(path, locale);
     const crumbTrail = [
-      { name: "Home", url: canonicalUrl("/") },
-      { name: "Help Centre", url: canonicalUrl("/help") },
-      ...(category ? [{ name: category.name, url: canonicalUrl("/help") }] : []),
-      { name: article.title, url: canonicalUrl(path) },
+      { name: chrome.home, url: canonicalUrl("/", locale) },
+      { name: chrome.help, url: canonicalUrl("/help", locale) },
+      ...(categoryName ? [{ name: categoryName, url: canonicalUrl("/help", locale) }] : []),
+      { name: title, url: canonicalHref },
     ];
     return {
       meta: [
-        { title: `${article.title} | MatchMax Help Centre` },
+        { title: `${title} | MatchMax ${chrome.help}` },
         { name: "description", content: article.summary },
         { name: "robots", content: article.status === "draft" ? "noindex" : "index, follow" },
-        { property: "og:title", content: `${article.title} | MatchMax Help Centre` },
+        { property: "og:title", content: `${title} | MatchMax ${chrome.help}` },
         { property: "og:description", content: article.summary },
         { property: "og:url", content: canonicalHref },
       ],
-      links: locale === "en" ? localeLinks(path) : [{ rel: "canonical", href: canonicalHref }],
+      links: localeLinks(path),
       scripts: [
         {
           type: "application/ld+json",
           children: JSON.stringify({
             "@context": "https://schema.org",
             "@type": "TechArticle",
-            headline: article.title,
+            headline: title,
             description: article.summary,
             author: { "@type": "Organization", name: "MatchMax Team" },
             publisher: {
@@ -141,11 +155,10 @@ export const Route = createFileRoute("/help/$category/$slug")({
               name: "MatchMax",
               url: "https://matchmax.hk",
             },
-            url: canonicalUrl(path),
+            url: canonicalHref,
             dateModified: article.updated,
-            // The article body itself is English on every locale, so the
-            // structured data must say so even when the chrome is Chinese.
-            inLanguage: "en",
+            // #824: the chrome (title, breadcrumbs) follows the URL locale.
+            inLanguage: locale,
           }),
         },
         {
@@ -275,13 +288,18 @@ function HelpSubHeaderSearch({ audience }: { audience?: "tutors" }) {
 }
 
 function HelpArticlePage() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.language);
   const params = Route.useParams();
   const supportHref = useSupportWhatsAppHref();
   const article = getHelpArticle(params.category, params.slug);
   if (!article) return null; // Guarded by beforeLoad; keeps narrowing for TS.
 
   const category = getHelpCategory(article.category);
+  const categoryName = category
+    ? localizedHelpCategoryName(category.name, category.slug, locale)
+    : undefined;
+  const title = localizedHelpArticleTitle(article.title, article.slug, locale);
   const toc = extractHelpToc(article.body);
   const related = HELP_ARTICLES.filter(
     (entry) =>
@@ -311,16 +329,16 @@ function HelpArticlePage() {
           <li aria-hidden="true">
             <ChevronRight className="h-3.5 w-3.5" />
           </li>
-          {category ? (
+          {categoryName ? (
             <>
-              <li className="whitespace-nowrap">{category.name}</li>
+              <li className="whitespace-nowrap">{categoryName}</li>
               <li aria-hidden="true">
                 <ChevronRight className="h-3.5 w-3.5" />
               </li>
             </>
           ) : null}
           <li aria-current="page" className="min-w-0 truncate font-semibold text-foreground">
-            {article.title}
+            {title}
           </li>
         </ol>
       </nav>
@@ -332,11 +350,11 @@ function HelpArticlePage() {
 
       <article id="top" className="mx-auto w-full max-w-3xl px-4 py-8 sm:px-6 sm:py-12">
         <header>
-          {category ? (
-            <p className="text-sm font-medium text-[color:var(--brand-link)]">{category.name}</p>
+          {categoryName ? (
+            <p className="text-sm font-medium text-[color:var(--brand-link)]">{categoryName}</p>
           ) : null}
           <h1 className="mt-2 text-balance text-3xl font-bold leading-tight tracking-tight text-foreground sm:text-4xl">
-            {article.title}
+            {title}
           </h1>
           <p className="mt-3 text-pretty text-base leading-7 text-muted-foreground sm:text-lg">
             {article.summary}
@@ -402,7 +420,7 @@ function HelpArticlePage() {
                 <li key={entry.slug} className={cn("py-3", index > 0 && "border-t border-border")}>
                   <HelpArticleLink article={entry} className="group block">
                     <span className="text-sm font-semibold leading-6 text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors group-hover:text-[color:var(--brand-link)] group-hover:decoration-[color:var(--brand-link)]">
-                      {entry.title}
+                      {localizedHelpArticleTitle(entry.title, entry.slug, locale)}
                     </span>
                   </HelpArticleLink>
                 </li>

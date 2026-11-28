@@ -203,10 +203,11 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
       contact_phone: string | null;
       managed: boolean | null;
       pro_bono_request: boolean | null;
+      admin_fee_waived: boolean | null;
     }>(
       db,
       "tutoring_cases",
-      "id, case_code, title, subjects, exam_system, district, lesson_mode, sor_status, is_short_case, scheduled_lesson_count, ended_by_parent_at, ended_by_tutor_at, contact_name, contact_phone, managed, pro_bono_request, created_at",
+      "id, case_code, title, subjects, exam_system, district, lesson_mode, sor_status, is_short_case, scheduled_lesson_count, ended_by_parent_at, ended_by_tutor_at, contact_name, contact_phone, managed, pro_bono_request, admin_fee_waived, created_at",
       [{ col: "matched_tutor_id", op: "eq", value: tutorId }],
       { col: "created_at", asc: false, limit: 100 },
     );
@@ -321,12 +322,14 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
       }
     }
 
-    return mine.map((c) => {
+    const rows = mine.map((c) => {
       const revealGate = canRevealParentContact({
         isCaseParty: true,
         caseClosed: c.sor_status === "closed" || c.sor_status === "replaced",
         openFlagTypes: openFlagsByCase.get(c.id) ?? [],
-        introFeePaid: openFeeByCase.get(c.id)?.status === "paid",
+        // #783 AC-737-1: a BYOS case has no intro fee by design, so the
+        // waived flag is what unlocks the contact the two parties already have.
+        introFeePaid: openFeeByCase.get(c.id)?.status === "paid" || c.admin_fee_waived === true,
       });
       // #529: the lesson location / link is part of what a matched tutor
       // accepted, so only a safety hold or an ended case hides it.
@@ -384,6 +387,13 @@ export const getMyTutorCases = createServerFn({ method: "POST" })
         ),
       };
     });
+    // #816 AC-262-1: every revealed parent phone is an audited desk view.
+    for (const row of rows) {
+      if (row.parent_contact.revealed && row.parent_contact.phone) {
+        await insertAudit(db, row.id, context.userId, "phone_viewed", "tutor viewed parent phone");
+      }
+    }
+    return rows;
   });
 
 /**

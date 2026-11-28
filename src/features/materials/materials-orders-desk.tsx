@@ -408,10 +408,26 @@ export function MaterialsOrdersDesk() {
                           })}
                         </span>
                       )}
-                      {order.dispute_status === "open" && (
-                        <span className="mt-1 flex items-center gap-1 text-xs font-bold text-rose-700">
+                      {(order.dispute_status === "open" ||
+                        order.dispute_status === "seller_responded") && (
+                        <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs font-bold text-rose-700">
                           <AlertTriangle className="h-3 w-3" aria-hidden />
-                          {t("orders.desk_dispute_badge")}
+                          {order.dispute_status === "seller_responded"
+                            ? "Seller replied · 賣家已回覆"
+                            : t("orders.desk_dispute_badge")}
+                          {order.dispute_seller_reply_due_at && order.dispute_status === "open" ? (
+                            <span
+                              className={
+                                Date.parse(order.dispute_seller_reply_due_at) < Date.now()
+                                  ? "font-semibold text-rose-800 underline"
+                                  : "font-medium text-[color:var(--ink)]/60"
+                              }
+                            >
+                              Reply due{" "}
+                              {new Date(order.dispute_seller_reply_due_at).toLocaleString("en-HK")}{" "}
+                              · 回覆期限
+                            </span>
+                          ) : null}
                         </span>
                       )}
                       {order.dispute_status === "rejected" && (
@@ -431,7 +447,8 @@ export function MaterialsOrdersDesk() {
                         >
                           <Eye className="h-4 w-4" aria-hidden />
                         </Button>
-                        {order.dispute_status === "open" && (
+                        {(order.dispute_status === "open" ||
+                          order.dispute_status === "seller_responded") && (
                           <Button
                             variant="outline"
                             size="sm"

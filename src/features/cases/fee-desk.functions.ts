@@ -19,7 +19,7 @@ import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 import { asAdminDb } from "@/features/materials/storage-helpers";
 import {
   insertAudit,
-  requireAdmin,
+  requireDeskStaff,
   selectRows,
   selectRowsOrEmpty,
   type Db,
@@ -138,7 +138,7 @@ export const getCaseFeeScreenshotUrl = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ signedUrl: string }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
     const fee = (
       await selectRows<{ payment_screenshot_path: string | null }>(
         db,
@@ -175,7 +175,7 @@ export const rejectFeeScreenshot = createServerFn({ method: "POST" })
   .handler(async ({ context, data }): Promise<{ ok: true }> => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const db = asAdminDb(supabaseAdmin);
-    await requireAdmin(db, context.userId);
+    await requireDeskStaff(db, context.userId);
     const fee = (
       await selectRows<FeeRow>(
         db,

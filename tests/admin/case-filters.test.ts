@@ -173,6 +173,7 @@ describe("caseFiltersToSearch — default dropping + stable key order", () => {
       district: "Kowloon Tong",
       rateBand: "200-300",
       created: "30d",
+      queue: "waiting_l1",
     };
     const search = caseFiltersToSearch(filters);
     expect(Object.keys(search)).toEqual([
@@ -186,6 +187,7 @@ describe("caseFiltersToSearch — default dropping + stable key order", () => {
       "district",
       "rate",
       "created",
+      "queue",
     ]);
     expect(search).toEqual({
       q: "ib maths",
@@ -198,6 +200,7 @@ describe("caseFiltersToSearch — default dropping + stable key order", () => {
       district: "Kowloon Tong",
       rate: "200-300",
       created: "30d",
+      queue: "waiting_l1",
     });
   });
 });

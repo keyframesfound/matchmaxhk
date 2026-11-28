@@ -359,19 +359,56 @@ export function buildEscrowReleaseFields(input: {
   };
 }
 
-/** #429 dispute window: a dispute can be opened while delivered/held. */
+/**
+ * #429 dispute window: a dispute can be opened while delivered/held.
+ * #784 AC-543-4: the Stripe rail keeps the same window on its own states —
+ * paid_held (delivery is instant on card) and delivered_held.
+ */
 export function canOpenDispute(status: string): boolean {
-  return status === "delivered" || status === "held";
+  return (
+    status === "delivered" ||
+    status === "held" ||
+    status === "paid_held" ||
+    status === "delivered_held"
+  );
+}
+
+/** #784 AC-543-4: the seller gets 48h to reply once a dispute opens. */
+export const DISPUTE_SELLER_REPLY_HOURS = 48;
+
+/** dispute_seller_reply_due_at = opened_at + 48h, ISO (pure, testable). */
+export function computeSellerReplyDueAt(now: Date = new Date()): string {
+  return new Date(now.getTime() + DISPUTE_SELLER_REPLY_HOURS * 3_600_000).toISOString();
 }
 
 /**
- * #429 dispute decision targets. Staff refunds come FROM THE HOLD only, so
- * 'refund' requires 'held'. A reject on a held order releases it normally;
- * on a legacy (pre-escrow) delivered row it only closes the dispute. Null =
- * the action is illegal for this status.
+ * #784 AC-543-4: dispute_status values that freeze a release. An open
+ * dispute (or one the seller has replied to) must never auto-release; staff
+ * decide it. The lazy sweep reads this instead of a second table.
+ */
+export const OPEN_DISPUTE_STATUSES = ["open", "seller_responded"] as const;
+
+export function shouldSkipRelease(order: { dispute_status: string | null }): boolean {
+  return (OPEN_DISPUTE_STATUSES as readonly string[]).includes(order.dispute_status ?? "");
+}
+
+/**
+ * #429 dispute decision targets. Staff refunds come FROM THE HOLD only:
+ * legacy 'held' plus the #784 Stripe hold states (paid_held / delivered_held)
+ * and the frozen dispute state. A reject on a held order releases it
+ * normally; on a legacy (pre-escrow) delivered row it only closes the
+ * dispute. Null = the action is illegal for this status.
  */
 export function disputeRefundTarget(current: string): string | null {
-  return current === "held" ? "refunded_from_hold" : null;
+  if (
+    current === "held" ||
+    current === "paid_held" ||
+    current === "delivered_held" ||
+    current === "disputed_frozen"
+  ) {
+    return "refunded_from_hold";
+  }
+  return null;
 }
 
 /**
@@ -414,9 +451,16 @@ export function rubricFindsSellerFault(rubric: DisputeRubric): boolean {
   return DISPUTE_RUBRIC_ITEMS.some((item) => rubric[item] === "fail");
 }
 
-export function disputeRejectTarget(current: string): "released" | "delivered" | null {
+export function disputeRejectTarget(
+  current: string,
+): "released" | "delivered" | "completed_released" | null {
   if (current === "held") return "released";
   if (current === "delivered") return "delivered"; // legacy row: close the dispute only
+  // #784 AC-543-4: a rejected Stripe dispute must land on the released state
+  // the buyer's order page renders (completed_released), never plain released.
+  if (current === "paid_held" || current === "delivered_held" || current === "disputed_frozen") {
+    return "completed_released";
+  }
   return null;
 }
 

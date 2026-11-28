@@ -17,7 +17,9 @@ export const Route = createFileRoute("/become-a-tutor")({
           "zh-CN": "申请成为 MatchMax 香港导师，建立导师档案，设置科目和收费，让家长找到你。",
         },
       }),
-      { name: "robots", content: "index, follow" },
+      // This route renders null and redirects to /join client-side, so there is
+      // nothing here worth indexing — keep crawlers on the real page instead.
+      { name: "robots", content: "noindex, follow" },
       { property: "og:url", content: canonicalUrl("/become-a-tutor") },
     ],
     links: localeLinks("/become-a-tutor"),

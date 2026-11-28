@@ -31,6 +31,8 @@ export type AdminOrderRow = {
   dispute_reason: string | null;
   dispute_detail: string | null;
   dispute_opened_at: string | null;
+  dispute_seller_reply_due_at: string | null;
+  seller_responded_at: string | null;
   has_dispute_evidence: boolean;
 };
 
@@ -63,11 +65,13 @@ export const listMaterialOrdersAdmin = createServerFn({ method: "POST" })
           dispute_reason: string | null;
           dispute_detail: string | null;
           dispute_opened_at: string | null;
+          dispute_seller_reply_due_at: string | null;
+          seller_responded_at: string | null;
           dispute_evidence_path: string | null;
           digital_materials: { title: string } | null;
         }>("material_orders")
         .select(
-          "id, reference, gross_hkd, status, payment_screenshot_path, fps_reference, created_at, hold_until, released_at, refund_amount, dispute_status, dispute_reason, dispute_detail, dispute_opened_at, dispute_evidence_path, digital_materials(title)",
+          "id, reference, gross_hkd, status, payment_screenshot_path, fps_reference, created_at, hold_until, released_at, refund_amount, dispute_status, dispute_reason, dispute_detail, dispute_opened_at, dispute_seller_reply_due_at, seller_responded_at, dispute_evidence_path, digital_materials(title)",
         )
         // #784 §2.1: card orders live in the Stripe escrow states, which are
         // not the cashier's "held"/"released". Leaving them out made a paid
@@ -107,6 +111,8 @@ export const listMaterialOrdersAdmin = createServerFn({ method: "POST" })
         dispute_reason: row.dispute_reason,
         dispute_detail: row.dispute_detail,
         dispute_opened_at: row.dispute_opened_at,
+        dispute_seller_reply_due_at: row.dispute_seller_reply_due_at,
+        seller_responded_at: row.seller_responded_at,
         has_dispute_evidence: Boolean(row.dispute_evidence_path),
       }));
     }

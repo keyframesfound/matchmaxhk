@@ -36,7 +36,7 @@ import {
 import { sweepDueSessionLogs, type SessionLogRowT } from "@/features/cases/experience.functions";
 import { insertLessonLifecycleEvent } from "@/features/cases/bus.functions";
 import type { HoursLedgerRowT } from "@/features/hours/hours.functions";
-import { selectRowsOrEmpty } from "@/features/cases/desk-db";
+import { insertAudit as insertCaseAudit, selectRowsOrEmpty } from "@/features/cases/desk-db";
 import {
   matchedTutorCard,
   type MatchedTutorCardView,
@@ -73,10 +73,11 @@ async function myCase(db: Db, caseId: string, userId: string) {
     status: string;
     case_code: string | null;
     student_id: string | null;
+    admin_fee_waived: boolean | null;
   }>(
     db,
     "tutoring_cases",
-    "id, parent_id, matched_tutor_id, sor_status, status, case_code, student_id",
+    "id, parent_id, matched_tutor_id, sor_status, status, case_code, student_id, admin_fee_waived",
     [{ col: "id", op: "eq", value: caseId }],
   );
   const c = rows[0];
@@ -464,7 +465,9 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         isCaseParty: true,
         caseClosed: c.sor_status === "closed" || c.sor_status === "replaced",
         openFlagTypes: riskFlags.filter((f) => f.resolved_at === null).map((f) => f.flag_type),
-        introFeePaid: fees.some((f) => f.status === "paid"),
+        // #783 AC-737-1: BYOS cases have no intro fee; the waiver unlocks the
+        // contact both parties already had before joining MatchMax.
+        introFeePaid: fees.some((f) => f.status === "paid") || c.admin_fee_waived === true,
       });
       const tutorUserId = tutorRows[0]?.user_id ?? null;
       // Only read the phone when the gate is open, so it never leaves the DB otherwise.
@@ -478,6 +481,16 @@ export const getParentCaseDetail = createServerFn({ method: "POST" })
         { name: tutorRows[0]?.display_name ?? null, phone: phoneRows[0]?.phone ?? null },
         gate,
       );
+      // #816 AC-262-1: a phone reveal is an audited view (actor + case + time).
+      if (tutorContact.revealed && tutorContact.phone) {
+        await insertCaseAudit(
+          db,
+          c.id,
+          context.userId,
+          "phone_viewed",
+          "parent viewed tutor phone",
+        );
+      }
     }
     let myReviewStatus = mine?.status ?? null;
     // #794: one eligible completed lesson is the only publication condition.

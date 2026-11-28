@@ -17,9 +17,16 @@ import {
   type HelpAudience,
   type HelpArticle,
 } from "@/features/help/content";
+import { localizedHelpArticleTitle, localizedHelpCategoryName } from "@/features/help/help-titles";
 import { cn } from "@/lib/utils";
 
-import { canonicalUrl, currentSeoLocale, localeLinks, localizedMeta } from "@/features/i18n/seo";
+import {
+  canonicalUrl,
+  currentSeoLocale,
+  localeLinks,
+  localizedMeta,
+  normalizeLocale,
+} from "@/features/i18n/seo";
 import { spring } from "@/lib/motion-tokens";
 export const Route = createFileRoute("/help/")({
   // `q` prefills the search box when arriving from a sub-header search on a
@@ -151,6 +158,8 @@ function TopicCategoryCard({
   categorySlug: string;
   articles: HelpArticle[];
 }) {
+  const { i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.language);
   const category = getHelpCategory(categorySlug);
   if (!category) return null;
   const Icon = getHelpIcon(category.icon);
@@ -160,7 +169,7 @@ function TopicCategoryCard({
       <div className="flex items-center gap-3">
         <Icon className="h-5 w-5 shrink-0 text-[color:var(--brand-link)]" aria-hidden="true" />
         <h3 className="text-base font-bold leading-snug tracking-tight text-foreground">
-          {category.name}
+          {localizedHelpCategoryName(category.name, category.slug, locale)}
         </h3>
       </div>
       <ul className="mt-3">
@@ -168,7 +177,7 @@ function TopicCategoryCard({
           <li key={article.slug} className={cn("py-3", index > 0 && "border-t border-border")}>
             <HelpArticleLink article={article} className="group block">
               <span className="text-sm font-semibold leading-6 text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors group-hover:text-[color:var(--brand-link)] group-hover:decoration-[color:var(--brand-link)]">
-                {article.title}
+                {localizedHelpArticleTitle(article.title, article.slug, locale)}
               </span>
               <span className="mt-1 line-clamp-2 block text-sm leading-6 text-muted-foreground">
                 {article.summary}
@@ -182,7 +191,8 @@ function TopicCategoryCard({
 }
 
 function SearchResults({ query, results }: { query: string; results: HelpArticle[] }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const locale = normalizeLocale(i18n.language);
 
   return (
     <section className="mx-auto w-full max-w-[1600px] px-5 py-12 sm:px-8 lg:px-12">
@@ -196,7 +206,10 @@ function SearchResults({ query, results }: { query: string; results: HelpArticle
           </p>
           <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {results.map((article) => {
-              const categoryName = getHelpCategory(article.category)?.name;
+              const category = getHelpCategory(article.category);
+              const categoryName = category
+                ? localizedHelpCategoryName(category.name, category.slug, locale)
+                : undefined;
               return (
                 <HelpArticleLink
                   key={article.slug}
@@ -204,7 +217,7 @@ function SearchResults({ query, results }: { query: string; results: HelpArticle
                   className="group rounded-2xl border border-border bg-card p-5 transition-colors hover:border-[color:var(--foreground)]/25"
                 >
                   <span className="text-sm font-bold leading-snug tracking-tight text-foreground underline decoration-[color:var(--ink)]/20 underline-offset-4 transition-colors group-hover:text-[color:var(--brand-link)] group-hover:decoration-[color:var(--brand-link)]">
-                    {article.title}
+                    {localizedHelpArticleTitle(article.title, article.slug, locale)}
                   </span>
                   <span className="mt-2 line-clamp-2 block text-sm leading-6 text-muted-foreground">
                     {article.summary}
